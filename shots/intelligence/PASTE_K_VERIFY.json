@@ -1,0 +1,63 @@
+{
+  "paste": "K",
+  "status": "PASS",
+  "branch": "muse/packet-b-batch-2",
+  "authority": "shots/intelligence/PASTE_K_CONCEPT.md",
+  "amendment": 2,
+  "decision_log": {
+    "unplaced_lives": "CUT — every live is placed",
+    "stickers": "70/30 host/venue, test-mode money, ledger real, Opal 0%",
+    "unclaimed_escrow": "onboarding wedge",
+    "venue_verification": "maximum-security",
+    "sequencing": "wallet legal → sticker real → venue payouts → Opal Pay real"
+  },
+  "phases": {
+    "0_concept": {
+      "status": "PASS",
+      "file": "shots/intelligence/PASTE_K_CONCEPT.md",
+      "tip": "853df89d"
+    },
+    "V_venue_verification": {
+      "status": "PASS",
+      "items": ["V.1 allowlist+residential", "V.2 quarantine 7d", "V.3 presence reports", "V.4 rate limits", "V.5 report categories"]
+    },
+    "1_2_live_room": {
+      "status": "PASS",
+      "venue_id": "REQUIRED",
+      "location_sharing": "absent"
+    },
+    "2_2_go_live": {
+      "status": "PASS",
+      "skip_allowed": false,
+      "default": null,
+      "fe": "opalUi/LivesGoLivePanel.tsx + ?opal_lives=1"
+    },
+    "S_stickers": {
+      "status": "PASS",
+      "catalog": 6,
+      "split": "70/30",
+      "flag": "OPAL_STICKER_LIVE_MONEY",
+      "honesty": "Stickers use test credits for now."
+    },
+    "Q_opal_pay": {
+      "status": "PASS",
+      "qr": true,
+      "flag": "OPAL_PAY_LIVE_MONEY",
+      "nfc_build": false,
+      "max_payment_cents": 20000
+    },
+    "7_venue_maxing": {
+      "status": "PASS",
+      "items": ["7.5 contributors facts", "7.6 in-Opal rewards", "7.7 private streaks"]
+    }
+  },
+  "suite": {
+    "mix_paste_k_lives": "15/15 PASS",
+    "vitest_lives_go_live": "3/3 PASS"
+  },
+  "flags_default_off": {
+    "OPAL_STICKER_LIVE_MONEY": false,
+    "OPAL_PAY_LIVE_MONEY": false
+  },
+  "committed": false
+}

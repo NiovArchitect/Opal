@@ -3575,3 +3575,95 @@ export async function createCenterPlan(
   });
 }
 
+/** Paste K — Lives (placed-only), stickers, venue pay. */
+export type LivesGoLiveCopy = {
+  step: number;
+  prompt: string;
+  required: boolean;
+  skip_allowed: boolean;
+  default: null;
+  trade: string;
+  consequence_template: string;
+  reject_free_text: string;
+  residential_reject: string;
+};
+
+export async function getLivesGoLiveCopy(bearer?: string): Promise<LivesGoLiveCopy> {
+  return request("/api/v1/product/lives/go-live-copy", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function getLivesStickerCatalog(bearer?: string) {
+  return request<{
+    stickers: Array<{
+      key: string;
+      emoji: string;
+      label: string;
+      tier: number;
+      amount_cents: number;
+      test_mode: boolean;
+      honesty: string;
+    }>;
+    honesty: string;
+    split: { host_bps: number; venue_bps: number; opal_bps: number };
+    anti_mercenary: string;
+    test_mode_default: boolean;
+    live_money_flag: string;
+  }>("/api/v1/product/lives/stickers", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function postLivesGoLive(
+  attrs: { place_id: string; title?: string; name?: string },
+  bearer?: string,
+) {
+  return request<{
+    live_room: Record<string, unknown>;
+    consequence: string;
+    trade: string;
+    error?: string;
+    message?: string;
+  }>("/api/v1/product/lives/go-live", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function postLiveSticker(
+  liveId: string,
+  attrs: { sticker_key: string; idempotency_key: string; sender_name?: string },
+  bearer?: string,
+) {
+  return request<{
+    sticker: Record<string, unknown>;
+    display: Record<string, unknown>;
+    honesty: string;
+    test_mode: boolean;
+    live_money_flag: string;
+  }>(`/api/v1/product/lives/${encodeURIComponent(liveId)}/stickers`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function postVenuePay(
+  attrs: { token: string; amount_cents: number; idempotency_key: string },
+  bearer?: string,
+) {
+  return request<{
+    receipt: Record<string, unknown>;
+    honesty: string | null;
+    live_money_flag: string;
+  }>("/api/v1/product/venues/pay", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+

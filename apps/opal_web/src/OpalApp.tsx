@@ -272,6 +272,7 @@ import {
   writePersonContactMeta,
 } from "./opalUi/relationshipTypes";
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
+import { LivesGoLivePanel } from "./opalUi/LivesGoLivePanel";
 import { MemoryDetailSheet } from "./opalUi/MemoryDetailSheet";
 import { MemoryCommentsSheet } from "./opalUi/MemoryCommentsSheet";
 import { SaveToCollectionSheet } from "./opalUi/SaveToCollectionSheet";
@@ -7058,6 +7059,28 @@ export function OpalApp() {
             }}
           />
         ) : null}
+      </div>
+    );
+  }
+
+  // Paste K — Lives go-live proof surface (bypasses first-run so honesty copy is reachable).
+  if (
+    typeof window !== "undefined" &&
+    new URL(window.location.href).searchParams.get("opal_lives") === "1"
+  ) {
+    return (
+      <div
+        className="app app-futura"
+        data-testid="lives-go-live-shell"
+        data-member-nav="false"
+        style={{
+          minHeight: "100vh",
+          background: "rgba(8,12,24,0.96)",
+          color: "#f8fafc",
+          padding: 24,
+        }}
+      >
+        <LivesGoLivePanel />
       </div>
     );
   }

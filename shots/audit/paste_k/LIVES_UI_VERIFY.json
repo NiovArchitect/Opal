@@ -1,0 +1,13 @@
+{
+  "url": "http://127.0.0.1:5173/?opal_lives=1&opal_founder_seed=1",
+  "checks": {
+    "panel": true,
+    "prompt": "Where are you?",
+    "trade": "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
+    "noSkip": "Venue confirmation is required — there is no skip.",
+    "honesty": "Stickers use test credits for now.",
+    "antiMercenary": "Stickers are celebratory, never required. A live with zero stickers is complete.",
+    "emptyError": "Where are you?"
+  },
+  "status": "PASS"
+}
