@@ -58,6 +58,31 @@ describe("Paste W4 Phase 4 PlanComposer", () => {
   });
 });
 
+describe("Paste W5 Phase 4 PlanComposer tells the truth", () => {
+  it("orb is idle/working never ready; proposal echoes state; filament stays plan_forming", () => {
+    const composer = read("opalUi/PlanComposer.tsx");
+    const app = read("OpalApp.tsx");
+    const interop = read("opalUi/graphSurfaceInterop.ts");
+    const graphs = read("opalUi/GraphsHome.tsx");
+    expect(composer).toMatch(/mode=\{orbMode\}|mode="idle"|mode=\{"idle"\}/);
+    expect(composer).not.toMatch(/mode=["']ready["']/);
+    expect(composer).toMatch(/Forming · pending|forming/);
+    expect(composer).toMatch(/Here&apos;s the plan:|Here's the plan:/);
+    // User-visible copy only (comments may mention banned words as prohibitions).
+    expect(composer).not.toMatch(/>\s*(Ready|Locked|Happening)\s*</);
+    expect(composer).not.toMatch(/["']locked["']/);
+    expect(composer).not.toMatch(/Happening in|happening now/i);
+    expect(composer).toMatch(/buildPlanProposalSummary/);
+    expect(app).toMatch(/kind:\s*"plan_forming"/);
+    expect(app).toMatch(/sourceIdeaId/);
+    expect(app).toMatch(/createdPlans=\{createdPlanSurfaces\}/);
+    expect(interop).toMatch(/state:\s*"forming"/);
+    expect(interop).toMatch(/Forming · pending/);
+    expect(graphs).toMatch(/createdPlans/);
+    expect(graphs).toMatch(/createdPlanGraphOverlay/);
+  });
+});
+
 describe("Paste W4 Phase 5 notifications / composer / New / add-someone / detail", () => {
   it("Attention empty copy replaces not found", () => {
     const act = read("opalUi/ActivityDestination.tsx");
@@ -68,13 +93,14 @@ describe("Paste W4 Phase 5 notifications / composer / New / add-someone / detail
     expect(client).toMatch(/Nothing yet\. When your people move/);
   });
 
-  it("Home composer exposes Post and Story", () => {
+  it("Home story + opens Post|Story chooser (no inline feed composer)", () => {
     const home = read("opalUi/GraphSocialHome.tsx");
-    expect(home).toMatch(/gsh-home-composer/);
+    expect(home).toMatch(/gsh-compose-chooser/);
     expect(home).toMatch(/gsh-compose-post/);
     expect(home).toMatch(/gsh-compose-story/);
     expect(home).toMatch(/gsh-compose-post[\s\S]{0,200}Post/);
     expect(home).toMatch(/gsh-compose-story[\s\S]{0,200}Story/);
+    expect(home).not.toMatch(/gsh-home-composer/);
   });
 
   it("Graphs New menu offers plan trip idea", () => {

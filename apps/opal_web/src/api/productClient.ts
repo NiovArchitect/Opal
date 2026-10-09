@@ -696,8 +696,13 @@ function humanError(code: string | undefined, fallback: string): string {
       return "Could not complete that step. Refresh and try again.";
     case "not_found":
       return "Nothing yet. When your people move, you'll see it here.";
-    default:
+    default: {
+      // Never paint HTTP "Not Found" / raw not-found into product UI.
+      if (/not\s*found/i.test(fallback || "")) {
+        return "Nothing yet. When your people move, you'll see it here.";
+      }
       return fallback || "Something went wrong. Try again.";
+    }
   }
 }
 

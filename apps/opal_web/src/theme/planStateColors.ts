@@ -53,7 +53,7 @@ export function planStateColor(state: string | null | undefined): string {
 
 export function planStateAttr(state: string | null | undefined): PlanDisplayState {
   const s = (state || "").toLowerCase();
-  if (s === "locked" || s === "confirmed") return "locked";
+  if (s === "locked" || s === "confirmed" || s === "ready") return "locked";
   if (s === "happening" || s === "live") return "happening";
   if (s === "pending" || s === "waiting" || s === "waiting_on") return "pending";
   if (s === "past" || s === "settled" || s === "ended") return "past";

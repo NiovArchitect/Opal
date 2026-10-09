@@ -73,7 +73,7 @@ type Props = {
   onForward?: (cardId: string) => void;
   onOpenStory?: (story: FounderStoryItem) => void;
   onCreateStory?: () => void;
-  /** Paste W4 5.2 — Home composer Post option (Story stays separate). */
+  /** Paste W5 — Post from story + chooser (Story stays separate). */
   onCreatePost?: () => void;
   onOpenDiscovery?: (cardId: string) => void;
   productionOwners?: ProductionHomeOwners | null;
@@ -1046,6 +1046,7 @@ export function GraphSocialHome({
   const [localFollowed, setLocalFollowed] = useState<Set<string>>(() => new Set());
   const [localSaved, setLocalSaved] = useState<Set<string>>(() => new Set());
   const [gateNote, setGateNote] = useState<string | null>(null);
+  const [composeChooserOpen, setComposeChooserOpen] = useState(false);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -1118,6 +1119,30 @@ export function GraphSocialHome({
       /* private */
     }
   }, [scrollTopToken, reduce]);
+
+  useEffect(() => {
+    if (!composeChooserOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setComposeChooserOpen(false);
+    };
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (
+        t?.closest?.(
+          "[data-testid='gsh-compose-chooser'], [data-testid='gsh-story-create']",
+        )
+      ) {
+        return;
+      }
+      setComposeChooserOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", onPointer);
+    };
+  }, [composeChooserOpen]);
 
   const persistScrollThen = (fn?: () => void) => {
     const el = scrollRef.current;
@@ -1295,9 +1320,10 @@ export function GraphSocialHome({
               data-testid="gsh-story-create"
               data-mode="active"
               aria-label="Your Story, Add"
+              aria-expanded={composeChooserOpen}
               onClick={() => {
                 persistScrollThen();
-                onCreateStory?.();
+                setComposeChooserOpen((o) => !o);
               }}
             >
               <span className="gsh-story-avatar gsh-story-self-avatar">
@@ -1308,6 +1334,42 @@ export function GraphSocialHome({
               </span>
               <span className="gsh-story-name">Your story</span>
               <span className="gsh-story-when gsh-story-add-label">Add</span>
+              {composeChooserOpen ? (
+                <div
+                  className="gsh-compose-chooser"
+                  role="menu"
+                  data-testid="gsh-compose-chooser"
+                  aria-label="Compose"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="gsh-compose-chooser-btn is-post"
+                    data-testid="gsh-compose-post"
+                    onClick={() => {
+                      setComposeChooserOpen(false);
+                      persistScrollThen();
+                      onCreatePost?.();
+                    }}
+                  >
+                    Post
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="gsh-compose-chooser-btn is-story"
+                    data-testid="gsh-compose-story"
+                    onClick={() => {
+                      setComposeChooserOpen(false);
+                      persistScrollThen();
+                      onCreateStory?.();
+                    }}
+                  >
+                    Story
+                  </button>
+                </div>
+              ) : null}
             </button>
             {homeStories.map((s) => (
               <button
@@ -1360,35 +1422,6 @@ export function GraphSocialHome({
       ) : null}
 
       <div className="gsh-feed" data-testid="gsh-feed" data-node-ref="145:46">
-        <div
-          className="gsh-home-composer"
-          data-testid="gsh-home-composer"
-          role="group"
-          aria-label="Compose"
-        >
-          <button
-            type="button"
-            className="gsh-home-composer-btn is-post"
-            data-testid="gsh-compose-post"
-            onClick={() => {
-              persistScrollThen();
-              onCreatePost?.();
-            }}
-          >
-            Post
-          </button>
-          <button
-            type="button"
-            className="gsh-home-composer-btn is-story"
-            data-testid="gsh-compose-story"
-            onClick={() => {
-              persistScrollThen();
-              onCreateStory?.();
-            }}
-          >
-            Story
-          </button>
-        </div>
         {cards.map((card, i) => (
           <FeedCard
             key={card.id}
