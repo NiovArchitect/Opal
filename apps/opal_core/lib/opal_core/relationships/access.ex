@@ -12,6 +12,7 @@ defmodule OpalCore.Relationships.Access do
   alias OpalCore.Relationships
   alias OpalCore.Relationships.Behavior
   alias OpalCore.SocialFlow.{PlanParticipant, SharedPlan}
+  alias OpalCore.SocialMemory.{PersonMemory, Routine}
 
   @inner ~w(spouse partner family close_friend)
   @work ~w(business)
@@ -155,6 +156,110 @@ defmodule OpalCore.Relationships.Access do
   def nudge_depth(_), do: %{birthday: false, gift_suggestions: false, routine_tracking: false, depth: :none}
 
   @doc """
+  Cardinality-aware person prompt slice (N2).
+
+  `:one_to_one` — spouse/partner/inner keeps vibe, routines/rhythms, open loops.
+  `:group` — strips intimate depth to shared-safe summary (no vibe/routines/loops).
+  """
+  def prompt_person_context(owner_id, person_id, mode)
+      when is_binary(owner_id) and is_binary(person_id) and mode in [:one_to_one, :group] do
+    type = Relationships.get_type(owner_id, person_id)
+    depth = nudge_depth(type || "acquaintance")
+
+    pm =
+      Repo.get_by(PersonMemory, account_id: owner_id, person_id: person_id)
+
+    routines =
+      from(r in Routine,
+        where:
+          r.account_id == ^owner_id and r.person_id == ^person_id and r.archived == false and
+            r.confidence >= 0.6,
+        select: %{activity: r.activity, cadence: r.cadence, day_of_week: r.day_of_week}
+      )
+      |> Repo.all()
+
+    open_loops = (pm && pm.open_loops) || []
+    facts = (pm && pm.known_facts) || %{}
+    vibe = fact_value(facts, "vibe") || fact_value(facts, "vibe_profile")
+    rhythms = fact_value(facts, "rhythms") || fact_value(facts, "life_rhythm")
+
+    case mode do
+      :one_to_one ->
+        %{
+          "mode" => "one_to_one",
+          "person_id" => person_id,
+          "relationship_type" => type,
+          "depth" => depth.depth,
+          "vibe" => vibe,
+          "routines" => routines,
+          "rhythms" => rhythms,
+          "open_loops" => open_loops,
+          "known_facts" => facts,
+          "includes_intimate_depth" => depth.depth in [:rich, :standard]
+        }
+
+      :group ->
+        %{
+          "mode" => "group",
+          "person_id" => person_id,
+          "relationship_type" => type,
+          "depth" => :shared_safe,
+          "vibe" => nil,
+          "routines" => [],
+          "rhythms" => nil,
+          "open_loops" => [],
+          "known_facts" => %{},
+          "includes_intimate_depth" => false,
+          "shared_summary" => "participant in group plan"
+        }
+    end
+  end
+
+  def prompt_person_context(_, _, _), do: %{"mode" => "none", "includes_intimate_depth" => false}
+
+  @doc "Strip intimate person depth from a PromptBuilder recall map for group chats."
+  def strip_group_person_depth(recall) when is_map(recall) do
+    people =
+      (recall[:people] || recall["people"] || [])
+      |> Enum.map(fn p ->
+        p
+        |> Map.put(:open_loops, [])
+        |> Map.put("open_loops", [])
+        |> Map.put(:known_facts, strip_intimate_facts(p[:known_facts] || p["known_facts"] || %{}))
+        |> Map.put("known_facts", strip_intimate_facts(p[:known_facts] || p["known_facts"] || %{}))
+      end)
+
+    recall
+    |> Map.put(:people, people)
+    |> Map.put(:routine_overlap_notes, [])
+    |> Map.put("routine_overlap_notes", [])
+    |> Map.put(:open_loops_expanded, [])
+  end
+
+  def strip_group_person_depth(other), do: other
+
+  defp strip_intimate_facts(facts) when is_map(facts) do
+    facts
+    |> Enum.reject(fn {k, _} ->
+      key = String.downcase(to_string(k))
+      key in ~w(vibe vibe_profile rhythms life_rhythm private_note therapy) or
+        String.contains?(key, "secret")
+    end)
+    |> Map.new()
+  end
+
+  defp fact_value(facts, key) when is_map(facts) do
+    case Map.get(facts, key) do
+      %{"value" => v} -> v
+      %{value: v} -> v
+      v when is_binary(v) -> v
+      _ -> nil
+    end
+  end
+
+  defp fact_value(_, _), do: nil
+
+  @doc """
   Asymmetry safe contract (0.5 / A7): what viewer may know about subject.
 
   Never includes subject's label for viewer. Never includes "they think of you as".
@@ -186,7 +291,6 @@ defmodule OpalCore.Relationships.Access do
     align = plan.alignment || %{}
     source = plan.source || ""
     title = String.downcase(plan.title || "")
-    loc = String.downcase(plan.location || "")
 
     cond do
       align["scope"] in ["work", :work] or align["work"] == true -> :work

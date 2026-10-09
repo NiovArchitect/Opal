@@ -23,6 +23,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     TravelMode,
     WorldEnrichment
   }
+  alias OpalCore.Relationships.Access
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{GroupDecisionState, RelationshipBehaviorProfile, Scoped}
@@ -76,6 +77,14 @@ defmodule OpalCore.Intelligence.PromptBuilder do
           expand_recall(scoped, recall)
         else
           recall
+        end
+
+      # Cardinality N2 — group chats strip vibe/routines/open-loop intimacy
+      recall =
+        if group_conversation?(conversation_id) do
+          Access.strip_group_person_depth(recall)
+        else
+          attach_one_to_one_routines(scoped.account_id, recall)
         end
 
       # Shared facts only — strip private user_commitments before prompt injection
@@ -198,6 +207,55 @@ defmodule OpalCore.Intelligence.PromptBuilder do
         Enum.flat_map(recall.people || [], fn p -> p[:open_loops] || p["open_loops"] || [] end)
     })
   end
+
+  defp group_conversation?(conversation_id) when is_binary(conversation_id) do
+    import Ecto.Query
+
+    count =
+      from(m in OpalCore.Messaging.ConversationMember,
+        where: m.conversation_id == ^conversation_id,
+        select: count(m.id)
+      )
+      |> Repo.one()
+
+    is_integer(count) and count >= 3
+  rescue
+    _ -> false
+  end
+
+  defp group_conversation?(_), do: false
+
+  defp attach_one_to_one_routines(account_id, recall) when is_binary(account_id) do
+    import Ecto.Query
+    alias OpalCore.SocialMemory.Routine
+
+    person_ids =
+      (recall.people || [])
+      |> Enum.map(fn p -> p[:person_id] || p["person_id"] end)
+      |> Enum.filter(&is_binary/1)
+
+    notes =
+      if person_ids == [] do
+        []
+      else
+        from(r in Routine,
+          where:
+            r.account_id == ^account_id and r.person_id in ^person_ids and r.archived == false and
+              r.confidence >= 0.6,
+          select: {r.activity, r.cadence, r.day_of_week}
+        )
+        |> Repo.all()
+        |> Enum.map(fn {activity, cadence, dow} ->
+          "rhythm: #{activity} (#{cadence} dow=#{dow})"
+        end)
+      end
+
+    Map.put(recall, :routine_overlap_notes, notes)
+  rescue
+    _ -> recall
+  end
+
+  defp attach_one_to_one_routines(_, recall), do: recall
 
   @how_to_be_system """
   Adapt your warmth, directness, and initiative to each relationship. Never use the same

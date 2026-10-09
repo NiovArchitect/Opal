@@ -13,6 +13,15 @@ defmodule OpalCore.Intelligence.AttentionBudget do
 
   `weekly_briefing` does NOT count against daily budget but still respects quiet hours
   (defer until 08:00 local). Denied requests are logged, never tabled.
+
+  ## Batched nudge budget (Paste I Cardinality — product law)
+
+  One AttentionBudget slot per *batch delivery to the owner*
+  (one Center card listing N person nudges = **1 unit**), NOT one per person.
+
+  Use `grant_batch/3` when surfacing a multi-person nudge card. Individual
+  `time_critical` items still break through separately via `request_slot/4`
+  (they do not count against the daily budget, same as mediation).
   """
 
   require Logger
@@ -95,6 +104,92 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   end
 
   def request_slot(_, _, _, _), do: {:denied, :invalid}
+
+  @doc """
+  Grant ONE counting slot for a batch of person nudges delivered as a single
+  Center card to the owner.
+
+  Product law: N typed person rows on one batch card = 1 `used_today` unit.
+  Items marked `time_critical` are split out and granted via `request_slot/4`
+  (breakthrough; does not count against daily budget).
+
+  `items` — list of maps with optional `:person_id`, `:topic`, `:priority`,
+  `:relationship_type`, `:provenance`.
+
+  Returns `{:granted, %{slot_id, batch_size, breakthroughs}}` |
+  `{:denied, reason}`.
+  """
+  def grant_batch(account_id, surface, items, opts \\ [])
+
+  def grant_batch(account_id, surface, items, opts)
+      when is_binary(account_id) and is_binary(surface) and is_list(items) do
+    items = Enum.map(items, &stringify_keys/1)
+
+    {critical, batch_items} =
+      Enum.split_with(items, fn i ->
+        p = normalize_priority(i["priority"] || "proactive_thread")
+        p == "time_critical"
+      end)
+
+    breakthroughs =
+      Enum.map(critical, fn i ->
+        request_slot(account_id, surface, "time_critical", Map.put(i, "provenance", i["provenance"] || "stated"))
+      end)
+
+    case batch_items do
+      [] ->
+        {:granted,
+         %{
+           slot_id: nil,
+           batch_size: 0,
+           breakthroughs: breakthroughs,
+           counts_against_budget: false
+         }}
+
+      list ->
+        person_ids =
+          list
+          |> Enum.map(& &1["person_id"])
+          |> Enum.reject(&is_nil/1)
+
+        topic =
+          Keyword.get(opts, :topic) ||
+            "nudge_batch:#{length(list)}:#{Enum.join(Enum.take(person_ids, 3), ",")}"
+
+        ref = %{
+          "batch" => true,
+          "batch_size" => length(list),
+          "person_ids" => person_ids,
+          "topic" => topic,
+          "provenance" => Keyword.get(opts, :provenance) || "stated",
+          "items" =>
+            Enum.map(list, fn i ->
+              %{
+                "person_id" => i["person_id"],
+                "topic" => i["topic"],
+                "relationship_type" => i["relationship_type"]
+              }
+            end)
+        }
+
+        # Single slot for the whole batch — not one per person
+        case request_slot(account_id, surface, "proactive_thread", ref) do
+          {:granted, slot_id} ->
+            {:granted,
+             %{
+               slot_id: slot_id,
+               batch_size: length(list),
+               breakthroughs: breakthroughs,
+               counts_against_budget: true
+             }}
+
+          {:denied, reason} ->
+            {:denied, reason}
+        end
+    end
+  end
+
+  def grant_batch(_, _, _, _), do: {:denied, :invalid}
 
   @doc "Map a memory nudge type to AttentionBudget priority."
   def priority_for_nudge_type(type) do

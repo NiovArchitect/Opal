@@ -1,0 +1,79 @@
+{
+  "paste": "I",
+  "addendum": "cardinality_matrix",
+  "status": "PASS",
+  "branch": "muse/packet-b-batch-2",
+  "tip_at_write": "2921cef5",
+  "timestamp": "2026-10-09T06:57:44Z",
+  "mix_command": "cd apps/opal_core && mix test test/opal_core/intelligence/cardinality_pressure_test.exs test/opal_core/intelligence/attention_budget_test.exs",
+  "suite": {
+    "cardinality_pressure_test": "4/4 PASS",
+    "attention_budget_test": "6/6 PASS",
+    "relationship_access_regression": "6/6 PASS"
+  },
+  "matrix_counts": {
+    "phase2_1_1": 15,
+    "phase2_1_many": 4,
+    "phase2_many_many": 11,
+    "after_n_1_1": 16,
+    "after_n_1_many": 6,
+    "after_n_many_many": 12
+  },
+  "batch_budget_law": "One AttentionBudget slot per batch delivery to the owner (one Center card listing N person nudges = 1 unit). time_critical still breaks through via request_slot separately.",
+  "scenarios": [
+    {
+      "id": "N1",
+      "name": "Typed broadcast dinner",
+      "cardinality": "1:many",
+      "status": "PASS",
+      "asserts": [
+        "BroadcastFraming four cards: spouse warm/full, close_friend casual, business formal/logistics, acquaintance minimal",
+        "No cross-leak of sibling framing (viewer_safe_card + cross_leaks?)",
+        "Behavior.plan_proposal_copy spouse != business"
+      ]
+    },
+    {
+      "id": "N2",
+      "name": "Spouse 1:1 memory depth",
+      "cardinality": "1:1",
+      "status": "PASS",
+      "asserts": [
+        "Access.prompt_person_context :one_to_one includes vibe/routines/rhythms/open_loops",
+        "Access.prompt_person_context :group strips intimate depth",
+        "PromptBuilder dyad retains depth; group conversation strips"
+      ]
+    },
+    {
+      "id": "N3",
+      "name": "Batched Center nudges",
+      "cardinality": "1:many",
+      "status": "PASS",
+      "asserts": [
+        "Three typed nudges (family warm, business formal, friend casual)",
+        "AttentionBudget.grant_batch → used_today +1 for batch of 3",
+        "time_critical breakthrough does not increment used_today"
+      ]
+    },
+    {
+      "id": "N4",
+      "name": "Group trip + private fork",
+      "cardinality": "many:many",
+      "status": "PASS",
+      "asserts": [
+        "Group plan A/B/C unchanged",
+        "A↔B private_1_1 surprise fork: C plan_access :not_found; Access.can_see_plan? false",
+        "assert_no_leak + prompt_plan_facts exclude fork for C"
+      ]
+    }
+  ],
+  "new_modules": [
+    "OpalCore.Relationships.BroadcastFraming"
+  ],
+  "lib_narrow_fixes": [
+    "AttentionBudget.grant_batch/3 + batched nudge budget moduledoc",
+    "Access.prompt_person_context/3 + strip_group_person_depth/1",
+    "PromptBuilder group strip / 1:1 routine attach (cardinality N2)"
+  ],
+  "matrix_doc": "shots/intelligence/CARDINALITY_MATRIX.md",
+  "committed": false
+}
