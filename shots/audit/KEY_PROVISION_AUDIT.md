@@ -23,7 +23,7 @@ Backup taken before append. Duplicate-export check: one export line per key.
 | `GOOGLE_PLACES_API_KEY` | SET | **BLOCKED — API_NOT_ENABLED** on project `449126891803` (sparse Places 403; Routes shows `API_KEY_SERVICE_BLOCKED` proving restrictions exist but Places not restriction-blocked) |
 | `OPAL_LLM_API_KEY` + `OPAL_LLM_PROVIDER=deepseek` | SET | **`:ready`** — `LlmAdapter.readiness() == :ready`; chat smoke `ready` |
 | `OPAL_PROVIDER_TOKEN_SECRET` | SET | **generated** |
-| `GOOGLE_OAUTH_CLIENT_ID` / `SECRET` | **MISSING** | **OAuth pending** — URIs in `docs/GOOGLE_OAUTH_URIS.md`; TokenVault round-trip PASS; local redirect pre-wired |
+| `GOOGLE_OAUTH_CLIENT_ID` / `SECRET` | SET | **LIVE** — start URL generates with real client_id (scopes + PKCE S256 + offline consent) |
 
 ## What `r1a1.env` contains today (names only — post-wire)
 
