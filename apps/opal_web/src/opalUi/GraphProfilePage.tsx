@@ -8,6 +8,11 @@ import React, { useState } from "react";
 import type { RelationshipTypeValue } from "../api/productClient";
 import { BRAND } from "../brand/brand";
 import {
+  personNodeTemporal,
+  type PersonOpenLoop,
+  type PersonUpcomingPlan,
+} from "./graphCalendaring";
+import {
   RELATIONSHIP_TYPE_OPTIONS,
   relationshipTypeLabel,
 } from "./relationshipTypes";
@@ -30,7 +35,7 @@ export type ProfileMemoryItem = {
 type Props = {
   name: string;
   connectionLabel?: string;
-  /** RU-1 type when known — editable via onSetRelationshipType. */
+  /** RU-1 type when known - editable via onSetRelationshipType. */
   relationshipType?: RelationshipTypeValue | string | null;
   onSetRelationshipType?: (type: RelationshipTypeValue) => void | Promise<void>;
   phoneNumber?: string | null;
@@ -43,8 +48,13 @@ type Props = {
   onBack?: () => void;
   graphs?: ProfileGraphItem[];
   memories?: ProfileMemoryItem[];
+  /** Next shared plans (up to 3). Falls back to seed temporal context. */
+  upcomingPlans?: PersonUpcomingPlan[];
+  /** Next open loop with this person. */
+  nextOpenLoop?: PersonOpenLoop | null;
   onOpenGraph?: (id: string) => void;
   onOpenMemory?: (id: string) => void;
+  onOpenLoop?: (id: string) => void;
   savingMeta?: boolean;
 };
 
@@ -63,8 +73,11 @@ export function GraphProfilePage({
   onBack,
   graphs = [],
   memories = [],
+  upcomingPlans,
+  nextOpenLoop,
   onOpenGraph,
   onOpenMemory,
+  onOpenLoop,
   savingMeta = false,
 }: Props) {
   const initial = name.slice(0, 1).toUpperCase();
@@ -76,6 +89,24 @@ export function GraphProfilePage({
   const typeLabel = relationshipType
     ? relationshipTypeLabel(relationshipType)
     : connectionLabel || "Direct connection";
+
+  const seedTemporal = personNodeTemporal(name);
+  const plans: PersonUpcomingPlan[] = (() => {
+    if (upcomingPlans && upcomingPlans.length) return upcomingPlans.slice(0, 3);
+    const fromGraphs = graphs.map((g) => ({
+      id: g.id,
+      title: g.title,
+      whenLabel: g.when || g.detail || "",
+    }));
+    const seen = new Set(fromGraphs.map((p) => p.id));
+    const filled = [
+      ...fromGraphs,
+      ...seedTemporal.upcomingPlans.filter((p) => !seen.has(p.id)),
+    ];
+    return filled.slice(0, 3);
+  })();
+  const openLoop: PersonOpenLoop | null =
+    nextOpenLoop !== undefined ? nextOpenLoop : seedTemporal.nextOpenLoop;
 
   return (
     <div
@@ -296,12 +327,56 @@ export function GraphProfilePage({
         </div>
       ) : null}
 
-      <section className="gprof-section gprof-section-graph" aria-label="Graph">
+      <section
+        className={`gprof-section gprof-section-graph${plans.length || openLoop ? " has-temporal" : ""}`}
+        aria-label="Graph"
+        data-testid="gprof-graph-section"
+      >
         <div className="gprof-section-head">
           <h2 className="gprof-section-title">Graph</h2>
           <p className="gprof-section-sub">What {name} is moving toward.</p>
         </div>
-        {primaryGraph ? (
+        {plans.length || openLoop ? (
+          <div className="gprof-temporal" data-testid="gprof-temporal">
+            <p className="gprof-temporal-kicker">Coming up</p>
+            <ul className="gprof-upcoming" data-testid="gprof-upcoming-plans">
+              {plans.map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    className="gprof-upcoming-row"
+                    data-testid={
+                      primaryGraph && p.id === primaryGraph.id
+                        ? `gprof-graph-${p.id}`
+                        : `gprof-upcoming-${p.id}`
+                    }
+                    onClick={() => onOpenGraph?.(p.id)}
+                  >
+                    <strong>{p.title}</strong>
+                    {p.whenLabel ? <span>{p.whenLabel}</span> : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {openLoop ? (
+              <button
+                type="button"
+                className="gprof-open-loop"
+                data-testid="gprof-open-loop"
+                onClick={() =>
+                  onOpenLoop
+                    ? onOpenLoop(openLoop.id)
+                    : onOpenGraph?.(plans[0]?.id || openLoop.id)
+                }
+              >
+                <span className="gprof-open-loop-kicker">Open loop</span>
+                <span>{openLoop.label}</span>
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+        {/* Tall media card only when no temporal list (avoids overlap with memories). */}
+        {primaryGraph && !plans.length ? (
           <button
             type="button"
             className="gprof-graph-card"
@@ -320,9 +395,9 @@ export function GraphProfilePage({
               <span className="gprof-chip">Close friends</span>
             </div>
           </button>
-        ) : (
+        ) : !plans.length && !openLoop ? (
           <p className="gprof-empty">Nothing forming yet.</p>
-        )}
+        ) : null}
       </section>
 
       <section className="gprof-section gprof-section-memories" aria-label="Memories">

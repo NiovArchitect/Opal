@@ -3,12 +3,21 @@
  * Filters All · Action · Ready · Past. Vertical timeline + text nodes.
  * No Enter Journey. No auto-Journey. No media-card reinterpretation.
  * Past preserves the same Reality lineage after scheduled time.
+ * Paste J Phase 5: person-node temporal context + live/seed timeline wiring.
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
 import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
+import {
+  liveGraphsToTimelineItems,
+  personNodeTemporal,
+} from "./graphCalendaring";
 import { GraphsTripsSection } from "./GraphsTripsSection";
-import { GraphsTemporalTimeline } from "./GraphsTemporalTimeline";
+import {
+  GraphsTemporalTimeline,
+  SEED_TIMELINE_ITEMS,
+  type TimelineItem,
+} from "./GraphsTemporalTimeline";
 
 type Lens = "all" | "action" | "ready" | "past";
 type GraphMode = "people" | "timeline";
@@ -19,6 +28,9 @@ export type LiveGraph = {
   whenLine: string;
   signalLine: string;
   status: "ready" | "action" | "forming" | "aligned" | "past";
+  person?: string;
+  startsAt?: string | null;
+  who?: string[];
 };
 
 type Props = {
@@ -26,6 +38,8 @@ type Props = {
   onCreateGraph?: () => void;
   /** Real SharedPlan rows. Seeds stay for design comparison and follow these. */
   liveGraphs?: LiveGraph[];
+  onMessageTimelineItem?: (item: TimelineItem) => void;
+  onAdjustTimelineItem?: (item: TimelineItem) => void;
 };
 
 type GraphStatus = "ready" | "action" | "aligned" | "forming" | "idea" | "past";
@@ -72,7 +86,13 @@ const STATUS_RANK: Record<GraphStatus, number> = {
 
 const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
 
-export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Props) {
+export function GraphsHome({
+  onOpenGraph,
+  onCreateGraph,
+  liveGraphs = [],
+  onMessageTimelineItem,
+  onAdjustTimelineItem,
+}: Props) {
   const [lens, setLens] = useState<Lens>("all");
   const [mode, setMode] = useState<GraphMode>("people");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -102,11 +122,27 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
         real: false,
       };
     });
-    const live = liveGraphs.map((card) => ({ ...card, person: "", real: true }));
+    const live = liveGraphs.map((card) => ({
+      ...card,
+      person: card.person || "",
+      real: true,
+    }));
     // Combined All list: past ranks last so a lone live Past Graph does not sit first.
     return [...live, ...seeds].sort(
       (a, b) => (STATUS_RANK[a.status] ?? 99) - (STATUS_RANK[b.status] ?? 99),
     );
+  }, [liveGraphs]);
+
+  const timelineItems = useMemo(() => {
+    if (!liveGraphs.length) return SEED_TIMELINE_ITEMS;
+    const liveItems = liveGraphsToTimelineItems(liveGraphs);
+    // Live first; keep seed someday/earlier for walk continuity when live is thin.
+    const liveIds = new Set(liveItems.map((i) => i.id));
+    const seedExtras = SEED_TIMELINE_ITEMS.filter(
+      (s) =>
+        !liveIds.has(s.id) && (s.bucket === "someday" || s.bucket === "earlier"),
+    );
+    return [...liveItems, ...seedExtras];
   }, [liveGraphs]);
 
   const visible =
@@ -206,7 +242,13 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
 
       <div className="graphs-scroll" data-testid="graphs-scroll" ref={scrollRef}>
       {mode === "timeline" ? (
-        <GraphsTemporalTimeline onOpenItem={onOpenGraph} />
+        <GraphsTemporalTimeline
+          items={timelineItems}
+          seedLabeled={!liveGraphs.length}
+          onOpenItem={onOpenGraph}
+          onMessageGroup={onMessageTimelineItem}
+          onAdjust={onAdjustTimelineItem || ((item) => onOpenGraph(item.id))}
+        />
       ) : (
         <>
       {/* Trips inside scroll owner so vertical pan works (not trapped in sticky chrome) */}
@@ -214,7 +256,11 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
       <div className="graphs-timeline" data-testid="graphs-trajectory" aria-label="Graph timeline">
         <div className="graphs-timeline-rail" aria-hidden />
         <div className="graphs-home-list" data-testid="graphs-home-list">
-          {visible.map((g) => (
+          {visible.map((g) => {
+            const temporal = g.person ? personNodeTemporal(g.person) : null;
+            const upcoming = temporal?.upcomingPlans || [];
+            const openLoop = temporal?.nextOpenLoop || null;
+            return (
             <article
               key={g.id}
               className="graphs-home-card"
@@ -240,9 +286,31 @@ export function GraphsHome({ onOpenGraph, onCreateGraph, liveGraphs = [] }: Prop
                 </div>
                 <p className="graphs-card-place">{g.whenLine}</p>
                 <p className="graphs-card-meta">{g.signalLine}</p>
+                {upcoming.length || openLoop ? (
+                  <div
+                    className="graphs-card-temporal"
+                    data-testid={`graphs-card-temporal-${g.id}`}
+                  >
+                    {upcoming.slice(0, 3).map((p) => (
+                      <p key={p.id} className="graphs-card-upcoming">
+                        {p.title}
+                        <span> · {p.whenLabel}</span>
+                      </p>
+                    ))}
+                    {openLoop ? (
+                      <p
+                        className="graphs-card-open-loop"
+                        data-testid={`graphs-card-open-loop-${g.id}`}
+                      >
+                        Open: {openLoop.label}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </button>
             </article>
-          ))}
+            );
+          })}
           {!visible.length ? <p className="gsh-empty">No Graphs in this lens yet.</p> : null}
         </div>
       </div>

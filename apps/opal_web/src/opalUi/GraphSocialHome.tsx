@@ -18,6 +18,7 @@ import {
   type ProductionHomeOwners,
 } from "./homeHydration";
 import type { RankContext } from "./homeFeedRanking";
+import { personNodeTemporal } from "./graphCalendaring";
 import {
   formatGraphParticipationCounts,
   participationFigmaNode,
@@ -818,6 +819,28 @@ function FeedCard({
       {card.placeLine || card.detail ? (
         <p className="gsh-gr-subtitle">{card.placeLine || card.detail}</p>
       ) : null}
+      {(() => {
+        const temporal = personNodeTemporal(card.person);
+        if (!temporal.upcomingPlans.length && !temporal.nextOpenLoop) return null;
+        return (
+          <div
+            className="gsh-gr-temporal"
+            data-testid={`gsh-temporal-${card.id}`}
+          >
+            {temporal.upcomingPlans.slice(0, 3).map((p) => (
+              <p key={p.id} className="gsh-gr-upcoming">
+                {p.title}
+                <span> · {p.whenLabel}</span>
+              </p>
+            ))}
+            {temporal.nextOpenLoop ? (
+              <p className="gsh-gr-open-loop" data-testid={`gsh-open-loop-${card.id}`}>
+                Open: {temporal.nextOpenLoop.label}
+              </p>
+            ) : null}
+          </div>
+        );
+      })()}
       {joinableLabel ? (
         <p className="gsh-gr-joinable" data-testid={`gsh-joinable-${card.id}`}>
           {joinableLabel}

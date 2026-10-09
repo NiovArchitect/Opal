@@ -1,5 +1,5 @@
 /**
- * Phase 5 — Graphs as calendar: temporal flow (not a month grid).
+ * Phase 5 - Graphs as calendar: temporal flow (not a month grid).
  *
  * Importance formula (card scale):
  *   importance = groupSize * relationshipCloseness * timeProximity
@@ -7,35 +7,32 @@
  *   - relationshipCloseness: 1.0 close / 0.7 friend / 0.45 acquaintance (default 0.7)
  *   - timeProximity: 1.4 tonight · 1.2 weekend · 1.0 next week · 0.7 next month · 0.4 someday
  *
+ * Paste J: 30/90 range filter, seed honesty, Message / Adjust / Add to calendar on future items.
  * Someday nurture signal is stubbed seed until live price/intel wiring.
  */
 import React, { useMemo, useState } from "react";
+import {
+  downloadPlanIcs,
+  filterTimelineByRangeDays,
+  isFutureTimelineItem,
+  withSeedStartsAt,
+  type TimelineItem,
+} from "./graphCalendaring";
 
-export type TimelineItem = {
-  id: string;
-  title: string;
-  whenLabel: string;
-  who: string[];
-  where?: string;
-  status?: string;
-  bucket:
-    | "now"
-    | "tonight"
-    | "weekend"
-    | "next_week"
-    | "next_month"
-    | "someday"
-    | "earlier";
-  groupSize?: number;
-  closeness?: number;
-  nurtureSignal?: string;
-};
+export type { TimelineItem };
 
 type OrbitTense = "past" | "present" | "future";
+export type TimelineRangeDays = 30 | 90;
 
 type Props = {
   items?: TimelineItem[];
   onOpenItem?: (id: string) => void;
+  /** Message the group / person for this plan. */
+  onMessageGroup?: (item: TimelineItem) => void;
+  /** Adjust plan (open detail / continuity). */
+  onAdjust?: (item: TimelineItem) => void;
+  /** When true, show sample-plans honesty chip (seed path). */
+  seedLabeled?: boolean;
 };
 
 const BUCKET_ORDER: TimelineItem["bucket"][] = [
@@ -68,7 +65,7 @@ const PROXIMITY: Record<string, number> = {
 };
 
 /** Seed temporal items so Timeline is walkable without live trip API. */
-export const SEED_TIMELINE_ITEMS: TimelineItem[] = [
+export const SEED_TIMELINE_ITEMS: TimelineItem[] = withSeedStartsAt([
   {
     id: "seed-chanelle-juniper",
     title: "Juniper",
@@ -79,6 +76,7 @@ export const SEED_TIMELINE_ITEMS: TimelineItem[] = [
     bucket: "weekend",
     groupSize: 2,
     closeness: 1,
+    source: "seed",
   },
   {
     id: "seed-maya-graph-coast",
@@ -90,6 +88,7 @@ export const SEED_TIMELINE_ITEMS: TimelineItem[] = [
     bucket: "tonight",
     groupSize: 2,
     closeness: 0.9,
+    source: "seed",
   },
   {
     id: "seed-near-rooftop",
@@ -99,6 +98,7 @@ export const SEED_TIMELINE_ITEMS: TimelineItem[] = [
     bucket: "next_week",
     groupSize: 3,
     closeness: 0.7,
+    source: "seed",
   },
   {
     id: "seed-mexico-city-past",
@@ -110,6 +110,7 @@ export const SEED_TIMELINE_ITEMS: TimelineItem[] = [
     bucket: "earlier",
     groupSize: 3,
     closeness: 1,
+    source: "seed",
   },
   {
     id: "seed-japan-someday",
@@ -120,9 +121,10 @@ export const SEED_TIMELINE_ITEMS: TimelineItem[] = [
     bucket: "someday",
     groupSize: 2,
     closeness: 1,
-    nurtureSignal: "Flight prices to Tokyo dropped 20% — want to look at dates?",
+    nurtureSignal: "Flight prices to Tokyo dropped 20%. Want to look at dates?",
+    source: "seed",
   },
-];
+]);
 
 function importance(item: TimelineItem): number {
   const group = Math.min(2.5, 1 + Math.max(0, (item.groupSize || item.who.length || 1) - 1) * 0.25);
@@ -134,23 +136,39 @@ function importance(item: TimelineItem): number {
 function shareCard(item: TimelineItem): string {
   const who = item.who.length ? item.who.join(", ") : "friends";
   const where = item.where ? ` · ${item.where}` : "";
-  return `Opal lined this up for us\n${item.title}${where}\n${item.whenLabel}\nWith ${who}\n— Opal`;
+  return `Opal lined this up for us\n${item.title}${where}\n${item.whenLabel}\nWith ${who}\n- Opal`;
 }
 
-export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem }: Props) {
+export function GraphsTemporalTimeline({
+  items = SEED_TIMELINE_ITEMS,
+  onOpenItem,
+  onMessageGroup,
+  onAdjust,
+  seedLabeled,
+}: Props) {
   const [orbitPerson, setOrbitPerson] = useState<string | null>(null);
+  const [rangeDays, setRangeDays] = useState<TimelineRangeDays>(30);
+
+  const usingSeed =
+    seedLabeled === true ||
+    (items.length > 0 && items.every((i) => (i.source || "seed") === "seed"));
+
+  const ranged = useMemo(
+    () => filterTimelineByRangeDays(items, rangeDays),
+    [items, rangeDays],
+  );
 
   const upcoming = useMemo(() => {
-    return [...items]
+    return [...ranged]
       .filter((i) => i.bucket !== "earlier" && i.bucket !== "someday")
       .sort((a, b) => importance(b) - importance(a))
       .slice(0, 3);
-  }, [items]);
+  }, [ranged]);
 
   const byBucket = useMemo(() => {
     const map = new Map<string, TimelineItem[]>();
     for (const b of [...BUCKET_ORDER, "earlier"]) map.set(b, []);
-    for (const item of items) {
+    for (const item of ranged) {
       const list = map.get(item.bucket) || [];
       list.push(item);
       map.set(item.bucket, list);
@@ -162,11 +180,11 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
       );
     }
     return map;
-  }, [items]);
+  }, [ranged]);
 
   const orbit = useMemo(() => {
     if (!orbitPerson) return null;
-    const related = items.filter((i) =>
+    const related = ranged.filter((i) =>
       i.who.some((w) => w.toLowerCase() === orbitPerson.toLowerCase()),
     );
     const tense = (i: TimelineItem): OrbitTense =>
@@ -181,7 +199,7 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
       present: related.filter((i) => tense(i) === "present"),
       future: related.filter((i) => tense(i) === "future"),
     };
-  }, [orbitPerson, items]);
+  }, [orbitPerson, ranged]);
 
   const onShare = async (item: TimelineItem) => {
     const text = shareCard(item);
@@ -200,6 +218,35 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
     }
   };
 
+  const rangeToggle = (
+    <div
+      className="graphs-range-toggle"
+      role="tablist"
+      aria-label="Timeline range"
+      data-testid="graphs-range-toggle"
+    >
+      {([30, 90] as const).map((d) => (
+        <button
+          key={d}
+          type="button"
+          role="tab"
+          className={`graphs-range-chip ${rangeDays === d ? "is-active" : ""}`}
+          data-testid={`graphs-range-${d}`}
+          aria-selected={rangeDays === d}
+          onClick={() => setRangeDays(d)}
+        >
+          {d} days
+        </button>
+      ))}
+    </div>
+  );
+
+  const seedNote = usingSeed ? (
+    <p className="graphs-temporal-seed-note" data-testid="graphs-temporal-seed-note">
+      Sample plans for walkthrough. Live SharedPlans land here when you have them.
+    </p>
+  ) : null;
+
   if (orbit) {
     return (
       <div className="graphs-orbit" data-testid="graphs-orbit" data-person={orbit.person}>
@@ -212,7 +259,8 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
           ← Timeline
         </button>
         <h2 className="graphs-orbit-title">{orbit.person}</h2>
-        <p className="graphs-orbit-lede">Everything with them — past, present, future.</p>
+        <p className="graphs-orbit-lede">Everything with them: past, present, future.</p>
+        {rangeToggle}
         {(
           [
             ["past", "Earlier together", orbit.past],
@@ -230,6 +278,8 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
                 onOpen={onOpenItem}
                 onPerson={setOrbitPerson}
                 onShare={onShare}
+                onMessageGroup={onMessageGroup}
+                onAdjust={onAdjust}
               />
             ))}
           </section>
@@ -239,7 +289,15 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
   }
 
   return (
-    <div className="graphs-temporal" data-testid="graphs-temporal-timeline">
+    <div
+      className="graphs-temporal"
+      data-testid="graphs-temporal-timeline"
+      data-range-days={rangeDays}
+      data-source={usingSeed ? "seed" : "live"}
+    >
+      {rangeToggle}
+      {seedNote}
+
       <section className="graphs-whats-next" data-testid="graphs-whats-next" aria-label="What's next">
         <h2 className="graphs-temporal-heading">What&apos;s next</h2>
         <div className="graphs-whats-next-list">
@@ -251,8 +309,13 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
               onOpen={onOpenItem}
               onPerson={setOrbitPerson}
               onShare={onShare}
+              onMessageGroup={onMessageGroup}
+              onAdjust={onAdjust}
             />
           ))}
+          {!upcoming.length ? (
+            <p className="gsh-empty">Nothing in the next {rangeDays} days.</p>
+          ) : null}
         </div>
       </section>
 
@@ -273,6 +336,8 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
                 onOpen={onOpenItem}
                 onPerson={setOrbitPerson}
                 onShare={onShare}
+                onMessageGroup={onMessageGroup}
+                onAdjust={onAdjust}
               />
             ))}
             {bucket === "someday" && !list.length ? (
@@ -292,6 +357,8 @@ export function GraphsTemporalTimeline({ items = SEED_TIMELINE_ITEMS, onOpenItem
               onOpen={onOpenItem}
               onPerson={setOrbitPerson}
               onShare={onShare}
+              onMessageGroup={onMessageGroup}
+              onAdjust={onAdjust}
             />
           ))}
         </section>
@@ -306,19 +373,25 @@ function TimelineCard({
   onOpen,
   onPerson,
   onShare,
+  onMessageGroup,
+  onAdjust,
 }: {
   item: TimelineItem;
   pinned?: boolean;
   onOpen?: (id: string) => void;
   onPerson: (name: string) => void;
   onShare: (item: TimelineItem) => void;
+  onMessageGroup?: (item: TimelineItem) => void;
+  onAdjust?: (item: TimelineItem) => void;
 }) {
   const scale = 0.92 + Math.min(0.28, importance(item) / 8);
+  const future = isFutureTimelineItem(item);
   return (
     <article
       className={`graphs-temporal-card${pinned ? " is-pinned" : ""}`}
       data-testid={`graphs-temporal-card-${item.id}`}
       data-bucket={item.bucket}
+      data-source={item.source || "seed"}
       style={{ ["--gt-scale" as string]: String(scale) }}
     >
       <button
@@ -348,14 +421,62 @@ function TimelineCard({
           {item.nurtureSignal}
         </p>
       ) : null}
-      <button
-        type="button"
-        className="graphs-share-plan"
-        data-testid={`graphs-share-${item.id}`}
-        onClick={() => onShare(item)}
-      >
-        Share
-      </button>
+      {future ? (
+        <div
+          className="graphs-temporal-actions"
+          role="group"
+          aria-label={`Actions for ${item.title}`}
+          data-testid={`graphs-actions-${item.id}`}
+        >
+          <button
+            type="button"
+            className="graphs-temporal-action"
+            data-testid={`graphs-message-${item.id}`}
+            onClick={() => {
+              if (onMessageGroup) onMessageGroup(item);
+              else {
+                const peer = item.who.find((w) => w.toLowerCase() !== "you");
+                if (peer) onPerson(peer);
+              }
+            }}
+          >
+            Message
+          </button>
+          <button
+            type="button"
+            className="graphs-temporal-action"
+            data-testid={`graphs-adjust-${item.id}`}
+            onClick={() => (onAdjust ? onAdjust(item) : onOpen?.(item.id))}
+          >
+            Adjust
+          </button>
+          <button
+            type="button"
+            className="graphs-temporal-action"
+            data-testid={`graphs-calendar-${item.id}`}
+            onClick={() => downloadPlanIcs(item)}
+          >
+            Add to calendar
+          </button>
+          <button
+            type="button"
+            className="graphs-share-plan"
+            data-testid={`graphs-share-${item.id}`}
+            onClick={() => onShare(item)}
+          >
+            Share
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="graphs-share-plan"
+          data-testid={`graphs-share-${item.id}`}
+          onClick={() => onShare(item)}
+        >
+          Share
+        </button>
+      )}
     </article>
   );
 }

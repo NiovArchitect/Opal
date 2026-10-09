@@ -8394,10 +8394,39 @@ export function OpalApp() {
                       ? chat.name || "Earlier together"
                       : pendingLabel || plan.execution_label || chat.name,
                   status,
+                  person: chat.name || "",
+                  startsAt: plan.canonical_start_at || null,
+                  who: chat.name ? [chat.name] : undefined,
                 },
               ];
             })}
             onOpenGraph={(cardId) => openGraphDetail(cardId, "graphs")}
+            onMessageTimelineItem={(item) => {
+              const who = item.who.map((w) => w.toLowerCase());
+              const chat =
+                chats.find((c) =>
+                  who.some(
+                    (w) =>
+                      w &&
+                      w !== "you" &&
+                      (c.name || "").toLowerCase().includes(w),
+                  ),
+                ) ||
+                (item.conversationId
+                  ? chats.find((c) => c.id === item.conversationId)
+                  : undefined);
+              if (chat) {
+                void openChat(chat.id);
+                return;
+              }
+              setTab("chats");
+              setCallsGateNote(
+                item.who.length
+                  ? `Find ${item.who.filter((w) => w !== "You").join(", ")} in Chats to message.`
+                  : "Open Chats to message the group.",
+              );
+            }}
+            onAdjustTimelineItem={(item) => openGraphDetail(item.id, "graphs")}
             onCreateGraph={() => {
               setGraphCreateContext({});
               setGraphCreateOpen(true);
