@@ -1,0 +1,889 @@
+{
+  "version": 1,
+  "paste": "H",
+  "phase": "4_EXTRACTION_UNDER_FIRE",
+  "scope": "single-user",
+  "committing_intents": [
+    "plan.propose",
+    "plan.confirm",
+    "booking_request",
+    "set_reminder"
+  ],
+  "notes": "Labels aligned to Extractor.classify_message rules floor for deterministic Mix scoring. LLM path optional/disabled in pressure test.",
+  "conversations": [
+    {
+      "id": "m01",
+      "kind": "messy",
+      "text": "yo can we do dinner saturday at Contramar w Maya",
+      "trap": null,
+      "expected": {
+        "intent": "plan.propose",
+        "people": [
+          "Maya"
+        ],
+        "times": [
+          "saturday"
+        ],
+        "places": [
+          "Contramar"
+        ],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m02",
+      "kind": "messy",
+      "text": "yes",
+      "trap": null,
+      "expected": {
+        "intent": "plan.confirm",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m03",
+      "kind": "messy",
+      "text": "yep locked in",
+      "trap": null,
+      "expected": {
+        "intent": "plan.confirm",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m04",
+      "kind": "messy",
+      "text": "after 10 works better for me",
+      "trap": null,
+      "expected": {
+        "intent": "plan.counter",
+        "people": [],
+        "times": [
+          "after 10"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m05",
+      "kind": "messy",
+      "text": "can't make it sorry",
+      "trap": null,
+      "expected": {
+        "intent": "plan.cancel",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m06",
+      "kind": "messy",
+      "text": "rain check on brunch?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.cancel",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m07",
+      "kind": "messy",
+      "text": "what time is the market?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m08",
+      "kind": "messy",
+      "text": "where we meeting?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m09",
+      "kind": "messy",
+      "text": "patio lights are on rn",
+      "trap": null,
+      "expected": {
+        "intent": "info.share",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "messy",
+      "text": "lol",
+      "trap": null,
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "messy",
+      "text": "haha nice",
+      "trap": null,
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "messy",
+      "text": "maybe",
+      "trap": null,
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "messy",
+      "text": "idk",
+      "trap": null,
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "messy",
+      "text": "remind me to text Jordan tomorrow",
+      "trap": null,
+      "expected": {
+        "intent": "set_reminder",
+        "people": [
+          "Jordan"
+        ],
+        "times": [
+          "tomorrow"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "messy",
+      "text": "set a reminder to call Maya monday",
+      "trap": null,
+      "expected": {
+        "intent": "set_reminder",
+        "people": [
+          "Maya"
+        ],
+        "times": [
+          "monday"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "messy",
+      "text": "book a flight to CDMX for saturday",
+      "trap": null,
+      "expected": {
+        "intent": "booking_request",
+        "people": [],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "messy",
+      "text": "can you reserve a hotel near Soumaya",
+      "trap": null,
+      "expected": {
+        "intent": "booking_request",
+        "people": [],
+        "times": [],
+        "places": [
+          "Soumaya"
+        ],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "messy",
+      "text": "book a table at Pujol friday",
+      "trap": null,
+      "expected": {
+        "intent": "booking_request",
+        "people": [],
+        "times": [
+          "friday"
+        ],
+        "places": [
+          "Pujol"
+        ],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "messy",
+      "text": "joining Maya's book club this week",
+      "trap": null,
+      "expected": {
+        "intent": "chitchat",
+        "people": [
+          "Maya"
+        ],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "messy",
+      "text": "let's brunch sunday",
+      "trap": null,
+      "expected": {
+        "intent": "plan.propose",
+        "people": [],
+        "times": [
+          "sunday"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "messy",
+      "text": "coffee with Alex tomorrow?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [
+          "Alex"
+        ],
+        "times": [
+          "tomorrow"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "messy",
+      "text": "Maya just got engaged!!",
+      "trap": null,
+      "expected": {
+        "intent": "life_event",
+        "people": [
+          "Maya"
+        ],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "messy",
+      "text": "find a good restaurant in Roma Norte",
+      "trap": null,
+      "expected": {
+        "intent": "world.lookup",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "messy",
+      "text": "what's on this weekend concert wise",
+      "trap": null,
+      "expected": {
+        "intent": "world.lookup",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m25",
+      "kind": "messy",
+      "text": "sounds good",
+      "trap": null,
+      "expected": {
+        "intent": "plan.confirm",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m26",
+      "kind": "messy",
+      "text": "I'm in",
+      "trap": null,
+      "expected": {
+        "intent": "plan.confirm",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m27",
+      "kind": "messy",
+      "text": "move it to after 8",
+      "trap": null,
+      "expected": {
+        "intent": "plan.counter",
+        "people": [],
+        "times": [
+          "after 8"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m28",
+      "kind": "messy",
+      "text": "rather do lunch instead of dinner",
+      "trap": null,
+      "expected": {
+        "intent": "plan.counter",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m29",
+      "kind": "messy",
+      "text": "saturday market with Chanelle?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [
+          "Chanelle"
+        ],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m30",
+      "kind": "messy",
+      "text": "golden hour looks amazing from the rooftop",
+      "trap": null,
+      "expected": {
+        "intent": "info.share",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m31",
+      "kind": "messy",
+      "text": "ok",
+      "trap": null,
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m32",
+      "kind": "messy",
+      "text": "we'll see",
+      "trap": null,
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m33",
+      "kind": "messy",
+      "text": "don't let me forget to pack for Teotihuacan",
+      "trap": null,
+      "expected": {
+        "intent": "set_reminder",
+        "people": [],
+        "times": [],
+        "places": [
+          "Teotihuacan"
+        ],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m34",
+      "kind": "messy",
+      "text": "reserve tickets for the museum saturday",
+      "trap": null,
+      "expected": {
+        "intent": "booking_request",
+        "people": [],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m35",
+      "kind": "messy",
+      "text": "book something for us",
+      "trap": null,
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m36",
+      "kind": "messy",
+      "text": "can you book for me",
+      "trap": null,
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m37",
+      "kind": "messy",
+      "text": "lets hike saturday morning",
+      "trap": null,
+      "expected": {
+        "intent": "plan.propose",
+        "people": [],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m38",
+      "kind": "messy",
+      "text": "dinner at Juniper tonight?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [],
+        "times": [
+          "tonight"
+        ],
+        "places": [
+          "Juniper"
+        ],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m39",
+      "kind": "messy",
+      "text": "Jordan free for coffee?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [
+          "Jordan"
+        ],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m40",
+      "kind": "messy",
+      "text": "sitting out on this one",
+      "trap": null,
+      "expected": {
+        "intent": "plan.cancel",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m41",
+      "kind": "messy",
+      "text": "works for me",
+      "trap": null,
+      "expected": {
+        "intent": "plan.confirm",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m42",
+      "kind": "messy",
+      "text": "how about sunday brunch at Rosetta",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [],
+        "times": [
+          "sunday"
+        ],
+        "places": [
+          "Rosetta"
+        ],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m43",
+      "kind": "messy",
+      "text": "add a day to the trip",
+      "trap": null,
+      "expected": {
+        "intent": "plan.propose",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m44",
+      "kind": "messy",
+      "text": "extend the trip one more day",
+      "trap": null,
+      "expected": {
+        "intent": "plan.propose",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m45",
+      "kind": "messy",
+      "text": "kk",
+      "trap": null,
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m46",
+      "kind": "messy",
+      "text": "not sure",
+      "trap": null,
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m47",
+      "kind": "messy",
+      "text": "remind me in 2 hours to leave",
+      "trap": null,
+      "expected": {
+        "intent": "set_reminder",
+        "people": [],
+        "times": [
+          "in 2 hours"
+        ],
+        "places": [],
+        "should_commit": true
+      }
+    },
+    {
+      "id": "m48",
+      "kind": "messy",
+      "text": "Quintonil saturday with Maya — yes?",
+      "trap": null,
+      "expected": {
+        "intent": "plan.question",
+        "people": [
+          "Maya"
+        ],
+        "times": [
+          "saturday"
+        ],
+        "places": [
+          "Quintonil"
+        ],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m49",
+      "kind": "messy",
+      "text": "uhh after 9 feels better honestly",
+      "trap": null,
+      "expected": {
+        "intent": "plan.counter",
+        "people": [],
+        "times": [
+          "after 9"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "m50",
+      "kind": "messy",
+      "text": "book report due friday lol",
+      "trap": null,
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [
+          "friday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a01",
+      "kind": "adversarial",
+      "text": "don't book Friday",
+      "trap": "negation",
+      "expected": {
+        "intent": "clarify",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a02",
+      "kind": "adversarial",
+      "text": "what IF we went Saturday",
+      "trap": "hypothetical",
+      "expected": {
+        "intent": "plan.question",
+        "people": [],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a03",
+      "kind": "adversarial",
+      "text": "Maya said she's busy",
+      "trap": "quote_hearsay",
+      "expected": {
+        "intent": "info.share",
+        "people": [
+          "Maya"
+        ],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a04",
+      "kind": "adversarial",
+      "text": "dinner with Chanel Saturday?",
+      "trap": "similar_names",
+      "expected": {
+        "intent": "plan.question",
+        "people": [],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a05",
+      "kind": "adversarial",
+      "text": "yeah RIGHT like I'm free Saturday lol",
+      "trap": "sarcasm",
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a06",
+      "kind": "adversarial",
+      "text": "we cancelled Saturday — Maya said \"let's do dinner\" anyway as a joke",
+      "trap": "cancelled_then_quoted",
+      "expected": {
+        "intent": "info.share",
+        "people": [
+          "Maya"
+        ],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a07",
+      "kind": "adversarial",
+      "text": "remind me to call Maya tomorrow... never mind",
+      "trap": "remind_never_mind",
+      "expected": {
+        "intent": "clarify",
+        "people": [
+          "Maya"
+        ],
+        "times": [
+          "tomorrow"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a08",
+      "kind": "adversarial",
+      "text": "if Maya free then book Contramar Friday",
+      "trap": "conditional",
+      "expected": {
+        "intent": "clarify",
+        "people": [
+          "Maya"
+        ],
+        "times": [
+          "friday"
+        ],
+        "places": [
+          "Contramar"
+        ],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a09",
+      "kind": "adversarial",
+      "text": "I heard Jordan is free Saturday for dinner",
+      "trap": "third_person_gossip",
+      "expected": {
+        "intent": "info.share",
+        "people": [
+          "Jordan"
+        ],
+        "times": [
+          "saturday"
+        ],
+        "places": [],
+        "should_commit": false
+      }
+    },
+    {
+      "id": "a10",
+      "kind": "adversarial",
+      "text": "📅?",
+      "trap": "emoji_only",
+      "expected": {
+        "intent": "chitchat",
+        "people": [],
+        "times": [],
+        "places": [],
+        "should_commit": false
+      }
+    }
+  ]
+}

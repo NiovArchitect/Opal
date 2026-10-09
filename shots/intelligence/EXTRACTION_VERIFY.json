@@ -1,0 +1,215 @@
+{
+  "adversarial_rows": [
+    {
+      "expected_intent": "clarify",
+      "false_commitment": false,
+      "id": "a01",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [],
+      "pred_places": [],
+      "pred_times": [
+        "friday"
+      ],
+      "predicted_intent": "clarify",
+      "text": "don't book Friday",
+      "trap": "negation"
+    },
+    {
+      "expected_intent": "plan.question",
+      "false_commitment": false,
+      "id": "a02",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [],
+      "pred_places": [],
+      "pred_times": [
+        "saturday"
+      ],
+      "predicted_intent": "plan.question",
+      "text": "what IF we went Saturday",
+      "trap": "hypothetical"
+    },
+    {
+      "expected_intent": "info.share",
+      "false_commitment": false,
+      "id": "a03",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [
+        "maya"
+      ],
+      "pred_places": [],
+      "pred_times": [],
+      "predicted_intent": "info.share",
+      "text": "Maya said she's busy",
+      "trap": "quote_hearsay"
+    },
+    {
+      "expected_intent": "plan.question",
+      "false_commitment": false,
+      "id": "a04",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [],
+      "pred_places": [],
+      "pred_times": [
+        "saturday"
+      ],
+      "predicted_intent": "plan.question",
+      "text": "dinner with Chanel Saturday?",
+      "trap": "similar_names"
+    },
+    {
+      "expected_intent": "chitchat",
+      "false_commitment": false,
+      "id": "a05",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [],
+      "pred_places": [],
+      "pred_times": [
+        "saturday"
+      ],
+      "predicted_intent": "chitchat",
+      "text": "yeah RIGHT like I'm free Saturday lol",
+      "trap": "sarcasm"
+    },
+    {
+      "expected_intent": "info.share",
+      "false_commitment": false,
+      "id": "a06",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [
+        "maya"
+      ],
+      "pred_places": [],
+      "pred_times": [
+        "saturday"
+      ],
+      "predicted_intent": "info.share",
+      "text": "we cancelled Saturday — Maya said \"let's do dinner\" anyway as a joke",
+      "trap": "cancelled_then_quoted"
+    },
+    {
+      "expected_intent": "clarify",
+      "false_commitment": false,
+      "id": "a07",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [
+        "maya"
+      ],
+      "pred_places": [],
+      "pred_times": [
+        "tomorrow"
+      ],
+      "predicted_intent": "clarify",
+      "text": "remind me to call Maya tomorrow... never mind",
+      "trap": "remind_never_mind"
+    },
+    {
+      "expected_intent": "clarify",
+      "false_commitment": false,
+      "id": "a08",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [
+        "maya"
+      ],
+      "pred_places": [
+        "contramar"
+      ],
+      "pred_times": [
+        "friday"
+      ],
+      "predicted_intent": "clarify",
+      "text": "if Maya free then book Contramar Friday",
+      "trap": "conditional"
+    },
+    {
+      "expected_intent": "info.share",
+      "false_commitment": false,
+      "id": "a09",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [
+        "jordan"
+      ],
+      "pred_places": [],
+      "pred_times": [
+        "saturday"
+      ],
+      "predicted_intent": "info.share",
+      "text": "I heard Jordan is free Saturday for dinner",
+      "trap": "third_person_gossip"
+    },
+    {
+      "expected_intent": "chitchat",
+      "false_commitment": false,
+      "id": "a10",
+      "intent_ok": true,
+      "may_commit": false,
+      "pred_people": [],
+      "pred_places": [],
+      "pred_times": [],
+      "predicted_intent": "chitchat",
+      "text": "📅?",
+      "trap": "emoji_only"
+    }
+  ],
+  "committing_intents": [
+    "plan.propose",
+    "plan.confirm",
+    "booking_request",
+    "set_reminder"
+  ],
+  "corpus_absolute": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/intelligence/extraction_corpus.json",
+  "corpus_counts": {
+    "adversarial": 10,
+    "messy": 50
+  },
+  "corpus_path": "shots/intelligence/extraction_corpus.json",
+  "date": "2026-10-09",
+  "extractor_fn": "OpalCore.Intelligence.Extractor.classify_message/1",
+  "extractor_path": "rules_floor",
+  "messy_failures": [],
+  "note": "Deterministic rules-floor scoring. LLM (LlmExtract) disabled for Mix pressure; production still prefers LLM when ready with rules fallback.",
+  "paste": "H",
+  "phase": "4_EXTRACTION_UNDER_FIRE",
+  "precision_floor": 0.9,
+  "scope": "single-user",
+  "scores": {
+    "adversarial": {
+      "false_commitment_ids": [],
+      "false_commitments": 0,
+      "zero_false_commitments": true
+    },
+    "messy": {
+      "intents": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 50
+      },
+      "people": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 9
+      },
+      "times": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 18
+      }
+    }
+  },
+  "status": "PASS",
+  "suite": "EXTRACTION_VERIFY"
+}
