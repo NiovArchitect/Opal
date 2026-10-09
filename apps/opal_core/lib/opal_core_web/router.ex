@@ -425,6 +425,7 @@ defmodule OpalCoreWeb.Router do
     # Paste K — Lives (placed-only) · stickers · venue verification · Opal Pay
     get("/lives/go-live-copy", LivesController, :go_live_copy)
     get("/lives/stickers", LivesController, :catalog)
+    get("/lives/venue-search", LivesController, :venue_search)
     post("/lives/go-live", LivesController, :go_live)
     get("/lives/:id", LivesController, :show)
     post("/lives/:id/end", LivesController, :end_live)

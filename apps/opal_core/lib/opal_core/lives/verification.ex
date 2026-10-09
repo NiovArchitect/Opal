@@ -49,6 +49,7 @@ defmodule OpalCore.Lives.Verification do
   @doc """
   Resolve or create a venue from a Places place_id.
   Rejects free-text / missing place_id / residential.
+  Provisional `test-<slug>` place_ids skip Places when allow_provisional/allow_fixture.
   """
   def resolve_venue(place_id, opts \\ [])
 
@@ -59,12 +60,22 @@ defmodule OpalCore.Lives.Verification do
       id == "" ->
         {:error, :place_id_required}
 
+      provisional_place_id?(id) ->
+        if Keyword.get(opts, :allow_provisional, false) or Keyword.get(opts, :allow_fixture, false) do
+          case Repo.get_by(Venue, place_id: id) do
+            %Venue{} = v -> {:ok, maybe_graduate_quarantine(v), :existing}
+            nil -> insert_provisional_venue(id, opts)
+          end
+        else
+          {:error, :provisional_not_allowed}
+        end
+
       free_text_rejected?(id, opts) ->
         {:error, :venue_not_found}
 
       true ->
         case Repo.get_by(Venue, place_id: id) do
-          %Venue{status: "merged", canonical_venue_id: canon} = v when is_binary(canon) ->
+          %Venue{status: "merged", canonical_venue_id: canon} when is_binary(canon) ->
             case Repo.get(Venue, canon) do
               %Venue{} = c -> {:ok, c, :merged}
               nil -> upsert_from_places(id, opts)
@@ -80,6 +91,86 @@ defmodule OpalCore.Lives.Verification do
   end
 
   def resolve_venue(_, _), do: {:error, :place_id_required}
+
+  @doc """
+  Create a provisional testing venue from name + city.
+  place_id = test-<slug>. Always quarantine; stickers disabled.
+  """
+  def create_provisional_venue(name, city, opts \\ [])
+      when is_binary(name) and is_binary(city) do
+    name = String.trim(name)
+    city = String.trim(city)
+
+    cond do
+      name == "" or city == "" ->
+        {:error, :name_and_city_required}
+
+      not (Keyword.get(opts, :allow_provisional, false) or Keyword.get(opts, :allow_fixture, false)) ->
+        {:error, :provisional_not_allowed}
+
+      true ->
+        place_id = provisional_place_id(name, city)
+        resolve_venue(place_id,
+          Keyword.merge(opts,
+            name: name,
+            address: city,
+            types: ["establishment", "point_of_interest"],
+            allow_provisional: true
+          )
+        )
+    end
+  end
+
+  def provisional_place_id?(id) when is_binary(id), do: String.starts_with?(id, "test-")
+  def provisional_place_id?(_), do: false
+
+  def provisional_place_id(name, city) when is_binary(name) and is_binary(city) do
+    slug =
+      (name <> "-" <> city)
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9]+/u, "-")
+      |> String.trim("-")
+      |> String.slice(0, 48)
+
+    slug = if slug == "", do: Base.encode16(:crypto.strong_rand_bytes(4), case: :lower), else: slug
+    "test-" <> slug
+  end
+
+  @doc """
+  Venue autocomplete via Places text search.
+  Returns {:ok, candidates} | {:ok, [], :empty} | {:error, :places_unavailable, msg}.
+  """
+  def search_venues(query) when is_binary(query) do
+    q = String.trim(query)
+
+    if q == "" do
+      {:error, :query_required}
+    else
+      case Places.search_text(%{"text_query" => q, "max_result_count" => 5}) do
+        {:ok, %{"candidates" => candidates}} when is_list(candidates) and candidates != [] ->
+          {:ok,
+           Enum.map(candidates, fn c ->
+             %{
+               "place_id" => c["id"] || c["provider_place_id"] || c["place_id"],
+               "name" => c["name"] || c["display_name"],
+               "formatted_address" => c["address"] || c["formatted_address"] || c["area_label"],
+               "types" => List.wrap(c["categories"] || c["types"])
+             }
+           end)}
+
+        {:ok, _} ->
+          {:ok, [], :empty}
+
+        {:disabled, reason} ->
+          {:error, :places_unavailable, reason}
+
+        {:error, reason} ->
+          {:error, :places_unavailable, inspect(reason)}
+      end
+    end
+  end
+
+  def search_venues(_), do: {:error, :query_required}
 
   @doc "Reject free-text venue names at go-live."
   def reject_free_text(name) when is_binary(name) do
@@ -422,20 +513,36 @@ defmodule OpalCore.Lives.Verification do
 
       {:disabled, _} ->
         # Tests / offline: allow fixture place_ids when resolver opts in
-        if Keyword.get(opts, :allow_fixture, false) or fixture_place?(place_id) do
-          insert_fixture_venue(place_id, opts)
-        else
-          {:error, :places_unavailable}
-        end
+        maybe_insert_fixture(place_id, opts, :places_unavailable)
 
       {:error, :not_found} ->
-        {:error, :venue_not_found, "we couldn't find that venue — try searching"}
+        maybe_insert_fixture(
+          place_id,
+          opts,
+          {:venue_not_found, "we couldn't find that venue — try searching"}
+        )
 
       {:error, _} ->
-        {:error, :venue_not_found, "we couldn't find that venue — try searching"}
+        # Places key present but API blocked / misconfigured — still allow fixtures
+        maybe_insert_fixture(
+          place_id,
+          opts,
+          {:venue_not_found, "we couldn't find that venue — try searching"}
+        )
     end
   catch
     {:error, _} = err -> err
+  end
+
+  defp maybe_insert_fixture(place_id, opts, error_atom_or_tuple) do
+    if Keyword.get(opts, :allow_fixture, false) or fixture_place?(place_id) do
+      insert_fixture_venue(place_id, opts)
+    else
+      case error_atom_or_tuple do
+        atom when is_atom(atom) -> {:error, atom}
+        {atom, msg} -> {:error, atom, msg}
+      end
+    end
   end
 
   defp fetch_place_details(place_id, opts) do
@@ -478,6 +585,8 @@ defmodule OpalCore.Lives.Verification do
         end
       end
 
+      test? = provisional_place_id?(place_id) or Keyword.get(opts, :test_only, false)
+
       attrs = %{
         place_id: place_id,
         name: Keyword.get(opts, :name, "Fixture Venue"),
@@ -487,7 +596,12 @@ defmodule OpalCore.Lives.Verification do
         status: Keyword.get(opts, :status) || "quarantine",
         quarantine_until: DateTime.add(now, @quarantine_days * 24 * 3600, :second),
         pay_token: generate_pay_token(),
-        metadata: %{"introduced_by" => introduced_by, "source" => "fixture"}
+        metadata: %{
+          "introduced_by" => introduced_by,
+          "source" => if(test?, do: "provisional_testing", else: "fixture"),
+          "test_only" => test?,
+          "test_venue_badge" => if(test?, do: "TEST VENUE", else: nil)
+        }
       }
 
       case %Venue{} |> Venue.changeset(attrs) |> Repo.insert() do
@@ -504,11 +618,59 @@ defmodule OpalCore.Lives.Verification do
     {:error, _} = err -> err
   end
 
-  defp fixture_place?(id), do: String.starts_with?(id, "fixture_") or String.starts_with?(id, "ChIJ_test")
+  defp insert_provisional_venue(place_id, opts) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    name = Keyword.get(opts, :name) || "Test Venue"
+    city = Keyword.get(opts, :address) || Keyword.get(opts, :city) || "Test City"
+    introduced_by = Keyword.get(opts, :introduced_by)
+
+    if is_binary(introduced_by) do
+      case check_new_venue_rate(introduced_by) do
+        :ok -> :ok
+        {:error, _} = err -> throw(err)
+      end
+    end
+
+    attrs = %{
+      place_id: place_id,
+      name: name,
+      formatted_address: city,
+      types: Keyword.get(opts, :types, ["establishment", "point_of_interest"]),
+      residential: false,
+      status: "quarantine",
+      quarantine_until: DateTime.add(now, @quarantine_days * 24 * 3600, :second),
+      pay_token: generate_pay_token(),
+      metadata: %{
+        "introduced_by" => introduced_by,
+        "source" => "provisional_testing",
+        "test_only" => true,
+        "test_venue_badge" => "TEST VENUE"
+      }
+    }
+
+    case %Venue{} |> Venue.changeset(attrs) |> Repo.insert() do
+      {:ok, v} ->
+        {:ok, v, :created}
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        if unique_place_error?(cs) do
+          {:ok, Repo.get_by!(Venue, place_id: place_id), :existing}
+        else
+          {:error, cs}
+        end
+    end
+  catch
+    {:error, _} = err -> err
+  end
+
+  defp fixture_place?(id),
+    do:
+      String.starts_with?(id, "fixture_") or String.starts_with?(id, "ChIJ_test") or
+        provisional_place_id?(id)
 
   defp free_text_rejected?(id, opts) do
     # Explicit free-text path: callers pass place_id: nil and name only → handled upstream.
-    # Guard: obviously non-place_id strings without ChIJ / fixture prefix when force_places.
+    # Guard: obviously non-place_id strings without ChIJ / fixture / test- prefix when force_places.
     Keyword.get(opts, :require_places_shaped, false) and
       not (String.starts_with?(id, "ChIJ") or fixture_place?(id))
   end

@@ -14,17 +14,74 @@ defmodule OpalCoreWeb.LivesController do
     json(conn, Lives.catalog())
   end
 
+  @doc "Places autocomplete for go-live. Empty/unavailable → FE may offer provisional testing path."
+  def venue_search(conn, params) do
+    query = params["q"] || params["query"] || ""
+
+    case Lives.search_venues(query) do
+      {:ok, candidates} when is_list(candidates) ->
+        json(conn, %{
+          "candidates" => candidates,
+          "empty" => candidates == [],
+          "manual_testing_available" => Mix.env() != :prod,
+          "manual_testing_label" => "Enter venue manually (testing)"
+        })
+
+      {:ok, [], :empty} ->
+        json(conn, %{
+          "candidates" => [],
+          "empty" => true,
+          "manual_testing_available" => Mix.env() != :prod,
+          "manual_testing_label" => "Enter venue manually (testing)"
+        })
+
+      {:error, :query_required} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => "query_required"})
+
+      {:error, :places_unavailable, reason} ->
+        json(conn, %{
+          "candidates" => [],
+          "empty" => true,
+          "places_unavailable" => true,
+          "message" => to_string(reason),
+          "manual_testing_available" => Mix.env() != :prod,
+          "manual_testing_label" => "Enter venue manually (testing)"
+        })
+    end
+  end
+
   def go_live(conn, params) do
     user_id = conn.assigns.current_user_id
     place_id = params["place_id"]
+    provisional? = truthy?(params["provisional"] || params["allow_provisional"])
+    venue_name = params["venue_name"] || params["name"]
+    city = params["city"] || params["address"]
 
     cond do
-      is_binary(params["venue_name"]) and (place_id in [nil, ""]) ->
+      # Production never accepts provisional venues
+      Mix.env() == :prod and provisional? ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{"error" => "provisional_not_allowed", "message" => "Manual venues are testing-only"})
+
+      provisional? and is_binary(venue_name) and is_binary(city) ->
+        case Lives.go_live_provisional(user_id, venue_name, city,
+               title: params["title"],
+               allow_provisional: true
+             ) do
+          {:ok, result} ->
+            respond_go_live(conn, result)
+
+          {:error, reason} ->
+            respond_go_live_error(conn, reason)
+        end
+
+      provisional? ->
         conn
         |> put_status(:unprocessable_entity)
         |> json(%{
-          "error" => "venue_not_found",
-          "message" => "we couldn't find that venue — try searching"
+          "error" => "name_and_city_required",
+          "message" => "Enter venue name and city"
         })
 
       not is_binary(place_id) or place_id == "" ->
@@ -33,57 +90,84 @@ defmodule OpalCoreWeb.LivesController do
         |> json(%{"error" => "place_id_required", "message" => "Where are you?"})
 
       true ->
+        allow_provisional? =
+          Mix.env() != :prod and
+            (String.starts_with?(place_id, "test-") or truthy?(params["allow_provisional"]))
+
         opts = [
           title: params["title"],
           allow_fixture: Mix.env() != :prod,
-          name: params["name"],
-          address: params["address"],
-          types: params["types"]
+          allow_provisional: allow_provisional?,
+          name: params["name"] || venue_name,
+          address: params["address"] || city,
+          types: params["types"],
+          test_only: String.starts_with?(place_id, "test-")
         ]
 
         case Lives.go_live(user_id, place_id, opts) do
-          {:ok, %{live_room: room, venue: venue}} ->
-            conn
-            |> put_status(:created)
-            |> json(%{
-              "live_room" => LiveRoom.to_contract(room, venue),
-              "consequence" => "Anyone can see you're at #{venue.name}",
-              "trade" =>
-                "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you."
-            })
+          {:ok, result} ->
+            respond_go_live(conn, result)
 
           {:error, :residential, msg} ->
-            conn
-            |> put_status(:unprocessable_entity)
-            |> json(%{"error" => "residential", "message" => msg})
+            respond_go_live_error(conn, {:residential, msg})
 
           {:error, :venue_not_found, msg} ->
-            conn
-            |> put_status(:unprocessable_entity)
-            |> json(%{"error" => "venue_not_found", "message" => msg})
-
-          {:error, :place_id_required} ->
-            conn
-            |> put_status(:unprocessable_entity)
-            |> json(%{"error" => "place_id_required"})
-
-          {:error, :new_venue_rate_limited} ->
-            conn
-            |> put_status(:too_many_requests)
-            |> json(%{"error" => "new_venue_rate_limited"})
-
-          {:error, :venue_live_rate_limited} ->
-            conn
-            |> put_status(:too_many_requests)
-            |> json(%{"error" => "venue_live_rate_limited"})
+            respond_go_live_error(conn, {:venue_not_found, msg})
 
           {:error, reason} ->
-            conn
-            |> put_status(:unprocessable_entity)
-            |> json(%{"error" => error_string(reason)})
+            respond_go_live_error(conn, reason)
         end
     end
   end
+
+  defp respond_go_live(conn, %{live_room: room, venue: venue}) do
+    display = Venue.display_name(venue)
+
+    conn
+    |> put_status(:created)
+    |> json(%{
+      "live_room" => LiveRoom.to_contract(room, venue),
+      "venue" => Venue.to_public_contract(venue),
+      "consequence" => "Anyone can see you're at #{display}",
+      "trade" =>
+        "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
+      "test_only" => Venue.test_only?(venue),
+      "test_venue_badge" => if(Venue.test_only?(venue), do: "TEST VENUE", else: nil)
+    })
+  end
+
+  defp respond_go_live_error(conn, {:residential, msg}) do
+    conn |> put_status(:unprocessable_entity) |> json(%{"error" => "residential", "message" => msg})
+  end
+
+  defp respond_go_live_error(conn, {:venue_not_found, msg}) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> json(%{"error" => "venue_not_found", "message" => msg})
+  end
+
+  defp respond_go_live_error(conn, :place_id_required) do
+    conn |> put_status(:unprocessable_entity) |> json(%{"error" => "place_id_required"})
+  end
+
+  defp respond_go_live_error(conn, :provisional_not_allowed) do
+    conn |> put_status(:forbidden) |> json(%{"error" => "provisional_not_allowed"})
+  end
+
+  defp respond_go_live_error(conn, :new_venue_rate_limited) do
+    conn |> put_status(:too_many_requests) |> json(%{"error" => "new_venue_rate_limited"})
+  end
+
+  defp respond_go_live_error(conn, :venue_live_rate_limited) do
+    conn |> put_status(:too_many_requests) |> json(%{"error" => "venue_live_rate_limited"})
+  end
+
+  defp respond_go_live_error(conn, reason) do
+    conn |> put_status(:unprocessable_entity) |> json(%{"error" => error_string(reason)})
+  end
+
+  defp truthy?(v) when v in [true, "true", "1", 1, "yes"], do: true
+  defp truthy?(_), do: false
 
   def show(conn, %{"id" => id}) do
     case Lives.get_live(id) do

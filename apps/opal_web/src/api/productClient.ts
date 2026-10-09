@@ -3586,6 +3586,8 @@ export type LivesGoLiveCopy = {
   consequence_template: string;
   reject_free_text: string;
   residential_reject: string;
+  manual_testing_label?: string;
+  manual_testing_only_under?: string;
 };
 
 export async function getLivesGoLiveCopy(bearer?: string): Promise<LivesGoLiveCopy> {
@@ -3617,14 +3619,45 @@ export async function getLivesStickerCatalog(bearer?: string) {
   });
 }
 
+export async function searchLivesVenues(query: string, bearer?: string) {
+  const q = encodeURIComponent(query);
+  return request<{
+    candidates: Array<{
+      place_id?: string;
+      name?: string;
+      formatted_address?: string;
+      types?: string[];
+    }>;
+    empty?: boolean;
+    places_unavailable?: boolean;
+    message?: string;
+    manual_testing_available?: boolean;
+    manual_testing_label?: string;
+  }>(`/api/v1/product/lives/venue-search?q=${q}`, {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
 export async function postLivesGoLive(
-  attrs: { place_id: string; title?: string; name?: string },
+  attrs: {
+    place_id?: string;
+    title?: string;
+    name?: string;
+    venue_name?: string;
+    city?: string;
+    provisional?: boolean;
+    allow_provisional?: boolean;
+  },
   bearer?: string,
 ) {
   return request<{
     live_room: Record<string, unknown>;
+    venue?: Record<string, unknown>;
     consequence: string;
     trade: string;
+    test_only?: boolean;
+    test_venue_badge?: string | null;
     error?: string;
     message?: string;
   }>("/api/v1/product/lives/go-live", {

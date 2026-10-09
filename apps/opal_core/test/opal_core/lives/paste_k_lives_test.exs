@@ -256,4 +256,41 @@ defmodule OpalCore.Lives.PasteKLivesTest do
     assert Repo.get!(Wallet, w.id).balance_cents == 150
     assert Repo.aggregate(WalletTransaction, :count, :id) >= 1
   end
+
+  test "provisional test venue — go live with name+city, TEST VENUE badge, stickers quarantined",
+       %{host: host, viewer: viewer} do
+    assert {:error, :provisional_not_allowed} =
+             Lives.go_live_provisional(host, "Rooftop Bar", "San Diego", allow_provisional: false)
+
+    assert {:ok, %{live_room: room, venue: venue}} =
+             Lives.go_live_provisional(host, "Rooftop Bar", "San Diego", allow_provisional: true)
+
+    assert String.starts_with?(venue.place_id, "test-")
+    assert Venue.test_only?(venue)
+    assert venue.status == "quarantine"
+    assert Venue.display_name(venue) =~ "TEST VENUE"
+    refute Venue.stickers_enabled?(venue)
+
+    contract = Venue.to_public_contract(venue)
+    assert contract["test_only"] == true
+    assert contract["test_venue_badge"] == "TEST VENUE"
+
+    fund!(viewer, 10_000)
+
+    assert {:error, :stickers_disabled_quarantine} =
+             Lives.send_sticker(room.id, viewer, "fire", "idem-prov-sticker")
+  end
+
+  test "venue search returns places_unavailable when Places key missing" do
+    prior = System.get_env("GOOGLE_PLACES_API_KEY")
+    System.delete_env("GOOGLE_PLACES_API_KEY")
+    Application.delete_env(:opal_core, :google_places_api_key)
+
+    on_exit(fn ->
+      if prior, do: System.put_env("GOOGLE_PLACES_API_KEY", prior), else: System.delete_env("GOOGLE_PLACES_API_KEY")
+    end)
+
+    assert {:error, :places_unavailable, _} = Lives.search_venues("rooftop bar san diego")
+  end
 end
+

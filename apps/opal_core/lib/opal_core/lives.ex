@@ -30,65 +30,41 @@ defmodule OpalCore.Lives do
         "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
       "consequence_template" => "Anyone can see you're at [venue].",
       "reject_free_text" => "we couldn't find that venue — try searching",
-      "residential_reject" => Verification.residential_reject_message()
+      "residential_reject" => Verification.residential_reject_message(),
+      "manual_testing_label" => "Enter venue manually (testing)",
+      "manual_testing_only_under" => "opal_lives=1"
     }
   end
 
+  def search_venues(query), do: Verification.search_venues(query)
+
   @doc """
-  Start a live. Requires Places-validated place_id. No skip / no unplaced path.
+  Start a live. Requires Places-validated place_id (or provisional test-* when allowed).
+  No skip / no unplaced path.
   """
   def go_live(host_account_id, place_id, opts \\ [])
 
   def go_live(host_account_id, place_id, opts)
       when is_binary(host_account_id) and is_binary(place_id) do
     title = Keyword.get(opts, :title)
+    allow_fixture? = Keyword.get(opts, :allow_fixture, Mix.env() == :test)
+    allow_provisional? = Keyword.get(opts, :allow_provisional, false)
 
     with {:ok, venue, _origin} <-
            Verification.resolve_venue(place_id,
              introduced_by: host_account_id,
-             allow_fixture: Keyword.get(opts, :allow_fixture, Mix.env() == :test),
+             allow_fixture: allow_fixture?,
+             allow_provisional: allow_provisional?,
              details: Keyword.get(opts, :details),
              name: Keyword.get(opts, :name),
              address: Keyword.get(opts, :address),
              types: Keyword.get(opts, :types),
              status: Keyword.get(opts, :venue_status) || "quarantine",
-             residential: Keyword.get(opts, :residential, false)
+             residential: Keyword.get(opts, :residential, false),
+             test_only: Keyword.get(opts, :test_only, false)
            ),
          :ok <- Verification.check_lives_per_venue_day(host_account_id, venue.id) do
-      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-
-      venue =
-        if is_nil(venue.first_live_at) do
-          case venue
-               |> Venue.changeset(%{first_live_at: now})
-               |> Repo.update() do
-            {:ok, v} -> v
-            _ -> venue
-          end
-        else
-          venue
-        end
-
-      attrs = %{
-        host_account_id: host_account_id,
-        venue_id: venue.id,
-        status: "live",
-        started_at: now,
-        title: title,
-        metadata: %{
-          "consequence" => "Anyone can see you're at #{venue.name}",
-          "place_id" => venue.place_id
-        }
-      }
-
-      case %LiveRoom{} |> LiveRoom.changeset(attrs) |> Repo.insert() do
-        {:ok, room} ->
-          _ = VenueMaxing.record_attendance(host_account_id, venue)
-          {:ok, %{live_room: room, venue: venue, copy: go_live_copy()}}
-
-        {:error, cs} ->
-          {:error, cs}
-      end
+      insert_live(host_account_id, venue, title)
     else
       {:error, :residential, msg} ->
         {:error, :residential, msg}
@@ -113,6 +89,75 @@ defmodule OpalCore.Lives do
   end
 
   def go_live(_, _, _), do: {:error, :invalid}
+
+  @doc """
+  Go live at a provisional testing venue (name + city → test-<slug>).
+  Only when allow_provisional: true (dev/test / ?opal_lives=1). Never production.
+  """
+  def go_live_provisional(host_account_id, name, city, opts \\ [])
+
+  def go_live_provisional(host_account_id, name, city, opts)
+      when is_binary(host_account_id) and is_binary(name) and is_binary(city) do
+    allow? = Keyword.get(opts, :allow_provisional, false)
+
+    with true <- allow?,
+         {:ok, venue, _origin} <-
+           Verification.create_provisional_venue(name, city,
+             introduced_by: host_account_id,
+             allow_provisional: true
+           ),
+         :ok <- Verification.check_lives_per_venue_day(host_account_id, venue.id) do
+      insert_live(host_account_id, venue, Keyword.get(opts, :title))
+    else
+      false ->
+        {:error, :provisional_not_allowed}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def go_live_provisional(_, _, _, _), do: {:error, :invalid}
+
+  defp insert_live(host_account_id, venue, title) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    venue =
+      if is_nil(venue.first_live_at) do
+        case venue
+             |> Venue.changeset(%{first_live_at: now})
+             |> Repo.update() do
+          {:ok, v} -> v
+          _ -> venue
+        end
+      else
+        venue
+      end
+
+    display = Venue.display_name(venue)
+
+    attrs = %{
+      host_account_id: host_account_id,
+      venue_id: venue.id,
+      status: "live",
+      started_at: now,
+      title: title,
+      metadata: %{
+        "consequence" => "Anyone can see you're at #{display}",
+        "place_id" => venue.place_id,
+        "test_only" => Venue.test_only?(venue)
+      }
+    }
+
+    case %LiveRoom{} |> LiveRoom.changeset(attrs) |> Repo.insert() do
+      {:ok, room} ->
+        _ = VenueMaxing.record_attendance(host_account_id, venue)
+        {:ok, %{live_room: room, venue: venue, copy: go_live_copy()}}
+
+      {:error, cs} ->
+        {:error, cs}
+    end
+  end
 
   def end_live(live_room_id, host_account_id)
       when is_binary(live_room_id) and is_binary(host_account_id) do

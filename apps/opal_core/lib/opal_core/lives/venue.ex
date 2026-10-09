@@ -62,22 +62,46 @@ defmodule OpalCore.Lives.Venue do
     |> unique_constraint(:pay_token, name: :venues_pay_token_index)
   end
 
-  def stickers_enabled?(%__MODULE__{status: "full"}), do: true
+  def stickers_enabled?(%__MODULE__{status: "full"} = v), do: not test_only?(v)
   def stickers_enabled?(%__MODULE__{}), do: false
 
-  def escrow_accrues?(%__MODULE__{status: "full"}), do: true
+  def escrow_accrues?(%__MODULE__{status: "full"} = v), do: not test_only?(v)
   def escrow_accrues?(%__MODULE__{}), do: false
 
+  @doc "Provisional testing venues (place_id test-* or metadata.test_only)."
+  def test_only?(%__MODULE__{place_id: place_id, metadata: meta}) do
+    meta_test? =
+      case meta do
+        %{"test_only" => true} -> true
+        %{"test_only" => "true"} -> true
+        %{test_only: true} -> true
+        _ -> false
+      end
+
+    meta_test? or (is_binary(place_id) and String.starts_with?(place_id, "test-"))
+  end
+
+  def test_only?(_), do: false
+
+  def display_name(%__MODULE__{} = v) do
+    if test_only?(v), do: "TEST VENUE · #{v.name}", else: v.name
+  end
+
   def to_public_contract(%__MODULE__{} = v) do
+    test? = test_only?(v)
+
     %{
       "id" => v.id,
       "place_id" => v.place_id,
       "name" => v.name,
+      "display_name" => display_name(v),
       "formatted_address" => v.formatted_address,
       "status" => v.status,
       "quarantine" => v.status == "quarantine",
       "stickers_enabled" => stickers_enabled?(v),
-      "heat_frozen" => v.heat_frozen
+      "heat_frozen" => v.heat_frozen,
+      "test_only" => test?,
+      "test_venue_badge" => if(test?, do: "TEST VENUE", else: nil)
     }
   end
 

@@ -13,7 +13,7 @@ describe("Paste K Lives go-live honesty", () => {
     const src = read("LivesGoLivePanel.tsx");
     expect(src).toMatch(/Where are you\?/);
     expect(src).toMatch(/no skip/i);
-    expect(src).toMatch(/lives-place-id/);
+    expect(src).toMatch(/lives-place-id|lives-venue-search/);
     expect(src).not.toMatch(/just go live/i);
     expect(src).not.toMatch(/unplaced/i);
   });
@@ -25,9 +25,19 @@ describe("Paste K Lives go-live honesty", () => {
     expect(src).toMatch(/zero stickers is/);
   });
 
-  it("productClient exposes lives + pay endpoints", () => {
+  it("offers manual testing fallback only under opal_lives=1", () => {
+    const src = read("LivesGoLivePanel.tsx");
+    expect(src).toMatch(/Enter venue manually \(testing\)/);
+    expect(src).toMatch(/opal_lives/);
+    expect(src).toMatch(/testingSurface/);
+    expect(src).toMatch(/provisional:\s*true/);
+    expect(src).toMatch(/TEST VENUE/);
+  });
+
+  it("productClient exposes lives search + go-live + pay", () => {
     const client = read("../api/productClient.ts");
     expect(client).toMatch(/\/api\/v1\/product\/lives\/go-live/);
+    expect(client).toMatch(/\/api\/v1\/product\/lives\/venue-search/);
     expect(client).toMatch(/\/api\/v1\/product\/lives\/stickers/);
     expect(client).toMatch(/\/api\/v1\/product\/venues\/pay/);
     expect(client).toMatch(/OPAL_STICKER_LIVE_MONEY|live_money_flag/);

@@ -6,8 +6,56 @@
     "trade": "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
     "noSkip": "Venue confirmation is required — there is no skip.",
     "honesty": "Stickers use test credits for now.",
-    "antiMercenary": "Stickers are celebratory, never required. A live with zero stickers is complete.",
-    "emptyError": "Where are you?"
+    "manualAppeared": true,
+    "goLiveStatus": 201,
+    "goLiveBody": {
+      "consequence": "Anyone can see you're at TEST VENUE · Paste K Test mv0pej7t",
+      "live_room": {
+        "ended_at": null,
+        "heat_contribution_frozen": false,
+        "host_account_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "id": "04ea6979-0477-4aa3-980f-700c1a14caf7",
+        "location_required": true,
+        "placed": true,
+        "presence_report_count": 0,
+        "started_at": "2026-10-09T08:28:51.506514Z",
+        "status": "live",
+        "title": null,
+        "venue": {
+          "display_name": "TEST VENUE · Paste K Test mv0pej7t",
+          "formatted_address": "San Diego",
+          "heat_frozen": false,
+          "id": "2846d1ac-c09c-427e-9fcb-39e7c0c425ac",
+          "name": "Paste K Test mv0pej7t",
+          "place_id": "test-paste-k-test-mv0pej7t-san-diego",
+          "quarantine": true,
+          "status": "quarantine",
+          "stickers_enabled": false,
+          "test_only": true,
+          "test_venue_badge": "TEST VENUE"
+        },
+        "venue_id": "2846d1ac-c09c-427e-9fcb-39e7c0c425ac"
+      },
+      "test_only": true,
+      "test_venue_badge": "TEST VENUE",
+      "trade": "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
+      "venue": {
+        "display_name": "TEST VENUE · Paste K Test mv0pej7t",
+        "formatted_address": "San Diego",
+        "heat_frozen": false,
+        "id": "2846d1ac-c09c-427e-9fcb-39e7c0c425ac",
+        "name": "Paste K Test mv0pej7t",
+        "place_id": "test-paste-k-test-mv0pej7t-san-diego",
+        "quarantine": true,
+        "status": "quarantine",
+        "stickers_enabled": false,
+        "test_only": true,
+        "test_venue_badge": "TEST VENUE"
+      }
+    },
+    "liveStarted": true,
+    "consequence": "Anyone can see you're at TEST VENUE · Paste K Test mv0pej7t",
+    "testBadge": "TEST VENUE"
   },
   "status": "PASS"
 }
