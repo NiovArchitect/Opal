@@ -1391,10 +1391,16 @@ defmodule OpalCore.SocialFlow.Onboarding do
     end
   end
 
+  # Paste W4 — username derives from typed name. Random "u"<>uuid handles are
+  # only a last resort when the display name has no usable alphanumeric chars.
   defp create_human_account!(display_name, handle_hint) do
-    handle =
-      handle_hint ||
-        "u" <> (Ecto.UUID.generate() |> String.replace("-", "") |> String.slice(0, 12))
+    base =
+      case normalize_handle_hint(handle_hint) do
+        nil -> derive_handle_from_name(display_name)
+        hint -> hint
+      end
+
+    handle = unique_handle(base)
 
     {:ok, user} =
       %User{}
@@ -1402,6 +1408,61 @@ defmodule OpalCore.SocialFlow.Onboarding do
       |> Repo.insert()
 
     user
+  end
+
+  defp normalize_handle_hint(nil), do: nil
+
+  defp normalize_handle_hint(hint) when is_binary(hint) do
+    cleaned =
+      hint
+      |> String.trim()
+      |> String.trim_leading("@")
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9]/, "")
+      |> String.slice(0, 24)
+
+    if cleaned == "", do: nil, else: cleaned
+  end
+
+  defp normalize_handle_hint(_), do: nil
+
+  defp derive_handle_from_name(name) when is_binary(name) do
+    slug =
+      name
+      |> String.trim()
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9]/, "")
+      |> String.slice(0, 24)
+
+    if slug == "" do
+      "u" <> (Ecto.UUID.generate() |> String.replace("-", "") |> String.slice(0, 12))
+    else
+      slug
+    end
+  end
+
+  defp derive_handle_from_name(_), do: derive_handle_from_name("")
+
+  defp unique_handle(base), do: unique_handle(base, 1)
+
+  defp unique_handle(base, 1) do
+    case Repo.get_by(User, handle: base) do
+      nil -> base
+      _ -> unique_handle(base, 2)
+    end
+  end
+
+  defp unique_handle(base, n) when n < 1000 do
+    candidate = "#{base}#{n}"
+
+    case Repo.get_by(User, handle: candidate) do
+      nil -> candidate
+      _ -> unique_handle(base, n + 1)
+    end
+  end
+
+  defp unique_handle(base, _) do
+    "u" <> (Ecto.UUID.generate() |> String.replace("-", "") |> String.slice(0, 12))
   end
 
   defp ensure_discoverability!(user_id, ident_id) do

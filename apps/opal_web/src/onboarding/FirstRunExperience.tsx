@@ -1265,7 +1265,11 @@ export function FirstRunExperience({
                 <button
                   type="submit"
                   className="btn primary fr-primary"
-                  disabled={busy || !phone.trim() || !otpConsent}
+                  disabled={
+                    busy ||
+                    !otpConsent ||
+                    phone.replace(/\D/g, "").length < 7
+                  }
                   data-testid="fr06-continue"
                 >
                   {busy ? FR_COPY.busy : FR_COPY.continue}

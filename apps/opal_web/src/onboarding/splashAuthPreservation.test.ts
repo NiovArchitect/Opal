@@ -37,14 +37,15 @@ describe("P0-05.10 Splash primary stroke (631:7 actual paint)", () => {
 
 describe("P0-05.10 Auth preserves FR06–FR09 geometry", () => {
   it("AUTH_PHONE_PRESERVES_FR06_GEOMETRY", () => {
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-phone-field[\s\S]*?top:\s*270px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-phone-field[\s\S]*?width:\s*346px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-phone-field[\s\S]*?height:\s*66px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-phone-field[\s\S]*?border-radius:\s*18px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-primary[\s\S]*?top:\s*720px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-primary[\s\S]*?width:\s*342px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-primary[\s\S]*?height:\s*58px/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-primary[\s\S]*?border-radius:\s*28px/);
+    // Paste W4 — phone is a scrolling document-flow column (zero overlaps).
+    expect(css).toMatch(/\.fr-auth-v4\.fr-phone\.fr-screen[\s\S]*?overflow-y:\s*auto/);
+    expect(css).toMatch(/\.fr-auth-v4\.fr-phone \.fr-phone-field[\s\S]*?position:\s*relative/);
+    expect(css).toMatch(/\.fr-auth-v4\.fr-phone \.fr-phone-field[\s\S]*?max-width:\s*346px/);
+    expect(css).toMatch(/\.fr-auth-v4\.fr-phone \.fr-primary[\s\S]*?position:\s*relative/);
+    expect(css).toMatch(/\.fr-auth-v4\.fr-phone \.fr-primary[\s\S]*?height:\s*58px/);
+    expect(css).toMatch(/\.fr-auth-v4\.fr-phone \.fr-skip-for-now[\s\S]*?position:\s*relative/);
+    expect(css).toMatch(/border-radius:\s*18px/);
+    expect(css).toMatch(/border-radius:\s*28px/);
   });
 
   it("AUTH_VERIFY_PRESERVES_FR07_GEOMETRY", () => {
@@ -65,10 +66,11 @@ describe("P0-05.10 Auth preserves FR06–FR09 geometry", () => {
   });
 
   it("AUTH_FIND_PEOPLE_PRESERVES_FR09_GEOMETRY", () => {
+    // fr09 Assist is off the W4 first-run path; keep card chrome + relative CTAs.
     expect(css).toMatch(/\.fr-auth-v4 \.fr-find-card[\s\S]*?top:\s*250px/);
     expect(css).toMatch(/\.fr-auth-v4 \.fr-find-card[\s\S]*?width:\s*346px/);
     expect(css).toMatch(/\.fr-auth-v4 \.fr-find-card[\s\S]*?height:\s*92px/);
-    expect(css).toMatch(/fr-find-actions \.fr-primary[\s\S]*?top:\s*646px/);
+    expect(css).toMatch(/fr-find-actions \.fr-primary[\s\S]*?position:\s*relative/);
     expect(css).toMatch(/\.fr-auth-v4 \.fr-not-now[\s\S]*?top:\s*720px/);
     expect(css).toMatch(/\.fr-auth-v4 \.fr-not-now[\s\S]*?height:\s*54px/);
   });

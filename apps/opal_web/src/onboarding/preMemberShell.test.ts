@@ -9,7 +9,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 describe("pre-member shell isolation (S1)", () => {
   it("gates member tabbar and panes behind authentication in OpalApp", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
-    expect(app).toMatch(/premember-walkthrough-shell/);
+    expect(app).toMatch(/first-run-splash-shell|first-run-meet-opal-shell/);
     expect(app).toMatch(/premember-activation-shell/);
     expect(app).toMatch(/data-testid="member-shell"/);
     expect(app).toMatch(/data-testid="member-tabbar"/);

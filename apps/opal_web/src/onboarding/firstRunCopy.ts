@@ -45,7 +45,7 @@ export const FR_COPY = {
   continuePhone: "Continue with phone number",
   alreadyAccount: "I already have an account",
   phoneTitle: "Start with your phone number.",
-  phoneBody: "Your number is your sign in. No password to remember.",
+  phoneBody: "Keeps your account yours. That's it.",
   phoneHint: "We will text you a one-time security code.",
   phonePlaceholder: "Phone number",
   verifyTitle: "Enter the code.",

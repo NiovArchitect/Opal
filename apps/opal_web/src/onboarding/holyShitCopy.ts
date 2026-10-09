@@ -7,45 +7,53 @@ export const HOLY_SHIT_COPY = {
  landingHook: "Tell Opal who you want to stay close with.",
  greeting:
  "Hey. I'm Opal. Real people. Brighter together. Birthdays, plans, staying close. I got you.",
- /** Paste W2 1.1 — user's own name before permissions. */
+ /** Paste W4 Phase 0 — user's own name before permissions. */
  askSelfName: "What's your name?",
  selfNamePlaceholder: "Your name",
+ /** @deprecated Paste W4 — username is derived; no separate input. */
  selfUsernamePlaceholder: "Username (optional)",
- selfUsernameHint: "Suggested from your name. Change it anytime in Settings.",
+ /** Quiet handle preview after name typed (Paste W4). */
+ selfUsernameQuiet: (handle: string) =>
+  `You'll be @${handle}. Change it anytime in You.`,
+ /** @deprecated alias for quiet preview */
+ selfUsernameHint: "You'll be @{handle}. Change it anytime in You.",
  selfNameContinue: "Continue",
- /** Permissions before friend (Paste W 1.2 / L4): contacts → calendar → notifications. */
- askPermissions: "A few permissions so I can take care of your people.",
+ /** Permissions ONE screen (Paste W4): contacts, calendar, notifications, location. */
+ askPermissions: "A few permissions help me take care of you.",
  permContactsTitle: "Contacts",
- permContactsWhy:
-  "So you can pick the friends you want to stay close with. Only people you choose.",
+ permContactsWhy: "Find your people.",
  permCalendarTitle: "Calendar",
- permCalendarWhy:
-  "So I can suggest times that actually work, without guessing.",
+ permCalendarWhy: "Never double-book you.",
  permNotificationsTitle: "Notifications",
- permNotificationsWhy:
-  "So I can nudge you about plans and birthdays when it matters.",
+ permNotificationsWhy: "Nudges at the right time.",
+ permLocationTitle: "Location",
+ permLocationWhy: "Spots near you.",
  permAllow: "Allow",
- permNotNow: "Not now",
+ permSkip: "Skip",
+ /** @deprecated Paste W4 uses permSkip */
+ permNotNow: "Skip",
+ permContinue: "Continue",
  askPeople: "Who's someone you've been meaning to catch up with?",
  /** @deprecated alias - one-person ask */
  askName: "Who's someone you've been meaning to catch up with?",
  peoplePlaceholder: "Type a name",
  namePlaceholder: "Type a name",
  peopleContinue: "Continue",
+ peopleOr: "or",
+ peopleSkip: "Skip",
  resolveSelect: "Choose from contacts",
  phonePlaceholder: "Add their phone number",
  phoneContinue: "Continue",
  phoneSkipInvite: "Continue without inviting",
  contactsDeniedOnce:
  "You can enable contacts later in Settings to pick people directly.",
+ /** When Contact Picker / bridge is unavailable — hide Choose from contacts. */
+ contactsUnavailableTyping: "Contacts aren't available. Typing works great.",
  contactsNoPhone: (name: string) =>
  `${name} has no phone number. Add one to invite, or continue without sending.`,
  pullingUp: (name: string) => `Looking up ${name} in your contacts.`,
  /** Talk TO the user ABOUT the friend. Never greet the friend mid-flow. */
- confirmContact: (name: string, phone: string) =>
- phone
-  ? `Got ${name}. ${phone}`
-  : `Got ${name}.`,
+ confirmContact: (name: string, _phone?: string) => `Got ${name}.`,
  askMore: (name: string) =>
  `Got ${name}. Add anyone else, or plan something with them?`,
  addAnother: "Add another",
@@ -366,34 +374,37 @@ export function fixtureSpotsForVibe(vibe: string): HolyShitSpot[] {
  return [];
 }
 
+/** Paste W4 Phase 0 diet first-run phases only. */
 export type MeetOpalPhase =
  | "greeting"
  | "ask_name"
  | "ask_permissions"
- | "ask_people"
- | "ask_more"
- | "ask_when"
- | "ask_vibe"
- | "working"
- | "trust";
+ | "ask_people";
 
-/** Derive an editable username suggestion from a display name (no forced handle). */
+/**
+ * Derive username from display name: lowercase, strip non-alphanumeric
+ * (no spaces, prefer no underscores). "Sadeil" → "sadeil", "Sadeil Mae" → "sadeilmae".
+ */
 export function suggestUsernameFromName(name: string): string {
   return name
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
+    .replace(/[^a-z0-9]+/g, "")
     .slice(0, 24);
 }
 
-/** Permission substeps inside ask_permissions (L4 order). */
-export type MeetOpalPermissionKind = "contacts" | "calendar" | "notifications";
+/** Permission rows on the ONE ask_permissions screen (Paste W4). */
+export type MeetOpalPermissionKind =
+  | "contacts"
+  | "calendar"
+  | "notifications"
+  | "location";
 
 export const MEET_OPAL_PERMISSION_ORDER: readonly MeetOpalPermissionKind[] = [
   "contacts",
   "calendar",
   "notifications",
+  "location",
 ] as const;
 
 export type HolyShitOnboardingState = {

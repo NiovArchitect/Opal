@@ -1,24 +1,35 @@
 /**
  * TOP-LEVEL Splash — Figma 618:19 exact.
  *
- * P0-05.9: same lesson as Promise. Splash is the screen/state — not nested under
- * FirstRunExperience / .fr-void / Motion opacity-0 / technicolor ambient shell.
- *
- * Do NOT redesign. Geometry matches current 618:19 authority.
+ * Paste W4: auto-advances (~2s) into Phone. Geometry matches 618:19 authority.
  */
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 
 type Props = {
   onTapBegin: () => void;
   onAlreadyAccount: () => void;
-  /** Skip intro still lands on Promise (cannot skip Promise). */
+  /** Skip intro advances with Tap to begin (Phone). */
   onSkipIntro?: () => void;
 };
 
 const EMBLEM_SRC = `${BRAND_ASSETS.opalGraphEmblemHero}?v=p0-05-9-splash`;
+const SPLASH_AUTO_MS = 2000;
 
 export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount, onSkipIntro }: Props) {
+  const advanced = useRef(false);
+  const goBegin = () => {
+    if (advanced.current) return;
+    advanced.current = true;
+    onTapBegin();
+  };
+
+  useEffect(() => {
+    const t = window.setTimeout(goBegin, SPLASH_AUTO_MS);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot auto advance
+  }, []);
+
   return (
     <div
       className="fr-splash fr-splash-toplevel"
@@ -57,7 +68,11 @@ export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount, onSkipIntro }
           type="button"
           className="fr-splash-skip"
           data-testid="fr00-skip-intro"
-          onClick={() => (onSkipIntro || onTapBegin)()}
+          onClick={() => {
+            if (advanced.current) return;
+            advanced.current = true;
+            (onSkipIntro || onTapBegin)();
+          }}
         >
           Skip intro
         </button>
@@ -65,7 +80,7 @@ export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount, onSkipIntro }
           type="button"
           className="fr-splash-tap"
           data-testid="fr00-tap-begin"
-          onClick={onTapBegin}
+          onClick={goBegin}
         >
           Tap to begin
         </button>

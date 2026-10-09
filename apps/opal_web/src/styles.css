@@ -5937,6 +5937,152 @@ button.plan-card-btn:focus-visible {
   align-content: flex-start !important;
 }
 
+
+/* Paste W4 Phase 0 — phone screen document-flow column (zero overlaps). */
+.fr-auth-v4.fr-phone.fr-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 0 calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-phone .fr-auth-header {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  margin: 8px auto 12px !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-phone .fr-title,
+.fr-auth-v4.fr-phone .fr-body,
+.fr-auth-v4.fr-phone .fr-status,
+.fr-auth-v4.fr-phone .fr-error {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: auto !important;
+  max-width: 346px !important;
+  margin: 0 auto 10px !important;
+  padding: 0 24px !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-phone .fr-body {
+  margin-bottom: 18px !important;
+}
+.fr-auth-v4.fr-phone .fr-form {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  height: auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  max-width: 390px !important;
+  margin: 0 auto !important;
+  padding: 0 24px 8px !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-phone label[for="fr-phone"] {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  margin: 0 !important;
+}
+.fr-auth-v4.fr-phone .fr-phone-field {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin: 0 auto !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-phone .fr-phone-hint,
+.fr-auth-v4.fr-phone .fr-consent {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto !important;
+}
+.fr-auth-v4.fr-phone .fr-primary,
+.fr-auth-v4.fr-phone .btn.primary.fr-primary {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  height: 58px !important;
+  margin: 8px auto 0 !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-phone .fr-text-action,
+.fr-auth-v4.fr-phone .fr-skip-for-now {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: auto !important;
+  margin: 4px auto 0 !important;
+  display: block !important;
+  text-align: center !important;
+  color: rgba(226, 232, 240, 0.55) !important;
+  font-size: 14px !important;
+}
+html.opal-native-host .fr-auth-v4.fr-phone .fr-title,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-body,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-status,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-error,
+html.opal-native-host .fr-auth-v4.fr-phone label[for="fr-phone"],
+html.opal-native-host .fr-auth-v4.fr-phone .fr-phone-field,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-phone-hint,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-consent,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-text-action,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+}
+@media (max-width: 519px) {
+  .fr-auth-v4.fr-phone .fr-title,
+  .fr-auth-v4.fr-phone .fr-body,
+  .fr-auth-v4.fr-phone .fr-status,
+  .fr-auth-v4.fr-phone .fr-error,
+  .fr-auth-v4.fr-phone label[for="fr-phone"],
+  .fr-auth-v4.fr-phone .fr-phone-field,
+  .fr-auth-v4.fr-phone .fr-phone-hint,
+  .fr-auth-v4.fr-phone .fr-consent,
+  .fr-auth-v4.fr-phone .fr-primary,
+  .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+  .fr-auth-v4.fr-phone .fr-text-action,
+  .fr-auth-v4.fr-phone .fr-skip-for-now {
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+  }
+}
+
 /* Phone flex shell owns find CTAs — do not re-absolute Connect over Assist */
 @media (max-width: 519px) {
   .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
@@ -20238,7 +20384,7 @@ html.opal-native-host .opal-center-chat-input {
   gap: 8px;
   padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
 }
-/* Paste W 1.2 — permissions CTAs stay in Meet Opal (no home dump). */
+/* Paste W 1.2 / W4 — permissions CTAs stay in Meet Opal (no home dump). */
 .hs-perm-composer {
   flex: 0 0 auto;
   width: 100%;
@@ -20249,6 +20395,48 @@ html.opal-native-host .opal-center-chat-input {
   padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, transparent 0%, rgba(5, 8, 22, 0.92) 28%, rgba(5, 8, 22, 0.98) 100%);
 }
+.hs-perm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hs-perm-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  background: rgba(8, 13, 30, 0.72);
+}
+.hs-perm-row-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.hs-perm-row-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8faff;
+}
+.hs-perm-row-why {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--opal-composer-placeholder, #8993a3);
+}
+.hs-perm-row-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  flex: 0 0 auto;
+}
 .hs-perm-why {
   margin: 0;
   text-align: center;
@@ -20256,6 +20444,19 @@ html.opal-native-host .opal-center-chat-input {
   line-height: 1.4;
   font-weight: 600;
   color: var(--opal-composer-placeholder, #8993a3);
+}
+.hs-friend-or {
+  margin: 4px 0;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.55);
+}
+.hs-friend-skip {
+  margin-top: 4px;
+}
+.hs-friend-contacts {
+  width: 100%;
 }
 .hs-pill.hs-pill-primary {
   border-color: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 65%, transparent);

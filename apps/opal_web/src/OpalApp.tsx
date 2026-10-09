@@ -2808,13 +2808,18 @@ export function OpalApp() {
     }
   };
 
-  /** Splash Tap to begin → top-level Promise. Same pointer event terminates here. */
+  /**
+   * Paste W4 — Splash → Phone (Promise off the 60s first-run path).
+   * Promise remains reachable via diagnostic force flags only.
+   */
   const advanceSplashToPromise = () => {
+    markWalkthroughDone();
+    clearForcedFirstRun();
     setShowFirstRun(true);
-    setFirstRunStage("promise");
+    setFirstRunStage("auth");
   };
 
-  /** Promise CTA → phone auth first. Meet Opal (Who's someone…) follows OTP. */
+  /** Promise CTA → phone auth (diagnostic / legacy Promise path). */
   const advancePromiseToAuth = () => {
     markWalkthroughDone();
     clearForcedFirstRun();
@@ -2822,7 +2827,7 @@ export function OpalApp() {
     setShowFirstRun(true);
   };
 
-  /** Returning account from Promise → phone auth (skip Meet Opal until after verify if gated). */
+  /** Returning account from Promise → phone auth. */
   const advancePromiseAlreadyAccount = () => {
     markWalkthroughDone();
     clearForcedFirstRun();
@@ -2831,11 +2836,11 @@ export function OpalApp() {
   };
 
   /**
-   * After OTP verify — open Meet Opal (Who's someone…) when HS/seed is on.
-   * Return true so FirstRunExperience pauses before profile.
+   * Paste W4 — after OTP, always open Meet Opal (Name → Permissions → Friend).
+   * Return true so FirstRunExperience pauses before fr08/fr09/fr10.
    */
   const handleAfterPhoneVerify = (s: ProductSession): boolean => {
-    if (!holyShitEnabled || meetOpalDone) return false;
+    if (meetOpalDone) return false;
     setSession(s);
     saveSession(s);
     setFrResumeSession(s);
@@ -2846,8 +2851,7 @@ export function OpalApp() {
   };
 
   /**
-   * Meet Opal complete → resume first-run at profile (fr08) with the verified session.
-   * Never drop the user into a blank shell after phone.
+   * Paste W4 — Meet Opal complete → inside Opal (skip This is you / Assist / ActOnBehalf).
    */
   const advanceMeetOpalToAuth = () => {
     setMeetOpalDone(true);
@@ -2857,11 +2861,16 @@ export function OpalApp() {
       setSession(live);
       saveSession(live);
       setFrResumeSession(live);
+      setAuthReady(true);
+      setLoadError(null);
     }
-    setAuthReady(true);
-    setShowFirstRun(true);
-    setFirstRunStage("auth");
-    setFrResumeStep("fr08");
+    completeFirstRun();
+    if (live) {
+      void refreshLive(live);
+      void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+        notifyNativeHostSession(live);
+      });
+    }
   };
 
   const completeFirstRun = () => {
