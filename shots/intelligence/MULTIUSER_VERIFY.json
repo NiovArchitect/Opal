@@ -3,7 +3,7 @@
   "phase": "1-2",
   "status": "PASS",
   "branch": "muse/packet-b-batch-2",
-  "tip_at_write": "pending_commit",
+  "tip_at_write": "f3dd92f1",
   "timestamp": "2026-10-09T06:45:05Z",
   "mix_command": "cd apps/opal_core && mix test test/opal_core/intelligence/multiuser_pressure_test.exs",
   "suite": {
