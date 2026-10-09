@@ -233,3 +233,10 @@ Evidence tests: pressure harness P8 (outbox/reconnect), event_driven_test, scena
 
 **Not needed until** a second service must consume durable events independently of BEAM PubSub, multi-region replay is a shipping claim, or production Kafka is explicitly deployed. Until then: Phoenix Channels + Postgres outbox + Oban LocalAdapter.
 
+## Phase 3 acceptance stamp
+
+- Reconnection/order/presence: CHANNEL_CONTRACT + P8 PASS
+- Zero non-outbox user-facing completions for reminder/booking/plan/memory (Phase 1 fixes)
+- Kafka: not needed until second service / multi-region / explicit prod claim
+- Latency budgets documented; honest loading required when over budget
+- Stamped: 2026-10-09T06:16:49Z
