@@ -3,7 +3,7 @@
   "addendum": "cardinality_matrix",
   "status": "PASS",
   "branch": "muse/packet-b-batch-2",
-  "tip_at_write": "2921cef5",
+  "tip_at_write": "f8df7ca7",
   "timestamp": "2026-10-09T06:57:44Z",
   "mix_command": "cd apps/opal_core && mix test test/opal_core/intelligence/cardinality_pressure_test.exs test/opal_core/intelligence/attention_budget_test.exs",
   "suite": {
@@ -50,7 +50,7 @@
       "status": "PASS",
       "asserts": [
         "Three typed nudges (family warm, business formal, friend casual)",
-        "AttentionBudget.grant_batch → used_today +1 for batch of 3",
+        "AttentionBudget.grant_batch \u2192 used_today +1 for batch of 3",
         "time_critical breakthrough does not increment used_today"
       ]
     },
@@ -61,7 +61,7 @@
       "status": "PASS",
       "asserts": [
         "Group plan A/B/C unchanged",
-        "A↔B private_1_1 surprise fork: C plan_access :not_found; Access.can_see_plan? false",
+        "A\u2194B private_1_1 surprise fork: C plan_access :not_found; Access.can_see_plan? false",
         "assert_no_leak + prompt_plan_facts exclude fork for C"
       ]
     }
@@ -75,5 +75,5 @@
     "PromptBuilder group strip / 1:1 routine attach (cardinality N2)"
   ],
   "matrix_doc": "shots/intelligence/CARDINALITY_MATRIX.md",
-  "committed": false
+  "committed": true
 }
