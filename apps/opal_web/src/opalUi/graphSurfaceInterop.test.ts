@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   applyTravelToChatRows,
+  createdPlanGraphOverlay,
   createdPlanToChatRow,
   createdPlanToFeedCard,
+  findCreatedPlanForCard,
   localPlanSurfaceId,
   mergeChatRowsWithCreated,
   mergeFeedWithCreated,
@@ -29,9 +31,32 @@ describe("graphSurfaceInterop", () => {
     expect(card.kind).toBe("graph");
     expect(card.ctaAction).toBe("open_graph");
     expect(card.person).toBe("Maya");
+    expect(card.detail).toBe("Friday · dinner");
+    expect(card.startsAt).toBeUndefined();
+    expect(card.meta).toMatch(/Forming|pending/i);
     const row = createdPlanToChatRow(plan);
     expect(row.planConsequence?.planId).toBe(id);
+    expect(row.planConsequence?.state).toBe("forming");
     expect(row.name).toBe("Maya");
+  });
+
+  it("Paste W5 — overlays idea cards as forming with people+when", () => {
+    const plan = {
+      id: "seed-near-rooftop",
+      title: "Rooftop Jazz",
+      who: "Chanelle, Maya",
+      when: "Tomorrow",
+      place: "Rooftop nearby",
+      sourceIdeaId: "seed-near-rooftop",
+      createdAt: new Date().toISOString(),
+    };
+    const overlay = createdPlanGraphOverlay(plan);
+    expect(overlay.status).toBe("forming");
+    expect(overlay.signalLine).toMatch(/Forming|pending/i);
+    expect(overlay.whenLine).toMatch(/Tomorrow/);
+    expect(overlay.whenLine).toMatch(/Chanelle/);
+    expect(overlay.whenLine).not.toMatch(/no one asked/i);
+    expect(findCreatedPlanForCard("seed-near-rooftop", [plan])?.id).toBe(plan.id);
   });
 
   it("parses plan_confirm metadata and local Yes confirm", () => {

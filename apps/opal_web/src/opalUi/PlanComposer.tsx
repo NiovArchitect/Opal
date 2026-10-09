@@ -1,7 +1,8 @@
 /**
- * Paste W4 Phase 4 - Idea to plan composer.
+ * Paste W4 Phase 4 / W5 Phase 4 - Idea to plan composer.
  * Four steps only: Who, Vibe, When, Where, then proposal.
- * No media capture in this flow.
+ * No media capture. Proposal echoes composer state only (never invent day/time).
+ * Unconfirmed plans stay forming/pending — never ready/locked/happening.
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { OpalPresenceOrb } from "../onboarding/OpalPresenceOrb";
@@ -50,6 +51,38 @@ function splitWho(raw?: string | null, people?: string[]): string[] {
     .filter((p) => p && !/^you$/i.test(p));
 }
 
+/** Only treat seed when as chosen if it is a real when chip / temporal — never "Saved idea". */
+function seedWhenChoice(whenLine?: string | null): string {
+  const raw = (whenLine || "").trim();
+  if (!raw) return "Tonight";
+  if (WHEN_PILLS.some((p) => p.toLowerCase() === raw.toLowerCase())) return raw;
+  if (
+    /^(tonight|tomorrow|this weekend|next week|sat(?:urday)?|sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?)/i.test(
+      raw,
+    )
+  ) {
+    return raw;
+  }
+  return "Tonight";
+}
+
+/** Proposal copy from composer state only — no invented nouns or clock times. */
+export function buildPlanProposalSummary(input: {
+  who: string[];
+  vibe: string;
+  when: string;
+  where: string;
+}): string {
+  return [
+    input.who.length ? `with ${input.who.join(", ")}` : null,
+    input.vibe.trim() || null,
+    input.when.trim() || null,
+    input.where.trim() || null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function PlanComposer({
   open,
   seed = null,
@@ -65,7 +98,7 @@ export function PlanComposer({
   const [who, setWho] = useState<string[]>(seedPeople);
   const [vibe, setVibe] = useState(seed?.vibe || seed?.title || "Jazz");
   const [customVibe, setCustomVibe] = useState("");
-  const [when, setWhen] = useState(seed?.whenLine || "Tonight");
+  const [when, setWhen] = useState(seedWhenChoice(seed?.whenLine));
   const [where, setWhere] = useState(seed?.place || "");
   const [customWhere, setCustomWhere] = useState("");
   const [addQuery, setAddQuery] = useState("");
@@ -77,7 +110,7 @@ export function PlanComposer({
     setWho(splitWho(seed?.who, seed?.people));
     setVibe(seed?.vibe || seed?.title || "Jazz");
     setCustomVibe("");
-    setWhen(seed?.whenLine || "Tonight");
+    setWhen(seedWhenChoice(seed?.whenLine));
     setWhere(seed?.place || "");
     setCustomWhere("");
     setAddQuery("");
@@ -98,14 +131,14 @@ export function PlanComposer({
   const title = seed?.title || vibe || "Plan";
   const resolvedWhere = (customWhere.trim() || where).trim();
   const resolvedVibe = (customVibe.trim() || vibe).trim() || title;
-  const proposalLine = [
-    who.length ? `with ${who.join(", ")}` : null,
-    resolvedVibe,
+  const proposalLine = buildPlanProposalSummary({
+    who,
+    vibe: resolvedVibe,
     when,
-    resolvedWhere || null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+    where: resolvedWhere,
+  });
+  /** Compose stays idle — never mode=ready (that implies the plan is ready). */
+  const orbMode = "idle" as const;
 
   const addMatches = directory.filter(
     (name) =>
@@ -173,7 +206,7 @@ export function PlanComposer({
       </header>
 
       <div className="plan-composer-orb" aria-hidden>
-        <OpalPresenceOrb mode="ready" size={64} />
+        <OpalPresenceOrb mode={orbMode} size={64} />
       </div>
 
       {step === "who" ? (
@@ -327,7 +360,10 @@ export function PlanComposer({
 
       {step === "proposal" ? (
         <>
-          <h1 className="plan-composer-title">Here&apos;s the plan</h1>
+          <h1 className="plan-composer-title">Here&apos;s the plan:</h1>
+          <p className="plan-composer-forming" data-testid="plan-composer-forming">
+            Forming · pending
+          </p>
           <article className="plan-composer-proposal" data-testid="plan-composer-proposal">
             <h2>{resolvedVibe}</h2>
             <p>{proposalLine}</p>

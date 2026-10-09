@@ -8,7 +8,9 @@
 import React from "react";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
 import {
+  createdPlanGraphOverlay,
   createdPlanToFeedCard,
+  findCreatedPlanForCard,
   loadCreatedPlans,
 } from "./graphSurfaceInterop";
 import { GRAPH_AUTHORITY_CHROME, resolveGraphPlaceTitle } from "./graphAuthorityChrome";
@@ -94,13 +96,22 @@ type Props = {
   conversationId?: string | null;
 };
 
-function parseWhenParts(detail?: string): { dayKicker: string; timeLabel: string } {
+function parseWhenParts(
+  detail?: string,
+  opts?: { inventDefaults?: boolean },
+): { dayKicker: string; timeLabel: string } {
   // e.g. "Juniper & Ivy · Saturday · 7:30 PM" or "Tonight · 7:30 PM · with Chanelle"
+  // Paste W5 — never invent day/time for forming/pending plans.
+  const invent = opts?.inventDefaults !== false;
   const parts = (detail || "").split("·").map((p) => p.trim()).filter(Boolean);
-  const timePart = parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || "7:30 PM";
+  const timePart =
+    parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || (invent ? "7:30 PM" : "");
   const dayPart =
-    parts.find((p) => /tonight|saturday|sunday|monday|tuesday|wednesday|thursday|friday/i.test(p)) ||
-    "Tonight";
+    parts.find((p) =>
+      /tonight|tomorrow|this weekend|next week|saturday|sunday|monday|tuesday|wednesday|thursday|friday/i.test(
+        p,
+      ),
+    ) || (invent ? "Tonight" : parts[0] || "Forming");
   return { dayKicker: dayPart, timeLabel: timePart };
 }
 
@@ -134,35 +145,48 @@ export function GraphDetailSheet({
   onBroadcastArrival,
   onBroadcastEta,
 }: Props) {
+  // Paste W5 Phase 4 — created/composer plans win over stale seed idea chrome.
+  const createdPlan = findCreatedPlanForCard(cardId, loadCreatedPlans());
+  const createdOverlay = createdPlan ? createdPlanGraphOverlay(createdPlan) : null;
   const card =
-    FOUNDER_HOME_FEED.find((c) => c.id === cardId) ||
-    (() => {
-      const plan = loadCreatedPlans().find((p) => p.id === cardId);
-      return plan ? createdPlanToFeedCard(plan) : undefined;
-    })();
+    (createdPlan ? createdPlanToFeedCard(createdPlan) : undefined) ||
+    FOUNDER_HOME_FEED.find((c) => c.id === cardId);
   // FW founder-walk: never fall back unrelated Graphs to Juniper & Ivy.
-  const placeTitle = resolveGraphPlaceTitle(card ? { id: card.id, title: card.title, placeLine: card.placeLine } : { id: cardId });
+  const placeTitle = resolveGraphPlaceTitle(
+    card
+      ? { id: createdPlan?.sourceIdeaId || card.id, title: card.title, placeLine: card.placeLine }
+      : { id: cardId },
+  );
   const withWho = card?.person ? `with ${card.person}` : "";
   const whenLine = (() => {
-    if (card?.detail && /\d{1,2}:\d{2}\s*(AM|PM)/i.test(card.detail)) {
+    if (createdOverlay?.whenLine) return createdOverlay.whenLine;
+    if (card?.detail) {
       return withWho && !/with /i.test(card.detail) ? `${card.detail} · ${withWho}` : card.detail;
     }
-    return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
+    // Only invent Tonight · 7:30 for known ready fixture — never for forming/idea.
+    if (cardId === "seed-chanelle-juniper") {
+      return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
+    }
+    return withWho || "Forming";
   })();
-  const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
+  const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine, {
+    inventDefaults: !createdPlan && cardId === "seed-chanelle-juniper",
+  });
   const chrome = GRAPH_AUTHORITY_CHROME[cardId];
   /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =
-    cardId === "seed-chanelle-juniper" ||
-    card?.ctaAction === "open_graph" ||
-    (/juniper|ready/i.test(card?.title || "") && cardId === "seed-chanelle-juniper");
-  const statusLabel = isReadyFixture
-    ? "Ready"
-    : cardId === "seed-alex-graph-gallery"
-      ? "Aligned"
-      : cardId === "seed-near-rooftop"
-        ? "Idea"
-        : "Forming";
+    !createdPlan &&
+    (cardId === "seed-chanelle-juniper" ||
+      (/juniper|ready/i.test(card?.title || "") && cardId === "seed-chanelle-juniper"));
+  const statusLabel = createdPlan
+    ? "Forming"
+    : isReadyFixture
+      ? "Ready"
+      : cardId === "seed-alex-graph-gallery"
+        ? "Aligned"
+        : cardId === "seed-near-rooftop"
+          ? "Idea"
+          : "Forming";
   const countdown = happeningInLabel(card?.startsAt, Date.now(), {
     endsAt: card?.endsAt,
     tripDateRange: card?.tripDateRange,
@@ -179,7 +203,9 @@ export function GraphDetailSheet({
   const tableTruth =
     card?.alignmentSteps?.find((s) => /table|place|juniper/i.test(s.primary + s.secondary))
       ?.secondary ||
-    (isReadyFixture ? "table looks open" : chrome?.signalLine || "taking shape");
+    (isReadyFixture
+      ? "table looks open"
+      : createdOverlay?.signalLine || chrome?.signalLine || "Forming · pending");
   const leaveTruth =
     card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary ||
     (isReadyFixture ? "Leave ~6:55" : "");
@@ -187,7 +213,8 @@ export function GraphDetailSheet({
     card?.alignmentSteps?.find((s) => /min|drive|from you/i.test(s.secondary))?.secondary ||
     (isReadyFixture ? "18 min from you" : card?.detail || "");
   const leaveByDisplay = leaveTruth ? leaveTruth.replace(/^Leave\s*~?\s*/i, "") || "6:55 PM" : "";
-  const whenLineResolved = chrome?.whenLine || whenLine;
+  const whenLineResolved = createdOverlay?.whenLine || (!createdPlan ? chrome?.whenLine : null) || whenLine;
+  const stateLine = createdOverlay?.signalLine || (!createdPlan ? chrome?.signalLine : null);
 
   const [note, setNote] = React.useState<string | null>(null);
   void onJoinSegment;
@@ -523,18 +550,22 @@ export function GraphDetailSheet({
         </p>
       ) : null}
 
-      <div className="graph-ready-timeblock" data-testid="graph-detail-timeblock">
-        <p className="graph-ready-kicker">{dayKicker}</p>
-        <p className="graph-ready-time">{timeLabel}</p>
-      </div>
+      {dayKicker || timeLabel ? (
+        <div className="graph-ready-timeblock" data-testid="graph-detail-timeblock">
+          <p className="graph-ready-kicker">{dayKicker || "Forming"}</p>
+          {timeLabel ? <p className="graph-ready-time">{timeLabel}</p> : null}
+        </div>
+      ) : null}
 
-      {chrome?.signalLine ? (
+      {stateLine ? (
         <p className="graph-state-line" data-testid="graph-detail-state-line">
-          {chrome.signalLine}
+          {stateLine}
         </p>
       ) : null}
 
-      {isReadyFixture || /juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper" ? (
+      {isReadyFixture ||
+      (!createdPlan &&
+        (/juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper")) ? (
         <>
           <GraphConvoyPanel
             graphId={cardId}
@@ -567,7 +598,15 @@ export function GraphDetailSheet({
             </button>
           </section>
         </>
-      ) : statusLabel !== "Idea" ? (
+      ) : statusLabel === "Forming" || statusLabel === "Idea" ? (
+        <section className="graph-journey-block" data-testid="graph-execution-card">
+          <p className="graph-ready-kicker">Plan</p>
+          <p className="graph-exec-line" data-testid="graph-forming-summary">
+            {createdOverlay?.whenLine || whenLineResolved}
+          </p>
+          <p className="gsh-meta">{stateLine || "Forming · pending"}</p>
+        </section>
+      ) : (
         <section className="graph-journey-block" data-testid="graph-execution-card">
           <p className="graph-ready-kicker">Leave by</p>
           <p className="graph-exec-line" data-testid="graph-leave-by">
@@ -586,7 +625,7 @@ export function GraphDetailSheet({
             Open directions
           </button>
         </section>
-      ) : null}
+      )}
 
       {statusLabel === "Idea" && onStartPlanning ? (
         <button

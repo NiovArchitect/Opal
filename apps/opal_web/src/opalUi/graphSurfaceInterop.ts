@@ -21,6 +21,8 @@ export type CreatedPlanSurface = {
   place?: string | null;
   conversationId?: string | null;
   sharedPlanId?: string | null;
+  /** Idea card id this plan grew from (e.g. seed-near-rooftop) — GraphsHome overlays that card. */
+  sourceIdeaId?: string | null;
   createdAt: string;
 };
 
@@ -83,8 +85,10 @@ export function localPlanSurfaceId(who: string, title: string): string {
 export function createdPlanToFeedCard(plan: CreatedPlanSurface): FounderFeedCard {
   const who = plan.who || "Friend";
   const title = plan.title || `Plans with ${who}`;
-  const when = plan.when || "Soon";
-  const place = plan.place || plan.what || "Dinner";
+  // Echo composer/state only — never invent clock times or meal nouns.
+  const when = (plan.when || "").trim();
+  const place = (plan.place || plan.what || "").trim();
+  const detail = [when, place].filter(Boolean).join(" · ") || "Forming";
   const initial = who.slice(0, 1).toUpperCase();
   return {
     id: plan.id,
@@ -95,15 +99,15 @@ export function createdPlanToFeedCard(plan: CreatedPlanSurface): FounderFeedCard
     mediaSrc: `https://picsum.photos/seed/${encodeURIComponent(plan.id)}/600/400`,
     thumbSrc: `https://picsum.photos/seed/${encodeURIComponent(plan.id)}/600/400`,
     when: "just now",
-    relationshipLabel: "Graph · just now",
+    relationshipLabel: "Graph · forming",
     title,
-    detail: `${when} · ${place}`,
-    placeLine: `${when} · ${place}`,
+    detail,
+    placeLine: detail,
     caption: title,
-    meta: "Created with Opal",
+    meta: "Forming · pending",
     interestedCount: 1,
     goingCount: 0,
-    startsAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+    // No invented startsAt — forming plans must not show happening countdowns.
     joinability: "joinable_friends",
     likeCount: 0,
     commentCount: 0,
@@ -112,6 +116,44 @@ export function createdPlanToFeedCard(plan: CreatedPlanSurface): FounderFeedCard
     cta: "Open Graph",
     ctaAction: "open_graph",
   };
+}
+
+/** GraphsHome / detail overlay lines from a created (still-forming) plan. */
+export function createdPlanGraphOverlay(plan: CreatedPlanSurface): {
+  id: string;
+  title: string;
+  whenLine: string;
+  signalLine: string;
+  status: "forming";
+  person: string;
+  who: string[];
+} {
+  const people = plan.who
+    ? plan.who.split(/,|&/).map((p) => p.trim()).filter(Boolean)
+    : [];
+  const whenLine = [plan.when, people.length ? people.join(", ") : null]
+    .filter(Boolean)
+    .join(" · ");
+  return {
+    id: plan.sourceIdeaId || plan.id,
+    title: plan.title || "Plan",
+    whenLine: whenLine || "Forming",
+    signalLine: "Forming · pending",
+    status: "forming",
+    person: people[0] || plan.who || "",
+    who: people,
+  };
+}
+
+/** Prefer created plan for an idea/graph id (id or sourceIdeaId match). */
+export function findCreatedPlanForCard(
+  cardId: string,
+  created: CreatedPlanSurface[],
+): CreatedPlanSurface | undefined {
+  return (
+    created.find((p) => p.id === cardId) ||
+    created.find((p) => p.sourceIdeaId === cardId)
+  );
 }
 
 export function createdPlanToChatRow(plan: CreatedPlanSurface): ChatsHomeRow {
@@ -129,7 +171,8 @@ export function createdPlanToChatRow(plan: CreatedPlanSurface): ChatsHomeRow {
     when: "now",
     relationshipLabel: "Direct connection",
     planConsequence: {
-      state: "ready",
+      // Paste W5 — unconfirmed composer plans are forming/pending, never ready/locked.
+      state: "forming",
       label: label || title,
       planId: plan.id,
       tone: inferPlanPillTone(label || title),

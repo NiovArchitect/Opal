@@ -12,6 +12,10 @@ import {
   liveGraphsToTimelineItems,
   personNodeTemporal,
 } from "./graphCalendaring";
+import {
+  createdPlanGraphOverlay,
+  type CreatedPlanSurface,
+} from "./graphSurfaceInterop";
 import { GraphsTripsSection } from "./GraphsTripsSection";
 import {
   GraphsTemporalTimeline,
@@ -49,6 +53,8 @@ type Props = {
   }) => void;
   /** Real SharedPlan rows. Seeds stay for design comparison and follow these. */
   liveGraphs?: LiveGraph[];
+  /** Paste W5 Phase 4 — composer-created plans overlay idea cards (forming/pending). */
+  createdPlans?: CreatedPlanSurface[];
   onMessageTimelineItem?: (item: TimelineItem) => void;
   onAdjustTimelineItem?: (item: TimelineItem) => void;
   /** Bump to open trip create inside GraphsTripsSection. */
@@ -107,6 +113,7 @@ export function GraphsHome({
   onCreateIdea,
   onStartPlanning,
   liveGraphs = [],
+  createdPlans = [],
   onMessageTimelineItem,
   onAdjustTimelineItem,
   tripCreateSignal = 0,
@@ -149,8 +156,28 @@ export function GraphsHome({
   const graphs = useMemo(() => {
     const all = FOUNDER_HOME_FEED.filter((c) => c.kind === "graph" || c.kind === "live");
     const byId = new Map(all.map((g) => [g.id, g]));
+    const overlayByCardId = new Map<string, ReturnType<typeof createdPlanGraphOverlay>>();
+    for (const plan of createdPlans) {
+      const overlay = createdPlanGraphOverlay(plan);
+      overlayByCardId.set(plan.id, overlay);
+      if (plan.sourceIdeaId) overlayByCardId.set(plan.sourceIdeaId, overlay);
+    }
     const seeds = AUTHORITY_CARDS.map((card) => {
       const src = byId.get(card.id);
+      const overlay = overlayByCardId.get(card.id);
+      if (overlay) {
+        // Idea → composer confirm: replace stale "Open · no one asked yet" with forming people+when.
+        return {
+          id: card.id,
+          title: overlay.title || card.title,
+          whenLine: overlay.whenLine,
+          signalLine: overlay.signalLine,
+          status: "forming" as GraphStatus,
+          person: overlay.person || src?.person || "",
+          who: overlay.who,
+          real: true,
+        };
+      }
       return {
         id: card.id,
         title: card.title,
@@ -161,16 +188,32 @@ export function GraphsHome({
         real: false,
       };
     });
+    const seededIds = new Set(seeds.map((s) => s.id));
     const live = liveGraphs.map((card) => ({
       ...card,
       person: card.person || "",
       real: true,
     }));
+    const createdExtras = createdPlans
+      .filter((p) => !seededIds.has(p.id) && !(p.sourceIdeaId && seededIds.has(p.sourceIdeaId)))
+      .map((p) => {
+        const overlay = createdPlanGraphOverlay(p);
+        return {
+          id: overlay.id,
+          title: overlay.title,
+          whenLine: overlay.whenLine,
+          signalLine: overlay.signalLine,
+          status: "forming" as GraphStatus,
+          person: overlay.person,
+          who: overlay.who,
+          real: true,
+        };
+      });
     // Combined All list: past ranks last so a lone live Past Graph does not sit first.
-    return [...live, ...seeds].sort(
+    return [...live, ...createdExtras, ...seeds].sort(
       (a, b) => (STATUS_RANK[a.status] ?? 99) - (STATUS_RANK[b.status] ?? 99),
     );
-  }, [liveGraphs]);
+  }, [liveGraphs, createdPlans]);
 
   const timelineItems = useMemo(() => {
     if (!liveGraphs.length) return SEED_TIMELINE_ITEMS;
