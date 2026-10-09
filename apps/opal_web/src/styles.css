@@ -631,7 +631,7 @@ html.opal-native-host .first-run-promise-cta {
 
 /* Tabbar, call surface, and conversation exact chrome must keep absolute positioning.
  * Relative hammer previously: dock → y748/w356; Direct header scrolled off-screen with thread. */
-.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.ogsn-graph-detail):not(.new-call-dest):not(.call-continuity-dest):not(.search-dest-373-261):not(.activity-dest-473-141):not(.memory-comments-sheet):not(.forward-share-picker):not(.memory-detail-sheet):not(.discovery-detail-sheet):not(.saved-browse-sheet):not(.save-to-collection-sheet):not(.story-viewer):not(.story-create-flow):not(.full-live-destination):not(.trip-canvas) {
+.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.ogsn-graph-detail):not(.new-call-dest):not(.call-continuity-dest):not(.search-dest-373-261):not(.activity-dest-473-141):not(.memory-comments-sheet):not(.forward-share-picker):not(.memory-detail-sheet):not(.discovery-detail-sheet):not(.saved-browse-sheet):not(.save-to-collection-sheet):not(.story-viewer):not(.story-create-flow):not(.full-live-destination):not(.trip-canvas):not(.contact-profile-sheet):not(.plan-composer) {
   position: relative;
   z-index: 1;
 }
@@ -8544,9 +8544,11 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   max-width: 390px !important;
   z-index: 56 !important;
   background: #030406;
-  padding: 78px 20px var(--dock-clearance);
+  /* Paste W4 5.5 — clear safe inset without clipping 7:30 PM timeblock */
+  padding: max(18px, env(safe-area-inset-top, 0px)) 20px var(--dock-clearance);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   margin: 0 !important;
   transform: none !important;
 }
@@ -8607,12 +8609,11 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   border-radius: 22px;
   padding: 17px;
   background: #090b10;
-  /* B-04 R2: margin +12px height pushes trailing CTAs down (430 band ≤120)
-   * without creating a consecutive gap >96 */
-  margin-bottom: 36px;
+  margin-bottom: 16px;
   width: 350px;
   max-width: 100%;
-  height: 236px;
+  height: auto;
+  min-height: 0;
   box-sizing: border-box;
 }
 .social-dest-373-385 .graph-execution-card .graph-ready-time {
@@ -15391,6 +15392,7 @@ button.you-settings-row {
 /* Composer is always bottom-anchored (bottom: 90px). Attach/voice/send stay
  * composer-relative (top/left inside .composer-618) — never viewport-bottom. */
 
+/* Paste W4 Phase 3 — one clean header row (no absolute avatar over chevron). */
 .gpt-header-618 {
   position: absolute !important;
   left: 0 !important;
@@ -15398,28 +15400,66 @@ button.you-settings-row {
   top: 0 !important;
   width: 100% !important;
   max-width: none !important;
-  height: 148px !important;
+  height: auto !important;
+  min-height: 72px !important;
+  max-height: none !important;
   margin: 0;
-  padding: 0;
+  padding: 10px 12px 8px;
   background: transparent;
   border: 0;
   z-index: 30;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gpt-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  width: 100%;
+  position: relative;
 }
 .gpt-header-618 .gpt-back {
-  position: absolute;
-  left: 4px;
-  top: 16px;
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: 0 0 40px;
   z-index: 2;
-  opacity: 0.55;
+  opacity: 0.7;
+}
+/* Avatar hit is in-flow after back — never absolute over the chevron. */
+.gpt-avatar-hit {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  z-index: 1;
+}
+.gpt-avatar-hit-static {
+  cursor: default;
+  pointer-events: none;
 }
 .gpt-header-direct .gpt-avatar,
-.gpt-header-direct .gpt-avatar-fallback {
-  position: absolute;
-  left: 20px;
-  top: 78px;
-  width: 52px;
-  height: 52px;
+.gpt-header-direct .gpt-avatar-fallback,
+.gpt-avatar-hit .gpt-avatar,
+.gpt-avatar-hit .gpt-avatar-fallback {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   display: grid;
@@ -15429,17 +15469,24 @@ button.you-settings-row {
   color: #e2e8f0;
   margin: 0;
 }
-.gpt-header-direct .gpt-identity-copy {
-  position: absolute;
-  left: 84px;
-  top: 80px;
-  width: 150px;
-}
+.gpt-header-direct .gpt-identity-copy,
 .gpt-header-group .gpt-identity-copy {
-  position: absolute;
-  left: 20px;
-  top: 72px;
-  width: 250px;
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: default;
+}
+.gpt-identity-open-info {
+  cursor: pointer;
 }
 .gpt-header-618 .gpt-name {
   margin: 0;
@@ -15450,20 +15497,18 @@ button.you-settings-row {
   margin: 2px 0 0;
   font-family: var(--font);
 }
-/* Direct 618:352 / 618:353 */
 .gpt-header-direct .gpt-name {
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 600;
   color: #f4f7fa;
 }
 .gpt-header-direct .gpt-conn {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: #8a96a8;
 }
-/* Group 618:456 / 618:457 */
 .gpt-header-group .gpt-name {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
   color: #f4f7fa;
 }
@@ -15472,42 +15517,37 @@ button.you-settings-row {
   font-weight: 400;
   color: #8a96a8;
 }
-.gpt-header-direct .gpt-actions {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 390px;
-  height: 148px;
-  pointer-events: none;
-}
-.gpt-header-direct .gpt-actions .gpt-action-pill {
+.gpt-header-direct .gpt-actions,
+.gpt-header-group .gpt-actions {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: auto;
+  height: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   pointer-events: auto;
-  position: absolute;
-  top: 80px;
+}
+.gpt-header-direct .gpt-actions .gpt-action-pill,
+.gpt-header-group .gpt-actions .gpt-action-pill {
+  pointer-events: auto;
+  position: relative;
+  top: auto;
+  left: auto !important;
   width: 36px;
   height: 36px;
 }
-.gpt-header-direct [data-testid="gpt-call"] { left: 250px; }
-.gpt-header-direct [data-testid="gpt-video"] { left: 292px; }
-.gpt-header-direct [data-testid="gpt-plan"] { left: 334px; }
-
-.gpt-header-group .gpt-actions {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 390px;
-  height: 140px;
-  pointer-events: none;
+.gpt-header-direct [data-testid="gpt-call"],
+.gpt-header-direct [data-testid="gpt-video"],
+.gpt-header-direct [data-testid="gpt-history"],
+.gpt-header-direct [data-testid="gpt-plan"],
+.gpt-header-group [data-testid="gpt-call"],
+.gpt-header-group [data-testid="gpt-video"],
+.gpt-header-group [data-testid="gpt-history"] {
+  left: auto !important;
 }
-.gpt-header-group .gpt-actions .gpt-action-pill {
-  pointer-events: auto;
-  position: absolute;
-  top: 78px;
-  width: 34px;
-  height: 34px;
-}
-.gpt-header-group [data-testid="gpt-call"] { left: 292px; }
-.gpt-header-group [data-testid="gpt-video"] { left: 334px; }
 
 .gpt-action-pill {
   border-radius: 12px;
@@ -15521,37 +15561,31 @@ button.you-settings-row {
 }
 .gpt-action-pill:hover { border-color: rgba(0, 229, 255, 0.45); }
 .gpt-action-glyph { font-size: 14px; line-height: 1; }
-.gpt-call-icon {
+.gpt-call-icon,
+.gpt-history-icon {
   width: 16px;
   height: 16px;
   display: block;
   object-fit: contain;
+  color: #e2e8f0;
 }
 
-/* Absolute header chrome owns 148px — do not collapse to auto (grid-era hammer). */
-.gpt-header-618 {
-  height: 148px !important;
-  min-height: 148px !important;
-  max-height: 148px !important;
-  padding-bottom: 0;
-  box-sizing: border-box;
-}
-/* Group header grows to hold Shared Graph below identity (no overlap). */
+/* Group header grows to hold Shared Graph below the row (no overlap). */
 .gpt-header-618.gpt-header-group {
-  height: 220px !important;
-  min-height: 220px !important;
-  max-height: 220px !important;
+  min-height: 72px !important;
+  height: auto !important;
+  max-height: none !important;
+  padding-bottom: 12px;
 }
 .gpt-shared-graph-plate {
-  /* Absolute under identity row — clears name/conn; never overlaps header copy. */
-  position: absolute !important;
-  left: 16px !important;
-  right: 16px !important;
-  top: 138px !important;
-  width: auto !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  width: 100% !important;
   max-width: none;
   height: auto !important;
-  min-height: 66px !important;
+  min-height: 56px !important;
   margin: 0 !important;
   border-radius: 16px;
   border: 1px solid #2a3548;
@@ -18453,12 +18487,17 @@ html.opal-native-host .story-create-flow {
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > section,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .call-surface,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .group-info-dest,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .graph-create-flow {
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .graph-create-flow,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .contact-profile-sheet,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .plan-composer {
   pointer-events: auto;
   z-index: 40;
 }
+.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .contact-profile-sheet {
+  z-index: 72;
+}
 
-/* Keep absolute header — do not convert to relative/grid */
+/* Clean-row header — height follows content; never absolute-ghost a second chevron. */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .gpt-header,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618 {
   position: absolute !important;
@@ -18466,36 +18505,41 @@ html.opal-native-host .story-create-flow {
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
-  height: 148px !important;
-  min-height: 148px !important;
-  max-height: 148px !important;
+  height: auto !important;
+  min-height: 72px !important;
+  max-height: none !important;
   z-index: 30 !important;
   background: transparent;
 }
-
-/* Group shared-graph plate: absolute under identity inside taller group header */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-header-618.gpt-header-group {
-  height: 220px !important;
-  min-height: 220px !important;
-  max-height: 220px !important;
+  height: auto !important;
+  min-height: 72px !important;
+  max-height: none !important;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] .gpt-shared-graph-plate {
-  position: absolute !important;
-  left: 16px !important;
-  right: 16px !important;
-  top: 138px !important;
-  width: auto !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  width: 100% !important;
   max-width: none !important;
   height: auto !important;
   margin: 0 !important;
   pointer-events: auto;
   z-index: 2;
 }
+/* Member conversation never paints Chats list chrome (second back chevron). */
+.app[data-testid="member-conversation"] .chats-home,
+.app[data-testid="member-conversation"] .comm-sticky-chrome,
+.app[data-testid="member-conversation"] [data-testid="chats-home"],
+.app[data-testid="member-conversation"] [data-testid="chats-back"] {
+  display: none !important;
+}
 
 /* Keep absolute thread between header and composer+dock */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread {
   position: absolute !important;
-  top: 148px !important;
+  top: 72px !important;
   right: 0 !important;
   bottom: 160px !important;
   left: 0 !important;
@@ -18509,7 +18553,6 @@ html.opal-native-host .story-create-flow {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   z-index: 10 !important;
-  /* Top pad clears header; bottom pad clears composer so last bubble isn't trapped */
   padding: 12px 14px 28px !important;
   box-sizing: border-box;
   display: flex !important;
@@ -18519,7 +18562,10 @@ html.opal-native-host .story-create-flow {
   gap: 10px;
 }
 .app[data-testid="member-conversation"][data-conversation-layout="structured"][data-chat-kind="group"] > .thread {
-  top: 220px !important;
+  top: 72px !important;
+}
+.app[data-testid="member-conversation"][data-conversation-layout="structured"][data-chat-kind="group"]:has(.gpt-shared-graph-plate) > .thread {
+  top: 148px !important;
 }
 /* Drop the flex-end spacer hammer — absolute thread owns height; content starts at top */
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .thread::before {
@@ -18981,9 +19027,9 @@ button.alignment-choice:focus-visible,
 }
 
 .gpt-more {
-  position: absolute;
-  top: 14px;
-  right: 12px;
+  position: relative;
+  top: auto;
+  right: auto;
   z-index: 4;
   width: 32px;
   height: 32px;
@@ -18994,12 +19040,13 @@ button.alignment-choice:focus-visible,
   font: inherit;
   letter-spacing: 1px;
   cursor: pointer;
+  flex: 0 0 32px;
 }
 
 .gpt-notify-menu,
 .gpt-notify-confirm {
   position: absolute;
-  top: 48px;
+  top: 58px;
   right: 12px;
   z-index: 6;
   width: 228px;
@@ -20369,6 +20416,30 @@ html.opal-native-host .opal-center-chat-input {
   50% { opacity: 1; transform: translateY(-3px); }
 }
 
+/*
+ * Paste W4 Phase 2 — input mechanics.
+ * 2.2 Document flow: scroll owns history (flex 1); composers sit BELOW as flex 0.
+ * Never position:absolute overlay over .hs-meet-scroll bubbles.
+ */
+.hs-meet-opal > .hs-meet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+.hs-meet-opal > .hs-people-composer,
+.hs-meet-opal > .hs-perm-composer,
+.hs-meet-opal > .hs-meet-composer,
+.hs-meet-opal > .hs-pill-row,
+.hs-meet-opal > .hs-self-name-composer {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  flex: 0 0 auto;
+  inset: auto;
+}
+
 /* —— Composer / pills fixed bottom (flex, not absolute) —— */
 .hs-meet-composer,
 .hs-pill-row,
@@ -20376,6 +20447,7 @@ html.opal-native-host .opal-center-chat-input {
   flex: 0 0 auto;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
   background: linear-gradient(180deg, transparent 0%, rgba(5, 8, 22, 0.92) 28%, rgba(5, 8, 22, 0.98) 100%);
 }
 .hs-people-composer {
@@ -20389,6 +20461,7 @@ html.opal-native-host .opal-center-chat-input {
   flex: 0 0 auto;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -20445,17 +20518,37 @@ html.opal-native-host .opal-center-chat-input {
   font-weight: 600;
   color: var(--opal-composer-placeholder, #8993a3);
 }
-.hs-friend-or {
+/*
+ * Paste W4 2.3 — dual-path reference (friend Type a name / or / Choose from contacts).
+ * PlanComposer + vibe/planning reuse: .hs-dual-path + .hs-friend-type-path / .hs-friend-or /
+ * .hs-friend-contacts / .hs-friend-skip with .opal-composer-brand + .hs-meet-send.
+ */
+.hs-dual-path {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+  flex: 0 0 auto;
+}
+.hs-friend-or,
+.hs-dual-path-or {
   margin: 4px 0;
   text-align: center;
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(226, 232, 240, 0.55);
 }
-.hs-friend-skip {
+.hs-friend-skip,
+.hs-dual-path-skip {
   margin-top: 4px;
 }
-.hs-friend-contacts {
+.hs-friend-contacts,
+.hs-dual-path-secondary {
+  width: 100%;
+}
+.hs-friend-type-path,
+.hs-dual-path-primary {
   width: 100%;
 }
 .hs-pill.hs-pill-primary {
@@ -20519,6 +20612,25 @@ html.opal-native-host .opal-center-chat-input {
   align-items: center;
   padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
 }
+/*
+ * Paste W4 2.1 — branded input pill: send/Continue VERTICALLY CENTERED (not bottom-right).
+ * Reuse for PlanComposer / vibe / planning: .opal-composer-brand + .hs-meet-send.
+ * Inline branded shells keep brand pad + nowrap so the send stays in-pill and centered.
+ */
+.hs-meet-composer.opal-composer-brand,
+.hs-meet-composer-inline.opal-composer-brand,
+.opal-composer-brand.hs-friend-type-path,
+.opal-composer-brand.hs-dual-path-primary {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-content: center;
+  place-items: center;
+  gap: var(--opal-composer-gap, 8px);
+  padding: var(--opal-composer-pad-y, 6px) var(--opal-composer-pad-x, 8px);
+  box-sizing: border-box;
+  position: relative;
+}
 .hs-meet-text-action {
   flex: 1 1 100%;
   border: 0;
@@ -20545,6 +20657,7 @@ html.opal-native-host .opal-center-chat-input {
  */
 .hs-meet-input {
   flex: 1 1 auto;
+  align-self: center;
   min-width: 0;
   height: calc(var(--opal-composer-height, 54px) - 12px);
   border-radius: calc(var(--opal-composer-radius, 27px) - 4px);
@@ -20584,6 +20697,7 @@ html.opal-native-host .opal-center-chat-input {
 }
 .hs-meet-send {
   flex: 0 0 auto;
+  align-self: center;
   height: calc(var(--opal-composer-height, 54px) - 12px);
   padding: 0 16px;
   border: 0;
@@ -20592,14 +20706,31 @@ html.opal-native-host .opal-center-chat-input {
   color: var(--opal-composer-send-color, #050816);
   font-size: 15px;
   font-weight: 750;
+  line-height: 1;
   cursor: pointer;
   box-shadow: 0 0 22px rgba(0, 229, 255, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  place-items: center;
+  box-sizing: border-box;
+}
+.opal-composer-brand > .hs-meet-send,
+.hs-meet-composer.opal-composer-brand > .hs-meet-send {
+  align-self: center;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .hs-meet-send-block {
   width: 100%;
   height: var(--opal-composer-height, 54px);
   border-radius: var(--opal-composer-radius, 27px);
   margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  place-items: center;
+  align-self: stretch;
 }
 .hs-meet-send:disabled {
   opacity: 0.35;
@@ -21874,4 +22005,378 @@ html.opal-native-host .trip-canvas {
 [data-plan-state="unconfirmed"] {
   color: var(--plan-state-idea, #8b5cf6) !important;
   border-color: color-mix(in srgb, var(--plan-state-idea, #8b5cf6) 55%, transparent);
+}
+
+/* Paste W4 Phase 3.3 — ContactProfileSheet foreground card */
+.contact-profile-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: grid;
+  place-items: end center;
+  pointer-events: auto;
+}
+.contact-profile-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: rgba(2, 6, 14, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+.contact-profile-card {
+  position: relative;
+  z-index: 1;
+  width: min(390px, 100%);
+  max-height: min(780px, 92dvh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 16px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+  border-radius: 28px 28px 0 0;
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(14, 22, 40, 0.98) 0%, rgba(6, 10, 20, 0.99) 100%);
+  box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.55);
+  box-sizing: border-box;
+  color: #f4f7fa;
+}
+.contact-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  margin-bottom: 8px;
+}
+.contact-profile-kicker {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a96a8;
+  letter-spacing: 0.02em;
+}
+.contact-profile-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  margin: 8px 0 18px;
+}
+.contact-profile-avatar,
+.contact-profile-avatar-fallback {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: #1a2338;
+  font-size: 32px;
+  font-weight: 700;
+  color: #e2e8f0;
+  border: 2px solid rgba(0, 229, 255, 0.35);
+  box-shadow: 0 0 24px rgba(0, 229, 255, 0.18);
+}
+.contact-profile-title {
+  margin: 8px 0 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #f4f7fa;
+}
+.contact-profile-rel {
+  margin: 0;
+  font-size: 14px;
+  color: #00e5ff;
+}
+.contact-profile-phone {
+  margin: 0;
+  font-size: 13px;
+  color: #8a96a8;
+}
+.contact-profile-actions {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+.contact-profile-actions .btn {
+  flex: 1;
+  min-height: 44px;
+}
+.contact-profile-plans-kicker {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a96a8;
+  text-transform: none;
+}
+.contact-profile-plans ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.contact-profile-plan-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(11, 18, 38, 0.9);
+  color: #f4f7fa;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.contact-profile-plan-row span {
+  font-size: 12px;
+  color: #8a96a8;
+}
+.contact-profile-memories {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.12);
+  color: #e8e0ff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Paste W4 Phase 4 — Idea → PlanComposer (no camera) */
+.plan-composer {
+  position: fixed;
+  inset: 0;
+  z-index: 74;
+  display: flex;
+  flex-direction: column;
+  width: min(390px, 100%);
+  max-width: 390px;
+  height: 100dvh;
+  max-height: 844px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #03070d;
+  color: #f4f7fa;
+  padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.plan-composer-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-bottom: 8px;
+}
+.plan-composer-orb {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 12px;
+}
+.plan-composer-step-label {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a96a8;
+}
+.plan-composer-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+}
+.plan-composer-chips,
+.plan-composer-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.plan-composer-chip,
+.plan-composer-add {
+  border-radius: 999px;
+  border: 1px solid #2a3548;
+  background: #0b1226;
+  color: #f4f7fa;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.plan-composer-chip.is-selected,
+.plan-composer-pills .hs-pill.is-selected {
+  border-color: rgba(0, 229, 255, 0.55);
+  background: rgba(0, 229, 255, 0.12);
+  color: #e8fbff;
+}
+.plan-composer-field {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: #0b1226;
+  color: #f4f7fa;
+  font: inherit;
+}
+.plan-composer-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.plan-composer-nav .btn {
+  flex: 1;
+  min-height: 48px;
+}
+.plan-composer-proposal {
+  border-radius: 18px;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  background: rgba(8, 24, 32, 0.92);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.plan-composer-proposal h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.plan-composer-proposal p {
+  margin: 0;
+  color: #c5d0de;
+  line-height: 1.45;
+}
+
+/* Paste W4 Phase 5 — Home Post/Story composer + Graphs New menu */
+.gsh-home-composer {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0 2px;
+}
+.gsh-home-composer-btn {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: #0b1226;
+  color: #f4f7fa;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gsh-home-composer-btn.is-post {
+  border-color: rgba(0, 229, 255, 0.45);
+}
+.gsh-home-composer-btn.is-story {
+  border-color: rgba(139, 92, 246, 0.45);
+}
+.graphs-create-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 20px;
+  border: 1px solid #00e5ff;
+  background: #03070d;
+  box-shadow: 0 0 10px rgba(51, 204, 255, 0.12);
+  color: #00e5ff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.graphs-create-new-label {
+  line-height: 1;
+}
+.graphs-create-menu {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  z-index: 8;
+  min-width: 168px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(8, 14, 28, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+.graphs-create-menu-title {
+  margin: 0 0 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #8a96a8;
+}
+.graphs-create-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #f4f7fa;
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.graphs-create-menu button:hover,
+.graphs-create-menu button:focus-visible {
+  background: rgba(0, 229, 255, 0.1);
+}
+.graphs-home-title-row {
+  position: relative;
+}
+
+/* Paste W4 Phase 5.5 — thin journey block; no vast empty card */
+.social-dest-373-385 .graph-journey-block {
+  border: 1px solid #1c2330;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #090b10;
+  margin-bottom: 14px;
+  width: 100%;
+  max-width: 350px;
+  box-sizing: border-box;
+}
+.social-dest-373-385 .graph-journey-block .graph-exec-line {
+  margin: 4px 0 0;
+}
+.social-dest-373-385 .graph-journey-block .graph-ready-kicker {
+  margin: 0;
+}
+.social-dest-373-385 .graph-state-line {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #8a96a8;
+}
+.social-dest-373-385 .graph-journey-block .graph-open-directions {
+  width: 100%;
+  height: 44px;
+  margin: 10px 0 0;
+  border-radius: 14px;
+  font-size: 14px;
+}
+.ogsn-graph-detail.social-dest-373-385 {
+  padding-top: max(18px, env(safe-area-inset-top, 0px)) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+.social-dest-373-385 .graph-ready-timeblock {
+  margin: 0 0 14px;
+  padding-top: 2px;
+}
+.social-dest-373-385 .graph-ready-time {
+  line-height: 1.2;
 }
