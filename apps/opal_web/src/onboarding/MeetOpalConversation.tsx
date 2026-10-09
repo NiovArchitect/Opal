@@ -905,7 +905,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           <span className="hs-meet-skip-spacer" aria-hidden />
         )}
         <div className="hs-meet-orb-wrap">
-          <OpalPresenceOrb mode={orbMode} size={80} />
+          <OpalPresenceOrb mode={orbMode} size={80} showStatus />
         </div>
       </div>
 

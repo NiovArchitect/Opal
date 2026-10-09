@@ -6,7 +6,6 @@
  */
 import React, { useMemo, useRef, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
-import { BRAND_ASSETS } from "../brand/brand";
 import {
   createCenterPlan,
   resolveDecision,
@@ -14,6 +13,7 @@ import {
 } from "../api/productClient";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
+import { OpalPresenceOrb } from "../onboarding/OpalPresenceOrb";
 import { OpalCenterChat } from "./OpalCenterChat";
 import {
   localPlanSurfaceId,
@@ -413,8 +413,16 @@ export function OpalCenterLifeGraph({
         />
       ) : (
         <>
-      <header className="opal-center-v2-top">
-        <OpalWordmark className="opal-center-v2-wordmark" />
+      <header className="opal-center-v2-top" data-testid="opal-center-presence-header">
+        <OpalWordmark className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" />
+        <div className="opal-center-v2-presence">
+          <OpalPresenceOrb
+            mode="idle"
+            size={72}
+            showStatus
+            testId="opal-center-presence"
+          />
+        </div>
         <button
           type="button"
           className="opal-center-v2-refresh"
@@ -444,13 +452,7 @@ export function OpalCenterLifeGraph({
           </p>
 
           <div className="opal-center-v2-signal">
-            <img
-              className="opal-center-v2-signal-orb"
-              src={BRAND_ASSETS.opalCenterOpalRest645}
-              alt=""
-              width={32}
-              height={24}
-            />
+            <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
             <div>
               <p className="opal-center-v2-signal-primary">
                 Ask about an open window and I&apos;ll shape one answer.
@@ -542,13 +544,7 @@ export function OpalCenterLifeGraph({
           </div>
 
           <div className="opal-center-v2-signal">
-            <img
-              className="opal-center-v2-signal-orb"
-              src={BRAND_ASSETS.opalCenterOpalRest645}
-              alt=""
-              width={32}
-              height={24}
-            />
+            <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
             <div>
               <p className="opal-center-v2-signal-primary">
                 {resolving
@@ -684,13 +680,7 @@ export function OpalCenterLifeGraph({
           <LifeGraphStrip nodes={dayNodes} />
 
           <div className="opal-center-v2-signal">
-            <img
-              className="opal-center-v2-signal-orb"
-              src={BRAND_ASSETS.opalCenterOpalRest645}
-              alt=""
-              width={32}
-              height={24}
-            />
+            <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
             <div>
               <p className="opal-center-v2-signal-primary">It&apos;s in your day.</p>
               <p className="opal-center-v2-signal-secondary">
@@ -770,13 +760,7 @@ export function OpalCenterLifeGraph({
           )}
 
           <div className="opal-center-v2-signal">
-            <img
-              className="opal-center-v2-signal-orb"
-              src={BRAND_ASSETS.opalCenterOpalRest645}
-              alt=""
-              width={32}
-              height={24}
-            />
+            <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
             <div>
               <p className="opal-center-v2-signal-primary">Want me to shape the open window?</p>
               <button

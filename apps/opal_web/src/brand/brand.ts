@@ -61,8 +61,14 @@ export const BRAND = {
     opalGraphEmblem64: "/brand/opal-graph/opal-graph-emblem-64.png",
     opalGraphAppIcon1024: "/brand/opal-graph/opal-graph-app-icon-1024.png",
     /**
+     * Paste W3 Brand Identity Lock — THE character (friendly/welcoming pose).
+     * Talk-to-Opal surfaces only (onboarding chat + Opal Center header). ≥64px.
+     * Source: shots/brand/opal-character.png (commit 28f282d7). Never redraw.
+     */
+    opalCharacter: "/brand/opal-character.png",
+    /**
      * Center Opal dock — Figma 645:3 EXACT CENTER OPAL REST (P0-05.2 hard lock).
-     * Wrapper geometry: dock-relative 136,7 · 86×64.
+     * Dock / micro chrome only — NOT the talk-to-Opal character.
      * Legacy 568:2 Trio Orb / 66×66 @ 146,-4 is NOT current product authority.
      */
     opalDockOrbTrio: "/brand/opal-graph/opal-center-opal-645-3-rest-512.png",
@@ -136,6 +142,14 @@ export const BRAND = {
     slateInk: "#1A2338",
     luminousWhite: "#F8FAFF",
     softWhite: "#E2E8F0",
+    /**
+     * Paste W3 — ear iridescence sampled from opal-character.png (blue→teal→violet→pink).
+     * Pink is accent only. Brand gradients must use these stops in order.
+     */
+    earBlue: "#6573EB",
+    earTeal: "#5FAECF",
+    earViolet: "#DD70E9",
+    earPinkAccent: "#DE58AD",
   },
   status: {
     productBrandSource: "VALID",

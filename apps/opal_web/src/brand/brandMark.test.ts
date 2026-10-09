@@ -81,6 +81,11 @@ describe("S0 Opal Graph brand foundation", () => {
     expect(BRAND.figma.supersededSpectralScreens).toContain("554:5");
     expect(BRAND_ASSETS.opalCenterOpalRest645).toMatch(/opal-center-opal-645-3-rest-512\.png/);
     expect(BRAND_ASSETS.opalDockOrbTrio).toMatch(/opal-center-opal-645-3-rest-512\.png/);
+    expect(BRAND_ASSETS.opalCharacter).toMatch(/opal-character\.png/);
+    expect(BRAND.palette.earBlue).toMatch(/#6573EB/i);
+    expect(BRAND.palette.earTeal).toMatch(/#5FAECF/i);
+    expect(BRAND.palette.earViolet).toMatch(/#DD70E9/i);
+    expect(BRAND.palette.earPinkAccent).toMatch(/#DE58AD/i);
     expect(BRAND.figma.p0RuntimeCoherenceRecovery).toBe("594:2");
     expect(BRAND.figma.frozenAssetProvenanceLock).toBe("615:2");
     expect(BRAND.figma.promiseExact || BRAND.figma.promise).toMatch(/646:2/);

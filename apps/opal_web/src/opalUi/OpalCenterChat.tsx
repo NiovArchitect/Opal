@@ -31,6 +31,7 @@ import {
   type CreatedPlanSurface,
 } from "./graphSurfaceInterop";
 import { isFounderSeedEnabled } from "./founderGraphSeed";
+import { OpalPresenceOrb, type OpalOrbMode } from "../onboarding/OpalPresenceOrb";
 
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
@@ -570,6 +571,12 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
             ? "Stop listening"
             : "Talk to Opal";
 
+  const presenceMode: OpalOrbMode = sending
+    ? "working"
+    : loading && messages.length === 0
+      ? "typing"
+      : "idle";
+
   return (
     <section className="opal-center-chat" data-testid="opal-center-chat">
       <header className="opal-center-chat-header">
@@ -582,7 +589,14 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
         >
           ‹
         </button>
-        <h1 className="opal-center-chat-title">Opal</h1>
+        <div className="opal-center-chat-presence">
+          <OpalPresenceOrb
+            mode={presenceMode}
+            size={64}
+            showStatus
+            testId="opal-center-chat-presence"
+          />
+        </div>
         <button
           type="button"
           className={`opal-center-chat-voice-toggle${voiceMode ? " is-on" : ""}`}

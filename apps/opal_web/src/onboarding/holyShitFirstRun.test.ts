@@ -62,6 +62,9 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/OpalPresenceOrb/);
     expect(orb).toMatch(/hs-opal-orb/);
     expect(orb).toMatch(/hs-orb-character|data-presence="character"/);
+    expect(orb).toMatch(/opal-character\.png|opalCharacter/);
+    expect(orb).toMatch(/Opal is working|Opal is thinking|statusLabelForMode/);
+    expect(orb).not.toMatch(/opal-center-opal-645-3-rest-512/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toMatch(/What's your name\?/);
     expect(copy).toMatch(/askSelfName/);
