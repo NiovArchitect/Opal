@@ -168,7 +168,8 @@ defmodule OpalCore.OpalResponse do
       taste_hint = if group_hint, do: nil, else: plan_create_taste_hint(context)
 
       parts =
-        ["Got it — #{what} #{when_s}#{with_who}."]
+        # Colon keeps lead as one sentence (≤3 sentence budget with taste + ask).
+        ["Got it: #{what} #{when_s}#{with_who}."]
         |> maybe_append(group_hint)
         |> maybe_append(taste_hint)
         |> Kernel.++(["Want me to set this up?"])
@@ -178,7 +179,7 @@ defmodule OpalCore.OpalResponse do
   end
 
   defp render_virtual_plan_create(what, when_s, with_who, meeting_link, context) do
-    lead = "Got it. #{what} #{when_s}#{with_who} (online)."
+    lead = "Got it: #{what} #{when_s}#{with_who} (online)."
 
     cond do
       is_binary(meeting_link) and meeting_link != "" ->
@@ -214,7 +215,7 @@ defmodule OpalCore.OpalResponse do
 
     cond do
       confirmed? == false ->
-        "I can set that up — who should I include?"
+        "I can set that up. Who should I include?"
 
       virtual? and is_binary(meeting_link) and meeting_link != "" ->
         "Done. #{what}#{when_bit}#{with_who} is set for Online. Join link saved."
@@ -223,7 +224,7 @@ defmodule OpalCore.OpalResponse do
         "Done. #{what}#{when_bit}#{with_who} is set for Online. Add a join link anytime by pasting it."
 
       true ->
-        "Done — #{what}#{when_bit}#{with_who} is set up. Say if you want me to hold a table or message them."
+        "Done. #{what}#{when_bit}#{with_who} is set up. Say if you want me to hold a table or message them."
     end
   end
 
@@ -279,16 +280,16 @@ defmodule OpalCore.OpalResponse do
 
     cond do
       found? and is_binary(new_when) and new_when != "" and action in ["move", "reschedule", "change"] ->
-        "Done — #{plan_ref} moved to #{new_when}."
+        "Done. #{plan_ref} moved to #{new_when}."
 
       found? and action == "cancel" ->
-        "Done — #{plan_ref} cancelled."
+        "Done. #{plan_ref} cancelled."
 
       found? and is_binary(new_when) and new_when != "" ->
-        "Done — #{plan_ref} updated to #{new_when}."
+        "Done. #{plan_ref} updated to #{new_when}."
 
       found? ->
-        "Done — #{plan_ref} updated."
+        "Done. #{plan_ref} updated."
 
       true ->
         "I don't see #{plan_ref} on your calendar. Want to create it?"

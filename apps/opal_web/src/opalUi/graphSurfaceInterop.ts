@@ -3,6 +3,10 @@
  * Keeps Chats, Home feed, and Graph detail on the same plan id.
  */
 
+import {
+  planTitleFromUserWords,
+  planTitleWithFriend,
+} from "../onboarding/identityVoice";
 import type { ChatsHomeRow } from "./ChatsHome";
 import type { FounderFeedCard } from "./founderGraphSeed";
 import { inferPlanPillTone } from "./founderChatsPlanPills";
@@ -216,9 +220,13 @@ export function planFromOpalMetadata(
   const who = Array.isArray(whoRaw)
     ? String(whoRaw[0] || "Friend")
     : String(whoRaw || entities.person || "Friend");
+  const whatRaw = entities.what ? String(entities.what) : "";
+  // Paste W4 Phase 1 — echo user words; never invent "Dinner" / Movie titles.
+  const what = whatRaw.trim() || "plans";
+  const titleFromEntity = String(entities.title || "").trim();
   const title =
-    String(entities.title || "") ||
-    `Dinner with ${who}${entities.when ? ` ${entities.when}` : ""}`.trim();
+    titleFromEntity ||
+    `${planTitleWithFriend(what, who)}${entities.when ? ` ${entities.when}` : ""}`.trim();
   const id =
     (typeof planId === "string" && planId) ||
     localPlanSurfaceId(who, title);
@@ -228,8 +236,8 @@ export function planFromOpalMetadata(
     title,
     who,
     when: entities.when ? String(entities.when) : null,
-    what: entities.what ? String(entities.what) : "dinner",
-    place: entities.what ? String(entities.what) : "Dinner",
+    what: what.toLowerCase(),
+    place: planTitleFromUserWords(what),
     conversationId: entities.conversation_id
       ? String(entities.conversation_id)
       : null,
@@ -257,17 +265,20 @@ export function planFromLocalConfirm(opts: {
     /\b(Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday|tonight|tomorrow|this weekend)\b/i,
   );
   const when = whenMatch?.[1] || "Friday";
-  const whatMatch = prior.match(/\b(dinner|brunch|lunch|hike|coffee|drinks)\b/i);
-  const what = (whatMatch?.[1] || "dinner").toLowerCase();
-  const title = `${what.charAt(0).toUpperCase()}${what.slice(1)} with ${who}`;
-  const id = localPlanSurfaceId(who, `${what}-${when}`);
+  // Paste W4 Phase 1 — include beach + echo user words; never default to dinner.
+  const whatMatch = prior.match(
+    /\b(dinner|brunch|lunch|hike|coffee|drinks|beach|walk|church|movie)\b/i,
+  );
+  const activity = (whatMatch?.[1] || "plans").toLowerCase();
+  const title = planTitleWithFriend(activity, who);
+  const id = localPlanSurfaceId(who, `${activity}-${when}`);
   return {
     id,
     title,
     who,
     when,
-    what,
-    place: what,
+    what: activity,
+    place: planTitleFromUserWords(activity),
     sharedPlanId: id,
     createdAt: new Date().toISOString(),
   };

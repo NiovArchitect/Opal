@@ -57,7 +57,7 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "Got it — dinner Friday with Maya."
+    assert text =~ "Got it: dinner Friday with Maya."
     assert text =~ "Based on what you both enjoy (quiet)"
     assert text =~ "Want me to set this up?"
     assert sentence_count(text) <= 3
@@ -107,7 +107,7 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "Got it — something soon."
+    assert text =~ "Got it: something soon."
     refute text =~ "Based on what you both enjoy"
     assert text =~ "Want me to set this up?"
   end
@@ -121,7 +121,7 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "Done — Oak moved to Saturday."
+    assert text =~ "Done. Oak moved to Saturday."
   end
 
   test "plan_modify honest when plan not found" do

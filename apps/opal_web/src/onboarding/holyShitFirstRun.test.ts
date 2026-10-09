@@ -166,7 +166,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(working).toMatch(/opal-working-or-type-place|opal-working-none-of-these/);
     expect(working).toMatch(/Or type a place|customPlace|orTypeAPlace/);
     expect(working).toMatch(/opal-working-connect-calendar|connectCalendar/);
-    expect(working).toMatch(/plansReadyNamed|plans ready -/);
+    expect(working).toMatch(/plansReadyNamed|plans ready:/);
     expect(copy).toMatch(/Checking your calendar/);
     expect(copy).toMatch(/Finding spots/);
     expect(copy).toMatch(/I'll figure out when works for you|don't have your calendar yet|Connect calendar/);
@@ -286,5 +286,17 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(hs).toMatch(/\.hs-perm-row/);
     expect(hs).toMatch(/\.hs-friend-or/);
     expect(hs).toMatch(/\.hs-friend-skip/);
+    // Paste W4 Phase 2 — centered send + document-flow composers (no absolute overlay)
+    expect(hs).toMatch(/Paste W4 Phase 2|Paste W4 2\.1/);
+    expect(hs).toMatch(
+      /\.hs-meet-composer\.opal-composer-brand[\s\S]*?align-items:\s*center/s,
+    );
+    expect(hs).toMatch(
+      /\.hs-meet-send\s*\{[^}]*align-self:\s*center/s,
+    );
+    expect(hs).toMatch(
+      /\.hs-meet-opal\s*>\s*\.hs-people-composer[\s\S]*?position:\s*relative\s*!important/s,
+    );
+    expect(hs).toMatch(/\.hs-dual-path/);
   });
 });

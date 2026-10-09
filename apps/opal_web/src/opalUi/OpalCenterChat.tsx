@@ -36,7 +36,7 @@ import { OpalPresenceOrb, type OpalOrbMode } from "../onboarding/OpalPresenceOrb
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
 const CHIPS = ["Plan something", "Remember something", "What's coming up?"] as const;
-const SEND_FAIL = "Couldn't send — tap to retry";
+const SEND_FAIL = "Couldn't send. Tap to retry";
 const LOAD_FAIL = "Couldn't load conversation";
 const MAX_BODY = 2000;
 const MAX_LINES = 5;
@@ -227,7 +227,9 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
     const prior = [...users]
       .slice(0, -1)
       .reverse()
-      .find((m) => /\b(plan|dinner|brunch|lunch)\b/i.test(m.body));
+      .find((m) =>
+        /\b(plan|dinner|brunch|lunch|beach|coffee|drinks|hike|walk)\b/i.test(m.body),
+      );
     if (!prior) return;
     const local = planFromLocalConfirm({
       priorUserText: prior.body,
@@ -426,7 +428,7 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
                 {
                   key: `local-opal-${Date.now()}`,
                   role: "opal",
-                  body: `Done — ${local.title}${local.when ? ` · ${local.when}` : ""} is on your Graph.`,
+                  body: `Done. ${local.title}${local.when ? ` · ${local.when}` : ""} is on your Graph.`,
                   status: "sent",
                 },
               ];
@@ -562,7 +564,7 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
     micPermission === "denied" || micOfflineBlocked || micUnavailable;
   const micTooltip =
     micPermission === "denied"
-      ? "Mic blocked — enable in Settings"
+      ? "Mic blocked. Enable in Settings"
       : micUnavailable
         ? VOICE_UNAVAILABLE_COPY
         : !online

@@ -18,7 +18,7 @@ defmodule OpalCore.Intelligence.OnboardingCopyTest do
 
   test "disabled LLM returns exact template floor for greeting" do
     template =
-      "Hey, I'm Opal. I keep up with your people so you don't have to - birthdays, making plans, staying in touch. Who's someone you've been meaning to catch up with?"
+      "Hey. I'm Opal. Real people. Brighter together. Birthdays, plans, staying close. I got you."
 
     assert {:ok, %{text: ^template, source: "template"}} =
              OnboardingCopy.draft("acct-onboarding-1", %{
@@ -28,7 +28,7 @@ defmodule OpalCore.Intelligence.OnboardingCopyTest do
   end
 
   test "disabled LLM returns exact ask_more template with name" do
-    template = "Got it - Maya. Want to add anyone else, or shall we plan something with Maya?"
+    template = "Got Maya. Add anyone else, or plan something with them?"
 
     assert {:ok, %{text: ^template, source: "template"}} =
              OnboardingCopy.draft("acct-onboarding-1", %{

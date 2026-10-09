@@ -95,7 +95,7 @@ defmodule OpalCore.OpalConversationsTest do
     assert is_map(intent["entities"])
     assert intent["raw_text"] == "Plan dinner with Maya Friday"
     assert is_binary(opal_msg.metadata["generated_at"])
-    assert opal_msg.body =~ "Got it —"
+    assert opal_msg.body =~ "Got it:"
     assert opal_msg.body =~ "Want me to set this up?"
     assert opal_msg.body != OpalMessage.oc1_placeholder_body()
   end

@@ -199,7 +199,10 @@ defmodule OpalCore.OpalPlanConfirm do
 
   defp lookup_user_by_name(_), do: nil
 
+  # Paste W4 Phase 1 — echo user `what` words; never invent Movie/Hurricane titles.
   defp build_title(what, when_s, who) do
+    echoed = title_case_user_words(what)
+
     with_who =
       case who do
         [n | _] when is_binary(n) and n != "" -> " with #{n}"
@@ -207,8 +210,29 @@ defmodule OpalCore.OpalPlanConfirm do
       end
 
     when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
-    String.trim("#{what}#{when_bit}#{with_who}")
+    String.trim("#{echoed}#{when_bit}#{with_who}")
   end
+
+  defp title_case_user_words(nil), do: "Plans"
+  defp title_case_user_words(""), do: "Plans"
+
+  defp title_case_user_words(raw) when is_binary(raw) do
+    trimmed =
+      raw
+      |> String.trim()
+      |> String.replace(~r/\s+/, " ")
+      |> String.replace(~r/^(a|an|the)\s+/i, "")
+
+    case String.split(trimmed, " ", trim: true) |> Enum.take(6) do
+      [] ->
+        "Plans"
+
+      [first | rest] ->
+        Enum.join([String.capitalize(first) | rest], " ")
+    end
+  end
+
+  defp title_case_user_words(_), do: "Plans"
 
   defp normalize_who(nil), do: nil
   defp normalize_who(who) when is_list(who), do: Enum.map(who, &to_string/1)

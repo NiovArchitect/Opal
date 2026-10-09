@@ -159,7 +159,8 @@ defmodule OpalCore.Intelligence.OnboardingCopy do
     end
   end
 
-  # Paste W3: no em/en/long dashes; scrub clause-break " - "; no invented circle questions.
+  # Paste W3/W4: no em/en/long dashes; scrub clause-break " - "; no invented circle
+  # questions; never greet the friend as if they hold the phone.
   defp sanitize_s1(text) when is_binary(text) do
     cleaned =
       text
@@ -170,11 +171,21 @@ defmodule OpalCore.Intelligence.OnboardingCopy do
       |> String.replace(~r/\.\s*\./, ".")
       |> String.trim()
 
-    if Regex.match?(~r/thinking about your circle/i, cleaned) do
-      # Reject friction invention — caller should fall back to template.
-      ""
-    else
-      cleaned
+    cond do
+      Regex.match?(~r/thinking about your circle/i, cleaned) ->
+        ""
+
+      Regex.match?(~r/\bHi\s+[A-Z][a-zA-Z'’-]{1,24}\s*,/u, cleaned) ->
+        ""
+
+      Regex.match?(~r/Thanks for sharing that,\s*[A-Z][a-zA-Z'’-]{1,24}\s*\./u, cleaned) ->
+        ""
+
+      Regex.match?(~r/\bwhat'?s the vibe you'?re picturing\b/i, cleaned) ->
+        ""
+
+      true ->
+        cleaned
     end
   end
 

@@ -218,7 +218,7 @@ describe("OpalCenterChat", () => {
     await flush();
 
     expect(container.querySelector('[data-testid="opal-center-chat-send-error"]')?.textContent).toContain(
-      "Couldn't send — tap to retry",
+      "Couldn't send. Tap to retry",
     );
     const after = container.querySelector(
       '[data-testid="opal-center-chat-input"]',

@@ -80,7 +80,7 @@ export const HOLY_SHIT_COPY = {
  vibeCustom: "Something else",
  vibeCustomPlaceholder: "What kind of vibe?",
  workingTitle: "Watch Opal work",
- stepCalendar: "Checking your calendar...",
+ stepCalendar: "Checking your calendar.",
  /** Only when a real calendar API returns free slots. */
  stepCalendarDone: "You're free Friday and Saturday evening",
  /** Honest default - never fake calendar knowledge. */
@@ -103,11 +103,11 @@ export const HOLY_SHIT_COPY = {
  ] as const,
  connectCalendar: "Connect calendar",
  tellMeWhatWorks: "Just tell me what works",
- stepTaste: (names: string) => `Thinking about ${names}...`,
+ stepTaste: (names: string) => `Thinking about ${names}.`,
  stepTasteDone: "She mentioned loving Italian last month",
  stepTasteEmpty: "No preferences yet. I'll learn.",
- stepSpots: "Finding spots...",
- stepSpotsMulti: "Finding a spot for each of you...",
+ stepSpots: "Finding spots.",
+ stepSpotsMulti: "Finding a spot for each of you.",
  stepSpotsEmpty: (vibe: string) =>
  `I don't have ${vibe.toLowerCase()} recommendations yet, but I can learn your preferences.`,
  plansReadyNamed: (n: number, names: string) =>
@@ -320,6 +320,24 @@ const FIXTURE_ACTIVE: HolyShitSpot[] = [
  },
 ];
 
+/** Beach / ocean vibes — names must keep the user word "beach". */
+const FIXTURE_BEACH: HolyShitSpot[] = [
+ {
+ id: "nearby-beach",
+ name: "Nearby beach",
+ why: "Open air, easy to linger.",
+ price: "Free",
+ photo: "/demo/moments/food.jpg",
+ },
+ {
+ id: "sunset-beach-walk",
+ name: "Sunset beach walk",
+ why: "Soft light, room to talk.",
+ price: "Free",
+ photo: "/figma-v2/home-201/media-juniper.png",
+ },
+];
+
 const FIXTURE_CHURCH: HolyShitSpot[] = [
  {
  id: "st-marks-chapel",
@@ -363,6 +381,9 @@ export function fixtureSpotsForVibe(vibe: string): HolyShitSpot[] {
  }
  if (/coffee|cafe|café|tea/.test(v)) {
  return FIXTURE_COFFEE.map((s) => ({ ...s }));
+ }
+ if (/beach|ocean|coast|surf/.test(v)) {
+ return FIXTURE_BEACH.map((s) => ({ ...s }));
  }
  if (/active|hike|walk|run|gym|sport|outdoor/.test(v)) {
  return FIXTURE_ACTIVE.map((s) => ({ ...s }));
