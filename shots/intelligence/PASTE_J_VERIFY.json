@@ -2,7 +2,7 @@
   "paste": "J",
   "status": "PASS",
   "branch": "muse/packet-b-batch-2",
-  "tip_at_write": "cbef6dcb",
+  "tip_at_write": "cc88b63a",
   "timestamp": "2026-10-09T07:42:00Z",
   "cardinality_addendum": {
     "status": "PASS",
@@ -77,5 +77,5 @@
   },
   "privacy_law": "absolute",
   "budget_law": "free tiers only",
-  "committed": false
+  "committed": true
 }
