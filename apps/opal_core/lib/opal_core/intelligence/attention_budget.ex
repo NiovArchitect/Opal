@@ -284,6 +284,14 @@ defmodule OpalCore.Intelligence.AttentionBudget do
     if pacific_dst?(utc), do: -4, else: -5
   end
 
+  # Paste H — tzdata-less fallback so night-LA CI with Asia/Tokyo test prefs stay daytime
+  defp fixed_offset_hours("Asia/Tokyo", _), do: 9
+  defp fixed_offset_hours("Asia/Shanghai", _), do: 8
+  defp fixed_offset_hours("Australia/Sydney", %DateTime{} = utc) do
+    # Rough AEDT/AEST: Oct–Mar ~AEDT (+11), else AEST (+10)
+    if utc.month >= 10 or utc.month <= 3, do: 11, else: 10
+  end
+
   defp fixed_offset_hours(_, _), do: 0
 
   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true

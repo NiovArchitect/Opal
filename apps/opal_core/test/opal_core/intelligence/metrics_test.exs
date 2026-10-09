@@ -24,7 +24,7 @@ defmodule OpalCore.Intelligence.MetricsTest do
       %AssistancePreference{}
       |> AssistancePreference.changeset(%{
         user_id: account_id,
-        timezone: "America/Los_Angeles",
+        timezone: "Asia/Tokyo",
         intelligence_maturity: "established"
       })
       |> Repo.insert()

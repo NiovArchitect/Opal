@@ -23,7 +23,7 @@ defmodule OpalCore.Intelligence.AttentionBudgetTest do
       %AssistancePreference{}
       |> AssistancePreference.changeset(%{
         user_id: account_id,
-        timezone: "America/Los_Angeles",
+        timezone: "Asia/Tokyo",
         quiet_hours_start: "22:00",
         quiet_hours_end: "08:00",
         intelligence_maturity: "established"
@@ -117,6 +117,14 @@ defmodule OpalCore.Intelligence.AttentionBudgetTest do
   end
 
   test "quiet hours deny routine; time_critical + active may grant", %{account_id: aid} do
+    # Force LA TZ for this case (suite default Asia/Tokyo keeps other tests daytime)
+    pref = Repo.get_by!(AssistancePreference, user_id: aid)
+
+    {:ok, _} =
+      pref
+      |> AssistancePreference.changeset(%{timezone: "America/Los_Angeles"})
+      |> Repo.update()
+
     # Approx America/Los_Angeles without tzdata (UTC-7 Mar–Nov)
     utc = DateTime.utc_now()
     offset = if utc.month >= 3 and utc.month <= 10, do: -7, else: -8

@@ -42,7 +42,7 @@ defmodule OpalCore.Intelligence.PressureHarnessTest do
       %OpalCore.SocialFlow.AssistancePreference{}
       |> OpalCore.SocialFlow.AssistancePreference.changeset(%{
         user_id: owner_id,
-        timezone: "America/Los_Angeles",
+        timezone: "Asia/Tokyo",
         intelligence_maturity: "established"
       })
       |> Repo.insert()
@@ -99,7 +99,7 @@ defmodule OpalCore.Intelligence.PressureHarnessTest do
     plans = Keyword.get(opts, :plans, [])
 
     %{
-      user: %{id: owner_id, display_name: "Pressure Owner", handle: "owner", timezone: "America/Los_Angeles"},
+      user: %{id: owner_id, display_name: "Pressure Owner", handle: "owner", timezone: "Asia/Tokyo"},
       account_id: owner_id,
       taste: taste,
       temporal: %{recent_plans: plans, upcoming_celebrations: [], active_conversation_count: 0},

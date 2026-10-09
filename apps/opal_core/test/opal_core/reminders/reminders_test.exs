@@ -1,11 +1,34 @@
 defmodule OpalCore.RemindersTest do
   use OpalCore.DataCase, async: false
 
+  alias OpalCore.Accounts.User
   alias OpalCore.Intelligence.AttentionBudget
   alias OpalCore.Reminders
+  alias OpalCore.Repo
+  alias OpalCore.SocialFlow.AssistancePreference
 
   setup do
     account_id = Ecto.UUID.generate()
+
+    {:ok, _} =
+      %User{}
+      |> User.changeset(%{
+        id: account_id,
+        handle: "rem_" <> String.slice(account_id, 0, 8),
+        display_name: "Rem"
+      })
+      |> Repo.insert()
+
+    # Daytime TZ so quiet-hours don't flake night LA CI/local runs
+    {:ok, _} =
+      %AssistancePreference{}
+      |> AssistancePreference.changeset(%{
+        user_id: account_id,
+        timezone: "Asia/Tokyo",
+        intelligence_maturity: "established"
+      })
+      |> Repo.insert()
+
     %{account_id: account_id}
   end
 

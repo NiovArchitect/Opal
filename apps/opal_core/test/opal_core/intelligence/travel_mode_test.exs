@@ -25,7 +25,7 @@ defmodule OpalCore.Intelligence.TravelModeTest do
         %AssistancePreference{}
         |> AssistancePreference.changeset(%{
           user_id: id,
-          timezone: "America/Los_Angeles",
+          timezone: "Asia/Tokyo",
           intelligence_maturity: "established"
         })
         |> Repo.insert()

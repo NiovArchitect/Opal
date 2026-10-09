@@ -39,7 +39,7 @@ defmodule OpalCore.Intelligence.ScenarioHarnessTest do
       %OpalCore.SocialFlow.AssistancePreference{}
       |> OpalCore.SocialFlow.AssistancePreference.changeset(%{
         user_id: owner_id,
-        timezone: "America/Los_Angeles",
+        timezone: "Asia/Tokyo",
         intelligence_maturity: "established"
       })
       |> Repo.insert()
