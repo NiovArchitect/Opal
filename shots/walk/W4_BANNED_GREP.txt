@@ -1,0 +1,15 @@
+=== BANNED friend-address / circle / Hurricane (onboarding+opalUi; tests excluded) ===
+apps/opal_web/src/onboarding/identityVoice.ts:24:  /\bThanks for sharing that,\s*\{friend\}\s*\./i,
+apps/opal_web/src/onboarding/identityVoice.ts:53:      new RegExp(`Thanks for sharing that,\\s*${esc}\\s*\\.`, "i"),
+apps/opal_web/src/onboarding/identityVoice.ts:111: * "beach" → "Beach"; never expands into "Hurricane Movie Date".
+
+=== Pattern definitions (identityVoice mechanical gates — expected) ===
+24:  /\bThanks for sharing that,\s*\{friend\}\s*\./i,
+53:      new RegExp(`Thanks for sharing that,\\s*${esc}\\s*\\.`, "i"),
+111: * "beach" → "Beach"; never expands into "Hurricane Movie Date".
+
+=== User-facing dash scan (string literals only; comments stripped heuristically) ===
+apps/opal_web/src/onboarding/identityVoice.ts:28:const DASH_CHARS = /[—–―]/;
+apps/opal_web/src/onboarding/identityVoice.ts:55:.replace(/[—–―]/g, ". ")
+apps/opal_web/src/onboarding/identityVoice.ts:64:return /[—–―]/.test(text) || /\s-\s/.test(text);
+apps/opal_web/src/onboarding/identityVoice.ts:84:violations.push("banned dash (em/en or clause-break \" - \")");

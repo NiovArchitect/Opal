@@ -210,12 +210,29 @@ try {
   await page.getByTestId("hs-self-name-submit").click({ force: true });
   await sleep(600);
 
-  for (let i = 0; i < 5; i++) {
-    const notNow = page.getByTestId("hs-perm-not-now");
-    if (await notNow.isVisible().catch(() => false)) {
-      await notNow.click({ force: true });
-      await sleep(400);
-    } else break;
+  // Paste W4 diet: permissions are ONE screen (Skip per row + Continue).
+  const permSkips = page.locator('[data-testid^="hs-perm-skip-"], [data-testid="hs-perm-not-now"]');
+  const skipCount = await permSkips.count().catch(() => 0);
+  for (let i = 0; i < skipCount; i++) {
+    const btn = permSkips.nth(i);
+    if (await btn.isVisible().catch(() => false)) {
+      await btn.click({ force: true });
+      await sleep(120);
+    }
+  }
+  const permContinue = page.getByTestId("hs-perm-continue");
+  if (await permContinue.isVisible().catch(() => false)) {
+    await permContinue.click({ force: true });
+    await sleep(500);
+  } else {
+    // Legacy sequential Not now path (pre-W4)
+    for (let i = 0; i < 5; i++) {
+      const notNow = page.getByTestId("hs-perm-not-now");
+      if (await notNow.isVisible().catch(() => false)) {
+        await notNow.click({ force: true });
+        await sleep(400);
+      } else break;
+    }
   }
 
   await page.waitForSelector('[data-testid="hs-name-input"]', { timeout: 15000 });
@@ -249,13 +266,13 @@ try {
     bodyText.slice(0, 240).replace(/\n/g, " · "),
   );
 
-  // Let's plan → when pills → selected state
+  // Paste W4: when/vibe/trust killed from first-run. Soft-pass if absent.
   const letsPlan = page.getByTestId("hs-lets-plan");
   if (await letsPlan.isVisible().catch(() => false)) {
     await letsPlan.click({ force: true });
     await sleep(900);
   }
-  await page.waitForSelector('[data-testid="hs-when-pills"]', { timeout: 12000 }).catch(() => null);
+  await page.waitForSelector('[data-testid="hs-when-pills"]', { timeout: 3000 }).catch(() => null);
   const whenBtn = page.locator('[data-testid="hs-when-pills"] button').first();
   if (await whenBtn.isVisible().catch(() => false)) {
     await whenBtn.click({ force: true });
@@ -270,42 +287,52 @@ try {
     note("2.4_when_selected_visible", selected > 0, `selectedCount=${selected}`);
     await sleep(400);
   } else {
-    note("2.4_when_selected_visible", false, "when pills missing");
+    note("2.4_when_selected_visible", true, "superseded by W4 diet (when off first-run)");
   }
 
-  // Vibe → location gate for beach
-  await page.waitForSelector('[data-testid="hs-vibe-pills"]', { timeout: 12000 }).catch(() => null);
-  // Type custom beach vibe via something else if present
-  const somethingElse = page.getByTestId("hs-vibe-something-else");
-  if (await somethingElse.isVisible().catch(() => false)) {
-    await somethingElse.click({ force: true });
-    await sleep(300);
-    const custom = page.getByTestId("hs-vibe-custom-input");
-    if (await custom.isVisible().catch(() => false)) {
-      await custom.fill("Beach");
-      await page.getByTestId("hs-vibe-custom-submit").click({ force: true }).catch(async () => {
-        await page.keyboard.press("Enter");
-      });
-      await sleep(600);
+  // Vibe → location gate for beach (off first-run after W4 diet)
+  await page.waitForSelector('[data-testid="hs-vibe-pills"]', { timeout: 3000 }).catch(() => null);
+  const vibePillsVisible = await page.getByTestId("hs-vibe-pills").isVisible().catch(() => false);
+  if (vibePillsVisible) {
+    const somethingElse = page.getByTestId("hs-vibe-something-else");
+    if (await somethingElse.isVisible().catch(() => false)) {
+      await somethingElse.click({ force: true });
+      await sleep(300);
+      const custom = page.getByTestId("hs-vibe-custom-input");
+      if (await custom.isVisible().catch(() => false)) {
+        await custom.fill("Beach");
+        await page.getByTestId("hs-vibe-custom-submit").click({ force: true }).catch(async () => {
+          await page.keyboard.press("Enter");
+        });
+        await sleep(600);
+      }
+    } else {
+      const active = page.getByTestId("hs-vibe-something-active");
+      if (await active.isVisible().catch(() => false)) await active.click({ force: true });
     }
+    await sleep(500);
+    await shot(page, "w3_05_location_or_vibe.png");
+    const locVisible = await page.getByTestId("hs-location-pills").isVisible().catch(() => false);
+    const locCopy = await page.evaluate(() => document.body.innerText);
+    note(
+      "2.5_location_before_beach",
+      locVisible || /Mind if I use your location/i.test(locCopy),
+      locVisible ? "location pills" : "copy-scan",
+    );
+    if (locVisible) {
+      await page.getByTestId("hs-location-not-now").click({ force: true });
+      await sleep(800);
+    }
+    await shot(page, "w3_06_after_vibe.png");
   } else {
-    const active = page.getByTestId("hs-vibe-something-active");
-    if (await active.isVisible().catch(() => false)) await active.click({ force: true });
+    note(
+      "2.5_location_before_beach",
+      true,
+      "superseded by W4 diet (vibe/location off first-run; location is a permissions row)",
+    );
+    await shot(page, "w3_05_location_or_vibe.png");
+    await shot(page, "w3_06_after_vibe.png");
   }
-  await sleep(500);
-  await shot(page, "w3_05_location_or_vibe.png");
-  const locVisible = await page.getByTestId("hs-location-pills").isVisible().catch(() => false);
-  const locCopy = await page.evaluate(() => document.body.innerText);
-  note(
-    "2.5_location_before_beach",
-    locVisible || /Mind if I use your location/i.test(locCopy),
-    locVisible ? "location pills" : "copy-scan",
-  );
-  if (locVisible) {
-    await page.getByTestId("hs-location-not-now").click({ force: true });
-    await sleep(800);
-  }
-  await shot(page, "w3_06_after_vibe.png");
 
   // Dash scrub of visible meet copy
   const meetCopy = await page.locator('[data-testid="meet-opal-conversation"]').innerText();

@@ -1,0 +1,157 @@
+{
+  "tip": "2e83e0f7",
+  "status": "PASS",
+  "checks": {
+    "splash_visible": {
+      "ok": true,
+      "detail": "fr00-splash via opal_reset_first_run"
+    },
+    "phone_visible": {
+      "ok": true,
+      "detail": "splash→phone 2985ms"
+    },
+    "splash_budget_ok": {
+      "ok": true,
+      "detail": "splash→phone 2985ms (target ≤10s wall incl load)"
+    },
+    "meet_shell": {
+      "ok": true,
+      "detail": ""
+    },
+    "username_quiet_sadeil": {
+      "ok": true,
+      "detail": "You'll be @sadeil. Change it anytime in You."
+    },
+    "permissions_one_screen_4_rows": {
+      "ok": true,
+      "detail": "count=4 rows=contacts,calendar,notifications,location"
+    },
+    "friend_dual_path": {
+      "ok": true,
+      "detail": "type=true or=false contacts=\"\" skip=true unavailable=true"
+    },
+    "identity_no_banned_friend_address": {
+      "ok": true,
+      "detail": "Skip ·  · Hey. I'm Opal. Real people. Brighter together. Birthdays, plans, staying close. I got you. ·  · What's your name? ·  · Sadeil ·  · Who's someone you've been meaning to catch up with? ·  · Chanelle ·  · Got Chanelle. ·  · Continue · Skip"
+    },
+    "identity_no_em_dash_meet": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "meet_diet_no_lets_plan": {
+      "ok": true,
+      "detail": "Phase 0 diet: friend ends Meet"
+    },
+    "member_shell": {
+      "ok": true,
+      "detail": ""
+    },
+    "thread_header_clean": {
+      "ok": true,
+      "detail": "{\"backCount\":1,\"history\":true,\"historyLabel\":\"History\",\"gptPlanGone\":true,\"layout\":\"clean-row\",\"bannedLeak\":false}"
+    },
+    "contact_profile_sheet": {
+      "ok": true,
+      "detail": "sheet=true memories=true"
+    },
+    "notifications_empty_copy": {
+      "ok": true,
+      "detail": "attention open; feed=non-empty; srcWired=true; ‹ · Attention ·  · What's for you, what Opal is holding, and what just settled. ·  · FOR YOU · OPAL NOTICED · MEDIATION · Saturday dinner spot · Italian — Walk B · Rooftop — Alex · Hey — sounds like I"
+    },
+    "graphs_new_menu": {
+      "ok": true,
+      "detail": "Create ·  · New plan · New trip · New idea"
+    },
+    "graph_detail_journey_no_back_law": {
+      "ok": true,
+      "detail": "{\"hasSheet\":true,\"hasJourney\":true,\"noBackLaw\":true,\"stateLine\":true,\"directions\":true,\"title\":\"Juniper & Ivy\"}"
+    },
+    "plan_composer_no_photo": {
+      "ok": true,
+      "detail": "{\"present\":true,\"hasWho\":true,\"hasVibe\":false,\"noPhoto\":true,\"noCamera\":true}"
+    },
+    "beach_propagation_planning": {
+      "ok": true,
+      "detail": "composer present; beach mechanical gate in identityVoice.test.ts"
+    },
+    "timed_onboarding_budget_60s": {
+      "ok": true,
+      "detail": "estTotal=35s measuredMeetMs=7463 splashToPhoneMs=2985"
+    }
+  },
+  "timings": {
+    "splash_to_phone_ms": {
+      "ms": 2985,
+      "detail": "auto/tap → phone"
+    },
+    "force_meet_shell_ms": {
+      "ms": 1208,
+      "detail": ""
+    },
+    "meet_to_name_ms": {
+      "ms": 3535,
+      "detail": "greeting choreography → name"
+    },
+    "name_screen_interact_ms": {
+      "ms": 852,
+      "detail": ""
+    },
+    "permissions_screen_ms": {
+      "ms": 778,
+      "detail": ""
+    },
+    "friend_screen_ms": {
+      "ms": 2102,
+      "detail": ""
+    },
+    "meet_force_total_ms": {
+      "ms": 7463,
+      "detail": "name→permissions→friend"
+    },
+    "est_splash_s": {
+      "ms": 2,
+      "detail": "FirstRunSplashPage SPLASH_AUTO_MS"
+    },
+    "est_phone_otp_s": {
+      "ms": 12,
+      "detail": "founder fixture OTP interact"
+    },
+    "est_name_s": {
+      "ms": 5,
+      "detail": "type + Continue"
+    },
+    "est_permissions_s": {
+      "ms": 8,
+      "detail": "4 rows skip/allow + Continue"
+    },
+    "est_friend_s": {
+      "ms": 8,
+      "detail": "type/contacts/skip"
+    }
+  },
+  "at": "2026-10-09T22:46:42.252Z",
+  "viewport": "390x844 dark + html.opal-native-host",
+  "flags": [
+    "opal_force_meet_opal=1",
+    "opal_reset_first_run=1",
+    "opal_founder_seed=1",
+    "opal_native_host=1"
+  ],
+  "screenshots": [
+    "w4_01_splash.png",
+    "w4_02_phone.png",
+    "w4_03_name.png",
+    "w4_04_username_quiet.png",
+    "w4_05_permissions.png",
+    "w4_06_friend_dual_path.png",
+    "w4_07_got_friend.png",
+    "w4_08_home.png",
+    "w4_09_thread_header.png",
+    "w4_10_contact_profile.png",
+    "w4_11_notifications_empty.png",
+    "w4_12_graphs.png",
+    "w4_13_graphs_new_menu.png",
+    "w4_14_graph_detail_journey.png",
+    "w4_15_plan_composer.png"
+  ]
+}
