@@ -279,14 +279,11 @@ html.opal-native-host .fr-auth-v4 .fr-status,
 html.opal-native-host .fr-auth-v4 .fr-error {
   top: calc(230px + env(safe-area-inset-top, 0px)) !important;
 }
-html.opal-native-host .fr-auth-v4.fr-phone label[for="fr-phone"] {
-  top: calc(248px + env(safe-area-inset-top, 0px)) !important;
-}
-html.opal-native-host .fr-auth-v4 .fr-phone-field {
-  top: calc(270px + env(safe-area-inset-top, 0px)) !important;
-}
-html.opal-native-host .fr-auth-v4 .fr-phone-hint {
-  top: calc(354px + env(safe-area-inset-top, 0px)) !important;
+/* Phone fields: no stage-top offsets (W5 flow column). Safe-area is padding on .fr-phone. */
+html.opal-native-host .fr-auth-v4.fr-phone label[for="fr-phone"],
+html.opal-native-host .fr-auth-v4.fr-phone .fr-phone-field,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-phone-hint {
+  top: auto !important;
 }
 html.opal-native-host .fr-auth-v4 .fr-consent {
   top: calc(400px + env(safe-area-inset-top, 0px)) !important;
@@ -294,16 +291,17 @@ html.opal-native-host .fr-auth-v4 .fr-consent {
 html.opal-native-host .fr-auth-v4 .fr-code-wrap {
   top: calc(250px + env(safe-area-inset-top, 0px)) !important;
 }
-/* Bottom-anchor CTAs for phone/OTP only — profile/find use flow shell. */
-html.opal-native-host .fr-auth-v4.fr-phone .fr-primary,
-html.opal-native-host .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+/*
+ * Bottom-anchor CTAs for OTP only (Paste W5).
+ * Phone (fr-phone) is a scrolling document-flow column — NEVER bottom-anchor
+ * Continue/Skip there. Keyboard-open on native-host made absolute+bottom
+ * Continue hover over the number input (twice screenshot-green, twice phone-broken).
+ */
 html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
 html.opal-native-host .fr-auth-v4.fr-verify .btn.primary.fr-primary {
   top: auto !important;
   bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
 }
-html.opal-native-host .fr-auth-v4.fr-phone .fr-text-action,
-html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-text-action,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number {
   top: auto !important;
@@ -401,14 +399,11 @@ html.opal-native-host .first-run-promise-cta {
   .fr-auth-v4 .fr-error {
     top: calc(230px + env(safe-area-inset-top, 0px));
   }
-  .fr-auth-v4.fr-phone label[for="fr-phone"] {
-    top: calc(248px + env(safe-area-inset-top, 0px));
-  }
-  .fr-auth-v4 .fr-phone-field {
-    top: calc(270px + env(safe-area-inset-top, 0px));
-  }
-  .fr-auth-v4 .fr-phone-hint {
-    top: calc(354px + env(safe-area-inset-top, 0px));
+  /* Phone: no stage-top offsets (W5). */
+  .fr-auth-v4.fr-phone label[for="fr-phone"],
+  .fr-auth-v4.fr-phone .fr-phone-field,
+  .fr-auth-v4.fr-phone .fr-phone-hint {
+    top: auto;
   }
   .fr-auth-v4 .fr-consent {
     top: calc(400px + env(safe-area-inset-top, 0px));
@@ -416,15 +411,12 @@ html.opal-native-host .first-run-promise-cta {
   .fr-auth-v4 .fr-code-wrap {
     top: calc(250px + env(safe-area-inset-top, 0px));
   }
-  .fr-auth-v4.fr-phone .fr-primary,
-  .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+  /* OTP only — phone Continue/Skip stay in document flow (W5 Phase 1). */
   .fr-auth-v4.fr-verify .fr-primary,
   .fr-auth-v4.fr-verify .btn.primary.fr-primary {
     top: auto;
     bottom: calc(66px + env(safe-area-inset-bottom, 0px));
   }
-  .fr-auth-v4.fr-phone .fr-text-action,
-  .fr-auth-v4.fr-phone .fr-skip-for-now,
   .fr-auth-v4.fr-verify .fr-text-action,
   .fr-auth-v4.fr-verify .fr-change-number {
     top: auto;
@@ -5772,10 +5764,11 @@ button.plan-card-btn:focus-visible {
   width: 342px;
   z-index: 3;
 }
+/* Phone label is sr-only in markup; keep flow if ever visible (W5 zero-absolute). */
 .fr-auth-v4.fr-phone label[for="fr-phone"] {
-  position: absolute;
-  left: 24px;
-  top: 248px;
+  position: relative;
+  left: auto;
+  top: auto;
   margin: 0;
   color: rgba(226, 232, 240, 0.55);
   font-size: 12px;
@@ -5783,14 +5776,16 @@ button.plan-card-btn:focus-visible {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+/* Phone field — document flow only (never absolute; keyboard-open authority). */
 .fr-auth-v4 .fr-phone-field {
-  position: absolute;
-  left: 22px;
-  top: 270px;
-  width: 346px;
-  height: 66px;
-  min-height: 66px;
-  max-width: none;
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-width: 346px;
+  height: 56px;
+  min-height: 56px;
+  margin: 0 auto;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -5828,16 +5823,18 @@ button.plan-card-btn:focus-visible {
   max-width: 72px;
 }
 .fr-auth-v4 .fr-phone-hint {
-  position: absolute;
-  left: 34px;
-  top: 354px;
-  width: 322px;
-  margin: 0;
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-width: 346px;
+  margin: 0 auto;
   color: rgba(226, 232, 240, 0.66);
   font-size: 14px;
   line-height: 1.35;
   text-align: left;
 }
+/* Consent stays absolute on OTP/profile stages; phone forces relative via .fr-phone rules. */
 .fr-auth-v4 .fr-consent {
   position: absolute;
   left: 24px;
@@ -5847,6 +5844,14 @@ button.plan-card-btn:focus-visible {
   margin: 0;
   padding: 0;
   text-align: left;
+}
+.fr-auth-v4.fr-phone .fr-consent {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto !important;
 }
 .fr-auth-v4 .fr-consent-label {
   display: flex;
@@ -5864,9 +5869,12 @@ button.plan-card-btn:focus-visible {
   /* superseded by .fr-phone-hint at y354 */
   display: none;
 }
-/* Phone/OTP/find keep absolute stage CTA; profile Continue is flow-layout only. */
-.fr-auth-v4.fr-phone .fr-primary,
-.fr-auth-v4.fr-phone .btn.primary.fr-primary,
+/*
+ * Absolute stage CTA — OTP + find only.
+ * Phone (fr-phone) Continue is document-flow (Paste W5 Phase 1). Absolute+top:720
+ * (and native-host bottom-anchor) caused Continue to hover the number input when
+ * the keyboard opened on Expo WebView.
+ */
 .fr-auth-v4.fr-verify .fr-primary,
 .fr-auth-v4.fr-verify .btn.primary.fr-primary,
 .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
@@ -6141,10 +6149,9 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   cursor: pointer;
   padding: 0;
 }
-/* Skip / Change number  -  text-only (773:27 / 773:52). No gray pill/border. */
-.fr-auth-v4 .fr-text-action,
-.fr-auth-v4 .fr-skip-for-now,
-.fr-auth-v4 .fr-change-number {
+/* Skip / Change number — absolute ONLY on verify (OTP). Phone uses document flow (W5). */
+.fr-auth-v4.fr-verify .fr-text-action,
+.fr-auth-v4.fr-verify .fr-change-number {
   position: absolute;
   left: 24px;
   top: 792px;
@@ -6164,6 +6171,19 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   min-height: 20px;
   display: grid;
   place-items: center;
+}
+.fr-auth-v4.fr-phone .fr-text-action,
+.fr-auth-v4.fr-phone .fr-skip-for-now {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  text-align: center !important;
+  margin: 4px 0 0 !important;
 }
 .fr-auth-v4 .fr-code-wrap {
   position: absolute;
@@ -8577,8 +8597,8 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 26px;
   padding: 0;
   border-radius: 13px;
-  border: 1px solid #FFC86B;
-  color: #FFC86B;
+  border: 1px solid #00E5FF;
+  color: #00E5FF;
   background: #030406;
   font-size: 10px;
   font-weight: 600;
@@ -8692,8 +8712,9 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   padding: 0 10px;
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="ready"] {
-  color: var(--signal-confirmed, #ffc86b);
-  border-color: var(--signal-confirmed, #ffc86b);
+  /* Paste W5 — ready = confirmed teal, not signal-gold */
+  color: var(--plan-state-confirmed, #00E5FF);
+  border-color: var(--plan-state-confirmed, #00E5FF);
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="action"] {
   color: var(--signal-needs-attention);
@@ -11319,11 +11340,13 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   color: #050816;
   font-size: 14px;
   font-weight: 700;
-  line-height: 16px;
-  display: grid;
-  place-items: center;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 2px solid #050816;
   box-sizing: border-box;
+  padding: 0;
 }
 .gsh-story-add-label {
   color: rgba(0, 229, 255, 0.8);
@@ -16871,6 +16894,10 @@ html.opal-native-host .graphs-sticky-chrome {
   border-radius: 0;
   overflow: hidden; /* clip list content that tries to paint through */
 }
+/* Paste W5 — New create menu must paint above chrome fade (not clipped). */
+html.opal-native-host .graphs-sticky-chrome {
+  overflow: visible;
+}
 html.opal-native-host .comm-sticky-chrome::after,
 html.opal-native-host .graphs-sticky-chrome::after {
   content: "";
@@ -18314,12 +18341,57 @@ html.opal-native-host .gsh-feed {
 
 /* Story add badge optical centering + row rhythm */
 .gsh-story-add-badge {
-  display: grid !important;
-  place-items: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  height: 18px !important;
   font-size: 15px !important;
   line-height: 1 !important;
   padding: 0 !important;
   font-weight: 700;
+}
+/* Paste W5 — Post|Story chooser anchored to story + */
+.gsh-story-self {
+  position: relative;
+}
+.gsh-compose-chooser {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 36;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 132px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid #2a3548;
+  background: rgba(8, 14, 28, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+.gsh-compose-chooser-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #f4f7fa;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.gsh-compose-chooser-btn.is-post:hover,
+.gsh-compose-chooser-btn.is-post:focus-visible {
+  background: rgba(0, 229, 255, 0.1);
+}
+.gsh-compose-chooser-btn.is-story:hover,
+.gsh-compose-chooser-btn.is-story:focus-visible {
+  background: rgba(139, 92, 246, 0.12);
 }
 .gsh-story-cell {
   align-items: center;
@@ -18698,8 +18770,8 @@ html.opal-native-host .story-create-flow {
   box-shadow: inset 2px 0 0 transparent;
 }
 .next-plan-strip[data-plan-state="ready"] {
-  border-color: color-mix(in srgb, var(--signal-confirmed) 40%, transparent);
-  box-shadow: inset 2px 0 0 var(--signal-confirmed);
+  border-color: color-mix(in srgb, var(--plan-state-confirmed, #00E5FF) 40%, transparent);
+  box-shadow: inset 2px 0 0 var(--plan-state-confirmed, #00E5FF);
 }
 .next-plan-strip[data-plan-state="action"] {
   border-color: color-mix(in srgb, var(--signal-needs-attention) 40%, transparent);
@@ -18713,7 +18785,7 @@ html.opal-native-host .story-create-flow {
   border-color: rgba(244, 247, 250, 0.22);
   box-shadow: inset 2px 0 0 rgba(244, 247, 250, 0.55);
 }
-.next-plan-strip[data-plan-state="ready"] .next-plan-kicker { color: var(--signal-confirmed); }
+.next-plan-strip[data-plan-state="ready"] .next-plan-kicker { color: var(--plan-state-confirmed, #00E5FF); }
 .next-plan-strip[data-plan-state="action"] .next-plan-kicker { color: var(--signal-needs-attention); }
 .next-plan-strip[data-plan-state="forming"] .next-plan-kicker { color: var(--signal-provisional); }
 .next-plan-strip[data-plan-state="past"] .next-plan-kicker { color: #94A1B8; }
@@ -20430,7 +20502,8 @@ html.opal-native-host .opal-center-chat-input {
 .hs-meet-opal > .hs-perm-composer,
 .hs-meet-opal > .hs-meet-composer,
 .hs-meet-opal > .hs-pill-row,
-.hs-meet-opal > .hs-self-name-composer {
+.hs-meet-opal > .hs-self-name-composer,
+.hs-meet-opal > .hs-meet-sticky-continue {
   position: relative !important;
   top: auto !important;
   right: auto !important;
@@ -20438,6 +20511,64 @@ html.opal-native-host .opal-center-chat-input {
   left: auto !important;
   flex: 0 0 auto;
   inset: auto;
+}
+/* Paste W5 — single-page Meet Opal: scroll pads for sticky Continue; ZERO absolute overlays. */
+.hs-meet-opal > .hs-meet-scroll {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+.hs-meet-section {
+  position: relative !important;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  background: transparent;
+  padding: 8px 0 !important;
+}
+.hs-meet-sticky-continue {
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(5, 8, 22, 0.92) 28%,
+    rgba(5, 8, 22, 0.98) 100%
+  );
+}
+.hs-assist-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  margin: 4px auto 8px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  background: rgba(8, 13, 30, 0.72);
+  position: relative;
+}
+.hs-assist-row-copy {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #f8faff;
+}
+.hs-assist-row-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 /* —— Composer / pills fixed bottom (flex, not absolute) —— */
@@ -21987,7 +22118,8 @@ html.opal-native-host .trip-canvas {
 .graphs-status-happening,
 [data-plan-state="locked"],
 [data-plan-state="confirmed"],
-[data-plan-state="happening"] {
+[data-plan-state="happening"],
+[data-plan-state="ready"] {
   color: var(--plan-state-confirmed, #00e5ff) !important;
   border-color: color-mix(in srgb, var(--plan-state-confirmed, #00e5ff) 55%, transparent);
 }
@@ -22194,6 +22326,13 @@ html.opal-native-host .trip-canvas {
   font-size: 24px;
   font-weight: 600;
 }
+.plan-composer-forming {
+  margin: -8px 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a96a8;
+  letter-spacing: 0.02em;
+}
 .plan-composer-chips,
 .plan-composer-pills {
   display: flex;
@@ -22256,30 +22395,7 @@ html.opal-native-host .trip-canvas {
   line-height: 1.45;
 }
 
-/* Paste W4 Phase 5 — Home Post/Story composer + Graphs New menu */
-.gsh-home-composer {
-  display: flex;
-  gap: 10px;
-  margin: 0 0 14px;
-  padding: 0 2px;
-}
-.gsh-home-composer-btn {
-  flex: 1;
-  min-height: 44px;
-  border-radius: 14px;
-  border: 1px solid #2a3548;
-  background: #0b1226;
-  color: #f4f7fa;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.gsh-home-composer-btn.is-post {
-  border-color: rgba(0, 229, 255, 0.45);
-}
-.gsh-home-composer-btn.is-story {
-  border-color: rgba(139, 92, 246, 0.45);
-}
+/* Paste W5 — Post|Story lives on story + only (inline feed composer removed). */
 .graphs-create-new {
   display: inline-flex;
   align-items: center;
@@ -22304,7 +22420,7 @@ html.opal-native-host .trip-canvas {
   position: absolute;
   top: 44px;
   right: 0;
-  z-index: 8;
+  z-index: 40; /* above graphs-sticky-chrome::after fade */
   min-width: 168px;
   padding: 8px;
   border-radius: 14px;
@@ -22380,3 +22496,160 @@ html.opal-native-host .trip-canvas {
 .social-dest-373-385 .graph-ready-time {
   line-height: 1.2;
 }
+
+/* Paste W5 Phase 1 — phone screen ZERO absolute/fixed (device-proven).
+ * W4 flow overrides lost to earlier absolute stage rules on real Expo WebView.
+ * This block is last-wins for .fr-phone: every child is relative/static in a column.
+ */
+.fr-auth-v4.fr-phone.fr-screen,
+.fr-auth-v4.fr-phone {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-phone .fr-auth-header,
+.fr-auth-v4.fr-phone .fr-title,
+.fr-auth-v4.fr-phone .fr-body,
+.fr-auth-v4.fr-phone .fr-status,
+.fr-auth-v4.fr-phone .fr-error,
+.fr-auth-v4.fr-phone .fr-form,
+.fr-auth-v4.fr-phone label[for="fr-phone"],
+.fr-auth-v4.fr-phone .fr-phone-field,
+.fr-auth-v4.fr-phone .fr-phone-hint,
+.fr-auth-v4.fr-phone .fr-consent,
+.fr-auth-v4.fr-phone .fr-primary,
+.fr-auth-v4.fr-phone .btn.primary.fr-primary,
+.fr-auth-v4.fr-phone .fr-text-action,
+.fr-auth-v4.fr-phone .fr-skip-for-now {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+  float: none !important;
+  transform: none !important;
+}
+.fr-auth-v4.fr-phone .fr-auth-header {
+  margin: 4px auto 16px !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-phone .fr-title {
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto 8px !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+.fr-auth-v4.fr-phone .fr-body {
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto 20px !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+.fr-auth-v4.fr-phone .fr-status,
+.fr-auth-v4.fr-phone .fr-error {
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto 12px !important;
+  padding: 0 !important;
+}
+.fr-auth-v4.fr-phone .fr-form {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+.fr-auth-v4.fr-phone .fr-phone-field {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-phone .fr-phone-hint,
+.fr-auth-v4.fr-phone .fr-consent {
+  width: 100% !important;
+  margin: 0 !important;
+}
+.fr-auth-v4.fr-phone .fr-primary,
+.fr-auth-v4.fr-phone .btn.primary.fr-primary {
+  width: 100% !important;
+  height: 58px !important;
+  margin: 8px 0 0 !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-phone .fr-text-action,
+.fr-auth-v4.fr-phone .fr-skip-for-now {
+  display: block !important;
+  width: 100% !important;
+  margin: 4px 0 0 !important;
+  text-align: center !important;
+  color: rgba(226, 232, 240, 0.55) !important;
+  font-size: 14px !important;
+}
+/* Kill native-host + media-query absolute re-anchors on phone only */
+html.opal-native-host .fr-auth-v4.fr-phone .fr-title,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-body,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-status,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-error,
+html.opal-native-host .fr-auth-v4.fr-phone label[for="fr-phone"],
+html.opal-native-host .fr-auth-v4.fr-phone .fr-phone-field,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-phone-hint,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-consent,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-text-action,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-form,
+html.opal-native-host .fr-auth-v4.fr-phone .fr-auth-header {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+}
+@media (max-width: 519px) {
+  .fr-auth-v4.fr-phone .fr-title,
+  .fr-auth-v4.fr-phone .fr-body,
+  .fr-auth-v4.fr-phone .fr-status,
+  .fr-auth-v4.fr-phone .fr-error,
+  .fr-auth-v4.fr-phone label[for="fr-phone"],
+  .fr-auth-v4.fr-phone .fr-phone-field,
+  .fr-auth-v4.fr-phone .fr-phone-hint,
+  .fr-auth-v4.fr-phone .fr-consent,
+  .fr-auth-v4.fr-phone .fr-primary,
+  .fr-auth-v4.fr-phone .btn.primary.fr-primary,
+  .fr-auth-v4.fr-phone .fr-text-action,
+  .fr-auth-v4.fr-phone .fr-skip-for-now,
+  .fr-auth-v4.fr-phone .fr-form,
+  .fr-auth-v4.fr-phone .fr-auth-header {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+  }
+}
+
