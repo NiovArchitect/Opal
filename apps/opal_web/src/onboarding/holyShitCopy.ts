@@ -33,6 +33,11 @@ export const HOLY_SHIT_COPY = {
  /** @deprecated Paste W4 uses permSkip */
  permNotNow: "Skip",
  permContinue: "Continue",
+ /** Paste W5 — Assist preference as one Meet Opal row (not a screen). */
+ assistRow: "Let Opal place calls and make reservations for you.",
+ assistEnable: "Enable",
+ assistNotNow: "Not now",
+ meetContinue: "Continue",
  askPeople: "Who's someone you've been meaning to catch up with?",
  /** @deprecated alias - one-person ask */
  askName: "Who's someone you've been meaning to catch up with?",
@@ -396,11 +401,8 @@ export function fixtureSpotsForVibe(vibe: string): HolyShitSpot[] {
 }
 
 /** Paste W4 Phase 0 diet first-run phases only. */
-export type MeetOpalPhase =
- | "greeting"
- | "ask_name"
- | "ask_permissions"
- | "ask_people";
+/** Paste W5 — greeting reveal then single scrolling form (no multi-screen phase gates). */
+export type MeetOpalPhase = "greeting" | "form";
 
 /**
  * Derive username from display name: lowercase, strip non-alphanumeric

@@ -1,6 +1,6 @@
 /**
  * Holy Shit Moments 1–5 — additive gated first-run (source contract).
- * Paste W4 Phase 0 diet: greeting → ask_name → ask_permissions → ask_people.
+ * Paste W5 Phase 0: Meet Opal ONE scrolling page (name + friend + perms + Assist + sticky Continue).
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -43,15 +43,22 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Paste W4 Phase 0 diet: greeting → name → permissions → people (no when/vibe/trust)", () => {
+  it("Paste W5 Phase 0: one scrolling Meet Opal page (name + friend + perms + Assist)", () => {
     const meet = src("MeetOpalConversation.tsx");
     const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
     const gate = src("holyShitGate.ts");
     const app = src("../OpalApp.tsx");
-    expect(meet).toMatch(/ask_permissions/);
-    expect(meet).toMatch(/ask_name/);
-    expect(meet).toMatch(/ask_people/);
+    // Single-page sections present (not multi-screen phase gates)
+    expect(meet).toMatch(/askSelfName|What's your name/);
+    expect(meet).toMatch(/askPeople|ask_people/);
+    expect(meet).toMatch(/askPermissions|ask_permissions/);
+    expect(meet).toMatch(/hs-assist-row/);
+    expect(meet).toMatch(/hs-assist-enable/);
+    expect(meet).toMatch(/hs-assist-not-now/);
+    expect(meet).toMatch(/hs-meet-continue/);
+    expect(meet).toMatch(/updateAssistPreference/);
+    expect(meet).toMatch(/hs-meet-sticky-continue|hs-meet-continue/);
     // Phase 0 kills these from the first-run render path
     expect(meet).not.toMatch(/OpalWorking/);
     expect(meet).not.toMatch(/TrustContractCard/);
@@ -62,6 +69,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).not.toMatch(/setPhase\("trust"\)/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.askPeople/);
     expect(meet).toMatch(/hs-self-name-input/);
+    expect(meet).toMatch(/hs-self-username-hint/);
     // Single name input — no separate username field
     expect(meet).not.toMatch(/hs-self-username-input/);
     expect(meet).toMatch(/suggestUsernameFromName/);
@@ -75,6 +83,10 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(orb).toMatch(/Opal is working|Opal is thinking|statusLabelForMode/);
     expect(orb).not.toMatch(/opal-center-opal-645-3-rest-512/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
+    expect(copy).toContain(HOLY_SHIT_COPY.assistRow);
+    expect(copy).toContain(HOLY_SHIT_COPY.assistEnable);
+    expect(copy).toContain(HOLY_SHIT_COPY.assistNotNow);
+    expect(copy).toContain(HOLY_SHIT_COPY.meetContinue);
     expect(copy).toMatch(/What's your name\?/);
     expect(copy).toMatch(/askSelfName/);
     expect(copy).toMatch(/catch up with/);
@@ -84,6 +96,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toMatch(/Never double-book you/);
     expect(copy).toMatch(/Nudges at the right time/);
     expect(copy).toMatch(/Spots near you/);
+    expect(copy).toMatch(/Let Opal place calls and make reservations/);
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
     expect(copy).not.toMatch(/3–5 people/);
@@ -95,7 +108,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/confirmContact|Got \$\{name\}/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
-    // Permissions ONE screen includes location
+    // Permissions compact rows on the same page
     expect(copy).toMatch(/MEET_OPAL_PERMISSION_ORDER/);
     expect(MEET_OPAL_PERMISSION_ORDER).toEqual([
       "contacts",
@@ -111,11 +124,10 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/hs-perm-row/);
     expect(meet).toMatch(/hs-perm-allow/);
     expect(meet).toMatch(/hs-perm-skip/);
-    expect(meet).toMatch(/hs-perm-continue/);
     expect(meet).toMatch(/Notification\.requestPermission|requestPermission/);
     expect(meet).toMatch(/geolocation|location/);
     expect(meet).not.toMatch(/window\.location\.(assign|href)/);
-    // Phone gate: Continue without inviting then finish
+    // Phone gate: Continue without inviting then stay / finish via sticky Continue
     expect(meet).toMatch(/hs-phone-input|pendingPhonePerson/);
     expect(meet).toMatch(/phoneSkipInvite|hs-phone-skip-invite/);
     // Skip / resume still wired (advanceMeetOpalToAuth → fr08)
@@ -125,15 +137,10 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(app).toMatch(/handleAfterPhoneVerify/);
     expect(gate).toMatch(/opal_founder_seed/);
     expect(app).toMatch(/consumeResetFirstRunFlag/);
-    // Phase order: greeting → ask_name → ask_permissions → ask_people
+    // W5: greeting → form (no multi-screen ask_* gates)
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
-    expect(phaseBlock.indexOf("greeting")).toBeLessThan(phaseBlock.indexOf("ask_name"));
-    expect(phaseBlock.indexOf("ask_name")).toBeLessThan(
-      phaseBlock.indexOf("ask_permissions"),
-    );
-    expect(phaseBlock.indexOf("ask_permissions")).toBeLessThan(
-      phaseBlock.indexOf("ask_people"),
-    );
+    expect(phaseBlock).toMatch(/"greeting"/);
+    expect(phaseBlock).toMatch(/"form"/);
     expect(phaseBlock).not.toMatch(/ask_more|ask_when|ask_vibe|"working"|"trust"/);
     expect(meet).toMatch(/ASK_NAME_PAUSE_MS = 800/);
     expect(meet).toMatch(/GREETING_SLIDE_MS = 400/);
@@ -145,6 +152,19 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const nameInputIdx = meet.indexOf("hs-name-input", peopleComposerIdx);
     expect(statusIdx).toBeGreaterThan(peopleComposerIdx);
     expect(nameInputIdx).toBeGreaterThan(statusIdx);
+    // Single-page document order: greeting → name → friend → perms → assist → sticky continue
+    const greetIdx = meet.indexOf("hs-opal-greeting");
+    const selfNameIdx = meet.indexOf("hs-self-name-input");
+    const friendIdx = meet.indexOf("hs-name-input");
+    const permIdx = meet.indexOf("hs-perm-list");
+    const assistIdx = meet.indexOf("hs-assist-row");
+    const continueIdx = meet.indexOf("hs-meet-continue");
+    expect(greetIdx).toBeGreaterThan(-1);
+    expect(selfNameIdx).toBeGreaterThan(greetIdx);
+    expect(friendIdx).toBeGreaterThan(selfNameIdx);
+    expect(permIdx).toBeGreaterThan(friendIdx);
+    expect(assistIdx).toBeGreaterThan(permIdx);
+    expect(continueIdx).toBeGreaterThan(assistIdx);
   });
 
   it("suggestUsernameFromName strips non-alphanumeric (no underscores)", () => {
@@ -286,6 +306,9 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(hs).toMatch(/\.hs-perm-row/);
     expect(hs).toMatch(/\.hs-friend-or/);
     expect(hs).toMatch(/\.hs-friend-skip/);
+    // Paste W5 sticky Continue + Assist row
+    expect(hs).toMatch(/\.hs-meet-sticky-continue/);
+    expect(hs).toMatch(/\.hs-assist-row/);
     // Paste W4 Phase 2 — centered send + document-flow composers (no absolute overlay)
     expect(hs).toMatch(/Paste W4 Phase 2|Paste W4 2\.1/);
     expect(hs).toMatch(

@@ -1,6 +1,6 @@
 /**
- * Paste W4 Phase 0 — Meet Opal diet.
- * Order: greeting → ask_name → ask_permissions (ONE screen) → ask_people → onComplete.
+ * Paste W5 Phase 0 — Meet Opal ONE scrolling page.
+ * Document order: orb → greeting → name → friend → permissions → Assist → sticky Continue.
  * Does not render ask_more / ask_when / ask_vibe / working / trust.
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -23,7 +23,12 @@ import {
   requestNativeContacts,
   shouldUseNativeContactsBridge,
 } from "../nativeHostBridge";
-import { loadProfile, saveProfile, updateProfile } from "../api/productClient";
+import {
+  loadProfile,
+  saveProfile,
+  updateAssistPreference,
+  updateProfile,
+} from "../api/productClient";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const GREETING_SLIDE_MS = 400;
@@ -40,6 +45,8 @@ type Props = {
 type PersistResult = { ok: boolean; reason?: string };
 
 type PermDecision = "pending" | "allowed" | "skipped";
+
+type AssistChoice = "pending" | "enabled" | "not_now";
 
 /** Persist via existing contacts/resolve (do not call a missing onboarding route). */
 async function persistOnboardingContact(
@@ -120,10 +127,6 @@ async function checkCalendarConnected(bearer?: string | null): Promise<boolean> 
     return false;
   }
 }
-
-type Line =
-  | { kind: "opal"; id: string; text: string }
-  | { kind: "you"; id: string; text: string };
 
 function OpalLine({ text, testId, index }: { text: string; testId: string; index: number }) {
   const reduce = useReducedMotion();
@@ -209,10 +212,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [orbMode, setOrbMode] = useState<OpalOrbMode>("typing");
   const [showTyping, setShowTyping] = useState(true);
   const [showGreeting, setShowGreeting] = useState(false);
-  const [showPeopleComposer, setShowPeopleComposer] = useState(false);
-  const [showSelfNameComposer, setShowSelfNameComposer] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [selfNameDraft, setSelfNameDraft] = useState("");
-  const [selfNameCommitted, setSelfNameCommitted] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [phoneDraft, setPhoneDraft] = useState("");
   const [pendingPhonePerson, setPendingPhonePerson] = useState<HolyShitPerson | null>(null);
@@ -227,6 +228,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       location: "pending",
     }),
   );
+  const [assistChoice, setAssistChoice] = useState<AssistChoice>("pending");
+  const [finishing, setFinishing] = useState(false);
   const [contactPersisted, setContactPersisted] = useState(false);
   const [contactsStatus, setContactsStatus] = useState<string | null>(null);
   const [contactsDeniedOnce, setContactsDeniedOnce] = useState(false);
@@ -244,13 +247,19 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     [selfNameDraft],
   );
 
+  // Short greeting reveal, then show ALL sections at once (no phase screens).
   useEffect(() => {
     if (phase !== "greeting") return;
     if (reduce) {
       setShowTyping(false);
       setShowGreeting(true);
+      setShowForm(true);
       setOrbMode("idle");
-      setPhase("ask_name");
+      setPhase("form");
+      if (!contactsPickerAvailable()) {
+        setContactsUnavailable(true);
+        setContactsStatus(HOLY_SHIT_COPY.contactsUnavailableTyping);
+      }
       return;
     }
     const tGreet = window.setTimeout(() => {
@@ -258,53 +267,24 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       setShowGreeting(true);
       setOrbMode("idle");
     }, TYPING_MS);
-    const tAskTyping = window.setTimeout(() => {
-      setShowTyping(true);
-      setOrbMode("typing");
-    }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS);
-    const tAsk = window.setTimeout(() => {
-      setShowTyping(false);
-      setPhase("ask_name");
+    const tForm = window.setTimeout(() => {
+      setShowForm(true);
+      setPhase("form");
       setOrbMode("idle");
-    }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS + TYPING_MS);
+      if (!contactsPickerAvailable()) {
+        setContactsUnavailable(true);
+        setContactsStatus(HOLY_SHIT_COPY.contactsUnavailableTyping);
+      }
+    }, TYPING_MS + GREETING_SLIDE_MS + ASK_NAME_PAUSE_MS);
     return () => {
       window.clearTimeout(tGreet);
-      window.clearTimeout(tAskTyping);
-      window.clearTimeout(tAsk);
+      window.clearTimeout(tForm);
     };
   }, [phase, reduce]);
 
-  // Reveal self-name composer after ask_name bubble (own effect so phase flips
-  // do not cancel the reveal timer).
   useEffect(() => {
-    if (phase !== "ask_name" || showSelfNameComposer) return;
-    if (reduce) {
-      setShowSelfNameComposer(true);
-      return;
-    }
-    const t = window.setTimeout(() => setShowSelfNameComposer(true), 120);
-    return () => window.clearTimeout(t);
-  }, [phase, showSelfNameComposer, reduce]);
-
-  useEffect(() => {
-    if (showSelfNameComposer && phase === "ask_name") selfNameRef.current?.focus();
-  }, [showSelfNameComposer, phase]);
-
-  useEffect(() => {
-    if (phase !== "ask_people" || showPeopleComposer) return;
-    if (reduce) {
-      setShowPeopleComposer(true);
-      return;
-    }
-    const t = window.setTimeout(() => setShowPeopleComposer(true), 120);
-    return () => window.clearTimeout(t);
-  }, [phase, showPeopleComposer, reduce]);
-
-  useEffect(() => {
-    if (showPeopleComposer && phase === "ask_people" && !pendingPhonePerson) {
-      inputRef.current?.focus();
-    }
-  }, [showPeopleComposer, phase, pendingPhonePerson]);
+    if (showForm && phase === "form") selfNameRef.current?.focus();
+  }, [showForm, phase]);
 
   useEffect(() => {
     if (pendingPhonePerson) phoneRef.current?.focus();
@@ -317,8 +297,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   }, [
     phase,
     showGreeting,
-    showSelfNameComposer,
-    selfNameCommitted,
+    showForm,
     people,
     showTyping,
     pullingName,
@@ -327,56 +306,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     contactsStatus,
     reduce,
   ]);
-
-  const finish = (nextPeople: HolyShitPerson[], persisted: boolean) => {
-    onComplete(
-      buildState({
-        people: nextPeople,
-        when: null,
-        vibe: null,
-        spot: null,
-        contactPersisted: persisted,
-      }),
-    );
-  };
-
-  const beginAskPeople = () => {
-    setShowPeopleComposer(false);
-    setPhase("ask_people");
-    setOrbMode("idle");
-    if (!contactsPickerAvailable()) {
-      setContactsUnavailable(true);
-      setContactsStatus(HOLY_SHIT_COPY.contactsUnavailableTyping);
-    }
-  };
-
-  /** Set profile name + derived username, then permissions. */
-  const submitSelfName = () => {
-    const display = selfNameDraft.trim();
-    if (!display) return;
-    const handle = suggestUsernameFromName(display);
-    try {
-      const prev = loadProfile();
-      saveProfile({
-        user_id: prev?.user_id || "pending-onboarding",
-        display_name: display,
-        handle: handle || undefined,
-        session_id: prev?.session_id,
-        access_token: prev?.access_token,
-        refresh_token: prev?.refresh_token,
-        cookie_session: prev?.cookie_session,
-      });
-    } catch {
-      /* private mode — still continue */
-    }
-    if (bearer && handle) {
-      void updateProfile({ displayName: display, handle }, bearer).catch(() => undefined);
-    }
-    setSelfNameCommitted(display);
-    setShowSelfNameComposer(false);
-    setPhase("ask_permissions");
-    setOrbMode("idle");
-  };
 
   const markPerm = (kind: MeetOpalPermissionKind, decision: PermDecision) => {
     setPermDecisions((prev) => ({ ...prev, [kind]: decision }));
@@ -441,28 +370,19 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     }
   };
 
-  /** Finish immediately after confirming person — no ask_more. */
-  const advanceWithPerson = (person: HolyShitPerson, confirmText?: string) => {
+  /** Select friend in-page — does not finish (sticky Continue does). */
+  const selectPerson = (person: HolyShitPerson, confirmText?: string) => {
     const key = person.name.trim().toLowerCase();
     if (!key) return;
     setPendingPhonePerson(null);
     setPhoneDraft("");
-    const nextPeople = (() => {
-      if (people.some((p) => p.name.trim().toLowerCase() === key)) return people;
-      return [...people, person].slice(0, HOLY_SHIT_COPY.peopleMax);
-    })();
-    setPeople(nextPeople);
-    setShowPeopleComposer(false);
+    setPeople([person]);
     setPullingName(null);
     setConfirmedLine(confirmText || HOLY_SHIT_COPY.confirmContact(person.name));
-    // Persist in background; Phase 0 finishes now (when/vibe/spot null OK).
-    void persistOnboardingContact(person, bearer).then((res) => {
-      if (res.ok) setContactPersisted(true);
-    });
-    finish(nextPeople, contactPersisted);
+    setNameDraft("");
   };
 
-  /** Phone gate for contacts without phone: Continue without inviting → finish. */
+  /** Phone gate for contacts without phone. */
   const acceptDeviceContact = (person: {
     contact_id: string;
     name: string;
@@ -484,10 +404,9 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     if (!person.phone?.trim()) {
       setPendingPhonePerson(row);
       setContactsStatus(HOLY_SHIT_COPY.contactsNoPhone(person.name));
-      setShowPeopleComposer(false);
       return;
     }
-    advanceWithPerson(row, HOLY_SHIT_COPY.confirmContact(person.name));
+    selectPerson(row, HOLY_SHIT_COPY.confirmContact(person.name));
     setContactsStatus(null);
   };
 
@@ -495,7 +414,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     if (!pendingPhonePerson) return;
     const phone = phoneDraft.trim();
     if (!phone) return;
-    advanceWithPerson(
+    selectPerson(
       { ...pendingPhonePerson, phone },
       HOLY_SHIT_COPY.confirmContact(pendingPhonePerson.name),
     );
@@ -575,7 +494,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           setContactsUnavailable(true);
           setContactsStatus(HOLY_SHIT_COPY.contactsUnavailableTyping);
           setPullingName(null);
-          advanceWithPerson({ name: trimmed, source: "fresh" });
+          selectPerson({ name: trimmed, source: "fresh" });
           setNameDraft("");
           return;
         }
@@ -594,77 +513,88 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         }
         if (res.status === "ok" && res.contacts.length > 0) {
           setPullingName(null);
-          setShowPeopleComposer(true);
           setContactsStatus("Pick the right person below, or Choose from contacts.");
           return;
         }
         setPullingName(null);
-        // No match — finish with typed name (Phase 0: no vibe/when path).
-        advanceWithPerson({ name: trimmed, source: "fresh" });
+        selectPerson({ name: trimmed, source: "fresh" });
         setNameDraft("");
       })();
       return;
     }
 
     setPullingName(null);
-    advanceWithPerson({ name: trimmed, source: "fresh" });
+    selectPerson({ name: trimmed, source: "fresh" });
     setNameDraft("");
   };
 
   const skipFriend = () => {
-    finish([], contactPersisted);
+    setPeople([]);
+    setPendingPhonePerson(null);
+    setPhoneDraft("");
+    setNameDraft("");
+    setConfirmedLine(null);
+    setContactsStatus(null);
+    setPullingName(null);
   };
 
-  const lines: Line[] = [];
-  if (showGreeting) {
-    lines.push({
-      kind: "opal",
-      id: "greeting",
-      text: HOLY_SHIT_COPY.greeting,
-    });
-  }
-  if (phase === "ask_name" || selfNameCommitted) {
-    lines.push({
-      kind: "opal",
-      id: "ask_name",
-      text: HOLY_SHIT_COPY.askSelfName,
-    });
-  }
-  if (selfNameCommitted) {
-    lines.push({ kind: "you", id: "self-name", text: selfNameCommitted });
-  }
-  if (phase === "ask_permissions") {
-    lines.push({
-      kind: "opal",
-      id: "ask_permissions",
-      text: HOLY_SHIT_COPY.askPermissions,
-    });
-  }
-  if (phase === "ask_people") {
-    lines.push({ kind: "opal", id: "ask_people", text: HOLY_SHIT_COPY.askPeople });
-  }
-  for (const p of people) {
-    lines.push({ kind: "you", id: `person-${p.name}`, text: p.name });
-  }
-  if (pullingName) {
-    lines.push({
-      kind: "opal",
-      id: "pulling",
-      text: HOLY_SHIT_COPY.pullingUp(pullingName),
-    });
-  }
-  if (confirmedLine && people.length > 0) {
-    lines.push({ kind: "opal", id: "confirm-contact", text: confirmedLine });
-  }
+  const setAssist = (enabled: boolean) => {
+    setAssistChoice(enabled ? "enabled" : "not_now");
+    void updateAssistPreference(enabled, bearer ?? undefined).catch(() => undefined);
+  };
 
-  const showSelfNameRow = phase === "ask_name" && showSelfNameComposer && !showTyping;
-  const showPermRow = phase === "ask_permissions" && !showTyping;
-  const showPhoneGate = phase === "ask_people" && !!pendingPhonePerson && !pullingName;
-  const showPeopleRow =
-    phase === "ask_people" &&
-    showPeopleComposer &&
-    !pullingName &&
-    !pendingPhonePerson;
+  /** Sticky Continue: save profile, persist friend if chosen, then onComplete. */
+  const handleMeetContinue = () => {
+    const display = selfNameDraft.trim();
+    if (!display || finishing) return;
+    setFinishing(true);
+    const handle = suggestUsernameFromName(display);
+    try {
+      const prev = loadProfile();
+      saveProfile({
+        user_id: prev?.user_id || "pending-onboarding",
+        display_name: display,
+        handle: handle || undefined,
+        session_id: prev?.session_id,
+        access_token: prev?.access_token,
+        refresh_token: prev?.refresh_token,
+        cookie_session: prev?.cookie_session,
+      });
+    } catch {
+      /* private mode — still continue */
+    }
+    if (bearer && handle) {
+      void updateProfile({ displayName: display, handle }, bearer).catch(() => undefined);
+    }
+
+    const friend = people[0] ?? null;
+    let persisted = contactPersisted;
+    const finishNow = (ok: boolean) => {
+      onComplete(
+        buildState({
+          people: friend ? [friend] : [],
+          when: null,
+          vibe: null,
+          spot: null,
+          contactPersisted: ok,
+        }),
+      );
+    };
+
+    if (friend?.phone?.trim() && bearer) {
+      void persistOnboardingContact(friend, bearer).then((res) => {
+        if (res.ok) {
+          setContactPersisted(true);
+          persisted = true;
+        }
+        finishNow(persisted);
+      });
+      return;
+    }
+    finishNow(persisted);
+  };
+
+  const canContinue = selfNameDraft.trim().length > 0 && !finishing;
 
   return (
     <div
@@ -699,255 +629,305 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
       <div className="hs-meet-scroll" ref={scrollerRef}>
         <div className="hs-meet-thread">
-          {lines.map((line, i) =>
-            line.kind === "opal" ? (
-              <OpalLine
-                key={line.id}
-                text={line.text}
-                testId={
-                  line.id === "greeting"
-                    ? "hs-opal-greeting"
-                    : line.id === "ask_name"
-                      ? "hs-opal-ask-self-name"
-                      : line.id === "ask_permissions"
-                        ? "hs-opal-ask-permissions"
-                        : line.id === "ask_people"
-                          ? "hs-opal-ask-name"
-                          : `hs-opal-${line.id}`
-                }
-                index={i}
-              />
-            ) : (
-              <YouLine key={line.id} text={line.text} />
-            ),
-          )}
+          {showGreeting ? (
+            <OpalLine text={HOLY_SHIT_COPY.greeting} testId="hs-opal-greeting" index={0} />
+          ) : null}
 
           {showTyping ? (
             <div className="hs-line hs-line-typing" data-testid="hs-opal-typing">
               <HsTypingDots />
             </div>
           ) : null}
+
+          {showForm ? (
+            <>
+              {/* ask_name section */}
+              <OpalLine
+                text={HOLY_SHIT_COPY.askSelfName}
+                testId="hs-opal-ask-self-name"
+                index={1}
+              />
+              <div
+                className="hs-people-composer hs-self-name-composer hs-meet-section"
+                data-testid="hs-self-name-composer"
+              >
+                <div className="hs-self-name-form">
+                  <div className="hs-meet-composer hs-meet-composer-inline opal-composer-brand">
+                    <input
+                      ref={selfNameRef}
+                      className="hs-meet-input"
+                      data-testid="hs-self-name-input"
+                      placeholder={HOLY_SHIT_COPY.selfNamePlaceholder}
+                      value={selfNameDraft}
+                      onChange={(e) => setSelfNameDraft(e.target.value)}
+                      autoComplete="name"
+                      enterKeyHint="done"
+                      aria-label={HOLY_SHIT_COPY.askSelfName}
+                    />
+                  </div>
+                  {derivedHandle ? (
+                    <p className="hs-people-hint" data-testid="hs-self-username-hint">
+                      {HOLY_SHIT_COPY.selfUsernameQuiet(derivedHandle)}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* ask_people — W4 dual-path */}
+              <OpalLine
+                text={HOLY_SHIT_COPY.askPeople}
+                testId="hs-opal-ask-name"
+                index={2}
+              />
+              {people.map((p) => (
+                <YouLine key={`person-${p.name}`} text={p.name} />
+              ))}
+              {pullingName ? (
+                <OpalLine
+                  text={HOLY_SHIT_COPY.pullingUp(pullingName)}
+                  testId="hs-opal-pulling"
+                  index={3}
+                />
+              ) : null}
+              {confirmedLine && people.length > 0 ? (
+                <OpalLine
+                  text={confirmedLine}
+                  testId="hs-opal-confirm-contact"
+                  index={3}
+                />
+              ) : null}
+
+              {pendingPhonePerson ? (
+                <div className="hs-people-composer hs-meet-section" data-testid="hs-phone-gate">
+                  <p
+                    className="hs-contacts-status"
+                    role="status"
+                    data-testid="hs-contacts-status"
+                  >
+                    {contactsStatus ||
+                      HOLY_SHIT_COPY.contactsNoPhone(pendingPhonePerson.name)}
+                  </p>
+                  <form
+                    className="hs-meet-composer hs-meet-composer-inline opal-composer-brand"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      submitManualPhone();
+                    }}
+                  >
+                    <input
+                      ref={phoneRef}
+                      className="hs-meet-input"
+                      data-testid="hs-phone-input"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder={HOLY_SHIT_COPY.phonePlaceholder}
+                      value={phoneDraft}
+                      onChange={(e) => setPhoneDraft(e.target.value)}
+                      enterKeyHint="done"
+                    />
+                    <button
+                      type="submit"
+                      className="hs-meet-send"
+                      data-testid="hs-phone-submit"
+                      disabled={!phoneDraft.trim()}
+                    >
+                      {HOLY_SHIT_COPY.phoneContinue}
+                    </button>
+                  </form>
+                  <button
+                    type="button"
+                    className="hs-meet-text-action"
+                    data-testid="hs-phone-skip-invite"
+                    onClick={() => {
+                      selectPerson(
+                        pendingPhonePerson,
+                        HOLY_SHIT_COPY.confirmContact(pendingPhonePerson.name),
+                      );
+                      setContactsStatus(null);
+                    }}
+                  >
+                    {HOLY_SHIT_COPY.phoneSkipInvite}
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="hs-people-composer hs-meet-section"
+                  data-testid="hs-name-composer"
+                >
+                  {/* Paste W2 1.2 HARD RULE: status ABOVE inputs/buttons — never over primary actions. */}
+                  {contactsStatus ? (
+                    <p
+                      className="hs-contacts-status"
+                      role="status"
+                      data-testid="hs-contacts-status"
+                    >
+                      {contactsStatus}
+                    </p>
+                  ) : null}
+                  <form
+                    className="hs-meet-composer hs-meet-composer-inline opal-composer-brand hs-friend-type-path"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      submitTypedName();
+                    }}
+                  >
+                    <input
+                      ref={inputRef}
+                      className="hs-meet-input"
+                      data-testid="hs-name-input"
+                      placeholder={HOLY_SHIT_COPY.peoplePlaceholder}
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      autoComplete="off"
+                      enterKeyHint="done"
+                    />
+                    <button
+                      type="submit"
+                      className="hs-meet-send"
+                      data-testid="hs-name-submit"
+                      disabled={!nameDraft.trim() || resolveBusy}
+                    >
+                      {HOLY_SHIT_COPY.peopleContinue}
+                    </button>
+                  </form>
+                  <ContactSuggestPicker
+                    query={nameDraft}
+                    enabled={showForm && !contactsUnavailable}
+                    onSelect={(person) => acceptDeviceContact(person)}
+                    onDeniedOnce={(msg) => {
+                      setContactsDeniedOnce(true);
+                      setContactsUnavailable(true);
+                      setContactsStatus(msg || HOLY_SHIT_COPY.contactsUnavailableTyping);
+                    }}
+                    openSheet={contactSheetOpen}
+                    onCloseSheet={() => {
+                      setContactSheetOpen(false);
+                      setResolveBusy(false);
+                    }}
+                  />
+                  {!contactsUnavailable ? (
+                    <>
+                      <p className="hs-friend-or" data-testid="hs-friend-or">
+                        {HOLY_SHIT_COPY.peopleOr}
+                      </p>
+                      <button
+                        type="button"
+                        className="hs-meet-send hs-meet-send-block hs-friend-contacts"
+                        data-testid="hs-resolve-contacts"
+                        disabled={resolveBusy}
+                        onClick={() => void selectFromContacts()}
+                      >
+                        {HOLY_SHIT_COPY.resolveSelect}
+                      </button>
+                    </>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="hs-meet-text-action hs-friend-skip"
+                    data-testid="hs-friend-skip"
+                    onClick={skipFriend}
+                  >
+                    {HOLY_SHIT_COPY.peopleSkip}
+                  </button>
+                </div>
+              )}
+
+              {/* ask_permissions — compact rows */}
+              <OpalLine
+                text={HOLY_SHIT_COPY.askPermissions}
+                testId="hs-opal-ask-permissions"
+                index={4}
+              />
+              <div className="hs-perm-composer hs-meet-section" data-testid="hs-permissions">
+                <ul className="hs-perm-list" data-testid="hs-perm-list">
+                  {MEET_OPAL_PERMISSION_ORDER.map((kind) => {
+                    const copy = permCopyFor(kind);
+                    const decision = permDecisions[kind];
+                    return (
+                      <li
+                        key={kind}
+                        className="hs-perm-row"
+                        data-testid={`hs-perm-row-${kind}`}
+                        data-perm-kind={kind}
+                        data-perm-decision={decision}
+                      >
+                        <div className="hs-perm-row-copy">
+                          <span className="hs-perm-row-title">{copy.title}</span>
+                          <span className="hs-perm-row-why">{copy.why}</span>
+                        </div>
+                        <div
+                          className="hs-perm-row-actions"
+                          role="group"
+                          aria-label={copy.title}
+                        >
+                          <button
+                            type="button"
+                            className="hs-pill hs-pill-primary hs-perm-allow"
+                            data-testid={`hs-perm-allow-${kind}`}
+                            disabled={permBusy === kind || decision !== "pending"}
+                            onClick={() => void requestPermission(kind)}
+                          >
+                            {HOLY_SHIT_COPY.permAllow}
+                          </button>
+                          <button
+                            type="button"
+                            className="hs-pill hs-perm-skip"
+                            data-testid={`hs-perm-skip-${kind}`}
+                            disabled={permBusy === kind || decision !== "pending"}
+                            onClick={() => markPerm(kind, "skipped")}
+                          >
+                            {HOLY_SHIT_COPY.permSkip}
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              {/* Opal Assist — ONE row */}
+              <div
+                className="hs-assist-row"
+                data-testid="hs-assist-row"
+                data-assist-choice={assistChoice}
+              >
+                <p className="hs-assist-row-copy">{HOLY_SHIT_COPY.assistRow}</p>
+                <div className="hs-assist-row-actions" role="group" aria-label="Opal Assist">
+                  <button
+                    type="button"
+                    className="hs-pill hs-pill-primary hs-assist-enable"
+                    data-testid="hs-assist-enable"
+                    disabled={assistChoice === "enabled"}
+                    onClick={() => setAssist(true)}
+                  >
+                    {HOLY_SHIT_COPY.assistEnable}
+                  </button>
+                  <button
+                    type="button"
+                    className="hs-pill hs-assist-not-now"
+                    data-testid="hs-assist-not-now"
+                    disabled={assistChoice === "not_now"}
+                    onClick={() => setAssist(false)}
+                  >
+                    {HOLY_SHIT_COPY.assistNotNow}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
 
-      {showSelfNameRow ? (
-        <div
-          className="hs-people-composer hs-self-name-composer"
-          data-testid="hs-self-name-composer"
-        >
-          <form
-            className="hs-self-name-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitSelfName();
-            }}
-          >
-            <div className="hs-meet-composer hs-meet-composer-inline opal-composer-brand">
-              <input
-                ref={selfNameRef}
-                className="hs-meet-input"
-                data-testid="hs-self-name-input"
-                placeholder={HOLY_SHIT_COPY.selfNamePlaceholder}
-                value={selfNameDraft}
-                onChange={(e) => setSelfNameDraft(e.target.value)}
-                autoComplete="name"
-                enterKeyHint="done"
-                aria-label={HOLY_SHIT_COPY.askSelfName}
-              />
-            </div>
-            {derivedHandle ? (
-              <p className="hs-people-hint" data-testid="hs-self-username-hint">
-                {HOLY_SHIT_COPY.selfUsernameQuiet(derivedHandle)}
-              </p>
-            ) : null}
-            <button
-              type="submit"
-              className="hs-meet-send hs-meet-send-block"
-              data-testid="hs-self-name-submit"
-              disabled={!selfNameDraft.trim()}
-            >
-              {HOLY_SHIT_COPY.selfNameContinue}
-            </button>
-          </form>
-        </div>
-      ) : null}
-
-      {showPermRow ? (
-        <div className="hs-perm-composer" data-testid="hs-permissions">
-          <ul className="hs-perm-list" data-testid="hs-perm-list">
-            {MEET_OPAL_PERMISSION_ORDER.map((kind) => {
-              const copy = permCopyFor(kind);
-              const decision = permDecisions[kind];
-              return (
-                <li
-                  key={kind}
-                  className="hs-perm-row"
-                  data-testid={`hs-perm-row-${kind}`}
-                  data-perm-kind={kind}
-                  data-perm-decision={decision}
-                >
-                  <div className="hs-perm-row-copy">
-                    <span className="hs-perm-row-title">{copy.title}</span>
-                    <span className="hs-perm-row-why">{copy.why}</span>
-                  </div>
-                  <div className="hs-perm-row-actions" role="group" aria-label={copy.title}>
-                    <button
-                      type="button"
-                      className="hs-pill hs-pill-primary hs-perm-allow"
-                      data-testid={`hs-perm-allow-${kind}`}
-                      disabled={permBusy === kind || decision !== "pending"}
-                      onClick={() => void requestPermission(kind)}
-                    >
-                      {HOLY_SHIT_COPY.permAllow}
-                    </button>
-                    <button
-                      type="button"
-                      className="hs-pill hs-perm-skip"
-                      data-testid={`hs-perm-skip-${kind}`}
-                      disabled={permBusy === kind || decision !== "pending"}
-                      onClick={() => markPerm(kind, "skipped")}
-                    >
-                      {HOLY_SHIT_COPY.permSkip}
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          {/* Continue always enabled — never block on denial. */}
+      {showForm ? (
+        <div className="hs-meet-sticky-continue">
           <button
             type="button"
             className="hs-meet-send hs-meet-send-block"
-            data-testid="hs-perm-continue"
-            onClick={beginAskPeople}
+            data-testid="hs-meet-continue"
+            disabled={!canContinue}
+            onClick={handleMeetContinue}
           >
-            {HOLY_SHIT_COPY.permContinue}
-          </button>
-        </div>
-      ) : null}
-
-      {showPhoneGate && pendingPhonePerson ? (
-        <div className="hs-people-composer" data-testid="hs-phone-gate">
-          {/* Status above inputs — never covers Continue (Paste W2 1.2). */}
-          <p className="hs-contacts-status" role="status" data-testid="hs-contacts-status">
-            {contactsStatus || HOLY_SHIT_COPY.contactsNoPhone(pendingPhonePerson.name)}
-          </p>
-          <form
-            className="hs-meet-composer hs-meet-composer-inline opal-composer-brand"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitManualPhone();
-            }}
-          >
-            <input
-              ref={phoneRef}
-              className="hs-meet-input"
-              data-testid="hs-phone-input"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder={HOLY_SHIT_COPY.phonePlaceholder}
-              value={phoneDraft}
-              onChange={(e) => setPhoneDraft(e.target.value)}
-              enterKeyHint="done"
-            />
-            <button
-              type="submit"
-              className="hs-meet-send"
-              data-testid="hs-phone-submit"
-              disabled={!phoneDraft.trim()}
-            >
-              {HOLY_SHIT_COPY.phoneContinue}
-            </button>
-          </form>
-          <button
-            type="button"
-            className="hs-meet-text-action"
-            data-testid="hs-phone-skip-invite"
-            onClick={() => {
-              advanceWithPerson(
-                pendingPhonePerson,
-                HOLY_SHIT_COPY.confirmContact(pendingPhonePerson.name),
-              );
-              setContactsStatus(null);
-            }}
-          >
-            {HOLY_SHIT_COPY.phoneSkipInvite}
-          </button>
-        </div>
-      ) : null}
-
-      {showPeopleRow ? (
-        <div className="hs-people-composer" data-testid="hs-name-composer">
-          {/* Paste W2 1.2 HARD RULE: status ABOVE inputs/buttons — never over primary actions. */}
-          {contactsStatus ? (
-            <p className="hs-contacts-status" role="status" data-testid="hs-contacts-status">
-              {contactsStatus}
-            </p>
-          ) : null}
-          <form
-            className="hs-meet-composer hs-meet-composer-inline opal-composer-brand hs-friend-type-path"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitTypedName();
-            }}
-          >
-            <input
-              ref={inputRef}
-              className="hs-meet-input"
-              data-testid="hs-name-input"
-              placeholder={HOLY_SHIT_COPY.peoplePlaceholder}
-              value={nameDraft}
-              onChange={(e) => setNameDraft(e.target.value)}
-              autoComplete="off"
-              enterKeyHint="done"
-            />
-            <button
-              type="submit"
-              className="hs-meet-send"
-              data-testid="hs-name-submit"
-              disabled={!nameDraft.trim() || resolveBusy}
-            >
-              {HOLY_SHIT_COPY.peopleContinue}
-            </button>
-          </form>
-          <ContactSuggestPicker
-            query={nameDraft}
-            enabled={showPeopleComposer && !contactsUnavailable}
-            onSelect={(person) => acceptDeviceContact(person)}
-            onDeniedOnce={(msg) => {
-              setContactsDeniedOnce(true);
-              setContactsUnavailable(true);
-              setContactsStatus(msg || HOLY_SHIT_COPY.contactsUnavailableTyping);
-            }}
-            openSheet={contactSheetOpen}
-            onCloseSheet={() => {
-              setContactSheetOpen(false);
-              setResolveBusy(false);
-            }}
-          />
-          {!contactsUnavailable ? (
-            <>
-              <p className="hs-friend-or" data-testid="hs-friend-or">
-                {HOLY_SHIT_COPY.peopleOr}
-              </p>
-              <button
-                type="button"
-                className="hs-meet-send hs-meet-send-block hs-friend-contacts"
-                data-testid="hs-resolve-contacts"
-                disabled={resolveBusy}
-                onClick={() => void selectFromContacts()}
-              >
-                {HOLY_SHIT_COPY.resolveSelect}
-              </button>
-            </>
-          ) : null}
-          <button
-            type="button"
-            className="hs-meet-text-action hs-friend-skip"
-            data-testid="hs-friend-skip"
-            onClick={skipFriend}
-          >
-            {HOLY_SHIT_COPY.peopleSkip}
+            {HOLY_SHIT_COPY.meetContinue}
           </button>
         </div>
       ) : null}

@@ -240,7 +240,10 @@ import {
   defaultPersonRecent,
   defaultGroupRecent,
 } from "./opalUi/CallContinuityDestination";
-import type { CallsContinuityRow } from "./opalUi/callsContinuitySeed";
+import {
+  FOUNDER_CALLS_CONTINUITY_ROWS,
+  type CallsContinuityRow,
+} from "./opalUi/callsContinuitySeed";
 import {
   YouSettingsDestination,
   YOU_SETTING_FIGMA,
@@ -2819,17 +2822,16 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W4 — Splash → Phone (Promise off the 60s first-run path).
-   * Promise remains reachable via diagnostic force flags only.
+   * Paste W5 — Splash 1 → Splash 2 (Promise). Cause of W4 disappearance:
+   * 9f88201b rewrote this to setFirstRunStage("auth"), skipping Promise.
+   * FirstRunPromisePage.tsx itself was never deleted (pixel-identical restore).
    */
   const advanceSplashToPromise = () => {
-    markWalkthroughDone();
-    clearForcedFirstRun();
     setShowFirstRun(true);
-    setFirstRunStage("auth");
+    setFirstRunStage("promise");
   };
 
-  /** Promise CTA → phone auth (diagnostic / legacy Promise path). */
+  /** Splash 2 CTA → phone auth. Meet Opal follows OTP. */
   const advancePromiseToAuth = () => {
     markWalkthroughDone();
     clearForcedFirstRun();
@@ -2837,7 +2839,7 @@ export function OpalApp() {
     setShowFirstRun(true);
   };
 
-  /** Returning account from Promise → phone auth. */
+  /** Returning account from Splash 2 → phone auth. */
   const advancePromiseAlreadyAccount = () => {
     markWalkthroughDone();
     clearForcedFirstRun();
@@ -3791,8 +3793,10 @@ export function OpalApp() {
 
   const confirmPlanComposer = (plan: PlanComposerResult) => {
     const whoLabel = plan.who.join(", ") || "Friends";
+    // Paste W5 Phase 4 — reuse idea id so GraphsHome / detail update that card (not a stale idea).
+    const surfaceId = plan.sourceIdeaId || localPlanSurfaceId(whoLabel, plan.title);
     const surface: CreatedPlanSurface = {
-      id: localPlanSurfaceId(whoLabel, plan.title),
+      id: surfaceId,
       title: plan.title,
       who: whoLabel,
       when: plan.when,
@@ -3800,10 +3804,19 @@ export function OpalApp() {
       place: plan.where,
       conversationId: null,
       sharedPlanId: null,
+      sourceIdeaId: plan.sourceIdeaId || null,
       createdAt: new Date().toISOString(),
     };
     setCreatedPlanSurfaces((prev) => {
-      const next = [surface, ...prev.filter((p) => p.id !== surface.id)].slice(0, 24);
+      const next = [
+        surface,
+        ...prev.filter(
+          (p) =>
+            p.id !== surface.id &&
+            p.sourceIdeaId !== surface.id &&
+            (!surface.sourceIdeaId || p.id !== surface.sourceIdeaId),
+        ),
+      ].slice(0, 24);
       persistCreatedPlans(next);
       return next;
     });
@@ -3821,6 +3834,7 @@ export function OpalApp() {
         )) ||
       null;
 
+    // Unconfirmed composer result stays plan_forming — never ready/locked/happening.
     const filamentBody = `Here's the plan: ${plan.title} · ${plan.when} · ${plan.where}`;
     if (chat) {
       const msg: Message = {
@@ -4334,11 +4348,14 @@ export function OpalApp() {
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? undefined
               : () => {
+                  // Paste W5 Phase 2 — History must do something real (no dead header button).
+                  // Prefer this person's past plan; otherwise open the contact timeline sheet
+                  // (shared plans + memories) which is the relationship history surface.
                   if (pastHistoryPlanId) {
                     openGraphDetail(pastHistoryPlanId, "graphs");
                     return;
                   }
-                  setTab("graphs");
+                  setContactProfileOpen(true);
                 }
           }
           onSetNotificationsMuted={(muted) => {
@@ -8488,35 +8505,39 @@ export function OpalApp() {
               }
               openGraphDetail(planId, "home");
             }}
-            callRows={
-              // Founder seed walk: always show the designed continuity list
-              // (Chanelle / Juniper crew / Maya / Jordan). Live API alone often
-              // returns a single row and wipes the beautiful seed.
-              isFounderSeedEnabled()
-                ? undefined
-                : callLog.length > 0
-                  ? callLog
-                      .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
-                      .map((call) => {
-                        const line = callHistoryLine({
-                          historyLabel: call.history_label,
-                          createdAt: call.created_at,
-                          peerName: call.peer_name,
-                        });
-                        return {
-                          id: call.id,
-                          name: line.name,
-                          kind: "person" as const,
-                          metadata: line.metadata,
-                          missed: call.missed === true,
-                          peerName: line.name,
-                          callMedia: "audio" as const,
-                          conversationId: call.conversation_id || undefined,
-                          real: true,
-                        };
-                      })
-                  : undefined
-            }
+            callRows={(() => {
+              const liveRows: CallsContinuityRow[] = callLog
+                .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
+                .map((call) => {
+                  const line = callHistoryLine({
+                    historyLabel: call.history_label,
+                    createdAt: call.created_at,
+                    peerName: call.peer_name,
+                  });
+                  return {
+                    id: call.id,
+                    name: line.name,
+                    kind: "person" as const,
+                    metadata: line.metadata,
+                    missed: call.missed === true,
+                    peerName: line.name,
+                    callMedia: "audio" as const,
+                    conversationId: call.conversation_id || undefined,
+                    real: true,
+                  };
+                });
+              // Founder seed: merge live (real:true) ABOVE seed so a just-placed
+              // call appears without wiping continuity rows.
+              if (isFounderSeedEnabled()) {
+                const liveIds = new Set(liveRows.map((r) => r.id));
+                const seedRest = FOUNDER_CALLS_CONTINUITY_ROWS.filter(
+                  (r) => !liveIds.has(r.id),
+                );
+                return [...liveRows, ...seedRest];
+              }
+              // Non-seed: always pass mapped rows (even []) — never undefined → seed.
+              return liveRows;
+            })()}
             callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
             onOpenCalls={() => refreshCallLog()}
             onQuickCallRow={(row) => {
@@ -8711,6 +8732,7 @@ export function OpalApp() {
         ) : null}
         {opalAmbientOpen ? null : tab === "graphs" ? (
           <GraphsHome
+            createdPlans={createdPlanSurfaces}
             liveGraphs={chats.flatMap((chat) => {
               const plan = chat.planProjection;
               if (!plan?.place && !plan?.when_label) return [];
