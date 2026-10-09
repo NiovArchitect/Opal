@@ -67,7 +67,7 @@ function extractPlanSnippet(opalBody: string): string {
     const after = dash.slice(1).join(" . ").trim();
     if (after.length > 4) return after.replace(/\?+\s*$/, "").trim();
   }
-  return opalBody.replace(/^got it\s*[.--]?\s*/i, "").replace(/\?+\s*$/, "").trim();
+  return opalBody.replace(/^got it\s*[-–—.]?\s*/i, "").replace(/\?+\s*$/, "").trim();
 }
 
 function extractConfirmTime(plan: string): string | undefined {

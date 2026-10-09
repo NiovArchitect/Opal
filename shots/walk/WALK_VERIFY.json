@@ -1,0 +1,43 @@
+{
+  "tip": "e054d2bd",
+  "status": "PASS",
+  "checks": {
+    "member_shell": {
+      "ok": true,
+      "detail": "entered"
+    },
+    "4.3_seed_chip_hidden": {
+      "ok": true,
+      "detail": "dev-gated"
+    },
+    "2.3_no_calendar_in_thread": {
+      "ok": true,
+      "detail": "chanelle/juniper: gpt-plan absent; phone+video present"
+    },
+    "2.7_shared_graph_juniper": {
+      "ok": true,
+      "detail": "Shared Graph · Locked · Waiting on Sam · 3 of 4"
+    },
+    "2.1_filament_chanelle": {
+      "ok": true,
+      "detail": "Opal lined this up · Juniper & Ivy · Sat 7:30 PM"
+    },
+    "0.5_no_emdash_seed": {
+      "ok": true,
+      "detail": "Perfect. I'll grab a table."
+    },
+    "5.1_you_filed": {
+      "ok": true,
+      "detail": "grouped settings + QR; no loose assist block"
+    },
+    "B5_palette": {
+      "ok": true,
+      "detail": "{\"confirmed\":\"#00E5FF\",\"pending\":\"#FFC86B\",\"idea\":\"#8B5CF6\"}"
+    },
+    "B6_flags": {
+      "ok": true,
+      "detail": "opal_founder_seed + opal_native_host + reset path captured"
+    }
+  },
+  "at": "2026-10-09T18:08:10.217Z"
+}
