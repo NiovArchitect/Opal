@@ -243,8 +243,7 @@ export function GraphsTemporalTimeline({
     </div>
   );
 
-  // Paste W3 5.1 — never show walkthrough/dev seed prose on user screens.
-  // User-facing empty/seed honesty only (no "Sample plans for walkthrough").
+  // Paste W3 5.1 — user-facing seed honesty only (no walkthrough/dev prose).
   const seedNote = usingSeed ? (
     <p className="graphs-temporal-seed-note" data-testid="graphs-temporal-seed-note">
       Plans you line up will land here.
