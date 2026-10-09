@@ -5,11 +5,19 @@ defmodule OpalCore.Wallets.StripeAndThresholdTest do
   alias OpalCore.Wallets.StripeCheckout
 
   setup do
-    prior = System.get_env("STRIPE_SECRET_KEY")
+    prior_key = System.get_env("STRIPE_SECRET_KEY")
+    prior_loads = System.get_env("OPAL_WALLET_LOADS_ENABLED")
     System.delete_env("STRIPE_SECRET_KEY")
+    System.delete_env("OPAL_WALLET_LOADS_ENABLED")
 
     on_exit(fn ->
-      if prior, do: System.put_env("STRIPE_SECRET_KEY", prior), else: System.delete_env("STRIPE_SECRET_KEY")
+      if prior_key,
+        do: System.put_env("STRIPE_SECRET_KEY", prior_key),
+        else: System.delete_env("STRIPE_SECRET_KEY")
+
+      if prior_loads,
+        do: System.put_env("OPAL_WALLET_LOADS_ENABLED", prior_loads),
+        else: System.delete_env("OPAL_WALLET_LOADS_ENABLED")
     end)
 
     account_id = Ecto.UUID.generate()
@@ -22,14 +30,24 @@ defmodule OpalCore.Wallets.StripeAndThresholdTest do
              StripeCheckout.create_session(account_id, 2500)
   end
 
+  test "checkout with key but loads gated → disabled", %{account_id: account_id} do
+    System.put_env("STRIPE_SECRET_KEY", "sk_test_fake_for_unit")
+    System.put_env("OPAL_WALLET_LOADS_ENABLED", "false")
+
+    assert {:disabled, "wallet loads gated pending legal approval"} =
+             StripeCheckout.create_session(account_id, 2500)
+
+    assert StripeCheckout.key_present?() == true
+    assert StripeCheckout.configured?() == false
+  end
+
   test "webhook credits via load idempotent on payment_intent", %{
     account_id: account_id,
     wallet: wallet
   } do
-    # Simulate configured Stripe for load path inside webhook handler by
-    # allowing test load through a direct load with stripe payment id shape —
-    # webhook handler calls Wallets.load which needs Stripe OR we set the key.
+    # Webhook → Wallets.load requires both Stripe key and explicit loads enable.
     System.put_env("STRIPE_SECRET_KEY", "sk_test_fake_for_unit")
+    System.put_env("OPAL_WALLET_LOADS_ENABLED", "true")
 
     event = %{
       "type" => "checkout.session.completed",

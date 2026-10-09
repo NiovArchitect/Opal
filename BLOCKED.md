@@ -2,8 +2,8 @@
 
 Branch: `muse/packet-b-batch-2`  
 Scope: Real Multi-User Calling + Apple Store Operational Readiness  
-Runtime truth checked: **2026-10-07** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; EAS production IPA succeeded)  
-**Key provision audit (2026-10-08):** `shots/audit/KEY_PROVISION_AUDIT.md` — all nine Paste G shopping-list keys are **MISSING** from `~/.opal/r1a1.env` / `tunnel.env` (including `DEEPGRAM_API_KEY`, which was believed present). Zero PRESENT-BUT-UNWIRED. Google click-through: `docs/GOOGLE_CLOUD_SETUP.md`.
+Runtime truth checked: **2026-10-08** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; EAS production IPA succeeded)  
+**Key wire batch (2026-10-08):** keys appended to `~/.opal/r1a1.env` (backed up first; no duplicate exports). Phoenix restarted once. Live curl + Elixir verify. Audit: `shots/audit/KEY_PROVISION_AUDIT.md`. Google click-through: `docs/GOOGLE_CLOUD_SETUP.md`.
 
 Items below are implemented in code with honest stubs / disabled paths where
 credentials are absent. Status reflects **actual runtime**, not hope.
@@ -13,21 +13,21 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Twilio Verify (SMS OTP) | — | `OPAL_TWILIO_ACCOUNT_SID`, `OPAL_TWILIO_AUTH_TOKEN`, `OPAL_TWILIO_VERIFY_SERVICE_SID` + `OPAL_PHONE_VERIFY_MODE=production_sms` | **LIVE** — founder OTP on phone 2026-10-07; `/health` reports `production_sms` on this Mac BEAM. |
 | Twilio Messaging (invite SMS) | — | `OPAL_TWILIO_FROM_NUMBER` or `OPAL_TWILIO_MESSAGING_SERVICE_SID` (+ account SID/token) | **LIVE** — founder-confirmed invite texts 2026-10-07. |
 | Twilio NTS (TURN) | Uses same Twilio account SID/token | `OPAL_TWILIO_ACCOUNT_SID` + `OPAL_TWILIO_AUTH_TOKEN` | Code mints via NTS Tokens API when those env vars are on the Phoenix process (present via `r1a1.env`). |
-| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **BLOCKED — MISSING (audit 2026-10-08).** Not in `~/.opal/r1a1.env`, not in LaunchAgent env. Believed previously provided — disk says otherwise. Stub path remains legitimate: `transcribe_batch` → `deepgram_stub`. Product listen gate (`OpalCore.Voice.listen/1`) returns honest `"I can't listen to voice notes yet"` without the key. Code **is** wired (not PRESENT-BUT-UNWIRED). |
-| LLM (DeepSeek / OpenAI-compatible) | — | `OPAL_LLM_API_KEY` + `OPAL_LLM_PROVIDER=deepseek` in `~/.opal/r1a1.env` (optional `OPAL_LLM_MODEL`) | **LIVE (verified 2026-10-07T23:35Z)** — `readiness: :ready`; smoke `pong` OK; 4/4 seed conversations PASS via LLM extract+draft (Maya confirm, Chanelle Saturday counter, Alex trip extend, “maybe” clarify). Zero hallucinations. Measured ~304 tokens/convo (~$0.000043/convo at $0.14/MTok); projected ~$1.28/mo at 1000 convos/day. Provider abstraction: DeepSeek + OpenAI; Anthropic seam only. Evidence: `shots/intelligence/LLM_VERIFY.json`. Templates remain the floor on API failure. |
-| Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | **BLOCKED — not in runtime env.** `OpalCore.Places` / `VenueLookup` return `{:disabled, ...}` or explicit `demo_fixture` only when opted in — never silent live mix. |
-| Brave Search (web) | Founder | `BRAVE_API_KEY` from https://brave.com/search/api/ | **BLOCKED — not in runtime env.** `OpalCore.Search.Brave` returns `{:disabled, "BRAVE_API_KEY missing"}`; never invents hits. (Optional alt: `SERPER_API_KEY` — not wired; Brave chosen for simpler REST gating.) |
-| Google OAuth (Calendar + Gmail) | Founder | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI` (legacy `GOOGLE_CALENDAR_*` still accepted). Redirect examples: `…/api/v1/product/oauth/google/callback` or `…/connectors/google_calendar/callback`. Consent scopes: `calendar.readonly` + `gmail.readonly`. Also needs `OPAL_PROVIDER_TOKEN_SECRET` for TokenVault. | **BLOCKED — OAuth client not in runtime env on this Mac.** Without it, connector start returns honest `oauth_not_configured`. Tokens reuse `provider_connections` (encrypted). |
+| Deepgram API key | Founder | `DEEPGRAM_API_KEY` from https://console.deepgram.com | **LIVE (verified 2026-10-08)** — projects API 200; `LiveTranscriptionConsumer.readiness() == {:ready, :deepgram}` after Phoenix restart. |
+| LLM (DeepSeek / OpenAI-compatible) | — | `OPAL_LLM_API_KEY` + `OPAL_LLM_PROVIDER=deepseek` in `~/.opal/r1a1.env` (optional `OPAL_LLM_MODEL`) | **LIVE (re-verified 2026-10-08 after restart)** — `LlmAdapter.readiness() == :ready`; DeepSeek chat smoke reply `ready`. Prior 2026-10-07 evidence still valid: `shots/intelligence/LLM_VERIFY.json`. Templates remain the floor on API failure. |
+| Google Places (live venue) | Founder | `GOOGLE_PLACES_API_KEY` | **BLOCKED — key wired; GCP Places API not enabled.** Env SET. Legacy Text Search → `REQUEST_DENIED` (legacy API not activated). Places API (New) `places:searchText` → `403 PERMISSION_DENIED`. Founder must enable **Places API (New)** (+ billing) on the Cloud project that owns this key — see `docs/GOOGLE_CLOUD_SETUP.md`. Demo/fixture path only when opted in. |
+| Brave Search (web) | Founder | `BRAVE_API_KEY` from https://brave.com/search/api/ | **LIVE (verified 2026-10-08)** — web search returned real results (3 hits). |
+| Google OAuth (Calendar + Gmail) | Founder | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI` (legacy `GOOGLE_CALENDAR_*` still accepted). Redirect examples: `…/api/v1/product/oauth/google/callback` or `…/connectors/google_calendar/callback`. Consent scopes: `calendar.readonly` + `gmail.readonly`. `OPAL_PROVIDER_TOKEN_SECRET` **generated** locally for TokenVault. | **OAuth pending founder’s Cloud console wizard** — client ID/secret still missing; start URL cannot generate until then. TokenVault secret is SET. |
 | Sentry DSN | Founder | `OPAL_SENTRY_DSN` or `SENTRY_DSN` | **BLOCKED — not in BEAM env.** `/health` reports `sentry_configured: false`. |
 | Apple Developer / APNs | — | APNs key assigned in Expo/EAS for bundle `local.opal.mobile` | **LIVE** — generated during EAS build [2026-10-07], assigned to `local.opal.mobile`. Physical push still needs TestFlight install + device token registration (see `shots/PUSH_VERIFY_CHECKLIST.md`). |
 | EAS iOS production build | — | Expo project `de17c8b3-074e-4656-980d-e16fc10bbda4`; account `sadeil@niovlabs.com` | **SUCCEEDED** via interactive founder run [2026-10-07]. Distribution certificate reused, valid until Sep 2027. Provisioning profile freshly created and active. IPA: https://expo.dev/artifacts/eas/j69l0eCfZb0Ha8XpryL08mWU9jotfKk0hosBgU4kyRk.ipa — production URLs bake `https://api.opal.niovlabs.com`. Upload/TestFlight steps: `docs/TESTFLIGHT_UPLOAD.md`. |
 | ngrok authtoken | — | already configured on this Mac | **LIVE** — tunnel mode via `~/.opal/tunnel.env`. |
-| Duffel (flights/hotels) | Founder | `DUFFEL_API_KEY` from https://duffel.com | **BLOCKED — key not in runtime env.** Booking search/confirm returns honest `{:disabled, ...}` / conversational disabled message; never invents confirmation numbers. **Test mode (Paste G Phase 6):** when key present AND (`DUFFEL_TEST_MODE=true` OR key prefix `duffel_test_`), hits Duffel test API. Test mode is EXPLICIT — never defaults on in production. |
+| Duffel (flights/hotels) | Founder | `DUFFEL_API_KEY` from https://duffel.com | **LIVE (test) (verified 2026-10-08)** — `duffel_test_…` + `DUFFEL_TEST_MODE=true`; offer_requests SFO→LAX returned 133 offers; zero real money. Live/prod token still not wired. |
 | OpenTable (restaurants) | Founder / partnership | `OPENTABLE_API_KEY` | **BLOCKED — no self-serve booking API for most partners.** Even with a key, book path stays call-to-book / search-only informational. Partnership required for live reserve. **Call-to-book (Phase 6):** uses Google Places Details phone when `GOOGLE_PLACES_API_KEY` + `place_id` present; never invents phone or confirmation. |
-| Wallet loads (Stripe) | Founder + legal | `STRIPE_SECRET_KEY` (+ optional `STRIPE_WEBHOOK_SECRET`, `STRIPE_CHECKOUT_SUCCESS_URL`, `STRIPE_CHECKOUT_CANCEL_URL`) | **BLOCKED — wallet loading not connected.** Needs `STRIPE_SECRET_KEY` **and** founder legal review of stored-value / money-transmitter regulations before enabling loads in production. Checkout session + webhook credit path implemented (`POST /wallet/checkout`, `POST /webhooks/stripe`); without key Load CTA stays honest. Spend/refund ledger works in-process once funded (test load path only). |
+| Wallet loads (Stripe) | Founder + legal | `STRIPE_SECRET_KEY` + `OPAL_WALLET_LOADS_ENABLED` (+ optional `STRIPE_WEBHOOK_SECRET`, checkout URLs) | **Stripe wired, loads gated (verified 2026-10-08).** Live restricted key authenticates (`/v1/balance` 200). `OPAL_WALLET_LOADS_ENABLED=false` → `StripeCheckout.configured? == false`; `create_session` → `{:disabled, "wallet loads gated pending legal approval"}`. Do **not** set loads enabled until founder explicitly approves live money movement (legal review pending). Optional: `STRIPE_WEBHOOK_SECRET` still missing for signed webhooks. |
 | Instagram / Threads social sync | — | Meta professional-account APIs only | **SKIP for social awareness (Paste G Phase 5).** Personal IG Basic Display shut down 2024-12-04; Graph/Threads cannot read friends’ birthdays/life events. See `shots/audit/SOCIAL_API_RESEARCH.md`. Contact birthday sync uses device contacts the user selects. |
 | AdHoc push profile refresh | Founder | App Store Connect API key for EAS (`EXPO_ASC_API_KEY_PATH` + `EXPO_ASC_KEY_ID` + `EXPO_ASC_ISSUER_ID`, or EAS submissions ASC key) | **BLOCKED for non-interactive AdHoc refresh.** Development build #4 failed: profile missing Push Notifications. Contacts rebuild #5 ships **without** push entitlement on AdHoc; production/TestFlight keeps push. After ASC key lands, refresh AdHoc with `--refresh-ad-hoc-provisioning-profile` and restore notifications on development. |
-| ElevenLabs TTS (voice notes) | Founder | `ELEVENLABS_API_KEY` from https://elevenlabs.io (optional `ELEVENLABS_VOICE_ID`) | **BLOCKED — key not in runtime env.** `OpalCore.Voice.speak/2` returns `{:disabled, "ELEVENLABS_API_KEY missing"}` unless OpenAI TTS fallback key is present. Text approval remains mandatory; never freelances speech. |
+| ElevenLabs TTS (voice notes) | Founder | `ELEVENLABS_API_KEY` from https://elevenlabs.io (optional `ELEVENLABS_VOICE_ID`) | **BLOCKED — wrong credential shape.** Env SET, but ElevenLabs `/v1/user` returned `authentication_error` / `api_key_id_used_as_api_key` (value is a key **ID**, not an `sk_` secret). TTS skipped. Founder must create/copy the real **`sk_…` API key** from the ElevenLabs dashboard (“Opal App”) and replace the env value, then restart Phoenix once. |
 
 ## Phone verify prefer-real rule
 
@@ -59,9 +59,10 @@ Under live `production_sms`, fixture numbers do **not** return `development_code
 
 | Flag / stub | Why it stays |
 |-------------|--------------|
-| Deepgram stub (`deepgram_stub`) | No `DEEPGRAM_API_KEY` in runtime — honest stub until founder key. |
-| ElevenLabs TTS disabled / OpenAI TTS fallback | No `ELEVENLABS_API_KEY` — speak path disabled unless OpenAI TTS key present; listen honesty via `Voice.listen/1`. |
-| Google Places demo venues | No `GOOGLE_PLACES_API_KEY` — offline demo path. |
+| Deepgram stub (`deepgram_stub`) | Fallback if key removed; currently LIVE with key. |
+| ElevenLabs TTS disabled / OpenAI TTS fallback | Env has key **ID** (auth fails); speak stays blocked until real `sk_` lands. |
+| Google Places demo venues | Key wired but Places API (New) not enabled on GCP — demo/fixture until Cloud enable. |
+| Wallet loads gated | `OPAL_WALLET_LOADS_ENABLED` must stay false until legal approval; Stripe key alone does not open Checkout. |
 | Sentry no-op capture | No DSN — log-only stub. |
 | `synthetic_development` phone mode | Required for automated tests; must not be used on the live BEAM with Twilio. |
 
@@ -103,8 +104,11 @@ Sources are the providers’ current public pricing pages. Numbers drift — re-
 
 ## Founder next (human-only)
 
-1. Upload IPA → App Store Connect / TestFlight — `docs/TESTFLIGHT_UPLOAD.md`
-2. Verify push on the production build — `shots/PUSH_VERIFY_CHECKLIST.md`
-3. Two-device call walk (second pair of hands)
-4. Walk current tip on the real TestFlight build (not LAN/dev client)
-5. Optional later: Deepgram, Google Places, Sentry keys
+1. **ElevenLabs:** replace `ELEVENLABS_API_KEY` with the real `sk_…` secret (not the key ID) from the “Opal App” key in the ElevenLabs dashboard; restart Phoenix once.
+2. **Google Places:** enable **Places API (New)** (+ billing) on the Cloud project for the wired `AIzaSy…` key — `docs/GOOGLE_CLOUD_SETUP.md`.
+3. **Google OAuth:** Cloud console wizard for `GOOGLE_OAUTH_CLIENT_ID` + `GOOGLE_OAUTH_CLIENT_SECRET` (scopes `calendar.readonly` + `gmail.readonly`) — start URL blocked until then.
+4. **Stripe loads:** keep `OPAL_WALLET_LOADS_ENABLED=false` until legal review explicitly approves live money movement; then set `true` and restart once. Optional: `STRIPE_WEBHOOK_SECRET`.
+5. Upload IPA → App Store Connect / TestFlight — `docs/TESTFLIGHT_UPLOAD.md`
+6. Verify push on the production build — `shots/PUSH_VERIFY_CHECKLIST.md`
+7. Two-device call walk (second pair of hands)
+8. Optional later: Sentry DSN

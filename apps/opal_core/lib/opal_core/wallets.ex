@@ -55,7 +55,9 @@ defmodule OpalCore.Wallets do
   Load funds into the wallet.
 
   Without `STRIPE_SECRET_KEY` → `{:disabled, "wallet loading not connected"}`.
-  With key (or `allow_test_load: true` in test) writes a load transaction.
+  With key but `OPAL_WALLET_LOADS_ENABLED` not `true` →
+  `{:disabled, "wallet loads gated pending legal approval"}`.
+  With key + enable (or `allow_test_load: true` in test) writes a load transaction.
   """
   def load(wallet, amount_cents, stripe_payment_id, idempotency_key, opts \\ [])
 
@@ -64,17 +66,17 @@ defmodule OpalCore.Wallets do
     allow_test? = Keyword.get(opts, :allow_test_load, false) == true and Mix.env() == :test
 
     cond do
-      not stripe_configured?() and not allow_test? ->
+      allow_test? ->
+        load_or_existing(wallet, amount_cents, stripe_payment_id, idempotency_key)
+
+      not stripe_key_present?() ->
         {:disabled, "wallet loading not connected"}
 
-      true ->
-        case get_by_idempotency(idempotency_key) do
-          %WalletTransaction{} = existing ->
-            {:ok, existing}
+      not wallet_loads_enabled?() ->
+        {:disabled, "wallet loads gated pending legal approval"}
 
-          nil ->
-            do_load(wallet, amount_cents, stripe_payment_id, idempotency_key)
-        end
+      true ->
+        load_or_existing(wallet, amount_cents, stripe_payment_id, idempotency_key)
     end
   end
 
@@ -427,11 +429,30 @@ defmodule OpalCore.Wallets do
   defp normalize_ref(ref) when is_binary(ref), do: {"ref", ref}
   defp normalize_ref(_), do: {"ref", nil}
 
+  defp load_or_existing(wallet, amount_cents, stripe_payment_id, idempotency_key) do
+    case get_by_idempotency(idempotency_key) do
+      %WalletTransaction{} = existing ->
+        {:ok, existing}
+
+      nil ->
+        do_load(wallet, amount_cents, stripe_payment_id, idempotency_key)
+    end
+  end
+
+  # Loads require BOTH a Stripe key and explicit founder enable (legal review).
   defp stripe_configured? do
+    stripe_key_present?() and wallet_loads_enabled?()
+  end
+
+  defp stripe_key_present? do
     case System.get_env("STRIPE_SECRET_KEY") do
       key when is_binary(key) -> String.trim(key) != ""
       _ -> false
     end
+  end
+
+  defp wallet_loads_enabled? do
+    System.get_env("OPAL_WALLET_LOADS_ENABLED") in ~w(true 1 yes)
   end
 
   defp unique_account_error?(%Ecto.Changeset{errors: errors}) do

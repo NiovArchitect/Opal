@@ -3,6 +3,8 @@ defmodule OpalCore.Wallets.StripeCheckout do
   Paste G Phase 7 — Stripe Checkout session for wallet loads.
 
   Without `STRIPE_SECRET_KEY` → `{:disabled, ...}`. Never invents payment success.
+  With key but `OPAL_WALLET_LOADS_ENABLED` not explicitly `true` → loads stay
+  gated (live keys may be present while legal review is pending).
   Webhook credits via `Wallets.load/4` idempotent on payment_intent id.
   """
 
@@ -10,8 +12,16 @@ defmodule OpalCore.Wallets.StripeCheckout do
 
   @stripe_api "https://api.stripe.com/v1"
 
-  @doc "True when STRIPE_SECRET_KEY is present."
+  @doc "True when Stripe key is present AND wallet loads are founder-enabled."
   def configured? do
+    case secret() do
+      key when is_binary(key) and key != "" -> loads_enabled?()
+      _ -> false
+    end
+  end
+
+  @doc "True when STRIPE_SECRET_KEY is non-empty (loads may still be gated)."
+  def key_present? do
     case secret() do
       key when is_binary(key) and key != "" -> true
       _ -> false
@@ -25,14 +35,15 @@ defmodule OpalCore.Wallets.StripeCheckout do
   """
   def create_session(account_id, amount_cents, opts \\ [])
       when is_binary(account_id) and is_integer(amount_cents) and amount_cents > 0 do
-    case secret() do
-      nil ->
+    cond do
+      not key_present?() ->
         {:disabled, "wallet loading not connected"}
 
-      "" ->
-        {:disabled, "wallet loading not connected"}
+      not loads_enabled?() ->
+        {:disabled, "wallet loads gated pending legal approval"}
 
-      key ->
+      true ->
+        key = secret()
         success = Keyword.get(opts, :success_url) || default_success_url()
         cancel = Keyword.get(opts, :cancel_url) || default_cancel_url()
         currency = Keyword.get(opts, :currency, "usd") |> to_string() |> String.downcase()
@@ -167,6 +178,10 @@ defmodule OpalCore.Wallets.StripeCheckout do
       key when is_binary(key) -> String.trim(key)
       _ -> nil
     end
+  end
+
+  defp loads_enabled? do
+    System.get_env("OPAL_WALLET_LOADS_ENABLED") in ~w(true 1 yes)
   end
 
   defp default_success_url do
