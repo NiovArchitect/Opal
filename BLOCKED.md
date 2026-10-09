@@ -27,7 +27,7 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 | Wallet loads (Stripe) | Founder + legal | `STRIPE_SECRET_KEY` + `OPAL_WALLET_LOADS_ENABLED` (+ optional `STRIPE_WEBHOOK_SECRET`, checkout URLs) | **Stripe wired, loads gated (verified 2026-10-08).** Live restricted key authenticates (`/v1/balance` 200). `OPAL_WALLET_LOADS_ENABLED=false` → `StripeCheckout.configured? == false`; `create_session` → `{:disabled, "wallet loads gated pending legal approval"}`. Do **not** set loads enabled until founder explicitly approves live money movement (legal review pending). Optional: `STRIPE_WEBHOOK_SECRET` still missing for signed webhooks. |
 | Instagram / Threads social sync | — | Meta professional-account APIs only | **SKIP for social awareness (Paste G Phase 5).** Personal IG Basic Display shut down 2024-12-04; Graph/Threads cannot read friends’ birthdays/life events. See `shots/audit/SOCIAL_API_RESEARCH.md`. Contact birthday sync uses device contacts the user selects. |
 | AdHoc push profile refresh | Founder | App Store Connect API key for EAS (`EXPO_ASC_API_KEY_PATH` + `EXPO_ASC_KEY_ID` + `EXPO_ASC_ISSUER_ID`, or EAS submissions ASC key) | **BLOCKED for non-interactive AdHoc refresh.** Development build #4 failed: profile missing Push Notifications. Contacts rebuild #5 ships **without** push entitlement on AdHoc; production/TestFlight keeps push. After ASC key lands, refresh AdHoc with `--refresh-ad-hoc-provisioning-profile` and restore notifications on development. |
-| ElevenLabs TTS (voice notes) | Founder | `ELEVENLABS_API_KEY` from https://elevenlabs.io (optional `ELEVENLABS_VOICE_ID`) | **BLOCKED — wrong credential shape.** Env SET, but ElevenLabs `/v1/user` returned `authentication_error` / `api_key_id_used_as_api_key` (value is a key **ID**, not an `sk_` secret). TTS skipped. Founder must create/copy the real **`sk_…` API key** from the ElevenLabs dashboard (“Opal App”) and replace the env value, then restart Phoenix once. |
+| ElevenLabs TTS (voice notes) | Founder | `ELEVENLABS_API_KEY` from https://elevenlabs.io (optional `ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL_ID`) | **BLOCKED — billing / credits.** “Opal App” `sk_…` key now wired (replaced prior key **ID**). Confirmed ElevenLabs service (TTS reaches API). TTS returns **`402 payment_required`**. Restricted key also lacks `user_read` / `voices_read` (user/voices list 401). Founder: add ElevenLabs credits/billing (and broaden key scopes if voice listing is needed). Code default model updated off deprecated `eleven_monolingual_v1` → `eleven_multilingual_v2`. |
 
 ## Phone verify prefer-real rule
 
@@ -60,7 +60,7 @@ Under live `production_sms`, fixture numbers do **not** return `development_code
 | Flag / stub | Why it stays |
 |-------------|--------------|
 | Deepgram stub (`deepgram_stub`) | Fallback if key removed; currently LIVE with key. |
-| ElevenLabs TTS disabled / OpenAI TTS fallback | Env has key **ID** (auth fails); speak stays blocked until real `sk_` lands. |
+| ElevenLabs TTS disabled / OpenAI TTS fallback | Valid `sk_` wired; TTS blocked on `402 payment_required` until credits/billing. |
 | Google Places demo venues | Key wired but Places API (New) not enabled on GCP — demo/fixture until Cloud enable. |
 | Wallet loads gated | `OPAL_WALLET_LOADS_ENABLED` must stay false until legal approval; Stripe key alone does not open Checkout. |
 | Sentry no-op capture | No DSN — log-only stub. |
@@ -104,7 +104,7 @@ Sources are the providers’ current public pricing pages. Numbers drift — re-
 
 ## Founder next (human-only)
 
-1. **ElevenLabs:** replace `ELEVENLABS_API_KEY` with the real `sk_…` secret (not the key ID) from the “Opal App” key in the ElevenLabs dashboard; restart Phoenix once.
+1. **ElevenLabs:** `sk_…` is wired and authenticated; add **credits/billing** so TTS leaves `402 payment_required`. Optionally broaden key scopes (`voices_read`) and set `ELEVENLABS_VOICE_ID`.
 2. **Google Places:** enable **Places API (New)** (+ billing) on the Cloud project for the wired `AIzaSy…` key — `docs/GOOGLE_CLOUD_SETUP.md`.
 3. **Google OAuth:** Cloud console wizard for `GOOGLE_OAUTH_CLIENT_ID` + `GOOGLE_OAUTH_CLIENT_SECRET` (scopes `calendar.readonly` + `gmail.readonly`) — start URL blocked until then.
 4. **Stripe loads:** keep `OPAL_WALLET_LOADS_ENABLED=false` until legal review explicitly approves live money movement; then set `true` and restart once. Optional: `STRIPE_WEBHOOK_SECRET`.

@@ -19,7 +19,7 @@ Backup taken before append. Duplicate-export check: one export line per key.
 | `DUFFEL_API_KEY` + `DUFFEL_TEST_MODE=true` | SET | **LIVE (test)** — offer_requests 201, 133 offers; `duffel_test_…` |
 | `DEEPGRAM_API_KEY` | SET | **LIVE** — projects 200; `LiveTranscriptionConsumer` `{:ready, :deepgram}` |
 | `STRIPE_SECRET_KEY` | SET (live restricted) | **wired, loads gated** — balance 200; `create_session` → gated pending legal |
-| `ELEVENLABS_API_KEY` | SET | **BLOCKED** — ElevenLabs auth `api_key_id_used_as_api_key` (need `sk_` secret) |
+| `ELEVENLABS_API_KEY` | SET (`sk_…` Opal App) | **BLOCKED** — ElevenLabs confirmed; TTS `402 payment_required` (needs credits/billing) |
 | `GOOGLE_PLACES_API_KEY` | SET | **BLOCKED** — Places API (New) `403 PERMISSION_DENIED`; legacy Text Search `REQUEST_DENIED` |
 | `OPAL_LLM_API_KEY` + `OPAL_LLM_PROVIDER=deepseek` | SET | **`:ready`** — `LlmAdapter.readiness() == :ready`; chat smoke `ready` |
 | `OPAL_PROVIDER_TOKEN_SECRET` | SET | **generated** |
@@ -42,7 +42,7 @@ Backup taken before append. Duplicate-export check: one export line per key.
 | `DEEPGRAM_API_KEY` | SET |
 | `STRIPE_SECRET_KEY` | SET |
 | `OPAL_WALLET_LOADS_ENABLED` | SET (`false`) |
-| `ELEVENLABS_API_KEY` | SET (invalid shape for API) |
+| `ELEVENLABS_API_KEY` | SET (`sk_…`; TTS blocked on billing) |
 | `GOOGLE_PLACES_API_KEY` | SET (GCP API not enabled) |
 | `OPAL_PROVIDER_TOKEN_SECRET` | SET |
 
@@ -50,7 +50,7 @@ Backup taken before append. Duplicate-export check: one export line per key.
 
 ## Still missing / founder action
 
-1. **ElevenLabs `sk_…` secret** — replace key ID in `ELEVENLABS_API_KEY`.
+1. **ElevenLabs billing/credits** — `sk_…` wired; TTS returns `402 payment_required`.
 2. **Enable Places API (New)** on the Google Cloud project for the wired Places key (+ billing).
 3. **`GOOGLE_OAUTH_CLIENT_ID` + `GOOGLE_OAUTH_CLIENT_SECRET`** — Cloud console wizard (`docs/GOOGLE_CLOUD_SETUP.md`).
 4. **Legal approval** before `OPAL_WALLET_LOADS_ENABLED=true`.

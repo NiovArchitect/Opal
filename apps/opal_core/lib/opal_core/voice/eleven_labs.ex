@@ -14,6 +14,8 @@ defmodule OpalCore.Voice.ElevenLabs do
 
   # Founder-tunable: replace with Opal brand voice id from ElevenLabs dashboard.
   @default_voice_id "21m00Tcm4TlvDq8ikWAM"
+  # eleven_monolingual_v1 / multilingual_v1 are deprecated (API returns unsupported_model).
+  @default_model_id "eleven_multilingual_v2"
   @api_base "https://api.elevenlabs.io/v1"
 
   @impl true
@@ -42,9 +44,12 @@ defmodule OpalCore.Voice.ElevenLabs do
   defp do_synthesize(key, voice_id, text) do
     url = "#{@api_base}/text-to-speech/#{URI.encode_www_form(voice_id)}"
 
+    model_id =
+      System.get_env("ELEVENLABS_MODEL_ID") || @default_model_id
+
     body = %{
       "text" => text,
-      "model_id" => "eleven_monolingual_v1",
+      "model_id" => model_id,
       "voice_settings" => %{"stability" => 0.4, "similarity_boost" => 0.8}
     }
 
