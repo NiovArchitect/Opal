@@ -13,14 +13,25 @@ defmodule OpalCore.Voice.PromptGuard do
     ~r/\bsystem\s*prompt\b/i,
     ~r/\byou\s+are\s+now\b.*\b(dan|jailbreak|unrestricted)\b/i,
     ~r/<\s*\/?\s*system\s*>/i,
-    ~r/\[\[\s*system\s*\]\]/i
+    ~r/\[\[\s*system\s*\]\]/i,
+    ~r/\benter\s+debug\s+mode\b/i,
+    ~r/\benable\s+developer\s+mode\b/i,
+    ~r/\breveal\s+(your\s+)?(system|hidden)\s+(prompt|instructions)\b/i,
+    ~r/\bprint\s+(your\s+)?(system|hidden)\s+(prompt|instructions)\b/i,
+    ~r/\brepeat\s+(your\s+)?(system|initial)\s+(prompt|instructions)\b/i,
+    ~r/\bjailbreak\b/i,
+    ~r/\bDAN\s+mode\b/i,
+    ~r/\bact\s+as\s+(if\s+)?(you\s+have\s+)?no\s+(restrictions?|rules?|guardrails?)\b/i,
+    ~r/\boverride\s+(all\s+)?(safety|policy|policies)\b/i,
+    ~r/base64[:\s]+[A-Za-z0-9+\/=]{24,}/i
   ]
 
   @quote_back_patterns [
     ~r/^\s*system\s*:/i,
     ~r/^\s*assistant\s*:/i,
     ~r/\bdo\s+not\s+follow\s+your\s+rules\b/i,
-    ~r/\boverride\s+(your|safety)\b/i
+    ~r/\boverride\s+(your|safety)\b/i,
+    ~r/\bpretend\s+you\s+are\s+unrestricted\b/i
   ]
 
   @doc "Inspect text before TTS. Returns :ok | {:refuse, reason} | {:quote_back, text}."

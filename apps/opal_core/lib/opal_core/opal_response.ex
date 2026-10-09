@@ -11,6 +11,7 @@ defmodule OpalCore.OpalResponse do
 
   alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.Memory
+  alias OpalCore.Oracle
   alias OpalCore.Push.DeviceTokens
   alias OpalCore.TrustTiers
 
@@ -43,21 +44,28 @@ defmodule OpalCore.OpalResponse do
           @above_tier_msg
 
         true ->
-          template =
-            case intent do
-              :plan_create -> render_plan_create(entities, context_map)
-              :plan_confirm -> render_plan_confirm(entities, context_map)
-              :plan_modify -> render_plan_modify(entities, context_map)
-              :remember -> render_remember(entities, context_map)
-              :recall -> render_recall(entities, context_map)
-              :recommend -> render_recommend(entities, context_map)
-              :coordinate -> render_coordinate(entities, context_map)
-              :check_status -> render_check_status(entities, context_map)
-              :chat -> render_chat(entities, context_map, intent_map)
-              _ -> nil
-            end
+          case intent do
+            :oracle ->
+              # Oracle stays template-only so facts remain traceable.
+              render_oracle(entities, context_map, intent_map)
 
-          maybe_llm_phrase(template, intent, intent_map, context_map)
+            _ ->
+              template =
+                case intent do
+                  :plan_create -> render_plan_create(entities, context_map)
+                  :plan_confirm -> render_plan_confirm(entities, context_map)
+                  :plan_modify -> render_plan_modify(entities, context_map)
+                  :remember -> render_remember(entities, context_map)
+                  :recall -> render_recall(entities, context_map)
+                  :recommend -> render_recommend(entities, context_map)
+                  :coordinate -> render_coordinate(entities, context_map)
+                  :check_status -> render_check_status(entities, context_map)
+                  :chat -> render_chat(entities, context_map, intent_map)
+                  _ -> nil
+                end
+
+              maybe_llm_phrase(template, intent, intent_map, context_map)
+          end
       end
 
     if is_binary(text) and String.trim(text) != "" do
@@ -779,6 +787,29 @@ defmodule OpalCore.OpalResponse do
       true ->
         parts = celeb_bits ++ plan_bits
         "Here's what's coming up: #{Enum.join(parts, "; ")}"
+    end
+  end
+
+  defp render_oracle(entities, context, intent_map) do
+    user_id = get_in_ctx(context, [:user, :id])
+    question =
+      entity(entities, :question) ||
+        intent_map[:raw_text] || intent_map["raw_text"] ||
+        get_in_ctx(context, [:message, :text]) || ""
+
+    if is_binary(user_id) and question != "" do
+      case Oracle.answer(user_id, question, context) do
+        {:ok, %{text: text}} when is_binary(text) and text != "" ->
+          text
+
+        :not_oracle ->
+          "Tell me more — I can help with plans, people, or what's coming up."
+
+        _ ->
+          "I couldn't pull that up just now. Try again in a moment."
+      end
+    else
+      "Tell me more — I can help with plans, people, or what's coming up."
     end
   end
 

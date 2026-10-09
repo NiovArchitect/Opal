@@ -1,0 +1,94 @@
+{
+  "paste": "J",
+  "phase": "2_oracle",
+  "status": "PASS",
+  "branch": "muse/packet-b-batch-2",
+  "tip_at_write": "pending",
+  "timestamp": "2026-10-09T07:09:40Z",
+  "mix_command": "cd apps/opal_core && mix test test/opal_core/oracle_test.exs",
+  "suite": {
+    "oracle_test": "10/10 PASS"
+  },
+  "privacy_law": "absolute \u2014 gossip / third-party private speech \u2192 honest I don't know; never invent or leak",
+  "character_law": "short warm voice; no em-dashes in Oracle copy",
+  "module": "OpalCore.Oracle",
+  "wiring": [
+    "OpalIntent :oracle (before recall/status)",
+    "OpalResponse.render_oracle/3 template-only (no LLM polish)",
+    "OpalConversations.create_user_message path"
+  ],
+  "qa_pairs": [
+    {
+      "id": "O1",
+      "q": "What am I doing Saturday?",
+      "kind": "saturday_plans",
+      "status": "PASS",
+      "grounded_in": "SharedPlan.start_at on Saturday",
+      "assert": "names Fort Oak / Saturday dinner; sources shared_plan:id"
+    },
+    {
+      "id": "O2",
+      "q": "When did I last see Maya?",
+      "kind": "last_saw",
+      "status": "PASS",
+      "grounded_in": "PersonMemory.last_contact_at",
+      "assert": "Maya + Sep/2026 date; sources person_memory:id"
+    },
+    {
+      "id": "O3",
+      "q": "What's the status of the Tokyo trip?",
+      "kind": "trip_status",
+      "status": "PASS",
+      "grounded_in": "Trips.list_trips_for_user",
+      "assert": "Tokyo + people/stops; sources trip:id"
+    },
+    {
+      "id": "O4",
+      "q": "Who haven't I talked to in a while?",
+      "kind": "stale_contacts",
+      "status": "PASS",
+      "grounded_in": "PersonMemory cadence cooling / 21d+",
+      "assert": "Maya and/or Chanel named"
+    },
+    {
+      "id": "O5",
+      "q": "Find me a time for dinner with Chanel next week",
+      "kind": "find_time",
+      "status": "PASS",
+      "grounded_in": "Calendar.connected? honest disconnect",
+      "assert": "Chanel + calendar connect honesty; calendar:disconnected"
+    },
+    {
+      "id": "O6",
+      "q": "What did we decide about the venue?",
+      "kind": "venue_decision",
+      "status": "PASS",
+      "grounded_in": "conversation_history",
+      "assert": "Fort Oak from prior turn"
+    },
+    {
+      "id": "O7",
+      "q": "How much have I spent on plans this month?",
+      "kind": "spend_month",
+      "status": "PASS",
+      "grounded_in": "Wallets.list_transactions spend rows",
+      "assert": "$25.00 this month (trusted tier)"
+    },
+    {
+      "id": "O8_anti",
+      "q": "What did Maya say about me to John?",
+      "kind": "gossip_probe",
+      "status": "PASS",
+      "grounded_in": "privacy_boundary",
+      "assert": "I don't know / only see conversations you're in; no jazz/unreliable leak via Center path"
+    }
+  ],
+  "regressions": {
+    "opal_intent_test": "included in 109/109 related suite PASS",
+    "opal_response_test": "included",
+    "opal_conversations_test": "included",
+    "opal_conversation_api_test": "included",
+    "voice_test": "included"
+  },
+  "committed": false
+}

@@ -4,8 +4,11 @@ defmodule OpalCore.OpalIntent do
 
   Classifies exactly one intent from message text + OC-2 context.
   Includes `:plan_confirm` when the user affirms a pending plan_create ask.
+  Paste J adds `:oracle` for grounded real-data questions.
   No ML/LLM. No response generation (OC-4). Empty entities when none extracted.
   """
+
+  alias OpalCore.Oracle
 
   @intents [
     :plan_create,
@@ -16,6 +19,7 @@ defmodule OpalCore.OpalIntent do
     :recommend,
     :coordinate,
     :check_status,
+    :oracle,
     :chat
   ]
 
@@ -41,28 +45,35 @@ defmodule OpalCore.OpalIntent do
       normalized = normalize(text)
 
       # Affirmation of a pending "Want me to set this up?" must win before chat.
+      # Paste J Oracle questions win before generic recall/status so answers stay grounded.
       result =
         case try_plan_confirm(normalized, context) do
           %{confidence: conf} = hit when conf in [:high, :medium] ->
             hit
 
           _ ->
-            [
-              &try_plan_create/2,
-              &try_plan_modify/2,
-              # Recall before remember so "what do you remember about X" is not stored.
-              &try_recall/2,
-              &try_remember/2,
-              &try_recommend/2,
-              &try_coordinate/2,
-              &try_check_status/2
-            ]
-            |> Enum.find_value(fn try_fn ->
-              case try_fn.(normalized, known_names) do
-                %{confidence: conf} = hit when conf in [:high, :medium] -> hit
-                _ -> nil
-              end
-            end)
+            case try_oracle(normalized) do
+              %{confidence: conf} = hit when conf in [:high, :medium] ->
+                hit
+
+              _ ->
+                [
+                  &try_plan_create/2,
+                  &try_plan_modify/2,
+                  # Recall before remember so "what do you remember about X" is not stored.
+                  &try_recall/2,
+                  &try_remember/2,
+                  &try_recommend/2,
+                  &try_coordinate/2,
+                  &try_check_status/2
+                ]
+                |> Enum.find_value(fn try_fn ->
+                  case try_fn.(normalized, known_names) do
+                    %{confidence: conf} = hit when conf in [:high, :medium] -> hit
+                    _ -> nil
+                  end
+                end)
+            end
         end
 
       intent_map =
@@ -487,6 +498,22 @@ defmodule OpalCore.OpalIntent do
       nil
     end
   end
+
+  defp try_oracle(%{original: original}) when is_binary(original) do
+    case Oracle.classify(original) do
+      :not_oracle ->
+        nil
+
+      kind ->
+        %{
+          intent: :oracle,
+          confidence: :high,
+          entities: %{kind: kind, question: original}
+        }
+    end
+  end
+
+  defp try_oracle(_), do: nil
 
   # --- entity helpers --------------------------------------------------------
 

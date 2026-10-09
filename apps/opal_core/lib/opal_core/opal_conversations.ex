@@ -13,6 +13,7 @@ defmodule OpalCore.OpalConversations do
   alias OpalCore.OpalIntent
   alias OpalCore.OpalResponse
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.RateLimitBucket
   alias OpalCore.TrustTiers
 
   @message_limit 50
@@ -86,11 +87,15 @@ defmodule OpalCore.OpalConversations do
       trimmed == "" ->
         {:error, :empty_body}
 
+      not String.valid?(trimmed) ->
+        {:error, :invalid_body}
+
       String.length(trimmed) > OpalMessage.max_body() ->
         {:error, :body_too_long}
 
       true ->
-        with {:ok, conversation} <- get_or_create_conversation(user_id) do
+        with :ok <- ensure_opal_rate_limit(user_id),
+             {:ok, conversation} <- get_or_create_conversation(user_id) do
           {context_snapshot, intent_snapshot, response_text} =
             assemble_classify_generate(user_id, trimmed)
 
@@ -167,6 +172,17 @@ defmodule OpalCore.OpalConversations do
   end
 
   def create_user_message(_, _), do: {:error, :invalid}
+
+  # Paste J 3.3 — 90 Center messages / minute per user (never crash on flood).
+  defp ensure_opal_rate_limit(user_id) do
+    case RateLimitBucket.hit("opal_center:#{user_id}", "opal_message",
+           max: 90,
+           window_sec: 60
+         ) do
+      :ok -> :ok
+      {:error, :rate_limited} -> {:error, :rate_limited}
+    end
+  end
 
   def to_conversation_contract(%OpalConversation{} = c, messages \\ nil) do
     msgs = if is_list(messages), do: messages, else: list_messages(c.id)
