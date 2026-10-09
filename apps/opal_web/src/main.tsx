@@ -16,6 +16,8 @@ import "./theme/technicolorProduction.css";
  * INVALID: 539:* / 540:* / 541:8 / 554:5 as screen authorities.
  */
 import "./theme/spectralTokens.css";
+/** Paste W: shared Opal composer + plan-state tokens (after Brand V4 cascade). */
+import "./theme/opalComposerTokens.css";
 
 /**
  * Checkpoint-specific founder URL law:

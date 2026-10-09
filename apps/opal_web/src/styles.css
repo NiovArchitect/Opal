@@ -22,7 +22,7 @@
   --accent-soft: #9ae8f2;
   --pearl: #e8d6c4;
   --iris: #8b7cff;
-  --signal: #d4b483;
+  --signal: #ffc86b;
   --online: #3dde99;
   --resolve: #3dde99;
   --private: #8b7cff;
@@ -5078,7 +5078,7 @@ button.plan-card-btn:focus-visible {
 .social-moment-place {
   margin: 0 0 14px;
   font-size: 13px;
-  color: #d4b483;
+  color: #ffc86b;
   font-weight: 500;
 }
 
@@ -5296,7 +5296,7 @@ button.plan-card-btn:focus-visible {
   margin: 0 0 8px;
   font-size: 15px;
   font-weight: 500;
-  color: #d4b483;
+  color: #ffc86b;
 }
 
 .reality-forming-when {
@@ -20036,7 +20036,7 @@ html.opal-native-host .opal-center-chat-input {
   font-size: 1rem;
   line-height: 1.35;
   font-weight: 650;
-  color: #ffe0a8;
+  color: #ffc86b;
 }
 .hs-calendar-actions {
   display: flex;
@@ -21162,7 +21162,7 @@ html.opal-native-host .trip-canvas {
   border: 0;
   border-radius: 10px;
   padding: 8px 12px;
-  background: #c4a574;
+  background: #ffc86b;
   color: #1a1208;
   font-weight: 600;
   cursor: pointer;
@@ -21180,7 +21180,7 @@ html.opal-native-host .trip-canvas {
   font-weight: 600;
   cursor: pointer;
 }
-.graphs-mode-chip.is-active { background: rgba(196,165,116,.22); border-color: rgba(196,165,116,.55); }
+.graphs-mode-chip.is-active { background: rgba(255,200,107,.22); border-color: rgba(255,200,107,.55); }
 .graphs-temporal { padding: 8px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
 .graphs-temporal-heading { margin: 0 0 8px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
 .graphs-range-toggle { display: flex; gap: 8px; margin-bottom: 4px; }
@@ -21192,7 +21192,7 @@ html.opal-native-host .trip-canvas {
   background: rgba(0,229,255,.16); border-color: rgba(0,229,255,.45); color: #e8fbff;
 }
 .graphs-temporal-seed-note {
-  margin: 0 0 4px; font-size: 12px; line-height: 1.35; opacity: .72; color: #c4a574;
+  margin: 0 0 4px; font-size: 12px; line-height: 1.35; opacity: .72; color: #ffc86b;
 }
 .graphs-whats-next { padding-bottom: 4px; }
 .graphs-whats-next-list { display: flex; flex-direction: column; gap: 10px; }
@@ -21205,7 +21205,7 @@ html.opal-native-host .trip-canvas {
   padding: 12px 14px;
   margin-bottom: 8px;
 }
-.graphs-temporal-card.is-pinned { border-color: rgba(196,165,116,.45); }
+.graphs-temporal-card.is-pinned { border-color: rgba(255,200,107,.45); }
 .graphs-temporal-card-main { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; background: transparent; border: 0; color: inherit; cursor: pointer; padding: 0; }
 .graphs-temporal-when, .graphs-temporal-where { font-size: 12px; opacity: .75; }
 .graphs-temporal-who { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -21220,14 +21220,14 @@ html.opal-native-host .trip-canvas {
 .graphs-temporal-action,
 .graphs-share-plan {
   border: 0; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 600;
-  background: rgba(196,165,116,.2); color: #f5f2ea; cursor: pointer;
+  background: rgba(255,200,107,.2); color: #f5f2ea; cursor: pointer;
 }
 .graphs-temporal-action { background: rgba(0,229,255,.14); color: #e8fbff; }
 .graphs-share-plan { margin-top: 0; }
 .graphs-temporal-bucket.is-someday { opacity: .88; }
 .graphs-temporal-bucket.is-earlier .graphs-temporal-card { border-color: rgba(245,242,234,.08); }
 .graphs-orbit { padding: 12px 16px 40px; }
-.graphs-orbit-back { border: 0; background: transparent; color: #c4a574; font-weight: 600; margin-bottom: 8px; cursor: pointer; }
+.graphs-orbit-back { border: 0; background: transparent; color: #ffc86b; font-weight: 600; margin-bottom: 8px; cursor: pointer; }
 .graphs-orbit-title { margin: 0 0 4px; font-size: 1.35rem; }
 .graphs-orbit-lede { margin: 0 0 16px; opacity: .75; font-size: 13px; }
 .graphs-orbit-section { margin-bottom: 18px; }
@@ -21238,13 +21238,13 @@ html.opal-native-host .trip-canvas {
 }
 .graphs-card-upcoming { margin: 0; font-size: 12px; color: #d1d9e5; }
 .graphs-card-upcoming span { opacity: .7; }
-.graphs-card-open-loop { margin: 0; font-size: 12px; color: #c4a574; }
+.graphs-card-open-loop { margin: 0; font-size: 12px; color: #ffc86b; }
 .gsh-gr-temporal {
   margin: 6px 0 0; display: flex; flex-direction: column; gap: 3px;
 }
 .gsh-gr-upcoming { margin: 0; font-size: 12px; color: #cfd6e2; }
 .gsh-gr-upcoming span { opacity: .7; }
-.gsh-gr-open-loop { margin: 0; font-size: 12px; color: #c4a574; }
+.gsh-gr-open-loop { margin: 0; font-size: 12px; color: #ffc86b; }
 .gprof-temporal {
   margin: 0 0 10px; padding: 10px 12px; border-radius: 16px;
   border: 1px solid #242e42; background: rgba(5,8,13,.92);
@@ -21264,7 +21264,7 @@ html.opal-native-host .trip-canvas {
   text-align: left; border: 0; background: transparent; color: #d1d9e5; padding: 4px 0 0; cursor: pointer; font: inherit;
   border-top: 1px solid rgba(36,46,66,.9);
 }
-.gprof-open-loop-kicker { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #c4a574; }
+.gprof-open-loop-kicker { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #ffc86b; }
 .gprof-section-graph.has-temporal .gprof-graph-card { display: none; }
 
 /* Opal wallet (Bring-to-life Phase 5) — balance on existing Spending & fit surface */
@@ -21292,4 +21292,31 @@ html.opal-native-host .trip-canvas {
   gap: 0.75rem;
   font-size: 0.85rem;
   opacity: 0.9;
+}
+
+
+/* PASTE_W_PLAN_STATE_COLORS — Amendment L2 electric palette */
+.graphs-status-locked,
+.graphs-status-confirmed,
+.graphs-status-happening,
+[data-plan-state="locked"],
+[data-plan-state="confirmed"],
+[data-plan-state="happening"] {
+  color: var(--plan-state-confirmed, #00e5ff) !important;
+  border-color: color-mix(in srgb, var(--plan-state-confirmed, #00e5ff) 55%, transparent);
+}
+.graphs-status-pending,
+.graphs-status-waiting,
+[data-plan-state="pending"],
+[data-plan-state="waiting"] {
+  color: var(--plan-state-pending, #ffc86b) !important;
+  border-color: color-mix(in srgb, var(--plan-state-pending, #ffc86b) 55%, transparent);
+}
+.graphs-status-idea,
+.graphs-status-forming,
+[data-plan-state="idea"],
+[data-plan-state="forming"],
+[data-plan-state="unconfirmed"] {
+  color: var(--plan-state-idea, #8b5cf6) !important;
+  border-color: color-mix(in srgb, var(--plan-state-idea, #8b5cf6) 55%, transparent);
 }

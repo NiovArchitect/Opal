@@ -87,8 +87,8 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
     ends_on: "2026-10-17",
     participants: P,
     opal_noticed: [
-      "Opal noticed Maya's not a morning person — Saturday market energy stays afternoon-friendly for her track.",
-      "Chanelle always picks the food spots — Pujol was her vibe.",
+      "Opal noticed Maya's not a morning person. Saturday market energy stays afternoon-friendly for her track.",
+      "Chanelle always picks the food spots. Pujol was her vibe.",
     ],
     days: [
       {
@@ -96,7 +96,7 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
         day_index: 0,
         on_date: "2026-10-14",
         label: "Thu 14",
-        notes: "Landing day — soft edges only.",
+        notes: "Landing day. soft edges only.",
         time_blocks: [
           {
             id: "seed-b0-free",
@@ -124,7 +124,7 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
                 vibe_tags: ["seafood", "lively", "classic"],
                 cuisine: "seafood",
                 price_tier: "$$$",
-                description: "Iconic seafood — tuna tostadas, lively room.",
+                description: "Iconic seafood. tuna tostadas, lively room.",
                 why: "Suggested because: Chanelle (foodie), group (arrive-night energy).",
                 responses: r([
                   [you, "in"],
@@ -168,11 +168,11 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
               },
               {
                 id: "seed-act-rooftop",
-                venue_name: "Rooftop golden hour — Roma",
+                venue_name: "Rooftop golden hour. Roma",
                 venue_area: "Roma Norte",
                 activity_kind: "activity",
                 vibe_tags: ["photography", "golden_hour"],
-                description: "Alex photography track — meet the others later.",
+                description: "Alex photography track. meet the others later.",
                 why: "Suggested because: Alex (golden hour / photography).",
                 responses: r([
                   [alex, "in"],
@@ -208,7 +208,7 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
                 vibe_tags: ["fine_dining", "reservation", "together"],
                 cuisine: "mexican",
                 price_tier: "$$$$",
-                description: "Enrique Olvera tasting — reservation-first together dinner.",
+                description: "Enrique Olvera tasting. reservation-first together dinner.",
                 why: "Suggested because: Chanelle (foodie), group (Saturday-free evening).",
                 responses: r([
                   [you, "in"],
@@ -241,7 +241,7 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
                 venue_area: "Teotihuacan",
                 activity_kind: "activity",
                 vibe_tags: ["ruins", "outdoors"],
-                description: "Pyramids day trip — optional split from city cooking class.",
+                description: "Pyramids day trip. optional split from city cooking class.",
                 why: "Suggested because: Alex + You (outdoors), group free Saturday.",
                 responses: r([
                   [you, "in"],
@@ -256,7 +256,7 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
                 venue_area: "Roma Norte",
                 activity_kind: "activity",
                 vibe_tags: ["cooking", "intimate"],
-                description: "Maya track — regroup for lunch.",
+                description: "Maya track. regroup for lunch.",
                 why: "Suggested because: Maya (cooking / stay-in-city).",
                 responses: r([
                   [maya, "in"],
@@ -345,7 +345,7 @@ export function buildMexicoCityCanvasSeed(): CanvasTrip {
             time_label: "afternoon",
             block_kind: "transit",
             title: "Airport push",
-            notes: "Roma → AICM · ~35 min drive — loose, no minute-level schedule.",
+            notes: "Roma → AICM · ~35 min drive. loose, no minute-level schedule.",
             activities: [],
           },
         ],
@@ -367,8 +367,8 @@ export function formatTripDateRange(starts?: string | null, ends?: string | null
   if (starts && ends && starts !== ends) {
     const a = parts(starts);
     const b = parts(ends);
-    if (a.month === b.month) return `${a.month} ${a.day}–${b.day}`;
-    return `${a.month} ${a.day}–${b.month} ${b.day}`;
+    if (a.month === b.month) return `${a.month} ${a.day}-${b.day}`;
+    return `${a.month} ${a.day}-${b.month} ${b.day}`;
   }
   const one = parts(starts || ends || "");
   return `${one.month} ${one.day}`.trim();

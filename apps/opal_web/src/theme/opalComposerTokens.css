@@ -1,0 +1,125 @@
+/**
+ * Paste W Phase 0 — Opal communication composer tokens.
+ * Source of truth: Opal Center day-view bottom bar
+ * (.opal-composer.opal-center-v2-composer — "Ask Opal about your day").
+ * Apply via .opal-composer-brand (or native-host .opal-composer).
+ * B4: glow kept soft — no heavy multi-layer blurs.
+ */
+
+@layer brand-v4-components {
+  :root {
+    /* Gradient border (padding-box / border-box technique) */
+    --opal-composer-fill: #080d1e;
+    --opal-composer-gradient: linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff);
+    --opal-composer-border-width: 1px;
+    --opal-composer-radius: 27px;
+    --opal-composer-height: 54px;
+    --opal-composer-pad-y: 6px;
+    --opal-composer-pad-x: 8px;
+    --opal-composer-gap: 8px;
+    /* Soft luminous glow — cyan edge, not muddy */
+    --opal-composer-glow: 0 6px 18px rgba(0, 0, 0, 0.28),
+      0 0 20px rgba(0, 229, 255, 0.16);
+    --opal-composer-text: #f8faff;
+    --opal-composer-placeholder: #8993a3;
+    --opal-composer-mic-bg: rgba(0, 229, 255, 0.12);
+    --opal-composer-mic-border: rgba(0, 229, 255, 0.45);
+    --opal-composer-mic-color: #00e5ff;
+    --opal-composer-mic-listening-bg: rgba(217, 70, 255, 0.18);
+    --opal-composer-mic-listening-border: rgba(217, 70, 255, 0.55);
+    --opal-composer-mic-listening-color: #d946ff;
+    --opal-composer-send-bg: #00e5ff;
+    --opal-composer-send-color: #050816;
+    --opal-composer-attach-color: #c9d2e0;
+
+    /* Plan state color code (Paste W Amendment L2) — electric, never muddy */
+    --plan-state-confirmed: #00e5ff; /* locked / confirmed — electric teal */
+    --plan-state-pending: #ffc86b; /* waiting on someone — bright amber/gold */
+    --plan-state-idea: #8b5cf6; /* idea / forming / unconfirmed — violet */
+  }
+
+  /**
+   * Shared brand composer shell. Same layouts; tokens only.
+   * Use on every surface where the user talks to Opal.
+   */
+  .opal-composer-brand,
+  html.opal-native-host .opal-composer,
+  html.opal-native-host .composer-618,
+  .opal-center-chat-composer.opal-composer {
+    height: var(--opal-composer-height) !important;
+    min-height: var(--opal-composer-height) !important;
+    border-radius: var(--opal-composer-radius) !important;
+    border: var(--opal-composer-border-width) solid transparent !important;
+    background: linear-gradient(var(--opal-composer-fill), var(--opal-composer-fill))
+        padding-box,
+      var(--opal-composer-gradient) border-box !important;
+    box-shadow: var(--opal-composer-glow);
+    gap: var(--opal-composer-gap);
+    padding: var(--opal-composer-pad-y) var(--opal-composer-pad-x);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+  }
+
+  .opal-composer-brand .opal-query,
+  html.opal-native-host .opal-composer .opal-query,
+  html.opal-native-host .composer-618 input,
+  html.opal-native-host .composer-618 textarea {
+    color: var(--opal-composer-text);
+    background: transparent;
+    border: 0;
+    outline: none;
+  }
+
+  .opal-composer-brand .opal-query::placeholder,
+  html.opal-native-host .opal-composer .opal-query::placeholder {
+    color: var(--opal-composer-placeholder);
+  }
+
+  .opal-composer-brand .opal-center-mic,
+  html.opal-native-host .opal-center-mic {
+    background: var(--opal-composer-mic-bg);
+    color: var(--opal-composer-mic-color);
+    border: 1px solid var(--opal-composer-mic-border);
+  }
+
+  .opal-composer-brand .opal-center-mic.is-listening,
+  html.opal-native-host .opal-center-mic.is-listening {
+    background: var(--opal-composer-mic-listening-bg);
+    border-color: var(--opal-composer-mic-listening-border);
+    color: var(--opal-composer-mic-listening-color);
+  }
+
+  .opal-composer-brand .opal-center-send,
+  html.opal-native-host .opal-center-send {
+    background: var(--opal-composer-send-bg);
+    color: var(--opal-composer-send-color);
+  }
+
+  /* Plan-state pills / cards — one code, every surface */
+  .plan-state-confirmed,
+  [data-plan-state="locked"],
+  [data-plan-state="confirmed"],
+  [data-plan-state="happening"] {
+    --plan-state-color: var(--plan-state-confirmed);
+    color: var(--plan-state-confirmed);
+    border-color: color-mix(in srgb, var(--plan-state-confirmed) 55%, transparent);
+  }
+
+  .plan-state-pending,
+  [data-plan-state="pending"],
+  [data-plan-state="waiting"] {
+    --plan-state-color: var(--plan-state-pending);
+    color: var(--plan-state-pending);
+    border-color: color-mix(in srgb, var(--plan-state-pending) 55%, transparent);
+  }
+
+  .plan-state-idea,
+  [data-plan-state="idea"],
+  [data-plan-state="forming"],
+  [data-plan-state="unconfirmed"] {
+    --plan-state-color: var(--plan-state-idea);
+    color: var(--plan-state-idea);
+    border-color: color-mix(in srgb, var(--plan-state-idea) 55%, transparent);
+  }
+}

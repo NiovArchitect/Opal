@@ -145,7 +145,7 @@ describe("founder chats plan pills (screenshot A)", () => {
     ]);
     expect(remapped[0]?.planConsequence?.label).toContain("Juniper");
     // Seed list chrome wins — live preview must not overwrite approved copy.
-    expect(remapped[0]?.preview).toBe("Perfect — I'll grab a table.");
+    expect(remapped[0]?.preview).toBe("Perfect. I'll grab a table.");
     expect(remapped[0]?.id).toBe("live-chanelle");
     expect(remapped.every((r) => !isFounderSeedChatId(r.id))).toBe(true);
   });

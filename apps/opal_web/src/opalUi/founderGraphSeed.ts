@@ -217,9 +217,9 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     mediaSrc: "/figma-v2/person/mem-1.png",
     thumbSrc: "/figma-v2/person/mem-1.png",
     when: "2h ago",
-    title: "Brunch that ran long — worth it.",
+    title: "Brunch that ran long. worth it.",
     detail: "Memory",
-    caption: "Brunch that ran long — worth it.",
+    caption: "Brunch that ran long. worth it.",
     likeCount: 64,
     commentCount: 8,
     repostCount: 2,
@@ -661,7 +661,7 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     /** Multi-day trip — show Oct 14–17, never a single-moment countdown. */
     startsAt: "2026-10-14T12:00:00.000Z",
     endsAt: "2026-10-17T12:00:00.000Z",
-    tripDateRange: "Oct 14–17",
+    tripDateRange: "Oct 14-17",
     joinability: "joinable_friends",
     cta: "Open Graph",
     ctaAction: "open_graph",
@@ -822,7 +822,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     personInitial: "S",
     avatarSrc: "/figma-v2/stories/sabrina.png",
     mediaSrc: `${DEMO}/food.jpg`,
-    caption: "Late dessert run — join?",
+    caption: "Late dessert run. join?",
     when: "11h",
     pulseState: "LIVE",
   },
@@ -842,7 +842,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     personInitial: "A",
     avatarSrc: "/figma-v2/stories/alex.png",
     mediaSrc: `${DEMO}/portrait.jpg`,
-    caption: "Temporary share — disappears.",
+    caption: "Temporary share. disappears.",
     when: "18h",
     pulseState: "GRAPH",
   },
@@ -915,7 +915,7 @@ export function happeningInLabel(
           day: "numeric",
           timeZone: "UTC",
         });
-      return `${fmt(s)}–${fmt(e)}`;
+      return `${fmt(s)}-${fmt(e)}`;
     }
   }
   if (!startsAt) return null;

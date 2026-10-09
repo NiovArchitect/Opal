@@ -27,7 +27,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     name: "Chanelle",
     kind: "direct",
     // Preview = last human message in seed thread
-    preview: "Perfect — I'll grab a table.",
+    preview: "Perfect. I'll grab a table.",
     when: "2m",
     relationshipLabel: "Fiancée",
     planConsequence: {
@@ -307,7 +307,7 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-chanelle-m0",
       from: "them",
-      body: "Dinner might work Saturday — Juniper?",
+      body: "Dinner might work Saturday. Juniper?",
       time: "8:05 PM",
       senderDisplayName: "Chanelle",
     },
@@ -322,7 +322,7 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-chanelle-m3",
       from: "me",
-      body: "Perfect — I'll grab a table.",
+      body: "Perfect. I'll grab a table.",
       time: "8:15 PM",
     },
     {
@@ -341,14 +341,14 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-maya-m0",
       from: "them",
-      body: "Saturday morning — farmers market?",
+      body: "Saturday morning. farmers market?",
       time: "Yesterday",
       senderDisplayName: "Maya",
     },
     {
       id: "seed-chat-maya-m1",
       from: "me",
-      body: "Yes — then the coast if it's clear.",
+      body: "Yes. then the coast if it's clear.",
       time: "Yesterday",
     },
     {
@@ -361,14 +361,14 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-maya-opal",
       from: "them",
-      body: "Opal: 9:30 market · 11 coast drive — or start at 10?",
+      body: "Opal: 9:30 market · 11 coast drive. or start at 10?",
       time: "40m",
       opalFilament: true,
       opalSystemConsequence: true,
       humanSpeaker: false,
       signal: {
         kind: "plan_forming",
-        label: "Opal: 9:30 market · 11 coast drive — or start at 10?",
+        label: "Opal: 9:30 market · 11 coast drive. or start at 10?",
       },
     },
     {
@@ -387,14 +387,14 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-maya-opal-close",
       from: "them",
-      body: "Got it — 10:30 market, 12 coast drive?",
+      body: "Got it . 10:30 market, 12 coast drive?",
       time: "16m",
       opalFilament: true,
       opalSystemConsequence: true,
       humanSpeaker: false,
       signal: {
         kind: "plan_forming",
-        label: "Got it — 10:30 market, 12 coast drive?",
+        label: "Got it . 10:30 market, 12 coast drive?",
       },
     },
   ],
@@ -410,13 +410,13 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-juniper-crew-m1",
       from: "me",
-      body: "I'm in — 7:30 works.",
+      body: "I'm in . 7:30 works.",
       time: "1h",
     },
     {
       id: "seed-chat-juniper-crew-m2",
       from: "them",
-      body: "Sam's in — that's 3 of 4",
+      body: "Sam's in. that's 3 of 4",
       time: "48m",
       senderDisplayName: "Sam",
     },
@@ -453,7 +453,7 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-sabrina-m2",
       from: "them",
-      body: "You should check this out — patio lights already on",
+      body: "You should check this out. patio lights already on",
       time: "1h",
       senderDisplayName: "Sabrina",
     },
@@ -496,12 +496,12 @@ const SEED_THREADS_BY_KEY: Record<string, FounderSeedThreadTurn[]> = {
     {
       id: "seed-chat-alex-opal",
       from: "them",
-      body: "Trip Graph · Mexico City — 14 memories",
+      body: "Trip Graph · Mexico City . 14 memories",
       time: "Yesterday",
       opalFilament: true,
       opalSystemConsequence: true,
       humanSpeaker: false,
-      signal: { kind: "plan_forming", label: "Trip Graph · Mexico City — 14 memories" },
+      signal: { kind: "plan_forming", label: "Trip Graph · Mexico City . 14 memories" },
     },
     {
       id: "seed-chat-alex-m3",
@@ -620,7 +620,7 @@ export function founderSeedThreadMessages(
       id: `${seedId}-m1`,
       from: "me",
       body: seed.planConsequence?.label
-        ? `Sounds good — ${seed.planConsequence.label}`
+        ? `Sounds good . ${seed.planConsequence.label}`
         : "Sounds good",
       time: "now",
     },

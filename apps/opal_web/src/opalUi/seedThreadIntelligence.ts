@@ -64,10 +64,10 @@ function extractPlanSnippet(opalBody: string): string {
   // Prefer the concrete plan clause after an em/en dash (never split on ":" — times use it).
   const dash = opalBody.split(/\s*[—–-]\s*/);
   if (dash.length > 1) {
-    const after = dash.slice(1).join(" — ").trim();
+    const after = dash.slice(1).join(" . ").trim();
     if (after.length > 4) return after.replace(/\?+\s*$/, "").trim();
   }
-  return opalBody.replace(/^got it\s*[—–-]?\s*/i, "").replace(/\?+\s*$/, "").trim();
+  return opalBody.replace(/^got it\s*[.--]?\s*/i, "").replace(/\?+\s*$/, "").trim();
 }
 
 function extractConfirmTime(plan: string): string | undefined {
@@ -132,7 +132,7 @@ export function interpretSeedThreadReply(input: {
   if (NO.test(body) && opalLast) {
     return {
       opal: {
-        body: `Okay — I'll hold off on that. What timing works better for you${name ? ` and ${name}` : ""}?`,
+        body: `Okay. I'll hold off on that. What timing works better for you${name ? ` and ${name}` : ""}?`,
         signalLabel: "Plan paused · waiting on a new time",
       },
     };
@@ -151,7 +151,7 @@ export function interpretSeedThreadReply(input: {
           : `${raw} market, then coast`;
       return {
         opal: {
-          body: `Got it — ${adjusted}?`,
+          body: `Got it . ${adjusted}?`,
           signalLabel: `Adjusted · ${adjusted}`,
         },
       };
@@ -159,7 +159,7 @@ export function interpretSeedThreadReply(input: {
     if (/chanelle|juniper/i.test(key) || /juniper|7:30|dinner/i.test(opalLast || peerLast || "")) {
       return {
         opal: {
-          body: `Got it — Juniper & Ivy · ${raw}${/am|pm/i.test(raw) ? "" : " PM"}?`,
+          body: `Got it. Juniper & Ivy · ${raw}${/am|pm/i.test(raw) ? "" : " PM"}?`,
           signalLabel: `Adjusted · Juniper & Ivy · ${raw}`,
         },
       };
@@ -171,7 +171,7 @@ export function interpretSeedThreadReply(input: {
     if (/coffee|market|coast|drive|saturday/i.test(body)) {
       return {
         peer: {
-          body: "Love that — keep me posted on the exact start.",
+          body: "Love that. keep me posted on the exact start.",
           senderDisplayName: "Maya",
         },
         opal: {
@@ -198,7 +198,7 @@ export function interpretSeedThreadReply(input: {
     if (YES.test(body) || /table|juniper|see you|on my way/i.test(body)) {
       return {
         peer: {
-          body: "Can't wait — see you there.",
+          body: "Can't wait. see you there.",
           senderDisplayName: "Chanelle",
         },
         opal: {
@@ -225,18 +225,18 @@ export function interpretSeedThreadReply(input: {
     if (/rooftop|shot|gallery|mexico|memory|trip graph|photo/i.test(body)) {
       return {
         peer: {
-          body: "Right? That light was unreal — open Trip Graph if you want the whole set.",
+          body: "Right? That light was unreal. open Trip Graph if you want the whole set.",
           senderDisplayName: "Alex",
         },
         opal: {
-          body: "Trip Graph · Mexico City — 14 memories ready when you are.",
-          signalLabel: "Trip Graph · Mexico City — 14 memories",
+          body: "Trip Graph · Mexico City . 14 memories ready when you are.",
+          signalLabel: "Trip Graph · Mexico City . 14 memories",
         },
       };
     }
     return {
       peer: {
-        body: "Yeah — still hits me too.",
+        body: "Yeah. still hits me too.",
         senderDisplayName: "Alex",
       },
       opal: {
@@ -250,7 +250,7 @@ export function interpretSeedThreadReply(input: {
     if (/live|watch|photo|where|meet|coming/i.test(body)) {
       return {
         peer: {
-          body: "I'm still here — tap Watch live if you want to see it.",
+          body: "I'm still here. tap Watch live if you want to see it.",
           senderDisplayName: "Sabrina",
         },
         opal: {
@@ -261,7 +261,7 @@ export function interpretSeedThreadReply(input: {
     }
     return {
       peer: {
-        body: "Haha okay — pulling you in.",
+        body: "Haha okay. pulling you in.",
         senderDisplayName: "Sabrina",
       },
       opal: {
@@ -275,7 +275,7 @@ export function interpretSeedThreadReply(input: {
     if (YES.test(body) || /7:30|in|works/i.test(body)) {
       return {
         opal: {
-          body: "Noted — still waiting on Sam. 7:30 stays locked for the three who are in.",
+          body: "Noted. still waiting on Sam. 7:30 stays locked for the three who are in.",
           signalLabel: "7:30 locked · Waiting on Sam · 3 of 4",
         },
         planLabel: "3 of 4 going",
@@ -295,7 +295,7 @@ export function interpretSeedThreadReply(input: {
       body: opalLast
         ? `Got it. Still working from: ${extractPlanSnippet(opalLast)}.`
         : peerLast
-          ? `Noted — I'll keep that in mind with ${name}.`
+          ? `Noted. I'll keep that in mind with ${name}.`
           : "I'm here. Tell me what you want to lock or change.",
       signalLabel: "Listening",
     },
