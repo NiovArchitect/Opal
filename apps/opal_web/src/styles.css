@@ -13527,6 +13527,16 @@ button.gsh-cx-history:focus-visible {
   display: flex;
   align-items: flex-start;
   gap: 16px;
+  /* Paste W Phase 5.3 - subtle composer-adjacent brand card */
+  margin: 0 4px;
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--opal-composer-fill, #080d1e), var(--opal-composer-fill, #080d1e))
+      padding-box,
+    var(--opal-composer-gradient, linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff)) border-box;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.1);
 }
 .you-edit-profile-btn {
   margin-top: 10px;
@@ -13548,6 +13558,14 @@ button.gsh-cx-history:focus-visible {
   margin: 22px 12px 0;
   display: flex;
   flex-direction: column;
+  /* Paste W Phase 5.3 - composer-adjacent glow/border on settings cards */
+  padding: 4px 12px 2px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(8, 13, 30, 0.92), rgba(8, 13, 30, 0.92)) padding-box,
+    var(--opal-composer-gradient, linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff)) border-box;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.08);
 }
 /* WALK-FAIL-02: last You hub rows must clear the dock */
 html.opal-native-host .you-hub-rows.you-hub-more-rows {
@@ -13737,18 +13755,20 @@ html.opal-native-host .you-hub-pane.scroll {
   height: 40px;
   line-height: 20px;
 }
-/* Edit Profile 618:2123  -  avatar 145,160 100×100; Change photo ~270; fields @310 */
+/* Edit Profile 618:2123 - avatar band then fields; tops retuned so absolute layers do not overlap */
 .you-settings-edit-avatar {
   position: absolute;
   left: 0;
-  top: 160px;
+  top: 158px;
   width: 390px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin: 0;
   z-index: 2;
+  max-height: 148px;
+  overflow: hidden;
 }
 .you-settings-edit-circle {
   width: 100px;
@@ -13760,6 +13780,7 @@ html.opal-native-host .you-hub-pane.scroll {
   color: #f8faff;
   font-size: 32px;
   font-weight: 700;
+  flex: 0 0 auto;
 }
 .you-settings-change-photo {
   border: 0;
@@ -13769,6 +13790,13 @@ html.opal-native-host .you-hub-pane.scroll {
   font-weight: 600;
   cursor: pointer;
   padding: 4px 8px;
+}
+.you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-edit-avatar .you-settings-blocked {
+  max-width: 280px;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  white-space: normal;
 }
 /* Body @160 → first label @172 (Privacy/Calls 74px pitch). Feed/Engagement @168 → label @180 */
 .you-settings-body {
@@ -13789,8 +13817,19 @@ html.opal-native-host .you-hub-pane.scroll {
   top: 168px;
 }
 .you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-body {
-  top: 300px;
-  max-height: 440px;
+  top: 318px;
+  max-height: 420px;
+}
+.you-settings-filed {
+  margin-top: 18px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(138, 150, 168, 0.16);
+}
+.you-settings-filed .section {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
 }
 .you-settings-row {
   position: relative;
@@ -16855,11 +16894,13 @@ html.opal-native-host .you-settings-dest[data-screen="you-setting-engagement"] .
   top: calc(168px + var(--opal-safe-top)) !important;
 }
 html.opal-native-host .you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-body {
-  top: calc(300px + var(--opal-safe-top)) !important;
+  top: calc(318px + var(--opal-safe-top)) !important;
 }
 html.opal-native-host .you-settings-edit-avatar {
-  top: calc(160px + var(--opal-safe-top)) !important;
+  top: calc(158px + var(--opal-safe-top)) !important;
   width: 100% !important;
+  max-height: 148px;
+  gap: 6px;
 }
 
 /* Primary scroll/pane children: trail only — shell owns dock exclusion */
@@ -20603,6 +20644,18 @@ html.opal-native-host .opal-center-chat-input {
   line-height: 1.45;
   color: #e2e8f0;
 }
+/* Paste W B1 - brand I will / I won't with Phase 0 tokens; never remove copy */
+.hs-trust-will,
+.hs-trust-wont {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--opal-composer-fill, #080d1e), var(--opal-composer-fill, #080d1e))
+      padding-box,
+    var(--opal-composer-gradient, linear-gradient(90deg, #00e5ff, #ffc86b, #d946ff)) border-box;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.1);
+}
 .hs-trust-heading {
   margin: 0 0 8px;
   font-size: 0.75rem;
@@ -20610,7 +20663,7 @@ html.opal-native-host .opal-center-chat-input {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.hs-trust-heading.is-will { color: #00e5ff; }
+.hs-trust-heading.is-will { color: var(--opal-composer-mic-color, #00e5ff); }
 .hs-trust-heading.is-wont { color: rgba(255, 120, 120, 0.85); }
 .hs-trust-line {
   margin: 0 0 6px;
@@ -20620,7 +20673,7 @@ html.opal-native-host .opal-center-chat-input {
   align-items: flex-start;
   line-height: 1.35;
 }
-.hs-trust-line.is-will { color: #00e5ff; font-weight: 600; }
+.hs-trust-line.is-will { color: var(--opal-composer-mic-color, #00e5ff); font-weight: 600; }
 .hs-trust-line.is-wont { color: rgba(255, 150, 150, 0.78); }
 .hs-trust-actions {
   flex: 0 0 auto;

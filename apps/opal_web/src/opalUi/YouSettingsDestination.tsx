@@ -1,9 +1,11 @@
 /**
  * Nested You settings destinations — navigable from You hub 618:1344.
  * Dock remains owned by parent OpalApp (do not duplicate).
- * Phase 1D: WhatOpalCanDoSection lives here; rendered on the You hub (no new nav).
- * Phase 7A: WhatOpalRemembersSection — directly below consent section.
- * Phase 10A / D-2: CelebrationsSection — directly below What Opal remembers.
+ * Paste W Phase 5 / L8: file loose hub sections into settings homes (do not delete):
+ *   WhatOpalCanDoSection → Calls & Opal Assist
+ *   WhatOpalRemembersSection (+ Celebrations) → Privacy
+ *   InviteFriendsSection → Feed & discovery
+ * Phase 10A / D-2: CelebrationsSection stays with What Opal remembers.
  * D-2 adds curation ("What would Maya love?") + Plan this → Opal Center.
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -1091,6 +1093,23 @@ export function YouSettingsDestination({
         {setting === "spending-fit" ? (
           <SpendingComfortSection session={session ?? null} />
         ) : null}
+        {/* Paste W Phase 5 / L8 — filed from You hub, not deleted */}
+        {setting === "calls-assist" && session ? (
+          <div className="you-settings-filed" data-testid="you-settings-filed-calls-assist">
+            <WhatOpalCanDoSection session={session} />
+          </div>
+        ) : null}
+        {setting === "privacy" && session ? (
+          <div className="you-settings-filed" data-testid="you-settings-filed-privacy">
+            <WhatOpalRemembersSection session={session} />
+            <CelebrationsSection session={session} />
+          </div>
+        ) : null}
+        {setting === "feed-discovery" && session ? (
+          <div className="you-settings-filed" data-testid="you-settings-filed-feed-discovery">
+            <InviteFriendsSection session={session} />
+          </div>
+        ) : null}
         {saveError ? (
           <p className="you-settings-error" role="alert" data-testid="you-settings-save-error">
             {saveError}
@@ -1173,8 +1192,8 @@ type WhatOpalCanDoProps = {
 };
 
 /**
- * You hub section — "What Opal can do for you".
- * Reuses you-settings-row / you-settings-toggle only. No new nav destination.
+ * "What Opal can do for you" — filed into Calls & Opal Assist (Paste W Phase 5 / L8).
+ * Reuses you-settings-row / you-settings-toggle only.
  */
 export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
   const [consents, setConsents] = useState<ConsentProof[]>([]);

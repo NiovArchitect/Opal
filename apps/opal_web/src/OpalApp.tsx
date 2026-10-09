@@ -242,10 +242,6 @@ import {
 import type { CallsContinuityRow } from "./opalUi/callsContinuitySeed";
 import {
   YouSettingsDestination,
-  WhatOpalCanDoSection,
-  WhatOpalRemembersSection,
-  InviteFriendsSection,
-  CelebrationsSection,
   YOU_SETTING_FIGMA,
   type YouSettingKey,
 } from "./opalUi/YouSettingsDestination";
@@ -11363,11 +11359,8 @@ function YouPane({
         ) : null}
       </section>
 
-      {session ? <WhatOpalCanDoSection session={session} /> : null}
-      {session ? <WhatOpalRemembersSection session={session} /> : null}
-      {session ? <InviteFriendsSection session={session} /> : null}
-      {session ? <CelebrationsSection session={session} /> : null}
-
+      {/* Paste W Phase 5 / L8: What Opal can do / remembers / Invite friends
+          filed into Calls & Opal Assist / Privacy / Feed & discovery - not deleted. */}
       {session ? <PrivateCreatorImpact /> : null}
     </div>
   );
