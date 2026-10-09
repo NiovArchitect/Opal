@@ -2,7 +2,7 @@
 
 **Branch:** `muse/packet-b-batch-2`  
 **Date:** 2026-10-09  
-**Law:** If it is not in this document and backed by a passing test, it is not part of the single-user baseline. Multi-user choreography is held until this contract holds.
+**Law:** If it is not in this document and backed by a passing test, it is not part of the single-user baseline. Paste I extends this with the NETWORK guarantees below (multi-user choreography).
 
 ## Promise (plain language)
 
@@ -82,3 +82,46 @@ mix test test/opal_core/intelligence/extraction_pressure_test.exs
 mix test test/opal_core/intelligence/scenario_harness_test.exs
 mix test test/opal_core/intelligence/
 ```
+
+---
+
+## Network guarantees (Paste I)
+
+What the **network** guarantees beyond the individual baseline — each item backed by a passing test:
+
+1. **Timezone choreography** — shared plans show each viewer their local time; quiet hours are per-account; travel mode pauses the traveler's routine breaks only.  
+   *Test:* multiuser T1–T5; TravelMode.
+
+2. **Group dynamics** — split votes mediate, silent members noted without spam, late joiners get real catch-up, dropouts/plus-ones update headcount honestly, private conflicts stay private to the overlapping member.  
+   *Test:* G1–G6.
+
+3. **Invites** — cold invite starts cold-start maturity with zero inherited private context; ignored invites terminal `no_response_yet`; re-invites shame-free; group invites independent.  
+   *Test:* I1–I4.
+
+4. **Money across accounts** — splits show amount/label/choices only; no peer balance/history/threshold; insufficient is kind and non-leaking; refunds idempotent.  
+   *Test:* M1–M4; `MULTIUSER_PRIVACY_AUDIT.md`.
+
+5. **Privacy under coordination** — private plans/memories stay out of peer prompts; ex-factor sealed; leakage probe 0/10.  
+   *Test:* P1–P4.
+
+6. **Relationship types live** — seven types change tone/planning/nudges; bounds enforced; inference one-time dismissible; asymmetry of labels; access tiers A1–A8 at API+prompt.  
+   *Test:* `relationship_matrix_test`, inference/asymmetry/access suites; `RELATIONSHIP_MATRIX.md`.
+
+7. **Experience edges** — group voice/artifacts/remind-us/realtime/notification budget/graceful exit.  
+   *Test:* E1–E6.
+
+### Network CANNOT (yet)
+
+- Live Places midpoint venues until GCP Places enabled (T6 uses Midpoint demo geometry).
+- Wallet loads in production (legal gate).
+- Calendar write without opt-in.
+- Auto-post mediation to group (owner draft only — product law).
+
+### Evidence
+
+| Artifact | Path |
+|----------|------|
+| Multiuser verify | `shots/intelligence/MULTIUSER_VERIFY.json` |
+| Multiuser UX | `shots/intelligence/MULTIUSER_UX.md` |
+| Privacy audit | `shots/intelligence/MULTIUSER_PRIVACY_AUDIT.md` |
+| Relationship matrix | `shots/intelligence/RELATIONSHIP_MATRIX.md` |
