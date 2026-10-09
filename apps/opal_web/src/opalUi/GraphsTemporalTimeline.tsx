@@ -76,6 +76,8 @@ export const SEED_TIMELINE_ITEMS: TimelineItem[] = withSeedStartsAt([
     bucket: "weekend",
     groupSize: 2,
     closeness: 1,
+    /* Paste W Phase 6.1 - restaurant deal proactive extension */
+    nurtureSignal: "Juniper is almost full Saturday. Want to book?",
     source: "seed",
   },
   {
@@ -386,12 +388,23 @@ function TimelineCard({
 }) {
   const scale = 0.92 + Math.min(0.28, importance(item) / 8);
   const future = isFutureTimelineItem(item);
+  const planState =
+    item.status === "ready" || item.status === "aligned"
+      ? "locked"
+      : item.status === "past"
+        ? "past"
+        : item.status === "forming" || item.status === "action"
+          ? "forming"
+          : item.bucket === "someday"
+            ? "idea"
+            : item.status || "forming";
   return (
     <article
       className={`graphs-temporal-card${pinned ? " is-pinned" : ""}`}
       data-testid={`graphs-temporal-card-${item.id}`}
       data-bucket={item.bucket}
       data-source={item.source || "seed"}
+      data-plan-state={planState}
       style={{ ["--gt-scale" as string]: String(scale) }}
     >
       <button
