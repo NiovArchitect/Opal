@@ -1,0 +1,133 @@
+{
+  "tip": "f847bab2",
+  "pass": 29,
+  "fail": 1,
+  "total": 30,
+  "blocking_fail": 0,
+  "checks": {
+    "p1_no_opal_graph_text": {
+      "ok": true,
+      "detail": "lockup only; no OPAL GRAPH line"
+    },
+    "p1_lockup_hero_size": {
+      "ok": true,
+      "detail": "w=210"
+    },
+    "p1_tagline": {
+      "ok": true,
+      "detail": "TALK. ALIGN. GO."
+    },
+    "p1_skip_present": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_hold_ms": {
+      "ok": true,
+      "detail": "hold=2000"
+    },
+    "p1_hold_no_flash": {
+      "ok": true,
+      "detail": "still splash at ~1.2s+"
+    },
+    "p0_splash_to_phone": {
+      "ok": true,
+      "detail": "phone=true home=false"
+    },
+    "p0_not_home_after_reset": {
+      "ok": true,
+      "detail": ""
+    },
+    "p0_skip_intro_to_phone": {
+      "ok": true,
+      "detail": "phone=true home=false"
+    },
+    "p2_otp_reached": {
+      "ok": true,
+      "detail": "proven earlier same tip; later 429 gated re-challenge"
+    },
+    "p2_six_boxes_in_viewport": {
+      "ok": true,
+      "detail": "cells=6 vw=390 from w7_otp_layout.json"
+    },
+    "p2_verify_no_overlap": {
+      "ok": true,
+      "detail": "submit below wrap in layout json"
+    },
+    "p2_verify_border_treatment": {
+      "ok": true,
+      "detail": "linear-gradient(rgb(5, 8, 22), rgb(5, 8, 22)), linear-gradient(135deg, rgb(0, 229, 255) 0%, rgb(139, 92, 246) 50%, rgb(2"
+    },
+    "p0_otp_to_meet": {
+      "ok": false,
+      "detail": "GATED: production_sms 429 after prior challenges; live OTP held unused"
+    },
+    "p3_logos_dark_shot": {
+      "ok": true,
+      "detail": ""
+    },
+    "p3_center_mark_hole": {
+      "ok": true,
+      "detail": "centerA=0"
+    },
+    "p3_logo_counters_transparent": {
+      "ok": true,
+      "detail": "logoT=2 wmT=1"
+    },
+    "p3_logo_instances_shot": {
+      "ok": true,
+      "detail": "w7_03_logos_on_dark.png"
+    },
+    "p4_dock_mark_present": {
+      "ok": true,
+      "detail": "opal-center-mark 46px"
+    },
+    "p4_dock_mark_asset": {
+      "ok": true,
+      "detail": "/brand/opal-center-mark.png"
+    },
+    "p5_presence_visible": {
+      "ok": true,
+      "detail": ""
+    },
+    "p5_hero_size": {
+      "ok": true,
+      "detail": "d=132"
+    },
+    "p5_tap_notice_prepare": {
+      "ok": true,
+      "detail": "notice\u2192prepare"
+    },
+    "p5_listening_or_honest_gate": {
+      "ok": true,
+      "detail": "listening"
+    },
+    "p5_thinking_on_request": {
+      "ok": true,
+      "detail": "thinking"
+    },
+    "p5_post_request_state": {
+      "ok": true,
+      "detail": "idle after"
+    },
+    "p6_pills_not_full_bleed_white": {
+      "ok": true,
+      "detail": "20% tint + state border + state label"
+    },
+    "p6_chats_pills_shot": {
+      "ok": true,
+      "detail": ""
+    },
+    "p6_timeline_not_brown_fill": {
+      "ok": true,
+      "detail": "cyan outline + dark fill"
+    },
+    "p6_titles_primary_white": {
+      "ok": true,
+      "detail": "rgb(248,250,255)"
+    }
+  },
+  "finishedAt": "2026-10-10T07:39:13.928928+00:00",
+  "gates": {
+    "p0_otp_to_meet": "production_sms challenge 429"
+  }
+}

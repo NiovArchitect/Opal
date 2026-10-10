@@ -1,7 +1,9 @@
 /**
- * Paste W6 — canonical plan-state color law (pill FILL carries state).
+ * Paste W6/W7 — canonical plan-state color law (pill carries state).
  * happening/confirmed = cyan · action = red · ready/upcoming = amber ·
- * past = white · forming/idea = purple. Never font-alone state.
+ * past = white · forming/idea = purple.
+ * W7 treatment: 20% opacity fill + 1px state border + label in state color
+ * (past: 15% white fill, rgba border, #E8EAF0 text). Never full-bleed fills.
  */
 
 export const PLAN_STATE_HEX = {
@@ -17,13 +19,13 @@ export const PLAN_STATE_HEX = {
   forming: "#8B5CF6",
 } as const;
 
-/** Pill label ink — paired with PLAN_STATE_HEX fills. */
+/** Pill label ink — W7: state color on tinted fill (past uses soft white). */
 export const PLAN_STATE_PILL_TEXT = {
-  happening: "#FFFFFF",
-  action: "#FFFFFF",
-  ready: "#0A0F1E",
-  past: "#0A0F1E",
-  forming: "#FFFFFF",
+  happening: "#00E5FF",
+  action: "#FF4D5E",
+  ready: "#FFC86B",
+  past: "#E8EAF0",
+  forming: "#8B5CF6",
 } as const;
 
 /** @deprecated W5 aliases — prefer happening / action / forming keys. */

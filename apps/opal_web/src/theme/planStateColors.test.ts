@@ -17,7 +17,7 @@ describe("planStateColors (Paste W6 canonical law)", () => {
     expect(planStateColor("live")).toBe(PLAN_STATE_HEX.happening);
     expect(planStateColor("now")).toBe(PLAN_STATE_HEX.happening);
     expect(PLAN_STATE_HEX.happening.toLowerCase()).toBe("#00e5ff");
-    expect(planStatePillText("happening")).toBe("#FFFFFF");
+    expect(planStatePillText("happening")).toBe("#00E5FF");
   });
 
   it("maps ready/upcoming to amber (not cyan)", () => {
@@ -25,7 +25,7 @@ describe("planStateColors (Paste W6 canonical law)", () => {
     expect(planStateColor("upcoming")).toBe(PLAN_STATE_HEX.ready);
     expect(planStateColor("aligned")).toBe(PLAN_STATE_HEX.ready);
     expect(PLAN_STATE_HEX.ready.toLowerCase()).toBe("#ffc86b");
-    expect(planStatePillText("ready")).toBe("#0A0F1E");
+    expect(planStatePillText("ready")).toBe("#FFC86B");
     expect(planStateFamily("ready")).toBe("ready");
   });
 
@@ -34,7 +34,7 @@ describe("planStateColors (Paste W6 canonical law)", () => {
     expect(planStateColor("pending")).toBe(PLAN_STATE_HEX.action);
     expect(planStateColor("waiting")).toBe(PLAN_STATE_HEX.action);
     expect(PLAN_STATE_HEX.action.toLowerCase()).toBe("#ff4d5e");
-    expect(planStatePillText("action")).toBe("#FFFFFF");
+    expect(planStatePillText("action")).toBe("#FF4D5E");
   });
 
   it("maps idea/forming to purple", () => {
@@ -42,14 +42,14 @@ describe("planStateColors (Paste W6 canonical law)", () => {
     expect(planStateColor("forming")).toBe(PLAN_STATE_HEX.forming);
     expect(planStateColor("unconfirmed")).toBe(PLAN_STATE_HEX.forming);
     expect(PLAN_STATE_HEX.forming.toLowerCase()).toBe("#8b5cf6");
-    expect(planStatePillText("forming")).toBe("#FFFFFF");
+    expect(planStatePillText("forming")).toBe("#8B5CF6");
   });
 
-  it("maps past to white fill + dark pill text", () => {
+  it("maps past to white family + soft pill text (W7 balanced)", () => {
     expect(planStateColor("past")).toBe(PLAN_STATE_HEX.past);
     expect(PLAN_STATE_HEX.past.toLowerCase()).toBe("#ffffff");
-    expect(planStatePillText("past")).toBe("#0A0F1E");
-    expect(PLAN_STATE_PILL_TEXT.past).toBe("#0A0F1E");
+    expect(planStatePillText("past")).toBe("#E8EAF0");
+    expect(PLAN_STATE_PILL_TEXT.past).toBe("#E8EAF0");
   });
 
   it("attrs stay in legal lifecycle; ready is ready not locked", () => {

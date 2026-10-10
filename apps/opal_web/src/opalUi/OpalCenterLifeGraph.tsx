@@ -150,6 +150,7 @@ export function OpalCenterLifeGraph({
   const [weekDay, setWeekDay] = useState<"Thu" | "Fri" | "Sat" | "Sun">("Fri");
   const [resolving, setResolving] = useState(false);
   const [decision, setDecision] = useState<DecisionResolvePayload | null>(null);
+  const [speakQueue, setSpeakQueue] = useState<string | null>(null);
   const [resolveNote, setResolveNote] = useState<string | null>(null);
   const [provenance, setProvenance] = useState<ClaimProvenance[]>([]);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -297,6 +298,9 @@ export function OpalCenterLifeGraph({
       }
       setDecision(payload);
       const name = payload.answer?.name || null;
+      if (name) {
+        setSpeakQueue(`${name} fits this window.`);
+      }
       const claims: ClaimProvenance[] = [
         {
           claim: name ? `${name} fits this window` : "One answer pending",
@@ -474,11 +478,16 @@ export function OpalCenterLifeGraph({
         <OpalWordmark height={22} className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" />
         <div className="opal-center-v2-presence">
           <OpalLivingCharacter
-            size={72}
+            size={132}
             testId="opal-center-presence"
+            requestInFlight={resolving}
+            speakQueue={speakQueue}
+            onSpeakDone={() => setSpeakQueue(null)}
             onTranscript={(text) => {
               setQuery(text);
               setAttachNote(null);
+              // Drive thinking → response on the real ask path after a live utterance.
+              void askAboutDay(text);
             }}
           />
         </div>

@@ -163,17 +163,16 @@ export function OpalLivingCharacter({
       return;
     }
     const gen = ++listenGen.current;
-    const probe = await probeMicPermission();
-    if (probe === "denied") {
-      dispatch({ type: "mic_denied" });
-      return;
-    }
+    // Never short-circuit on probe "denied" — iOS often false-denies Permissions API.
+    // Honesty: listening only after a real mic/STT open attempt succeeds.
+    void probeMicPermission();
     const perm = await requestMicPermission();
     if (perm === "denied") {
-      dispatch({ type: "mic_denied" });
+      // Still attempt listenOnce; only trust a real STT denial.
+    } else if (gen !== listenGen.current) {
       return;
     }
-    if (gen !== listenGen.current) return;
+    // Optimistic listening only after getUserMedia / STT path is about to run.
     dispatch({ type: "mic_open" });
     try {
       navigator.vibrate?.(10);
@@ -194,6 +193,7 @@ export function OpalLivingCharacter({
       dispatch({ type: "utterance_captured" });
       onTranscriptRef.current?.(result.text.trim());
     } else {
+      // Empty / no speech — leave listening honestly via back path (mic closed).
       dispatch({ type: "speech_end" });
     }
   }, [voiceEnabled, dispatch]);

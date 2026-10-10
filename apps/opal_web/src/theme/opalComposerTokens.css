@@ -131,7 +131,8 @@
     --plan-state-color: var(--plan-state-past);
   }
 
-  /* Pill FILL carries state — never font-alone / never neutral dark wash */
+  /* W7 Phase 6a — balanced pills: 20% state fill over void + 1px state border + state label.
+     Past: 15% white fill, rgba(255,255,255,0.45) border, #E8EAF0 text. No full-bleed fills. */
   .chats-plan-pill[data-plan-state="locked"],
   .chats-plan-pill[data-plan-state="confirmed"],
   .chats-plan-pill[data-plan-state="happening"],
@@ -146,9 +147,9 @@
   .plan-state-pill[data-plan-state="happening"],
   .plan-state-pill[data-plan-state="locked"],
   .plan-state-pill[data-plan-state="confirmed"] {
-    background: var(--plan-state-happening) !important;
-    color: var(--plan-state-pill-text-on-vivid) !important;
-    border-color: var(--plan-state-happening) !important;
+    background: color-mix(in srgb, var(--plan-state-happening) 20%, #050816) !important;
+    color: var(--plan-state-happening) !important;
+    border: 1px solid var(--plan-state-happening) !important;
   }
 
   .chats-plan-pill[data-plan-state="ready"],
@@ -158,9 +159,9 @@
   .graphs-card-status.graphs-status-ready,
   .graphs-card-status.graphs-status-aligned,
   .plan-state-pill[data-plan-state="ready"] {
-    background: var(--plan-state-ready) !important;
-    color: var(--plan-state-pill-text-on-bright) !important;
-    border-color: var(--plan-state-ready) !important;
+    background: color-mix(in srgb, var(--plan-state-ready) 20%, #050816) !important;
+    color: var(--plan-state-ready) !important;
+    border: 1px solid var(--plan-state-ready) !important;
   }
 
   .chats-plan-pill[data-plan-state="action"],
@@ -169,9 +170,9 @@
   .graph-ready-pill[data-plan-state="action"],
   .graphs-card-status.graphs-status-action,
   .plan-state-pill[data-plan-state="action"] {
-    background: var(--plan-state-action) !important;
-    color: var(--plan-state-pill-text-on-vivid) !important;
-    border-color: var(--plan-state-action) !important;
+    background: color-mix(in srgb, var(--plan-state-action) 20%, #050816) !important;
+    color: var(--plan-state-action) !important;
+    border: 1px solid var(--plan-state-action) !important;
   }
 
   .chats-plan-pill[data-plan-state="idea"],
@@ -183,9 +184,9 @@
   .graphs-card-status.graphs-status-idea,
   .plan-state-pill[data-plan-state="forming"],
   .plan-state-pill[data-plan-state="idea"] {
-    background: var(--plan-state-forming) !important;
-    color: var(--plan-state-pill-text-on-vivid) !important;
-    border-color: var(--plan-state-forming) !important;
+    background: color-mix(in srgb, var(--plan-state-forming) 20%, #050816) !important;
+    color: var(--plan-state-forming) !important;
+    border: 1px solid var(--plan-state-forming) !important;
   }
 
   .chats-plan-pill[data-plan-state="past"],
@@ -193,8 +194,8 @@
   .graph-ready-pill.graphs-status-past,
   .graphs-card-status.graphs-status-past,
   .plan-state-pill[data-plan-state="past"] {
-    background: var(--plan-state-past) !important;
-    color: var(--plan-state-pill-text-on-bright) !important;
-    border-color: var(--plan-state-past) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #E8EAF0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
   }
 }

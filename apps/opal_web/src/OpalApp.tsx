@@ -2148,7 +2148,40 @@ export function OpalApp() {
         return;
       }
 
+      // Intentional unauthenticated first-run / reset: do not probe /session
+      // and do not apply native SecureStore session (that skipped Phone/Meet).
+      // Sticky forcedFirstRun survives until Meet Opal completes.
+      let resetFirstRun = __opalResetFirstRunConsumed || readForcedFirstRun();
+      try {
+        resetFirstRun =
+          resetFirstRun || window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+      } catch {
+        /* ignore */
+      }
+      if (resetFirstRun) {
+        __opalResetFirstRunConsumed = false;
+        // Never clobber an in-flight OTP / Meet Opal session if the user already verified
+        // while this boot probe was still awaiting native/network work.
+        const alreadyLive = Boolean(
+          sessionRef.current?.user_id &&
+            (sessionRef.current?.access_token || sessionRef.current?.cookie_session),
+        );
+        if (!alreadyLive) {
+          saveSession(null);
+          setMemoryAccessToken(null);
+          if (!cancelled) {
+            setSession(null);
+            setNewChatOpen(false);
+            setNewChatError(null);
+            setActiveChatId(null);
+          }
+        }
+        if (!cancelled) setAuthReady(true);
+        return;
+      }
+
       // R1B native host: session injected via SecureStore → WebView bridge (never URL).
+      // Only after reset/forced path is cleared — never during cold first-run.
       try {
         const native = (window as unknown as { __OPAL_NATIVE_SESSION__?: {
           access_token?: string;
@@ -2177,36 +2210,6 @@ export function OpalApp() {
         }
       } catch {
         /* ignore native bridge errors */
-      }
-
-      // Intentional unauthenticated first-run / reset: do not probe /session.
-      // Sticky forcedFirstRun must survive until Promise CTA → auth (do not clear here).
-      let resetFirstRun = __opalResetFirstRunConsumed || readForcedFirstRun();
-      try {
-        resetFirstRun =
-          resetFirstRun || window.sessionStorage?.getItem("opal_reset_first_run") === "1";
-      } catch {
-        /* ignore */
-      }
-      if (resetFirstRun) {
-        __opalResetFirstRunConsumed = false;
-        // Never clobber an in-flight OTP / Meet Opal session if the user already verified
-        // while this boot probe was still awaiting native/network work.
-        const alreadyLive = Boolean(
-          sessionRef.current?.user_id &&
-            (sessionRef.current?.access_token || sessionRef.current?.cookie_session),
-        );
-        if (!alreadyLive) {
-          saveSession(null);
-          if (!cancelled) {
-            setSession(null);
-            setNewChatOpen(false);
-            setNewChatError(null);
-            setActiveChatId(null);
-          }
-        }
-        if (!cancelled) setAuthReady(true);
-        return;
       }
 
       const dropSignedOut = () => {
@@ -2824,27 +2827,27 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W5 — Splash 1 → Splash 2 (Promise). Cause of W4 disappearance:
-   * 9f88201b rewrote this to setFirstRunStage("auth"), skipping Promise.
-   * FirstRunPromisePage.tsx itself was never deleted (pixel-identical restore).
+   * Paste W7 — Splash 1 → Phone (auth). Keep forced/reset sticky through
+   * Phone → OTP → Meet Opal. Never mark first-run done or clear forced here.
+   * Promise (Splash 2) stays behind opal_force_promise only; PNG untouched.
    */
-  const advanceSplashToPromise = () => {
+  const advanceSplashToPhone = () => {
     setShowFirstRun(true);
-    setFirstRunStage("promise");
+    setFirstRunStage("auth");
   };
 
-  /** Splash 2 CTA → phone auth. Meet Opal follows OTP. */
+  /** @deprecated alias — Splash advances to Phone, not Promise (W7 Phase 0). */
+  const advanceSplashToPromise = advanceSplashToPhone;
+
+  /** Splash 2 CTA (force_promise only) → phone auth. Meet Opal follows OTP. */
   const advancePromiseToAuth = () => {
-    markWalkthroughDone();
-    clearForcedFirstRun();
+    // Do NOT markWalkthroughDone / clearForcedFirstRun — that skipped Phone/Meet on remount.
     setFirstRunStage("auth");
     setShowFirstRun(true);
   };
 
   /** Returning account from Splash 2 → phone auth. */
   const advancePromiseAlreadyAccount = () => {
-    markWalkthroughDone();
-    clearForcedFirstRun();
     setShowFirstRun(true);
     setFirstRunStage("auth");
   };
@@ -7460,11 +7463,12 @@ export function OpalApp() {
         data-forced-first-run={forcedFirstRun || forceSplash ? "1" : "0"}
       >
         <FirstRunSplashPage
-          onTapBegin={advanceSplashToPromise}
-          onSkipIntro={advanceSplashToPromise}
+          onTapBegin={advanceSplashToPhone}
+          onSkipIntro={advanceSplashToPhone}
           onAlreadyAccount={() => {
-            // Returning account → auth path (still after reset, no member shortcut)
+            // Returning account → Phone auth (keep forced sticky; never Home shortcut)
             setForcedFirstRun(true);
+            writeForcedFirstRun(true);
             setShowFirstRun(true);
             setFirstRunStage("auth");
           }}
@@ -7568,8 +7572,9 @@ export function OpalApp() {
     // Auth only here  -  Splash is top-level above. Never remount nested fr00 Splash.
     const firstRunMode = "sign_in" as const;
     const visual = visualShellProps("activation");
-    // Under forced first-run, never pass existingSession  -  blocks authenticated Home shortcut.
-    const sessionForFr = forcedFirstRun ? null : authenticated ? session : null;
+    // Under forced / in-progress first-run, never pass existingSession — blocks Home shortcut.
+    const sessionForFr =
+      forcedFirstRun || showFirstRun ? null : authenticated ? session : null;
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}

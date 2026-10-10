@@ -1,0 +1,37 @@
+[
+  {
+    "state": "ready",
+    "bg": "color(srgb 0.215686 0.181961 0.152941)",
+    "color": "rgb(255, 200, 107)",
+    "border": "rgb(255, 200, 107)",
+    "text": "Juniper & Ivy · 7:30 PM"
+  },
+  {
+    "state": "ready",
+    "bg": "color(srgb 0.215686 0.181961 0.152941)",
+    "color": "rgb(255, 200, 107)",
+    "border": "rgb(255, 200, 107)",
+    "text": "Farmers market + coast"
+  },
+  {
+    "state": "ready",
+    "bg": "color(srgb 0.215686 0.181961 0.152941)",
+    "color": "rgb(255, 200, 107)",
+    "border": "rgb(255, 200, 107)",
+    "text": "3 of 4 going"
+  },
+  {
+    "state": "action",
+    "bg": "color(srgb 0.215686 0.0854902 0.142745)",
+    "color": "rgb(255, 77, 94)",
+    "border": "rgb(255, 77, 94)",
+    "text": "Live nearby"
+  },
+  {
+    "state": "ready",
+    "bg": "color(srgb 0.215686 0.181961 0.152941)",
+    "color": "rgb(255, 200, 107)",
+    "border": "rgb(255, 200, 107)",
+    "text": "Trip Graph"
+  }
+]
