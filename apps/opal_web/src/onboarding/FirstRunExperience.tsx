@@ -169,27 +169,24 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
  * Brand V4 logo treatment only - NOT a hero-logo redesign.
  */
 /**
- * Paste W6 Phase 0b — character lockup replaces abstract OPALGRAPH mark in first-run.
- * Character art + Opal wordmark only. Old graph emblem appears nowhere in first-run.
+ * W6A2 — canonical transparent logo lockup on first-run auth (OTP / phone).
+ * True alpha; no abstract OPALGRAPH emblem; no baked checkerboard box.
  */
 function CharacterLockup() {
   return (
     <header
-      className="fr-auth-header fr-character-lockup"
+      className="fr-auth-header fr-character-lockup fr-logo-lockup"
       data-testid="fr-character-lockup"
-      data-auth-header="character-lockup"
+      data-auth-header="opal-logo"
     >
       <img
-        className="fr-character-lockup-art"
-        src={BRAND_ASSETS.opalCharacter}
+        className="fr-character-lockup-art fr-logo-lockup-img"
+        src={BRAND_ASSETS.opalLogo}
         alt=""
-        width={48}
-        height={48}
+        width={132}
+        height={88}
         draggable={false}
       />
-      <span className="fr-character-lockup-wordmark" aria-hidden>
-        Opal
-      </span>
     </header>
   );
 }

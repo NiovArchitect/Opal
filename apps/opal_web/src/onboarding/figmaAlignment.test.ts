@@ -19,8 +19,10 @@ describe("Figma alignment reset — exact authorities", () => {
     expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(BRAND.figma.typePlusTagline).toBe("161:2");
     expect(BRAND.figma.wordmarkOnly).toBe("161:3");
-    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(/opal-graph-emblem-(512|2240-derivative)\.png/);
-    expect(BRAND_ASSETS.graphSymbol).toMatch(/opal-graph-emblem-(512|2240-derivative)\.png/);
+    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(/opal-logo\.png/);
+    expect(BRAND_ASSETS.graphSymbol).toMatch(/opal-logo\.png/);
+    expect(BRAND_ASSETS.opalWordmark).toMatch(/opal-wordmark\.png/);
+    expect(BRAND_ASSETS.opalCenterMark).toMatch(/opal-center-mark\.png/);
     expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
     expect(BRAND.figma.brandLockup).toBe("525:7");
     expect(BRAND_ASSETS.graphTypeTagline161).toMatch(/161-2/);

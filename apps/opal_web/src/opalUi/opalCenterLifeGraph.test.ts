@@ -63,10 +63,16 @@ describe("Opal Center V2 behavior convergence", () => {
 
   it("Paste J Phase 1: attach + mic are honest", () => {
     expect(center).toMatch(/I can see .+ here\. I can't read it into the conversation yet/);
-    expect(center).toMatch(/listenOnce/);
+    expect(center).toMatch(/listenOnce|OpalLivingCharacter/);
     expect(center).toMatch(/Ideas to try|Sample prompts|opal-center-sample-prompts-note/);
     expect(center).toMatch(/opal-center-week-empty/);
     expect(center).toMatch(/Leave time when location is available/);
+  });
+
+  it("W6A1: Center presence is living character voice button", () => {
+    expect(center).toMatch(/OpalLivingCharacter/);
+    expect(center).toMatch(/opal-center-presence/);
+    expect(center).not.toMatch(/OpalPresenceOrb/);
   });
 
   it("Paste W6 Phase 5: now strip is live + sample vs calendar honesty", () => {

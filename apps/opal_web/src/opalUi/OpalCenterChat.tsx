@@ -31,7 +31,7 @@ import {
   type CreatedPlanSurface,
 } from "./graphSurfaceInterop";
 import { isFounderSeedEnabled } from "./founderGraphSeed";
-import { OpalPresenceOrb, type OpalOrbMode } from "../onboarding/OpalPresenceOrb";
+import { OpalLivingCharacter } from "./OpalLivingCharacter";
 
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
@@ -202,6 +202,7 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
   const [micPermission, setMicPermission] = useState<MicPermission>("prompt");
   const [voiceHint, setVoiceHint] = useState<string | null>(null);
   const [online, setOnline] = useState(() => isOnline());
+  const [audioPlaying, setAudioPlaying] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
@@ -315,7 +316,7 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
     ta.style.height = `${Math.min(ta.scrollHeight, max)}px`;
   }, [draft]);
 
-  // Speak new Opal replies when voice mode is on.
+  // Speak new Opal replies when voice mode is on. speaking state only while audio plays.
   useEffect(() => {
     if (!voiceMode) return;
     const newest = [...messages].reverse().find((m) => m.role === "opal" && m.status !== "failed");
@@ -324,7 +325,15 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
     if (spokenIds.current.has(id)) return;
     if (newest.status === "pending") return;
     spokenIds.current.add(id);
-    void speakText(newest.body);
+    let cancelled = false;
+    setAudioPlaying(true);
+    void speakText(newest.body).finally(() => {
+      if (!cancelled) setAudioPlaying(false);
+    });
+    return () => {
+      cancelled = true;
+      setAudioPlaying(false);
+    };
   }, [messages, voiceMode]);
 
   const emitPlanIfAny = useCallback((plan: CreatedPlanSurface | null) => {
@@ -573,12 +582,6 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
             ? "Stop listening"
             : "Talk to Opal";
 
-  const presenceMode: OpalOrbMode = sending
-    ? "working"
-    : loading && messages.length === 0
-      ? "typing"
-      : "idle";
-
   return (
     <section className="opal-center-chat" data-testid="opal-center-chat">
       <header className="opal-center-chat-header">
@@ -592,11 +595,15 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
           ‹
         </button>
         <div className="opal-center-chat-presence">
-          <OpalPresenceOrb
-            mode={presenceMode}
+          <OpalLivingCharacter
             size={64}
-            showStatus
             testId="opal-center-chat-presence"
+            requestInFlight={sending}
+            audioPlaying={audioPlaying}
+            voiceEnabled={online && sttReady}
+            onTranscript={(text) => {
+              void sendBody(text);
+            }}
           />
         </div>
         <button

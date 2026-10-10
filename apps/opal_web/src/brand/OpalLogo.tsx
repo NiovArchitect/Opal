@@ -11,11 +11,8 @@ const sizes: Record<Size, number> = {
 };
 
 /**
- * OpalMark — product core symbol (Spectral Human Alignment emblem).
- * Visual master: Figma 160:2 (symbol-only). First-run instance: 217:6.
- * Runtime raster: BRAND_ASSETS.opalGraphEmblem family (true alpha).
- * 168:2 is DEFECTIVE / SUPERSEDED — never load as product chrome.
- * Brand board 528:25 is documentation only — never the logo src.
+ * OpalMark — canonical Opal logo lockup (W6A2).
+ * True-alpha character + bubble-letter Opal. No abstract OPALGRAPH emblem.
  */
 export function OpalMark({
   size = "md",
@@ -31,37 +28,30 @@ export function OpalMark({
 }) {
   void glow;
   const px = sizes[size];
-  const src =
-    size === "hero"
-      ? BRAND_ASSETS.opalGraphEmblemHero
-      : size === "sm"
-        ? BRAND_ASSETS.opalGraphEmblem128
-        : BRAND_ASSETS.opalGraphEmblem;
+  // Logo is 3:2; keep height = size, width auto via CSS aspect.
+  const height = px;
+  const width = Math.round(px * 1.5);
   return (
     <img
-      className={`opal-mark opal-mark--graph ${className ?? ""}`.trim()}
-      src={src}
-      width={px}
-      height={px}
+      className={`opal-mark opal-mark--logo ${className ?? ""}`.trim()}
+      src={BRAND_ASSETS.opalLogo}
+      width={width}
+      height={height}
       alt={title === "" ? "" : title}
       role={title === "" ? "presentation" : "img"}
       aria-hidden={title === "" ? true : undefined}
       data-brand-role="core-mark"
-      data-brand-source="opal-graph-emblem-spectral-human-alignment"
+      data-brand-source="opal-logo"
       data-brand-final="true"
       data-brand-product="valid"
-      data-figma-visual-master="160:2"
-      data-figma-symbol-only="160:2"
-      data-figma-first-run-instance="217:6"
-      data-figma-defective-superseded="168:2"
       draggable={false}
     />
   );
 }
 
 /**
- * OpalWordmark — typographic "Opal Graph" for product chrome.
- * Prefer for brand entry and compact headers. Tagline is separate (entry only).
+ * OpalWordmark — bubble-letter "Opal" PNG (W6A3).
+ * Height prop matches prior typographic cap-height (default 28).
  */
 export function OpalWordmark({
   className,
@@ -72,26 +62,33 @@ export function OpalWordmark({
   className?: string;
   height?: number;
   title?: string;
-  /** When true, slightly smaller tracking for tight chrome */
+  /** When true, slightly smaller for tight chrome */
   compact?: boolean;
 }) {
+  const h = compact ? Math.max(14, Math.round(height * 0.85)) : height;
+  // Wordmark art is 3:1
+  const w = Math.round(h * 3);
   return (
-    <span
-      className={`opal-graph-wordmark ${compact ? "is-compact" : ""} ${className ?? ""}`.trim()}
-      style={{ fontSize: height * 0.55 }}
-      data-brand-role="wordmark"
-      data-brand-source="typographic-opal-graph"
+    <img
+      className={`opal-graph-wordmark opal-wordmark-img ${compact ? "is-compact" : ""} ${className ?? ""}`.trim()}
+      src={BRAND_ASSETS.opalWordmark}
+      width={w}
+      height={h}
+      alt={title === "" ? "" : title}
+      role={title === "" ? "presentation" : "img"}
+      aria-hidden={title === "" ? true : undefined}
       aria-label={title === "" ? undefined : title}
-    >
-      <span className="opal-graph-word-opal">Opal</span>
-      <span className="opal-graph-word-graph"> Graph</span>
-    </span>
+      data-brand-role="wordmark"
+      data-brand-source="opal-wordmark"
+      draggable={false}
+      style={{ height: h, width: "auto", maxHeight: h }}
+    />
   );
 }
 
 /**
- * OpalLockup — symbol + typographic Opal Graph.
- * Splash / auth / hero. Authenticated chrome may use OpalMark + short wordmark.
+ * OpalLockup — full logo when word shown; mark-only for compact chrome.
+ * Logo already includes letters, so showWord renders a single logo image.
  */
 export function OpalLockup({
   size = "md",
@@ -100,7 +97,7 @@ export function OpalLockup({
   showTagline = false,
 }: {
   size?: Size;
-  /** When false, renders CORE MARK only (compact chrome). */
+  /** When false, renders logo mark only (compact chrome). */
   showWord?: boolean;
   className?: string;
   /** Tagline only for splash / marketing entry — never ordinary member tabs */
@@ -116,22 +113,31 @@ export function OpalLockup({
       </div>
     );
   }
-  const wordH = size === "hero" ? 36 : size === "lg" ? 28 : size === "md" ? 22 : 18;
+  const wordH = size === "hero" ? 48 : size === "lg" ? 40 : size === "md" ? 32 : 24;
+  const wordW = Math.round(wordH * 1.5);
   return (
     <div
-      className={`opal-lockup opal-lockup--graph opal-lockup--with-word ${className ?? ""}`.trim()}
+      className={`opal-lockup opal-lockup--graph opal-lockup--with-word opal-lockup--logo ${className ?? ""}`.trim()}
       aria-label={PRODUCT_PUBLIC_NAME}
       data-brand-public={PRODUCT_PUBLIC_NAME}
     >
-      <OpalMark size={size} title="" />
-      <div className="opal-lockup-type">
-        <OpalWordmark height={wordH} title="" />
-        {showTagline ? (
-          <p className="opal-graph-tagline" data-testid="opal-graph-tagline">
-            {BRAND.tagline}
-          </p>
-        ) : null}
-      </div>
+      <img
+        className="opal-lockup-logo"
+        src={BRAND_ASSETS.opalLogo}
+        width={wordW}
+        height={wordH}
+        alt=""
+        role="presentation"
+        draggable={false}
+        style={{ height: wordH, width: "auto" }}
+        data-brand-role="lockup"
+        data-brand-source="opal-logo"
+      />
+      {showTagline ? (
+        <p className="opal-graph-tagline" data-testid="opal-graph-tagline">
+          {BRAND.tagline}
+        </p>
+      ) : null}
     </div>
   );
 }

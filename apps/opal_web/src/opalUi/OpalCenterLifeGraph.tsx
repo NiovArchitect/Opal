@@ -14,7 +14,6 @@ import {
 } from "../api/productClient";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
-import { OpalPresenceOrb } from "../onboarding/OpalPresenceOrb";
 import {
   STRIP_TICK_MS,
   composeNowStrip,
@@ -25,6 +24,7 @@ import {
   type DayStripSource,
 } from "./centerNowStrip";
 import { OpalCenterChat } from "./OpalCenterChat";
+import { OpalLivingCharacter } from "./OpalLivingCharacter";
 import {
   localPlanSurfaceId,
   type CreatedPlanSurface,
@@ -471,13 +471,15 @@ export function OpalCenterLifeGraph({
       ) : (
         <>
       <header className="opal-center-v2-top" data-testid="opal-center-presence-header">
-        <OpalWordmark className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" />
+        <OpalWordmark height={22} className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" />
         <div className="opal-center-v2-presence">
-          <OpalPresenceOrb
-            mode="idle"
+          <OpalLivingCharacter
             size={72}
-            showStatus
             testId="opal-center-presence"
+            onTranscript={(text) => {
+              setQuery(text);
+              setAttachNote(null);
+            }}
           />
         </div>
         <button

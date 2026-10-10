@@ -8,19 +8,19 @@
   "theme_color": "#050816",
   "icons": [
     {
-      "src": "/brand/opal-graph/favicon-48.png",
+      "src": "/brand/favicon-48.png",
       "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/brand/opal-graph/manifest-icon-192.png",
-      "sizes": "192x192",
+      "src": "/brand/opal-app-icon-180.png",
+      "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/brand/opal-graph/manifest-icon-512.png",
+      "src": "/brand/opal-app-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

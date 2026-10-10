@@ -1,0 +1,84 @@
+{
+  "tip": "30856013",
+  "passed": 19,
+  "failed": 0,
+  "total": 19,
+  "checks": {
+    "a2_otp_logo_present": {
+      "ok": true,
+      "detail": "opal-logo lockup in auth"
+    },
+    "a2_icon_60_shot": {
+      "ok": true,
+      "detail": "w6a2_icon_60.png"
+    },
+    "member_shell": {
+      "ok": true,
+      "detail": ""
+    },
+    "a3_dock_center_mark": {
+      "ok": true,
+      "detail": "center-mark on dock"
+    },
+    "a3_header_wordmark": {
+      "ok": true,
+      "detail": "wordmark 51x17 on Center header"
+    },
+    "a1_living_idle_visible": {
+      "ok": true,
+      "detail": "living character on Center"
+    },
+    "a1_idle_state": {
+      "ok": true,
+      "detail": "state=idle"
+    },
+    "a1_frame_idle": {
+      "ok": true,
+      "detail": "w6a1_state_idle.png"
+    },
+    "a1_frame_notice": {
+      "ok": true,
+      "detail": "w6a1_state_notice.png"
+    },
+    "a1_frame_prepare": {
+      "ok": true,
+      "detail": "w6a1_state_prepare.png"
+    },
+    "a1_frame_listening": {
+      "ok": true,
+      "detail": "w6a1_state_listening.png"
+    },
+    "a1_frame_processing": {
+      "ok": true,
+      "detail": "w6a1_state_processing.png"
+    },
+    "a1_frame_thinking": {
+      "ok": true,
+      "detail": "w6a1_state_thinking.png"
+    },
+    "a1_frame_response_ready": {
+      "ok": true,
+      "detail": "w6a1_state_response_ready.png"
+    },
+    "a1_frame_speaking": {
+      "ok": true,
+      "detail": "w6a1_state_speaking.png"
+    },
+    "a1_frame_back_to_idle": {
+      "ok": true,
+      "detail": "w6a1_state_back_to_idle.png"
+    },
+    "a1_tap_advances": {
+      "ok": true,
+      "detail": "afterTap=prepare"
+    },
+    "a1_denied_or_honest_path": {
+      "ok": true,
+      "detail": "Microphone access is blocked. Enable it in Settings to talk to Opal."
+    },
+    "a1_machine_unit": {
+      "ok": true,
+      "detail": "livingCharacterState.test.ts eight states + honesty"
+    }
+  }
+}

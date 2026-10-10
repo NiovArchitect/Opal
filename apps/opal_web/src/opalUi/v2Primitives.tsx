@@ -8,7 +8,7 @@
  * Not an enterprise component system. Smallest reusable shells only.
  */
 import React from "react";
-import { OpalMark } from "../brand/OpalLogo";
+import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 
 /** Character-close midnight void (#050816). */
@@ -34,7 +34,7 @@ export function V2AmbientField({ className }: { className?: string }) {
   );
 }
 
-/** Canonical product mark — Opal Graph transparent symbol (S0). */
+/** Canonical product mark — transparent Opal logo (W6A2). */
 export function V2OpalMark({
   size = 26,
   className,
@@ -45,20 +45,19 @@ export function V2OpalMark({
   return (
     <img
       className={`v2-opal-mark home-opal-mark opal-mark--graph ${className ?? ""}`.trim()}
-      src={BRAND_ASSETS.graphSymbol}
-      width={size}
+      src={BRAND_ASSETS.opalLogo}
+      width={Math.round(size * 1.5)}
       height={size}
       alt=""
       data-brand-role="core-mark"
-      data-brand-source="opal-graph-symbol-exact-168-2"
+      data-brand-source="opal-logo"
       data-brand-final="true"
-      data-figma-visual-master="160:2"
       draggable={false}
     />
   );
 }
 
-/** Brand row: symbol + Opal Graph word (Home chrome). */
+/** Brand row: bubble-letter Opal wordmark at prior text cap-height (W6A3). */
 export function V2BrandRow({ className }: { className?: string }) {
   return (
     <header
@@ -66,10 +65,7 @@ export function V2BrandRow({ className }: { className?: string }) {
       aria-label={PRODUCT_PUBLIC_NAME}
       data-testid="home-brand-row"
     >
-      <V2OpalMark size={26} />
-      <span className="home-brand-word topbar-brand-word">
-        Opal<span className="is-graph"> Graph</span>
-      </span>
+      <OpalWordmark height={22} title="" className="home-brand-wordmark" />
     </header>
   );
 }

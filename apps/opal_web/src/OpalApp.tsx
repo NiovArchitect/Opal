@@ -7,7 +7,7 @@ import {
   type NeedItem,
 } from "./data";
 import { PRODUCT_COPY } from "./designTokens";
-import { OpalLockup, OpalMark } from "./brand/OpalLogo";
+import { OpalLockup, OpalWordmark } from "./brand/OpalLogo";
 import {
   BRAND_ASSETS,
   CREATE_DOCK_EXPOSED,
@@ -7266,25 +7266,16 @@ export function OpalApp() {
                   className="dock-opal-mark"
                   aria-hidden
                   data-brand-role="dock-glyph"
-                  data-figma-center-opal="645:3"
+                  data-brand-source="opal-center-mark"
                 >
-                  {/* D-13c: thin globe + pick — rest #919EB2 / active #00E5FF. See main. */}
-                  <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
-                    <g className="globe-grid" fill="none" stroke="currentColor" strokeLinecap="round">
-                      <circle cx="24" cy="24" r="14.5" strokeWidth="2"/>
-                      <ellipse className="globe-meridian" cx="24" cy="24" rx="9.5" ry="14.5" strokeWidth="1.5"/>
-                      <ellipse className="globe-meridian" cx="24" cy="24" rx="4.75" ry="14.5" strokeWidth="1.5"/>
-                      <ellipse className="globe-parallel" cx="24" cy="17" rx="12.5" ry="2.8" strokeWidth="1.5"/>
-                      <ellipse className="globe-parallel" cx="24" cy="31" rx="12.5" ry="2.8" strokeWidth="1.5"/>
-                      <ellipse className="globe-equator" cx="24" cy="24" rx="14.5" ry="3" strokeWidth="1.5"/>
-                    </g>
-                    <path
-                      className="globe-pick"
-                      d="M 24 18.5 C 27 18.5 29 20.5 29 23 C 29 26 26.5 28.5 24 30 C 21.5 28.5 19 26 19 23 C 19 20.5 21 18.5 24 18.5 Z"
-                      fill="currentColor"
-                      stroke="none"
-                    />
-                  </svg>
+                  <img
+                    className="dock-opal-center-mark"
+                    src="/brand/opal-center-mark.png"
+                    width={46}
+                    height={46}
+                    alt=""
+                    draggable={false}
+                  />
                 </span>
               </button>
               {TABS.slice(2).map((t) => (
@@ -8097,10 +8088,7 @@ export function OpalApp() {
       {tab !== "home" ? (
         <header className="topbar glass" data-brand-chrome="mark">
           <div className="topbar-brand" aria-label={PRODUCT_PUBLIC_NAME}>
-            <OpalMark size="sm" title="" />
-            <span className="topbar-brand-word">
-              Opal<span className="is-graph"> Graph</span>
-            </span>
+            <OpalWordmark height={22} title="" className="topbar-brand-wordmark" />
           </div>
           {connectionState === "reconnecting" ||
           connectionState === "failed" ||
@@ -10748,26 +10736,16 @@ export function OpalApp() {
               className="dock-opal-mark"
               aria-hidden
               data-brand-role="dock-glyph"
-              data-figma-center-opal="645:3"
+              data-brand-source="opal-center-mark"
             >
-              {/* D-13c: thin Meridian Globe + guitar-pick. Rest #919EB2 (dock inactive),
-                  active #00E5FF (dock active) via currentColor. Outer 2 / inners 1.5. */}
-              <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
-                <g className="globe-grid" fill="none" stroke="currentColor" strokeLinecap="round">
-                  <circle cx="24" cy="24" r="14.5" strokeWidth="2"/>
-                  <ellipse className="globe-meridian" cx="24" cy="24" rx="9.5" ry="14.5" strokeWidth="1.5"/>
-                  <ellipse className="globe-meridian" cx="24" cy="24" rx="4.75" ry="14.5" strokeWidth="1.5"/>
-                  <ellipse className="globe-parallel" cx="24" cy="17" rx="12.5" ry="2.8" strokeWidth="1.5"/>
-                  <ellipse className="globe-parallel" cx="24" cy="31" rx="12.5" ry="2.8" strokeWidth="1.5"/>
-                  <ellipse className="globe-equator" cx="24" cy="24" rx="14.5" ry="3" strokeWidth="1.5"/>
-                </g>
-                <path
-                  className="globe-pick"
-                  d="M 24 18.5 C 27 18.5 29 20.5 29 23 C 29 26 26.5 28.5 24 30 C 21.5 28.5 19 26 19 23 C 19 20.5 21 18.5 24 18.5 Z"
-                  fill="currentColor"
-                  stroke="none"
-                />
-              </svg>
+              <img
+                className="dock-opal-center-mark"
+                src="/brand/opal-center-mark.png"
+                width={46}
+                height={46}
+                alt=""
+                draggable={false}
+              />
             </span>
           </button>
           {TABS.slice(2).map((t) => (

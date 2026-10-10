@@ -46,26 +46,43 @@ export const BRAND = {
   ],
   assets: {
     /**
-     * Primary hero / splash / large identity — Figma 160:2 visual family.
-     * SOURCE_STATUS: DERIVATIVE_ONLY until native canonical bytes proven (615:2 / 602:2).
-     * Runtime prefers high-density derivatives for DISPLAY_DENSITY (DPR3+).
+     * W6A2 — primary identity is the canonical transparent logo lockup.
+     * Legacy Spectral emblem paths kept as historical aliases where still referenced by tests.
      */
-    opalGraphEmblem: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
-    opalGraphEmblemMaster: "/brand/opal-graph/opal-graph-emblem-master.png",
-    opalGraphEmblemHero: "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
-    opalGraphEmblem2240Derivative: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
-    opalGraphEmblemSplash2080Derivative:
-      "/brand/opal-graph/opal-graph-emblem-splash-2080-derivative.png",
-    opalGraphEmblem256: "/brand/opal-graph/opal-graph-emblem-256.png",
-    opalGraphEmblem128: "/brand/opal-graph/opal-graph-emblem-128.png",
-    opalGraphEmblem64: "/brand/opal-graph/opal-graph-emblem-64.png",
-    opalGraphAppIcon1024: "/brand/opal-graph/opal-graph-app-icon-1024.png",
+    opalGraphEmblem: "/brand/opal-logo.png",
+    opalGraphEmblemMaster: "/brand/opal-logo.png",
+    opalGraphEmblemHero: "/brand/opal-logo.png",
+    opalGraphEmblem2240Derivative: "/brand/opal-logo.png",
+    opalGraphEmblemSplash2080Derivative: "/brand/opal-logo.png",
+    opalGraphEmblem256: "/brand/opal-logo.png",
+    opalGraphEmblem128: "/brand/opal-logo.png",
+    opalGraphEmblem64: "/brand/opal-logo.png",
+    opalGraphAppIcon1024: "/brand/opal-app-icon-1024.png",
+    /** @deprecated historical Spectral emblem (kept for evidence SHA audits only). */
+    opalGraphEmblemSpectralLegacy: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
     /**
      * Paste W3 Brand Identity Lock — THE character (friendly/welcoming pose).
      * Talk-to-Opal surfaces only (onboarding chat + Opal Center header). ≥64px.
      * Source: shots/brand/opal-character.png (commit 28f282d7). Never redraw.
      */
     opalCharacter: "/brand/opal-character.png",
+    /**
+     * W6A2 — canonical Opal logo lockup (character + bubble-letter Opal).
+     * True alpha; sits on dark with no box. Source: shots/brand/opal-logo.png.
+     */
+    opalLogo: "/brand/opal-logo.png",
+    /**
+     * W6A3 — transparent bubble-letter "Opal" wordmark (1125×375).
+     * Source: shots/brand/opal-wordmark.png.
+     */
+    opalWordmark: "/brand/opal-wordmark.png",
+    /**
+     * W6A3 — iridescent O-swirl + crystal ears for Opal Center tab.
+     * Source: shots/brand/opal-center-mark.png. Not the living character button.
+     */
+    opalCenterMark: "/brand/opal-center-mark.png",
+    /** W6A2 — opaque 1024 app icon (iOS-safe). */
+    opalAppIcon1024: "/brand/opal-app-icon-1024.png",
     /**
      * Center Opal dock — Figma 645:3 EXACT CENTER OPAL REST (P0-05.2 hard lock).
      * Dock / micro chrome only — NOT the talk-to-Opal character.
@@ -85,9 +102,9 @@ export const BRAND = {
     /** @deprecated alias — points at dock MICRO emblem, not hero */
     opalGraphEmblemDock: "/brand/opal-graph/opal-dock-orb-trio-1024.png",
     spectralEmblemDock: "/brand/opal-graph/opal-dock-orb-trio-1024.png",
-    /** @deprecated alias — use opalGraphEmblem */
-    graphSymbol: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
-    graphSymbolMaster: "/brand/opal-graph/opal-graph-emblem-master.png",
+    /** @deprecated alias — use opalLogo / opalGraphEmblem */
+    graphSymbol: "/brand/opal-logo.png",
+    graphSymbolMaster: "/brand/opal-logo.png",
     graphSymbolLegacyPath: "/brand/opal-graph/symbol-160-2-transparent.png",
     graphSymbolDefective168:
       "/brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
@@ -95,22 +112,22 @@ export const BRAND = {
     graphSymbolVectorExport160: "/brand/opal-graph/symbol-vector-master-160-2-export.png",
     graphTypeTagline161: "/brand/opal-graph/lockup-161-2-type-tagline.png",
     graphWordmark161: "/brand/opal-graph/wordmark-161-3.png",
-    graphAppIcon180: "/brand/opal-graph/app-icon-180.png",
-    graphAppIcon512: "/brand/opal-graph/app-icon-512.png",
-    graphFavicon: "/favicon-opal-graph-spectral.png",
-    markCurrent: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
-    markWorkingRef: "/brand/opal-mark-current.png",
-    markMasterOpaque: "/brand/opal-mark-current.png",
-    mark: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
-    wordmarkCurrent: "/brand/opal-wordmark-current.png",
-    wordmark: "/brand/opal-wordmark-current.png",
-    lockupCurrent: "/brand/opal-lockup-current.png",
-    lockup: "/brand/opal-lockup-current.png",
+    graphAppIcon180: "/brand/opal-app-icon-180.png",
+    graphAppIcon512: "/brand/opal-app-icon-512.png",
+    graphFavicon: "/favicon-32.png",
+    markCurrent: "/brand/opal-logo.png",
+    markWorkingRef: "/brand/opal-logo.png",
+    markMasterOpaque: "/brand/opal-app-icon-1024.png",
+    mark: "/brand/opal-logo.png",
+    wordmarkCurrent: "/brand/opal-wordmark.png",
+    wordmark: "/brand/opal-wordmark.png",
+    lockupCurrent: "/brand/opal-logo.png",
+    lockup: "/brand/opal-logo.png",
     sourceLockup: "/brand/_source/a_clean_minimal_futuristic_brand_logo_layout_on.png",
-    appIcon180: "/brand/opal-graph/app-icon-180.png",
-    appIcon512: "/brand/opal-graph/app-icon-512.png",
-    favicon: "/favicon-opal-graph-spectral.png",
-    favicon48: "/brand/opal-graph/favicon-48.png",
+    appIcon180: "/brand/opal-app-icon-180.png",
+    appIcon512: "/brand/opal-app-icon-512.png",
+    favicon: "/favicon-32.png",
+    favicon48: "/brand/favicon-48.png",
     manifest: "/brand/opal-graph/site.webmanifest",
     /** Header icons — exact Figma 618:51 Search; Activity is founder override of 618:54 */
     /** 1114:2 Opal Lens — Search (familiar magnifier, Brand V4 accents) */

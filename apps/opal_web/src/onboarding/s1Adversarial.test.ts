@@ -119,17 +119,15 @@ describe("S1 adversarial harness - authority and isolation", () => {
 });
 
 describe("S1 adversarial harness - brand and assets", () => {
-  it("runtime symbol is Spectral Human Alignment emblem; 168:2 superseded", () => {
-    // STALE_TEST resolved P0-05.8A: current Brand V4 runtime emblem is 2240-derivative
-    // (brandMark.test already allows 512|2240). Do not pull product back to superseded 512-only path.
-    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(
-      /\/brand\/opal-graph\/opal-graph-emblem-(512|2240-derivative)\.png/,
-    );
-    expect(BRAND_ASSETS.graphSymbol).toMatch(
-      /\/brand\/opal-graph\/opal-graph-emblem-(512|2240-derivative)\.png/,
-    );
+  it("runtime symbol is canonical Opal logo; 168:2 superseded", () => {
+    // W6A2: primary identity is transparent opal-logo.png (aliases remounted).
+    expect(BRAND_ASSETS.opalGraphEmblem).toMatch(/\/brand\/opal-logo\.png/);
+    expect(BRAND_ASSETS.graphSymbol).toMatch(/\/brand\/opal-logo\.png/);
+    expect(BRAND_ASSETS.opalLogo).toMatch(/\/brand\/opal-logo\.png/);
+    expect(BRAND_ASSETS.opalWordmark).toMatch(/\/brand\/opal-wordmark\.png/);
+    expect(BRAND_ASSETS.opalCenterMark).toMatch(/\/brand\/opal-center-mark\.png/);
     expect(BRAND_ASSETS.opalGraphEmblemHero).toMatch(
-      /splash-2080-derivative|2240-derivative|emblem/,
+      /opal-logo\.png|splash-2080-derivative|2240-derivative|emblem/,
     );
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
     expect(BRAND.figma.symbolOnlyMaster).toBe("160:2");
@@ -141,13 +139,15 @@ describe("S1 adversarial harness - brand and assets", () => {
   it("brand asset files exist and are non-zero", () => {
     const publicDir = resolve(root, "../public");
     const assets = [
-      "brand/opal-graph/opal-graph-emblem-master.png",
-      "brand/opal-graph/opal-graph-emblem-1024.png",
-      "brand/opal-graph/opal-graph-emblem-dock.png",
+      "brand/opal-logo.png",
+      "brand/opal-wordmark.png",
+      "brand/opal-center-mark.png",
+      "brand/opal-app-icon-180.png",
+      "brand/opal-app-icon-512.png",
+      "brand/opal-character.png",
       "brand/opal-graph/symbol-160-2-transparent.png",
       "brand/opal-graph/symbol-source-168-2-defective-black-plate.png",
-      "brand/opal-graph/app-icon-180.png",
-      "favicon-opal-graph-spectral.png",
+      "favicon-32.png",
       "demo/moments/restaurant.jpg",
       "demo/moments/portrait.jpg",
       "demo/moments/food.jpg",

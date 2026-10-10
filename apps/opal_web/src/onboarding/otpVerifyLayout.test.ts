@@ -11,9 +11,9 @@ const css = readFileSync(resolve(root, "styles.css"), "utf8");
 const fre = readFileSync(resolve(__dirname, "FirstRunExperience.tsx"), "utf8");
 
 describe("Paste W6 Phase 0 — OTP Verify layout law", () => {
-  it("uses character lockup, not abstract OPALGRAPH emblem, on verify", () => {
-    expect(fre).toMatch(/fr-character-lockup|CharacterLockup/);
-    expect(fre).toMatch(/opalCharacter|opal-character\.png/);
+  it("uses canonical logo lockup, not abstract OPALGRAPH emblem, on verify", () => {
+    expect(fre).toMatch(/fr-character-lockup|CharacterLockup|fr-logo-lockup/);
+    expect(fre).toMatch(/opalLogo|opal-logo\.png/);
     // Verify step must not mount AuthHeroMark / graph emblem hero
     const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('step === "fr08"'));
     expect(verifyBlock).toMatch(/CharacterLockup/);

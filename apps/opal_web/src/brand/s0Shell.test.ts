@@ -7,11 +7,11 @@ import { CREATE_DOCK_EXPOSED, PRODUCT_PUBLIC_NAME } from "./brand";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 describe("S0 shell navigation foundation", () => {
-  it("keeps Home People Plans You as live tabs", () => {
+  it("keeps Home Chats Graphs You as live tabs", () => {
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
     expect(app).toMatch(/id: "home".*label: "Home"/s);
-    expect(app).toMatch(/id: "chats".*label: "People"/s);
-    expect(app).toMatch(/id: "plans".*label: "Plans"/s);
+    expect(app).toMatch(/id: "chats".*label: "Chats"/s);
+    expect(app).toMatch(/id: "graphs".*label: "Graphs"/s);
     expect(app).toMatch(/id: "you".*label: "You"/s);
     expect(app).toMatch(/member-tabbar/);
     expect(app).toMatch(/member-tab-\$\{t\.id\}/);
@@ -28,6 +28,6 @@ describe("S0 shell navigation foundation", () => {
     expect(PRODUCT_PUBLIC_NAME).toBe("Opal Graph");
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
     expect(app).toMatch(/PRODUCT_PUBLIC_NAME/);
-    expect(app).toMatch(/Opal<span className="is-graph"> Graph<\/span>/);
+    expect(app).toMatch(/OpalWordmark/);
   });
 });

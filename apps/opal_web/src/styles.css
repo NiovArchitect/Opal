@@ -22894,3 +22894,202 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-character-lockup {
 html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   margin-top: 12px !important;
 }
+
+/* ─── W6A1 Living Opal Center character (state-driven; no GIF loop) ─── */
+.opal-living-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.opal-living-character {
+  position: relative;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+}
+.opal-living-border {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, #00E5FF, #8B5CF6, #DE58AD, #00E5FF);
+  opacity: calc(0.55 + var(--opal-living-pulse, 0.55) * 0.45);
+  z-index: 0;
+  pointer-events: none;
+}
+.opal-living-border::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #050816;
+}
+.opal-living-frame {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0B1226;
+}
+.opal-living-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 28%;
+  border-radius: 50%;
+  user-select: none;
+  pointer-events: none;
+}
+.opal-living-headphones {
+  position: absolute;
+  inset: 4% 6% auto;
+  height: 42%;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+.opal-living-lightbulb {
+  position: absolute;
+  right: 6%;
+  top: 8%;
+  z-index: 3;
+  filter: drop-shadow(0 0 6px rgba(255, 200, 107, 0.45));
+  animation: opal-living-breathe 2.4s ease-in-out infinite;
+}
+.opal-living-status {
+  margin: 0;
+  max-width: 220px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #9eadc7;
+}
+.opal-living-idle .opal-living-art {
+  animation: opal-living-idle-soft 4.2s ease-in-out infinite;
+}
+.opal-living-notice .opal-living-art {
+  animation: opal-living-notice 420ms ease-out both;
+}
+.opal-living-prepare .opal-living-border {
+  opacity: 0.95;
+  filter: brightness(1.15);
+}
+.opal-living-listening .opal-living-border {
+  animation: opal-living-mic-pulse 0.9s ease-in-out infinite;
+  opacity: calc(0.4 + var(--opal-living-pulse, 0.5) * 0.6);
+}
+.opal-living-processing .opal-living-border {
+  animation: opal-living-wave-ticks 0.55s steps(4) infinite;
+}
+.opal-living-thinking .opal-living-art {
+  transform: translateY(-2px);
+}
+.opal-living-thinking .opal-living-border {
+  animation: opal-living-breathe 2.6s ease-in-out infinite;
+}
+.opal-living-response_ready .opal-living-art {
+  animation: opal-living-bounce 480ms ease-out both;
+}
+.opal-living-speaking .opal-living-art {
+  animation: opal-living-speak-bob 0.55s ease-in-out infinite;
+}
+.opal-living-back_to_idle .opal-living-headphones {
+  animation: opal-living-hp-off 520ms ease-in both;
+}
+@keyframes opal-living-idle-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+@keyframes opal-living-notice {
+  0% { transform: scale(1) translateY(0); }
+  40% { transform: scale(1.06) translateY(-3px); }
+  100% { transform: scale(1.02) translateY(-1px); }
+}
+@keyframes opal-living-mic-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+@keyframes opal-living-wave-ticks {
+  0% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.45; }
+}
+@keyframes opal-living-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+@keyframes opal-living-bounce {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-5px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes opal-living-speak-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes opal-living-hp-off {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+/* ─── W6A2 / W6A3 brand chrome ─── */
+.opal-wordmark-img,
+.opal-graph-wordmark.opal-wordmark-img {
+  display: block;
+  height: auto;
+  max-height: 28px;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+  user-select: none;
+  pointer-events: none;
+}
+.home-brand-wordmark,
+.topbar-brand-wordmark {
+  max-height: 22px;
+  height: 22px !important;
+  width: auto !important;
+}
+.opal-lockup-logo,
+.fr-logo-lockup-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 160px;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+.fr-logo-lockup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0 4px;
+}
+.fr-logo-lockup-img {
+  max-height: 88px;
+}
+.dock-opal-center-mark {
+  display: block;
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+.tabbar-option-b .dock-opal.is-rest .dock-opal-center-mark {
+  filter: grayscale(0.35) opacity(0.85);
+}
+.tabbar-option-b .dock-opal.is-listening .dock-opal-center-mark,
+.tabbar-option-b .dock-opal[data-dock-active="true"] .dock-opal-center-mark {
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.4));
+  opacity: 1;
+}
