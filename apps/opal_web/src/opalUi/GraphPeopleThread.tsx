@@ -224,6 +224,21 @@ export function GraphPeopleThreadHeader({
                 </p>
               ) : null}
             </button>
+          ) : !isGroup && onOpenContactProfile ? (
+            <button
+              type="button"
+              className="gpt-identity-copy gpt-identity-open-info"
+              data-testid="gpt-open-contact"
+              aria-label={`${peerName} contact`}
+              onClick={onOpenContactProfile}
+            >
+              {nameRow}
+              {connectionLabel ? (
+                <p className="gpt-conn" data-testid="gpt-conn">
+                  {connectionLabel}
+                </p>
+              ) : null}
+            </button>
           ) : (
             <div className="gpt-identity-copy">
               {nameRow}

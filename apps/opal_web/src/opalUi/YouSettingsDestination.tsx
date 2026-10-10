@@ -108,7 +108,15 @@ type Row =
       /** Honest blocker when the nested surface is not buildable yet. */
       blockedReason?: string;
     }
-  | { kind: "action"; id: string; title: string; destructive?: boolean; opens?: YouSettingKey }
+  | {
+      kind: "action";
+      id: string;
+      title: string;
+      destructive?: boolean;
+      opens?: YouSettingKey;
+      /** Honest blocker when the action cannot run yet. */
+      blockedReason?: string;
+    }
   | { kind: "note"; id: string; text: string }
   | {
       kind: "field";
@@ -223,7 +231,6 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         title: "Nearby range",
         subtitle: "Default discovery distance. Per-search intent can expand it.",
         value: "25 mi",
-        blockedReason: "Range picker needs discovery API — fixed 25 mi for now.",
       },
       {
         kind: "toggle",
@@ -281,12 +288,11 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         defaultOn: false,
       },
       {
-        kind: "toggle",
-        blockedReason: "Travel mode activates from device timezone vs home (no GPS).",
+        kind: "nav",
         id: "travel-mode",
         title: "Travel mode",
         subtitle: "Quiet hours and plan times shift when your device TZ differs from home.",
-        defaultOn: false,
+        value: "Off",
       },
       {
         kind: "nav",
@@ -658,9 +664,12 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         text: "This permanently removes your account.\nYour published content, relationship edges and account access will be handled according to the deletion policy. Active provider obligations must be resolved first.",
       },
       {
-        kind: "note",
-        id: "delete-unavailable",
-        text: "Account deletion needs a server hard-delete + session revoke endpoint that is not exposed in this build. Contact support to delete — the app will not pretend it succeeded.",
+        kind: "action",
+        id: "confirm-delete",
+        title: "Delete my account",
+        destructive: true,
+        blockedReason:
+          "Account deletion endpoint is not exposed yet. Contact support to close your account.",
       },
       {
         kind: "action",
@@ -728,6 +737,7 @@ export function YouSettingsDestination({
     bio: "Keep it short. Let your Graph speak.",
     confirm: "",
     "home-timezone": deviceTz,
+    "travel-mode": "Off",
   }));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -769,15 +779,22 @@ export function YouSettingsDestination({
         typeof Intl !== "undefined"
           ? Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles"
           : "America/Los_Angeles";
+      void import("../runtime/travelTimezoneIngest").then(({ ingestDeviceTimezone }) =>
+        ingestDeviceTimezone(session.access_token),
+      );
       void import("../api/productClient").then(({ getHomeTimezone }) =>
         getHomeTimezone(session.access_token)
           .then((body) => {
             const tz =
               (typeof body.home_timezone === "string" && body.home_timezone) || fallbackTz;
-            setFields((f) => ({ ...f, "home-timezone": tz }));
+            setFields((f) => ({
+              ...f,
+              "home-timezone": tz,
+              "travel-mode": body.active ? "On" : "Off",
+            }));
           })
           .catch(() => {
-            setFields((f) => ({ ...f, "home-timezone": fallbackTz }));
+            setFields((f) => ({ ...f, "home-timezone": fallbackTz, "travel-mode": "Off" }));
           }),
       );
     }
@@ -915,7 +932,8 @@ export function YouSettingsDestination({
           }
           if (row.kind === "nav") {
             // Informational value row (no opens, no blocker) — e.g. This phone · Active.
-            if (!row.opens && !row.blockedReason && row.value) {
+            const infoValue = fields[row.id] ?? row.value;
+            if (!row.opens && !row.blockedReason && infoValue) {
               return (
                 <div
                   key={row.id}
@@ -926,7 +944,7 @@ export function YouSettingsDestination({
                     <strong>{row.title}</strong>
                     <span>{row.subtitle}</span>
                   </div>
-                  <span className="you-settings-row-value">{row.value}</span>
+                  <span className="you-settings-row-value">{infoValue}</span>
                 </div>
               );
             }
@@ -983,6 +1001,28 @@ export function YouSettingsDestination({
             );
           }
           if (row.kind === "action") {
+            if (row.blockedReason) {
+              return (
+                <div
+                  key={row.id}
+                  className={`you-settings-row you-settings-row-blocked${
+                    row.destructive ? " is-destructive" : ""
+                  }`}
+                  data-testid={`you-setting-row-${row.id}`}
+                >
+                  <div className="you-settings-row-copy">
+                    <strong>{row.title}</strong>
+                  </div>
+                  <span
+                    className="you-settings-blocked"
+                    data-testid={`you-setting-blocked-${row.id}`}
+                    aria-label={`${row.title}: ${row.blockedReason}`}
+                  >
+                    {row.blockedReason}
+                  </span>
+                </div>
+              );
+            }
             return (
               <button
                 key={row.id}

@@ -60,9 +60,17 @@ if (isProduction) {
 }
 infoPlist.UIBackgroundModes = Array.from(modes);
 
+const splash = {
+  ...(base.splash || {}),
+  image: "./assets/icon.png",
+  resizeMode: "contain",
+  backgroundColor: "#050816",
+};
+
 module.exports = {
   expo: {
     ...base,
+    splash,
     plugins,
     ios: {
       ...base.ios,

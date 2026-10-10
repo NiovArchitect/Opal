@@ -82,24 +82,54 @@ export function DiscoveryDetailSheet({
       </p>
 
       <div className="dx437-ctas">
-        <button
-          type="button"
-          className="dx437-save"
-          data-testid="discovery-save-idea"
-          data-mode="active"
-          onClick={onSaveIdea}
-        >
-          Save this idea
-        </button>
-        <button
-          type="button"
-          className="dx437-graph"
-          data-testid="discovery-graph-this"
-          data-mode="active"
-          onClick={onGraphThis}
-        >
-          Graph this
-        </button>
+        {onSaveIdea ? (
+          <button
+            type="button"
+            className="dx437-save"
+            data-testid="discovery-save-idea"
+            data-mode="active"
+            onClick={onSaveIdea}
+          >
+            Save this idea
+          </button>
+        ) : (
+          <div
+            className="dx437-save is-gated"
+            data-testid="discovery-save-idea"
+            data-mode="dependency"
+            role="status"
+            aria-label="Save this idea: Save needs a collection pick path from this card."
+          >
+            <strong>Save this idea</strong>
+            <span data-testid="discovery-save-idea-blocked">
+              Save needs a collection pick path from this card.
+            </span>
+          </div>
+        )}
+        {onGraphThis ? (
+          <button
+            type="button"
+            className="dx437-graph"
+            data-testid="discovery-graph-this"
+            data-mode="active"
+            onClick={onGraphThis}
+          >
+            Graph this
+          </button>
+        ) : (
+          <div
+            className="dx437-graph is-gated"
+            data-testid="discovery-graph-this"
+            data-mode="dependency"
+            role="status"
+            aria-label="Graph this: Plan composer is not attached from discovery yet."
+          >
+            <strong>Graph this</strong>
+            <span data-testid="discovery-graph-this-blocked">
+              Plan composer is not attached from discovery yet.
+            </span>
+          </div>
+        )}
       </div>
 
       {onFollow ? (

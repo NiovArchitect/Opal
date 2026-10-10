@@ -185,19 +185,24 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const nameInputIdx = meet.indexOf("hs-name-input", peopleComposerIdx);
     expect(statusIdx).toBeGreaterThan(peopleComposerIdx);
     expect(nameInputIdx).toBeGreaterThan(statusIdx);
-    // Single-page document order: greeting → name → friend → perms → assist → sticky continue
+    // W8 document order: greeting → name → permissions → friend → assist → sticky continue
     const greetIdx = meet.indexOf("hs-opal-greeting");
     const selfNameIdx = meet.indexOf("hs-self-name-input");
-    const friendIdx = meet.indexOf("hs-name-input");
     const permIdx = meet.indexOf("hs-perm-list");
+    const friendIdx = meet.indexOf("hs-name-input");
     const assistIdx = meet.indexOf("hs-assist-row");
     const continueIdx = meet.indexOf("hs-meet-continue");
     expect(greetIdx).toBeGreaterThan(-1);
     expect(selfNameIdx).toBeGreaterThan(greetIdx);
-    expect(friendIdx).toBeGreaterThan(selfNameIdx);
-    expect(permIdx).toBeGreaterThan(friendIdx);
-    expect(assistIdx).toBeGreaterThan(permIdx);
+    expect(permIdx).toBeGreaterThan(selfNameIdx);
+    expect(friendIdx).toBeGreaterThan(permIdx);
+    expect(assistIdx).toBeGreaterThan(friendIdx);
     expect(continueIdx).toBeGreaterThan(assistIdx);
+    // Continue requires every permission decided (Allow or Not now)
+    expect(meet).toMatch(/permissionsDecided/);
+    expect(meet).toMatch(/permDecisions\[kind\] === "allowed" \|\| permDecisions\[kind\] === "skipped"/);
+    // No autofocus that scrolls past approvals
+    expect(meet).not.toMatch(/selfNameRef\.current\?\.focus\(\)/);
   });
 
   it("suggestUsernameFromName strips non-alphanumeric (no underscores)", () => {

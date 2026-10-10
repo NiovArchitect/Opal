@@ -5,12 +5,17 @@
     "version": "0.13.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#050816"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "local.opal.mobile",
       "buildNumber": "5",
       "infoPlist": {
-        "NSContactsUsageDescription": "Opal needs your contacts so you can pick real people to plan with \u2014 not type names from memory.",
+        "NSContactsUsageDescription": "Opal needs your contacts so you can pick real people to plan with, not type names from memory.",
         "NSCameraUsageDescription": "Opal needs camera access for video calls.",
         "NSPhotoLibraryUsageDescription": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
         "NSMicrophoneUsageDescription": "Opal needs microphone access for voice calls and voice messages.",
@@ -41,7 +46,7 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Opal needs your contacts so you can pick real people to plan with \u2014 not type names from memory. Only people you select are invited."
+          "contactsPermission": "Opal needs your contacts so you can pick real people to plan with, not type names from memory. Only people you select are invited."
         }
       ],
       "./plugins/withReadOnlyContacts.js",
@@ -50,14 +55,14 @@
         {
           "photosPermission": "Allow Opal Graph to access photos you choose to add to Stories, Graphs, and conversations.",
           "cameraPermission": "Allow Opal Graph to use your camera so you can add photos or video to Stories, Graphs, and conversations.",
-          "microphonePermission": "Opal uses the microphone so you can talk to her."
+          "microphonePermission": "Opal needs microphone access for voice calls and voice messages."
         }
       ],
       "expo-document-picker",
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Opal uses the microphone so you can talk to her.",
+          "microphonePermission": "Opal needs microphone access for voice calls and voice messages.",
           "speechRecognitionPermission": "Opal uses speech recognition to understand your voice."
         }
       ],
@@ -67,7 +72,7 @@
     ],
     "extra": {
       "buildNumber": "5",
-      "releaseNote": "Bring-to-life: expo-contacts (AdHoc without push entitlement \u2014 push remains on production profile)",
+      "releaseNote": "Bring-to-life: expo-contacts (AdHoc without push entitlement; push remains on production profile)",
       "eas": {
         "projectId": "de17c8b3-074e-4656-980d-e16fc10bbda4"
       }

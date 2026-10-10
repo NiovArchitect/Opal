@@ -12,6 +12,7 @@ import {
   resolveDecision,
   type DecisionResolvePayload,
 } from "../api/productClient";
+import { getDeviceCoords } from "../device/deviceLocation";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
 import {
@@ -285,12 +286,15 @@ export function OpalCenterLifeGraph({
     lastIdempotencyKey.current = idempotencyKey;
 
     try {
+      // W8 Phase 4 — pass real device coords when available (Meet Allow caches them).
+      const coords = await getDeviceCoords();
       const payload = await resolveDecision({
         intent: "nearby_now",
         scope_type: "solo",
         preference_context: { free_text: q, center_v2: true },
         time_context: { open_window_hours: 2 },
         idempotency_key: idempotencyKey,
+        ...(coords ? { lat: coords.lat, lng: coords.lng } : {}),
       });
       if (gen !== requestGen.current) {
         /* Stale asynchronous intelligence — newer intent superseded this result. */
@@ -475,7 +479,7 @@ export function OpalCenterLifeGraph({
       ) : (
         <>
       <header className="opal-center-v2-top" data-testid="opal-center-presence-header">
-        <OpalWordmark height={22} className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" />
+        <OpalWordmark height={34} className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" data-testid="opal-center-lifegraph-wordmark" />
         <div className="opal-center-v2-presence">
           <OpalLivingCharacter
             size={132}

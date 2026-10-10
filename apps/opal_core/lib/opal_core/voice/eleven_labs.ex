@@ -6,7 +6,7 @@ defmodule OpalCore.Voice.ElevenLabs do
   `{:disabled, "ELEVENLABS_API_KEY missing"}`.
 
   Founder-tunable voice ID (ElevenLabs dashboard → Voices):
-  default `"21m00Tcm4TlvDq8ikWAM"` (Rachel) — swap when founder picks Opal brand voice.
+  default `"XrExE9yKIg1WjnnlVkGX"` (Matilda) — free-tier brand voice.
   Override via `ELEVENLABS_VOICE_ID` or `opts[:voice_id]`.
   """
 

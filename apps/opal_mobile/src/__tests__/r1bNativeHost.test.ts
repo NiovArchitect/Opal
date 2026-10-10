@@ -16,15 +16,20 @@ describe("R1B native host authority", () => {
     const surface = readFileSync(resolve(root, "src/shell/NativeFirstRunSurface.tsx"), "utf8");
     expect(surface).toMatch(/opal_native_host=1/);
     expect(surface).toMatch(/opal_reset_first_run=1/);
-    expect(surface).toMatch(/opal_founder_seed=1/);
     expect(surface).toMatch(/opal_native_session/);
     expect(surface).toMatch(/Opal owns every pixel/);
   });
 
-  it("post-auth ProductWebSurface keeps founder seed on LAN walks", () => {
-    const surface = readFileSync(resolve(root, "src/shell/ProductWebSurface.tsx"), "utf8");
-    expect(surface).toMatch(/opal_native_host=1&opal_founder_seed=1/);
-    expect(surface).toMatch(/opal\.founder_seed\.opt_in\.persist\.v1/);
+  it("gates founder seed to LAN/dev; production path does not inject", () => {
+    const firstRun = readFileSync(resolve(root, "src/shell/NativeFirstRunSurface.tsx"), "utf8");
+    const product = readFileSync(resolve(root, "src/shell/ProductWebSurface.tsx"), "utf8");
+    for (const surface of [firstRun, product]) {
+      expect(surface).toMatch(/FOUNDER_SEED_ENABLED/);
+      expect(surface).toMatch(/RELEASE_PROFILE\.allowsLocalhost/);
+      expect(surface).toMatch(/opal_founder_seed=1/);
+      expect(surface).toMatch(/FOUNDER_SEED_ENABLED \? "&opal_founder_seed=1" : ""/);
+    }
+    expect(product).toMatch(/opal\.founder_seed\.opt_in\.persist\.v1/);
   });
 
   it("activation requests otp consent and avoids fixture defaults", () => {

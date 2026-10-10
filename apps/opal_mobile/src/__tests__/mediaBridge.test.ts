@@ -96,7 +96,7 @@ describe("native host wiring", () => {
     expect(plist.NSCameraUsageDescription).toMatch(/camera/i);
     expect(plist.NSPhotoLibraryUsageDescription).toMatch(/photos/i);
     expect(plist.NSMicrophoneUsageDescription).toMatch(/microphone/i);
-    expect(plist.NSMicrophoneUsageDescription).toMatch(/talk to her/i);
+    expect(plist.NSMicrophoneUsageDescription).toMatch(/voice calls/i);
     expect(plist.NSSpeechRecognitionUsageDescription).toMatch(/speech recognition/i);
     const pluginNames = (appJson.expo.plugins ?? []).map((pl: string | [string, unknown]) =>
       typeof pl === "string" ? pl : pl[0],
@@ -104,7 +104,7 @@ describe("native host wiring", () => {
     expect(pluginNames).toContain("expo-image-picker");
     expect(pluginNames).toContain("expo-document-picker");
     expect(pluginNames).toContain("expo-speech-recognition");
-    expect(pluginNames).toContain("expo-speech");
+    // expo-speech is a runtime dependency (TTS), not an Expo config plugin.
   });
 
   test("OC-6 speech inject scripts deliver CustomEvents", () => {

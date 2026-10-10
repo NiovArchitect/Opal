@@ -12,7 +12,10 @@ import { ActivityIndicator, Platform, StatusBar, StyleSheet, Text, View } from "
 import { WebView } from "react-native-webview";
 import { saveProductSession, type ProductSession } from "../api/productSession";
 import { handleWebViewMessage } from "../bridge/handleWebViewMessage";
-import { PRODUCT_WEB_URL } from "../config";
+import { PRODUCT_WEB_URL, RELEASE_PROFILE } from "../config";
+
+/** LAN/dev profiles only. Production / internal_rc must never inject founder seed. */
+const FOUNDER_SEED_ENABLED = RELEASE_PROFILE.allowsLocalhost;
 
 type Props = {
   onAuthenticated: (session: ProductSession) => void;
@@ -25,8 +28,9 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
   const uri = useMemo(() => {
     const base = (PRODUCT_WEB_URL || "").replace(/\/$/, "");
     // Full Brand V4 first-run progression; never put tokens in the URL.
-    // Include founder seed so chats/calls/threads match walk chrome after auth.
-    return `${base}/?opal_native_host=1&opal_reset_first_run=1&opal_founder_seed=1`;
+    // Founder seed only on LAN/dev walks — never on production path.
+    const seed = FOUNDER_SEED_ENABLED ? "&opal_founder_seed=1" : "";
+    return `${base}/?opal_native_host=1&opal_reset_first_run=1${seed}`;
   }, []);
 
   if (__DEV__) {
@@ -45,8 +49,12 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
           sessionStorage.setItem('opal_native_host', '1');
           sessionStorage.setItem('opal_reset_first_run', '1');
           sessionStorage.setItem('opal_host_web_url', ${JSON.stringify(PRODUCT_WEB_URL || "")});
-          sessionStorage.setItem('opal.founder_seed.opt_in.v1', '1');
-          localStorage.setItem('opal.founder_seed.opt_in.persist.v1', '1');
+          ${
+            FOUNDER_SEED_ENABLED
+              ? `sessionStorage.setItem('opal.founder_seed.opt_in.v1', '1');
+          localStorage.setItem('opal.founder_seed.opt_in.persist.v1', '1');`
+              : ""
+          }
         } catch (e) {}
         true;
       })();

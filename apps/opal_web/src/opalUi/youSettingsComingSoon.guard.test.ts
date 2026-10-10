@@ -62,7 +62,6 @@ describe("You settings — zero Coming soon (screenshot bug 1)", () => {
     for (const id of [
       "people-first",
       "local-discovery",
-      "nearby-range",
       "suggested-people",
       "suggested-experiences",
     ]) {
@@ -72,6 +71,11 @@ describe("You settings — zero Coming soon (screenshot bug 1)", () => {
       );
       expect(block, `${id} missing blockedReason`).toMatch(rowRe);
     }
+    // nearby-range is informational LIVE (fixed 25 mi): value, no blocker.
+    const nearbyObj = block.match(/\{[^{}]*id:\s*"nearby-range"[^{}]*\}/);
+    expect(nearbyObj?.[0], "nearby-range object").toBeTruthy();
+    expect(nearbyObj![0]).toContain('value: "25 mi"');
+    expect(nearbyObj![0]).not.toMatch(/blockedReason/);
     expect(block).not.toMatch(/Coming soon/i);
   });
 });

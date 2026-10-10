@@ -2853,23 +2853,40 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W4 — after OTP, always open Meet Opal (Name → Permissions → Friend).
-   * Return true so FirstRunExperience pauses before fr08/fr09/fr10.
+   * Paste W4 / W8 — after OTP, always open Meet Opal (Name → Permissions → Friend).
+   * If Meet already finished (Skip before OTP), land on Opal Center ambient —
+   * never fall through to fr08 → Home. Return true so FirstRunExperience pauses.
    */
   const handleAfterPhoneVerify = (s: ProductSession): boolean => {
-    if (meetOpalDone) return false;
     setSession(s);
     saveSession(s);
     setFrResumeSession(s);
     setAuthReady(true);
     setLoadError(null);
+    if (meetOpalDone) {
+      // Meet already completed (e.g. Skip before auth). Open Center, not Home.
+      completeFirstRun();
+      try {
+        const q = new URLSearchParams(window.location.search);
+        setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+      } catch {
+        setOpalAmbientMode("solo");
+      }
+      setOpalAmbientOpen(true);
+      void refreshLive(s);
+      void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+        notifyNativeHostSession(s);
+      });
+      return true;
+    }
     setFirstRunStage("meet_opal");
+    setShowFirstRun(true);
     return true;
   };
 
   /**
-   * Paste W6 — Meet Opal complete → Opal Center (ambient), never Home social feed.
-   * Skips This is you / Assist / ActOnBehalf.
+   * Paste W6 / W8 — Meet Opal complete → Opal Center (ambient), never Home social feed.
+   * Skips This is you / Assist / ActOnBehalf. Every Meet completion branch lands here.
    */
   const advanceMeetOpalToAuth = () => {
     setMeetOpalDone(true);
@@ -4572,11 +4589,19 @@ export function OpalApp() {
                 setNotificationNotice("Couldn't update notifications. Try again.");
               });
             }}
-            onLeave={() => {
+            leaveBlockedReason="Leave group needs a membership revoke API. Closing the chat does not remove you from the group."
+            onOpenSharedGraph={() => {
               setGroupInfoOpen(false);
-              if (activeChatId) productRealtime.leaveConversation(activeChatId);
-              setActiveChatId(null);
-              setTab("chats");
+              const planId =
+                (isFounderSeedEnabled() &&
+                /juniper|crew/i.test(
+                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                )
+                  ? "seed-chanelle-juniper"
+                  : null) ||
+                activeChat.planProjection?.lineage_id ||
+                activeChat.id;
+              openGraphDetail(planId, "graphs");
             }}
           />
         ) : null}
@@ -7405,6 +7430,26 @@ export function OpalApp() {
               setStoryView(null);
               setStoryQueueOverride(null);
             }}
+            onReply={(s) => {
+              setStoryView(null);
+              setStoryQueueOverride(null);
+              const peer = (s.person || "").toLowerCase();
+              const chat = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === peer ||
+                  (c.name || "").toLowerCase().includes(peer) ||
+                  peer.includes((c.name || "").toLowerCase()),
+              );
+              if (chat) {
+                void openChat(chat.id);
+                return;
+              }
+              setCallsGateNote(
+                peer
+                  ? `No chat with ${s.person} yet. Open Chats to start one.`
+                  : "Open Chats to reply.",
+              );
+            }}
           />
         ) : null}
         {tripCanvasOpen ? (
@@ -7616,11 +7661,20 @@ export function OpalApp() {
             onAuthenticated={(s) => {
               // Always re-apply session — Meet Opal may have set authReady earlier;
               // boot reset must not leave us in a blank "Preparing" shell.
+              // W8: every first-run completion lands on Opal Center ambient, never Home.
               setSession(s);
               saveSession(s);
               setAuthReady(true);
               setLoadError(null);
+              setMeetOpalDone(true);
               completeFirstRun();
+              try {
+                const q = new URLSearchParams(window.location.search);
+                setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+              } catch {
+                setOpalAmbientMode("solo");
+              }
+              setOpalAmbientOpen(true);
               void refreshLive(s);
               void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
                 notifyNativeHostSession(s);
@@ -9812,6 +9866,21 @@ export function OpalApp() {
                   );
                   setHomeGateNote(`Following ${card.person}.`);
                 }}
+                onSaveIdea={() => {
+                  setDiscoveryCardId(null);
+                  setSaveCardId(card.id);
+                }}
+                onGraphThis={() => {
+                  setDiscoveryCardId(null);
+                  openPlanComposer({
+                    id: card.id,
+                    title: card.title || "Nearby plan",
+                    place: card.placeLine || card.detail || card.title || null,
+                    who: card.person || null,
+                    people: card.person ? [card.person] : [],
+                    vibe: "Idea",
+                  });
+                }}
               />
             );
           })()
@@ -9837,6 +9906,27 @@ export function OpalApp() {
             setStoryView(null);
             setStoryQueueOverride(null);
             setHomeScrollToken((t) => t + 1);
+          }}
+          onReply={(s) => {
+            setStoryView(null);
+            setStoryQueueOverride(null);
+            const peer = (s.person || "").toLowerCase();
+            const chat = chats.find(
+              (c) =>
+                (c.name || "").toLowerCase() === peer ||
+                (c.name || "").toLowerCase().includes(peer) ||
+                peer.includes((c.name || "").toLowerCase()),
+            );
+            if (chat) {
+              void openChat(chat.id);
+              return;
+            }
+            setHomeGateNote(
+              peer
+                ? `No chat with ${s.person} yet. Open Chats to start one.`
+                : "Open Chats to reply.",
+            );
+            setTab("chats");
           }}
         />
       ) : null}

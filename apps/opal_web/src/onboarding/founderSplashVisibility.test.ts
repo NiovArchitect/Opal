@@ -39,16 +39,19 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
 
   it("FOUNDER_RESET_SPLASH_PRIMARY_CONTENT_VISIBLE", () => {
     const splash = src("onboarding/FirstRunSplashPage.tsx");
+    // W7/W8: lockup emblem carries the Opal letters; separate wordmark line removed.
     for (const needle of [
       "fr00-splash-emblem",
-      "fr00-splash-wordmark",
       "opal-graph-tagline",
       "fr00-skip-intro",
       "fr00-tap-begin",
       "fr00-already-account",
+      "data-splash-hold=\"indefinite\"",
+      "data-splash-auto-advance=\"0\"",
     ]) {
-      expect(splash, needle).toMatch(new RegExp(needle));
+      expect(splash, needle).toMatch(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     }
+    expect(splash).not.toMatch(/SPLASH_AUTO_MS|setTimeout\(goBegin/);
   });
 
   it("Promise remains a separate top-level stage (no Splash regression into Promise)", () => {

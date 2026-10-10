@@ -25,8 +25,9 @@ export type ReleaseProfile = {
   allowsLocalhost: boolean;
 };
 
-const VERSION = "0.12.0";
-const BUILD = "12";
+// Keep in sync with apps/opal_mobile/app.json (expo.version / ios.buildNumber).
+const VERSION = "0.13.0";
+const BUILD = "5";
 
 export const PROFILES: Record<BuildProfile, ReleaseProfile> = {
   development: {

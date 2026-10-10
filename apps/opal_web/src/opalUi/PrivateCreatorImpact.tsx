@@ -1,12 +1,13 @@
 /**
  * Pass 30R2 — private creator impact (Figma 124:33).
  * Private only. No public Inspired N. No analytics/leaderboard/philosophy.
+ * Empty until a real impact API exists — never fabricate counts.
  */
 import React from "react";
 
 export function PrivateCreatorImpact({
-  sentence = "Your weekend in Little Italy inspired 12 experiences.",
-  mediaUrl = "/demo/moments/food.jpg",
+  sentence = "Private impact shows up here after people use what you shared.",
+  mediaUrl = null,
 }: {
   sentence?: string;
   mediaUrl?: string | null;

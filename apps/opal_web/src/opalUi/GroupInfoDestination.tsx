@@ -21,6 +21,10 @@ type Props = {
   onAddPeople?: () => void;
   onMute?: () => void;
   onLeave?: () => void;
+  /** Honest blocker when membership revoke is not available. */
+  leaveBlockedReason?: string;
+  /** Tap Shared Graphs row → graph detail. */
+  onOpenSharedGraph?: () => void;
   /** Existing About affordance → per-person memory (no new header button). */
   onOpenPersonMemory?: (member: GroupInfoMember) => void;
 };
@@ -33,6 +37,8 @@ export function GroupInfoDestination({
   onAddPeople,
   onMute,
   onLeave,
+  leaveBlockedReason,
+  onOpenSharedGraph,
   onOpenPersonMemory,
 }: Props) {
   return (
@@ -103,32 +109,64 @@ export function GroupInfoDestination({
       </button>
 
       {sharedGraphLabel ? (
-        <div className="group-info-shared-graph" data-testid="group-info-shared-graph">
-          <p className="group-info-shared-kicker">Shared Graphs</p>
-          <p className="group-info-shared-value">{sharedGraphLabel}</p>
-          <span className="group-info-shared-chevron" aria-hidden>
-            ›
-          </span>
-        </div>
+        onOpenSharedGraph ? (
+          <button
+            type="button"
+            className="group-info-shared-graph group-info-shared-graph-tappable"
+            data-testid="group-info-shared-graph"
+            aria-label={`Open shared graph: ${sharedGraphLabel}`}
+            onClick={onOpenSharedGraph}
+          >
+            <p className="group-info-shared-kicker">Shared Graphs</p>
+            <p className="group-info-shared-value">{sharedGraphLabel}</p>
+            <span className="group-info-shared-chevron" aria-hidden>
+              ›
+            </span>
+          </button>
+        ) : (
+          <div
+            className="group-info-shared-graph"
+            data-testid="group-info-shared-graph"
+            role="status"
+            aria-label={`Shared graph: ${sharedGraphLabel}`}
+          >
+            <p className="group-info-shared-kicker">Shared Graphs</p>
+            <p className="group-info-shared-value">{sharedGraphLabel}</p>
+          </div>
+        )
       ) : null}
 
       <div className="group-info-footer-actions">
-        <button
-          type="button"
-          className="group-info-action"
-          data-testid="group-info-mute"
-          onClick={onMute}
-        >
-          Mute conversation
-        </button>
-        <button
-          type="button"
-          className="group-info-action is-leave"
-          data-testid="group-info-leave"
-          onClick={onLeave}
-        >
-          Leave group
-        </button>
+        {onMute ? (
+          <button
+            type="button"
+            className="group-info-action"
+            data-testid="group-info-mute"
+            onClick={onMute}
+          >
+            Mute conversation
+          </button>
+        ) : null}
+        {leaveBlockedReason ? (
+          <div
+            className="group-info-action is-leave is-gated"
+            data-testid="group-info-leave"
+            role="status"
+            aria-label={`Leave group: ${leaveBlockedReason}`}
+          >
+            <strong>Leave group</strong>
+            <span data-testid="group-info-leave-blocked">{leaveBlockedReason}</span>
+          </div>
+        ) : onLeave ? (
+          <button
+            type="button"
+            className="group-info-action is-leave"
+            data-testid="group-info-leave"
+            onClick={onLeave}
+          >
+            Leave group
+          </button>
+        ) : null}
       </div>
     </div>
   );

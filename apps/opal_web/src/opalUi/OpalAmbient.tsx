@@ -153,19 +153,9 @@ function intentToApi(chip: string): string {
 }
 
 async function readBrowserLocation(): Promise<{ lat: number; lng: number } | null> {
-  if (typeof navigator === "undefined" || !navigator.geolocation) return null;
-  try {
-    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 60_000,
-      });
-    });
-    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
-  } catch {
-    return null;
-  }
+  const { getDeviceCoords } = await import("../device/deviceLocation");
+  const coords = await getDeviceCoords();
+  return coords ? { lat: coords.lat, lng: coords.lng } : null;
 }
 
 const LOW_TRADEOFF = {
@@ -447,7 +437,7 @@ export function OpalAmbient({
           <img src="/figma-v2/opal-ambient/icon-settings.svg" alt="" width={24} height={24} />
         </button>
         <div className="opal-top-brand" aria-label="Opal Graph">
-          <OpalWordmark height={22} title="" compact />
+          <OpalWordmark height={34} title="" data-testid="opal-center-wordmark" />
         </div>
         <button
           type="button"

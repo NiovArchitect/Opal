@@ -58,13 +58,14 @@ export function OpalWordmark({
   height = 28,
   title = PRODUCT_PUBLIC_NAME,
   compact = false,
+  ...rest
 }: {
   className?: string;
   height?: number;
   title?: string;
   /** When true, slightly smaller for tight chrome */
   compact?: boolean;
-}) {
+} & React.ImgHTMLAttributes<HTMLImageElement>) {
   const h = compact ? Math.max(14, Math.round(height * 0.85)) : height;
   // Wordmark art is 3:1
   const w = Math.round(h * 3);
@@ -82,6 +83,7 @@ export function OpalWordmark({
       data-brand-source="opal-wordmark"
       draggable={false}
       style={{ height: h, width: "auto", maxHeight: h }}
+      {...rest}
     />
   );
 }

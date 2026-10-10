@@ -2568,6 +2568,24 @@ export async function resolveDecision(
   });
 }
 
+/** W8 Phase 2 — approved TTS (ElevenLabs Matilda when key present). */
+export async function speakApprovedText(
+  body: { text: string; approved: boolean; provider?: string },
+  bearer?: string,
+) {
+  return request<{
+    audio_url?: string;
+    text?: string;
+    provider?: string;
+    content_type?: string;
+    storage_key?: string;
+  }>("/api/v1/product/voice/speak", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(body),
+  });
+}
+
 export async function answerDecisionQuestion(
   resultId: string,
   choiceId: string,

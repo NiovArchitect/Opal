@@ -1,0 +1,188 @@
+{
+  "tip": "0c5fdd57",
+  "checks": {
+    "p0_splash_present": {
+      "ok": true,
+      "detail": "splash=1",
+      "gated": false
+    },
+    "p0_hold_indefinite": {
+      "ok": true,
+      "detail": "hold=1 auto0=1",
+      "gated": false
+    },
+    "p0_no_auto_advance_10s": {
+      "ok": true,
+      "detail": "splash10=1 phone=0",
+      "gated": false
+    },
+    "p0_tap_begin_works": {
+      "ok": true,
+      "detail": "phone=2",
+      "gated": false
+    },
+    "p0_skip_intro_works": {
+      "ok": true,
+      "detail": "phone=1",
+      "gated": false
+    },
+    "p0_already_account_works": {
+      "ok": true,
+      "detail": "phone=1",
+      "gated": false
+    },
+    "p1_greeting_present": {
+      "ok": true,
+      "detail": "greet=1",
+      "gated": false
+    },
+    "p1_approvals_present": {
+      "ok": true,
+      "detail": "perms=1 rows=3",
+      "gated": false
+    },
+    "p1_order_greeting_name_perms_friend": {
+      "ok": true,
+      "detail": "[154,567,710,1177]",
+      "gated": false
+    },
+    "p1_continue_blocked_pending_perms": {
+      "ok": true,
+      "detail": "disabled=true",
+      "gated": false
+    },
+    "p1_continue_after_not_now": {
+      "ok": true,
+      "detail": "disabled=false",
+      "gated": false
+    },
+    "p1_lands_center": {
+      "ok": true,
+      "detail": "ambient=false meetGone=true home=0",
+      "gated": false
+    },
+    "p2_speak_meet_opening_wired": {
+      "ok": true,
+      "detail": "Meet calls speakMeetOpening",
+      "gated": false
+    },
+    "p2_opening_text_headline": {
+      "ok": true,
+      "detail": "headline utterance",
+      "gated": false
+    },
+    "p2_matilda_voice_id": {
+      "ok": true,
+      "detail": "Matilda id",
+      "gated": false
+    },
+    "p2_no_system_tts_for_opening": {
+      "ok": true,
+      "detail": "ElevenLabs path",
+      "gated": false
+    },
+    "p3_no_coming_soon": {
+      "ok": true,
+      "detail": "zero Coming soon",
+      "gated": false
+    },
+    "p3_travel_mode_live": {
+      "ok": true,
+      "detail": "travel-mode informational",
+      "gated": false
+    },
+    "p3_nearby_range_live": {
+      "ok": true,
+      "detail": "25 mi",
+      "gated": false
+    },
+    "p3_delete_honest": {
+      "ok": true,
+      "detail": "delete control",
+      "gated": false
+    },
+    "p3_impact_honest": {
+      "ok": true,
+      "detail": "no fake impact",
+      "gated": false
+    },
+    "p3_you_hub_shot": {
+      "ok": true,
+      "detail": "w8_p3_you_hub.png",
+      "gated": false
+    },
+    "p4_device_location_helper": {
+      "ok": true,
+      "detail": "helper",
+      "gated": false
+    },
+    "p4_meet_persists_coords": {
+      "ok": true,
+      "detail": "deny=skipped",
+      "gated": false
+    },
+    "p4_center_uses_coords": {
+      "ok": true,
+      "detail": "Center nearby",
+      "gated": false
+    },
+    "p5_center_wordmark_34": {
+      "ok": true,
+      "detail": "{\"h\":34,\"maxH\":\"34px\",\"w\":102}",
+      "gated": false
+    },
+    "p5_all_wordmark_shots": {
+      "ok": true,
+      "detail": "home,chats,graphs",
+      "gated": false
+    },
+    "p5_source_height_34": {
+      "ok": true,
+      "detail": "props=34",
+      "gated": false
+    },
+    "p5_no_scale_shrink": {
+      "ok": true,
+      "detail": "scale removed",
+      "gated": false
+    },
+    "p6_blindspot_doc": {
+      "ok": true,
+      "detail": "W8_BLINDSPOT.md",
+      "gated": false
+    },
+    "p7_spec_check": {
+      "ok": true,
+      "detail": "SPEC_CHECK.md",
+      "gated": false
+    },
+    "p7_privacy_doc": {
+      "ok": true,
+      "detail": "APP_STORE_PRIVACY.md",
+      "gated": false
+    },
+    "p7_privacy_covers_required": {
+      "ok": true,
+      "detail": "contacts-birthday calendar email location voice usage",
+      "gated": false
+    },
+    "p7_privacy_no_emdash": {
+      "ok": true,
+      "detail": "no em-dashes",
+      "gated": false
+    },
+    "p7_splash_branded": {
+      "ok": true,
+      "detail": "splash #050816",
+      "gated": false
+    },
+    "p7_founder_seed_gated": {
+      "ok": true,
+      "detail": "seed gated",
+      "gated": false
+    }
+  },
+  "pass": 36,
+  "fail": 0,
+  "gated": 0
+}

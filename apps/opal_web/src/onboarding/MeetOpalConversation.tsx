@@ -1,6 +1,7 @@
 /**
- * Paste W6 Phase 1 — Meet Opal ONE scrolling page.
- * Document order: orb → greeting → name → friend → permissions → Assist → sticky Continue.
+ * Paste W8 Phase 1 — Meet Opal ONE scrolling page.
+ * Document order: orb → greeting → name → permissions → friend → Assist → sticky Continue.
+ * Approvals sit ABOVE friend so they cannot be scrolled past / skipped by sticky Continue.
  * Does not render ask_more / ask_when / ask_vibe / working / trust.
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -31,6 +32,8 @@ import {
   updateAssistPreference,
   updateProfile,
 } from "../api/productClient";
+import { getDeviceCoords } from "../device/deviceLocation";
+import { speakMeetOpening } from "./meetOpeningVoice";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const GREETING_SLIDE_MS = 400;
@@ -263,12 +266,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
         setContactsUnavailable(true);
         setContactsStatus(HOLY_SHIT_COPY.contactsUnavailableTyping);
       }
+      // Reduced motion: still attempt Matilda opening when bearer exists.
+      void speakMeetOpening({ bearer });
       return;
     }
     const tGreet = window.setTimeout(() => {
       setShowTyping(false);
       setShowGreeting(true);
       setOrbMode("idle");
+      // W8 Phase 2 — speak headline with Matilda as greeting appears (no system TTS).
+      void speakMeetOpening({ bearer });
     }, TYPING_MS);
     const tForm = window.setTimeout(() => {
       setShowForm(true);
@@ -283,27 +290,40 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       window.clearTimeout(tGreet);
       window.clearTimeout(tForm);
     };
-  }, [phase, reduce]);
+  }, [phase, reduce, bearer]);
 
-  useEffect(() => {
-    if (showForm && phase === "form") selfNameRef.current?.focus();
-  }, [showForm, phase]);
+  // W8: do not autofocus name on form open — that scrolls past / steals the
+  // approvals block on phone. Focus only after the user taps the name field.
 
   useEffect(() => {
     if (pendingPhonePerson) phoneRef.current?.focus();
   }, [pendingPhonePerson]);
 
+  // W8: never auto-scroll past the approvals block. Keep name + permissions in view
+  // when the form opens; only nudge for friend confirm / phone-gate status.
   useEffect(() => {
     const el = scrollerRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: reduce ? "auto" : "smooth" });
+    if (!el || !showForm) return;
+    const perm = el.querySelector('[data-testid="hs-permissions"]') as HTMLElement | null;
+    if (perm && !people.length && !pendingPhonePerson && !confirmedLine) {
+      const top = Math.max(0, perm.offsetTop - 24);
+      el.scrollTo({ top, behavior: reduce ? "auto" : "smooth" });
+      return;
+    }
+    if (pendingPhonePerson || confirmedLine || contactsStatus) {
+      const anchor =
+        (el.querySelector('[data-testid="hs-phone-gate"], [data-testid="hs-name-composer"]') as HTMLElement | null) ||
+        null;
+      if (anchor) {
+        el.scrollTo({
+          top: Math.max(0, anchor.offsetTop - 16),
+          behavior: reduce ? "auto" : "smooth",
+        });
+      }
+    }
   }, [
-    phase,
-    showGreeting,
     showForm,
     people,
-    showTyping,
-    pullingName,
     pendingPhonePerson,
     confirmedLine,
     contactsStatus,
@@ -355,15 +375,14 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           /* adapt and continue */
         }
       } else if (kind === "location") {
-        if (typeof navigator !== "undefined" && navigator.geolocation) {
-          await new Promise<void>((resolve) => {
-            navigator.geolocation.getCurrentPosition(
-              () => resolve(),
-              () => resolve(),
-              { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
-            );
-          });
+        // W8 Phase 4 — real coords round-trip; deny stays Not now (skipped).
+        const coords = await getDeviceCoords({ forceRefresh: true });
+        if (!coords) {
+          markPerm(kind, "skipped");
+          return;
         }
+        markPerm(kind, "allowed");
+        return;
       }
       markPerm(kind, "allowed");
     } finally {
@@ -598,7 +617,13 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     finishNow(persisted);
   };
 
-  const canContinue = selfNameDraft.trim().length > 0 && !finishing;
+  // W8: Continue needs a name plus every permission decided (Allow or Not now).
+  // Pending rows block Continue so approvals cannot be skipped by sticky CTA.
+  const permissionsDecided = MEET_OPAL_PERMISSION_ORDER.every(
+    (kind) => permDecisions[kind] === "allowed" || permDecisions[kind] === "skipped",
+  );
+  const canContinue =
+    selfNameDraft.trim().length > 0 && permissionsDecided && !finishing;
 
   return (
     <div
@@ -671,6 +696,59 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                     <UsernameSettingsHint handle={derivedHandle} variant="plain" />
                   ) : null}
                 </div>
+              </div>
+
+              {/* ask_permissions — compact rows */}
+              <OpalLine
+                text={HOLY_SHIT_COPY.askPermissions}
+                testId="hs-opal-ask-permissions"
+                index={4}
+              />
+              <div className="hs-perm-composer hs-meet-section" data-testid="hs-permissions">
+                <ul className="hs-perm-list" data-testid="hs-perm-list">
+                  {MEET_OPAL_PERMISSION_ORDER.map((kind) => {
+                    const copy = permCopyFor(kind);
+                    const decision = permDecisions[kind];
+                    return (
+                      <li
+                        key={kind}
+                        className="hs-perm-row"
+                        data-testid={`hs-perm-row-${kind}`}
+                        data-perm-kind={kind}
+                        data-perm-decision={decision}
+                      >
+                        <div className="hs-perm-row-copy">
+                          <span className="hs-perm-row-title">{copy.title}</span>
+                          <span className="hs-perm-row-why">{copy.why}</span>
+                        </div>
+                        <div
+                          className="hs-perm-row-actions"
+                          role="group"
+                          aria-label={copy.title}
+                        >
+                          <button
+                            type="button"
+                            className="hs-pill hs-pill-primary hs-perm-allow"
+                            data-testid={`hs-perm-allow-${kind}`}
+                            disabled={permBusy === kind || decision !== "pending"}
+                            onClick={() => void requestPermission(kind)}
+                          >
+                            {HOLY_SHIT_COPY.permAllow}
+                          </button>
+                          <button
+                            type="button"
+                            className="hs-pill hs-perm-skip hs-perm-not-now"
+                            data-testid={`hs-perm-skip-${kind}`}
+                            disabled={permBusy === kind || decision !== "pending"}
+                            onClick={() => markPerm(kind, "skipped")}
+                          >
+                            {HOLY_SHIT_COPY.permNotNow}
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
 
               {/* ask_people — W4 dual-path */}
@@ -831,59 +909,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                   </button>
                 </div>
               )}
-
-              {/* ask_permissions — compact rows */}
-              <OpalLine
-                text={HOLY_SHIT_COPY.askPermissions}
-                testId="hs-opal-ask-permissions"
-                index={4}
-              />
-              <div className="hs-perm-composer hs-meet-section" data-testid="hs-permissions">
-                <ul className="hs-perm-list" data-testid="hs-perm-list">
-                  {MEET_OPAL_PERMISSION_ORDER.map((kind) => {
-                    const copy = permCopyFor(kind);
-                    const decision = permDecisions[kind];
-                    return (
-                      <li
-                        key={kind}
-                        className="hs-perm-row"
-                        data-testid={`hs-perm-row-${kind}`}
-                        data-perm-kind={kind}
-                        data-perm-decision={decision}
-                      >
-                        <div className="hs-perm-row-copy">
-                          <span className="hs-perm-row-title">{copy.title}</span>
-                          <span className="hs-perm-row-why">{copy.why}</span>
-                        </div>
-                        <div
-                          className="hs-perm-row-actions"
-                          role="group"
-                          aria-label={copy.title}
-                        >
-                          <button
-                            type="button"
-                            className="hs-pill hs-pill-primary hs-perm-allow"
-                            data-testid={`hs-perm-allow-${kind}`}
-                            disabled={permBusy === kind || decision !== "pending"}
-                            onClick={() => void requestPermission(kind)}
-                          >
-                            {HOLY_SHIT_COPY.permAllow}
-                          </button>
-                          <button
-                            type="button"
-                            className="hs-pill hs-perm-skip hs-perm-not-now"
-                            data-testid={`hs-perm-skip-${kind}`}
-                            disabled={permBusy === kind || decision !== "pending"}
-                            onClick={() => markPerm(kind, "skipped")}
-                          >
-                            {HOLY_SHIT_COPY.permNotNow}
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
 
               {/* Opal Assist — ONE row */}
               <div

@@ -23,6 +23,10 @@ type Props = {
   /** Eligible Stories in rail order (287:20). Defaults to [story]. */
   stories?: FounderStoryItem[];
   onClose: () => void;
+  /** Optional reply path. When absent, Reply is honestly gated. */
+  onReply?: (story: FounderStoryItem) => void;
+  /** Optional share path. When absent, Share is honestly gated. */
+  onShare?: (story: FounderStoryItem) => void;
 };
 
 function isVideoSrc(src?: string, mediaKind?: FounderStoryItem["mediaKind"]): boolean {
@@ -32,7 +36,12 @@ function isVideoSrc(src?: string, mediaKind?: FounderStoryItem["mediaKind"]): bo
   return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
 }
 
-export function StoryViewer({ story, stories, onClose }: Props) {
+const REPLY_BLOCKED =
+  "Story reply needs a direct message path. Open their chat from Chats for now.";
+const SHARE_BLOCKED =
+  "Story share needs Forward into a chat. Not wired on this viewer yet.";
+
+export function StoryViewer({ story, stories, onClose, onReply, onShare }: Props) {
   const queue = useMemo(() => {
     const list = stories && stories.length > 0 ? stories : [story];
     const start = Math.max(
@@ -45,6 +54,7 @@ export function StoryViewer({ story, stories, onClose }: Props) {
   const [index, setIndex] = useState(queue.start);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [gateNote, setGateNote] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const holdRef = useRef(false);
   const holdTimerRef = useRef<number | null>(null);
@@ -93,6 +103,7 @@ export function StoryViewer({ story, stories, onClose }: Props) {
     elapsedRef.current = 0;
     startedAtRef.current = performance.now();
     setPaused(false);
+    setGateNote(null);
   }, [index, current.id]);
 
   // IMAGE playback timer (7s) — independent of server expiry
@@ -304,23 +315,66 @@ export function StoryViewer({ story, stories, onClose }: Props) {
       ) : null}
 
       <div className="story-viewer-composer">
-        <input
-          className="story-viewer-reply"
-          data-testid="story-viewer-reply"
-          placeholder="Reply"
-          aria-label="Reply to story"
-          readOnly
-        />
-        <button
-          type="button"
-          className="story-viewer-share"
-          data-testid="story-viewer-share"
-          aria-label="Share story"
-          data-mode="conditional"
-        >
-          ↗
-        </button>
+        {onReply ? (
+          <button
+            type="button"
+            className="story-viewer-reply story-viewer-reply-btn"
+            data-testid="story-viewer-reply"
+            aria-label="Reply to story"
+            data-mode="active"
+            onClick={() => {
+              setGateNote(null);
+              onReply(current);
+            }}
+          >
+            Reply
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="story-viewer-reply story-viewer-reply-btn is-gated"
+            data-testid="story-viewer-reply"
+            aria-label={`Reply: ${REPLY_BLOCKED}`}
+            aria-disabled="true"
+            data-mode="dependency"
+            onClick={() => setGateNote(REPLY_BLOCKED)}
+          >
+            Reply
+          </button>
+        )}
+        {onShare ? (
+          <button
+            type="button"
+            className="story-viewer-share"
+            data-testid="story-viewer-share"
+            aria-label="Share story"
+            data-mode="active"
+            onClick={() => {
+              setGateNote(null);
+              onShare(current);
+            }}
+          >
+            ↗
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="story-viewer-share is-gated"
+            data-testid="story-viewer-share"
+            aria-label={`Share story: ${SHARE_BLOCKED}`}
+            aria-disabled="true"
+            data-mode="dependency"
+            onClick={() => setGateNote(SHARE_BLOCKED)}
+          >
+            ↗
+          </button>
+        )}
       </div>
+      {gateNote ? (
+        <p className="story-viewer-gate-note" role="status" data-testid="story-viewer-gate">
+          {gateNote}
+        </p>
+      ) : null}
     </div>
   );
 }

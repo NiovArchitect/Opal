@@ -12885,6 +12885,26 @@ button.gsh-cx-history:focus-visible {
   font-size: 15px;
   cursor: pointer;
 }
+.social-dest-437-200 .dx437-save.is-gated,
+.social-dest-437-200 .dx437-graph.is-gated {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  height: auto;
+  min-height: 52px;
+  cursor: default;
+  opacity: 0.85;
+}
+.social-dest-437-200 .dx437-save.is-gated span,
+.social-dest-437-200 .dx437-graph.is-gated span {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(200, 208, 220, 0.85);
+  line-height: 1.3;
+}
 .social-dest-437-200 .dx437-follow {
   display: none; /* legacy hidden class */
 }
@@ -13033,9 +13053,23 @@ button.gsh-cx-history:focus-visible {
   background: #05080d; color: #f4f7fa;
   padding: 0 18px; font: inherit; font-size: 13px;
 }
+.story-viewer-357-418 .story-viewer-reply-btn {
+  text-align: left;
+  cursor: pointer;
+}
+.story-viewer-357-418 .story-viewer-reply-btn.is-gated,
+.story-viewer-357-418 .story-viewer-share.is-gated {
+  opacity: 0.72;
+}
 .story-viewer-357-418 .story-viewer-share {
   border: 0; background: transparent; color: #f4f7fa;
   font-size: 24px; font-weight: 700; cursor: pointer; padding: 8px;
+}
+.story-viewer-357-418 .story-viewer-gate-note {
+  position: absolute; left: 20px; right: 20px; bottom: 12px;
+  margin: 0; z-index: 5;
+  color: #c8d0dc; font-size: 12px; line-height: 1.35;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.55);
 }
 
 /* Journey / Manage / Can't make it  -  same mobile column as Home */
@@ -14993,6 +15027,31 @@ button.you-settings-row {
   border: 1px solid #1a2338;
   background: #0b1226;
   box-sizing: border-box;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+button.group-info-shared-graph-tappable {
+  cursor: pointer;
+}
+.group-info-action.is-gated {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 10px;
+  height: auto;
+  min-height: 50px;
+  cursor: default;
+  opacity: 0.85;
+  text-align: left;
+}
+.group-info-action.is-gated span {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(200, 208, 220, 0.85);
+  line-height: 1.3;
 }
 .group-info-shared-kicker {
   margin: 0;
@@ -17634,9 +17693,10 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   position: absolute;
   left: 16px;
   top: calc(14px + env(safe-area-inset-top, 0px));
-  transform: scale(0.78);
+  /* W8 Phase 5 — full 34px wordmark; no shrink scale */
+  transform: none;
   transform-origin: left top;
-  opacity: 0.85;
+  opacity: 0.95;
 }
 .opal-center-v2-presence {
   display: flex;
@@ -23090,6 +23150,13 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   object-position: left center;
   user-select: none;
   pointer-events: none;
+}
+/* W8 Phase 5 — Opal Center header wordmark at 34 (overrides global 28 cap). */
+.opal-top-brand .opal-wordmark-img,
+.opal-center-v2-wordmark.opal-wordmark-img {
+  max-height: 34px;
+  height: 34px !important;
+  width: auto !important;
 }
 .home-brand-wordmark,
 .topbar-brand-wordmark {
