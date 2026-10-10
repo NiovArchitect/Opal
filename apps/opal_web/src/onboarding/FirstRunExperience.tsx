@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+import { OpalMark } from "../brand/OpalLogo";
 import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_AUTH_FIXTURE,
@@ -168,20 +168,27 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
  * Auth header footprint (773:*): emblem 20,18 39.2×39.2 + wordmark 64,20 132×24.
  * Brand V4 logo treatment only - NOT a hero-logo redesign.
  */
-function AuthHeroMark() {
+/**
+ * Paste W6 Phase 0b — character lockup replaces abstract OPALGRAPH mark in first-run.
+ * Character art + Opal wordmark only. Old graph emblem appears nowhere in first-run.
+ */
+function CharacterLockup() {
   return (
-    <header className="fr-auth-header" data-testid="fr-auth-hero-mark" data-auth-header="fr-geometry">
+    <header
+      className="fr-auth-header fr-character-lockup"
+      data-testid="fr-character-lockup"
+      data-auth-header="character-lockup"
+    >
       <img
-        className="fr-auth-header-emblem"
-        src={BRAND_ASSETS.opalGraphEmblemHero}
+        className="fr-character-lockup-art"
+        src={BRAND_ASSETS.opalCharacter}
         alt=""
-        width={39}
-        height={39}
+        width={48}
+        height={48}
         draggable={false}
       />
-      <span className="fr-auth-header-wordmark" aria-hidden>
-        <span className="opal-graph-word-opal">OPAL</span>
-        <span className="opal-graph-word-graph"> GRAPH</span>
+      <span className="fr-character-lockup-wordmark" aria-hidden>
+        Opal
       </span>
     </header>
   );
@@ -1178,7 +1185,7 @@ export function FirstRunExperience({
               data-figma-node="773:27"
               data-viewport="390x844"
             >
-              <AuthHeroMark />
+              <CharacterLockup />
               <h1 className="fr-title">{FR_COPY.phoneTitle}</h1>
               <p className="fr-body">{FR_COPY.phoneBody}</p>
               {/* One message slot: error wins over status - never collide in the same region. */}
@@ -1296,7 +1303,7 @@ export function FirstRunExperience({
               data-figma-node="773:52"
               data-viewport="390x844"
             >
-              <AuthHeroMark />
+              <CharacterLockup />
               <h1 className="fr-title">{FR_COPY.verifyTitle}</h1>
               <p className="fr-body">
                 {FR_COPY.verifySent(prettyPhone(phone, dialCode))}
@@ -1320,10 +1327,15 @@ export function FirstRunExperience({
                 <label htmlFor="fr-code" className="sr-only">
                   Six digit code
                 </label>
-                <div className="fr-code-wrap">
+                {/* Paste W6 Phase 0 — document order: boxes → Verify (never absolute). */}
+                <div className="fr-code-wrap" data-testid="fr07-code-wrap">
                   <div className="fr-code-cells" aria-hidden>
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <span key={i} className="fr-code-cell">
+                      <span
+                        key={i}
+                        className="fr-code-cell"
+                        data-testid={`fr07-code-cell-${i}`}
+                      >
                         {code.replace(/\D/g, "")[i] || ""}
                       </span>
                     ))}
@@ -1341,7 +1353,14 @@ export function FirstRunExperience({
                     data-testid="fr07-code-input"
                   />
                 </div>
-                {/* Dev OTP: console/harness only - never in product viewport */}
+                <button
+                  type="submit"
+                  className="btn primary fr-primary"
+                  disabled={busy || code.replace(/\D/g, "").length !== 6}
+                  data-testid="fr07-submit"
+                >
+                  {busy ? FR_COPY.checking : FR_COPY.verify}
+                </button>
                 <button
                   type="button"
                   className="btn ghost fr-secondary"
@@ -1352,14 +1371,6 @@ export function FirstRunExperience({
                   {resendCooldown > 0
                     ? `${FR_COPY.resend} (${resendCooldown}s)`
                     : FR_COPY.resend}
-                </button>
-                <button
-                  type="submit"
-                  className="btn primary fr-primary"
-                  disabled={busy || code.replace(/\D/g, "").length !== 6}
-                  data-testid="fr07-submit"
-                >
-                  {busy ? FR_COPY.checking : FR_COPY.verify}
                 </button>
                 <button
                   type="button"
@@ -1389,7 +1400,7 @@ export function FirstRunExperience({
               data-figma-node="773:80"
               data-viewport="390x844"
             >
-              <AuthHeroMark />
+              <CharacterLockup />
               <h1 className="fr-title">{FR_COPY.profileTitle}</h1>
               <p className="fr-body fr-profile-desc" data-testid="fr08-profile-body">
                 {FR_COPY.profileBody}
@@ -1509,7 +1520,7 @@ export function FirstRunExperience({
               data-figma-node="773:113"
               data-viewport="390x844"
             >
-              <AuthHeroMark />
+              <CharacterLockup />
               <h1 className="fr-title">Almost there</h1>
               <p className="fr-body fr-find-desc" data-testid="fr09-find-body">
                 Your people are already set from Meet Opal. Optional: turn on Assist for calls.

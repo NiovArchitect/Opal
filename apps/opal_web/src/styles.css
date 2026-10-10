@@ -292,24 +292,25 @@ html.opal-native-host .fr-auth-v4 .fr-code-wrap {
   top: calc(250px + env(safe-area-inset-top, 0px)) !important;
 }
 /*
- * Bottom-anchor CTAs for OTP only (Paste W5).
- * Phone (fr-phone) is a scrolling document-flow column — NEVER bottom-anchor
- * Continue/Skip there. Keyboard-open on native-host made absolute+bottom
- * Continue hover over the number input (twice screenshot-green, twice phone-broken).
+ * Paste W6 Phase 0 — OTP never bottom-anchors Verify (same landmine as phone).
+ * Verify stays in document flow under the six code boxes.
  */
 html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
-html.opal-native-host .fr-auth-v4.fr-verify .btn.primary.fr-primary {
-  top: auto !important;
-  bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
-}
+html.opal-native-host .fr-auth-v4.fr-verify .btn.primary.fr-primary,
 html.opal-native-host .fr-auth-v4.fr-verify .fr-text-action,
-html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number {
+html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-secondary {
+  position: relative !important;
   top: auto !important;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
 }
 html.opal-native-host .fr-auth-v4 .fr-secondary[data-testid="fr07-resend"] {
+  position: relative !important;
   top: auto !important;
-  bottom: calc(132px + env(safe-area-inset-bottom, 0px)) !important;
+  bottom: auto !important;
+  left: auto !important;
 }
 
 /* Splash 618:19 — bottom CTAs clear home indicator; hero stack clears status bar */
@@ -411,20 +412,23 @@ html.opal-native-host .first-run-promise-cta {
   .fr-auth-v4 .fr-code-wrap {
     top: calc(250px + env(safe-area-inset-top, 0px));
   }
-  /* OTP only — phone Continue/Skip stay in document flow (W5 Phase 1). */
+  /* OTP: document flow only (W6 Phase 0) — never bottom-anchor Verify. */
   .fr-auth-v4.fr-verify .fr-primary,
-  .fr-auth-v4.fr-verify .btn.primary.fr-primary {
-    top: auto;
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
-  }
+  .fr-auth-v4.fr-verify .btn.primary.fr-primary,
   .fr-auth-v4.fr-verify .fr-text-action,
-  .fr-auth-v4.fr-verify .fr-change-number {
+  .fr-auth-v4.fr-verify .fr-change-number,
+  .fr-auth-v4.fr-verify .fr-secondary {
+    position: relative;
     top: auto;
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
+    left: auto;
+    right: auto;
   }
   .fr-auth-v4 .fr-secondary[data-testid="fr07-resend"] {
+    position: relative;
     top: auto;
-    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
+    left: auto;
   }
   /*
    * PROFILE / FIND — one scroll owner on phone widths.
@@ -5870,13 +5874,11 @@ button.plan-card-btn:focus-visible {
   display: none;
 }
 /*
- * Absolute stage CTA — OTP + find only.
- * Phone (fr-phone) Continue is document-flow (Paste W5 Phase 1). Absolute+top:720
- * (and native-host bottom-anchor) caused Continue to hover the number input when
- * the keyboard opened on Expo WebView.
+ * Absolute stage CTA — find only (Paste W6 Phase 0).
+ * OTP Verify is document-flow below the six code boxes. Absolute+top:720 /
+ * native-host bottom-anchor made Verify sit ON TOP of the code boxes when
+ * the iOS keypad opened.
  */
-.fr-auth-v4.fr-verify .fr-primary,
-.fr-auth-v4.fr-verify .btn.primary.fr-primary,
 .fr-auth-v4.fr-find .fr-find-actions .fr-primary,
 .fr-auth-v4.fr-find .fr-find-actions .btn.primary.fr-primary {
   position: absolute;
@@ -6149,15 +6151,15 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   cursor: pointer;
   padding: 0;
 }
-/* Skip / Change number — absolute ONLY on verify (OTP). Phone uses document flow (W5). */
+/* Change number — document flow under Verify (W6 Phase 0). Never absolute. */
 .fr-auth-v4.fr-verify .fr-text-action,
 .fr-auth-v4.fr-verify .fr-change-number {
-  position: absolute;
-  left: 24px;
-  top: 792px;
-  width: 342px;
-  height: 20px;
-  margin: 0;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 8px auto 0 !important;
   padding: 0;
   border: 0 !important;
   background: transparent !important;
@@ -6169,8 +6171,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   cursor: pointer;
   opacity: 1;
   min-height: 20px;
-  display: grid;
-  place-items: center;
+  display: block;
 }
 .fr-auth-v4.fr-phone .fr-text-action,
 .fr-auth-v4.fr-phone .fr-skip-for-now {
@@ -6185,13 +6186,15 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   text-align: center !important;
   margin: 4px 0 0 !important;
 }
+/* Code boxes — flow under subline (W6). Absolute top:250 was the OTP overlap partner. */
 .fr-auth-v4 .fr-code-wrap {
-  position: absolute;
-  left: 25px;
-  top: 250px;
-  width: 338px;
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-width: 338px;
   height: 56px;
-  margin: 0;
+  margin: 0 auto;
 }
 .fr-auth-v4 .fr-code-cells {
   display: flex;
@@ -6225,11 +6228,13 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   z-index: 2;
 }
 .fr-auth-v4 .fr-secondary[data-testid="fr07-resend"] {
-  position: absolute;
-  left: 42px;
-  top: 340px;
-  width: auto;
-  text-align: left;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100%;
+  max-width: 346px;
+  margin: 4px auto 0;
+  text-align: center;
   color: #00e5ff;
 }
 .fr-auth-v4 .fr-profile-photo {
@@ -6926,9 +6931,12 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   margin-top: 16px;
 }
 .fr-auth-v4.fr-phone .fr-primary,
-.fr-auth-v4.fr-verify .fr-primary,
 .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
   margin-top: auto;
+}
+/* W6: OTP Verify sits directly under code boxes — never margin-top:auto flex pin. */
+.fr-auth-v4.fr-verify .fr-primary {
+  margin-top: 12px !important;
 }
 
 .fr-secondary {
@@ -17383,11 +17391,17 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap {
   height: 56px !important;
   min-height: 56px !important;
 }
-html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
 html.opal-native-host .fr-auth-v4.fr-find .fr-find-actions .fr-primary {
   height: 58px !important;
   min-height: 58px !important;
   margin-top: auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
+  height: 58px !important;
+  min-height: 58px !important;
+  margin-top: 12px !important;
+  margin-bottom: 0 !important;
+  flex: 0 0 auto !important;
 }
 /* fr08: Continue sits ~24px under Optional — never pin to viewport bottom. */
 html.opal-native-host .fr-auth-v4.fr-profile .fr-primary,
@@ -22654,3 +22668,138 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-auth-header {
   }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+ * Paste W6 Phase 0 — OTP document-flow column + character lockup.
+ * Order: lockup → title → subline → six boxes → Verify → resend → change.
+ * ZERO absolute on Verify / code-wrap. Keyboard-open: column scrolls.
+ * ═══════════════════════════════════════════════════════════════ */
+.fr-character-lockup {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: auto !important;
+  max-width: 346px !important;
+  height: auto !important;
+  margin: 8px auto 16px !important;
+  padding: 0 !important;
+  z-index: 2;
+}
+.fr-character-lockup-art {
+  width: 48px !important;
+  height: 48px !important;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 14px;
+}
+.fr-character-lockup-wordmark {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f8faff;
+  line-height: 1;
+}
+
+.fr-auth-v4.fr-verify.fr-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 0 calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-verify .fr-title,
+.fr-auth-v4.fr-verify .fr-body,
+.fr-auth-v4.fr-verify .fr-status,
+.fr-auth-v4.fr-verify .fr-error {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: auto !important;
+  max-width: 346px !important;
+  margin: 0 auto 10px !important;
+  padding: 0 24px !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-verify .fr-form {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  height: auto !important;
+  min-height: 0 !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  max-width: 390px !important;
+  margin: 0 auto !important;
+  padding: 0 24px 8px !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+.fr-auth-v4.fr-verify .fr-code-wrap {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: 338px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin: 4px auto 0 !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-verify .fr-primary,
+.fr-auth-v4.fr-verify .btn.primary.fr-primary {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  margin: 12px auto 0 !important;
+  flex: 0 0 auto !important;
+}
+.fr-auth-v4.fr-verify .fr-secondary {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 346px !important;
+  margin: 4px auto 0 !important;
+  flex: 0 0 auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-title,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-body,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-status,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-error,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-code-wrap,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-primary,
+html.opal-native-host .fr-auth-v4.fr-verify .btn.primary.fr-primary,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-secondary,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-text-action,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-change-number,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-form,
+html.opal-native-host .fr-auth-v4.fr-verify .fr-character-lockup {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+}
+html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
+  margin-top: 12px !important;
+}
