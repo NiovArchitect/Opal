@@ -1,0 +1,33 @@
+Paste W5 Addendum B — user-facing "not found" scrub
+Worktree: opal-grok-real-people
+Scope: apps/opal_web/src
+
+=== BEFORE (product-facing risk) ===
+apps/opal_web/src/api/productClient.ts
+  - case "not_found" already remapped to graceful empty copy
+  - default: returned raw fallback (could paint HTTP statusText "Not Found")
+
+apps/opal_web/src/opalUi/ActivityDestination.tsx
+  - already filters /not found/i from empty_copy / empty_needs_you_copy
+  - already remaps code not_found → "Nothing yet. When your people move, you'll see it here."
+
+=== AFTER ===
+apps/opal_web/src/api/productClient.ts humanError default:
+  - if fallback matches /not\s*found/i → "Nothing yet. When your people move, you'll see it here."
+  - case "not_found" unchanged (same graceful copy)
+
+apps/opal_web/src/opalUi/ActivityDestination.tsx — no further change (already scrubbed)
+
+=== REMAINING HITS (not product-facing paint) ===
+apps/opal_web/src/opalUi/intelligence/intelligenceDataSource.test.ts:104
+  mock statusText "Not Found" for 404 fixture — test-only
+apps/opal_web/src/opalUi/youSettingsComingSoon.guard.test.ts:29
+  vitest assertion message `screen ${key} not found` — test-only
+apps/opal_web/src/opalUi/ActivityDestination.tsx:161,305,313
+  defensive /not found/i filters (prevent paint; do not display those words)
+apps/opal_web/src/opalUi/pasteW4DeviceFixes.test.ts / activityDestination.test.ts
+  assert UI never paints >not found<
+apps/opal_web/src/OpalApp.tsx:610 / founderSplashVisibility.test.ts:87
+  false positive: "not founder duty" substring
+
+No Phoenix ErrorJSON test expectations changed (FE focus).

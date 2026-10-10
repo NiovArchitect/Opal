@@ -1,0 +1,35 @@
+Paste W5 Addendum C — plan state color audit
+Authority: planStateColors.ts PLAN_STATE_HEX
+  confirmed/ready → #00E5FF
+  pending         → #FFC86B
+  idea/forming    → #8B5CF6
+
+=== VIOLATIONS FIXED ===
+1. styles.css .social-dest-373-385 .graph-ready-pill
+   BEFORE: border/color #FFC86B (gold)
+   AFTER:  border/color #00E5FF (teal)
+
+2. styles.css .social-dest-373-385 .graph-ready-pill[data-plan-state="ready"]
+   BEFORE: var(--signal-confirmed, #ffc86b) gold
+   AFTER:  var(--plan-state-confirmed, #00E5FF) teal
+
+3. styles.css PASTE_W_PLAN_STATE_COLORS block
+   BEFORE: [data-plan-state="ready"] missing from confirmed/teal set
+   AFTER:  [data-plan-state="ready"] included with #00e5ff
+
+4. styles.css .next-plan-strip[data-plan-state="ready"] (+ .next-plan-kicker)
+   BEFORE: var(--signal-confirmed) gold
+   AFTER:  var(--plan-state-confirmed, #00E5FF) teal
+
+5. planStateColors.ts planStateAttr("ready")
+   BEFORE: fell through to "forming"
+   AFTER:  returns "locked" (confirmed/teal family)
+
+=== ALREADY CORRECT (no change) ===
+planStateColors.ts planStateColor("ready") → PLAN_STATE_HEX.confirmed (#00E5FF)
+pending / idea / forming CSS vars already #FFC86B / #8B5CF6
+
+=== LEFT AS SIGNAL-GRAMMAR (not plan-state attr) ===
+.graphs-status-ready / .graphs-status-aligned still use #FFC86B in overview status chips
+(waveBGraphsExact GRAPH_STATUS_COLORS_PRESERVED; GraphsHome maps ready cards to data-plan-state="locked" which is teal)
+.graphs-lens-chip[data-lens="ready"] filter chip remains gold per signal grammar

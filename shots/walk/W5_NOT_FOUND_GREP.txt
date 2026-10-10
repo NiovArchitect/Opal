@@ -1,0 +1,2 @@
+apps/opal_web/src/opalUi/ActivityDestination.tsx:305:            {feed?.empty_copy && !/not found/i.test(feed.empty_copy)
+apps/opal_web/src/opalUi/ActivityDestination.tsx:313:            {feed?.empty_needs_you_copy && !/not found/i.test(feed.empty_needs_you_copy)

@@ -1,0 +1,104 @@
+{
+  "ok": true,
+  "viewport": {
+    "w": 390,
+    "h": 480,
+    "vv": 844
+  },
+  "title": {
+    "sel": ".fr-title",
+    "position": "relative",
+    "top": "0px",
+    "bottom": "0px",
+    "left": "0px",
+    "text": "Start with your phone number.",
+    "rect": {
+      "top": 84,
+      "left": 24,
+      "right": 366,
+      "bottom": 151.1875,
+      "width": 342,
+      "height": 67.1875
+    }
+  },
+  "body": {
+    "sel": ".fr-body",
+    "position": "relative",
+    "top": "0px",
+    "bottom": "0px",
+    "left": "0px",
+    "text": "Keeps your account yours. That's it.",
+    "rect": {
+      "top": 171.1875,
+      "left": 24,
+      "right": 366,
+      "bottom": 192.9375,
+      "width": 342,
+      "height": 21.75
+    }
+  },
+  "field": {
+    "sel": ".fr-phone-field",
+    "position": "relative",
+    "top": "0px",
+    "bottom": "0px",
+    "left": "0px",
+    "text": "COUNTRY OR REGION CODE\n+1 ▾\n+52 ▾\n+44 ▾\n+63 ▾\n+61 ▾\n+81 ▾\n+49 ▾\n+33 ▾\n+91 ▾\n+55 ",
+    "rect": {
+      "top": 237.9375,
+      "left": 24,
+      "right": 366,
+      "bottom": 293.9375,
+      "width": 342,
+      "height": 56
+    }
+  },
+  "primary": {
+    "sel": "[data-testid=\"fr06-continue\"], .fr-primary",
+    "position": "relative",
+    "top": "0px",
+    "bottom": "0px",
+    "left": "0px",
+    "text": "Continue",
+    "rect": {
+      "top": 427.390625,
+      "left": 24,
+      "right": 366,
+      "bottom": 485.390625,
+      "width": 342,
+      "height": 58
+    }
+  },
+  "skip": {
+    "sel": "[data-testid=\"fr06-skip-for-now\"], .fr-skip-for-now",
+    "position": "relative",
+    "top": "0px",
+    "bottom": "0px",
+    "left": "0px",
+    "text": "Skip for now",
+    "rect": {
+      "top": 501.390625,
+      "left": 24,
+      "right": 366,
+      "bottom": 524.390625,
+      "width": 342,
+      "height": 23
+    }
+  },
+  "absBad": [],
+  "yoHits": [],
+  "visibleTexts": [
+    "OPAL",
+    "GRAPH",
+    "Start with your phone number.",
+    "Keeps your account yours. That's it.",
+    "Phone number",
+    "Country or region code",
+    "We will text you a one-time security code.",
+    "Text message consent",
+    "Text me a one-time security code at this number. This is only for signing in. Not for marketing.",
+    "Message and data rates may apply.",
+    "Continue",
+    "Skip for now"
+  ]
+}

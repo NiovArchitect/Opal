@@ -1,0 +1,173 @@
+Paste W5 Addendum C.1 (R5-10) — Tap audit
+BASE=http://127.0.0.1:5173
+session=Founder Rev 47aa5856-8c56-4b18-a4d4-6a9b456516a8
+generated=2026-10-09T23:53:09.208Z
+
+Format: asset → result → wired/removed/ok
+
+## Home
+gsh-attention-badge → not found after reset (skipped) → pending
+gsh-own-profile → not found after reset (skipped) → pending
+gsh-top → not found after reset (skipped) → pending
+gsh-search → not found after reset (skipped) → pending
+gsh-activity → not found after reset (skipped) → pending
+gsh-chrome-plane → not found after reset (skipped) → pending
+gsh-stories → not found after reset (skipped) → pending
+gsh-story-story-maya → not found after reset (skipped) → pending
+gsh-story-story-jordan → not found after reset (skipped) → pending
+gsh-story-story-sabrina → not found after reset (skipped) → pending
+gsh-story-story-chanelle → not found after reset (skipped) → pending
+gsh-story-story-alex → not found after reset (skipped) → pending
+gsh-stories-rail → not found after reset (skipped) → pending
+gsh-story-create → not found after reset (skipped) → pending
+gsh-story-pulse-story-maya → not found after reset (skipped) → pending
+gsh-story-pulse-story-jordan → not found after reset (skipped) → pending
+gsh-story-pulse-story-sabrina → not found after reset (skipped) → pending
+gsh-story-pulse-story-chanelle → not found after reset (skipped) → pending
+gsh-story-pulse-story-alex → not found after reset (skipped) → pending
+gsh-person-name-seed-nina-hike → not found after reset (skipped) → pending
+gsh-follow-seed-nina-hike → not found after reset (skipped) → pending
+gsh-person-seed-nina-hike → not found after reset (skipped) → pending
+gsh-media-seed-nina-hike → not found after reset (skipped) → pending
+Open memory → appeared: you-settings-pane, you-setting-engagement, you-setting-row-like-counts, you-setting-row-view-counts, you-setting-row-reposts → ok
+gsh-card-seed-nina-hike → not found after reset (skipped) → pending
+gsh-like-seed-nina-hike → not found after reset (skipped) → pending
+gsh-comment-seed-nina-hike → not found after reset (skipped) → pending
+gsh-repost-seed-nina-hike → not found after reset (skipped) → pending
+gsh-forward-seed-nina-hike → not found after reset (skipped) → pending
+gsh-save-seed-nina-hike → not found after reset (skipped) → pending
+gsh-liked-by-seed-nina-hike → not found after reset (skipped) → pending
+gsh-person-name-seed-maya-alive-memory → not found after reset (skipped) → pending
+gsh-person-seed-maya-alive-memory → not found after reset (skipped) → pending
+gsh-media-seed-maya-alive-memory → not found after reset (skipped) → pending
+Open memory → NO_VISIBLE_CHANGE → DEAD?
+gsh-card-seed-maya-alive-memory → not found after reset (skipped) → pending
+gsh-feed → not found after reset (skipped) → pending
+gsh-activity → NOT VISIBLE → DEAD?
+
+## Chats
+chats-home-new → appeared: chats-plus-sheet → ok
+comm-sticky-chrome → NO_VISIBLE_CHANGE → DEAD?
+comm-mode-bar → NO_VISIBLE_CHANGE → DEAD?
+comm-mode-chats → NO_VISIBLE_CHANGE → DEAD?
+comm-mode-calls → appeared: calls-continuity-home, calls-ambient-field, calls-home-new, calls-filter-bar, calls-continuity-list → ok
+chats-ambient-field → NO_VISIBLE_CHANGE → DEAD?
+chats-home-search → NO_VISIBLE_CHANGE → DEAD?
+chats-row-938ee21c-e675-4cf6-b705-265adda9a6db → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-avatar, journey-cta-row → ok
+chats-row-7a3da2ec-0c3f-4914-b539-67e37f1cce76 → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-avatar, journey-cta-row → ok
+chat-connection-label → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-avatar, journey-cta-row → ok
+chats-home-list → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-shared-graph, journey-cta-row → ok
+chats-row-4bf948a5-ceb2-4dfd-9de1-092f1ae565c3 → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-shared-graph, journey-cta-row → ok
+chats-row-92adee66-ac02-4950-961d-42aa50cbc190 → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-avatar, journey-cta-row → ok
+chats-row-4b30a105-fa7a-4f7e-b8a1-467f4a5e6b27 → opened conversation; shell null; appeared: member-conversation, graph-people-header, gpt-header-row, gpt-avatar, journey-cta-row → ok
+chat-plan-pill → opened graph detail; tab member-tab-chats→member-tab-graphs; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=chats","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"]; appeared: graph-detail-sheet, graph-detail-timeblock → ok
+
+## ThreadHeader
+gpt-name → NO_VISIBLE_CHANGE → DEAD?
+gpt-back → closed conversation; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=chats","data-dock-active-slot=chats","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=false"]; appeared: member-shell, chats-home, chats-ambient-field, comm-sticky-chrome, chats-home-new → ok
+gpt-avatar → NO_VISIBLE_CHANGE → DEAD?
+gpt-header-row → NO_VISIBLE_CHANGE → DEAD?
+gpt-history → opened profile; appeared: contact-profile-sheet, contact-profile-backdrop, contact-profile-card, contact-profile-message, contact-profile-call → ok
+gpt-call → closed profile; appeared: opal-system-consequence, opal-plan-filament-hit, opal-moment, composer, member-tabbar → ok
+gpt-video → textΔ: "Calls aren't available on this build yet. ‹ Chanelle Fiancée" → ok
+conversation-options → appeared: conversation-options-menu → ok
+gpt-conn → NO_VISIBLE_CHANGE → DEAD?
+
+## Graphs
+graphs-create → appeared: graphs-create-menu → ok
+graphs-mode-people → NO_VISIBLE_CHANGE → DEAD?
+graphs-mode-timeline → appeared: graphs-temporal-timeline, graphs-whats-next, graphs-temporal-card-seed-maya-graph-coast, graphs-actions-seed-maya-graph-coast, graphs-temporal-card-seed-chanelle-juniper → ok
+graphs-mode-toggle → NO_VISIBLE_CHANGE → DEAD?
+graphs-sticky-chrome → NO_VISIBLE_CHANGE → DEAD?
+graphs-lens-all → NO_VISIBLE_CHANGE → DEAD?
+graphs-lens-action → NO_VISIBLE_CHANGE → DEAD?
+graphs-lens-ready → NO_VISIBLE_CHANGE → DEAD?
+graphs-lens-past → NO_VISIBLE_CHANGE → DEAD?
+trip-new → NO_VISIBLE_CHANGE → DEAD?
+graphs-trips-section → NO_VISIBLE_CHANGE → DEAD?
+graphs-trips-error → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+Coast walk Tonight Coast → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-status-seed-chanelle-juniper → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-seed-chanelle-juniper → NO_VISIBLE_CHANGE → DEAD?
+graphs-open-seed-chanelle-juniper → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-temporal-seed-chanelle-juniper → NO_VISIBLE_CHANGE → DEAD?
+graphs-status-seed-alex-graph-gallery → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-card-open-loop-seed-chanelle-juniper → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-scroll → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-seed-alex-graph-gallery → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-open-seed-alex-graph-gallery → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-trajectory → NO_VISIBLE_CHANGE → DEAD?
+graphs-home-list → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-temporal-seed-alex-graph-gallery → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-open-loop-seed-alex-graph-gallery → NO_VISIBLE_CHANGE → DEAD?
+graphs-status-seed-maya-graph-coast → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-seed-maya-graph-coast → NO_VISIBLE_CHANGE → DEAD?
+graphs-open-seed-maya-graph-coast → NO_VISIBLE_CHANGE → DEAD?
+graphs-card-temporal-seed-maya-graph-coast → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-card-open-loop-seed-maya-graph-coast → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-status-seed-near-rooftop → opened graph detail; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"] → ok
+graphs-card-seed-near-rooftop → NO_VISIBLE_CHANGE → DEAD?
+graphs-open-seed-near-rooftop → NO_VISIBLE_CHANGE → DEAD?
+graphs-start-planning-seed-near-rooftop → tab member-tab-graphs→member-tab-chats; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=chats","data-dock-active-slot=chats","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=false"]; appeared: chats-home, chats-ambient-field, comm-sticky-chrome, chats-home-new, comm-mode-bar → ok
+graphs-open-hint → opened Center; tab member-tab-graphs→member-tab-opal; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"]; appeared: opal-ambient-destination, opal-center-life-graph, opal-center-presence-header, opal-center-presence, opal-center-scroll → ok
+
+## You
+you-qr → appeared: you-settings-pane, you-setting-linked-devices, you-setting-row-this-phone, you-setting-row-desktop, you-setting-row-link-qr-soon → ok
+you-identity-header → NO_VISIBLE_CHANGE → DEAD?
+you-edit-profile → appeared: you-settings-pane, you-setting-edit-profile, you-setting-row-name, you-setting-row-username, you-setting-row-bio → ok
+you-hub-row-privacy → appeared: you-settings-pane, you-setting-privacy, you-setting-row-graph-visibility, you-setting-row-exact-location, you-setting-row-public-counts → ok
+you-hub-row-feed-discovery → appeared: you-settings-pane, you-setting-feed-discovery, you-setting-row-people-first, you-setting-row-local-discovery, you-setting-row-nearby-range → ok
+you-hub-pane → appeared: you-settings-pane, you-setting-location-travel, you-setting-row-home-timezone, you-setting-row-save-home-timezone, you-setting-row-timing → ok
+you-hub-row-location-travel → appeared: you-settings-pane, you-setting-location-travel, you-setting-row-home-timezone, you-setting-row-save-home-timezone, you-setting-row-timing → ok
+you-hub-row-engagement → appeared: you-settings-pane, you-setting-engagement, you-setting-row-like-counts, you-setting-row-view-counts, you-setting-row-reposts → ok
+you-hub-row-calls-assist → appeared: you-settings-pane, you-setting-calls-assist, you-setting-row-assist, you-setting-row-ask-every, you-setting-row-suggest-graphs → ok
+you-hub-row-notifications → appeared: you-settings-pane, you-setting-notifications, you-setting-row-messages-calls, you-setting-row-read-receipts, you-setting-row-graph-changes → ok
+you-hub-row-linked-devices → appeared: you-settings-pane, you-setting-linked-devices, you-setting-row-this-phone, you-setting-row-desktop, you-setting-row-link-qr-soon → ok
+you-hub-row-safety → appeared: you-settings-pane, you-setting-safety, you-setting-row-blocked, you-setting-row-muted, you-setting-row-reported → ok
+you-hub-row-spending-fit → NO_VISIBLE_CHANGE → DEAD?
+
+## Dock
+member-tab-opal → closed story; opened Center; tab member-tab-home→member-tab-opal; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=home","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=true"]; appeared: opal-ambient-destination, opal-center-life-graph, opal-center-presence-header, opal-center-presence, opal-center-scroll → ok
+member-tab-home → NO_VISIBLE_CHANGE → DEAD?
+member-tab-chats → closed story; tab member-tab-home→member-tab-chats; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=chats","data-dock-active-slot=chats","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=false"]; appeared: chats-home, chats-ambient-field, comm-sticky-chrome, chats-home-new, comm-mode-bar → ok
+member-tab-graphs → closed story; tab member-tab-home→member-tab-graphs; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=graphs","data-dock-active-slot=graphs","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=false"]; appeared: graphs-home, graphs-sticky-chrome, graphs-scroll, graphs-trips-section, graphs-trips-error → ok
+member-tab-you → closed story; tab member-tab-home→member-tab-you; shell ["aria-label=Opal Graph","data-member-nav=true","data-product-name=Opal Graph","data-member-home=201:5","data-primary-tab=you","data-dock-active-slot=you","data-nav-person-profile=false","data-nav-group-info=false","data-home-child-open=false"]; appeared: you-hub-pane, you-identity-header, you-hub-row-privacy, you-hub-row-feed-discovery, you-hub-row-location-travel → ok
+
+## DEAD_CANDIDATES (37)
+Home: Open memory → NO_VISIBLE_CHANGE
+Home: gsh-activity → NOT VISIBLE
+Chats: comm-sticky-chrome → NO_VISIBLE_CHANGE
+Chats: comm-mode-bar → NO_VISIBLE_CHANGE
+Chats: comm-mode-chats → NO_VISIBLE_CHANGE
+Chats: chats-ambient-field → NO_VISIBLE_CHANGE
+Chats: chats-home-search → NO_VISIBLE_CHANGE
+ThreadHeader: gpt-name → NO_VISIBLE_CHANGE
+ThreadHeader: gpt-avatar → NO_VISIBLE_CHANGE
+ThreadHeader: gpt-header-row → NO_VISIBLE_CHANGE
+ThreadHeader: gpt-conn → NO_VISIBLE_CHANGE
+Graphs: graphs-mode-people → NO_VISIBLE_CHANGE
+Graphs: graphs-mode-toggle → NO_VISIBLE_CHANGE
+Graphs: graphs-sticky-chrome → NO_VISIBLE_CHANGE
+Graphs: graphs-lens-all → NO_VISIBLE_CHANGE
+Graphs: graphs-lens-action → NO_VISIBLE_CHANGE
+Graphs: graphs-lens-ready → NO_VISIBLE_CHANGE
+Graphs: graphs-lens-past → NO_VISIBLE_CHANGE
+Graphs: trip-new → NO_VISIBLE_CHANGE
+Graphs: graphs-trips-section → NO_VISIBLE_CHANGE
+Graphs: graphs-status-seed-chanelle-juniper → NO_VISIBLE_CHANGE
+Graphs: graphs-card-seed-chanelle-juniper → NO_VISIBLE_CHANGE
+Graphs: graphs-open-seed-chanelle-juniper → NO_VISIBLE_CHANGE
+Graphs: graphs-card-temporal-seed-chanelle-juniper → NO_VISIBLE_CHANGE
+Graphs: graphs-scroll → NO_VISIBLE_CHANGE
+Graphs: graphs-trajectory → NO_VISIBLE_CHANGE
+Graphs: graphs-home-list → NO_VISIBLE_CHANGE
+Graphs: graphs-card-temporal-seed-alex-graph-gallery → NO_VISIBLE_CHANGE
+Graphs: graphs-card-open-loop-seed-alex-graph-gallery → NO_VISIBLE_CHANGE
+Graphs: graphs-status-seed-maya-graph-coast → NO_VISIBLE_CHANGE
+Graphs: graphs-card-seed-maya-graph-coast → NO_VISIBLE_CHANGE
+Graphs: graphs-open-seed-maya-graph-coast → NO_VISIBLE_CHANGE
+Graphs: graphs-card-seed-near-rooftop → NO_VISIBLE_CHANGE
+Graphs: graphs-open-seed-near-rooftop → NO_VISIBLE_CHANGE
+You: you-identity-header → NO_VISIBLE_CHANGE
+You: you-hub-row-spending-fit → NO_VISIBLE_CHANGE
+Dock: member-tab-home → NO_VISIBLE_CHANGE

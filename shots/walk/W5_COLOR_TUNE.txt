@@ -1,0 +1,59 @@
+Paste W5 Addendum E (R5-12) — character-close color TUNING
+Worktree: opal-grok-real-people · branch muse/packet-b-batch-2
+No commit. Color tokens/surfaces only (no Meet structure, no phone absolute geometry, no PlanComposer honesty).
+
+=== SAMPLED (shots/brand/opal-character.png = public/brand/opal-character.png, 512×512 RGB) ===
+Brand Identity Lock §2 / brand.ts ear iridescence (confirmed in asset):
+  earBlue   #6573EB
+  earTeal   #5FAECF
+  earViolet #DD70E9
+  earPink   #DE58AD  (accent only)
+Character void / Brand midnight:
+  #050816 (deep navy) — PNG corners also read indigo-navy cousins ~#181830/#202038/#303050
+Deep space / elevated (brand.ts):
+  #0B1226 · slateInk #1A2338
+Face/body (reference only, not sprayed): soft lavender-periwinkle ~#A995A2–#C9B6C7
+
+Fighting before: Living Void near-blacks (#030406 / #020305 / #070a10 / #030508 / #05060a)
+sat colder/blacker than the character’s navy world; Meet atmosphere used harsh signal-cyan
+radials that clashed with ear blue→teal→violet.
+
+=== CHANGED (file · before → after) ===
+apps/opal_web/src/styles.css
+  :root --bg                #030406 → #050816
+  :root --bg-elevated       #070a10 → #0b1226
+  :root --surface           #070a10 → #0b1226
+  :root --surface-raised    #070a10 → #1a2338
+  :root --glass             rgba(7,10,16,0.92) → rgba(11,18,38,0.92)
+  :root --chat-pane         #030406 → #050816
+  .app-first-run-splash     #020305 → #050816
+  .fr-splash                #020305 → #050816
+  .first-run / promise page/clip/status/cta-crop  #020305|#05060a → #050816
+  .hs-meet-opal atmosphere  cyan/aqua/violet radials + #070b18→#03050f
+                            → earBlue/earViolet/earTeal radials + #0b1226→#050816→#050816
+  .hs-trust atmosphere      cyan radial + #070b18 → earBlue radial + #0b1226
+  .hs-orb-bubble-frame fill #0a1020 → #050816
+  .fr-void base             #030508 (+ cyan radials) → #050816 (+ earBlue/earViolet radials)
+  .fr-auth-v4 profile ring/img #090b0f → #0b1226 ; edit btn #05080a → #050816
+  .gsh / .gsh-top(-spectral) #030406 → #050816
+  .gsh-chip                 #070a10 → #0b1226
+  .gsh-card-media / chats-home-search #0a0e16 → #0b1226
+  .home-ambient-field       cyan/violet/pearl → earBlue/earViolet/earTeal
+  .thread void              #030406 (+ cyan) → #050816 (+ earBlue/earViolet)
+  .chat-header              rgba(3,4,6,0.9) → rgba(5,8,22,0.9)
+  Graphs detail / trips / ready-pill / overlays  #030406|#030508 → #050816
+  bulk Living Void page backgrounds #030406 / #070a10 / #030508 / #05080a → #050816 / #0b1226
+
+apps/opal_web/src/theme/spectralTokens.css
+  .gsh-top.gsh-top-spectral background #030406 → #050816
+  .ogsn-graph-detail.social-dest-373-385 background #030406 → #050816
+
+apps/opal_web/src/theme/technicolorProduction.css
+  --tc-black #05060a → #050816
+  [data-technicolor=full] .first-run background #05060a → #050816
+
+apps/opal_web/src/opalUi/v2Primitives.tsx
+  comment only: Living Void #030406 → character-close midnight #050816
+
+Left as dark ink (not page voids): a few color:#030406 / border #030406 on bright chips.
+Signal chromatic roles (cyan/gold/coral/etc.) untouched — taxonomy preserved.

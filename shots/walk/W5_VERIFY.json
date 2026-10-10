@@ -1,0 +1,121 @@
+{
+  "tip": "afee0fe9",
+  "passed": 23,
+  "total": 23,
+  "checks": {
+    "splash1_visible": {
+      "ok": true,
+      "detail": ""
+    },
+    "splash2_restored": {
+      "ok": true,
+      "detail": "FirstRunPromise via advanceSplashToPromise\u2192promise"
+    },
+    "phone_visible": {
+      "ok": true,
+      "detail": ""
+    },
+    "phone_zero_absolute": {
+      "ok": true,
+      "detail": "viewport 390x480"
+    },
+    "phone_no_overlap_keyboard": {
+      "ok": true,
+      "detail": "field.bottom=294 primary.top=427"
+    },
+    "phone_no_stray_yo": {
+      "ok": true,
+      "detail": "clean"
+    },
+    "phone_device_viewport_documented": {
+      "ok": true,
+      "detail": "Playwright iPhone-like 390\u00d7844 dpr3 native-host; keyboard sim maxHeight=480; visualViewport.h=844"
+    },
+    "meet_one_page_name": {
+      "ok": true,
+      "detail": "hs-self-name-input"
+    },
+    "meet_friend_dual_path": {
+      "ok": true,
+      "detail": "friend ask / dual path visible on same scroll"
+    },
+    "meet_permissions_inline": {
+      "ok": true,
+      "detail": "hs-permissions on same page"
+    },
+    "meet_assist_row": {
+      "ok": true,
+      "detail": "hs-assist-row compact Enable/Not now"
+    },
+    "meet_sticky_continue": {
+      "ok": true,
+      "detail": "sticky Continue"
+    },
+    "member_shell": {
+      "ok": true,
+      "detail": ""
+    },
+    "story_plus_opens_composer": {
+      "ok": true,
+      "detail": "post=true story=true"
+    },
+    "thread_history_visible": {
+      "ok": true,
+      "detail": ""
+    },
+    "thread_history_wired": {
+      "ok": true,
+      "detail": "sheet visible"
+    },
+    "thread_phone_btn_present": {
+      "ok": true,
+      "detail": ""
+    },
+    "thread_video_btn_present": {
+      "ok": true,
+      "detail": ""
+    },
+    "graphs_new_menu_visible": {
+      "ok": true,
+      "detail": "plan=true trip=true idea=true"
+    },
+    "new_plan_opens_composer": {
+      "ok": true,
+      "detail": ""
+    },
+    "plan_composer_honest_state": {
+      "ok": true,
+      "detail": "forming=true readyLie=false"
+    },
+    "plan_composer_no_orb_ready": {
+      "ok": true,
+      "detail": "orb idle/forming only"
+    },
+    "not_found_scrub_clean": {
+      "ok": true,
+      "detail": "lines=0"
+    }
+  },
+  "timings": {
+    "splash1_to_splash2_ms": {
+      "ms": 1508,
+      "detail": "promise"
+    },
+    "splash2_to_phone_ms": {
+      "ms": 192,
+      "detail": "ok"
+    },
+    "meet_page_ready_ms": {
+      "ms": 2465,
+      "detail": ""
+    },
+    "splash_to_inside_wall_ms": {
+      "ms": 10730,
+      "detail": "includes loads + script waits"
+    }
+  },
+  "viewport": "iPhone-like 390\u00d7844 dpr3 + html.opal-native-host; phone keyboard simulated via maxHeight 480",
+  "splash2_cause": "9f88201b rewrote advanceSplashToPromise to setFirstRunStage('auth'); FirstRunPromisePage.tsx unchanged (sha identical to pre-diet).",
+  "verify_captured_at": "15d8f328",
+  "evidence_tip": "afee0fe9"
+}
