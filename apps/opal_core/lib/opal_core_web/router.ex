@@ -150,6 +150,9 @@ defmodule OpalCoreWeb.Router do
     post("/oauth/google/start", ConnectorController, :oauth_google_start)
     post("/oauth/google/callback", ConnectorController, :oauth_google_callback)
 
+    # Paste W6 Phase 5 — Center now-strip day window (titles on-demand).
+    get("/calendar/today", CalendarController, :today)
+
     get("/conversations", ConversationController, :index)
     post("/conversations/direct", ConversationController, :ensure_direct)
     post("/conversations/group", ConversationController, :create_group)

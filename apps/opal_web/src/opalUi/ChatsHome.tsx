@@ -8,6 +8,7 @@ import { type CallsContinuityRow } from "./callsContinuitySeed";
 import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
 import { isTestResidueConversation } from "./realChatPath";
+import { contactEarGradient, contactInitial } from "../theme/contactAvatar";
 
 export type PlanPillTone = "dinner" | "activity" | "trip" | "live";
 
@@ -363,7 +364,11 @@ export function ChatsHome({
                   data-testid={`calls-avatar-${r.id}`}
                   data-story-ring={r.hasStory ? "true" : "false"}
                   aria-label={r.hasStory ? `Open ${r.name} Story` : `${r.name}`}
-                  style={r.avatarTone ? { background: r.avatarTone } : undefined}
+                  style={
+                    r.avatarSrc || r.groupAvatarSrcs?.length
+                      ? undefined
+                      : { background: contactEarGradient(r.id || r.name) }
+                  }
                   onClick={() => {
                     if (r.hasStory) onOpenStoryFromCalls?.(r);
                     else onOpenCallsContinuityRow?.(r);
@@ -514,24 +519,20 @@ export function ChatsHome({
                   data-unread={r.unread ? String(r.unread) : "0"}
                   data-preview={r.preview}
                   onClick={() => onOpenChat(r.id)}
-                  style={
-                    r.avatarTone
-                      ? {
-                          borderColor: r.avatarTone,
-                          boxShadow: `0 0 0 1px ${r.avatarTone}33, inset 0 0 0 1px ${r.avatarTone}22`,
-                        }
-                      : undefined
-                  }
                 >
                   <span
                     className="chats-home-avatar"
                     aria-hidden
-                    style={r.avatarTone ? { background: r.avatarTone } : undefined}
+                    style={
+                      r.avatarSrc
+                        ? undefined
+                        : { background: contactEarGradient(r.id || r.name) }
+                    }
                   >
                     {r.avatarSrc ? (
                       <img src={r.avatarSrc} alt="" />
                     ) : (
-                      r.name.slice(0, 1)
+                      contactInitial(r.name)
                     )}
                   </span>
                   <span className="chats-home-copy">

@@ -387,18 +387,19 @@ function TimelineCard({
   onMessageGroup?: (item: TimelineItem) => void;
   onAdjust?: (item: TimelineItem) => void;
 }) {
-  const scale = 0.92 + Math.min(0.28, importance(item) / 8);
   const future = isFutureTimelineItem(item);
   const planState =
     item.status === "ready" || item.status === "aligned"
-      ? "locked"
+      ? "ready"
       : item.status === "past"
         ? "past"
-        : item.status === "forming" || item.status === "action"
-          ? "forming"
-          : item.bucket === "someday"
-            ? "idea"
-            : item.status || "forming";
+        : item.status === "action"
+          ? "action"
+          : item.status === "forming"
+            ? "forming"
+            : item.bucket === "someday"
+              ? "idea"
+              : item.status || "forming";
   return (
     <article
       className={`graphs-temporal-card${pinned ? " is-pinned" : ""}`}
@@ -406,14 +407,32 @@ function TimelineCard({
       data-bucket={item.bucket}
       data-source={item.source || "seed"}
       data-plan-state={planState}
-      style={{ ["--gt-scale" as string]: String(scale) }}
     >
       <button
         type="button"
         className="graphs-temporal-card-main"
         onClick={() => onOpen?.(item.id)}
       >
-        <strong>{item.title}</strong>
+        <span className="graphs-temporal-card-top">
+          <strong>{item.title}</strong>
+          <span
+            className={`graphs-card-status graphs-status-${planState === "ready" ? "ready" : planState === "action" ? "action" : planState === "past" ? "past" : planState === "idea" ? "idea" : planState === "happening" || planState === "locked" ? "happening" : "forming"} plan-state-pill`}
+            data-plan-state={planState}
+            data-testid={`graphs-temporal-status-${item.id}`}
+          >
+            {planState === "ready"
+              ? "Ready"
+              : planState === "action"
+                ? "Action"
+                : planState === "past"
+                  ? "Past"
+                  : planState === "idea"
+                    ? "Idea"
+                    : planState === "happening" || planState === "locked"
+                      ? "Live"
+                      : "Forming"}
+          </span>
+        </span>
         <span className="graphs-temporal-when">{item.whenLabel}</span>
         {item.where ? <span className="graphs-temporal-where">{item.where}</span> : null}
       </button>

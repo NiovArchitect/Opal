@@ -49,7 +49,7 @@ export type AlignmentStep = {
 /** Home Graph timeline accents — actual Figma 618:162–175 paints. */
 export const HOME_GRAPH_TIMELINE_COLORS = [
   "#00E5FF",
-  "#E8D6C4",
+  "#5FAECF",
   "#8B5CF6",
   "#FFC86B",
 ] as const;

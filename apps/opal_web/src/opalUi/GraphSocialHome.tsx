@@ -883,7 +883,7 @@ function FeedCard({
             {nodes.map((n, i) => {
               const accent =
                 n.accent ||
-                (["#00E5FF", "#E8D6C4", "#8B5CF6", "#FFC86B"] as const)[i % 4];
+                (["#00E5FF", "#5FAECF", "#8B5CF6", "#FFC86B"] as const)[i % 4];
               return (
                 <li
                   key={`${card.id}-node-${i}-${n.primary}`}

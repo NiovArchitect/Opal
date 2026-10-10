@@ -1,0 +1,27 @@
+[
+  {
+    "bg": "rgba(139, 92, 246, 0.18)",
+    "border": "rgb(139, 92, 246)",
+    "cls": "bubble in"
+  },
+  {
+    "bg": "rgba(0, 229, 255, 0.18)",
+    "border": "rgb(0, 229, 255)",
+    "cls": "bubble out"
+  },
+  {
+    "bg": "rgba(139, 92, 246, 0.18)",
+    "border": "rgb(139, 92, 246)",
+    "cls": "bubble in"
+  },
+  {
+    "bg": "rgba(0, 229, 255, 0.18)",
+    "border": "rgb(0, 229, 255)",
+    "cls": "bubble out"
+  },
+  {
+    "bg": "rgba(139, 92, 246, 0.18)",
+    "border": "rgb(139, 92, 246)",
+    "cls": "bubble in"
+  }
+]

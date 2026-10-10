@@ -1,7 +1,7 @@
 /**
- * Conversation chrome - one clean header row (Paste W4 Phase 3).
- * [‹] [avatar] [Name / relationship] ... [History] [phone] [video]
- * No doubled chevrons, no absolute avatar hit over the back control.
+ * Conversation chrome - one clean header row (Paste W4 Phase 3 / W6 Phase 4).
+ * [back] [avatar] [Name / relationship] ... [History] [phone] [video]
+ * Exactly one navigation back control (gpt-back SVG) — no stacked text ‹ duplicate.
  */
 import React, { useEffect, useState } from "react";
 import { MutedBell } from "./MutedBell";
@@ -40,7 +40,32 @@ type Props = {
   onOpenContactProfile?: () => void;
 };
 
-/** Clock-rewind glyph: relationship History (repurposed former calendar slot). */
+/** Single-stroke back chevron — SVG avoids font ‹ rendering as stacked «. */
+function BackChevronIcon() {
+  return (
+    <svg
+      className="gpt-back-icon"
+      width={18}
+      height={18}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M15 6L9 12l6 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Shared-plans History glyph (Paste W6 4b): two overlapping rounded rects,
+ * front one with a small checkmark. Same 16px slot / stroke as call/video.
+ */
 function HistoryIcon() {
   return (
     <svg
@@ -51,21 +76,31 @@ function HistoryIcon() {
       fill="none"
       aria-hidden
     >
-      <path
-        d="M3 12a9 9 0 1 0 3-6.7"
+      {/* Back card */}
+      <rect
+        x="3.5"
+        y="5.5"
+        width="12"
+        height="14"
+        rx="2.5"
+        fill="none"
         stroke="currentColor"
         strokeWidth="1.75"
-        strokeLinecap="round"
       />
-      <path
-        d="M3 4v5h5"
+      {/* Front card */}
+      <rect
+        x="8.5"
+        y="3.5"
+        width="12"
+        height="14"
+        rx="2.5"
+        fill="none"
         stroke="currentColor"
         strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
+      {/* Check on front card */}
       <path
-        d="M12 7v5l3 2"
+        d="M11.5 10.5l2 2 3.5-3.5"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
@@ -152,7 +187,7 @@ export function GraphPeopleThreadHeader({
               aria-label="Back"
               data-testid="gpt-back"
             >
-              ‹
+              <BackChevronIcon />
             </button>
           ) : null}
 

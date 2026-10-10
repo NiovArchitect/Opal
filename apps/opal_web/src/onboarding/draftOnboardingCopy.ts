@@ -17,6 +17,7 @@ export type OnboardingCopyMoment =
   | "ask_vibe"
   | "calendar_connected"
   | "calendar_dismissed"
+  | "calendar_unavailable"
   | "taste_done"
   | "spots_ready"
   | "message_preview";

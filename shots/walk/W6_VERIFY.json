@@ -1,0 +1,177 @@
+{
+  "tip": "87d3304b",
+  "passed": 42,
+  "total": 42,
+  "branch": "muse/packet-b-batch-2",
+  "checks": {
+    "p0_otp_reached": {
+      "ok": true,
+      "detail": ""
+    },
+    "p0_character_lockup": {
+      "ok": true,
+      "detail": "/brand/opal-character.png"
+    },
+    "p0_no_graph_emblem": {
+      "ok": true,
+      "detail": ""
+    },
+    "p0_headline": {
+      "ok": true,
+      "detail": ""
+    },
+    "p0_verify_not_absolute": {
+      "ok": true,
+      "detail": "relative"
+    },
+    "p0_verify_below_boxes": {
+      "ok": true,
+      "detail": "wrap.b=247 submit.t=273"
+    },
+    "p0_zero_overlap_assert": {
+      "ok": true,
+      "detail": "cells=6"
+    },
+    "p0_six_boxes_visible": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_username_microcopy": {
+      "ok": true,
+      "detail": "You'll be @sadeil. Change anytime in settings."
+    },
+    "p1_no_in_you_typo": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_headline": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_subhead": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_value_lines": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_old_block_gone": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_permissions_restored": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_continue_all_not_now": {
+      "ok": true,
+      "detail": ""
+    },
+    "p1_lands_center": {
+      "ok": true,
+      "detail": "strip"
+    },
+    "member_shell": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_pills_have_state": {
+      "ok": true,
+      "detail": "n=5"
+    },
+    "p2_ready_is_amber": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_happening_cyan": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_action_red": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_forming_purple": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_past_white": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_brown_kill_grep": {
+      "ok": true,
+      "detail": "hits=0"
+    },
+    "p4_chanelle_row_photo": {
+      "ok": true,
+      "detail": "/figma-v2/direct/opal-direct-chanelle-618-351.png"
+    },
+    "p4_single_chevron_chanelle": {
+      "ok": true,
+      "detail": ""
+    },
+    "p4_history_shared_plans_glyph": {
+      "ok": true,
+      "detail": "rects=2"
+    },
+    "p4_single_chevron_maya": {
+      "ok": true,
+      "detail": ""
+    },
+    "p2_no_brown_bubble_wash": {
+      "ok": true,
+      "detail": ""
+    },
+    "p3_bubble_life": {
+      "ok": true,
+      "detail": "n=5 sample={\"bg\":\"rgba(139, 92, 246, 0.18)\",\"border\":\"rgb(139, 92, 246)\",\"cls\":\"bubble in\"}"
+    },
+    "p3_graphs_cards_present": {
+      "ok": true,
+      "detail": "cards=8 totalHits=9"
+    },
+    "p5_center_open": {
+      "ok": true,
+      "detail": ""
+    },
+    "p5_strip_has_now": {
+      "ok": true,
+      "detail": "Now\nOpen"
+    },
+    "p5_sample_honesty": {
+      "ok": true,
+      "detail": "source=sample"
+    },
+    "p5_strip_retick": {
+      "ok": true,
+      "detail": "delta=62333"
+    },
+    "src_character_lockup": {
+      "ok": true,
+      "detail": ""
+    },
+    "src_history_rects": {
+      "ok": true,
+      "detail": ""
+    },
+    "src_back_chevron_svg": {
+      "ok": true,
+      "detail": ""
+    },
+    "src_strip_tick": {
+      "ok": true,
+      "detail": ""
+    },
+    "src_meet_headline": {
+      "ok": true,
+      "detail": ""
+    },
+    "src_perms_title": {
+      "ok": true,
+      "detail": ""
+    }
+  },
+  "generatedAt": "2026-10-10T06:15:09.671Z"
+}

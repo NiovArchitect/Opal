@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { OpalMark } from "../brand/OpalLogo";
+import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_AUTH_FIXTURE,

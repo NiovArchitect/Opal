@@ -5,33 +5,49 @@
 
 export const HOLY_SHIT_COPY = {
  landingHook: "Tell Opal who you want to stay close with.",
- greeting:
- "Hey. I'm Opal. Real people. Brighter together. Birthdays, plans, staying close. I got you.",
+ /** Paste W6 Phase 1 — Meet Opal greeting (no em-dashes). */
+ greetingHeadline: "Hey, I'm Opal.",
+ greetingSubhead: "Real people. Brighter together.",
+ greetingValueLines: [
+  "Plans with your people, minus the group-chat chaos.",
+  "Birthdays, trips, Tuesday nights. Handled.",
+  "You bring the people. I bring the timing.",
+ ] as const,
+ /** Joined greeting for tests / voice asserts (headline + subhead + values). */
+ greeting: [
+  "Hey, I'm Opal.",
+  "Real people. Brighter together.",
+  "Plans with your people, minus the group-chat chaos.",
+  "Birthdays, trips, Tuesday nights. Handled.",
+  "You bring the people. I bring the timing.",
+ ].join(" "),
  /** Paste W4 Phase 0 — user's own name before permissions. */
  askSelfName: "What's your name?",
  selfNamePlaceholder: "Your name",
  /** @deprecated Paste W4 — username is derived; no separate input. */
  selfUsernamePlaceholder: "Username (optional)",
- /** Quiet handle preview after name typed (Paste W4). */
+ /** Quiet handle preview after name typed (Paste W6: settings, not You). */
  selfUsernameQuiet: (handle: string) =>
-  `You'll be @${handle}. Change it anytime in You.`,
+  `You'll be @${handle}. Change anytime in settings.`,
  /** @deprecated alias for quiet preview */
- selfUsernameHint: "You'll be @{handle}. Change it anytime in You.",
+ selfUsernameHint: "You'll be @{handle}. Change anytime in settings.",
  selfNameContinue: "Continue",
- /** Permissions ONE screen (Paste W4): contacts, calendar, notifications, location. */
- askPermissions: "A few permissions help me take care of you.",
+ /** Permissions ONE screen (Paste W6): contacts, notifications, location. No calendar. */
+ askPermissions: "A few permissions, all worth it.",
  permContactsTitle: "Contacts",
- permContactsWhy: "Find your people.",
+ permContactsWhy: "So I know who's who when you make plans.",
+ /** @deprecated Paste W6 — calendar row removed from Meet permissions. */
  permCalendarTitle: "Calendar",
+ /** @deprecated Paste W6 — calendar row removed from Meet permissions. */
  permCalendarWhy: "Never double-book you.",
  permNotificationsTitle: "Notifications",
- permNotificationsWhy: "Nudges at the right time.",
+ permNotificationsWhy: "So you never miss the moment a plan locks in.",
  permLocationTitle: "Location",
- permLocationWhy: "Spots near you.",
+ permLocationWhy: "So nearby plans and places just work.",
  permAllow: "Allow",
- permSkip: "Skip",
- /** @deprecated Paste W4 uses permSkip */
- permNotNow: "Skip",
+ /** Paste W6 — Allow + Not now per row (Skip label retired on Meet). */
+ permSkip: "Not now",
+ permNotNow: "Not now",
  permContinue: "Continue",
  /** Paste W5 — Assist preference as one Meet Opal row (not a screen). */
  assistRow: "Let Opal place calls and make reservations for you.",
@@ -416,19 +432,53 @@ export function suggestUsernameFromName(name: string): string {
     .slice(0, 24);
 }
 
-/** Permission rows on the ONE ask_permissions screen (Paste W4). */
-export type MeetOpalPermissionKind =
-  | "contacts"
-  | "calendar"
-  | "notifications"
-  | "location";
+/** Permission rows on Meet Opal (Paste W6: exactly 3 — no calendar). */
+export type MeetOpalPermissionKind = "contacts" | "notifications" | "location";
 
 export const MEET_OPAL_PERMISSION_ORDER: readonly MeetOpalPermissionKind[] = [
   "contacts",
-  "calendar",
   "notifications",
   "location",
 ] as const;
+
+/** localStorage key for Meet permission decisions (changeable later in You > settings). */
+export const MEET_OPAL_PERMISSIONS_STORAGE_KEY = "opal_meet_permissions";
+
+export type MeetOpalPermissionSnapshot = {
+  user_id?: string;
+  contacts: "pending" | "allowed" | "skipped";
+  notifications: "pending" | "allowed" | "skipped";
+  location: "pending" | "allowed" | "skipped";
+  updated_at: string;
+};
+
+export function saveMeetOpalPermissions(
+  decisions: Pick<MeetOpalPermissionSnapshot, MeetOpalPermissionKind>,
+  userId?: string,
+): void {
+  try {
+    const payload: MeetOpalPermissionSnapshot = {
+      user_id: userId,
+      contacts: decisions.contacts,
+      notifications: decisions.notifications,
+      location: decisions.location,
+      updated_at: new Date().toISOString(),
+    };
+    localStorage.setItem(MEET_OPAL_PERMISSIONS_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    /* private mode */
+  }
+}
+
+export function loadMeetOpalPermissions(): MeetOpalPermissionSnapshot | null {
+  try {
+    const raw = localStorage.getItem(MEET_OPAL_PERMISSIONS_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as MeetOpalPermissionSnapshot;
+  } catch {
+    return null;
+  }
+}
 
 export type HolyShitOnboardingState = {
  contactName: string;

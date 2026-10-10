@@ -1,0 +1,92 @@
+{
+  "wrap": {
+    "position": "relative",
+    "rect": {
+      "top": 191.48980712890625,
+      "left": 48,
+      "right": 342,
+      "bottom": 247.48980712890625,
+      "width": 294,
+      "height": 56
+    }
+  },
+  "submit": {
+    "position": "relative",
+    "rect": {
+      "top": 273.48980712890625,
+      "left": 48,
+      "right": 342,
+      "bottom": 331.48980712890625,
+      "width": 294,
+      "height": 58
+    }
+  },
+  "cells": [
+    {
+      "position": "static",
+      "rect": {
+        "top": 191.48980712890625,
+        "left": 48,
+        "right": 96,
+        "bottom": 247.48980712890625,
+        "width": 48,
+        "height": 56
+      }
+    },
+    {
+      "position": "static",
+      "rect": {
+        "top": 191.48980712890625,
+        "left": 106,
+        "right": 154,
+        "bottom": 247.48980712890625,
+        "width": 48,
+        "height": 56
+      }
+    },
+    {
+      "position": "static",
+      "rect": {
+        "top": 191.48980712890625,
+        "left": 164,
+        "right": 212,
+        "bottom": 247.48980712890625,
+        "width": 48,
+        "height": 56
+      }
+    },
+    {
+      "position": "static",
+      "rect": {
+        "top": 191.48980712890625,
+        "left": 222,
+        "right": 270,
+        "bottom": 247.48980712890625,
+        "width": 48,
+        "height": 56
+      }
+    },
+    {
+      "position": "static",
+      "rect": {
+        "top": 191.48980712890625,
+        "left": 280,
+        "right": 328,
+        "bottom": 247.48980712890625,
+        "width": 48,
+        "height": 56
+      }
+    },
+    {
+      "position": "static",
+      "rect": {
+        "top": 191.48980712890625,
+        "left": 338,
+        "right": 386,
+        "bottom": 247.48980712890625,
+        "width": 48,
+        "height": 56
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 /**
- * Paste W5 Phase 0 — Meet Opal ONE scrolling page.
+ * Paste W6 Phase 1 — Meet Opal ONE scrolling page.
  * Document order: orb → greeting → name → friend → permissions → Assist → sticky Continue.
  * Does not render ask_more / ask_when / ask_vibe / working / trust.
  */
@@ -8,6 +8,7 @@ import { motion, useReducedMotion } from "motion/react";
 import {
   HOLY_SHIT_COPY,
   MEET_OPAL_PERMISSION_ORDER,
+  saveMeetOpalPermissions,
   suggestUsernameFromName,
   type HolyShitOnboardingState,
   type HolyShitPerson,
@@ -18,6 +19,7 @@ import {
   type MeetOpalPhase,
 } from "./holyShitCopy";
 import { HsTypingDots, OpalPresenceOrb, type OpalOrbMode } from "./OpalPresenceOrb";
+import { UsernameSettingsHint } from "./UsernameSettingsHint";
 import { ContactSuggestPicker } from "../people/ContactSuggestPicker";
 import {
   requestNativeContacts,
@@ -99,35 +101,6 @@ async function persistOnboardingContact(
   }
 }
 
-/** True only when Google Calendar connector reports connected (no fake success). */
-async function checkCalendarConnected(bearer?: string | null): Promise<boolean> {
-  if (!bearer) return false;
-  try {
-    const statusRes = await fetch("/api/v1/product/connectors/google_calendar", {
-      headers: { Authorization: `Bearer ${bearer}` },
-    });
-    if (statusRes.ok) {
-      const data = (await statusRes.json().catch(() => null)) as {
-        connected?: boolean;
-        status?: string;
-      } | null;
-      if (data?.connected === true || data?.status === "connected") return true;
-    }
-    const startRes = await fetch("/api/v1/product/connectors/google_calendar/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${bearer}`,
-      },
-      body: "{}",
-    });
-    if (startRes.status === 503) return false;
-    return false;
-  } catch {
-    return false;
-  }
-}
-
 function OpalLine({ text, testId, index }: { text: string; testId: string; index: number }) {
   const reduce = useReducedMotion();
   return (
@@ -186,8 +159,6 @@ function permCopyFor(kind: MeetOpalPermissionKind): { title: string; why: string
   switch (kind) {
     case "contacts":
       return { title: HOLY_SHIT_COPY.permContactsTitle, why: HOLY_SHIT_COPY.permContactsWhy };
-    case "calendar":
-      return { title: HOLY_SHIT_COPY.permCalendarTitle, why: HOLY_SHIT_COPY.permCalendarWhy };
     case "notifications":
       return {
         title: HOLY_SHIT_COPY.permNotificationsTitle,
@@ -196,6 +167,39 @@ function permCopyFor(kind: MeetOpalPermissionKind): { title: string; why: string
     case "location":
       return { title: HOLY_SHIT_COPY.permLocationTitle, why: HOLY_SHIT_COPY.permLocationWhy };
   }
+}
+
+function OpalGreeting({ index }: { index: number }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className="hs-line hs-line-opal"
+      data-testid="hs-opal-greeting"
+      initial={reduce ? false : { opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={
+        reduce
+          ? { duration: 0 }
+          : { duration: MSG_SLIDE_MS / 1000, delay: Math.min(index, 3) * 0.1, ease: EASE_OUT }
+      }
+    >
+      <div className="hs-line-body hs-greeting-block">
+        <p className="hs-greeting-headline" data-testid="hs-greeting-headline">
+          {HOLY_SHIT_COPY.greetingHeadline}
+        </p>
+        <p className="hs-greeting-subhead" data-testid="hs-greeting-subhead">
+          {HOLY_SHIT_COPY.greetingSubhead}
+        </p>
+        <div className="hs-greeting-values" data-testid="hs-greeting-values">
+          {HOLY_SHIT_COPY.greetingValueLines.map((line) => (
+            <p key={line} className="hs-greeting-value-line">
+              {line}
+            </p>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
 function contactsPickerAvailable(): boolean {
@@ -223,7 +227,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [permDecisions, setPermDecisions] = useState<Record<MeetOpalPermissionKind, PermDecision>>(
     () => ({
       contacts: "pending",
-      calendar: "pending",
       notifications: "pending",
       location: "pending",
     }),
@@ -311,7 +314,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setPermDecisions((prev) => ({ ...prev, [kind]: decision }));
   };
 
-  /** Contacts / calendar / notifications / location — never window.location. */
+  /** Contacts / notifications / location — never window.location. */
   const requestPermission = async (kind: MeetOpalPermissionKind) => {
     if (permBusy) return;
     setPermBusy(kind);
@@ -343,8 +346,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
             setContactsUnavailable(true);
           }
         }
-      } else if (kind === "calendar") {
-        await checkCalendarConnected(bearer);
       } else if (kind === "notifications") {
         try {
           if (typeof Notification !== "undefined" && Notification.requestPermission) {
@@ -543,16 +544,18 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     void updateAssistPreference(enabled, bearer ?? undefined).catch(() => undefined);
   };
 
-  /** Sticky Continue: save profile, persist friend if chosen, then onComplete. */
+  /** Sticky Continue: save profile + perms, persist friend if chosen, then onComplete. */
   const handleMeetContinue = () => {
     const display = selfNameDraft.trim();
     if (!display || finishing) return;
     setFinishing(true);
     const handle = suggestUsernameFromName(display);
+    let profileUserId = "pending-onboarding";
     try {
       const prev = loadProfile();
+      profileUserId = prev?.user_id || "pending-onboarding";
       saveProfile({
-        user_id: prev?.user_id || "pending-onboarding",
+        user_id: profileUserId,
         display_name: display,
         handle: handle || undefined,
         session_id: prev?.session_id,
@@ -563,6 +566,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     } catch {
       /* private mode — still continue */
     }
+    saveMeetOpalPermissions(permDecisions, profileUserId);
     if (bearer && handle) {
       void updateProfile({ displayName: display, handle }, bearer).catch(() => undefined);
     }
@@ -629,9 +633,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
       <div className="hs-meet-scroll" ref={scrollerRef}>
         <div className="hs-meet-thread">
-          {showGreeting ? (
-            <OpalLine text={HOLY_SHIT_COPY.greeting} testId="hs-opal-greeting" index={0} />
-          ) : null}
+          {showGreeting ? <OpalGreeting index={0} /> : null}
 
           {showTyping ? (
             <div className="hs-line hs-line-typing" data-testid="hs-opal-typing">
@@ -666,9 +668,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                     />
                   </div>
                   {derivedHandle ? (
-                    <p className="hs-people-hint" data-testid="hs-self-username-hint">
-                      {HOLY_SHIT_COPY.selfUsernameQuiet(derivedHandle)}
-                    </p>
+                    <UsernameSettingsHint handle={derivedHandle} variant="plain" />
                   ) : null}
                 </div>
               </div>
@@ -871,12 +871,12 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                           </button>
                           <button
                             type="button"
-                            className="hs-pill hs-perm-skip"
+                            className="hs-pill hs-perm-skip hs-perm-not-now"
                             data-testid={`hs-perm-skip-${kind}`}
                             disabled={permBusy === kind || decision !== "pending"}
                             onClick={() => markPerm(kind, "skipped")}
                           >
-                            {HOLY_SHIT_COPY.permSkip}
+                            {HOLY_SHIT_COPY.permNotNow}
                           </button>
                         </div>
                       </li>

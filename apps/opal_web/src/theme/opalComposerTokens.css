@@ -32,10 +32,18 @@
     --opal-composer-send-color: #050816;
     --opal-composer-attach-color: #c9d2e0;
 
-    /* Plan state color code (Paste W Amendment L2) — electric, never muddy */
-    --plan-state-confirmed: #00e5ff; /* locked / confirmed — electric teal */
-    --plan-state-pending: #ffc86b; /* waiting on someone — bright amber/gold */
-    --plan-state-idea: #8b5cf6; /* idea / forming / unconfirmed — violet */
+    /* Paste W6 canonical plan-state fills — pill FILL carries state */
+    --plan-state-happening: #00e5ff; /* happening / now / live / confirmed */
+    --plan-state-action: #ff4d5e; /* action needed */
+    --plan-state-ready: #ffc86b; /* ready / upcoming */
+    --plan-state-past: #ffffff; /* past */
+    --plan-state-forming: #8b5cf6; /* forming / idea */
+    --plan-state-pill-text-on-bright: #0a0f1e;
+    --plan-state-pill-text-on-vivid: #ffffff;
+    /* W5 aliases kept for gradual callers */
+    --plan-state-confirmed: var(--plan-state-happening);
+    --plan-state-pending: var(--plan-state-ready);
+    --plan-state-idea: var(--plan-state-forming);
   }
 
   /**
@@ -96,30 +104,97 @@
     color: var(--opal-composer-send-color);
   }
 
-  /* Plan-state pills / cards — one code, every surface */
-  .plan-state-confirmed,
+  /* Token only on any stateful node — fills applied to pill selectors below */
   [data-plan-state="locked"],
   [data-plan-state="confirmed"],
-  [data-plan-state="happening"] {
-    --plan-state-color: var(--plan-state-confirmed);
-    color: var(--plan-state-confirmed);
-    border-color: color-mix(in srgb, var(--plan-state-confirmed) 55%, transparent);
+  [data-plan-state="happening"],
+  [data-plan-state="live"],
+  [data-plan-state="now"] {
+    --plan-state-color: var(--plan-state-happening);
   }
-
-  .plan-state-pending,
+  [data-plan-state="ready"],
+  [data-plan-state="upcoming"],
+  [data-plan-state="aligned"] {
+    --plan-state-color: var(--plan-state-ready);
+  }
+  [data-plan-state="action"],
   [data-plan-state="pending"],
   [data-plan-state="waiting"] {
-    --plan-state-color: var(--plan-state-pending);
-    color: var(--plan-state-pending);
-    border-color: color-mix(in srgb, var(--plan-state-pending) 55%, transparent);
+    --plan-state-color: var(--plan-state-action);
   }
-
-  .plan-state-idea,
   [data-plan-state="idea"],
   [data-plan-state="forming"],
   [data-plan-state="unconfirmed"] {
-    --plan-state-color: var(--plan-state-idea);
-    color: var(--plan-state-idea);
-    border-color: color-mix(in srgb, var(--plan-state-idea) 55%, transparent);
+    --plan-state-color: var(--plan-state-forming);
+  }
+  [data-plan-state="past"] {
+    --plan-state-color: var(--plan-state-past);
+  }
+
+  /* Pill FILL carries state — never font-alone / never neutral dark wash */
+  .chats-plan-pill[data-plan-state="locked"],
+  .chats-plan-pill[data-plan-state="confirmed"],
+  .chats-plan-pill[data-plan-state="happening"],
+  .chats-plan-pill[data-plan-state="live"],
+  .chats-plan-pill[data-plan-state="now"],
+  .graph-ready-pill[data-plan-state="locked"],
+  .graph-ready-pill[data-plan-state="confirmed"],
+  .graph-ready-pill[data-plan-state="happening"],
+  .graphs-card-status.graphs-status-happening,
+  .graphs-card-status.graphs-status-locked,
+  .graphs-card-status.graphs-status-confirmed,
+  .plan-state-pill[data-plan-state="happening"],
+  .plan-state-pill[data-plan-state="locked"],
+  .plan-state-pill[data-plan-state="confirmed"] {
+    background: var(--plan-state-happening) !important;
+    color: var(--plan-state-pill-text-on-vivid) !important;
+    border-color: var(--plan-state-happening) !important;
+  }
+
+  .chats-plan-pill[data-plan-state="ready"],
+  .chats-plan-pill[data-plan-state="upcoming"],
+  .chats-plan-pill[data-plan-state="aligned"],
+  .graph-ready-pill[data-plan-state="ready"],
+  .graphs-card-status.graphs-status-ready,
+  .graphs-card-status.graphs-status-aligned,
+  .plan-state-pill[data-plan-state="ready"] {
+    background: var(--plan-state-ready) !important;
+    color: var(--plan-state-pill-text-on-bright) !important;
+    border-color: var(--plan-state-ready) !important;
+  }
+
+  .chats-plan-pill[data-plan-state="action"],
+  .chats-plan-pill[data-plan-state="pending"],
+  .chats-plan-pill[data-plan-state="waiting"],
+  .graph-ready-pill[data-plan-state="action"],
+  .graphs-card-status.graphs-status-action,
+  .plan-state-pill[data-plan-state="action"] {
+    background: var(--plan-state-action) !important;
+    color: var(--plan-state-pill-text-on-vivid) !important;
+    border-color: var(--plan-state-action) !important;
+  }
+
+  .chats-plan-pill[data-plan-state="idea"],
+  .chats-plan-pill[data-plan-state="forming"],
+  .chats-plan-pill[data-plan-state="unconfirmed"],
+  .graph-ready-pill[data-plan-state="forming"],
+  .graph-ready-pill[data-plan-state="idea"],
+  .graphs-card-status.graphs-status-forming,
+  .graphs-card-status.graphs-status-idea,
+  .plan-state-pill[data-plan-state="forming"],
+  .plan-state-pill[data-plan-state="idea"] {
+    background: var(--plan-state-forming) !important;
+    color: var(--plan-state-pill-text-on-vivid) !important;
+    border-color: var(--plan-state-forming) !important;
+  }
+
+  .chats-plan-pill[data-plan-state="past"],
+  .graph-ready-pill[data-plan-state="past"],
+  .graph-ready-pill.graphs-status-past,
+  .graphs-card-status.graphs-status-past,
+  .plan-state-pill[data-plan-state="past"] {
+    background: var(--plan-state-past) !important;
+    color: var(--plan-state-pill-text-on-bright) !important;
+    border-color: var(--plan-state-past) !important;
   }
 }

@@ -2747,12 +2747,13 @@ button.plan-card-btn:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  color: #e8eef5;
-  background: linear-gradient(145deg, #2a3548 0%, #1a2230 100%);
-  border: 1px solid rgba(138, 150, 168, 0.2);
+  color: #FFFFFF;
+  /* Ear palette fallback; inline style from contactEarGradient wins */
+  background: linear-gradient(135deg, #6573EB, #5FAECF);
+  border: 1px solid rgba(248, 250, 255, 0.22);
 }
 
 .bubble-avatar-spacer {
@@ -2809,15 +2810,17 @@ button.plan-card-btn:focus-visible {
 }
 
 .bubble.out {
-  background: linear-gradient(145deg, #1f5568 0%, #1a4a5c 100%);
-  color: #f2fafc;
+  background: rgba(0, 229, 255, 0.18);
+  color: #FFFFFF;
+  border: 1px solid #00E5FF;
   border-bottom-right-radius: 6px;
-  box-shadow: 0 0 24px var(--bubble-out-glow);
+  box-shadow: none;
 }
 
 .bubble.in {
-  background: var(--bubble-in);
-  border: 1px solid var(--border);
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid #8B5CF6;
+  color: #FFFFFF;
   border-bottom-left-radius: 6px;
 }
 
@@ -3341,8 +3344,9 @@ button.plan-card-btn:focus-visible {
 
 .scene-bubble.out {
   align-self: flex-end;
-  background: linear-gradient(145deg, #1f5568, #1a4a5c);
-  box-shadow: 0 0 20px rgba(94, 214, 232, 0.2);
+  background: rgba(0, 229, 255, 0.18);
+  border: 1px solid #00E5FF;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.12);
   border-bottom-right-radius: 6px;
 }
 
@@ -4237,14 +4241,18 @@ button.plan-card-btn:focus-visible {
 }
 
 .bubble.in {
-  background: #12171f;
-  border: none;
+  /* Paste W6 3b — friend: purple 18% fill + 1px border */
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid #8B5CF6;
+  color: #FFFFFF;
   border-radius: 6px 18px 18px 18px;
 }
 
 .bubble.out {
-  background: #143847;
-  color: #f4f7fa;
+  /* Paste W6 3b — user: cyan 18% fill + 1px border */
+  background: rgba(0, 229, 255, 0.18);
+  color: #FFFFFF;
+  border: 1px solid #00E5FF;
   border-radius: 18px 6px 18px 18px;
   box-shadow: none;
 }
@@ -4999,9 +5007,9 @@ button.plan-card-btn:focus-visible {
   height: min(52vh, 400px);
   min-height: 320px;
   background:
-    radial-gradient(ellipse 90% 70% at 50% 20%, rgba(180, 120, 100, 0.45) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 70% 60%, rgba(60, 90, 120, 0.35) 0%, transparent 50%),
-    linear-gradient(180deg, #4a3530 0%, #1a222e 42%, #080c12 100%);
+    radial-gradient(ellipse 90% 70% at 50% 20%, rgba(101, 115, 235, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 70% 60%, rgba(139, 92, 246, 0.28) 0%, transparent 50%),
+    linear-gradient(180deg, #0b1226 0%, #1a2338 42%, #050816 100%);
   mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
 }
 
@@ -5230,8 +5238,8 @@ button.plan-card-btn:focus-visible {
 
 .reality-forming-media.is-fallback {
   background:
-    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(180, 120, 100, 0.4), transparent 60%),
-    #1a1512;
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(101, 115, 235, 0.35), transparent 60%),
+    #0b1226;
 }
 
 .reality-forming-wash {
@@ -8605,9 +8613,9 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 26px;
   padding: 0;
   border-radius: 13px;
-  border: 1px solid #00E5FF;
-  color: #00E5FF;
-  background: #050816;
+  border: 1px solid var(--plan-state-ready, #FFC86B);
+  color: var(--plan-state-pill-text-on-bright, #0A0F1E);
+  background: var(--plan-state-ready, #FFC86B);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0;
@@ -8720,23 +8728,33 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   padding: 0 10px;
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="ready"] {
-  /* Paste W5 — ready = confirmed teal, not signal-gold */
-  color: var(--plan-state-confirmed, #00E5FF);
-  border-color: var(--plan-state-confirmed, #00E5FF);
+  /* Paste W6 — ready/upcoming = amber fill */
+  background: var(--plan-state-ready, #FFC86B);
+  color: var(--plan-state-pill-text-on-bright, #0A0F1E);
+  border-color: var(--plan-state-ready, #FFC86B);
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="action"] {
-  color: var(--signal-needs-attention);
-  border-color: var(--signal-needs-attention);
+  background: var(--plan-state-action, #FF4D5E);
+  color: #FFFFFF;
+  border-color: var(--plan-state-action, #FF4D5E);
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="forming"] {
-  color: var(--signal-provisional);
-  border-color: var(--signal-provisional);
+  background: var(--plan-state-forming, #8B5CF6);
+  color: #FFFFFF;
+  border-color: var(--plan-state-forming, #8B5CF6);
+}
+.social-dest-373-385 .graph-ready-pill[data-plan-state="happening"],
+.social-dest-373-385 .graph-ready-pill[data-plan-state="confirmed"],
+.social-dest-373-385 .graph-ready-pill[data-plan-state="locked"] {
+  background: var(--plan-state-happening, #00E5FF);
+  color: #FFFFFF;
+  border-color: var(--plan-state-happening, #00E5FF);
 }
 .social-dest-373-385 .graph-ready-pill[data-plan-state="past"],
 .social-dest-373-385 .graph-ready-pill.graphs-status-past {
-  /* M-03: settled = history (taxonomy slate). B-05: no opacity wash. */
-  color: #94A1B8;
-  border-color: rgba(148, 161, 184, 0.42);
+  background: var(--plan-state-past, #FFFFFF);
+  color: var(--plan-state-pill-text-on-bright, #0A0F1E);
+  border-color: var(--plan-state-past, #FFFFFF);
 }
 .ogsn-graph-detail.social-dest-373-385.is-canonical {
   height: 100dvh !important;
@@ -10235,9 +10253,11 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
 }
 .chats-home-avatar {
   width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
-  background: #1a2233; color: #f4f7fa; font-weight: 700;
+  /* Paste W6 3a — ear gradient via inline style; white bold initial */
+  background: linear-gradient(135deg, #6573EB, #DD70E9);
+  color: #FFFFFF; font-weight: 700;
   display: grid; place-items: center; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(248, 250, 255, 0.18);
 }
 .chats-home-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .chats-home-name { display: block; font-size: 16px; font-weight: 700; color: #f4f7fa; }
@@ -10287,22 +10307,16 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   text-overflow: ellipsis;
   cursor: pointer;
   border: 1px solid transparent;
+  /* Tone classes are legacy hooks; W6 state fill wins via [data-plan-state]. */
 }
-.chats-plan-pill.is-tone-dinner {
-  color: #1a1206;
-  background: color-mix(in srgb, var(--signal-confirmed, #ffc86b) 88%, #fff 12%);
-  border-color: color-mix(in srgb, var(--signal-confirmed, #ffc86b) 55%, transparent);
-}
+.chats-plan-pill.is-tone-dinner,
 .chats-plan-pill.is-tone-activity,
-.chats-plan-pill.is-tone-trip {
-  color: #f4f0ff;
-  background: color-mix(in srgb, var(--signal-provisional, #8b5cf6) 72%, #12081f 28%);
-  border-color: color-mix(in srgb, var(--signal-provisional, #8b5cf6) 55%, transparent);
-}
+.chats-plan-pill.is-tone-trip,
 .chats-plan-pill.is-tone-live {
-  color: #fff5f8;
-  background: color-mix(in srgb, var(--signal-needs-attention, #ff6b9d) 78%, #1a0610 22%);
-  border-color: color-mix(in srgb, var(--signal-needs-attention, #ff6b9d) 55%, transparent);
+  /* Neutral fallback only when data-plan-state is absent */
+  color: #f8faff;
+  background: #1a2338;
+  border-color: rgba(148, 161, 184, 0.35);
 }
 .graphs-home-lede { margin: 6px 0 0; font-size: 14px; color: #8993a3; }
 .graphs-create-plus {
@@ -10437,38 +10451,21 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   background: rgba(148, 161, 184, 0.18);
   border: 1.5px solid rgba(148, 161, 184, 0.72);
 }
-/* Ready/Aligned gold · Forming/Idea violet · Past neutral */
+/* W6 — status pill geometry; fills owned by PASTE_W6_PLAN_STATE_COLORS */
 .graphs-card-status {
   flex-shrink: 0;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.graphs-status-ready,
-.graphs-status-aligned {
-  color: #FFC86B;
-}
-.graphs-status-forming,
-.graphs-status-idea {
-  color: #8B5CF6;
-}
-.graphs-status-action {
-  color: var(--signal-needs-attention);
-}
-.graphs-status-past {
-  color: #94A1B8;
-  font-weight: 600;
-}
 .graphs-home-card[data-graph-status="past"] {
-  border-color: rgba(148, 161, 184, 0.28);
-  /* B-05: no opacity wash — the muted border + pill already say "past".
-   * Washing the whole card made it read smaller/recessed next to Ready. */
+  /* W6 3c — keep electric gradient border; past signaled by white pill + title */
 }
 .graphs-home-card[data-graph-status="past"] .graphs-card-place {
   color: #94A1B8;
 }
 .graphs-home-card[data-graph-status="action"] {
-  border-color: color-mix(in srgb, var(--signal-needs-attention) 35%, transparent);
+  /* Action signaled by red pill + title; card keeps gold-standard border */
 }
 .chats-plan-consequence {
   display: block;
@@ -10485,15 +10482,8 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   color: #94A1B8;
   font-weight: 500;
 }
-/* Legacy text consequence kept for Graphs/past; Chats list uses .chats-plan-pill */
-.graphs-home-card[data-graph-status="ready"],
-.graphs-home-card[data-graph-status="aligned"] {
-  border-color: rgba(255, 200, 107, 0.35);
-}
-.graphs-home-card[data-graph-status="forming"],
-.graphs-home-card[data-graph-status="idea"] {
-  border-color: rgba(139, 92, 246, 0.35);
-}
+/* Legacy text consequence kept for Graphs/past; Chats list uses .chats-plan-pill.
+ * W6 3c — do not override graphs-home-card border-color (electric gradient border). */
 /* 618:674 vertical timeline — Figma spine 618:689 left 50 / w3 → center ≈52 (stage abs);
  * .graphs-home pad-x 20 → content-relative rail left ≈30.5. Nodes share axis; spine behind. */
 .graphs-timeline {
@@ -10554,8 +10544,11 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   max-width: 100%;
   height: 92px;
   border-radius: 18px;
-  border: 1px solid #1c2330;
-  background: #090b10;
+  /* Paste W6 3c — You-settings gold standard: void fill + electric gradient border */
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#050816, #050816) padding-box,
+    linear-gradient(135deg, #00E5FF 0%, #8B5CF6 50%, #DE58AD 100%) border-box;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -10604,6 +10597,13 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.graphs-home-card[data-graph-status="ready"] .graphs-card-title,
+.graphs-home-card[data-graph-status="aligned"] .graphs-card-title { color: #FFC86B; }
+.graphs-home-card[data-graph-status="forming"] .graphs-card-title,
+.graphs-home-card[data-graph-status="idea"] .graphs-card-title { color: #8B5CF6; }
+.graphs-home-card[data-graph-status="action"] .graphs-card-title { color: #FF4D5E; }
+.graphs-home-card[data-graph-status="past"] .graphs-card-title { color: #FFFFFF; }
+.graphs-home-card[data-graph-status="happening"] .graphs-card-title { color: #00E5FF; }
 .graphs-card-status {
   display: inline-flex;
   align-items: center;
@@ -10624,15 +10624,18 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   text-overflow: ellipsis;
   box-sizing: border-box;
 }
+/* Status pill fills owned by PASTE_W6_PLAN_STATE_COLORS */
 .graphs-status-ready,
 .graphs-status-aligned {
   border: 1px solid #FFC86B;
-  color: #FFC86B;
+  color: #0A0F1E;
+  background: #FFC86B;
 }
 .graphs-status-forming,
 .graphs-status-idea {
   border: 1px solid #8B5CF6;
-  color: #8B5CF6;
+  color: #FFFFFF;
+  background: #8B5CF6;
 }
 .graphs-card-place {
   margin: 6px 0 0;
@@ -10657,8 +10660,17 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   padding: 12px; border-radius: 14px; cursor: pointer;
 }
 .chats-home-avatar {
-  width: 44px; height: 44px; border-radius: 50%; background: #1a2233;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #6573EB, #DD70E9);
+  color: #FFFFFF;
   display: grid; place-items: center; font-weight: 700; flex-shrink: 0;
+  overflow: hidden;
+}
+.chats-home-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .chats-home-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .chats-home-when { flex-shrink: 0; }
@@ -12388,7 +12400,7 @@ button.gsh-cx-history:focus-visible {
   flex: 0 0 auto;
 }
 .social-dest-437-3 .md437-avatar.fallback {
-  background: #1a2233;
+  background: #050816;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -12578,7 +12590,7 @@ button.gsh-cx-history:focus-visible {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #1a2233;
+  background: #050816;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -12681,7 +12693,7 @@ button.gsh-cx-history:focus-visible {
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: #1a2233;
+  background: #050816;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -12918,7 +12930,7 @@ button.gsh-cx-history:focus-visible {
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .story-viewer-357-418 .story-viewer-media-fallback {
-  background: linear-gradient(160deg, #1a2233, #0a0e16);
+  background: linear-gradient(160deg, #050816, #0a0e16);
 }
 .story-viewer-357-418 .story-viewer-progress,
 .story-viewer-357-418 .story-viewer-progress-rail {
@@ -12958,7 +12970,7 @@ button.gsh-cx-history:focus-visible {
   border: 2px solid rgba(244,247,250,0.55);
 }
 .story-viewer-357-418 .story-viewer-avatar.fallback {
-  display: grid; place-items: center; background: #1a2233;
+  display: grid; place-items: center; background: #050816;
   color: #f4f7fa; font-weight: 700;
 }
 .story-viewer-357-418 .story-viewer-meta {
@@ -13281,7 +13293,7 @@ button.gsh-cx-history:focus-visible {
 .opal-promise-avatars { display: flex; gap: 0; margin-bottom: 8px; }
 .opal-promise-avatars span {
   width: 30px; height: 30px; border-radius: 50%;
-  background: #1a2233; border: 2px solid #030406;
+  background: #050816; border: 2px solid #030406;
   display: grid; place-items: center; font-size: 12px; font-weight: 700;
   margin-left: -6px;
 }
@@ -15460,6 +15472,16 @@ button.you-settings-row {
   z-index: 2;
   opacity: 0.7;
 }
+/* Paste W6 4a — single SVG chevron only; never stack a text ‹ beside it. */
+.gpt-header-618 .gpt-back .gpt-back-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: #c9d2e0;
+}
+.gpt-header-618 .opal-nav-chevron:not(.gpt-back) {
+  display: none !important;
+}
 /* Avatar hit is in-flow after back — never absolute over the chevron. */
 .gpt-avatar-hit {
   position: relative;
@@ -15737,26 +15759,27 @@ button.you-settings-row {
   white-space: nowrap;
 }
 
-/* Speaker identity colors — Brand V4 warm gold/rose (readable, not black bars) */
+/* Paste W6 3b — user cyan / friend purple; kill brownish-yellow washes */
 .bubble-row[data-sender-name="You"] .bubble,
 .bubble-row.out .bubble.out {
-  background: rgba(0, 229, 255, 0.22) !important;
-  border: 1px solid rgba(0, 229, 255, 0.45) !important;
-  color: #f8faff !important;
+  background: rgba(0, 229, 255, 0.18) !important;
+  border: 1px solid #00E5FF !important;
+  color: #FFFFFF !important;
 }
 .bubble-row.out .bubble-sender-name,
 .bubble-row.out .bubble.out + nothing { color: #00e5ff; }
 .bubble-row.out .bubble.out p,
-.bubble-row.out .bubble.out time { color: #f8faff; }
-[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble-sender-name { color: #ffc86b; }
-[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in {
-  background: rgba(255, 200, 107, 0.28) !important;
-  border: 1px solid rgba(255, 200, 107, 0.55) !important;
-  color: #f8faff !important;
+.bubble-row.out .bubble.out time { color: #FFFFFF; }
+[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble-sender-name { color: #c4b5fd; }
+[data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in,
+.bubble-row.in .bubble.in {
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
+  color: #FFFFFF !important;
 }
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in p,
 [data-testid="member-conversation"][data-chat-kind="direct"] .bubble-row.in .bubble.in time {
-  color: #f8faff !important;
+  color: #FFFFFF !important;
 }
 /* Never paint invisible message text — empty black bars. */
 .app[data-testid="member-conversation"] .bubble,
@@ -15764,44 +15787,45 @@ button.you-settings-row {
 .app[data-testid="member-conversation"] .bubble time,
 .app[data-testid="member-conversation"] .bubble-row .bubble,
 .app[data-testid="member-conversation"] .bubble-row .bubble p {
-  color: #f8faff !important;
-  -webkit-text-fill-color: #f8faff !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
   opacity: 1 !important;
 }
-.bubble-row[data-sender-name="Maya"] .bubble-sender-name { color: #00f0d1; }
+/* Sender name accents only — bubble fill stays canonical friend purple */
+.bubble-row[data-sender-name="Maya"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Maya"] .bubble.in {
-  background: rgba(0, 240, 209, 0.26) !important;
-  border: 1px solid rgba(0, 240, 209, 0.5) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
-.bubble-row[data-sender-name="Jordan"] .bubble-sender-name { color: #8b5cf6; }
+.bubble-row[data-sender-name="Jordan"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Jordan"] .bubble.in {
-  background: rgba(139, 92, 246, 0.26) !important;
-  border: 1px solid rgba(139, 92, 246, 0.5) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
-.bubble-row[data-sender-name="Priya"] .bubble-sender-name { color: #ffc86b; }
+.bubble-row[data-sender-name="Priya"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Priya"] .bubble.in {
-  background: rgba(255, 200, 107, 0.26) !important;
-  border: 1px solid rgba(255, 200, 107, 0.5) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
-.bubble-row[data-sender-name="Sam"] .bubble-sender-name { color: #00e5ff; }
+.bubble-row[data-sender-name="Sam"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Sam"] .bubble.in {
-  background: rgba(0, 229, 255, 0.22) !important;
-  border: 1px solid rgba(0, 229, 255, 0.45) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
-.bubble-row[data-sender-name="Sabrina"] .bubble-sender-name { color: #ff6b9d; }
+.bubble-row[data-sender-name="Sabrina"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Sabrina"] .bubble.in {
-  background: rgba(255, 107, 157, 0.26) !important;
-  border: 1px solid rgba(255, 107, 157, 0.5) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
-.bubble-row[data-sender-name="Alex"] .bubble-sender-name { color: #8b5cf6; }
+.bubble-row[data-sender-name="Alex"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Alex"] .bubble.in {
-  background: rgba(139, 92, 246, 0.26) !important;
-  border: 1px solid rgba(139, 92, 246, 0.5) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
-.bubble-row[data-sender-name="Chanelle"] .bubble-sender-name { color: #ffc86b; }
+.bubble-row[data-sender-name="Chanelle"] .bubble-sender-name { color: #c4b5fd; }
 .bubble-row[data-sender-name="Chanelle"] .bubble.in {
-  background: rgba(255, 200, 107, 0.32) !important;
-  border: 1px solid rgba(255, 200, 107, 0.6) !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
 }
 
 /* Self bubble: show You label in cyan */
@@ -18784,25 +18808,34 @@ html.opal-native-host .story-create-flow {
   box-shadow: inset 2px 0 0 transparent;
 }
 .next-plan-strip[data-plan-state="ready"] {
-  border-color: color-mix(in srgb, var(--plan-state-confirmed, #00E5FF) 40%, transparent);
-  box-shadow: inset 2px 0 0 var(--plan-state-confirmed, #00E5FF);
+  border-color: color-mix(in srgb, var(--plan-state-ready, #FFC86B) 40%, transparent);
+  box-shadow: inset 2px 0 0 var(--plan-state-ready, #FFC86B);
 }
 .next-plan-strip[data-plan-state="action"] {
-  border-color: color-mix(in srgb, var(--signal-needs-attention) 40%, transparent);
-  box-shadow: inset 2px 0 0 var(--signal-needs-attention);
+  border-color: color-mix(in srgb, var(--plan-state-action, #FF4D5E) 40%, transparent);
+  box-shadow: inset 2px 0 0 var(--plan-state-action, #FF4D5E);
 }
 .next-plan-strip[data-plan-state="forming"] {
-  border-color: color-mix(in srgb, var(--signal-provisional) 40%, transparent);
-  box-shadow: inset 2px 0 0 var(--signal-provisional);
+  border-color: color-mix(in srgb, var(--plan-state-forming, #8B5CF6) 40%, transparent);
+  box-shadow: inset 2px 0 0 var(--plan-state-forming, #8B5CF6);
+}
+.next-plan-strip[data-plan-state="happening"],
+.next-plan-strip[data-plan-state="confirmed"],
+.next-plan-strip[data-plan-state="locked"] {
+  border-color: color-mix(in srgb, var(--plan-state-happening, #00E5FF) 40%, transparent);
+  box-shadow: inset 2px 0 0 var(--plan-state-happening, #00E5FF);
 }
 .next-plan-strip[data-plan-state="past"] {
-  border-color: rgba(244, 247, 250, 0.22);
-  box-shadow: inset 2px 0 0 rgba(244, 247, 250, 0.55);
+  border-color: rgba(244, 247, 250, 0.55);
+  box-shadow: inset 2px 0 0 #FFFFFF;
 }
-.next-plan-strip[data-plan-state="ready"] .next-plan-kicker { color: var(--plan-state-confirmed, #00E5FF); }
-.next-plan-strip[data-plan-state="action"] .next-plan-kicker { color: var(--signal-needs-attention); }
-.next-plan-strip[data-plan-state="forming"] .next-plan-kicker { color: var(--signal-provisional); }
-.next-plan-strip[data-plan-state="past"] .next-plan-kicker { color: #94A1B8; }
+.next-plan-strip[data-plan-state="ready"] .next-plan-kicker { color: var(--plan-state-ready, #FFC86B); }
+.next-plan-strip[data-plan-state="action"] .next-plan-kicker { color: var(--plan-state-action, #FF4D5E); }
+.next-plan-strip[data-plan-state="forming"] .next-plan-kicker { color: var(--plan-state-forming, #8B5CF6); }
+.next-plan-strip[data-plan-state="happening"] .next-plan-kicker,
+.next-plan-strip[data-plan-state="confirmed"] .next-plan-kicker,
+.next-plan-strip[data-plan-state="locked"] .next-plan-kicker { color: var(--plan-state-happening, #00E5FF); }
+.next-plan-strip[data-plan-state="past"] .next-plan-kicker { color: #FFFFFF; }
 .next-plan-kicker {
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -22026,38 +22059,90 @@ html.opal-native-host .trip-canvas {
 .graphs-whats-next { padding-bottom: 4px; }
 .graphs-whats-next-list { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 100%; box-sizing: border-box; }
 .graphs-temporal-card {
-  /* Paste W3 4.2 — never hang off the right edge; no scale overflow. */
+  /* Paste W6 3c/3d — gold-standard void + electric border; no brown wash; no scale overlap */
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  background: rgba(22,22,29,.92);
-  border: 1px solid rgba(245,242,234,.12);
+  transform: none;
+  background:
+    linear-gradient(#050816, #050816) padding-box,
+    linear-gradient(135deg, #00E5FF 0%, #8B5CF6 50%, #DE58AD 100%) border-box;
+  border: 1.5px solid transparent;
   border-radius: 16px;
   padding: 12px 14px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  position: relative;
+  isolation: isolate;
 }
-.graphs-temporal-card.is-pinned { border-color: rgba(255,200,107,.45); }
+.graphs-temporal-card.is-pinned {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--plan-state-ready, #FFC86B) 35%, transparent);
+}
 .graphs-temporal-card-main { display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; background: transparent; border: 0; color: inherit; cursor: pointer; padding: 0; }
+.graphs-temporal-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.graphs-temporal-card-top .graphs-card-status {
+  flex: 0 0 auto;
+}
+.graphs-temporal-card-main strong { color: #f8faff; flex: 1 1 auto; min-width: 0; }
+.graphs-temporal-card[data-plan-state="ready"] .graphs-temporal-card-main strong,
+.graphs-temporal-card[data-plan-state="aligned"] .graphs-temporal-card-main strong { color: #FFC86B; }
+.graphs-temporal-card[data-plan-state="forming"] .graphs-temporal-card-main strong,
+.graphs-temporal-card[data-plan-state="idea"] .graphs-temporal-card-main strong { color: #8B5CF6; }
+.graphs-temporal-card[data-plan-state="action"] .graphs-temporal-card-main strong { color: #FF4D5E; }
+.graphs-temporal-card[data-plan-state="happening"] .graphs-temporal-card-main strong,
+.graphs-temporal-card[data-plan-state="locked"] .graphs-temporal-card-main strong { color: #00E5FF; }
+.graphs-temporal-card[data-plan-state="past"] .graphs-temporal-card-main strong { color: #FFFFFF; }
 .graphs-temporal-when, .graphs-temporal-where { font-size: 12px; opacity: .75; }
-.graphs-temporal-who { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.graphs-temporal-who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  max-width: 100%;
+}
 .graphs-person-pill {
   border: 0; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;
   background: rgba(0,229,255,.14); color: #e8fbff; cursor: pointer;
+  flex: 0 0 auto;
 }
 .graphs-nurture-signal { margin: 8px 0 0; font-size: 12px; opacity: .85; line-height: 1.35; }
 .graphs-temporal-actions {
   display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+  clear: both;
 }
 .graphs-temporal-action,
 .graphs-share-plan {
   border: 0; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 600;
-  background: rgba(255,200,107,.2); color: #f5f2ea; cursor: pointer;
+  background: rgba(0,229,255,.14); color: #e8fbff; cursor: pointer;
+  flex: 0 0 auto;
 }
 .graphs-temporal-action { background: rgba(0,229,255,.14); color: #e8fbff; }
-.graphs-share-plan { margin-top: 0; }
+.graphs-share-plan {
+  display: inline-flex;
+  margin-top: 10px;
+  clear: both;
+}
+.graphs-temporal-bucket { display: flex; flex-direction: column; gap: 4px; width: 100%; }
 .graphs-temporal-bucket.is-someday { opacity: .88; }
-.graphs-temporal-bucket.is-earlier .graphs-temporal-card { border-color: rgba(245,242,234,.08); }
+.graphs-temporal-bucket.is-earlier {
+  gap: 8px;
+}
+.graphs-temporal-bucket.is-earlier .graphs-temporal-card {
+  margin-bottom: 14px;
+}
+.graphs-temporal-bucket.is-earlier .graphs-temporal-who,
+.graphs-temporal-bucket.is-earlier .graphs-share-plan {
+  position: relative;
+  z-index: 1;
+}
 .graphs-orbit { padding: 12px 16px 40px; }
 .graphs-orbit-back { border: 0; background: transparent; color: #ffc86b; font-weight: 600; margin-bottom: 8px; cursor: pointer; }
 .graphs-orbit-title { margin: 0 0 4px; font-size: 1.35rem; }
@@ -22127,31 +22212,37 @@ html.opal-native-host .trip-canvas {
 }
 
 
-/* PASTE_W_PLAN_STATE_COLORS — Amendment L2 electric palette */
-.graphs-status-locked,
-.graphs-status-confirmed,
-.graphs-status-happening,
-[data-plan-state="locked"],
-[data-plan-state="confirmed"],
-[data-plan-state="happening"],
-[data-plan-state="ready"] {
-  color: var(--plan-state-confirmed, #00e5ff) !important;
-  border-color: color-mix(in srgb, var(--plan-state-confirmed, #00e5ff) 55%, transparent);
+/* PASTE_W6_PLAN_STATE_COLORS — pill FILL carries state (never font-alone) */
+.graphs-card-status.graphs-status-locked,
+.graphs-card-status.graphs-status-confirmed,
+.graphs-card-status.graphs-status-happening {
+  background: var(--plan-state-happening, #00e5ff) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--plan-state-happening, #00e5ff) !important;
 }
-.graphs-status-pending,
-.graphs-status-waiting,
-[data-plan-state="pending"],
-[data-plan-state="waiting"] {
-  color: var(--plan-state-pending, #ffc86b) !important;
-  border-color: color-mix(in srgb, var(--plan-state-pending, #ffc86b) 55%, transparent);
+.graphs-card-status.graphs-status-ready,
+.graphs-card-status.graphs-status-aligned {
+  background: var(--plan-state-ready, #ffc86b) !important;
+  color: #0a0f1e !important;
+  border: 1px solid var(--plan-state-ready, #ffc86b) !important;
 }
-.graphs-status-idea,
-.graphs-status-forming,
-[data-plan-state="idea"],
-[data-plan-state="forming"],
-[data-plan-state="unconfirmed"] {
-  color: var(--plan-state-idea, #8b5cf6) !important;
-  border-color: color-mix(in srgb, var(--plan-state-idea, #8b5cf6) 55%, transparent);
+.graphs-card-status.graphs-status-action,
+.graphs-card-status.graphs-status-pending,
+.graphs-card-status.graphs-status-waiting {
+  background: var(--plan-state-action, #ff4d5e) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--plan-state-action, #ff4d5e) !important;
+}
+.graphs-card-status.graphs-status-idea,
+.graphs-card-status.graphs-status-forming {
+  background: var(--plan-state-forming, #8b5cf6) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--plan-state-forming, #8b5cf6) !important;
+}
+.graphs-card-status.graphs-status-past {
+  background: var(--plan-state-past, #ffffff) !important;
+  color: #0a0f1e !important;
+  border: 1px solid var(--plan-state-past, #ffffff) !important;
 }
 
 /* Paste W4 Phase 3.3 — ContactProfileSheet foreground card */

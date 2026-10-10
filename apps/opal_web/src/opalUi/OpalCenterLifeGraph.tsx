@@ -4,16 +4,26 @@
  * Thesis: conversation on top of a living life graph. P4 one-answer. Accept → same graph.
  * Solo first. Customer language only (no internal "anchor" vocabulary).
  */
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
 import {
   createCenterPlan,
+  fetchCalendarToday,
   resolveDecision,
   type DecisionResolvePayload,
 } from "../api/productClient";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
 import type { MediaAsset, MediaSource } from "../nativeHostBridge";
 import { OpalPresenceOrb } from "../onboarding/OpalPresenceOrb";
+import {
+  STRIP_TICK_MS,
+  composeNowStrip,
+  normalizeDayStripEvents,
+  sampleDayEventsFor,
+  type DayStripEvent,
+  type DayStripNode,
+  type DayStripSource,
+} from "./centerNowStrip";
 import { OpalCenterChat } from "./OpalCenterChat";
 import {
   localPlanSurfaceId,
@@ -23,13 +33,7 @@ import { listenOnce, VOICE_UNAVAILABLE_COPY } from "./opalCenterVoice";
 
 type Phase = "rest" | "conversation" | "accepted" | "week" | "family" | "chat";
 
-
-type DayNode = {
-  id: string;
-  time: string;
-  label: string;
-  kind: "now" | "open" | "event" | "accepted";
-};
+type DayNode = DayStripNode;
 
 type Props = {
   onClose?: () => void;
@@ -49,12 +53,6 @@ type ClaimProvenance = {
   source: "decision_intelligence" | "fixture_shell" | "user_input" | "unavailable";
   detail?: string;
 };
-
-const REST_NODES: DayNode[] = [
-  { id: "now", time: "Now", label: "Open", kind: "now" },
-  { id: "mid", time: "3:30", label: "Appointment", kind: "event" },
-  { id: "eve", time: "7:30", label: "Dinner", kind: "event" },
-];
 
 const WEEK_FRIDAY = [
   { time: "8:00", label: "Work" },
@@ -136,7 +134,18 @@ export function OpalCenterLifeGraph({
       return next;
     });
   };
-  const [dayNodes, setDayNodes] = useState<DayNode[]>(REST_NODES);
+  const initialStrip = useMemo(
+    () =>
+      composeNowStrip({
+        nowMs: Date.now(),
+        events: sampleDayEventsFor(),
+        source: "sample",
+      }),
+    [],
+  );
+  const [dayNodes, setDayNodes] = useState<DayNode[]>(() => initialStrip.nodes);
+  const [stripSource, setStripSource] = useState<DayStripSource>(initialStrip.source);
+  const [stripAttribution, setStripAttribution] = useState(initialStrip.attribution);
   const [acceptedTitle, setAcceptedTitle] = useState("Juniper & Ivy");
   const [weekDay, setWeekDay] = useState<"Thu" | "Fri" | "Sat" | "Sun">("Fri");
   const [resolving, setResolving] = useState(false);
@@ -159,6 +168,53 @@ export function OpalCenterLifeGraph({
   /** Idempotency: double-tap "Go with this" must not seed two Graphs. */
   const acceptLock = useRef(false);
   const lastIdempotencyKey = useRef<string | null>(null);
+  /** null = not linked → sample day; array = linked calendar events (may be empty). */
+  const calendarEventsRef = useRef<DayStripEvent[] | null>(null);
+  /** Pause live recompute after accept overwrites the strip. */
+  const stripLiveRef = useRef(true);
+
+  function applyLiveStrip(nowMs = Date.now()) {
+    if (!stripLiveRef.current) return;
+    const linked = calendarEventsRef.current !== null;
+    const events = linked
+      ? calendarEventsRef.current!
+      : sampleDayEventsFor(new Date(nowMs));
+    const result = composeNowStrip({
+      nowMs,
+      events,
+      source: linked ? "calendar" : "sample",
+    });
+    setDayNodes(result.nodes);
+    setStripSource(result.source);
+    setStripAttribution(result.attribution);
+  }
+
+  async function loadCalendarForStrip() {
+    if (!bearer) {
+      calendarEventsRef.current = null;
+      applyLiveStrip();
+      return;
+    }
+    try {
+      const res = await fetchCalendarToday(bearer);
+      if (res.connected) {
+        calendarEventsRef.current = normalizeDayStripEvents(res.events || []);
+      } else {
+        calendarEventsRef.current = null;
+      }
+    } catch {
+      /* Keep prior source; never silently promote sample as calendar. */
+    }
+    applyLiveStrip();
+  }
+
+  useEffect(() => {
+    if (phase !== "rest") return;
+    stripLiveRef.current = true;
+    void loadCalendarForStrip();
+    const id = window.setInterval(() => applyLiveStrip(), STRIP_TICK_MS);
+    return () => window.clearInterval(id);
+  }, [phase, bearer]);
 
   async function attachFromNative(source: MediaSource) {
     if (attachBusy) return;
@@ -294,6 +350,7 @@ export function OpalCenterLifeGraph({
     const area = decision?.answer?.area?.trim() || undefined;
     setAcceptedTitle(title);
     const timeLabel = "Open";
+    stripLiveRef.current = false;
     setDayNodes([
       { id: "now", time: "Now", label: timeLabel, kind: "now" },
       { id: "fit", time: "Next", label: title, kind: "accepted" },
@@ -430,8 +487,9 @@ export function OpalCenterLifeGraph({
           data-testid="opal-center-refresh"
           onClick={() => {
             setPhase("rest");
-            setDayNodes(REST_NODES);
             setQuery("");
+            stripLiveRef.current = true;
+            void loadCalendarForStrip();
           }}
         >
           ↻
@@ -446,9 +504,14 @@ export function OpalCenterLifeGraph({
           <h1 className="opal-center-v2-title">Your day has room.</h1>
           <p className="opal-center-v2-lede">Two open windows before tonight.</p>
 
-          <LifeGraphStrip nodes={dayNodes} />
-          <p className="opal-center-v2-footnote" data-testid="opal-center-day-shell-note">
-            Live calendar events connect when linked.
+          <LifeGraphStrip nodes={dayNodes} source={stripSource} />
+          <p
+            className="opal-center-v2-footnote"
+            data-testid="opal-center-day-shell-note"
+            data-strip-source={stripSource}
+            data-sample-day={stripSource === "sample" ? "true" : "false"}
+          >
+            {stripAttribution}
           </p>
 
           <div className="opal-center-v2-signal">
@@ -677,7 +740,7 @@ export function OpalCenterLifeGraph({
             {resolveNote || "One decision is locked as a tentative plan. Invite when you're ready."}
           </p>
 
-          <LifeGraphStrip nodes={dayNodes} />
+          <LifeGraphStrip nodes={dayNodes} source={stripSource} />
 
           <div className="opal-center-v2-signal">
             <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
@@ -994,9 +1057,21 @@ export function OpalCenterLifeGraph({
   );
 }
 
-function LifeGraphStrip({ nodes }: { nodes: DayNode[] }) {
+function LifeGraphStrip({
+  nodes,
+  source,
+}: {
+  nodes: DayNode[];
+  source: DayStripSource;
+}) {
   return (
-    <div className="opal-life-graph" data-testid="opal-life-graph-strip" aria-label="Today life graph">
+    <div
+      className="opal-life-graph"
+      data-testid="opal-life-graph-strip"
+      data-strip-source={source}
+      data-sample-day={source === "sample" ? "true" : "false"}
+      aria-label={source === "sample" ? "Sample day life graph" : "Today life graph"}
+    >
       <div className="opal-life-graph-line" aria-hidden />
       <div className="opal-life-graph-nodes">
         {nodes.map((n) => (

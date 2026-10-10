@@ -113,7 +113,7 @@ export function LivesGoLivePanel() {
       const res = await postLivesGoLive({
         place_id: selected.place_id,
         name: selected.name,
-        address: selected.formatted_address,
+        title: selected.formatted_address || selected.name,
       });
       if ((res as { error?: string }).error) {
         setError(

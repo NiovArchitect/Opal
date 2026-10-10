@@ -175,6 +175,7 @@ import {
   semanticStateForSignal,
   visualShellProps,
 } from "./theme/technicolorProduction";
+import { contactEarGradient } from "./theme/contactAvatar";
 import { AvailabilitySheet } from "./availability/AvailabilitySheet";
 import { formatOverlapRange } from "./availability/formatRange";
 import {
@@ -204,6 +205,7 @@ import {
   founderSeedDisplayNameForId,
   founderSeedThreadMessages,
   resolveFounderSeedThread,
+  resolveFounderPeerAvatarSrc,
   inferPlanPillTone,
   isFounderSeedChatId,
   overlayFounderSeedNamesOnChats,
@@ -2863,7 +2865,8 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W4 — Meet Opal complete → inside Opal (skip This is you / Assist / ActOnBehalf).
+   * Paste W6 — Meet Opal complete → Opal Center (ambient), never Home social feed.
+   * Skips This is you / Assist / ActOnBehalf.
    */
   const advanceMeetOpalToAuth = () => {
     setMeetOpalDone(true);
@@ -2877,6 +2880,14 @@ export function OpalApp() {
       setLoadError(null);
     }
     completeFirstRun();
+    // Land on Center globe / ambient ("Your day has room."); never navigate to Home feed.
+    try {
+      const q = new URLSearchParams(window.location.search);
+      setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+    } catch {
+      setOpalAmbientMode("solo");
+    }
+    setOpalAmbientOpen(true);
     if (live) {
       void refreshLive(live);
       void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
@@ -4182,14 +4193,15 @@ export function OpalApp() {
               : null) || activeChat.name,
           )}
           peerAvatarSrc={
-            /* Direct 618:351 Chanelle  -  exact Figma raster; not Home/feed substitutes */
-            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
-            /chanelle/i.test(
-              (isFounderSeedEnabled()
-                ? founderSeedDisplayNameForId(activeChat.id)
-                : null) || activeChat.name,
-            )
-              ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
+            /* Paste W6 4c — same peer photo as Chats row when one exists. */
+            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3)
+              ? resolveFounderPeerAvatarSrc(
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name,
+                ) ||
+                (activeChat as { avatarSrc?: string }).avatarSrc ||
+                undefined
               : undefined
           }
           isGroup={
@@ -4417,9 +4429,11 @@ export function OpalApp() {
             }
             phone={readPersonContactMeta(activeChat.name).phone || null}
             avatarSrc={
-              /chanelle/i.test(activeChat.name)
-                ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
-                : undefined
+              resolveFounderPeerAvatarSrc(
+                (isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name,
+              ) || undefined
             }
             sharedPlans={(() => {
               const seedName =
@@ -5046,6 +5060,11 @@ export function OpalApp() {
                             className="bubble-avatar"
                             data-testid="message-sender-avatar"
                             title={displayName || "Unknown member"}
+                            style={{
+                              background: contactEarGradient(
+                                m.senderUserId || displayName || m.id,
+                              ),
+                            }}
                           >
                             {initials}
                           </span>
@@ -7464,7 +7483,9 @@ export function OpalApp() {
   }
 
   // Holy Shit Moments 2–5 — before forcePromise so Enter Opal can leave Promise.
-  if (firstRunStage === "meet_opal" || forceMeetOpal) {
+  // forceMeetOpal is QA-only; once first-run completes (showFirstRun false) fall through
+  // so Continue can land on Opal Center (Phase 1d).
+  if (showFirstRun && (firstRunStage === "meet_opal" || forceMeetOpal)) {
     return (
       <div
         className="app app-futura app-first-run-meet-opal"
@@ -8404,6 +8425,12 @@ export function OpalApp() {
                 memberCount: c.memberCount,
                 unread: c.unread,
                 muted: c.muted,
+                // Paste W6 4c — photo when peer has one (seed map or chat field).
+                avatarSrc:
+                  (!isGroup
+                    ? resolveFounderPeerAvatarSrc(c.name) ||
+                      (c as { avatarSrc?: string }).avatarSrc
+                    : undefined) || undefined,
                 planConsequence: c.planProjection
                   ? (() => {
                       const state = planSurfaceState({

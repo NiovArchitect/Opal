@@ -401,14 +401,16 @@ export function GraphsHome({
                 data-testid={`graphs-open-${g.id}`}
                 data-plan-state={
                   g.status === "ready" || g.status === "aligned"
-                    ? "locked"
+                    ? "ready"
                     : g.status === "idea"
                       ? "idea"
-                      : g.status === "forming" || g.status === "action"
+                      : g.status === "forming"
                         ? "forming"
-                        : g.status === "past"
-                          ? "past"
-                          : undefined
+                        : g.status === "action"
+                          ? "action"
+                          : g.status === "past"
+                            ? "past"
+                            : undefined
                 }
                 onClick={() => onOpenGraph(g.id)}
               >

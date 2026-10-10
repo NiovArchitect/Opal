@@ -3473,6 +3473,26 @@ export async function listCelebrations(bearer?: string) {
   });
 }
 
+/** Paste W6 Phase 5 — Center now-strip day window (linked calendar only). */
+export type CalendarTodayEvent = {
+  id?: string | null;
+  title?: string | null;
+  start_at?: string | null;
+  end_at?: string | null;
+};
+
+export async function fetchCalendarToday(bearer?: string) {
+  return request<{
+    connected: boolean;
+    source: "calendar" | "none" | string;
+    events: CalendarTodayEvent[];
+    error_code?: string;
+  }>("/api/v1/product/calendar/today", {
+    bearer: resolveBearer(bearer),
+    method: "GET",
+  });
+}
+
 export async function createCelebration(
   attrs: {
     person_name: string;

@@ -20,6 +20,30 @@ export function inferPlanPillTone(label: string): PlanPillTone {
   return "dinner";
 }
 
+/**
+ * Paste W6 4c — peer photos for Chats list + thread header.
+ * Chanelle uses the same Direct 618:351 raster as the thread chrome.
+ * Groups stay on branded initial tiles (no single peer photo).
+ */
+export const FOUNDER_PEER_AVATAR_BY_NAME: Record<string, string> = {
+  Chanelle: "/figma-v2/direct/opal-direct-chanelle-618-351.png",
+  Maya: "/figma-v2/home-201/avatar-maya.png",
+  Sabrina: "/figma-v2/stories/sabrina.png",
+  Alex: "/figma-v2/stories/alex.png",
+};
+
+/** Resolve a contact photo when one exists; undefined → branded initial tile. */
+export function resolveFounderPeerAvatarSrc(
+  name: string | null | undefined,
+): string | undefined {
+  if (!name) return undefined;
+  const key = name.trim().toLowerCase();
+  for (const [n, src] of Object.entries(FOUNDER_PEER_AVATAR_BY_NAME)) {
+    if (n.toLowerCase() === key) return src;
+  }
+  return undefined;
+}
+
 /** Exact five rows from founder screenshot A. */
 export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
   {
@@ -37,6 +61,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
       planId: "seed-chanelle-juniper",
       tone: "dinner",
     },
+    avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Chanelle,
     avatarTone: "#6EE7F5",
   },
   {
@@ -52,7 +77,8 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
       planId: "seed-maya-graph-coast",
       tone: "activity",
     },
-    avatarTone: "#E8D6C4",
+    avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Maya,
+    avatarTone: "#5FAECF",
   },
   {
     id: "seed-chat-juniper-crew",
@@ -84,6 +110,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
       planId: "seed-live-sabrina",
       tone: "live",
     },
+    avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Sabrina,
     avatarTone: "#FF6B9D",
   },
   {
@@ -99,6 +126,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
       planId: "seed-alex-graph-gallery",
       tone: "trip",
     },
+    avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Alex,
     avatarTone: "#8B5CF6",
   },
 ];

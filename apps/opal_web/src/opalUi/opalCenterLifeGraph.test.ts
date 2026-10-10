@@ -68,6 +68,16 @@ describe("Opal Center V2 behavior convergence", () => {
     expect(center).toMatch(/opal-center-week-empty/);
     expect(center).toMatch(/Leave time when location is available/);
   });
+
+  it("Paste W6 Phase 5: now strip is live + sample vs calendar honesty", () => {
+    expect(center).toMatch(/composeNowStrip/);
+    expect(center).toMatch(/STRIP_TICK_MS/);
+    expect(center).toMatch(/fetchCalendarToday/);
+    expect(center).toMatch(/data-strip-source/);
+    expect(center).toMatch(/data-sample-day/);
+    expect(center).toMatch(/stripAttribution/);
+    expect(center).not.toMatch(/REST_NODES/);
+  });
 });
 
 describe("Paste J media validation", () => {

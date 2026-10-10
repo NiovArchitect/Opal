@@ -1,6 +1,6 @@
 /**
  * Holy Shit Moments 1–5 — additive gated first-run (source contract).
- * Paste W5 Phase 0: Meet Opal ONE scrolling page (name + friend + perms + Assist + sticky Continue).
+ * Paste W6 Phase 1: Meet Opal ONE scrolling page (greeting rewrite + 3 perms + Assist + sticky Continue → Center).
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -43,8 +43,9 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Paste W5 Phase 0: one scrolling Meet Opal page (name + friend + perms + Assist)", () => {
+  it("Paste W6 Phase 1: one scrolling Meet Opal page (greeting + 3 perms + Assist → Center)", () => {
     const meet = src("MeetOpalConversation.tsx");
+    const hint = src("UsernameSettingsHint.tsx");
     const orb = src("OpalPresenceOrb.tsx");
     const copy = src("holyShitCopy.ts");
     const gate = src("holyShitGate.ts");
@@ -69,19 +70,41 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).not.toMatch(/setPhase\("trust"\)/);
     expect(meet).toMatch(/HOLY_SHIT_COPY\.askPeople/);
     expect(meet).toMatch(/hs-self-name-input/);
-    expect(meet).toMatch(/hs-self-username-hint/);
+    expect(meet).toMatch(/hs-self-username-hint|UsernameSettingsHint/);
     // Single name input — no separate username field
     expect(meet).not.toMatch(/hs-self-username-input/);
     expect(meet).toMatch(/suggestUsernameFromName/);
     expect(meet).toMatch(/saveProfile/);
     expect(meet).toMatch(/updateProfile/);
-    expect(meet).toMatch(/You'll be @|selfUsernameQuiet/);
+    expect(meet).toMatch(/UsernameSettingsHint|selfUsernameQuiet|You'll be @/);
+    expect(hint).toMatch(/selfUsernameQuiet|Change anytime in/);
+    expect(hint).toMatch(/hs-username-settings-link/);
+    expect(hint).toMatch(/variant === "link"|variant = "plain"/);
+    expect(hint).toMatch(/onOpenSettings/);
     expect(meet).toMatch(/OpalPresenceOrb/);
     expect(orb).toMatch(/hs-opal-orb/);
     expect(orb).toMatch(/hs-orb-character|data-presence="character"/);
     expect(orb).toMatch(/opal-character\.png|opalCharacter/);
     expect(orb).toMatch(/Opal is working|Opal is thinking|statusLabelForMode/);
     expect(orb).not.toMatch(/opal-center-opal-645-3-rest-512/);
+    // W6 greeting rewrite — no old birthday/staying close/I got you block
+    expect(HOLY_SHIT_COPY.greetingHeadline).toBe("Hey, I'm Opal.");
+    expect(HOLY_SHIT_COPY.greetingSubhead).toBe("Real people. Brighter together.");
+    expect([...HOLY_SHIT_COPY.greetingValueLines]).toEqual([
+      "Plans with your people, minus the group-chat chaos.",
+      "Birthdays, trips, Tuesday nights. Handled.",
+      "You bring the people. I bring the timing.",
+    ]);
+    expect(copy).not.toMatch(/Birthdays, plans, staying close\. I got you/);
+    expect(HOLY_SHIT_COPY.greetingHeadline).not.toMatch(/[—–―]/);
+    expect(HOLY_SHIT_COPY.greetingSubhead).not.toMatch(/[—–―]/);
+    for (const line of HOLY_SHIT_COPY.greetingValueLines) {
+      expect(line).not.toMatch(/[—–―]/);
+    }
+    expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).toBe(
+      "You'll be @sadeil. Change anytime in settings.",
+    );
+    expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).not.toMatch(/in You/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toContain(HOLY_SHIT_COPY.assistRow);
     expect(copy).toContain(HOLY_SHIT_COPY.assistEnable);
@@ -91,11 +114,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toMatch(/askSelfName/);
     expect(copy).toMatch(/catch up with/);
     expect(copy).toMatch(/Choose from contacts|Select from contacts/);
-    expect(copy).toMatch(/A few permissions help me take care of you/);
-    expect(copy).toMatch(/Find your people/);
-    expect(copy).toMatch(/Never double-book you/);
-    expect(copy).toMatch(/Nudges at the right time/);
-    expect(copy).toMatch(/Spots near you/);
+    expect(HOLY_SHIT_COPY.askPermissions).toBe("A few permissions, all worth it.");
+    expect(HOLY_SHIT_COPY.permContactsWhy).toBe("So I know who's who when you make plans.");
+    expect(HOLY_SHIT_COPY.permNotificationsWhy).toBe(
+      "So you never miss the moment a plan locks in.",
+    );
+    expect(HOLY_SHIT_COPY.permLocationWhy).toBe("So nearby plans and places just work.");
+    expect(HOLY_SHIT_COPY.permNotNow).toBe("Not now");
+    expect(HOLY_SHIT_COPY.permAllow).toBe("Allow");
     expect(copy).toMatch(/Let Opal place calls and make reservations/);
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
@@ -108,36 +134,43 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/confirmContact|Got \$\{name\}/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
-    // Permissions compact rows on the same page
+    // Permissions: exactly 3 rows (no calendar) above Assist; persist to profile
     expect(copy).toMatch(/MEET_OPAL_PERMISSION_ORDER/);
     expect(MEET_OPAL_PERMISSION_ORDER).toEqual([
       "contacts",
-      "calendar",
       "notifications",
       "location",
     ]);
+    expect(MEET_OPAL_PERMISSION_ORDER).toHaveLength(3);
+    expect(MEET_OPAL_PERMISSION_ORDER).not.toContain("calendar");
+    expect(meet).not.toMatch(/perm-row-calendar|kind === "calendar"/);
     expect(copy).toMatch(/permContactsWhy/);
-    expect(copy).toMatch(/permCalendarWhy/);
     expect(copy).toMatch(/permNotificationsWhy/);
     expect(copy).toMatch(/permLocationWhy/);
     expect(meet).toMatch(/hs-perm-list/);
     expect(meet).toMatch(/hs-perm-row/);
     expect(meet).toMatch(/hs-perm-allow/);
-    expect(meet).toMatch(/hs-perm-skip/);
+    expect(meet).toMatch(/hs-perm-skip|hs-perm-not-now/);
+    expect(meet).toMatch(/saveMeetOpalPermissions/);
     expect(meet).toMatch(/Notification\.requestPermission|requestPermission/);
     expect(meet).toMatch(/geolocation|location/);
     expect(meet).not.toMatch(/window\.location\.(assign|href)/);
     // Phone gate: Continue without inviting then stay / finish via sticky Continue
     expect(meet).toMatch(/hs-phone-input|pendingPhonePerson/);
     expect(meet).toMatch(/phoneSkipInvite|hs-phone-skip-invite/);
-    // Skip / resume still wired (advanceMeetOpalToAuth → fr08)
+    // Continue lands on Opal Center ambient — never setTab("home")
     expect(meet).toMatch(/onSkipToAuth/);
     expect(app).toMatch(/advanceMeetOpalToAuth/);
+    expect(app).toMatch(/setOpalAmbientOpen\(true\)/);
+    const advanceIdx = app.indexOf("const advanceMeetOpalToAuth");
+    const advanceChunk = app.slice(advanceIdx, advanceIdx + 1200);
+    expect(advanceChunk).toMatch(/setOpalAmbientOpen\(true\)/);
+    expect(advanceChunk).not.toMatch(/setTab\("home"\)/);
     expect(app).toMatch(/onAfterPhoneVerify/);
     expect(app).toMatch(/handleAfterPhoneVerify/);
     expect(gate).toMatch(/opal_founder_seed/);
     expect(app).toMatch(/consumeResetFirstRunFlag/);
-    // W5: greeting → form (no multi-screen ask_* gates)
+    // W5/W6: greeting → form (no multi-screen ask_* gates)
     const phaseBlock = copy.slice(copy.indexOf("export type MeetOpalPhase"));
     expect(phaseBlock).toMatch(/"greeting"/);
     expect(phaseBlock).toMatch(/"form"/);
@@ -214,7 +247,8 @@ describe("Holy Shit first-run Moments 1–5", () => {
     // Phase 0 Meet path no longer mounts OpalWorking; contact persist still via resolve
     expect(meet).toMatch(/contacts\/resolve/);
     expect(meet).not.toMatch(/onboarding\/contact/);
-    expect(meet).toMatch(/checkCalendarConnected/);
+    // W6: calendar connect lives in OpalWorking only (no Meet calendar permission row)
+    expect(working).toMatch(/checkCalendarConnected|resolveCalendarStayInThread|connectCalendar/);
     expect(copy).toMatch(/Calendar's connected/);
     expect(copy).toMatch(/Calendar connect isn't set up yet/);
     expect(copy).toMatch(/No problem\. I'll work around it|No problem\. How about/);

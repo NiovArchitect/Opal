@@ -14,7 +14,11 @@ describe("Paste W4 Phase 3 thread header + contact sheet", () => {
     const css = read("styles.css");
     expect(header).toMatch(/data-testid="gpt-history"/);
     expect(header).toMatch(/aria-label="History"/);
-    expect(header).toMatch(/clock-rewind|HistoryIcon|gpt-history-icon/);
+    // Paste W6 4a/4b — SVG back (no stacked text ‹) + shared-plans History glyph.
+    expect(header).toMatch(/BackChevronIcon|gpt-back-icon/);
+    expect(header).toMatch(/HistoryIcon|gpt-history-icon/);
+    expect(header).toMatch(/overlapping|rounded rect|shared-plans|checkmark|rx=/);
+    expect(header).not.toMatch(/>\s*‹\s*</);
     expect(header).toMatch(/data-testid="gpt-call"/);
     expect(header).toMatch(/data-testid="gpt-video"/);
     expect(header).not.toMatch(/data-testid="gpt-plan"/);

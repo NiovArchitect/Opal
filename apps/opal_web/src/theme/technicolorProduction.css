@@ -301,19 +301,18 @@
   box-shadow: 0 0 10px rgba(62, 224, 240, 0.7);
 }
 
-/* Human bubbles: calm, minimal saturation */
-[data-technicolor="controlled"] .bubble.in,
+/* Paste W6 3b — do not fight cyan/purple bubble law with dark dainty fills */
 [data-technicolor="controlled"] .bubble.out {
-  border-color: transparent;
-}
-
-[data-technicolor="controlled"] .bubble.out {
-  background: #1a4a5c;
-  box-shadow: 0 0 16px rgba(94, 214, 232, 0.12);
+  background: rgba(0, 229, 255, 0.18) !important;
+  border: 1px solid #00E5FF !important;
+  color: #FFFFFF !important;
+  box-shadow: none;
 }
 
 [data-technicolor="controlled"] .bubble.in {
-  background: #141a24;
+  background: rgba(139, 92, 246, 0.18) !important;
+  border: 1px solid #8B5CF6 !important;
+  color: #FFFFFF !important;
 }
 
 /* ========== Opal moment signature (Controlled) ========== */
