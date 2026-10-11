@@ -82,7 +82,7 @@ defmodule OpalCore.Intelligence.AttentionBudget do
       travel_blocks_routine_break?(account_id, priority) ->
         deny(account_id, surface, priority, :travel_pause_routine_break)
 
-      in_quiet_hours?(local_now) and not quiet_bypass?(account_id, priority, now) ->
+      in_quiet_hours?(account_id, local_now) and not quiet_bypass?(account_id, priority, now) ->
         if priority == "weekly_briefing" do
           deny(account_id, surface, priority, :quiet_hours_defer_8am)
         else
@@ -400,10 +400,55 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
   defp pacific_dst?(_), do: false
 
-  defp in_quiet_hours?(%DateTime{} = local) do
+  # Prefer AssistancePreference quiet window when set; else founder default 22–08.
+  defp in_quiet_hours?(account_id, %DateTime{} = local) do
+    {start_h, end_h} = quiet_window_hours(account_id)
     h = local.hour
-    h >= @quiet_start or h < @quiet_end
+    minute = local.minute
+    # Inclusive of start minute when start is HH:MM; hour-granularity is enough for budget.
+    _ = minute
+
+    if start_h == end_h do
+      # Degenerate / full-day window (e.g. tests forcing quiet with 00:00–00:00)
+      true
+    else
+      if start_h > end_h do
+        # Overnight wrap (default 22→08)
+        h >= start_h or h < end_h
+      else
+        # Same-calendar-day window (e.g. force_local_quiet 00:00–23:59)
+        h >= start_h and h < end_h
+      end
+    end
   end
+
+  defp quiet_window_hours(account_id) do
+    case Repo.get_by(AssistancePreference, user_id: account_id) do
+      %AssistancePreference{quiet_hours_start: start, quiet_hours_end: ending}
+      when is_binary(start) and is_binary(ending) ->
+        {parse_hour(start, @quiet_start), parse_hour(ending, @quiet_end)}
+
+      _ ->
+        {@quiet_start, @quiet_end}
+    end
+  rescue
+    _ -> {@quiet_start, @quiet_end}
+  end
+
+  defp parse_hour(hm, fallback) when is_binary(hm) do
+    case String.split(hm, ":") do
+      [h | _] ->
+        case Integer.parse(h) do
+          {n, _} when n >= 0 and n <= 23 -> n
+          _ -> fallback
+        end
+
+      _ ->
+        fallback
+    end
+  end
+
+  defp parse_hour(_, fallback), do: fallback
 
   defp quiet_bypass?(account_id, "time_critical", now), do: active_recently?(account_id, now)
   # Paste G/I — user-command reminders never subject to quiet hours / AttentionBudget spam rules

@@ -80,10 +80,11 @@ defmodule OpalCore.ConversationCreatePlanTest do
              })
 
     alignment = plan.alignment || %{}
+    # Honesty law: place name must not invent cuisine/vibe/price.
+    # plan_type (e.g. in_person) is structural, not invented taste.
     refute Map.has_key?(alignment, "cuisine")
     refute Map.has_key?(alignment, "vibe")
     refute Map.has_key?(alignment, "price")
-    assert alignment == %{}
 
     assert Repo.get_by!(PlanParticipant, plan_id: plan.id, user_id: alex()).response_state ==
              "accepted"

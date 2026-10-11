@@ -1,0 +1,36 @@
+{
+  "phase": "1.4",
+  "started": "2026-10-11T02:35:33.286Z",
+  "mint": {
+    "status": "ok",
+    "source": "twilio_nts_direct",
+    "ttl": 86400,
+    "ice_server_count": 4,
+    "turn_uri_count": 3
+  },
+  "relay_test": {
+    "status": "PASS",
+    "ok": true,
+    "s1": "connected",
+    "s2": "connected",
+    "selectedType": "relay",
+    "log": [
+      "ontrack",
+      "pc2:checking",
+      "pc1:checking",
+      "pc1:connected",
+      "pc2:connected"
+    ],
+    "iceServerCount": 3,
+    "finished": "2026-10-11T02:35:43.171Z"
+  },
+  "acceptance": {
+    "turn_uris_present": true,
+    "relay_media": true,
+    "ice_states": {
+      "pc1": "connected",
+      "pc2": "connected"
+    },
+    "selected_candidate_type": "relay"
+  }
+}

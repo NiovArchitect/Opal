@@ -1,0 +1,43 @@
+{
+  "tip": "81276ef8",
+  "suite": "2177 tests, 6 failures",
+  "note": "Captured on base tip before W9 product edits. These are tip-resident.",
+  "failures": [
+    {
+      "id": 1,
+      "test": "S1 FR08 profile update persists display name and unique handle",
+      "file": "test/opal_core_web/product_profile_s1_test.exs:43",
+      "symptom": "expected 422 got 200 on handle conflict"
+    },
+    {
+      "id": 2,
+      "test": "trust gate: below known \u2192 basic only",
+      "file": "test/opal_core/celebration_curation_test.exs:199",
+      "symptom": "reminder uses 'week' not 'days'"
+    },
+    {
+      "id": 3,
+      "test": "assemble/2 empty lists new user",
+      "file": "test/opal_core/opal_context_test.exs:185",
+      "symptom": "keys include :preferences"
+    },
+    {
+      "id": 4,
+      "test": "assemble/2 full data keys",
+      "file": "test/opal_core/opal_context_test.exs:91",
+      "symptom": "keys include :preferences"
+    },
+    {
+      "id": 5,
+      "test": "does not invent cuisine from place name",
+      "file": "test/opal_core/conversation_create_plan_test.exs:75",
+      "symptom": "alignment has plan_type in_person"
+    },
+    {
+      "id": 6,
+      "test": "T2 Four timezones quiet hours",
+      "file": "test/opal_core/intelligence/multiuser_pressure_test.exs:100",
+      "symptom": "expected quiet_hours deny got granted"
+    }
+  ]
+}

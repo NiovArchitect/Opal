@@ -42,22 +42,27 @@ defmodule OpalCoreWeb.ProductProfileS1Test do
 
   test "S1 FR08 profile update persists display name and unique handle", %{conn: conn} do
     {token_a, user_a} = activate(conn, @alex, "You", "you_tmp_a")
-    {_token_b, _user_b} = activate(conn, @jordan, "Jordan", "jordan_s1")
+    {_token_b, user_b} = activate(conn, @jordan, "Jordan", "jordan_s1")
 
     assert user_a["display_name"] == "You"
+    # Fixture phones may already exist from seed — use the peer's actual handle.
+    peer_handle = user_b["handle"]
+    assert is_binary(peer_handle) and peer_handle != ""
+
+    unique_handle = "sadeil_s1_#{System.unique_integer([:positive])}"
 
     conn =
       build_conn()
       |> put_req_header("authorization", "Bearer #{token_a}")
       |> patch("/api/v1/product/session/profile", %{
         "display_name" => "Sadeil",
-        "handle" => "sadeil_s1"
+        "handle" => unique_handle
       })
 
     body = json_response(conn, 200)
     assert body["profile_updated"] == true
     assert body["user"]["display_name"] == "Sadeil"
-    assert body["user"]["handle"] == "sadeil_s1"
+    assert body["user"]["handle"] == unique_handle
 
     conn =
       build_conn()
@@ -66,15 +71,15 @@ defmodule OpalCoreWeb.ProductProfileS1Test do
 
     me = json_response(conn, 200)
     assert me["user"]["display_name"] == "Sadeil"
-    assert me["user"]["handle"] == "sadeil_s1"
+    assert me["user"]["handle"] == unique_handle
 
-    # Real uniqueness: cannot steal Jordan handle
+    # Real uniqueness: cannot steal the other account's handle
     conn =
       build_conn()
       |> put_req_header("authorization", "Bearer #{token_a}")
       |> patch("/api/v1/product/session/profile", %{
         "display_name" => "Sadeil",
-        "handle" => "jordan_s1"
+        "handle" => peer_handle
       })
 
     err = json_response(conn, 422)

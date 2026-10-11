@@ -1,0 +1,27 @@
+{
+  "paste": "W9 Phase 1",
+  "tip": "81276ef8",
+  "generated_at": "2026-10-11T02:37:00Z",
+  "devices_available_to_agent": {
+    "physical_iphones": 0,
+    "local_phoenix_4000": false,
+    "prod_api_health": "503"
+  },
+  "gates": {
+    "1a_push_callkit": "GATED",
+    "1b_two_way_turn_audio": "GATED",
+    "1b_lab_ice_relay": "PASS",
+    "1c_decline_missed_call_log": "GATED",
+    "1c_code": "PASS"
+  },
+  "no_pass_without_two_devices": true,
+  "report": "shots/calling/W9_CALLING.md",
+  "evidence": [
+    "shots/calling/w9/W9_TURN_RELAY.json",
+    "shots/calling/w9/W9_UNIT_PROOFS.json",
+    "shots/calling/TWO_DEVICE_MATRIX.json",
+    "shots/calling/PHASE2_PUSH_VERIFY.json",
+    "shots/calling/PHASE3_CALLKIT_VERIFY.json",
+    "shots/audit/NATIVE_MODULE_AUDIT.md"
+  ]
+}

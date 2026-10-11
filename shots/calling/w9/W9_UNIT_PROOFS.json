@@ -1,0 +1,39 @@
+{
+  "scope": "Paste W9 Phase 1 — automated proofs without second phone",
+  "tip": "81276ef8",
+  "ran_at": "2026-10-11T02:36:00Z",
+  "frontend_vitest": {
+    "files": [
+      "apps/opal_web/src/realtime/incomingCallHandler.test.ts",
+      "apps/opal_web/src/opalUi/callLifecycle.test.ts",
+      "apps/opal_web/src/realtime/callMediaRuntime.test.ts",
+      "apps/opal_web/src/realtime/callMedia.integration.test.ts",
+      "apps/opal_web/src/opalUi/callSubstrate.test.ts"
+    ],
+    "result": "33/33 PASS",
+    "covers": [
+      "incoming route → in_thread_banner / incoming_screen / native_callkit",
+      "callLifecycle inbox reducer",
+      "callMediaRuntime state machine",
+      "ONE_MIC + assist does not getUserMedia"
+    ]
+  },
+  "backend_mix_test": {
+    "files": [
+      "apps/opal_core/test/opal_core/calls_test.exs",
+      "apps/opal_core/test/opal_core/calls/turn_credentials_test.exs"
+    ],
+    "result": "19/19 PASS",
+    "covers": [
+      "callee decline → ended_reason=declined",
+      "expire_if_ringing → status=missed",
+      "viewer-relative call-log copy (one session one row)",
+      "TURN credentials mint/reuse/disabled/stranger forbid"
+    ]
+  },
+  "turn_relay_lab": {
+    "evidence": "shots/calling/w9/W9_TURN_RELAY.json",
+    "result": "PASS selectedType=relay",
+    "note": "Chromium dual-PC relay only — not two physical devices"
+  }
+}

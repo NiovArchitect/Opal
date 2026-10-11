@@ -1,0 +1,165 @@
+{
+  "paste": "W9 Phase 3",
+  "tip": "81276ef8",
+  "proved_at_utc": "2026-10-11T02:45:36Z",
+  "api_base": "http://127.0.0.1:4000",
+  "health": {
+    "status": "ok",
+    "db": "up",
+    "phone_verify_mode": "production_sms"
+  },
+  "rules": {
+    "no_sms_burn": true,
+    "no_invented_data": true,
+    "tokens_redacted": true,
+    "no_commit": true
+  },
+  "accounts": {
+    "walk_a": {
+      "user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "handle": "jordan",
+      "display_name": "Jordan",
+      "phone_fixture": "+12025550101",
+      "session_id": "f2de01cb-0536-4f73-aea8-50fc04817232",
+      "device_label": "w9-isolation-a",
+      "access_token": "REDACTED"
+    },
+    "walk_b": {
+      "user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      "handle": "s11_c_msy0uy9n",
+      "display_name": "Walk B",
+      "phone_fixture": "+12025550102",
+      "session_id": "1de635b8-ebe8-4109-a1e7-82a8224474a6",
+      "device_label": "w9-isolation-b",
+      "access_token": "REDACTED"
+    }
+  },
+  "auth_path": {
+    "fixture_otp_activate": "blocked",
+    "method": "mix_run_DeviceSession_ProductSession_issue",
+    "seed_ui_accounts": false
+  },
+  "markers": {
+    "private": "W9ISO_PRIVATE_d627448c",
+    "shared": "W9ISO_SHARED_4740369d"
+  },
+  "matrix": [
+    {
+      "id": "3a",
+      "title": "two_real_otp_signups",
+      "status": "GATED",
+      "reason": "production_sms returns 422 number_not_enabled for fixture phones +12025550101/+12025550102; true dual OTP requires Twilio Verify SMS burn on approved lines (policy: do not burn SMS)",
+      "evidence": [
+        {
+          "request": "POST /api/v1/product/activation/challenges phone=+12025550101",
+          "http": 422,
+          "error_code": "number_not_enabled"
+        },
+        {
+          "request": "POST /api/v1/product/activation/challenges phone=+12025550102",
+          "http": 422,
+          "error_code": "number_not_enabled"
+        }
+      ]
+    },
+    {
+      "id": "3b",
+      "title": "account_isolation",
+      "status": "PASS",
+      "private_artifacts": {
+        "assist_preference": {
+          "a": { "assist_calls_enabled": false },
+          "b": { "assist_calls_enabled": true },
+          "isolated": true
+        },
+        "celebration": {
+          "id": "24a2c147-8cbe-4c63-b39b-cd8d1d86dc0d",
+          "a_hit": 1,
+          "b_hit": 0,
+          "isolated": true
+        },
+        "reminder": {
+          "id": "64d0919e-b5be-4341-89dc-66a8e3320636",
+          "a_hit": 1,
+          "b_hit": 0,
+          "isolated": true
+        },
+        "solo_opal_plan": {
+          "id": "7a7581f4-31f1-4c7f-b6b2-4e584737900e",
+          "created_by_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "conversation_id": null,
+          "b_journeys_get": { "http": 403, "error": "DENIED" },
+          "isolated": true
+        },
+        "opal_center": {
+          "a_conversation_id": "b1cf9c3c-3b78-4276-80a6-a40cf85e1ce6",
+          "b_conversation_id": "beb6c998-661d-41c5-8ec6-37ed0ea9a917",
+          "ids_distinct": true,
+          "a_contains_private_marker": true,
+          "b_contains_private_marker": false,
+          "b_read_a_center_as_chat": {
+            "http": 403,
+            "error_code": "not_a_member"
+          },
+          "isolated": true
+        },
+        "chats_list": {
+          "b_contains_private_marker": false,
+          "isolated": true
+        },
+        "memory_facts": {
+          "id": "a10ae225-9fb7-465b-953b-e0ca2bd1e7b6",
+          "a_count": 1,
+          "a_contains_private_marker": true,
+          "b_count": 0,
+          "b_contains_private_marker": false,
+          "visibility": "private",
+          "isolated": true
+        },
+        "person_memory_b_of_a": {
+          "http": 200,
+          "contains_private_marker": false,
+          "isolated": true
+        },
+        "search_surfaces": {
+          "venue_search_q_marker": {
+            "http": 200,
+            "empty": true,
+            "leaked_private_product_data": false
+          },
+          "bookings_search": {
+            "http": 422,
+            "leaked_private_product_data": false
+          },
+          "home_feed_b": { "contains_private_marker": false },
+          "attention_b": { "contains_private_marker": false }
+        }
+      }
+    },
+    {
+      "id": "3c",
+      "title": "messaging_a_to_b_real_timestamps",
+      "status": "PASS",
+      "conversation_id": "ace99adc-db67-4258-9d95-f612246c6c84",
+      "conversation_origin": "existing_fort_oak_dyad",
+      "message": {
+        "id": "7cf92508-c4a1-40f9-9c9c-6d2a544e286b",
+        "body": "W9ISO_SHARED_4740369d hello from Walk A isolation proof",
+        "created_at": "2026-10-11T02:44:08.357460Z",
+        "sender_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "server_seq": 91,
+        "delivery_state": "persisted",
+        "visible_to_a": true,
+        "visible_to_b": true,
+        "b_unread_count_after_send": 1,
+        "same_created_at_on_both_fetches": true
+      }
+    }
+  ],
+  "summary": {
+    "3a": "GATED",
+    "3b": "PASS",
+    "3c": "PASS"
+  },
+  "report": "shots/walk/W9_ISOLATION.md"
+}

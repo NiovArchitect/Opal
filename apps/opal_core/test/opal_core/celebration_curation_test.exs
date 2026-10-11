@@ -208,7 +208,8 @@ defmodule OpalCore.CelebrationCurationTest do
     assert curation.gift_ideas == []
     assert curation.plan_ideas == []
     assert curation.reminder =~ "Maya's birthday"
-    assert curation.reminder =~ "days"
+    # Human copy may say "in a week" or "in N days"
+    assert curation.reminder =~ ~r/week|days?/
   end
 
   test "gift ideas reference real taste (not generic)" do

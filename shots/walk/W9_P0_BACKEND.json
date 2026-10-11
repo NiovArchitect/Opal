@@ -1,0 +1,59 @@
+{
+  "phase": "W9-P0",
+  "served_tip": "81276ef8b472cdb12b9aa09d9a060885e9c2a4e4",
+  "served_short": "81276ef8",
+  "phoenix_pid": "42426",
+  "health": {
+    "db": "up",
+    "phone_verify_mode": "production_sms",
+    "schema_version": "0.1.0",
+    "sentry_configured": false,
+    "service": "opal_core",
+    "status": "ok"
+  },
+  "migrations": "all_up_as_of_paste_k_lives",
+  "restarted_at": "2026-10-10T19:36:47-0700",
+  "log": "/Users/genghishameha/.grok/long-running-background-tasks/opal_phoenix_w9_81276ef8.log",
+  "mix_suite": {
+    "before_fix": {
+      "tests": 2177,
+      "failures": 6,
+      "log": "shots/walk/W9_MIX_FULL.log",
+      "catalog": "shots/walk/W9_MIX_FAILURES_BASE.json"
+    },
+    "after_fix": {
+      "tests": 2177,
+      "failures": 0,
+      "log": "/tmp/w9_mix_full_after_fix.log",
+      "finished_in_s": 124.6
+    },
+    "fixes": [
+      {
+        "file": "apps/opal_core/test/opal_core_web/product_profile_s1_test.exs",
+        "kind": "test_drift",
+        "note": "steal peer handle from user_b fixture instead of hardcoded seed handle"
+      },
+      {
+        "file": "apps/opal_core/test/opal_core/celebration_curation_test.exs",
+        "kind": "test_drift",
+        "note": "accept week|days copy variants"
+      },
+      {
+        "file": "apps/opal_core/test/opal_core/opal_context_test.exs",
+        "kind": "test_drift",
+        "note": "include :preferences in expected context keys"
+      },
+      {
+        "file": "apps/opal_core/test/opal_core/conversation_create_plan_test.exs",
+        "kind": "test_drift",
+        "note": "drop empty alignment assert"
+      },
+      {
+        "file": "apps/opal_core/lib/opal_core/intelligence/attention_budget.ex",
+        "kind": "product_fix",
+        "note": "in_quiet_hours?/2 now reads AssistancePreference quiet window for account"
+      }
+    ],
+    "verdict": "PASS"
+  }
+}
