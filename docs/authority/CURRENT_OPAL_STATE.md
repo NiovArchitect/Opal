@@ -83,11 +83,20 @@ PASS_1_WATCH:
   - conflict_resolution_open_disagreement
   - relationship_scope_ladder
   - explanation_layer_human_transparency
+HOLD_PERIOD_WORK: preserve_coherence_and_production_readiness_only
+FORBIDDEN_UNTIL_PASS_2_UNLOCK:
+  - memory_expansion
+  - partner_graph
+  - preference_learning
+  - emotional_inference
+  - relationship_scoring
+  - automated_assumptions
 NEXT_AUTONOMOUS:
   - hold_pass1_green
   - keep_local_phoenix_vite_healthy
+  - production_readiness_around_existing_system
   - when_payment_lands_verify_prod_health_then_testflight_smoke
-  - do_not_unlock_pass2_without_founder_and_entry_contract
+  - do_not_unlock_pass2_without_founder_saying_opal_ready_to_understand_people
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
 REALITY_SOURCE_PRIORITY_LAW: ACTIVE
@@ -102,7 +111,7 @@ FOUNDER_ONLY:
   - testflight_transporter_upload
   - google_consent_and_places
   - two_physical_devices_call_push
-  - unlock_pass_2
+  - unlock_pass_2_opal_ready_to_understand_people
 COMPLETION_LAW: state_surface_contract  # every representing surface must agree
 ```
 

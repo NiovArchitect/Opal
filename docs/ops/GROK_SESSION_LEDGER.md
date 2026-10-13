@@ -203,4 +203,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Final gate document before Pass 2 — facts≠assumptions, scope, inference≠desire, human explanation, correction first-class, graph≠profile; keep Pass 2 locked.
 - Commands: `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`; wired into MASTER / CURRENT / PASS1_FINAL.
-- Outcome: DONE-PUSHED (pending tip). No Pass 2 features.
+- Outcome: DONE-PUSHED tip `b6186e8f` / sync `5697cdf5`. No Pass 2 features.
+
+## 2026-10-13 — Hold-period posture confirmed
+
+- Request: Acknowledge stopping point; Pass 2 delayed for discipline; hold-period = coherence + production readiness only; unlock phrase “Opal is ready to begin understanding people.”
+- Commands: CURRENT_OPAL_STATE forbidden list + HOLD_PERIOD_WORK; entry contract unlock phrase; PASS1_FINAL hold-period note.
+- Outcome: DONE-PUSHED (pending tip).

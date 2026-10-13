@@ -107,3 +107,16 @@ Without these laws: memory becomes creepy, recommendations become assumptions, a
 
 Not: “How do we make Opal smarter?”  
 Yes: “How do we make Opal understand people without violating trust?”
+
+## Hold-period work (until founder unlock)
+
+```text
+PASS 1 CLOSED ✅
+PASS 2 LOCKED 🔒
+RELATIONSHIP INTELLIGENCE NOT IMPLEMENTED
+ENTRY CONTRACT ACTIVE
+```
+
+Correct work now: preserve coherence foundation + production readiness around the existing system (local health, payment→prod `/health`, TestFlight when unblocked).
+
+Wrong work now: more data + more AI = “smarter Opal.”

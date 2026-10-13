@@ -173,16 +173,28 @@ Those become valuable only after this contract is live in product behavior.
 - `SILENT_OVERWRITE_OF_RELATIONSHIP_BELIEF = 0`
 - `FLAT_PROFILE_WITHOUT_SOURCE_CONFIDENCE = 0`
 
+## Unlock phrase (founder)
+
+Pass 2 opens only when the founder intentionally decides:
+
+> "Opal is ready to begin understanding people."
+
+Until then: preserve Pass 1 coherence and prepare production readiness around the **existing** system. No relationship-intelligence implementation.
+
 ## Unlock checklist
 
 Before any Pass 2 PR merges:
 
-1. [ ] Founder explicitly unlocks Pass 2
+1. [ ] Founder unlocks with the phrase above (or equivalent explicit unlock)
 2. [ ] Pass 1 checkpoint still green
 3. [ ] This contract cited in the PR / packet
 4. [ ] New durable facts carry Owner · Source · Confidence · Scope · Visibility · Correction
 5. [ ] Human explanation path for any surfaced suggestion
 6. [ ] No silent overwrite of prior beliefs
+
+## Hold-period forbidden list
+
+Until unlock: no memory expansion · partner graph · preference learning · emotional inference · relationship scoring · automated assumptions.
 
 ## Related
 
