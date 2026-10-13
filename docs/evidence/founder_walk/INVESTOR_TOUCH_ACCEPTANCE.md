@@ -164,11 +164,21 @@ Preference in chat · recurring activity · relationship · shared plan · place
 Before showing anyone as “investor ready”:
 
 1. Hand the phone to someone who knows nothing about Opal.  
-2. Do not explain.  
-3. Watch where they tap, what they misunderstand, where they hesitate, what they assume happens.  
-4. Do not correct them.
+2. **Do not prime the category.** Do not say “This is my AI social graph app.”  
+   Say only: **“I built something. Try it.”**  
+3. Do not explain the product thesis, features, or what to tap next.  
+4. Watch where they tap, what they misunderstand, where they hesitate, what they assume happens.  
+5. Do not correct them.
 
 Their confusion is the product telling you where it still needs work.
+
+Founder watch-points during any walk (including your own):
+
+1. Does Opal feel alive immediately — understands intent, not “has AI”?  
+2. Does connecting a person feel like bringing someone into your world (not contact import)?  
+3. Does Chat become more valuable than a messenger because context accumulates with restraint (“Opal helped,” not “Opal is watching”)?  
+4. Does Center feel like moving life forward — assistant with honesty, not chatbot that fakes bookings?  
+5. Would you show Graphs and say “Yeah, that feels like me”?
 
 - [ ] Cold stranger completes the five-minute loop without coaching
 - [ ] Hesitation points noted (do not argue them away in the moment)
