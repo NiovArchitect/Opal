@@ -112,4 +112,4 @@ PERSON_AGNOSTIC = YES
 
 ## Commit hashes
 
-Recorded after push on `muse/packet-b-batch-2`.
+- Substrate commit: `138a3638` (matches `origin/muse/packet-b-batch-2`)
