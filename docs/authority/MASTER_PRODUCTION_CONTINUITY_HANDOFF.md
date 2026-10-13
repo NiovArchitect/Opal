@@ -310,6 +310,21 @@ Every fact eventually carries Owner · Source · Confidence · Scope · Visibili
 Privacy is architecture. Do not unlock Pass 2 intelligence that invents durable private facts without these fields.  
 Example: Chanelle ring size — relationship-private; partner context only; Chanelle corrects/removes.
 
+## Pass 1 final checkpoint (CLOSED) · Pass 2 (LOCKED)
+
+Evidence: `shots/steward/PASS1_FINAL_CHECKPOINT.md`
+
+Defensible question: **Why is Opal showing me this?**
+
+Pass 2 entry is **not** “remember everything.” It is:
+
+> Build a permissioned relationship graph where Opal understands people without pretending to know what it does not know.
+
+Watch before Pass 2: open disagreement posture · relationship scope ladder · human explanation layer.  
+Founder unlock required. Intelligence expansion remains HOLD.
+
+Thesis: Meta Muse helps accomplish tasks; Opal helps maintain and deepen real-world relationships.
+
 ---
 
 ## Autonomous execution rule

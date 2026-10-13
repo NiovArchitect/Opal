@@ -98,14 +98,18 @@ From `REGRESSION_LEDGER.md` still **PARTIAL** / pending physical:
 8. ~~Pass 1E surface contradiction sweep~~ **Done** — no new RED leaks (`PASS1E_SURFACE_CONTRADICTION_SWEEP.md`).
 9. ~~Pass 1F empty state quality~~ **Done** — invitation empties via PRODUCT_COPY.
 10. ~~Pass 1G endpoint journey audit~~ **Done** — Attention openChat + Seen≠resolved; plan path A8 GREEN.
-11. Pass 2 relationship substrate only after Pass 1 stays green.
-12. Pass 3 / App Store after founder restores Render payment.
+11. ~~Pass 1 final checkpoint~~ **CLOSED** — `PASS1_FINAL_CHECKPOINT.md`. Pass 2 LOCKED.
+12. Pass 2 only after entry condition + founder unlock (permissioned graph; no pretending to know).
+13. Pass 3 / App Store after founder restores Render payment.
 
-## Milestone (do not flip to intelligence)
+## Milestone (answered)
 
-> Can Opal represent one person's shared reality consistently across every surface?
+> Why is Opal showing me this? — defensible via ownership, source priority, visibility, and surface agreement.
 
-Phase order remains: **1 Reality coherence → 2 Relationship intelligence → 3 Execution → 4 Scale**.
+> Can Opal represent one person's shared reality consistently across every surface? — Pass 1 checkpoint YES (hold green).
+
+Phase order remains: **1 Reality coherence → 2 Relationship intelligence → 3 Execution → 4 Scale**.  
+Pass 2 stays LOCKED. Watch: conflict resolution · relationship scopes · explanation layer.
 
 ## Settings three-state law (reinforced)
 

@@ -1,15 +1,16 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-13 (Pass 1E–G + FACT OWNERSHIP + VISIBILITY LAW; tip )  
+**Updated:** 2026-10-13 (Pass 1 FINAL CHECKPOINT CLOSED; Pass 2 LOCKED)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
-**Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
+**Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`  
+**Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`
 
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: e8eee92b
+implementation_tip: dc32fb63
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
@@ -27,7 +28,10 @@ rebuild: FORBIDDEN
 MISSION: whole_system_coherence_then_production_validation
 MODE: compound_only
 INTELLIGENCE_EXPANSION: HOLD_UNTIL_COHERENCE
-MILESTONE: one_person_shared_reality_consistent_across_surfaces
+PASS_1: CHECKPOINT_CLOSED
+PASS_2: LOCKED
+MILESTONE: why_is_opal_showing_me_this
+PRODUCT_THESIS: opal_deepens_relationships_muse_accomplishes_tasks
 COMPLETED:
   - W6_W7_foundation
   - W8_finish_opal_81276ef8
@@ -47,6 +51,7 @@ COMPLETED:
   - pass_1e_surface_contradiction_sweep
   - pass_1f_empty_state_quality
   - pass_1g_endpoint_journey_audit
+  - pass_1_final_checkpoint_closed
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -54,19 +59,24 @@ BLOCKERS:
   - google_oauth_consent_founder
   - google_places_api_billing_founder
 PASS_ORDER:
-  - pass_1_reality_graph_connection   # 1A–1G coherence checkpoint; intelligence HOLD
-  - pass_2_relationship_intelligence_foundation
+  - pass_1_reality_graph_connection   # CLOSED checkpoint — hold green
+  - pass_2_relationship_intelligence_foundation  # LOCKED — see entry condition
   - pass_3_app_store_readiness        # after Render payment
 PHASE_ORDER_LONG:
   - phase_1_reality_coherence
   - phase_2_relationship_intelligence
   - phase_3_execution_layer
   - phase_4_scale
+PASS_2_ENTRY: permissioned_relationship_graph_without_pretending_to_know
+PASS_1_WATCH:
+  - conflict_resolution_open_disagreement
+  - relationship_scope_ladder
+  - explanation_layer_human_transparency
 NEXT_AUTONOMOUS:
   - hold_pass1_green
   - keep_local_phoenix_vite_healthy
   - when_payment_lands_verify_prod_health_then_testflight_smoke
-  - pass_2_only_after_pass1_stays_green
+  - do_not_unlock_pass2_without_founder_and_entry_condition
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
 REALITY_SOURCE_PRIORITY_LAW: ACTIVE
@@ -80,6 +90,7 @@ FOUNDER_ONLY:
   - testflight_transporter_upload
   - google_consent_and_places
   - two_physical_devices_call_push
+  - unlock_pass_2
 COMPLETION_LAW: state_surface_contract  # every representing surface must agree
 ```
 
