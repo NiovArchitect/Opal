@@ -247,3 +247,4 @@ Permission substrate implementation is **authorized** as the prerequisite for Pa
 - Continuous Permission Law also mirrored in `OPAL_PERMISSION_ARCHITECTURE.md`
 - Substrate: `OpalCore.RelationshipAccess` (+ migrations / product API)
 - Evidence: `docs/evidence/relationship_access/`
+- Freeze guardrail: `OPAL_CONTEXT_OWNERSHIP_AND_TEMPORAL_TRUTH_MODEL.md` (observation≠truth; group non-inheritance; gyroscope)

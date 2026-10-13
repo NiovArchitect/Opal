@@ -78,4 +78,5 @@ Permission is part of the **reality architecture**, not a Pass 2 feature add-on.
 
 - One authority owner per fact class: `STATE_OWNERSHIP_LAW.md`
 - Source priority: `REALITY_SOURCE_PRIORITY_LAW.md`
+- Context ownership + temporal truth (observation≠truth, temporary decay): `OPAL_CONTEXT_OWNERSHIP_AND_TEMPORAL_TRUTH_MODEL.md`
 - Surface agreement: `STATE_SURFACE_CONTRACT.md`

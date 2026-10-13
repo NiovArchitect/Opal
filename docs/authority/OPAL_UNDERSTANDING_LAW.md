@@ -38,6 +38,8 @@ Before Opal stores, recalls, or acts on anything about a person:
 
 These six are the constitution. They compose with `FACT_OWNERSHIP_VISIBILITY_LAW.md` and the memory ladder Observed → Candidate → Confirmed → Durable.
 
+Freeze guardrail (ownership, observation≠truth, temporary vs identity, seasons, gyroscope): `OPAL_CONTEXT_OWNERSHIP_AND_TEMPORAL_TRUTH_MODEL.md`.
+
 ## Canonical example
 
 User says: *"Chanelle loves pink."*
