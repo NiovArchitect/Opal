@@ -1,0 +1,30 @@
+{
+  "square": "PASS1F_EMPTY",
+  "failures": 0,
+  "results": [
+    {
+      "name": "HOME_EMPTY_COPY",
+      "status": "SKIP",
+      "detail": {
+        "homeEmpty": 0,
+        "hasWorld": false
+      }
+    },
+    {
+      "name": "GRAPHS_EMPTY_COPY",
+      "status": "SKIP",
+      "detail": {
+        "graphsEmpty": 0,
+        "hasShared": false
+      }
+    },
+    {
+      "name": "CHATS_EMPTY_COPY",
+      "status": "SKIP",
+      "detail": {
+        "chatsEmpty": 0,
+        "hasLive": false
+      }
+    }
+  ]
+}

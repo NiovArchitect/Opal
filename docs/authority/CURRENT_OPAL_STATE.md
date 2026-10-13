@@ -1,7 +1,7 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-13 (Pass 1C/1D + REALITY SOURCE PRIORITY LAW; tip `b9da5d2f`)  
+**Updated:** 2026-10-13 (Pass 1E–G + FACT OWNERSHIP + VISIBILITY LAW)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
@@ -9,7 +9,7 @@
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: b9da5d2f
+implementation_tip: pending_pass1e_g
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
@@ -43,6 +43,10 @@ COMPLETED:
   - reality_source_priority_law
   - pass_1c_settings_live_wire
   - pass_1d_production_seed_audit
+  - fact_ownership_visibility_law
+  - pass_1e_surface_contradiction_sweep
+  - pass_1f_empty_state_quality
+  - pass_1g_endpoint_journey_audit
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -50,7 +54,7 @@ BLOCKERS:
   - google_oauth_consent_founder
   - google_places_api_billing_founder
 PASS_ORDER:
-  - pass_1_reality_graph_connection   # 1C/1D shipped; hold coherence; intelligence HOLD
+  - pass_1_reality_graph_connection   # 1A–1G coherence checkpoint; intelligence HOLD
   - pass_2_relationship_intelligence_foundation
   - pass_3_app_store_readiness        # after Render payment
 PHASE_ORDER_LONG:
@@ -60,15 +64,16 @@ PHASE_ORDER_LONG:
   - phase_4_scale
 NEXT_AUTONOMOUS:
   - hold_pass1_green
-  - optional_settings_browser_roundtrip_proofs
-  - permission_boundary_schema_note_only
   - keep_local_phoenix_vite_healthy
   - when_payment_lands_verify_prod_health_then_testflight_smoke
+  - pass_2_only_after_pass1_stays_green
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
 REALITY_SOURCE_PRIORITY_LAW: ACTIVE
+FACT_OWNERSHIP_VISIBILITY_LAW: ACTIVE
 RECONCILE_CONVERSATION_PLANS: SHIPPED
 PRODUCTION_SEED_DEFAULT: EMPTY
+EMPTY_STATE_QUALITY: INVITATION_COPY
 REALITY_REPAIR_PATTERN: reconcile_conversation_plans_plus_future_domain_tooling
 FOUNDER_ONLY:
   - render_billing_restore

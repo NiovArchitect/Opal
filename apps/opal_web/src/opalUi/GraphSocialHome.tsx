@@ -5,6 +5,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
+import { PRODUCT_COPY } from "../designTokens";
 import {
   FOUNDER_GRAPH_SEED_ID,
   happeningInLabel,
@@ -1457,7 +1458,10 @@ export function GraphSocialHome({
           />
         ))}
         {composed.mode === "EMPTY" && !continuation ? (
-          <p className="gsh-empty">Your people will show up here.</p>
+          <div className="gsh-empty" data-testid="home-empty" data-empty="ready-world">
+            <p className="gsh-empty-title">{PRODUCT_COPY.emptyHomeTitle}</p>
+            <p className="gsh-empty-body">{PRODUCT_COPY.emptyHomeBody}</p>
+          </div>
         ) : null}
       </div>
 

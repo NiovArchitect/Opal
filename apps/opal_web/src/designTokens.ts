@@ -54,8 +54,17 @@ export const PRODUCT_COPY = {
   /** Figma 2:2 editorial fallback; live Home uses homeEditorialLines(daypart). */
   homeEditorial: "Tonight is happening.",
   emptyNeedsYou: "Nothing needs a decision right now.",
+  /** Pass 1F — empty invites creation; never inventory "no posts / no graphs found". */
+  emptyHomeTitle: "Your world starts here.",
+  emptyHomeBody: "Connect people and moments that matter.",
   emptyChats: "Your conversations will live here.",
+  emptyChatsInvite: "Start with someone you know.",
+  emptyGraphs: "Shared experiences will appear here.",
+  emptyGraphsLens: "Nothing in this view right now.",
   emptyPlans: "Plans appear when chats become real.",
+  emptyCalls: "No recent calls yet.",
+  emptyCallsMissed: "No missed calls.",
+  emptyTimeline: "Shared experiences will appear here.",
   composerPlaceholder: "Message",
   homeGreetingFallback: "Welcome back",
   // Fallback stage copy; prefer Shared Reality headlines from ProductSignals.

@@ -11,6 +11,7 @@
  * Someday nurture signal is stubbed seed until live price/intel wiring.
  */
 import React, { useMemo, useState } from "react";
+import { PRODUCT_COPY } from "../designTokens";
 import {
   downloadPlanIcs,
   filterTimelineByRangeDays,
@@ -273,7 +274,9 @@ export function GraphsTemporalTimeline({
         ).map(([key, label, list]) => (
           <section key={key} className="graphs-orbit-section" data-testid={`graphs-orbit-${key}`}>
             <h3>{label}</h3>
-            {list.length === 0 ? <p className="gsh-empty">Nothing here yet.</p> : null}
+            {list.length === 0 ? (
+              <p className="gsh-empty">{PRODUCT_COPY.emptyGraphsLens}</p>
+            ) : null}
             {list.map((item) => (
               <TimelineCard
                 key={item.id}
@@ -317,7 +320,9 @@ export function GraphsTemporalTimeline({
             />
           ))}
           {!upcoming.length ? (
-            <p className="gsh-empty">Nothing in the next {rangeDays} days.</p>
+            <p className="gsh-empty" data-testid="graphs-timeline-empty">
+              {usingSeed ? PRODUCT_COPY.emptyTimeline : PRODUCT_COPY.emptyGraphs}
+            </p>
           ) : null}
         </div>
       </section>

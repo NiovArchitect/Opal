@@ -94,9 +94,12 @@ From `REGRESSION_LEDGER.md` still **PARTIAL** / pending physical:
 4. ~~Seed-off Graphs / Chats prefer-real~~ **Done** — `composeGraphsList` / `composeChatsList` + vitest (9/0). GraphsHome no longer always merges seed authority cards when seed off.
 5. ~~Pass 1C settings live-wire~~ **Done** — GREEN/HONEST_GATE classification; `nearby-range` static "25 mi" → honest gate.
 6. ~~Pass 1D production seed audit~~ **Done** — `resolveFounderSeedGate`; production builds → `production_default` (no founder universe).
-7. Hold: permission-boundary schema note only (Owner/Scope/Confidence/Source/Visibility) — do not expand intelligence.
-8. Pass 2 relationship substrate only after Pass 1 stays green.
-9. Pass 3 / App Store after founder restores Render payment.
+7. ~~FACT OWNERSHIP + VISIBILITY LAW~~ **Done** — formal authority before Pass 2.
+8. ~~Pass 1E surface contradiction sweep~~ **Done** — no new RED leaks (`PASS1E_SURFACE_CONTRADICTION_SWEEP.md`).
+9. ~~Pass 1F empty state quality~~ **Done** — invitation empties via PRODUCT_COPY.
+10. ~~Pass 1G endpoint journey audit~~ **Done** — Attention openChat + Seen≠resolved; plan path A8 GREEN.
+11. Pass 2 relationship substrate only after Pass 1 stays green.
+12. Pass 3 / App Store after founder restores Render payment.
 
 ## Milestone (do not flip to intelligence)
 

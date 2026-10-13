@@ -7914,6 +7914,23 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   text-align: center;
   padding: 24px 8px;
 }
+.gsh-empty-title {
+  margin: 0;
+  color: #c5ced9;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+.gsh-empty-body {
+  margin: 6px 0 0;
+  color: #8a96a8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.gsh-empty[data-empty="ready-world"] {
+  padding: 36px 16px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .gsh * {

@@ -4,6 +4,7 @@
  * Dynamic names/previews from domain; chrome is Brand V4.
  */
 import React, { useMemo, useState } from "react";
+import { PRODUCT_COPY } from "../designTokens";
 import { type CallsContinuityRow } from "./callsContinuitySeed";
 import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
@@ -492,8 +493,8 @@ export function ChatsHome({
           {!filteredCalls.length && (callsStatus === undefined || callsStatus === "ready") ? (
             <li className="gsh-empty" data-testid="calls-home-empty">
               {callsFilter === "missed"
-                ? "No missed calls."
-                : "No recent calls yet."}
+                ? PRODUCT_COPY.emptyCallsMissed
+                : PRODUCT_COPY.emptyCalls}
             </li>
           ) : null}
           {callsFilter === "missed" && filteredCalls.length > 0 ? (
@@ -600,8 +601,9 @@ export function ChatsHome({
             );
           })}
           {!filteredChats.length ? (
-            <li className="gsh-empty" data-testid="chats-home-empty">
-              No conversations yet. Start with someone you know.
+            <li className="gsh-empty" data-testid="chats-home-empty" data-empty="ready-world">
+              <span className="gsh-empty-title">{PRODUCT_COPY.emptyChats}</span>
+              <span className="gsh-empty-body"> {PRODUCT_COPY.emptyChatsInvite}</span>
             </li>
           ) : null}
         </ul>

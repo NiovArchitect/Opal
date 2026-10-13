@@ -302,9 +302,13 @@ Authority file: `docs/authority/REALITY_SOURCE_PRIORITY_LAW.md`
 
 Resolver order: live user-owned → permissioned shared → historical → explicit demo → empty. Lower never overrides higher. Production builds never auto-enable founder seed.
 
-## Permission boundaries (Pass 1 hold note)
+## FACT OWNERSHIP + VISIBILITY LAW
 
-Future coherence layer: every fact carries Owner · Scope · Confidence · Source · Visibility. Do not expand relationship intelligence until reality + source priority stay green. Example: Chanelle ring size stays private relationship context — never graph-wide.
+Authority file: `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
+
+Every fact eventually carries Owner · Source · Confidence · Scope · Visibility · Expiration · Correction path.  
+Privacy is architecture. Do not unlock Pass 2 intelligence that invents durable private facts without these fields.  
+Example: Chanelle ring size — relationship-private; partner context only; Chanelle corrects/removes.
 
 ---
 
@@ -359,6 +363,7 @@ Do not rebuild. Do not simplify. Compound.
 - `docs/authority/STATE_SURFACE_CONTRACT.md`
 - `docs/authority/STATE_OWNERSHIP_LAW.md`
 - `docs/authority/REALITY_SOURCE_PRIORITY_LAW.md`
+- `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md`
 - `BLOCKED.md`
 - `shots/walk/W9_VERIFY.md`

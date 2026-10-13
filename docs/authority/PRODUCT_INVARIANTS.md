@@ -39,6 +39,16 @@ PRODUCTION_AUTO_ENABLES_FOUNDER_SEED = 0
 
 See `REALITY_SOURCE_PRIORITY_LAW.md`. Demo fixtures never pretend to be current reality.
 
+## Fact ownership + visibility
+
+```text
+FACT_HAS_OWNER_SOURCE_CONFIDENCE_SCOPE_VISIBILITY = 1  # law; schema expands before Pass 2 intel
+PRIVATE_FACT_PROJECTED_GRAPH_WIDE = 0
+AI_CANDIDATE_TREATED_AS_CONFIRMED = 0
+```
+
+See `FACT_OWNERSHIP_VISIBILITY_LAW.md`. Permission is part of reality architecture.
+
 ## Past is accessible, not prominent
 
 ```text

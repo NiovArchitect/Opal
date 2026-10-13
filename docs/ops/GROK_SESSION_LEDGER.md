@@ -185,4 +185,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Same failure class (authority leakage); add reality source priority; Pass 1C settings live-wire; Pass 1D production seed; permission-boundary note; hold intelligence.
 - Commands: `REALITY_SOURCE_PRIORITY_LAW.md`; `resolveFounderSeedGate` production_default; nearby-range honest gate; `settingsWireClass` + Pass 1C/1D steward docs; vitest 16/0 on touched suites.
+- Outcome: DONE-PUSHED tip `b9da5d2f` / sync `c6514fe7`.
+
+## 2026-10-13 — Pass 1E–G + FACT OWNERSHIP + VISIBILITY LAW
+
+- Request: Elevate fact ownership/visibility to formal law; Pass 1E contradiction sweep; 1F empty quality; 1G endpoint journeys; hold intelligence.
+- Commands: `FACT_OWNERSHIP_VISIBILITY_LAW.md`; PRODUCT_COPY invitation empties (Home/Graphs/Chats); PASS1E/F/G steward docs; emptyStateQuality vitest 3/0.
 - Outcome: DONE-PUSHED (pending tip).

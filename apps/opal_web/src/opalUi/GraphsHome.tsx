@@ -7,6 +7,7 @@
  * Pass 1: seed-off prefer-real via composeGraphsList (never paint seed as current).
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { PRODUCT_COPY } from "../designTokens";
 import { isFounderSeedEnabled, FOUNDER_GRAPH_SEED_ID } from "./founderGraphSeed";
 import { personNodeTemporal } from "./graphCalendaring";
 import { type CreatedPlanSurface } from "./graphSurfaceInterop";
@@ -365,7 +366,19 @@ export function GraphsHome({
             </article>
             );
           })}
-          {!visible.length ? <p className="gsh-empty">No Graphs in this lens yet.</p> : null}
+          {!visible.length ? (
+            <div
+              className="gsh-empty"
+              data-testid="graphs-home-empty"
+              data-empty={composed.mode === "EMPTY" ? "ready-world" : "lens"}
+            >
+              <p className="gsh-empty-title">
+                {composed.mode === "EMPTY"
+                  ? PRODUCT_COPY.emptyGraphs
+                  : PRODUCT_COPY.emptyGraphsLens}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 
