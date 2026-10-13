@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow.ConversationMomentBridge do
   alias OpalCore.Repo
 
   alias OpalCore.SocialFlow.{
+    ConversationAlignment,
     OpalChronologyMoment,
     SharedPlan,
     SocialMomentPublishing,
@@ -163,7 +164,7 @@ defmodule OpalCore.SocialFlow.ConversationMomentBridge do
   end
 
   defp plan_title(conversation_id) when is_binary(conversation_id) do
-    case Repo.get_by(SharedPlan, conversation_id: conversation_id) do
+    case ConversationAlignment.active_plan_for_conversation(conversation_id) do
       %SharedPlan{title: title} when is_binary(title) ->
         trimmed = String.trim(title)
         if trimmed == "", do: nil, else: trimmed

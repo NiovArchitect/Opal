@@ -235,17 +235,56 @@ Lab TURN PASS. Physical two-device (push-wake, CallKit, two-way audio, decline, 
 
 ---
 
-## Major product work remaining (compound order)
+## Milestone order (coherence before expansion)
 
-1. **Restore production** when payment lands — verify `/health`, then TestFlight smoke.
-2. **Remove founder-seed dependency** on social/graph surfaces for real accounts — real conversation → decisions → plans → graph objects → timeline. Seed remains a lab/review tool, never presented as a friend's reality.
-3. **Social Home** stays social (stories, posts, friend activity, shared moments, presence). Do not collapse Opal into a planner-only product.
-4. **State consistency** across Home / Chats / Graphs / Attention / Notifications / Center / Settings — one reality, no contradictions.
-5. **Settings audit** — every control must wire UI → API → DB → realtime → future behavior. No dead buttons.
-6. **UI quality** — native social feel: spacing, safe areas, touch targets, loading/empty states, transitions.
-7. **Observability** — Sentry + structured logs before public scale.
-8. **Feature flags** — major intelligence features founder/beta/public gated.
-9. **Evaluation framework** — AI behavior regression, not only code tests.
+**Next milestone: whole-system coherence → production validation.**  
+Do not spend cycles “making Opal smarter” while surfaces disagree. Intelligence is ahead of coherence.
+
+### Pass 1 — Reality graph connection (ACTIVE)
+
+Audit and close gaps on:
+
+```text
+Conversation → Decision → Commitment → Plan → Graph → Home → Attention
+```
+
+Questions every change must answer:
+
+- Does every decision create the correct state?
+- Does every state project correctly on every surface?
+- Does completed reality leave future actions without cluttering history?
+- Does history stay accessible without pretending it is upcoming?
+
+### Pass 2 — Relationship intelligence foundation
+
+Substrate for people (example spelling: **Chanelle**): Preferences, Important dates, Shared experiences, Interests, Boundaries, Communication style, Gifts, Activities, Memories — each with context, confidence, source, privacy. Observed → Candidate → Confirmed → Durable. No feature expansion that invents facts.
+
+### Pass 3 — App Store readiness (after Render payment)
+
+TestFlight upload → install → onboarding → permissions → push → cold launch; social create/friend/message; intelligence conversation→suggestion→commitment→attention; two-device voice.
+
+### Supporting compound work (parallel only when it serves Pass 1)
+
+- Prefer-real over founder seed (seed kept for lab; never presented as a friend's reality)
+- Settings: every visible control is **Live**, **honest roadmap gate**, or **not shown** — never fake toggle / dead button
+- Social Home stays social
+- Observability / feature flags / eval framework after coherence + prod health
+
+---
+
+## STATE SURFACE CONTRACT (completion law)
+
+Authority file: `docs/authority/STATE_SURFACE_CONTRACT.md`
+
+> **No feature is complete until every surface that represents that state has updated consistently.**
+
+Example — a restaurant plan is not complete when only Conversation updates. Complete when:
+
+```text
+Conversation ✅  Graph ✅  Home ✅  Attention ✅  Notifications ✅  History ✅
+```
+
+One truth · one canonical action · multiple coherent projections.
 
 ---
 

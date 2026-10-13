@@ -12,7 +12,7 @@ defmodule OpalCore.Calls.Outcomes do
 
   alias OpalCore.Calls.CallOutcome
   alias OpalCore.Repo
-  alias OpalCore.SocialFlow.SharedPlan
+  alias OpalCore.SocialFlow.{ConversationAlignment, SharedPlan}
 
   def record(attrs) when is_map(attrs) do
     attrs = stringify(attrs)
@@ -519,7 +519,7 @@ defmodule OpalCore.Calls.Outcomes do
   end
 
   defp plan_id(conversation_id) when is_binary(conversation_id) do
-    case Repo.get_by(SharedPlan, conversation_id: conversation_id) do
+    case ConversationAlignment.active_plan_for_conversation(conversation_id) do
       %SharedPlan{id: id} -> id
       _ -> nil
     end

@@ -64,6 +64,42 @@ async function json(path, opts = {}) {
 /** Cache activations within one Node process to avoid OTP rate limits on --repeat. */
 const _sessionCache = new Map();
 
+/**
+ * Under live production_sms, fixture phones return number_not_enabled.
+ * Steward path: Mix-minted DeviceSession tokens at OPAL_MINTED_SESSIONS_JSON
+ * (default /tmp/opal_minted_walk_sessions.json). Never commit that file.
+ */
+function sessionFromMintedFile(user) {
+  const path =
+    process.env.OPAL_MINTED_SESSIONS_JSON || "/tmp/opal_minted_walk_sessions.json";
+  if (!existsSync(path)) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return null;
+  }
+  const sessions = Array.isArray(parsed?.sessions) ? parsed.sessions : [];
+  const hit =
+    sessions.find((s) => s && s.phone === user.phone) ||
+    sessions.find(
+      (s) =>
+        s &&
+        user.handle &&
+        (s.handle === user.handle ||
+          (user.handle.startsWith("a8_walk_a") && s.role === "a") ||
+          (user.handle.startsWith("a8_walk_b") && s.role === "b") ||
+          (user.handle === "founder_rev" && s.role === "a")),
+    );
+  if (!hit?.token || !hit?.userId) return null;
+  return {
+    token: hit.token,
+    userId: hit.userId,
+    name: hit.name || user.name,
+    minted: true,
+  };
+}
+
 export async function activate(user) {
   const cacheKey = user.phone;
   if (_sessionCache.has(cacheKey)) {
@@ -103,9 +139,23 @@ export async function activate(user) {
       return session;
     } catch (e) {
       lastErr = e;
+      const code = e?.body?.error_code || "";
+      // production_sms blocks fixture lines — fall back to Mix-minted sessions (no SMS).
+      if (code === "number_not_enabled" || e?.status === 422) {
+        const minted = sessionFromMintedFile(user);
+        if (minted) {
+          _sessionCache.set(cacheKey, minted);
+          return minted;
+        }
+      }
       // Rate limit / transient — backoff
       await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
     }
+  }
+  const minted = sessionFromMintedFile(user);
+  if (minted) {
+    _sessionCache.set(cacheKey, minted);
+    return minted;
   }
   throw lastErr || new Error("activation failed");
 }

@@ -1,15 +1,23 @@
 # STATE → SURFACE CONTRACT
 
 **Status:** CURRENT AUTHORITY (cross-surface presentation law)  
-**Synced:** whole-application coherence recovery 2026-10-02  
-**Composes:** SharedPlan · ConversationAlignment · AttentionAuthority · SurfaceProjection (A8) · CSO min arbitration
+**Synced:** steward Pass 1 coherence milestone 2026-10-12  
+**Composes:** SharedPlan · ConversationAlignment · AttentionAuthority · SurfaceProjection (A8) · CSO min arbitration  
+**Steward pointer:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md` · `shots/steward/PASS1_REALITY_GRAPH_CONNECTION.md`
 
 ```yaml
 authority_class: STATE_SURFACE_CONTRACT
 one_truth: true
 one_canonical_action: true
 multiple_coherent_projections: true
+completion_requires_all_representing_surfaces: true
 ```
+
+## Completion law (steward)
+
+> No feature is complete until every surface that represents that state has updated consistently.
+
+A restaurant plan is incomplete if only Conversation updates. Complete when Conversation, Graph, Home, Attention, Notifications, and History all agree — including quiet absence where the contract says suppress.
 
 ## Owners
 

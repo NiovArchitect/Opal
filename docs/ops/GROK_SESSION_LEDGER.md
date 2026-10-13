@@ -162,3 +162,9 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 - Request: Lock operating frame (do not rebuild; compound; App Store path); Render down for payment.
 - Commands: wrote `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`; updated `CURRENT_OPAL_STATE.md` + `BLOCKED.md`; inventoried founder-seed (39 files / 255 hits).
 - Outcome: `DONE-PUSHED` (pending commit) — tip after push; Render payment remains founder BLOCKED; local Phoenix/Vite healthy.
+
+## 2026-10-12 — Steward Pass 1 coherence (reality graph)
+
+- Request: Keep steward frame; milestone = whole-system coherence → production validation; add STATE SURFACE completion law; Pass 1 first.
+- Commands: updated MASTER handoff + CURRENT_OPAL_STATE + STATE_SURFACE_CONTRACT; ran PSA/SurfaceProjection mix green; minted Walk sessions; fixed SharedPlan get_by MultipleResultsError via active_plan_for_conversation; A8 auth unblocked, propose no longer 500.
+- Outcome: DONE-PUSHED (pending) — tip after push; A8 full browser still blocked on Fort Oak commitment fixture state (422 not_committed).

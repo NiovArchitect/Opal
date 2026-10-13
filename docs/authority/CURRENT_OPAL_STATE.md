@@ -24,29 +24,38 @@ rebuild: FORBIDDEN
 ## Active steward mission (2026-10-12)
 
 ```yaml
-MISSION: app_store_production_continuity
+MISSION: whole_system_coherence_then_production_validation
 MODE: compound_only
+INTELLIGENCE_EXPANSION: HOLD_UNTIL_COHERENCE
 COMPLETED:
   - W6_W7_foundation
   - W8_finish_opal_81276ef8
   - W9_real_for_friends_e6455aa1
+  - steward_handoff_locked
+  - founder_seed_inventory
+  - home_seed_off_empty_regression
+  - settings_wire_audit_v1
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
   - two_device_calling_physical
   - google_oauth_consent_founder
   - google_places_api_billing_founder
+PASS_ORDER:
+  - pass_1_reality_graph_connection   # ACTIVE
+  - pass_2_relationship_intelligence_foundation
+  - pass_3_app_store_readiness        # after Render payment
 NEXT_AUTONOMOUS:
+  - pass_1_audit_conversation_to_attention_chain
+  - close_highest_coherence_gaps_with_regression_proof
   - keep_local_phoenix_vite_healthy
-  - inventory_founder_seed_dependency_for_real_account_path
-  - settings_wire_audit
-  - state_consistency_regression_harness
   - when_payment_lands_verify_prod_health_then_testflight_smoke
 FOUNDER_ONLY:
   - render_billing_restore
   - testflight_transporter_upload
   - google_consent_and_places
   - two_physical_devices_call_push
+COMPLETION_LAW: state_surface_contract  # every representing surface must agree
 ```
 
 ## What Opal is

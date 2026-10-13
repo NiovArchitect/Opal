@@ -13,7 +13,7 @@ if Mix.env() != :dev do
 end
 
 alias OpalCore.Repo
-alias OpalCore.SocialFlow.SharedPlan
+alias OpalCore.SocialFlow.{ConversationAlignment, SharedPlan}
 
 conversation_id = "ace99adc-db67-4258-9d95-f612246c6c84"
 
@@ -32,7 +32,8 @@ if full? do
   end)
 end
 
-case Repo.get_by(SharedPlan, conversation_id: conversation_id) do
+# Multiple SharedPlans per conversation are lawful — never Repo.get_by/2.
+case ConversationAlignment.active_plan_for_conversation(conversation_id) do
   nil ->
     IO.puts("NO_PLAN")
 

@@ -209,6 +209,22 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   def freeze_plan_set_event(state, _), do: state
 
+  @doc """
+  Multiple SharedPlans per conversation are lawful (new lineage / residue).
+  Canonical open lineage = newest active (tentative|agreed|changed) by updated_at.
+  Never use Repo.get_by/2 here — MultipleResultsError is a coherence crash.
+  """
+  def active_plan_for_conversation(conversation_id) when is_binary(conversation_id) do
+    from(p in SharedPlan,
+      where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+      order_by: [desc: p.updated_at, desc: p.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  def active_plan_for_conversation(_), do: nil
+
   # Multiple SharedPlans per conversation are lawful; lock the newest active one.
   defp lock_plan(conversation_id) do
     from(p in SharedPlan,
@@ -1658,7 +1674,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   # One open lineage per conversation. A later unrelated intent needs a new
   # SharedPlan row. This fold must not be reused as a second plan.
   defp lineage_id(conversation_id) do
-    case Repo.get_by(SharedPlan, conversation_id: conversation_id) do
+    case active_plan_for_conversation(conversation_id) do
       %SharedPlan{id: id} -> id
       _ -> conversation_id
     end
@@ -1680,7 +1696,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       alignment: Map.put(state, "lineage_id", lineage_id(conversation_id))
     }
 
-    case Repo.get_by(SharedPlan, conversation_id: conversation_id) do
+    case active_plan_for_conversation(conversation_id) do
       nil when is_binary(user_id) ->
         %SharedPlan{} |> SharedPlan.changeset(attrs) |> Repo.insert()
 
