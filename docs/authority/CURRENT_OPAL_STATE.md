@@ -1,10 +1,11 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-13 (Pass 1 CLOSED; Pass 2 LOCKED + entry contract)  
+**Updated:** 2026-10-13 (HOLD PERIOD — preservation + production readiness)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`  
+**Hold checkpoint:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md`  
 **Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`  
 **Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`
 
@@ -84,19 +85,32 @@ PASS_1_WATCH:
   - relationship_scope_ladder
   - explanation_layer_human_transparency
 HOLD_PERIOD_WORK: preserve_coherence_and_production_readiness_only
+HOLD_CHECKPOINT: shots/steward/HOLD_PERIOD_CHECKPOINT.md
+GOVERNING_QUESTION: does_every_surface_represent_the_same_reality
+PRODUCTION_PATH: local_health_then_render_payment_then_prod_health_then_testflight_then_smoke
 FORBIDDEN_UNTIL_PASS_2_UNLOCK:
   - memory_expansion
+  - assumption_engine
   - partner_graph
   - preference_learning
   - emotional_inference
   - relationship_scoring
+  - profile_inference
   - automated_assumptions
+PASS_2_FIRST_WORK_AFTER_UNLOCK:
+  - define_relationship_graph_authority
+  - define_permission_boundaries
+  - define_candidate_lifecycle
+  - define_correction_flows
+  - define_explanation_surfaces
+  - then_implement_intelligence
 NEXT_AUTONOMOUS:
   - hold_pass1_green
   - keep_local_phoenix_vite_healthy
   - production_readiness_around_existing_system
   - when_payment_lands_verify_prod_health_then_testflight_smoke
   - do_not_unlock_pass2_without_founder_saying_opal_ready_to_understand_people
+  - never_claim_prod_ready_until_physical_gates_pass
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
 REALITY_SOURCE_PRIORITY_LAW: ACTIVE

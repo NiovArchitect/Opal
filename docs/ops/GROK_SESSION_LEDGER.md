@@ -209,4 +209,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Acknowledge stopping point; Pass 2 delayed for discipline; hold-period = coherence + production readiness only; unlock phrase “Opal is ready to begin understanding people.”
 - Commands: CURRENT_OPAL_STATE forbidden list + HOLD_PERIOD_WORK; entry contract unlock phrase; PASS1_FINAL hold-period note.
+- Outcome: DONE-PUSHED tip `f54dea90` / sync `18194964`.
+
+## 2026-10-13 — Steward hold checkpoint (preservation)
+
+- Request: Confirm held state; priorities = preserve coherence, production readiness path, honest integrations; Pass 2 first work after unlock = define authority/permissions/lifecycle/correction/explanation then intel.
+- Commands: `HOLD_PERIOD_CHECKPOINT.md`; CURRENT + MASTER updated.
 - Outcome: DONE-PUSHED (pending tip).

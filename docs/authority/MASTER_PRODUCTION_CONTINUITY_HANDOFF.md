@@ -326,9 +326,13 @@ Pass 2 entry is **not** “remember everything.” It is:
 Watch before Pass 2: open disagreement posture · relationship scope ladder · human explanation layer.  
 Founder unlock required. Intelligence expansion remains HOLD.
 
+**Hold period:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md` — preservation + production readiness only.  
+After unlock, first work defines graph authority · permissions · candidate lifecycle · correction · explanation surfaces — **then** intelligence. Never “add memory” first.
+
 Thesis: Meta Muse helps accomplish tasks; Opal helps maintain and deepen real-world relationships.
 
-Transition question: not “smarter” — **understand people without violating trust**.
+Transition question: not “smarter” — **understand people without violating trust**.  
+Governing hold question: **Does every surface represent the same reality?**
 
 ---
 
