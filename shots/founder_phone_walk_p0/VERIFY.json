@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "SPLASH_SINGLE_OWNER": true,
+  "AMBIGUOUS_SKIP_INTRO_CONTROL": "REMOVED",
+  "NEW_USER_SKIP_SPLASH_2": "NO",
+  "SPLASH_1_TO_2": true,
+  "SPLASH_2_TO_PHONE": true,
+  "VISIBLE_DUPLICATE_COUNTRY_CODE": 0,
+  "national": "8585551212",
+  "dialVal": "+1",
+  "RETURNING_ACCOUNT_BYPASS": true,
+  "PASS2_UNLOCKED": "NO"
+}

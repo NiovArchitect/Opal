@@ -33,6 +33,7 @@ function calendarPreview(date: string, time: string): string {
 }
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
 import { MeetOpalConversation } from "./onboarding/MeetOpalConversation";
+import { PermissionBootstrapPage } from "./onboarding/PermissionBootstrapPage";
 import { readHolyShitEnabled } from "./onboarding/holyShitGate";
 import { FORCED_FIRST_RUN_KEY } from "./runtime/founderRuntimeCheckpoint";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
@@ -669,7 +670,12 @@ function consumeResetFirstRunFlag(): boolean {
   }
 }
 
-export type FirstRunStage = "splash" | "promise" | "meet_opal" | "auth";
+export type FirstRunStage =
+  | "splash"
+  | "promise"
+  | "auth"
+  | "permission_bootstrap"
+  | "meet_opal";
 
 /** Opal product shell: V2 Living Void  -  social field first, identity-forward. */
 export function OpalApp() {
@@ -2829,24 +2835,16 @@ export function OpalApp() {
 
   /**
    * Splash 1 primary CTA → Splash 2 (Promise / “what Opal is”).
-   * Keep forced/reset sticky through Promise → Phone → OTP → Meet.
+   * Keep forced/reset sticky through Promise → Phone → OTP → Permission → Meet.
    * Never mark first-run done or clear forced here.
+   * NEW_USER_SKIP_SPLASH_2 = NO — no Skip intro on Splash 1.
    */
   const advanceSplashToPromise = () => {
     setShowFirstRun(true);
     setFirstRunStage("promise");
   };
 
-  /**
-   * Splash 1 “Skip intro” → Phone (auth). Honest skip of Splash 2 immersion.
-   * Meet Opal still follows OTP.
-   */
-  const advanceSplashToPhone = () => {
-    setShowFirstRun(true);
-    setFirstRunStage("auth");
-  };
-
-  /** Splash 2 CTA → phone auth. Meet Opal follows OTP. */
+  /** Splash 2 CTA → phone auth. Permission bootstrap + Meet Opal follow OTP. */
   const advancePromiseToAuth = () => {
     // Do NOT markWalkthroughDone / clearForcedFirstRun — that skipped Phone/Meet on remount.
     setFirstRunStage("auth");
@@ -2860,7 +2858,7 @@ export function OpalApp() {
   };
 
   /**
-   * After OTP: open Meet Opal (Name → Permissions → Friend).
+   * After OTP: Permission Bootstrap (setup) → Meet Opal (payoff: name → first person).
    * If Meet already finished (Skip before OTP), land social Home — HOME_SOCIAL_FIRST.
    * Return true so FirstRunExperience pauses.
    */
@@ -2881,9 +2879,15 @@ export function OpalApp() {
       });
       return true;
     }
-    setFirstRunStage("meet_opal");
+    setFirstRunStage("permission_bootstrap");
     setShowFirstRun(true);
     return true;
+  };
+
+  /** Permission bootstrap complete → Meet Opal conversational payoff. */
+  const advancePermissionBootstrapToMeet = () => {
+    setFirstRunStage("meet_opal");
+    setShowFirstRun(true);
   };
 
   /**
@@ -7508,7 +7512,6 @@ export function OpalApp() {
       >
         <FirstRunSplashPage
           onTapBegin={advanceSplashToPromise}
-          onSkipIntro={advanceSplashToPhone}
           onAlreadyAccount={() => {
             // Returning account → Phone auth (keep forced sticky; never Home shortcut)
             setForcedFirstRun(true);
@@ -7521,9 +7524,26 @@ export function OpalApp() {
     );
   }
 
-  // Holy Shit Moments 2–5 — before forcePromise so Enter Opal can leave Promise.
-  // forceMeetOpal is QA-only; once first-run completes (showFirstRun false) fall through
-  // so Continue can land on Opal Center (Phase 1d).
+  // Post-OTP permission bootstrap — before Meet Opal payoff.
+  if (showFirstRun && firstRunStage === "permission_bootstrap" && !forceMeetOpal) {
+    return (
+      <div
+        className="app app-futura app-first-run-permission-bootstrap"
+        data-testid="first-run-permission-bootstrap-shell"
+        data-first-run-stage="permission_bootstrap"
+        data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
+      >
+        <PermissionBootstrapPage
+          userId={session?.user_id ?? null}
+          onContinue={advancePermissionBootstrapToMeet}
+        />
+      </div>
+    );
+  }
+
+  // Meet Opal payoff — name → first person (permissions already decided upstream).
+  // forceMeetOpal is QA-only; once first-run completes (showFirstRun false) fall through.
   if (showFirstRun && (firstRunStage === "meet_opal" || forceMeetOpal)) {
     return (
       <div
@@ -11729,6 +11749,8 @@ type YouHubRow = {
  * YOU hierarchy — person-centered control center (not iPhone Settings clone).
  * Authority: docs/authority/YOU_PAGE_HIERARCHY.md
  * Pass B: engagement + safety remain hub-hidden (all nested controls blocked).
+ * Fit: FIT_PLACEHOLDER_PAGE = 0 / HONESTLY_HIDDEN — no wellness preference
+ * persistence seam; destination kept in YouSettingsDestination for inventory.
  */
 const YOU_HUB_SECTIONS: {
   id: string;
@@ -11787,14 +11809,8 @@ const YOU_HUB_SECTIONS: {
       {
         key: "spending",
         title: "Spending",
-        subtitle: "Resource decisions — separate from Fit",
+        subtitle: "Budget comfort for suggestions",
         semantic: "gold",
-      },
-      {
-        key: "fit",
-        title: "Fit",
-        subtitle: "Self-care boundary — nothing tracked yet",
-        semantic: "coral",
       },
     ],
   },

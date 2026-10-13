@@ -18,12 +18,10 @@ import {
   deleteFinancialProfile,
   forgetMemoryFact,
   getFinancialProfile,
-  getOpalWallet,
   getGraphingPolicy,
   grantConsent,
   listCelebrations,
   listConsents,
-  listOpalWalletTransactions,
   listProductInvites,
   listRelationshipAccessGrants,
   localProductInviteShareUrl,
@@ -32,10 +30,7 @@ import {
   revokeInnerCircleTrust,
   listMemoryFacts,
   listRelationships,
-  patchOpalWalletThreshold,
   postOpalMessage,
-  createOpalWalletCheckout,
-  requestOpalWalletLoad,
   revokeConsent,
   revokeRelationshipAccessGrant,
   setFinancialProfile,
@@ -51,8 +46,6 @@ import {
   type GraphingMode,
   type GraphingPolicy,
   type MemoryFact,
-  type OpalWallet,
-  type OpalWalletTransaction,
   type ProductInvite,
   type ProductSession,
   type RelationshipAccessGrant,
@@ -580,13 +573,8 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
   },
   spending: {
     title: "Spending",
-    lede: "How you make decisions around resources — separate from Fit.",
+    lede: "Comfort level for place suggestions.",
     rows: [
-      {
-        kind: "note",
-        id: "spending-live",
-        text: "Spending comfort (Budget / Moderate / Comfortable / Luxury) lives here. Trusted+ unlocks save. Exact amounts stay private unless you share them.",
-      },
       {
         kind: "toggle",
         blockedReason: "Preference learning toggle needs recommend feedback store.",
@@ -625,27 +613,13 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         subtitle: "Every Graph can override these defaults",
         blockedReason: "Per-Graph spend override needs Graph settings API.",
       },
-      {
-        kind: "note",
-        id: "spending-law",
-        text: "Spending is a separate permission scope from Fit. A partner who knows you like nicer date nights does not automatically see a personal budget limit.",
-      },
     ],
   },
+  // FIT_PLACEHOLDER_PAGE = 0 / HONESTLY_HIDDEN — hub does not list Fit.
   fit: {
     title: "Fit",
-    lede: "How you care for yourself — activity, wellness, and habits. Separate from Spending.",
+    lede: "Self-care preferences — not tracked yet.",
     rows: [
-      {
-        kind: "note",
-        id: "fit-scope",
-        text: "Fit covers activity preferences, wellness routines, and personal goals. A workout partner may know you like morning runs without seeing a fitness budget.",
-      },
-      {
-        kind: "note",
-        id: "fit-empty",
-        text: "Personal fit goals will live here when you choose to share them with Opal. Nothing is tracked yet — this space protects the boundary.",
-      },
       {
         kind: "toggle",
         blockedReason: "Fitness / wellness preference store not shipped.",
@@ -1688,27 +1662,13 @@ type SpendingComfortProps = {
 
 /**
  * Spending comfort lives under You → Spending (separate from Fit).
- * Trust-gated at trusted+. Reuses you-hub-spending chrome.
+ * Trust-gated at trusted+. Wallet/load UI stays hidden until loads are
+ * genuinely executable (legal gate) — no financial theater.
  */
-function formatCents(cents: number, currency = "USD"): string {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-    }).format((cents || 0) / 100);
-  } catch {
-    return `$${((cents || 0) / 100).toFixed(2)}`;
-  }
-}
-
 export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const [trust, setTrust] = useState<TrustTierInfo | null>(null);
   const [financial, setFinancial] = useState<FinancialProfile | null>(null);
-  const [wallet, setWallet] = useState<OpalWallet | null>(null);
-  const [walletTx, setWalletTx] = useState<OpalWalletTransaction[]>([]);
-  const [walletLoadNote, setWalletLoadNote] = useState<string | null>(null);
-  const [thresholdDraft, setThresholdDraft] = useState("");
-  const [thresholdSaving, setThresholdSaving] = useState(false);
+  const [statusNote, setStatusNote] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [comfortDraft, setComfortDraft] = useState<ComfortLevel | "">("");
   const [diningMin, setDiningMin] = useState("");
@@ -1726,8 +1686,6 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
     if (!session?.user_id) {
       setTrust(null);
       setFinancial(null);
-      setWallet(null);
-      setWalletTx([]);
       setLoaded(true);
       return;
     }
@@ -1766,82 +1724,12 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
         setDiningMax("");
         setNotesDraft("");
       }
-
-      // Opal balance is account-scoped (separate from bank money / spending comfort).
-      try {
-        const [w, txs] = await Promise.all([
-          getOpalWallet(token),
-          listOpalWalletTransactions(token, 12),
-        ]);
-        setWallet(w);
-        setWalletTx(txs);
-        if (w) {
-          setThresholdDraft(String(((w.auto_approve_threshold_cents ?? 5000) / 100).toFixed(0)));
-        }
-      } catch {
-        setWallet(null);
-        setWalletTx([]);
-      }
     } catch {
       /* keep prior */
     } finally {
       setLoaded(true);
     }
   }, [session?.user_id, token]);
-
-  const onSaveThreshold = async () => {
-    if (!session?.user_id) return;
-    const dollars = Number.parseFloat(thresholdDraft);
-    if (!Number.isFinite(dollars) || dollars < 0) {
-      setWalletLoadNote("Enter a valid auto-approve amount in dollars.");
-      return;
-    }
-    setThresholdSaving(true);
-    try {
-      const cents = Math.round(dollars * 100);
-      const next = await patchOpalWalletThreshold(cents, token);
-      if (next) {
-        setWallet(next);
-        setWalletLoadNote(`Auto-approve under $${(cents / 100).toFixed(0)}.`);
-      }
-    } catch {
-      setWalletLoadNote("Could not update threshold.");
-    } finally {
-      setThresholdSaving(false);
-    }
-  };
-
-  const onLoadWallet = async () => {
-    if (!session?.user_id) return;
-    try {
-      // Prefer Stripe Checkout when connected; fall back to honest disabled load.
-      const checkout = await createOpalWalletCheckout({ amount_cents: 2500 }, token);
-      if (checkout.kind === "checkout" && checkout.session?.url) {
-        window.location.href = checkout.session.url;
-        return;
-      }
-      const res = await requestOpalWalletLoad(
-        {
-          amount_cents: 2500,
-          idempotency_key: `ui-load-${Date.now()}`,
-        },
-        token,
-      );
-      if (res.kind === "disabled" || res.loadable === false) {
-        setWalletLoadNote(
-          res.message && !/stripe/i.test(res.message)
-            ? res.message
-            : "Loading Opal money is not available yet. Your balance stays at $0.",
-        );
-      } else if (res.wallet) {
-        setWallet(res.wallet);
-        setWalletLoadNote("Loaded.");
-        void refresh();
-      }
-    } catch {
-      setWalletLoadNote("Loading Opal money is not available yet. Your balance stays at $0.");
-    }
-  };
 
   useEffect(() => {
     void refresh();
@@ -1850,7 +1738,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const onSaveFinancial = async () => {
     if (!session?.user_id || !comfortDraft || savingFinancial) return;
     setSavingFinancial(true);
-    setWalletLoadNote(null);
+    setStatusNote(null);
     try {
       const minN = diningMin.trim() === "" ? null : Number(diningMin);
       const maxN = diningMax.trim() === "" ? null : Number(diningMax);
@@ -1868,9 +1756,9 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
       );
       setFinancial(res.profile);
       setDeleteConfirm(false);
-      setWalletLoadNote("Spending comfort saved.");
+      setStatusNote("Spending comfort saved.");
     } catch {
-      setWalletLoadNote("Could not save spending comfort. Try again.");
+      setStatusNote("Could not save spending comfort. Try again.");
     } finally {
       setSavingFinancial(false);
     }
@@ -1879,7 +1767,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const onDeleteFinancial = async () => {
     if (!session?.user_id || deletingFinancial) return;
     setDeletingFinancial(true);
-    setWalletLoadNote(null);
+    setStatusNote(null);
     try {
       await deleteFinancialProfile(token);
       setFinancial(null);
@@ -1888,9 +1776,9 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
       setDiningMax("");
       setNotesDraft("");
       setDeleteConfirm(false);
-      setWalletLoadNote("Spending comfort removed.");
+      setStatusNote("Spending comfort removed.");
     } catch {
-      setWalletLoadNote("Could not remove spending comfort. Try again.");
+      setStatusNote("Could not remove spending comfort. Try again.");
     } finally {
       setDeletingFinancial(false);
     }
@@ -1900,86 +1788,10 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
 
   return (
     <div className="you-hub-spending you-settings-spending" data-testid="spending-comfort">
-      <section className="you-opal-wallet" data-testid="opal-wallet">
-        <h5 className="you-spending-label">Opal balance</h5>
-        <p className="you-trust-copy">
-          Opal money is separate from bank money. Used for bookings you confirm in chat.
-        </p>
-        <div className="you-opal-wallet-balance" data-testid="opal-wallet-balance">
-          {formatCents(wallet?.balance_cents ?? 0, wallet?.currency || "USD")}
-        </div>
-        <p className="you-trust-copy" data-testid="opal-wallet-threshold">
-          Auto-approve under{" "}
-          {formatCents(wallet?.auto_approve_threshold_cents ?? 5000, wallet?.currency || "USD")}{" "}
-          — larger spends ask first. Pay from balance on booking confirm; under
-          threshold is one-tap, over needs explicit confirm; insufficient shows
-          Load more / Pay another way.
-        </p>
-        <div className="you-opal-wallet-threshold-edit" data-testid="opal-wallet-threshold-edit">
-          <label className="you-trust-copy" htmlFor="opal-wallet-threshold-input">
-            Auto-approve threshold ($)
-          </label>
-          <input
-            id="opal-wallet-threshold-input"
-            type="number"
-            min={0}
-            step={1}
-            value={thresholdDraft}
-            onChange={(e) => setThresholdDraft(e.target.value)}
-            data-testid="opal-wallet-threshold-input"
-          />
-          <button
-            type="button"
-            className="you-trust-grant"
-            data-testid="opal-wallet-threshold-save"
-            disabled={thresholdSaving}
-            onClick={() => void onSaveThreshold()}
-          >
-            {thresholdSaving ? "Saving…" : "Save threshold"}
-          </button>
-        </div>
-        <button
-          type="button"
-          className="you-trust-grant"
-          data-testid="opal-wallet-load"
-          onClick={() => void onLoadWallet()}
-        >
-          Load
-        </button>
-        {walletLoadNote ? (
-          <p className="you-trust-copy" data-testid="opal-wallet-load-note">
-            {walletLoadNote}
-          </p>
-        ) : (
-          <p className="you-trust-copy">
-            Load adds Opal money when payments are available. No fake balances.
-          </p>
-        )}
-        {walletTx.length > 0 ? (
-          <ul className="you-opal-wallet-tx" data-testid="opal-wallet-transactions">
-            {walletTx.map((tx) => (
-              <li key={tx.id} data-testid={`opal-wallet-tx-${tx.type}`}>
-                <span>{tx.type}</span>
-                <span>
-                  {tx.type === "spend" || tx.type === "adjustment" ? "-" : "+"}
-                  {formatCents(Math.abs(tx.amount_cents), wallet?.currency || "USD")}
-                </span>
-                <span>bal {formatCents(tx.balance_after_cents, wallet?.currency || "USD")}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="you-trust-copy" data-testid="opal-wallet-tx-empty">
-            No wallet activity yet.
-          </p>
-        )}
-      </section>
-
       <h5 className="you-spending-label">Spending comfort</h5>
       {!loaded ? null : !trustedPlus ? (
         <p className="you-trust-copy" data-testid="spending-trust-gate">
           Reach Deep understanding (trusted+) to set Budget, Moderate, Comfortable, or Luxury.
-          Trust lives under What Opal remembers.
         </p>
       ) : (
         <>
@@ -2047,6 +1859,11 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
           >
             {financial ? "Update spending comfort" : "Save spending comfort"}
           </button>
+          {statusNote ? (
+            <p className="you-trust-copy" data-testid="spending-status-note">
+              {statusNote}
+            </p>
+          ) : null}
           {financial ? (
             <>
               <button

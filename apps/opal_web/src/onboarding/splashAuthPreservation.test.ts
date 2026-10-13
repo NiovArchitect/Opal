@@ -18,12 +18,12 @@ function block(haystack: string, startMarker: string, endMarker: string) {
 
 describe("P0-05.10 Splash primary stroke (631:7 actual paint)", () => {
   it("SPLASH_PRIMARY_STROKE_NOT_SOLID_CYAN", () => {
-    const tap = block(css, ".fr-splash-tap {", "\n.fr-splash-returning");
-    expect(tap).toMatch(/\.fr-splash-tap::before/);
-    expect(tap).toMatch(/padding:\s*1\.25px/);
-    expect(tap).toMatch(/linear-gradient/);
+    // Scope to the spectral stroke rule only (avoid matching earlier fluid overrides).
+    const stroke = block(css, ".fr-splash-tap::before {", "\n.fr-splash-tap >");
+    expect(stroke).toMatch(/padding:\s*1\.25px/);
+    expect(stroke).toMatch(/linear-gradient/);
     // Must not implement as plain cyan border only
-    expect(tap).not.toMatch(/border:\s*1(?:\.0)?px\s+solid\s+#00e5ff/i);
+    expect(stroke).not.toMatch(/border:\s*1(?:\.0)?px\s+solid\s+#00e5ff/i);
   });
 
   it("SPLASH_PRIMARY_STROKE_HAS_3_STOPS", () => {
@@ -95,9 +95,13 @@ describe("P0-05.10 Auth preserves FR06–FR09 geometry", () => {
   });
 
   it("auth header uses compact FR footprint not hero logo", () => {
-    expect(fr).toMatch(/fr-auth-header/);
-    expect(fr).toMatch(/width=\{39\}/);
-    expect(css).toMatch(/\.fr-auth-header-emblem[\s\S]*?39\.2px/);
+    expect(fr).toMatch(/fr-auth-header|fr-character-lockup|fr-logo-lockup/);
+    // W6A2 / P0 brand law: single opalLogo lockup (not 39px emblem + OPAL GRAPH text).
+    expect(fr).toMatch(/BRAND_ASSETS\.opalLogo|opal-logo\.png/);
+    expect(fr).toMatch(/width=\{132\}/);
+    // No live double-composition class/markup (comments may still name the law).
+    expect(fr).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph/);
     expect(css).not.toMatch(/\.fr-auth-hero-mark img[\s\S]*?120px/);
   });
 });
+

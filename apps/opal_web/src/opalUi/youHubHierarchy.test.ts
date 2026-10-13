@@ -18,12 +18,16 @@ describe("YOU hub hierarchy + trust fixes", () => {
     expect(app).not.toMatch(/More settings below/);
   });
 
-  it("splits Spending and Fit as separate How Opal Helps domains", () => {
+  it("keeps Spending live on hub; Fit honestly hidden (no wellness seam)", () => {
     expect(app).toMatch(/key:\s*"spending"/);
-    expect(app).toMatch(/key:\s*"fit"/);
+    // FIT_PLACEHOLDER_PAGE = 0 / HONESTLY_HIDDEN — no hub row for Fit.
+    expect(app).not.toMatch(/key:\s*"fit"/);
+    expect(app).toMatch(/FIT_PLACEHOLDER_PAGE\s*=\s*0\s*\/\s*HONESTLY_HIDDEN/);
     expect(app).not.toMatch(/Spending & fit/);
     expect(dest).toMatch(/spending:\s*\{/);
+    // Destination retained for inventory / tests; not consumer-listed.
     expect(dest).toMatch(/fit:\s*\{/);
+    expect(dest).toMatch(/FIT_PLACEHOLDER_PAGE\s*=\s*0\s*\/\s*HONESTLY_HIDDEN/);
     expect(dest).not.toContain('"spending-fit"');
   });
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
-import { BRAND, BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
+import { BRAND_ASSETS, PRODUCT_PUBLIC_NAME } from "../brand/brand";
 import {
   FOUNDER_AUTH_FIXTURE,
   codeHintForE164,
@@ -108,6 +107,53 @@ function prettyPhone(raw: string, dial = "+1"): string {
   }
 }
 
+/**
+ * Display-layer phone split: country selector owns dial; national field shows local digits.
+ * Autofill/paste of full E.164 or leading country digits updates dial and strips the prefix.
+ * Submission still uses normalizePhoneInput → one E.164.
+ */
+export function splitPhoneForDisplay(
+  raw: string,
+  currentDial: string,
+  dialOptions: readonly { dial: string }[] = PHONE_DIAL_OPTIONS,
+): { dial: string; national: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { dial: currentDial, national: "" };
+
+  // Prefer longest matching dial among options (e.g. +1 before bare digits).
+  const sorted = [...dialOptions].sort((a, b) => b.dial.length - a.dial.length);
+
+  if (trimmed.startsWith("+")) {
+    const hit = sorted.find((o) => trimmed.startsWith(o.dial));
+    if (hit) {
+      const rest = trimmed.slice(hit.dial.length).replace(/[^\d\s().-]/g, "").trim();
+      return { dial: hit.dial, national: rest.replace(/\D/g, "") };
+    }
+    // Unknown +CC: keep digits after + as national; leave dial unchanged.
+    return { dial: currentDial, national: trimmed.replace(/\D/g, "") };
+  }
+
+  const digits = trimmed.replace(/\D/g, "");
+  const currentDialDigits = currentDial.replace(/\D/g, "");
+  if (
+    currentDialDigits &&
+    digits.startsWith(currentDialDigits) &&
+    digits.length > currentDialDigits.length + 6
+  ) {
+    // e.g. 18585551212 with +1 selected → national 8585551212
+    return { dial: currentDial, national: digits.slice(currentDialDigits.length) };
+  }
+
+  for (const o of sorted) {
+    const dd = o.dial.replace(/\D/g, "");
+    if (dd && digits.startsWith(dd) && digits.length > dd.length + 6) {
+      return { dial: o.dial, national: digits.slice(dd.length) };
+    }
+  }
+
+  return { dial: currentDial, national: digits };
+}
+
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "?";
@@ -155,22 +201,33 @@ function Avatar({
   );
 }
 
+/**
+ * Lockup-only chrome: single opalLogo (character + bubble letters).
+ * NEVER compose opalLogo with a separate wordmark / "OPAL GRAPH" text.
+ */
 function BrandChrome({ compact = false }: { compact?: boolean }) {
+  const h = compact ? 40 : 56;
+  const w = Math.round(h * 1.5);
   return (
     <header className={`fr-brand-chrome ${compact ? "is-compact" : ""}`} data-testid="fr-brand-chrome">
-      <OpalMark size={compact ? "sm" : "md"} title="" />
-      <OpalWordmark height={compact ? 18 : 22} title="" compact />
+      <img
+        className="fr-brand-chrome-lockup"
+        src={BRAND_ASSETS.opalLogo}
+        alt=""
+        width={w}
+        height={h}
+        draggable={false}
+        data-brand-role="logo-lockup"
+        data-brand-source="opal-logo"
+      />
     </header>
   );
 }
 
 /**
- * Auth header footprint (773:*): emblem 20,18 39.2×39.2 + wordmark 64,20 132×24.
- * Brand V4 logo treatment only - NOT a hero-logo redesign.
- */
-/**
  * W6A2 - canonical transparent logo lockup on first-run auth (OTP / phone).
  * True alpha; no abstract OPALGRAPH emblem; no baked checkerboard box.
+ * Single opalLogo only: never + wordmark / "OPAL GRAPH" text.
  */
 function CharacterLockup() {
   return (
@@ -665,29 +722,20 @@ export function FirstRunExperience({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={reduce ? { duration: 0 } : { duration: 0.55, ease: EASE_OUT }}
               >
+                {/* Match FirstRunSplashPage: single opalLogo lockup; no separate OPAL GRAPH text. */}
                 <img
-                  className="fr-splash-spectral-emblem"
-                  src={BRAND_ASSETS.opalGraphEmblemHero}
+                  className="fr-splash-spectral-emblem fr-splash-logo-lockup"
+                  src={BRAND_ASSETS.opalLogo}
                   alt=""
-                  width={176}
-                  height={176}
+                  width={210}
+                  height={140}
                   draggable={false}
-                  data-brand-role="emblem-only"
-                  data-brand-source="opal-graph-emblem-spectral-human-alignment"
+                  data-brand-role="logo-lockup"
+                  data-brand-source="opal-logo"
                   data-figma-node="631:3"
+                  data-testid="fr00-splash-emblem"
                 />
               </motion.div>
-              <motion.h1
-                className="fr-splash-wordmark"
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={
-                  reduce ? { duration: 0 } : { duration: 0.45, delay: 0.18, ease: EASE_OUT }
-                }
-              >
-                <span className="opal-graph-word-opal">OPAL</span>
-                <span className="opal-graph-word-graph"> GRAPH</span>
-              </motion.h1>
               <motion.p
                 className="fr-splash-mechanic"
                 data-testid="opal-graph-tagline"
@@ -1214,6 +1262,7 @@ export function FirstRunExperience({
                     className="fr-cc fr-dial-select"
                     value={dialCode}
                     aria-label="Country or region code"
+                    autoComplete="tel-country-code"
                     data-testid="fr06-dial-select"
                     onChange={(e) => setDialCode(e.target.value)}
                   >
@@ -1227,19 +1276,13 @@ export function FirstRunExperience({
                     id="fr-phone"
                     className="composer-input fr-input"
                     inputMode="tel"
-                    autoComplete="tel"
+                    autoComplete="tel-national"
                     placeholder={FR_COPY.phonePlaceholder}
                     value={phone}
                     onChange={(e) => {
-                      const v = e.target.value;
-                      setPhone(v);
-                      // Pasted full E.164 - adopt dial from it when recognized
-                      if (v.trim().startsWith("+")) {
-                        const hit = PHONE_DIAL_OPTIONS.find((o) =>
-                          v.trim().startsWith(o.dial),
-                        );
-                        if (hit) setDialCode(hit.dial);
-                      }
+                      const split = splitPhoneForDisplay(e.target.value, dialCode);
+                      setDialCode(split.dial);
+                      setPhone(split.national);
                     }}
                     required
                     aria-describedby="fr-phone-hint fr-otp-consent-desc"

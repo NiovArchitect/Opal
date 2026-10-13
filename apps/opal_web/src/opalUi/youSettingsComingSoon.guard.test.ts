@@ -36,9 +36,35 @@ describe("You settings — zero Coming soon + Pass B hide", () => {
     expect(code).not.toMatch(/next build/i);
   });
 
+  it("Spending / Fit inventory: blockedReason rows exist; no architecture-note paint ids", () => {
+    const spending = screenBlock("spending");
+    expect(spending).toMatch(/title:\s*"Spending"/);
+    expect(spending).not.toContain('id: "spending-live"');
+    expect(spending).not.toContain('id: "spending-law"');
+    for (const id of ["learn-choices", "budget-private", "ask-when-cost", "trip-goals", "per-graph-spend"]) {
+      expect(spending).toContain(`id: "${id}"`);
+      const rowRe = new RegExp(
+        `id:\\s*"${id}"[\\s\\S]{0,220}?blockedReason:\\s*"[^"]+"|blockedReason:\\s*"[^"]+"[\\s\\S]{0,220}?id:\\s*"${id}"`,
+      );
+      expect(spending, `${id} missing blockedReason`).toMatch(rowRe);
+    }
+    const fit = screenBlock("fit");
+    expect(fit).toMatch(/title:\s*"Fit"/);
+    expect(fit).not.toContain('id: "fit-scope"');
+    expect(fit).not.toContain('id: "fit-empty"');
+    for (const id of ["share-activity-prefs", "wellness-goals"]) {
+      expect(fit).toContain(`id: "${id}"`);
+      const rowRe = new RegExp(
+        `id:\\s*"${id}"[\\s\\S]{0,220}?blockedReason:\\s*"[^"]+"|blockedReason:\\s*"[^"]+"[\\s\\S]{0,220}?id:\\s*"${id}"`,
+      );
+      expect(fit, `${id} missing blockedReason`).toMatch(rowRe);
+    }
+    expect(code).toMatch(/blockedReason" in row && row\.blockedReason\) return null/);
+  });
+
   it("Privacy inventory keeps blockedReason data but render skips blocked rows", () => {
     const block = screenBlock("privacy");
-    expect(block).toMatch(/title:\s*"Privacy & audience"/);
+    expect(block).toMatch(/title:\s*"Privacy"/);
     for (const id of [
       "graph-visibility",
       "exact-location",

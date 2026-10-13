@@ -26,7 +26,8 @@ describe("Wave B Section 06 deep paint", () => {
     expect(app).toMatch(/notifications[\s\S]*?semantic:\s*"magenta"/);
     expect(app).toMatch(/calls-assist[\s\S]*?semantic:\s*"violet"/);
     expect(app).toMatch(/spending[\s\S]*?semantic:\s*"gold"/);
-    expect(app).toMatch(/fit[\s\S]*?semantic:\s*"coral"/);
+    // Fit hub row honestly hidden (FIT_PLACEHOLDER_PAGE=0); coral remains on destination map.
+    expect(app).not.toMatch(/key:\s*"fit"/);
     expect(app).toMatch(/data-semantic=\{row\.semantic/);
   });
 

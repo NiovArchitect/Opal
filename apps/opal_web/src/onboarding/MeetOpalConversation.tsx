@@ -1,14 +1,15 @@
 /**
- * Meet Opal ONE scrolling page (founder integrity restore).
- * Document order: orb → greeting → name → first connection → permissions → sticky Continue.
- * First relationship seed comes before contacts so permission arrives with context.
+ * Meet Opal progressive payoff (founder P0 walk correction).
+ * Permissions are decided on PermissionBootstrapPage before this screen.
+ * Stages: greeting → name / auto username → first person → sticky Continue.
+ * One current task dominates; prior context may settle quietly.
  * Does not render ask_more / ask_when / ask_vibe / working / trust.
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   HOLY_SHIT_COPY,
-  MEET_OPAL_PERMISSION_ORDER,
+  loadMeetOpalPermissions,
   saveMeetOpalPermissions,
   suggestUsernameAlternatives,
   suggestUsernameFromName,
@@ -17,7 +18,6 @@ import {
   type HolyShitSpot,
   type HolyShitVibe,
   type HolyShitWhen,
-  type MeetOpalPermissionKind,
   type MeetOpalPhase,
 } from "./holyShitCopy";
 import { HsTypingDots, OpalPresenceOrb, type OpalOrbMode } from "./OpalPresenceOrb";
@@ -33,7 +33,6 @@ import {
   updateAssistPreference,
   updateProfile,
 } from "../api/productClient";
-import { getDeviceCoords } from "../device/deviceLocation";
 import { speakMeetOpening } from "./meetOpeningVoice";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -54,8 +53,8 @@ type PermDecision = "pending" | "allowed" | "skipped";
 
 type AssistChoice = "pending" | "enabled" | "not_now";
 
-/** Conversational turns — name → first connection → permissions → ready. */
-type MeetTurn = "name" | "friend" | "permissions" | "ready";
+/** Conversational turns — name → first connection → ready (permissions upstream). */
+type MeetTurn = "name" | "friend" | "ready";
 
 /** Persist via existing contacts/resolve (do not call a missing onboarding route). */
 async function persistOnboardingContact(
@@ -162,20 +161,6 @@ function buildState(input: {
   };
 }
 
-function permCopyFor(kind: MeetOpalPermissionKind): { title: string; why: string } {
-  switch (kind) {
-    case "contacts":
-      return { title: HOLY_SHIT_COPY.permContactsTitle, why: HOLY_SHIT_COPY.permContactsWhy };
-    case "notifications":
-      return {
-        title: HOLY_SHIT_COPY.permNotificationsTitle,
-        why: HOLY_SHIT_COPY.permNotificationsWhy,
-      };
-    case "location":
-      return { title: HOLY_SHIT_COPY.permLocationTitle, why: HOLY_SHIT_COPY.permLocationWhy };
-  }
-}
-
 function OpalGreeting({ index }: { index: number }) {
   const reduce = useReducedMotion();
   return (
@@ -230,14 +215,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [pendingPhonePerson, setPendingPhonePerson] = useState<HolyShitPerson | null>(null);
   const [people, setPeople] = useState<HolyShitPerson[]>([]);
   const [resolveBusy, setResolveBusy] = useState(false);
-  const [permBusy, setPermBusy] = useState<MeetOpalPermissionKind | null>(null);
-  const [permDecisions, setPermDecisions] = useState<Record<MeetOpalPermissionKind, PermDecision>>(
-    () => ({
-      contacts: "pending",
-      notifications: "pending",
-      location: "pending",
-    }),
-  );
   const [assistChoice, setAssistChoice] = useState<AssistChoice>("pending");
   const [meetTurn, setMeetTurn] = useState<MeetTurn>("name");
   const [chosenHandle, setChosenHandle] = useState<string | null>(null);
@@ -314,7 +291,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     if (pendingPhonePerson) phoneRef.current?.focus();
   }, [pendingPhonePerson]);
 
-  // Keep the active turn in view — name first, then friend, then permissions.
+  // Keep the active turn in view — name first, then friend.
   useEffect(() => {
     const el = scrollerRef.current;
     if (!el || !showForm) return;
@@ -332,11 +309,9 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       return;
     }
     const section =
-      meetTurn === "permissions"
-        ? (el.querySelector('[data-testid="hs-permissions"]') as HTMLElement | null)
-        : meetTurn === "friend"
-          ? (el.querySelector('[data-testid="hs-meet-turn-friend"]') as HTMLElement | null)
-          : (el.querySelector('[data-testid="hs-meet-turn-name"]') as HTMLElement | null);
+      meetTurn === "friend" || meetTurn === "ready"
+        ? (el.querySelector('[data-testid="hs-meet-turn-friend"]') as HTMLElement | null)
+        : (el.querySelector('[data-testid="hs-meet-turn-name"]') as HTMLElement | null);
     if (section) {
       el.scrollTo({
         top: Math.max(0, section.offsetTop - 24),
@@ -353,66 +328,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     reduce,
   ]);
 
-  const markPerm = (kind: MeetOpalPermissionKind, decision: PermDecision) => {
-    setPermDecisions((prev) => ({ ...prev, [kind]: decision }));
-  };
-
-  /** Contacts / notifications / location — never window.location. */
-  const requestPermission = async (kind: MeetOpalPermissionKind) => {
-    if (permBusy) return;
-    setPermBusy(kind);
-    try {
-      if (kind === "contacts") {
-        if (shouldUseNativeContactsBridge()) {
-          const res = await requestNativeContacts({ mode: "search", query: "a", limit: 1 });
-          if (res.status === "denied") {
-            setContactsDeniedOnce(true);
-            setContactsUnavailable(true);
-          }
-        } else {
-          const nav = navigator as Navigator & {
-            contacts?: {
-              select: (
-                props: string[],
-                opts: { multiple: boolean },
-              ) => Promise<unknown>;
-            };
-          };
-          if (nav.contacts?.select) {
-            try {
-              await nav.contacts.select(["name", "tel"], { multiple: false });
-            } catch {
-              setContactsDeniedOnce(true);
-            }
-          } else {
-            setContactsDeniedOnce(true);
-            setContactsUnavailable(true);
-          }
-        }
-      } else if (kind === "notifications") {
-        try {
-          if (typeof Notification !== "undefined" && Notification.requestPermission) {
-            await Notification.requestPermission();
-          }
-        } catch {
-          /* adapt and continue */
-        }
-      } else if (kind === "location") {
-        // W8 Phase 4 — real coords round-trip; deny stays Not now (skipped).
-        const coords = await getDeviceCoords({ forceRefresh: true });
-        if (!coords) {
-          markPerm(kind, "skipped");
-          return;
-        }
-        markPerm(kind, "allowed");
-        return;
-      }
-      markPerm(kind, "allowed");
-    } finally {
-      setPermBusy(null);
-    }
-  };
-
   /** Select friend in-page — does not finish (sticky Continue does). */
   const selectPerson = (person: HolyShitPerson, confirmText?: string) => {
     const key = person.name.trim().toLowerCase();
@@ -423,6 +338,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setPullingName(null);
     setConfirmedLine(confirmText || HOLY_SHIT_COPY.confirmContact(person.name));
     setNameDraft("");
+    setMeetTurn("ready");
   };
 
   /** Phone gate for contacts without phone. */
@@ -579,8 +495,8 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setConfirmedLine(null);
     setContactsStatus(null);
     setPullingName(null);
-    // Skip first connection — still decide permissions before Home.
-    setMeetTurn("permissions");
+    // Skip first connection — ready for sticky Continue.
+    setMeetTurn("ready");
   };
 
   const setAssist = (enabled: boolean) => {
@@ -611,7 +527,17 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     } catch {
       /* private mode — still continue */
     }
-    saveMeetOpalPermissions(permDecisions, profileUserId);
+    const prior = loadMeetOpalPermissions();
+    const keep = (v: PermDecision | undefined): PermDecision =>
+      v === "allowed" || v === "skipped" ? v : "skipped";
+    saveMeetOpalPermissions(
+      {
+        contacts: keep(prior?.contacts),
+        notifications: keep(prior?.notifications),
+        location: keep(prior?.location),
+      },
+      profileUserId,
+    );
 
     if (bearer && handle) {
       try {
@@ -659,28 +585,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     finishNow(persisted);
   };
 
-  // Continue needs a name plus every permission decided (Allow or Not now).
-  // Friend is optional (Skip allowed); permissions cannot be skipped by sticky CTA.
-  const permissionsDecided = MEET_OPAL_PERMISSION_ORDER.every(
-    (kind) => permDecisions[kind] === "allowed" || permDecisions[kind] === "skipped",
-  );
-
+  // Friend is optional (Skip allowed). Permissions already decided upstream.
   useEffect(() => {
     if (meetTurn === "friend" && (people.length > 0 || contactPersisted)) {
-      setMeetTurn("permissions");
+      setMeetTurn("ready");
     }
   }, [meetTurn, people.length, contactPersisted]);
 
-  useEffect(() => {
-    if (meetTurn === "permissions" && permissionsDecided) {
-      setMeetTurn("ready");
-    }
-  }, [meetTurn, permissionsDecided]);
-
   const canContinue =
     selfNameDraft.trim().length > 0 &&
-    permissionsDecided &&
-    (meetTurn === "permissions" || meetTurn === "ready") &&
+    (meetTurn === "ready" || (meetTurn === "friend" && people.length > 0)) &&
     !finishing;
 
   return (
@@ -813,9 +727,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
               </div>
 
               {/* ask_people — first connection seed before permissions */}
-              {(meetTurn === "friend" ||
-                meetTurn === "permissions" ||
-                meetTurn === "ready") ? (
+              {(meetTurn === "friend" || meetTurn === "ready") ? (
               <div
                 className={`hs-meet-turn${meetTurn === "friend" ? " is-primary" : " is-settled"}`}
                 data-meet-turn-section="friend"
@@ -979,71 +891,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 </div>
               )}
 
-              </div>
-              ) : null}
-
-              {/* permissions — after first connection so contacts arrives with context */}
-              {(meetTurn === "permissions" || meetTurn === "ready") ? (
-              <div
-                className={`hs-meet-turn${meetTurn === "permissions" ? " is-primary" : " is-settled"}`}
-                data-meet-turn-section="permissions"
-                data-testid="hs-meet-turn-permissions"
-              >
-              <OpalLine
-                text={
-                  people[0]?.name
-                    ? HOLY_SHIT_COPY.askPermissionsFor(people[0].name)
-                    : HOLY_SHIT_COPY.askPermissions
-                }
-                testId="hs-opal-ask-permissions"
-                index={4}
-              />
-              <div className="hs-perm-composer hs-meet-section" data-testid="hs-permissions">
-                <ul className="hs-perm-list" data-testid="hs-perm-list">
-                  {MEET_OPAL_PERMISSION_ORDER.map((kind) => {
-                    const copy = permCopyFor(kind);
-                    const decision = permDecisions[kind];
-                    return (
-                      <li
-                        key={kind}
-                        className="hs-perm-row"
-                        data-testid={`hs-perm-row-${kind}`}
-                        data-perm-kind={kind}
-                        data-perm-decision={decision}
-                      >
-                        <div className="hs-perm-row-copy">
-                          <span className="hs-perm-row-title">{copy.title}</span>
-                          <span className="hs-perm-row-why">{copy.why}</span>
-                        </div>
-                        <div
-                          className="hs-perm-row-actions"
-                          role="group"
-                          aria-label={copy.title}
-                        >
-                          <button
-                            type="button"
-                            className="hs-pill hs-pill-primary hs-perm-allow"
-                            data-testid={`hs-perm-allow-${kind}`}
-                            disabled={permBusy === kind || decision !== "pending"}
-                            onClick={() => void requestPermission(kind)}
-                          >
-                            {HOLY_SHIT_COPY.permAllow}
-                          </button>
-                          <button
-                            type="button"
-                            className="hs-pill hs-perm-skip hs-perm-not-now"
-                            data-testid={`hs-perm-skip-${kind}`}
-                            disabled={permBusy === kind || decision !== "pending"}
-                            onClick={() => markPerm(kind, "skipped")}
-                          >
-                            {HOLY_SHIT_COPY.permNotNow}
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
               </div>
               ) : null}
 

@@ -46,11 +46,20 @@ export const BRAND = {
   ],
   assets: {
     /**
-     * W6A2 — primary identity is the canonical transparent logo lockup.
-     * Legacy Spectral emblem paths kept as historical aliases where still referenced by tests.
+     * Asset law (single meaning everywhere):
+     * - opalLogo = character + bubble-letter Opal lockup (combined)
+     * - opalCharacter = character only
+     * - opalWordmark = wordmark only
+     * NEVER compose combined lockup + another wordmark / "OPAL GRAPH" text.
+     * Never crop one asset to manufacture another.
+     *
+     * Legacy Spectral *keys* (opalGraphEmblem*) are aliases of the lockup path
+     * (opal-logo.png) for tests / historical refs — NOT emblem-only art.
+     * Prefer BRAND_ASSETS.opalLogo in new product UI.
      */
     opalGraphEmblem: "/brand/opal-logo.png",
     opalGraphEmblemMaster: "/brand/opal-logo.png",
+    /** Alias of opalLogo lockup (combined). Not emblem-only — do not pair with wordmark text. */
     opalGraphEmblemHero: "/brand/opal-logo.png",
     opalGraphEmblem2240Derivative: "/brand/opal-logo.png",
     opalGraphEmblemSplash2080Derivative: "/brand/opal-logo.png",
@@ -62,17 +71,19 @@ export const BRAND = {
     opalGraphEmblemSpectralLegacy: "/brand/opal-graph/opal-graph-emblem-2240-derivative.png",
     /**
      * Paste W3 Brand Identity Lock — THE character (friendly/welcoming pose).
-     * Talk-to-Opal surfaces only (onboarding chat + Opal Center header). ≥64px.
+     * Character only — not the lockup. Talk-to-Opal surfaces only. ≥64px.
      * Source: shots/brand/opal-character.png (commit 28f282d7). Never redraw.
      */
     opalCharacter: "/brand/opal-character.png",
     /**
      * W6A2 — canonical Opal logo lockup (character + bubble-letter Opal).
-     * True alpha; sits on dark with no box. Source: shots/brand/opal-logo.png.
+     * Combined identity. True alpha; sits on dark with no box.
+     * Source: shots/brand/opal-logo.png. Do not compose with opalWordmark.
      */
     opalLogo: "/brand/opal-logo.png",
     /**
      * W6A3 — transparent bubble-letter "Opal" wordmark (1125×375).
+     * Wordmark only — pair with opalCharacter if needed, never with opalLogo.
      * Source: shots/brand/opal-wordmark.png.
      */
     opalWordmark: "/brand/opal-wordmark.png",

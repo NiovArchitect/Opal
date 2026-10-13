@@ -27,18 +27,25 @@ describe("P0-05.11A phone international + auth chrome", () => {
   });
 
   it("PHONE_HELPER_BELOW_INPUT", () => {
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-phone-hint[\s\S]*?top:\s*354px/);
+    // Document-flow phone shell (Paste W4): hint sits under the field, not absolute top:354px.
+    expect(css).toMatch(/\.fr-auth-v4 \.fr-phone-hint[\s\S]*?position:\s*relative/);
     expect(fr).toMatch(/fr06-phone-hint/);
   });
 
   it("SKIP_FOR_NOW_NO_BORDER", () => {
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-skip-for-now[\s\S]*?border:\s*0\s*!important/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-skip-for-now[\s\S]*?background:\s*transparent\s*!important/);
+    expect(css).toMatch(
+      /\.fr-auth-v4\.fr-phone \.fr-skip-for-now[\s\S]*?position:\s*relative/,
+    );
+    expect(css).toMatch(
+      /\.fr-auth-v4\.fr-phone \.fr-skip-for-now[\s\S]{0,400}?color:\s*rgba\(226,\s*232,\s*240/,
+    );
   });
 
   it("VERIFY_CHANGE_NUMBER_TEXT_ONLY", () => {
     expect(fr).toMatch(/fr-text-action fr-change-number/);
-    expect(css).toMatch(/\.fr-auth-v4 \.fr-change-number[\s\S]*?border:\s*0\s*!important/);
+    expect(css).toMatch(
+      /\.fr-auth-v4\.fr-verify \.fr-change-number[\s\S]*?border:\s*0\s*!important/,
+    );
   });
 
   it("PREVIEW_CODE_NOT_IN_PRODUCT_UI", () => {

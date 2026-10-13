@@ -59,13 +59,15 @@ describe("first-run fluid phone shell", () => {
       ".app-first-run-splash .app-ambient",
     );
     expect(phone).toMatch(/@media\s*\(max-width:\s*519px\)/);
-    expect(phone).toMatch(
-      /\.fr-auth-v4\.fr-phone \.fr-primary[\s\S]*?bottom:\s*calc\(66px \+ env\(safe-area-inset-bottom, 0px\)\)/,
-    );
+    // Splash primary stays bottom-anchored with safe-area.
     expect(phone).toMatch(
       /\.fr-splash-tap[\s\S]*?bottom:\s*calc\(100px \+ env\(safe-area-inset-bottom, 0px\)\)/,
     );
     expect(phone).toMatch(/env\(safe-area-inset-top, 0px\)/);
+    // Phone Continue is document-flow (Paste W4/W6) — not absolute bottom-anchored.
+    expect(css).toMatch(
+      /\.fr-auth-v4\.fr-phone \.fr-primary[\s\S]*?position:\s*relative/,
+    );
   });
 
   it("keeps Promise CTAs in-flow below full art (never absolute over PNG)", () => {

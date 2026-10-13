@@ -240,4 +240,28 @@ describe("S0 Opal Graph brand foundation", () => {
       "ecc9768b0105a33f297ff5782cd5c99b79ce40ed989261946f891c7ef52ffe4e",
     );
   });
+
+  it("opal-logo and opal-wordmark are RGBA (PNG color_type 6)", () => {
+    function pngColorType(rel: string): number {
+      const buf = readFileSync(resolve(root, rel));
+      let i = 8;
+      while (i < buf.length) {
+        const ln = buf.readUInt32BE(i);
+        const typ = buf.slice(i + 4, i + 8).toString("ascii");
+        if (typ === "IHDR") return buf[i + 8 + 9]!;
+        i += 12 + ln;
+      }
+      throw new Error(`no IHDR in ${rel}`);
+    }
+    expect(pngColorType("public/brand/opal-logo.png")).toBe(6);
+    expect(pngColorType("public/brand/opal-wordmark.png")).toBe(6);
+  });
+
+  it("opalGraphEmblemHero is documented lockup alias (same path as opalLogo)", () => {
+    expect(BRAND_ASSETS.opalGraphEmblemHero).toBe(BRAND_ASSETS.opalLogo);
+    expect(BRAND_ASSETS.opalGraphEmblemHero).toMatch(/\/brand\/opal-logo\.png/);
+    const brand = readFileSync(resolve(root, "src/brand/brand.ts"), "utf8");
+    expect(brand).toMatch(/Alias of opalLogo lockup|NOT emblem-only|not emblem-only/i);
+    expect(brand).toMatch(/NEVER compose combined lockup/);
+  });
 });

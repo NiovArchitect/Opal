@@ -162,7 +162,7 @@ describe("S1 adversarial harness - brand and assets", () => {
   it("no old opposing-arcs mark in first-run source", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
     expect(fr).not.toMatch(/opal-mark-63-7|opposing-arcs|REJECTED-arcs/);
-    expect(fr).toMatch(/OpalMark|opalGraphEmblem|160/);
+    expect(fr).toMatch(/opalLogo|opalGraphEmblem|160/);
     expect(fr).not.toMatch(/emblem-dock-rest\.png/);
   });
 });

@@ -25,7 +25,12 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(gate).toMatch(/opal_holy_shit/);
     expect(app).toMatch(/readHolyShitEnabled/);
     expect(app).toMatch(/meet_opal/);
-    expect(app).toMatch(/FirstRunStage = "splash" \| "promise" \| "meet_opal" \| "auth"/);
+    expect(app).toMatch(/permission_bootstrap/);
+    expect(app).toMatch(/FirstRunStage/);
+    expect(app).toMatch(/"splash"/);
+    expect(app).toMatch(/"promise"/);
+    expect(app).toMatch(/"meet_opal"/);
+    expect(app).toMatch(/"auth"/);
     // Reset URL must sticky-persist holy_shit so Meet Opal still runs after OTP.
     expect(app).toMatch(/consumeResetFirstRunFlag/);
     expect(app).toMatch(/sessionStorage\?\.setItem\("opal_holy_shit"/);
@@ -43,7 +48,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     );
   });
 
-  it("Paste W6 Phase 1: one scrolling Meet Opal page (greeting + 3 perms + Assist → Center)", () => {
+  it("P0 Meet Opal progressive payoff (name → friend); permissions live on bootstrap", () => {
     const meet = src("MeetOpalConversation.tsx");
     const hint = src("UsernameSettingsHint.tsx");
     const orb = src("OpalPresenceOrb.tsx");
@@ -53,7 +58,11 @@ describe("Holy Shit first-run Moments 1–5", () => {
     // Single-page sections present (not multi-screen phase gates)
     expect(meet).toMatch(/askSelfName|What should I call you/);
     expect(meet).toMatch(/askPeople|ask_people/);
-    expect(meet).toMatch(/askPermissions|ask_permissions/);
+    // Permissions moved to PermissionBootstrapPage (post-OTP, pre-Meet).
+    const bootstrap = src("PermissionBootstrapPage.tsx");
+    expect(bootstrap).toMatch(/permission-bootstrap|PermissionBootstrapPage/);
+    expect(bootstrap).toMatch(/hs-perm-list/);
+    expect(meet).not.toMatch(/hs-meet-turn-permissions/);
     // Assist execution claim hidden in Meet (VISIBLE_CAPABILITY law); gate retained.
     expect(meet).toMatch(/assistRowVisibleInMeet/);
     expect(meet).toMatch(/hs-meet-continue/);
@@ -148,13 +157,13 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toMatch(/permContactsWhy/);
     expect(copy).toMatch(/permNotificationsWhy/);
     expect(copy).toMatch(/permLocationWhy/);
-    expect(meet).toMatch(/hs-perm-list/);
-    expect(meet).toMatch(/hs-perm-row/);
-    expect(meet).toMatch(/hs-perm-allow/);
-    expect(meet).toMatch(/hs-perm-skip|hs-perm-not-now/);
-    expect(meet).toMatch(/saveMeetOpalPermissions/);
-    expect(meet).toMatch(/Notification\.requestPermission|requestPermission/);
-    expect(meet).toMatch(/geolocation|location/);
+    expect(bootstrap).toMatch(/hs-perm-list/);
+    expect(bootstrap).toMatch(/hs-perm-row/);
+    expect(bootstrap).toMatch(/hs-perm-allow/);
+    expect(bootstrap).toMatch(/hs-perm-skip|hs-perm-not-now/);
+    expect(bootstrap).toMatch(/saveMeetOpalPermissions/);
+    expect(bootstrap).toMatch(/Notification\.requestPermission|requestPermission/);
+    expect(meet).toMatch(/saveMeetOpalPermissions|loadMeetOpalPermissions/);
     expect(meet).not.toMatch(/window\.location\.(assign|href)/);
     // Phone gate: Continue without inviting then stay / finish via sticky Continue
     expect(meet).toMatch(/hs-phone-input|pendingPhonePerson/);
@@ -190,24 +199,21 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const nameInputIdx = meet.indexOf("hs-name-input", peopleComposerIdx);
     expect(statusIdx).toBeGreaterThan(peopleComposerIdx);
     expect(nameInputIdx).toBeGreaterThan(statusIdx);
-    // Founder integrity order: greeting → name → first connection → permissions → sticky continue
-    // (Assist row gated off for false capability; permissions arrive after relationship seed.)
+    // Progressive order: greeting → name → first connection → sticky continue
     const greetIdx = meet.indexOf("hs-opal-greeting");
     const selfNameIdx = meet.indexOf("hs-self-name-input");
     const friendIdx = meet.indexOf("hs-name-input");
-    const permIdx = meet.indexOf("hs-perm-list");
     const continueIdx = meet.indexOf("hs-meet-continue");
     expect(greetIdx).toBeGreaterThan(-1);
     expect(selfNameIdx).toBeGreaterThan(greetIdx);
     expect(friendIdx).toBeGreaterThan(selfNameIdx);
-    expect(permIdx).toBeGreaterThan(friendIdx);
-    expect(continueIdx).toBeGreaterThan(permIdx);
+    expect(continueIdx).toBeGreaterThan(friendIdx);
     expect(meet).toMatch(/hs-meet-turn-name/);
-    expect(meet).toMatch(/hs-meet-turn-permissions/);
     expect(meet).toMatch(/hs-meet-turn-friend/);
-    // Continue requires every permission decided (Allow or Not now)
-    expect(meet).toMatch(/permissionsDecided/);
-    expect(meet).toMatch(/permDecisions\[kind\] === "allowed" \|\| permDecisions\[kind\] === "skipped"/);
+    expect(meet).not.toMatch(/hs-meet-turn-permissions/);
+    // OTP → permission_bootstrap → meet_opal
+    expect(app).toMatch(/setFirstRunStage\("permission_bootstrap"\)/);
+    expect(app).toMatch(/advancePermissionBootstrapToMeet/);
     // No autofocus that scrolls past approvals
     expect(meet).not.toMatch(/selfNameRef\.current\?\.focus\(\)/);
   });

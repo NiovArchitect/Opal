@@ -20,6 +20,19 @@ describe("Paste W6 Phase 0 — OTP Verify layout law", () => {
     expect(verifyBlock).not.toMatch(/AuthHeroMark|opalGraphEmblemHero/);
   });
 
+  it("BrandChrome and auth lockups never double-compose opalLogo + wordmark", () => {
+    const brandChrome = fre.slice(
+      fre.indexOf("function BrandChrome"),
+      fre.indexOf("function CharacterLockup"),
+    );
+    expect(brandChrome).toMatch(/opalLogo/);
+    expect(brandChrome).not.toMatch(/OpalWordmark|opalWordmark|OpalMark/);
+    const lockupStart = fre.indexOf("function CharacterLockup");
+    const lockup = fre.slice(lockupStart, lockupStart + 500);
+    expect(lockup).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(lockup).not.toMatch(/OpalWordmark|opalWordmark|opal-graph-word-opal/);
+  });
+
   it("places Verify submit after code wrap in document order", () => {
     const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('step === "fr08"'));
     const wrapIdx = verifyBlock.indexOf("fr-code-wrap");

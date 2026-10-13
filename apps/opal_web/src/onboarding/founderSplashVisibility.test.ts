@@ -20,7 +20,7 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(splash).toMatch(/data-figma-authority="618:19"/);
     expect(splash).toMatch(/data-splash-owner="FirstRunSplashPage"/);
     expect(splash).toMatch(/fr00-tap-begin/);
-    expect(splash).toMatch(/OPAL/);
+    expect(splash).toMatch(/opalLogo|opal-logo/);
     expect(splash).toMatch(/TALK\. ALIGN\. GO\./);
     expect(splash).not.toMatch(/initial=\{[^}]*opacity:\s*0/);
     expect(app).toMatch(/FirstRunSplashPage/);
@@ -31,6 +31,40 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(app).toMatch(/firstRunMode = "sign_in"/);
   });
 
+  it("production Splash uses lockup only — no OPAL GRAPH text beside opalLogo", () => {
+    const splash = src("onboarding/FirstRunSplashPage.tsx");
+    expect(splash).toMatch(/BRAND_ASSETS\.opalLogo|opalLogo/);
+    expect(splash).toMatch(/data-brand-role="logo-lockup"/);
+    // No separate wordmark line / OPAL GRAPH h1 in JSX (comments may mention the law).
+    expect(splash).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph|fr-splash-wordmark/);
+    expect(splash).not.toMatch(/<h1[\s\S]{0,120}OPAL[\s\S]{0,40}GRAPH/);
+  });
+
+  it("nested fr00 + BrandChrome are lockup-only (no double composition)", () => {
+    const fre = src("onboarding/FirstRunExperience.tsx");
+    const fr00 = fre.slice(fre.indexOf('step === "fr00"'), fre.indexOf("{/* Legacy SFR"));
+    expect(fr00).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(fr00).toMatch(/data-brand-role="logo-lockup"/);
+    expect(fr00).toMatch(/TALK\. ALIGN\. GO\./);
+    expect(fr00).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph|fr-splash-wordmark/);
+    expect(fr00).not.toMatch(/OpalWordmark|opalWordmark/);
+    // BrandChrome: single opalLogo — never OpalMark + OpalWordmark
+    const brandChrome = fre.slice(
+      fre.indexOf("function BrandChrome"),
+      fre.indexOf("function CharacterLockup"),
+    );
+    expect(brandChrome).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(brandChrome).not.toMatch(/OpalWordmark|opalWordmark/);
+    expect(brandChrome).not.toMatch(/OpalMark/);
+  });
+
+  it("ActOnBehalfOptInStep header is lockup-only (no OPAL GRAPH text)", () => {
+    const act = src("onboarding/ActOnBehalfOptInStep.tsx");
+    expect(act).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(act).not.toMatch(/opalGraphEmblemHero/);
+    expect(act).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph|fr-auth-header-wordmark/);
+  });
+
   it("force Splash isolation exists without ambient/fr-void wrappers", () => {
     const main = src("main.tsx");
     expect(main).toMatch(/opal_force_splash/);
@@ -39,11 +73,10 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
 
   it("FOUNDER_RESET_SPLASH_PRIMARY_CONTENT_VISIBLE", () => {
     const splash = src("onboarding/FirstRunSplashPage.tsx");
-    // W7/W8: lockup emblem carries the Opal letters; separate wordmark line removed.
+    // Lockup carries Opal letters; no Skip on production Splash (new users see Splash 2).
     for (const needle of [
       "fr00-splash-emblem",
       "opal-graph-tagline",
-      "fr00-skip-intro",
       "fr00-tap-begin",
       "fr00-already-account",
       "data-splash-hold=\"indefinite\"",
@@ -51,7 +84,11 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     ]) {
       expect(splash, needle).toMatch(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     }
+    expect(splash).not.toMatch(/fr00-skip-intro|onSkipIntro/);
     expect(splash).not.toMatch(/SPLASH_AUTO_MS|setTimeout\(goBegin/);
+    // Legacy nested fr00 may still expose Skip for tests — must remain lockup-only.
+    const fre = src("onboarding/FirstRunExperience.tsx");
+    expect(fre).toMatch(/fr00-skip-intro/);
   });
 
   it("Promise remains a separate top-level stage (no Splash regression into Promise)", () => {
