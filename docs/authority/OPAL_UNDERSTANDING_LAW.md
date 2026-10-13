@@ -112,17 +112,22 @@ See `RELATIONSHIP_CONTEXT_MODEL.md` for the Person + Context Graph.
 
 This law does **not** unlock Pass 2.
 
-Founder unlock phrase remains (`RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`):
+Founder unlock (`RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`):
 
-> "Opal is ready to begin understanding people."
+> "Opal is ready to begin understanding people with explicit permission, transparent context, and user-controlled boundaries."
 
-Until then: architecture preparation and Pass 1 coherence only.
+Unlock = permissioned understanding objects — not “turn on memory.”
+
+Until then: architecture preparation, U Trust Layer honesty, and Pass 1 coherence only.
 
 ## Related
 
+- `OPAL_MATURITY_STACK.md` — Reality · Understanding · Intelligence layers
+- `OPAL_PERMISSION_ARCHITECTURE.md` — U as Trust Layer
 - `FACT_OWNERSHIP_VISIBILITY_LAW.md` — Owner · Source · Confidence · Scope · Visibility · Expiration · Correction
 - `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` — Pass 2 gate
-- `RELATIONSHIP_CONTEXT_MODEL.md` — dynamic human context
+- `RELATIONSHIP_CONTEXT_MODEL.md` — dynamic human context + Context Matrix
 - `OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` — safe projection / alignment edges
 - `PASS2_PLUS_CAPABILITY_MAP.md` — blueprint only
 - `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md` — code inventory before unlock
+- `docs/evidence/u_page/` — U capability / permission audits

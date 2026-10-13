@@ -11745,7 +11745,7 @@ const YOU_HUB_ROWS: {
   },
 ];
 
-/** 618:1344 "More settings below" - Spending & Fit + Account & Security (Delete nested). */
+/** 618:1344 "More on You" - Spending & Fit + Account & Security (Delete nested). YOU page, not generic settings. */
 const YOU_MORE_ROWS: {
   key: YouSettingKey;
   title: string;
@@ -11907,7 +11907,7 @@ function YouPane({
         ))}
       </section>
 
-      <p className="you-hub-more-label">More settings below</p>
+      <p className="you-hub-more-label">More on You</p>
 
       <section className="you-hub-rows you-hub-more-rows" aria-label="More settings">
         {YOU_MORE_ROWS.map((row) => (

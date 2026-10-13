@@ -10,6 +10,9 @@
 **Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`  
 **Pass 2 constitution:** `docs/authority/OPAL_UNDERSTANDING_LAW.md`  
 **Pass 2 context model:** `docs/authority/RELATIONSHIP_CONTEXT_MODEL.md`  
+**Maturity stack:** `docs/authority/OPAL_MATURITY_STACK.md`  
+**YOU Trust Layer:** `docs/authority/OPAL_PERMISSION_ARCHITECTURE.md`  
+**YOU capability audit:** `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  
 **Pass 2 entry review (inventory):** `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md`  
 **Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`  
 **Consumer Reality Gate:** GATE_GREEN — `docs/evidence/founder_staging_walk_correction/CONSUMER_REALITY_GATE_RESULT.md`  

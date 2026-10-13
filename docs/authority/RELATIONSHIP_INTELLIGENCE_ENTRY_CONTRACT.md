@@ -177,20 +177,32 @@ Those become valuable only after this contract is live in product behavior.
 
 Pass 2 opens only when the founder intentionally decides:
 
+> "Opal is ready to begin understanding people with explicit permission, transparent context, and user-controlled boundaries."
+
+Equivalent explicit unlock still accepted:
+
 > "Opal is ready to begin understanding people."
 
-Until then: preserve Pass 1 coherence and prepare production readiness around the **existing** system. No relationship-intelligence implementation.
+**Unlock means:** Opal may begin creating **permissioned understanding objects** — not “turn on memory.”
+
+Until then: preserve Pass 1 coherence, U Trust Layer honesty, and production readiness. No relationship-intelligence implementation.
 
 ## Unlock checklist
 
 Before any Pass 2 PR merges:
 
-1. [ ] Founder unlocks with the phrase above (or equivalent explicit unlock)
-2. [ ] Pass 1 checkpoint still green
+1. [ ] Founder unlocks with a phrase above (or equivalent explicit unlock)
+2. [ ] Pass 1 checkpoint still green · Consumer Reality Gate still green
 3. [ ] This contract cited in the PR / packet
-4. [ ] New durable facts carry Owner · Source · Confidence · Scope · Visibility · Correction
+4. [ ] New durable facts carry Owner · Source · Confidence · Scope · Visibility · Correction · Expiration
 5. [ ] Human explanation path for any surfaced suggestion
 6. [ ] No silent overwrite of prior beliefs
+7. [ ] **Permission test:** Opal can answer “Why do you know this?”
+8. [ ] **Correction test:** User can easily say “That changed”
+9. [ ] **Scope test:** Distinguishes my preference / our preference / group discussion
+10. [ ] **Time test:** Distinguishes “true then” vs “true now”
+11. [ ] U Permission Capability Matrix row exists for the capability (`docs/evidence/u_page/`)
+12. [ ] First slice remains humility-first (e.g. RU-1 provisional confirm/dismiss before Durable prefs)
 
 ## Hold-period forbidden list
 
@@ -202,6 +214,9 @@ Until unlock: no memory expansion · partner graph · preference learning · emo
 - `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
 - `docs/authority/OPAL_UNDERSTANDING_LAW.md` (constitution — six questions before store/recall/act)
 - `docs/authority/RELATIONSHIP_CONTEXT_MODEL.md` (Person + Context Graph; not static profile)
+- `docs/authority/OPAL_MATURITY_STACK.md` (Reality · Understanding · Intelligence)
+- `docs/authority/OPAL_PERMISSION_ARCHITECTURE.md` (YOU page Trust Layer)
+- `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md` (YOU capability audit)
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` (doctrine; this file is the **entry gate**)
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` (life-intelligence blueprint; not implementation)
 - `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md` (code inventory before unlock)

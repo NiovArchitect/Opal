@@ -167,6 +167,47 @@ If Opal incorrectly believes “everyone loves hiking” and has no context boun
 
 Consumer Reality Gate GATE_GREEN proved the human loop (conversation → shared state → other person receives → response → both see update). That is the seed of Opal Graph. Understanding people may only grow on top of that.
 
+## Relationship Context Matrix (required shape)
+
+Opal must never flatten a person into one preference list.
+
+Initial matrix:
+
+| Context | Observation | Confidence | Scope |
+|---------|-------------|------------|-------|
+| Self | Likes quiet mornings | Medium | Private |
+| Partner | Likes spontaneous dates | Confirmed | Partner |
+| Friends | Likes group adventures | Observed | Friend group |
+| Work | Prefers structured planning | Confirmed | Professional |
+
+Evolving dimensions (more data ≠ more intelligence; better context does):
+
+| Field | Purpose |
+|-------|---------|
+| Source | Where did this come from? |
+| Timestamp | When was this true? |
+| Frequency | How often observed? |
+| Recency | Is it current? |
+| Sentiment | Positive / neutral / negative context |
+| Exceptions | When does this not apply? |
+| Relationship | Who was this expression with? |
+| User confirmation | Did the user approve? |
+
+## Group identity lifecycle
+
+A group conversation creates a temporary social entity — not automatic person facts.
+
+| Phase | Meaning |
+|-------|---------|
+| Created | Shared thread / collective appears |
+| Active | Exploring / aligning |
+| Dormant | Quiet; no current intent |
+| Completed | Shared commitment finished |
+| Historical | Retained as shared history under scope |
+
+**Forbidden:** “Let's do Vegas” → everyone Durable-wants Vegas.  
+**Required:** Group intention candidate (Travel discussion · Exploring · Alignment needed · Scope=this group).
+
 ## Model checklist (for future design docs)
 
 Any Pass 2 design must address:
@@ -174,13 +215,14 @@ Any Pass 2 design must address:
 1. Person identity  
 2. Relationship types  
 3. Context states (self / partner / family / work / group / alone)  
-4. Group dynamics  
+4. Group dynamics + lifecycle  
 5. Shared experiences  
 6. Temporary / current states  
 7. Confidence levels  
 8. Permission boundaries  
 9. Correction mechanisms  
 10. Expiration / change over time  
+11. Relationship Context Matrix fields above  
 
 ## Required zeros (context model)
 
