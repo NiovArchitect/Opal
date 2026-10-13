@@ -81,6 +81,9 @@ Two-device proof
 **Closure matrix (hold-period):** `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`  
 Infrastructure · real-user journeys · surface contracts. Live snapshot 2026-10-13: local `/health` 200 · Vite 200 · prod API **503** (payment).
 
+**Surface fragmentation re-audit:** `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`  
+Prefer-real list composers GREEN. **RED residuals:** Home Stories seed fallback · ungated `personNodeTemporal` · Full Live `seed-live-sabrina` default. Attention empty-copy YELLOW. Fix under coherence before claiming device-ready.
+
 ## Standing architecture principles
 
 | Layer | Role |
@@ -128,6 +131,7 @@ Defines proven Pass 1 foundation vs vision domains (Relationship · Commerce · 
 - `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
 - `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`
+- `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`
 - `shots/steward/PASS1_FINAL_CHECKPOINT.md`
 - `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
 - `BLOCKED.md`

@@ -247,6 +247,9 @@ Before intelligence: every major surface has a contract. Pass 1 closed these as 
 | Graphs seed reality | Prefer-real composers · production_default | TestFlight new install |
 | Chat ≠ plan | ConversationAlignment · A8 | Two-user smoke |
 
+**Re-audit 2026-10-13:** `SURFACE_FRAGMENTATION_REAUDIT.md`  
+Confirmed **RED** residuals (coherence fixes, not Pass 2): Home Stories → `FOUNDER_STORIES` when empty; ungated `PERSON_TEMPORAL_SEED` on Home/Graphs; Full Live default `seed-live-sabrina`. Chats list + Settings honesty stayed GREEN.
+
 ---
 
 # Phase 4 — Unlock Pass 2 preparation (later)
