@@ -103,7 +103,7 @@ External APIs (Twilio, Deepgram, ElevenLabs, DeepSeek, Brave, Duffel, Google…)
 **Critical path to leave the lab**
 
 ```text
-Render payment restored
+Render payment restored   (Free tier ≠ TestFlight — see RENDER_FREE_TIER_FITNESS_AUDIT.md)
         ↓
 api.opal.niovlabs.com /health = 200
         ↓
@@ -115,6 +115,8 @@ Push verify checklist
         ↓
 Two-device call proof
 ```
+
+Hosting note: single BEAM (Phoenix+Channels+Oban) + one Postgres. Minimum always-on ≈ web $7 + paid Postgres $6+. Fly deferred.
 
 ## Founder-only gates (agent cannot close)
 
