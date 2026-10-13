@@ -72,7 +72,7 @@ type Props = {
    */
   onAdvanceToPromise?: () => void;
   /**
-   * After OTP verify - parent may open Meet Opal (Who's someone…).
+   * After OTP verify - parent may open Meet Opal (first connection).
    * Return true to pause here (do not advance to profile yet).
    */
   onAfterPhoneVerify?: (session: ProductSession) => boolean;
@@ -169,7 +169,7 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
  * Brand V4 logo treatment only - NOT a hero-logo redesign.
  */
 /**
- * W6A2 — canonical transparent logo lockup on first-run auth (OTP / phone).
+ * W6A2 - canonical transparent logo lockup on first-run auth (OTP / phone).
  * True alpha; no abstract OPALGRAPH emblem; no baked checkerboard box.
  */
 function CharacterLockup() {
@@ -555,7 +555,7 @@ export function FirstRunExperience({
         setUsername(s.handle);
       }
       setStatusLine(FR_COPY.preparing);
-      // Meet Opal (Who's someone…) runs after phone - do not disappear into profile yet.
+      // Meet Opal (first connection) runs after phone - do not disappear into profile yet.
       if (onAfterPhoneVerify?.(s)) {
         setStatusLine(null);
         return;
@@ -1324,7 +1324,7 @@ export function FirstRunExperience({
                 <label htmlFor="fr-code" className="sr-only">
                   Six digit code
                 </label>
-                {/* Paste W6 Phase 0 — document order: boxes → Verify (never absolute). */}
+                {/* Paste W6 Phase 0 - document order: boxes then Verify (never absolute). */}
                 <div className="fr-code-wrap" data-testid="fr07-code-wrap">
                   <div className="fr-code-cells" aria-hidden>
                     {Array.from({ length: 6 }).map((_, i) => (

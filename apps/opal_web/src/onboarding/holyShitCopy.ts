@@ -22,28 +22,38 @@ export const HOLY_SHIT_COPY = {
   "You bring the people. I bring the timing.",
  ].join(" "),
  /** Paste W4 Phase 0 — user's own name before permissions. */
- askSelfName: "What's your name?",
+ askSelfName: "What should I call you?",
  selfNamePlaceholder: "Your name",
  /** @deprecated Paste W4 — username is derived; no separate input. */
  selfUsernamePlaceholder: "Username (optional)",
  /** Quiet handle preview after name typed (Paste W6: settings, not You). */
  selfUsernameQuiet: (handle: string) =>
-  `You'll be @${handle}. Change anytime in settings.`,
+  `Perfect. You're @${handle}. Change anytime in settings.`,
+ /** Handle taken — Opal suggests the next option (no manual username screen). */
+ selfUsernameTaken: (handle: string, suggested: string) =>
+  `@${handle} is taken. I found @${suggested}.`,
+ selfUsernameAccept: "Accept",
+ selfUsernameTryAnother: "Try another",
  /** @deprecated alias for quiet preview */
  selfUsernameHint: "You'll be @{handle}. Change anytime in settings.",
  selfNameContinue: "Continue",
- /** Permissions ONE screen (Paste W6): contacts, notifications, location. No calendar. */
- askPermissions: "A few permissions, all worth it.",
+ /**
+  * Permissions after first connection seed (founder integrity):
+  * contacts → notifications → location. No calendar dump on Meet.
+  */
+ askPermissions: "A few permissions so I can help you stay connected.",
+ askPermissionsFor: (name: string) =>
+  `Allow contacts so I can find and connect with ${name}.`,
  permContactsTitle: "Contacts",
- permContactsWhy: "So I know who's who when you make plans.",
+ permContactsWhy: "Find and connect with people you know.",
  /** @deprecated Paste W6 — calendar row removed from Meet permissions. */
  permCalendarTitle: "Calendar",
  /** @deprecated Paste W6 — calendar row removed from Meet permissions. */
  permCalendarWhy: "Never double-book you.",
  permNotificationsTitle: "Notifications",
- permNotificationsWhy: "So you never miss the moment a plan locks in.",
+ permNotificationsWhy: "Stay connected when people respond.",
  permLocationTitle: "Location",
- permLocationWhy: "So nearby plans and places just work.",
+ permLocationWhy: "Help coordinate nearby plans.",
  permAllow: "Allow",
  /** Paste W6 — Allow + Not now per row (Skip label retired on Meet). */
  permSkip: "Not now",
@@ -60,9 +70,9 @@ export const HOLY_SHIT_COPY = {
  /** Consumer Meet must not show false execution authority. */
  assistRowVisibleInMeet: false as const,
  meetContinue: "Continue",
- askPeople: "Who's someone you've been meaning to catch up with?",
+ askPeople: "Who do you want to connect with first?",
  /** @deprecated alias - one-person ask */
- askName: "Who's someone you've been meaning to catch up with?",
+ askName: "Who do you want to connect with first?",
  peoplePlaceholder: "Type a name",
  namePlaceholder: "Type a name",
  peopleContinue: "Continue",
@@ -80,7 +90,8 @@ export const HOLY_SHIT_COPY = {
  `${name} has no phone number. Add one to invite, or continue without sending.`,
  pullingUp: (name: string) => `Looking up ${name} in your contacts.`,
  /** Talk TO the user ABOUT the friend. Never greet the friend mid-flow. */
- confirmContact: (name: string, _phone?: string) => `Got ${name}.`,
+ confirmContact: (name: string, _phone?: string) =>
+  `Let's connect ${name} so you can build your first connection.`,
  askMore: (name: string) =>
  `Got ${name}. Add anyone else, or plan something with them?`,
  addAnother: "Add another",
@@ -436,6 +447,27 @@ export function suggestUsernameFromName(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "")
     .slice(0, 24);
+}
+
+/**
+ * Next handle candidates when the primary is taken.
+ * Opal handles complexity; human confirms identity (Accept / Try another).
+ */
+export function suggestUsernameAlternatives(
+  name: string,
+  taken: string,
+  attempt = 0,
+): string {
+  const base = suggestUsernameFromName(name) || taken.replace(/[^a-z0-9]/gi, "").toLowerCase();
+  if (!base) return `opal${Date.now().toString().slice(-4)}`;
+  const compact = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+  const candidates = [
+    `${base}${attempt + 1}`,
+    compact.length > base.length ? compact.slice(0, 24) : "",
+    `${base}${attempt + 2}`,
+    `${base}with`,
+  ].filter((h) => h && h !== taken && h.length >= 2);
+  return (candidates[0] || `${base}${attempt + 1}`).slice(0, 24);
 }
 
 /** Permission rows on Meet Opal (Paste W6: exactly 3 — no calendar). */

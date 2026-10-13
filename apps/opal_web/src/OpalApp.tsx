@@ -2828,19 +2828,25 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W7 — Splash 1 → Phone (auth). Keep forced/reset sticky through
-   * Phone → OTP → Meet Opal. Never mark first-run done or clear forced here.
-   * Promise (Splash 2) stays behind opal_force_promise only; PNG untouched.
+   * Splash 1 primary CTA → Splash 2 (Promise / “what Opal is”).
+   * Keep forced/reset sticky through Promise → Phone → OTP → Meet.
+   * Never mark first-run done or clear forced here.
+   */
+  const advanceSplashToPromise = () => {
+    setShowFirstRun(true);
+    setFirstRunStage("promise");
+  };
+
+  /**
+   * Splash 1 “Skip intro” → Phone (auth). Honest skip of Splash 2 immersion.
+   * Meet Opal still follows OTP.
    */
   const advanceSplashToPhone = () => {
     setShowFirstRun(true);
     setFirstRunStage("auth");
   };
 
-  /** @deprecated alias — Splash advances to Phone, not Promise (W7 Phase 0). */
-  const advanceSplashToPromise = advanceSplashToPhone;
-
-  /** Splash 2 CTA (force_promise only) → phone auth. Meet Opal follows OTP. */
+  /** Splash 2 CTA → phone auth. Meet Opal follows OTP. */
   const advancePromiseToAuth = () => {
     // Do NOT markWalkthroughDone / clearForcedFirstRun — that skipped Phone/Meet on remount.
     setFirstRunStage("auth");
@@ -7501,7 +7507,7 @@ export function OpalApp() {
         data-forced-first-run={forcedFirstRun || forceSplash ? "1" : "0"}
       >
         <FirstRunSplashPage
-          onTapBegin={advanceSplashToPhone}
+          onTapBegin={advanceSplashToPromise}
           onSkipIntro={advanceSplashToPhone}
           onAlreadyAccount={() => {
             // Returning account → Phone auth (keep forced sticky; never Home shortcut)

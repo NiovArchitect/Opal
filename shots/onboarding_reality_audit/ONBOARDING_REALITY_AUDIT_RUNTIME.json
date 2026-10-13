@@ -1,0 +1,100 @@
+{
+  "at": "2026-10-13T14:11:54.208Z",
+  "PASS2_UNLOCKED": "NO",
+  "TRACK_B_TOUCHED": "NO",
+  "MEMORY": "OFF",
+  "RELATIONSHIP_INFERENCE": "OFF",
+  "SCORING": "OFF",
+  "counts": {
+    "GREEN": 12,
+    "YELLOW": 0,
+    "RED": 0
+  },
+  "ONBOARDING_RUNTIME_MATCH": "YES",
+  "SPLASH_2_PRESENT": "YES",
+  "SPLASH_COMPLETE": "YES",
+  "NAME_TO_USERNAME": "YES",
+  "FIRST_CONNECTION_FLOW": "YES",
+  "FIRST_CONNECTION_COMPLETE": "YES",
+  "PERMISSIONS_SEQUENCE": "YES",
+  "PERMISSIONS_REAL": "YES",
+  "CHATS_VISUAL_MATCH": "YES",
+  "CALLS_VISUAL_MATCH": "YES",
+  "OPAL_THREAD_VISUAL_MATCH": "YES",
+  "DEAD_ACTIONS": 0,
+  "FAKE_SUCCESS": 0,
+  "findings": [
+    {
+      "area": "Splash 1 brand arrival",
+      "status": "GREEN",
+      "detail": "splash=true tagline=TALK. ALIGN. GO.",
+      "evidence": {}
+    },
+    {
+      "area": "Splash 2 Promise present after Tap to begin",
+      "status": "GREEN",
+      "detail": "promise=true phoneEarly=false",
+      "evidence": {}
+    },
+    {
+      "area": "Phone verification after Splash 2",
+      "status": "GREEN",
+      "detail": "phone=true",
+      "evidence": {}
+    },
+    {
+      "area": "Meet Opal surface",
+      "status": "GREEN",
+      "detail": "meet=true",
+      "evidence": {}
+    },
+    {
+      "area": "Name → username auto",
+      "status": "GREEN",
+      "detail": "hint=Perfect. You're @sadeil. Change anytime in settings.",
+      "evidence": {}
+    },
+    {
+      "area": "First connection before permissions",
+      "status": "GREEN",
+      "detail": "friend=true ask=Who do you want to connect with first? permsEarly=false",
+      "evidence": {}
+    },
+    {
+      "area": "First connection routes into connect + permissions",
+      "status": "GREEN",
+      "detail": "confirm=Let's connect Chanelle so you can build your first connection. perms=true",
+      "evidence": {}
+    },
+    {
+      "area": "Rejected permissions honest (Not now still continues)",
+      "status": "GREEN",
+      "detail": "continueEnabled=true",
+      "evidence": {}
+    },
+    {
+      "area": "Chats visual surface",
+      "status": "GREEN",
+      "detail": "chats=true mode=true",
+      "evidence": {}
+    },
+    {
+      "area": "Calls visual surface",
+      "status": "GREEN",
+      "detail": "calls=true",
+      "evidence": {}
+    },
+    {
+      "area": "Opal Center companion surface",
+      "status": "GREEN",
+      "detail": "center=true",
+      "evidence": {}
+    },
+    {
+      "area": "Home social intent surface",
+      "status": "GREEN",
+      "detail": "home=true",
+      "evidence": {}
+    }
+  ]
+}

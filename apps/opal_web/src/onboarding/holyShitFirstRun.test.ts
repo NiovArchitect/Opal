@@ -51,7 +51,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const gate = src("holyShitGate.ts");
     const app = src("../OpalApp.tsx");
     // Single-page sections present (not multi-screen phase gates)
-    expect(meet).toMatch(/askSelfName|What's your name/);
+    expect(meet).toMatch(/askSelfName|What should I call you/);
     expect(meet).toMatch(/askPeople|ask_people/);
     expect(meet).toMatch(/askPermissions|ask_permissions/);
     // Assist execution claim hidden in Meet (VISIBLE_CAPABILITY law); gate retained.
@@ -102,7 +102,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
       expect(line).not.toMatch(/[—–―]/);
     }
     expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).toBe(
-      "You'll be @sadeil. Change anytime in settings.",
+      "Perfect. You're @sadeil. Change anytime in settings.",
     );
     expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).not.toMatch(/in You/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
@@ -112,16 +112,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toContain(HOLY_SHIT_COPY.assistEnable);
     expect(copy).toContain(HOLY_SHIT_COPY.assistNotNow);
     expect(copy).toContain(HOLY_SHIT_COPY.meetContinue);
-    expect(copy).toMatch(/What's your name\?/);
+    expect(copy).toMatch(/What should I call you\?/);
     expect(copy).toMatch(/askSelfName/);
-    expect(copy).toMatch(/catch up with/);
+    expect(copy).toMatch(/Who do you want to connect with first/);
     expect(copy).toMatch(/Choose from contacts|Select from contacts/);
-    expect(HOLY_SHIT_COPY.askPermissions).toBe("A few permissions, all worth it.");
-    expect(HOLY_SHIT_COPY.permContactsWhy).toBe("So I know who's who when you make plans.");
-    expect(HOLY_SHIT_COPY.permNotificationsWhy).toBe(
-      "So you never miss the moment a plan locks in.",
-    );
-    expect(HOLY_SHIT_COPY.permLocationWhy).toBe("So nearby plans and places just work.");
+    expect(HOLY_SHIT_COPY.askPermissions).toMatch(/permissions so I can help you stay connected/i);
+    expect(HOLY_SHIT_COPY.permContactsWhy).toMatch(/Find and connect with people you know/i);
+    expect(HOLY_SHIT_COPY.permNotificationsWhy).toBe("Stay connected when people respond.");
+    expect(HOLY_SHIT_COPY.permLocationWhy).toBe("Help coordinate nearby plans.");
     expect(HOLY_SHIT_COPY.permNotNow).toBe("Not now");
     expect(HOLY_SHIT_COPY.permAllow).toBe("Allow");
     expect(copy).not.toMatch(/Let Opal place calls and make reservations/);
@@ -133,7 +131,8 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/hs-friend-or|peopleOr/);
     expect(meet).toMatch(/hs-friend-skip/);
     expect(meet).toMatch(/contactsUnavailable|contactsUnavailableTyping|couldn't access your contacts/i);
-    expect(meet).toMatch(/confirmContact|Got \$\{name\}/);
+    expect(meet).toMatch(/confirmContact/);
+    expect(copy).toMatch(/Let's connect \$\{name\} so you can build your first connection/);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
     // Permissions: exactly 3 rows (no calendar) above Assist; persist to profile
@@ -191,18 +190,18 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const nameInputIdx = meet.indexOf("hs-name-input", peopleComposerIdx);
     expect(statusIdx).toBeGreaterThan(peopleComposerIdx);
     expect(nameInputIdx).toBeGreaterThan(statusIdx);
-    // W8 document order: greeting → name → permissions → friend → sticky continue
-    // (Assist row gated off for false capability; conversational turns preserve order.)
+    // Founder integrity order: greeting → name → first connection → permissions → sticky continue
+    // (Assist row gated off for false capability; permissions arrive after relationship seed.)
     const greetIdx = meet.indexOf("hs-opal-greeting");
     const selfNameIdx = meet.indexOf("hs-self-name-input");
-    const permIdx = meet.indexOf("hs-perm-list");
     const friendIdx = meet.indexOf("hs-name-input");
+    const permIdx = meet.indexOf("hs-perm-list");
     const continueIdx = meet.indexOf("hs-meet-continue");
     expect(greetIdx).toBeGreaterThan(-1);
     expect(selfNameIdx).toBeGreaterThan(greetIdx);
-    expect(permIdx).toBeGreaterThan(selfNameIdx);
-    expect(friendIdx).toBeGreaterThan(permIdx);
-    expect(continueIdx).toBeGreaterThan(friendIdx);
+    expect(friendIdx).toBeGreaterThan(selfNameIdx);
+    expect(permIdx).toBeGreaterThan(friendIdx);
+    expect(continueIdx).toBeGreaterThan(permIdx);
     expect(meet).toMatch(/hs-meet-turn-name/);
     expect(meet).toMatch(/hs-meet-turn-permissions/);
     expect(meet).toMatch(/hs-meet-turn-friend/);
@@ -218,6 +217,12 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(suggestUsernameFromName("Sadeil Mae")).toBe("sadeilmae");
     expect(suggestUsernameFromName("  Alex-Ray  ")).toBe("alexray");
     expect(suggestUsernameFromName("")).toBe("");
+  });
+
+  it("suggestUsernameAlternatives offers a different handle when taken", async () => {
+    const { suggestUsernameAlternatives: alt } = await import("./holyShitCopy");
+    expect(alt("Sadeil", "sadeil", 0)).not.toBe("sadeil");
+    expect(alt("Sadeil", "sadeil", 0)).toMatch(/^sadeil/);
   });
 
   it("Moment 4 OpalWorking module keeps vibe-driven spots + honest calendar", () => {
