@@ -96,6 +96,12 @@ const setFinancialProfile = vi.fn(async (attrs: { comfort_level: string }) => ({
   },
 }));
 const deleteFinancialProfile = vi.fn(async () => ({ deleted: true, status: "deleted" }));
+const getOpalWallet = vi.fn(async () => ({
+  balance_cents: 0,
+  currency: "USD",
+  auto_approve_threshold_cents: 5000,
+}));
+const listOpalWalletTransactions = vi.fn(async () => []);
 
 vi.mock("../api/productClient", async () => {
   const actual = await vi.importActual<typeof import("../api/productClient")>(
@@ -115,6 +121,8 @@ vi.mock("../api/productClient", async () => {
     setFinancialProfile: (...args: unknown[]) =>
       setFinancialProfile(...(args as [{ comfort_level: string }])),
     deleteFinancialProfile: (...args: unknown[]) => deleteFinancialProfile(...args),
+    getOpalWallet: (...args: unknown[]) => getOpalWallet(...args),
+    listOpalWalletTransactions: (...args: unknown[]) => listOpalWalletTransactions(...args),
   };
 });
 
@@ -209,6 +217,12 @@ beforeEach(() => {
       next_requirements: "Grant complete trust yourself",
     },
   });
+  getOpalWallet.mockReset().mockResolvedValue({
+    balance_cents: 0,
+    currency: "USD",
+    auto_approve_threshold_cents: 5000,
+  });
+  listOpalWalletTransactions.mockReset().mockResolvedValue([]);
   getFinancialProfile.mockReset().mockResolvedValue(null);
   setFinancialProfile.mockReset().mockImplementation(async (attrs: { comfort_level: string }) => ({
     profile: {

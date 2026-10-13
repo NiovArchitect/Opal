@@ -1,5 +1,6 @@
 /**
- * BUG 1 render proof — Privacy & Feed screens show blockedReason, never Coming soon.
+ * Pass B render proof — Privacy & Feed show working chrome only; never Coming soon
+ * or technical blockedReason pills.
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -29,7 +30,7 @@ afterEach(() => {
 });
 
 describe("YouSettingsDestination render proof", () => {
-  it("Privacy & audience has zero Coming soon and honest blockers", async () => {
+  it("Privacy & audience hides blocked rows and has zero Coming soon", async () => {
     await act(async () => {
       root.render(
         <YouSettingsDestination setting="privacy" onBack={() => undefined} session={null} />,
@@ -38,16 +39,17 @@ describe("YouSettingsDestination render proof", () => {
     const text = container.textContent || "";
     expect(text).toMatch(/Privacy & audience/);
     expect(text).not.toMatch(/Coming soon/i);
-    expect(text).toMatch(/Graph visibility/);
-    expect(text).toMatch(/Needs per-Graph audience API/);
-    expect(text).toMatch(/Exact location after join/);
-    expect(text).toMatch(/Public engagement counts/);
-    expect(text).toMatch(/Join requests/);
-    expect(text).toMatch(/Blocked & muted/);
+    expect(text).not.toMatch(/not wired yet/i);
+    expect(text).not.toMatch(/Graph visibility/);
+    expect(text).not.toMatch(/Needs per-Graph audience API/);
+    expect(text).not.toMatch(/Exact location after join/);
+    expect(text).not.toMatch(/Public engagement counts/);
+    expect(text).not.toMatch(/Join requests/);
+    expect(text).not.toMatch(/Blocked & muted/);
     writeFileSync(join(OUT, "privacy_render.txt"), text);
   });
 
-  it("Feed & discovery has zero Coming soon and honest blockers", async () => {
+  it("Feed & discovery hides blocked rows and has zero Coming soon", async () => {
     await act(async () => {
       root.render(
         <YouSettingsDestination
@@ -60,12 +62,13 @@ describe("YouSettingsDestination render proof", () => {
     const text = container.textContent || "";
     expect(text).toMatch(/Feed & discovery/);
     expect(text).not.toMatch(/Coming soon/i);
-    expect(text).toMatch(/People you know first/);
-    expect(text).toMatch(/Local discovery/);
-    expect(text).toMatch(/Nearby range/);
-    expect(text).toMatch(/Suggested people/);
-    expect(text).toMatch(/Suggested experiences/);
-    expect(text).toMatch(/Feed ranking prefs|discovery|Suggested/i);
+    expect(text).not.toMatch(/not wired yet/i);
+    expect(text).not.toMatch(/People you know first/);
+    expect(text).not.toMatch(/Local discovery/);
+    expect(text).not.toMatch(/Nearby range/);
+    expect(text).not.toMatch(/Suggested people/);
+    expect(text).not.toMatch(/Suggested experiences/);
+    expect(text).not.toMatch(/Feed ranking prefs/);
     writeFileSync(join(OUT, "feed_render.txt"), text);
   });
 });

@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "id": "MEMBER_SHELL",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "HOME_SOCIAL",
+      "ok": true,
+      "detail": "day=0"
+    },
+    {
+      "id": "CENTER_SIZE",
+      "ok": true,
+      "detail": "{\"x\":167,\"y\":22,\"width\":56,\"height\":56}"
+    },
+    {
+      "id": "REMEMBER",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "YOU_LEAK",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "THEME",
+      "ok": true,
+      "detail": "light"
+    }
+  ],
+  "at": "2026-10-13T05:55:37.823Z"
+}

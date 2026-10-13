@@ -4,6 +4,7 @@
  */
 import React from "react";
 import {
+  consumerSafeIntelligenceError,
   fetchCurrentBriefing,
   fetchMediationItems,
   type MediationItem,
@@ -49,11 +50,14 @@ export function IntelligenceForYouExtras({
         const med = await fetchMediationItems({ bearer });
         if (cancelled) return;
         setMediation(med.items.filter((i) => i.card_state !== "dismissed"));
-        if (med._error) errors.push(med._error);
+        // Prefer-real miss: stay calm empty — never paint engineering _error strings.
+        if (med._error) {
+          // Diagnostic only; consumer surface stays quiet when no cards.
+        }
       } catch (e) {
         if (!cancelled) {
           setMediation([]);
-          errors.push(e instanceof Error ? e.message : "Mediation unavailable");
+          errors.push(consumerSafeIntelligenceError(e));
         }
       }
       try {
@@ -63,13 +67,12 @@ export function IntelligenceForYouExtras({
       } catch (e) {
         if (!cancelled) {
           setBriefing(null);
-          errors.push(
-            e instanceof Error ? e.message : "Weekly briefing unavailable",
-          );
+          errors.push(consumerSafeIntelligenceError(e));
         }
       }
       if (!cancelled) {
-        setLoadError(errors.length ? errors.join(" · ") : null);
+        // Only surface a consumer error when nothing else can paint.
+        setLoadError(errors.length ? errors[0] : null);
         setLoaded(true);
       }
     })();
@@ -114,26 +117,18 @@ export function IntelligenceForYouExtras({
     );
   }
 
+  // Calm empty when nothing to show — never paint engineering miss copy into Attention.
   if (!visibleMediation.length && !showBriefing) {
-    if (!loadError) return null;
-    return (
-      <p
-        className="activity-empty"
-        data-testid="intelligence-for-you-error"
-        role="alert"
-      >
-        {loadError}
-      </p>
-    );
+    return null;
   }
 
   return (
     <div data-testid="intelligence-for-you-extras" aria-live="polite">
-      {loadError ? (
+      {loadError && (visibleMediation.length > 0 || showBriefing) ? (
         <p
           className="activity-empty"
           data-testid="intelligence-for-you-error"
-          role="alert"
+          role="status"
         >
           {loadError}
         </p>

@@ -110,6 +110,8 @@ function realMissError(
   status: number,
   error?: Error,
 ): Error {
+  // CONSUMER_TECHNICAL_LEAK = 0 — never surface API/module names to product UI.
+  // Callers that show errors to users must use consumerSafeIntelligenceError().
   const msg =
     error?.message ||
     (status === 404
@@ -122,6 +124,24 @@ function realMissError(
   err.status = status;
   err.surface = surface;
   return err;
+}
+
+/** Consumer-safe Attention copy — no API/module/engineering language. */
+export function consumerSafeIntelligenceError(err: unknown): string {
+  const status =
+    err && typeof err === "object" && "status" in err
+      ? Number((err as { status?: number }).status)
+      : undefined;
+  if (status === 401 || status === 403) {
+    return "Sign in again to refresh this.";
+  }
+  if (status === 404) {
+    return "Nothing new here right now.";
+  }
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return "You're offline. Try again when you're back.";
+  }
+  return "Couldn't load this right now. Pull to refresh.";
 }
 
 function resolveBearer(bearer?: string): string | undefined {

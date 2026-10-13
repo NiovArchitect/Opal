@@ -183,6 +183,7 @@ describe("P0-05 rejected-state regressions", () => {
       "spending-fit",
       "calls-assist",
       "notifications",
+      "appearance",
       "account-security",
       "delete-account",
       "edit-profile",

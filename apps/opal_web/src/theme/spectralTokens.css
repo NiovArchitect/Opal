@@ -555,6 +555,7 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
  * cannot silently revert --accent/--bg. Component accents stay layered.
  * ========================================================================== */
 :root {
+  color-scheme: dark;
   --opal-cyan: #00e5ff;
   --opal-aqua: #00f0d1;
   --opal-gold: #ffc86b;
@@ -584,9 +585,104 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
   --surface: var(--opal-deep-space);
   --surface-raised: var(--opal-slate-ink);
   --text: var(--opal-luminous-white);
+  --muted: var(--opal-muted-secondary, #a9b4c8);
   --accent: var(--opal-cyan);
   --accent-soft: var(--opal-aqua);
   --iris: var(--opal-violet);
+  /* Semantic appearance aliases — dark maps existing Living Void values */
+  --surface-primary: var(--surface);
+  --surface-secondary: var(--surface-raised);
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --accent-primary: var(--accent);
+  --border-primary: var(--border, rgba(169, 180, 200, 0.16));
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-raised);
+  --color-text: var(--text);
+  --color-text-secondary: var(--muted);
+}
+
+/*
+ * Light appearance — remaps surfaces/text/borders only.
+ * Brand accents (cyan / aqua / violet / magenta / coral / gold) stay.
+ * Primitives (--opal-midnight etc.) stay fixed; shells should prefer --bg/--surface.
+ */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f5fa;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: #e8edf5;
+  --glass: rgba(255, 255, 255, 0.94);
+  --chat-pane: #f3f5fa;
+  --bubble-out: #d4eef4;
+  --bubble-out-glow: rgba(0, 140, 168, 0.14);
+  --bubble-in: #e8edf5;
+  --border: rgba(11, 18, 38, 0.12);
+  --border-bright: rgba(0, 140, 168, 0.5);
+  --text: #0b1226;
+  --muted: #5c677a;
+  --accent: var(--opal-cyan);
+  /* Readable accent text on pearl surfaces (WCAG AA); fills still use --accent */
+  --accent-soft: #007a8f;
+  --accent-deep: #006a7c;
+  --iris: var(--opal-violet);
+  --surface-primary: var(--surface);
+  --surface-secondary: var(--surface-raised);
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --accent-primary: var(--accent);
+  --border-primary: var(--border);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-raised);
+  --color-text: var(--text);
+  --color-text-secondary: var(--muted);
+  --opal-composer-fill: #ffffff;
+  --opal-composer-text: #0b1226;
+  --opal-composer-placeholder: #5c677a;
+  --opal-composer-attach-color: #3a4558;
+  --opal-composer-glow: 0 6px 18px rgba(11, 18, 38, 0.08),
+    0 0 18px rgba(0, 229, 255, 0.12);
+  --opal-composer-mic-bg: rgba(0, 122, 143, 0.1);
+  --opal-composer-mic-border: rgba(0, 122, 143, 0.4);
+  --opal-composer-mic-color: #007a8f;
+}
+
+/* Beat technicolorProduction.css shell token overrides under light appearance */
+html[data-theme="light"] [data-technicolor="controlled"],
+html[data-theme="light"] [data-technicolor="full"] {
+  --bg: #f3f5fa;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: #e8edf5;
+  --text: #0b1226;
+  --muted: #5c677a;
+  --accent: var(--opal-cyan);
+  --accent-soft: #007a8f;
+  --surface-primary: var(--surface);
+  --surface-secondary: var(--surface-raised);
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --accent-primary: var(--accent);
+  --border-primary: var(--border, rgba(11, 18, 38, 0.12));
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-text-secondary: var(--muted);
+}
+
+html[data-theme="light"] .gsh-top.gsh-top-spectral,
+html[data-theme="light"] .app .search-dest-373-261,
+html[data-theme="light"] .app .activity-dest-473-141,
+html[data-theme="light"] .app .ogsn-graph-detail.social-dest-373-385 {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html[data-theme="light"] .gsh-story-avatar {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px rgba(0, 229, 255, 0.55);
 }
 
 /* ==========================================================================

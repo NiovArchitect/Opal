@@ -12,21 +12,22 @@ const youSrc = readFileSync(resolve(root, "YouSettingsDestination.tsx"), "utf8")
 const appSrc = readFileSync(resolve(root, "../OpalApp.tsx"), "utf8");
 const clientSrc = readFileSync(resolve(root, "../api/productClient.ts"), "utf8");
 
-describe("Pass 1C settings live-wire classification", () => {
+describe("Pass B settings live-wire classification", () => {
   it("summary counts are stable", () => {
     const s = settingsWireSummary();
     expect(s.green).toBeGreaterThanOrEqual(9);
-    expect(s.honest_gate).toBeGreaterThanOrEqual(1);
-    expect(s.hidden).toBe(0);
+    expect(s.hidden).toBeGreaterThanOrEqual(1);
+    expect(s.honest_gate).toBe(0);
   });
 
-  it("nearby-range is an honest gate (no static pretend range)", () => {
+  it("nearby-range is HIDDEN (no consumer paint, no static pretend range)", () => {
     const row = SETTINGS_WIRE_CLASSIFICATION.find((r) => r.id === "nearby-range");
-    expect(row?.class).toBe("HONEST_GATE");
+    expect(row?.class).toBe("HIDDEN");
     expect(youSrc).toMatch(
       /id:\s*"nearby-range"[\s\S]{0,280}?blockedReason:\s*"Needs discovery-distance preference API/,
     );
     expect(youSrc).not.toMatch(/id:\s*"nearby-range"[\s\S]{0,120}?value:\s*"25 mi"/);
+    expect(youSrc).toMatch(/blockedReason" in row && row\.blockedReason\) return null/);
   });
 
   it("GREEN toggles wire to product preference APIs", () => {
@@ -34,7 +35,9 @@ describe("Pass 1C settings live-wire classification", () => {
     expect(youSrc).toMatch(/getAssistPreference/);
     expect(youSrc).toMatch(/updateHomeTimezone/);
     expect(youSrc).toMatch(/updateProfile/);
+    expect(youSrc).toMatch(/setAppearancePreference/);
     expect(appSrc).toMatch(/updateMessagingPreferences/);
+    expect(appSrc).toMatch(/key:\s*"appearance"/);
     expect(clientSrc).toMatch(/updateAssistPreference|assist_calls/);
     expect(clientSrc).toMatch(/updateMessagingPreferences|read_receipts_enabled/);
   });
@@ -45,7 +48,8 @@ describe("Pass 1C settings live-wire classification", () => {
     }
   });
 
-  it("honest gates never claim Coming soon", () => {
+  it("consumer paint never claims Coming soon or next build", () => {
     expect(youSrc).not.toMatch(/Coming soon/i);
+    expect(youSrc).not.toMatch(/next build/i);
   });
 });

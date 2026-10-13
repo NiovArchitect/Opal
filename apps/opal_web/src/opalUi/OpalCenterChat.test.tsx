@@ -129,7 +129,7 @@ describe("OpalCenterChat", () => {
       "Say hello to Opal",
     );
     expect(container.textContent).toContain("Plan something");
-    expect(container.textContent).toContain("Remember something");
+    expect(container.textContent).not.toContain("Remember something");
     expect(container.textContent).toContain("What's coming up?");
     const input = container.querySelector(
       '[data-testid="opal-center-chat-input"]',

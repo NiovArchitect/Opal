@@ -2,6 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
+  /* Default dark; appearanceTheme sets color-scheme + data-theme on <html>. */
   color-scheme: dark;
   /* Character-close void (Paste W5 R5-12) — align Living Void to opal-character midnight */
   --bg: #050816;
@@ -27,6 +28,13 @@
   --resolve: #3dde99;
   --private: #8b7cff;
   --danger: #e85a5a;
+  /* Semantic aliases (appearance light remaps these via spectralTokens) */
+  --surface-primary: var(--surface);
+  --surface-secondary: var(--surface-raised);
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --accent-primary: var(--accent);
+  --border-primary: var(--border);
   --radius: 22px;
   --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
@@ -14299,6 +14307,46 @@ button.you-settings-row {
   font-weight: 600;
   color: #e8eef8;
 }
+.you-appearance-section {
+  margin: 4px 0 16px;
+}
+.you-appearance-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 8px 12px;
+}
+.you-appearance-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 1px solid var(--border-primary, rgba(145, 158, 178, 0.28));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--surface-secondary, rgba(18, 24, 38, 0.45));
+  color: var(--text-primary, #e8eef8);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.you-appearance-option strong {
+  font-size: 0.88rem;
+}
+.you-appearance-option span {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-secondary, #919eb2);
+}
+.you-appearance-option.is-selected {
+  border-color: rgba(0, 229, 255, 0.55);
+  background: rgba(0, 229, 255, 0.1);
+}
+html[data-theme="light"] .you-appearance-option.is-selected {
+  border-color: rgba(0, 122, 143, 0.55);
+  background: rgba(0, 229, 255, 0.12);
+}
+
 .you-spending-options {
   display: flex;
   flex-direction: column;
@@ -17701,9 +17749,11 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   align-items: center;
   justify-content: flex-start;
   gap: 4px;
-  /* Paste W3 — character presence needs air; safe-top respected */
-  padding: calc(8px + env(safe-area-inset-top, 0px)) 20px 8px;
-  min-height: 96px;
+  /* Compact presence — character must not dominate day copy */
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 20px 4px;
+  min-height: 72px;
+  max-height: 96px;
+  overflow: visible;
 }
 .opal-center-v2-wordmark { color: #f8faff; }
 .opal-center-v2-wordmark-aside {
@@ -17719,6 +17769,13 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   display: flex;
   justify-content: center;
   padding-top: 4px;
+  flex: 0 0 auto;
+  max-height: 64px;
+}
+.opal-center-v2-presence .opal-living-character,
+.opal-center-v2-presence [data-testid="opal-center-presence"] {
+  max-width: 56px;
+  max-height: 56px;
 }
 .opal-center-v2-refresh {
   position: absolute;
@@ -20667,6 +20724,27 @@ html.opal-native-host .opal-center-chat-input {
   background: transparent;
   padding: 8px 0 !important;
 }
+/* Conversational Meet turns — one primary action; prior turns settle quietly. */
+.hs-meet-turn {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+.hs-meet-turn.is-primary {
+  opacity: 1;
+  transform: none;
+}
+.hs-meet-turn.is-settled {
+  opacity: 0.55;
+  transform: scale(0.98);
+  pointer-events: none;
+}
+.hs-meet-turn.is-settled .hs-meet-input,
+.hs-meet-turn.is-settled .hs-pill,
+.hs-meet-turn.is-settled button {
+  pointer-events: none;
+}
 .hs-meet-sticky-continue {
   flex: 0 0 auto;
   position: sticky;
@@ -20825,11 +20903,31 @@ html.opal-native-host .opal-center-chat-input {
 .hs-dual-path-primary {
   width: 100%;
 }
+/* Idle primary outline — brand hint without looking granted/selected. */
 .hs-pill.hs-pill-primary {
-  border-color: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 65%, transparent);
-  background: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 18%, transparent);
+  border-color: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 42%, transparent);
+  background: transparent;
   color: var(--opal-composer-send-bg, #00e5ff);
-  box-shadow: 0 0 18px rgba(0, 229, 255, 0.28);
+  box-shadow: none;
+}
+/* Permission Allow idle ≠ granted. Granted / skipped settle to muted. */
+.hs-perm-allow.hs-pill-primary {
+  border-color: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 50%, transparent);
+  background: rgba(0, 229, 255, 0.06);
+  color: #b8f7ff;
+  box-shadow: none;
+}
+.hs-perm-row[data-perm-decision="allowed"] .hs-perm-allow,
+.hs-perm-allow:disabled {
+  border-color: rgba(138, 150, 168, 0.35);
+  background: rgba(138, 150, 168, 0.12);
+  color: #c9d2e0;
+  box-shadow: none;
+  opacity: 1;
+}
+.hs-perm-row[data-perm-decision="skipped"] .hs-perm-allow,
+.hs-perm-row[data-perm-decision="skipped"] .hs-perm-not-now {
+  opacity: 0.55;
 }
 /* Paste W3 2.4 — selected day/when pill unmissable (filled + glow + check). */
 .hs-pill.is-selected,
@@ -20844,6 +20942,23 @@ html.opal-native-host .opal-center-chat-input {
   box-shadow:
     0 0 22px rgba(101, 115, 235, 0.45),
     inset 0 0 12px rgba(95, 174, 207, 0.18);
+}
+/* Assist Enable looks selected only after choice. */
+.hs-assist-enable.hs-pill-primary:not(:disabled) {
+  border-color: color-mix(in srgb, var(--opal-composer-send-bg, #00e5ff) 50%, transparent);
+  background: rgba(0, 229, 255, 0.06);
+  box-shadow: none;
+}
+.hs-assist-row[data-assist-choice="enabled"] .hs-assist-enable,
+.hs-assist-enable:disabled {
+  border-color: transparent;
+  background:
+    linear-gradient(#0b1226, #0b1226) padding-box,
+    var(--opal-ear-grad, linear-gradient(135deg, #6573EB, #5FAECF, #DD70E9, #DE58AD)) border-box;
+  border: 2px solid transparent;
+  color: #f8faff;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(101, 115, 235, 0.35);
 }
 .hs-people-tags {
   display: flex;

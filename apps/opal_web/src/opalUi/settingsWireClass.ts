@@ -1,8 +1,9 @@
 /**
- * Pass 1C — Settings live-wire classification.
+ * Pass B — Settings consumer wire classification.
  * GREEN = UI → API → DB → behavior (or honest local-only).
- * HONEST_GATE = visible + blockedReason (no fake connected state).
- * HIDDEN = not shown (no user value yet) — reserved; prefer honest gate when listed.
+ * HIDDEN = not shown to consumers (no working behavior / technical leak).
+ * HONEST_GATE deprecated for consumer paint under CONSUMER_TECHNICAL_LEAK=0 —
+ * blocked inventory stays in YouSettingsDestination SCREENS data but is not rendered.
  */
 export type SettingsWireClass = "GREEN" | "HONEST_GATE" | "HIDDEN";
 
@@ -16,8 +17,8 @@ export type SettingsWireRow = {
 };
 
 /**
- * Canonical Pass 1C classification for rows that users can reach.
- * Re-audit when a preference API ships.
+ * Canonical classification for rows that users can reach after Pass B hide.
+ * Re-audit when a preference API ships and a row is un-hidden.
  */
 export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
   {
@@ -81,7 +82,7 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     title: "Delete account",
     screen: "account-security",
     class: "GREEN",
-    wire: "Nav opens delete-account; confirm-delete remains HONEST_GATE until API ships",
+    wire: "Nav opens delete-account; self-serve delete CTA hidden until API ships",
   },
   {
     id: "keep-account",
@@ -91,11 +92,18 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     wire: "Local dismiss back to Account — no fake delete",
   },
   {
+    id: "appearance-theme",
+    title: "Appearance",
+    screen: "appearance",
+    class: "GREEN",
+    wire: "UI → setAppearancePreference → localStorage (opal.appearance.theme.v1) → data-theme on documentElement",
+  },
+  {
     id: "nearby-range",
     title: "Nearby range",
     screen: "feed-discovery",
-    class: "HONEST_GATE",
-    wire: "Needs discovery-distance preference API — not wired yet.",
+    class: "HIDDEN",
+    wire: "Pass B hide — discovery-distance preference API not shipped",
   },
 ];
 

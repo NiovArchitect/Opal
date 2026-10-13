@@ -482,7 +482,7 @@ export function OpalCenterLifeGraph({
         <OpalWordmark height={34} className="opal-center-v2-wordmark opal-center-v2-wordmark-aside" data-testid="opal-center-lifegraph-wordmark" />
         <div className="opal-center-v2-presence">
           <OpalLivingCharacter
-            size={132}
+            size={56}
             testId="opal-center-presence"
             requestInFlight={resolving}
             speakQueue={speakQueue}

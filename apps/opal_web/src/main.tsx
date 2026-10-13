@@ -5,6 +5,10 @@ import { installRuntimeAuthority } from "./runtime/runtimeAuthority";
 import { persistFounderSeedFromUrl } from "./opalUi/founderGraphSeed";
 import { App } from "./App";
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
+import {
+  applyStoredAppearanceTheme,
+  installAppearanceSystemListener,
+} from "./theme/appearanceTheme";
 import "./styles.css";
 import "./theme/technicolorProduction.css";
 /**
@@ -18,6 +22,10 @@ import "./theme/technicolorProduction.css";
 import "./theme/spectralTokens.css";
 /** Paste W: shared Opal composer + plan-state tokens (after Brand V4 cascade). */
 import "./theme/opalComposerTokens.css";
+
+/** Appearance before React paint — data-theme + color-scheme on <html>. */
+applyStoredAppearanceTheme();
+installAppearanceSystemListener();
 
 /**
  * Checkpoint-specific founder URL law:

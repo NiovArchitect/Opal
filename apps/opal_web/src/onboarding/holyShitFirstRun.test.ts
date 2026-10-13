@@ -54,12 +54,12 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(meet).toMatch(/askSelfName|What's your name/);
     expect(meet).toMatch(/askPeople|ask_people/);
     expect(meet).toMatch(/askPermissions|ask_permissions/);
-    expect(meet).toMatch(/hs-assist-row/);
-    expect(meet).toMatch(/hs-assist-enable/);
-    expect(meet).toMatch(/hs-assist-not-now/);
+    // Assist execution claim hidden in Meet (VISIBLE_CAPABILITY law); gate retained.
+    expect(meet).toMatch(/assistRowVisibleInMeet/);
     expect(meet).toMatch(/hs-meet-continue/);
     expect(meet).toMatch(/updateAssistPreference/);
     expect(meet).toMatch(/hs-meet-sticky-continue|hs-meet-continue/);
+    expect(meet).toMatch(/meetTurn|hs-meet-turn/);
     // Phase 0 kills these from the first-run render path
     expect(meet).not.toMatch(/OpalWorking/);
     expect(meet).not.toMatch(/TrustContractCard/);
@@ -107,6 +107,8 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).not.toMatch(/in You/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toContain(HOLY_SHIT_COPY.assistRow);
+    expect(HOLY_SHIT_COPY.assistRowVisibleInMeet).toBe(false);
+    expect(HOLY_SHIT_COPY.assistRow).not.toMatch(/reservations/);
     expect(copy).toContain(HOLY_SHIT_COPY.assistEnable);
     expect(copy).toContain(HOLY_SHIT_COPY.assistNotNow);
     expect(copy).toContain(HOLY_SHIT_COPY.meetContinue);
@@ -122,7 +124,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(HOLY_SHIT_COPY.permLocationWhy).toBe("So nearby plans and places just work.");
     expect(HOLY_SHIT_COPY.permNotNow).toBe("Not now");
     expect(HOLY_SHIT_COPY.permAllow).toBe("Allow");
-    expect(copy).toMatch(/Let Opal place calls and make reservations/);
+    expect(copy).not.toMatch(/Let Opal place calls and make reservations/);
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
     expect(copy).not.toMatch(/3–5 people/);
@@ -158,16 +160,20 @@ describe("Holy Shit first-run Moments 1–5", () => {
     // Phone gate: Continue without inviting then stay / finish via sticky Continue
     expect(meet).toMatch(/hs-phone-input|pendingPhonePerson/);
     expect(meet).toMatch(/phoneSkipInvite|hs-phone-skip-invite/);
-    // Continue lands on Opal Center ambient — never setTab("home")
+    // HOME_SOCIAL_FIRST — Meet complete lands social Home, not Center ambient
     expect(meet).toMatch(/onSkipToAuth/);
     expect(app).toMatch(/advanceMeetOpalToAuth/);
-    expect(app).toMatch(/setOpalAmbientOpen\(true\)/);
     const advanceIdx = app.indexOf("const advanceMeetOpalToAuth");
     const advanceChunk = app.slice(advanceIdx, advanceIdx + 1200);
-    expect(advanceChunk).toMatch(/setOpalAmbientOpen\(true\)/);
-    expect(advanceChunk).not.toMatch(/setTab\("home"\)/);
+    expect(advanceChunk).toMatch(/setTab\("home"\)/);
+    expect(advanceChunk).toMatch(/setOpalAmbientOpen\(false\)/);
+    expect(advanceChunk).not.toMatch(/setOpalAmbientOpen\(true\)/);
     expect(app).toMatch(/onAfterPhoneVerify/);
     expect(app).toMatch(/handleAfterPhoneVerify/);
+    const afterIdx = app.indexOf("const handleAfterPhoneVerify");
+    const afterChunk = app.slice(afterIdx, afterIdx + 900);
+    expect(afterChunk).toMatch(/setTab\("home"\)/);
+    expect(afterChunk).toMatch(/setOpalAmbientOpen\(false\)/);
     expect(gate).toMatch(/opal_founder_seed/);
     expect(app).toMatch(/consumeResetFirstRunFlag/);
     // W5/W6: greeting → form (no multi-screen ask_* gates)
@@ -185,19 +191,21 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const nameInputIdx = meet.indexOf("hs-name-input", peopleComposerIdx);
     expect(statusIdx).toBeGreaterThan(peopleComposerIdx);
     expect(nameInputIdx).toBeGreaterThan(statusIdx);
-    // W8 document order: greeting → name → permissions → friend → assist → sticky continue
+    // W8 document order: greeting → name → permissions → friend → sticky continue
+    // (Assist row gated off for false capability; conversational turns preserve order.)
     const greetIdx = meet.indexOf("hs-opal-greeting");
     const selfNameIdx = meet.indexOf("hs-self-name-input");
     const permIdx = meet.indexOf("hs-perm-list");
     const friendIdx = meet.indexOf("hs-name-input");
-    const assistIdx = meet.indexOf("hs-assist-row");
     const continueIdx = meet.indexOf("hs-meet-continue");
     expect(greetIdx).toBeGreaterThan(-1);
     expect(selfNameIdx).toBeGreaterThan(greetIdx);
     expect(permIdx).toBeGreaterThan(selfNameIdx);
     expect(friendIdx).toBeGreaterThan(permIdx);
-    expect(assistIdx).toBeGreaterThan(friendIdx);
-    expect(continueIdx).toBeGreaterThan(assistIdx);
+    expect(continueIdx).toBeGreaterThan(friendIdx);
+    expect(meet).toMatch(/hs-meet-turn-name/);
+    expect(meet).toMatch(/hs-meet-turn-permissions/);
+    expect(meet).toMatch(/hs-meet-turn-friend/);
     // Continue requires every permission decided (Allow or Not now)
     expect(meet).toMatch(/permissionsDecided/);
     expect(meet).toMatch(/permDecisions\[kind\] === "allowed" \|\| permDecisions\[kind\] === "skipped"/);

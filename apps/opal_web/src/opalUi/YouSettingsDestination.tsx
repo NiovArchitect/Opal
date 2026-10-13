@@ -57,6 +57,12 @@ import {
   relationshipTypeLabel,
 } from "./relationshipTypes";
 import { PersonMemoryView } from "./intelligence/PersonMemoryView";
+import {
+  APPEARANCE_OPTIONS,
+  readAppearancePreference,
+  setAppearancePreference,
+  type AppearancePreference,
+} from "../theme/appearanceTheme";
 
 export type YouSettingKey =
   | "edit-profile"
@@ -69,6 +75,7 @@ export type YouSettingKey =
   | "linked-devices"
   | "safety"
   | "spending-fit"
+  | "appearance"
   | "account-security"
   | "delete-account";
 
@@ -83,6 +90,7 @@ export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
   "linked-devices": "618:2003",
   safety: "618:2060",
   "spending-fit": "618:1662",
+  appearance: "618:1344",
   "account-security": "618:2180",
   "delete-account": "618:2243",
 };
@@ -311,7 +319,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "location-law",
-        text: "Opal knows your timezone, never your precise location. GPS is rejected server-side.",
+        text: "Opal knows your timezone, never your precise location.",
       },
     ],
   },
@@ -467,7 +475,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "notif-law",
-        text: "Messages & calls and Read receipts save today. Other push categories wait on Expo Dev Client rebuild with APNs.",
+        text: "Messages & calls and Read receipts save for this account.",
       },
     ],
   },
@@ -491,13 +499,8 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "note",
-        id: "link-qr-soon",
-        text: "QR linking needs a short-lived signed desktop session API — not in this build. Sign in on web with the same phone OTP for now.",
-      },
-      {
-        kind: "note",
         id: "device-note",
-        text: "Linking will use a short-lived QR — never your password. Revoke anytime once the device roster ships.",
+        text: "This phone is your active session. Sign in on web with the same phone number when you need another device.",
       },
       {
         kind: "nav",
@@ -550,7 +553,18 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "safety-note",
-        text: "Safety tools are yours to use quietly. Blocking is private to the other person. Backend TrustSafety exists — list UIs are the missing piece.",
+        text: "Safety tools are yours to use quietly. Blocking is private to the other person.",
+      },
+    ],
+  },
+  appearance: {
+    title: "Appearance",
+    lede: "Dark is Opal’s strongest look. Light keeps the same accents on pearl surfaces.",
+    rows: [
+      {
+        kind: "note",
+        id: "appearance-theme",
+        text: "System follows this device. Your choice saves on this phone and applies immediately.",
       },
     ],
   },
@@ -664,22 +678,14 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         text: "This permanently removes your account.\nYour published content, relationship edges and account access will be handled according to the deletion policy. Active provider obligations must be resolved first.",
       },
       {
-        kind: "action",
-        id: "confirm-delete",
-        title: "Delete my account",
-        destructive: true,
-        blockedReason:
-          "Account deletion endpoint is not exposed yet. Contact support to close your account.",
+        kind: "note",
+        id: "confirm-delete-note",
+        text: "To close your account, contact support. Self-serve delete is not available yet.",
       },
       {
         kind: "action",
         id: "keep-account",
         title: "Keep my account",
-      },
-      {
-        kind: "note",
-        id: "delete-law",
-        text: "Server must revoke sessions and capabilities immediately after successful deletion. Do not pretend deletion succeeded before the authoritative result.",
       },
     ],
   },
@@ -855,47 +861,15 @@ export function YouSettingsDestination({
       {setting === "edit-profile" ? (
         <div className="you-settings-edit-avatar" aria-hidden>
           <div className="you-settings-edit-circle">{initials}</div>
-          <span
-            className="you-settings-blocked"
-            data-testid="you-setting-photo-blocked"
-            aria-label="Photo upload needs media storage"
-          >
-            Photo upload needs media storage — next build
-          </span>
         </div>
       ) : null}
 
       <div className="you-settings-body">
         {screen.rows.map((row) => {
+          // Pass B / CONSUMER_TECHNICAL_LEAK=0: do not paint blocked rows to consumers.
+          if ("blockedReason" in row && row.blockedReason) return null;
           if (row.kind === "toggle") {
             const on = toggles[row.id] ?? false;
-            // Blocked toggles: visible, not interactive, honest external/product reason.
-            if (row.blockedReason) {
-              return (
-                <div
-                  key={row.id}
-                  className="you-settings-row you-settings-row-blocked"
-                  data-testid={`you-setting-row-${row.id}`}
-                >
-                  <div className="you-settings-row-copy">
-                    <strong>{row.title}</strong>
-                    {row.subtitle ? (
-                      <details className="you-settings-why">
-                        <summary>Why this is waiting</summary>
-                        <p>{row.subtitle}</p>
-                      </details>
-                    ) : null}
-                  </div>
-                  <span
-                    className="you-settings-blocked"
-                    data-testid={`you-setting-blocked-${row.id}`}
-                    aria-label={`${row.title}: ${row.blockedReason}`}
-                  >
-                    {row.blockedReason}
-                  </span>
-                </div>
-              );
-            }
             return (
               <div key={row.id} className="you-settings-row" data-testid={`you-setting-row-${row.id}`}>
                 <div className="you-settings-row-copy">
@@ -948,33 +922,7 @@ export function YouSettingsDestination({
                 </div>
               );
             }
-            // Dead / blocked nav rows must not look clickable.
-            if (!row.opens || row.blockedReason) {
-              return (
-                <div
-                  key={row.id}
-                  className="you-settings-row you-settings-row-blocked"
-                  data-testid={`you-setting-row-${row.id}`}
-                >
-                  <div className="you-settings-row-copy">
-                    <strong>{row.title}</strong>
-                    {row.subtitle ? (
-                      <details className="you-settings-why">
-                        <summary>Why this is waiting</summary>
-                        <p>{row.subtitle}</p>
-                      </details>
-                    ) : null}
-                  </div>
-                  <span
-                    className="you-settings-blocked"
-                    data-testid={`you-setting-blocked-${row.id}`}
-                    aria-label={`${row.title}: ${row.blockedReason || "Not available yet"}`}
-                  >
-                    {row.blockedReason || "Not available in this build"}
-                  </span>
-                </div>
-              );
-            }
+            if (!row.opens) return null;
             return (
               <button
                 key={row.id}
@@ -1001,28 +949,6 @@ export function YouSettingsDestination({
             );
           }
           if (row.kind === "action") {
-            if (row.blockedReason) {
-              return (
-                <div
-                  key={row.id}
-                  className={`you-settings-row you-settings-row-blocked${
-                    row.destructive ? " is-destructive" : ""
-                  }`}
-                  data-testid={`you-setting-row-${row.id}`}
-                >
-                  <div className="you-settings-row-copy">
-                    <strong>{row.title}</strong>
-                  </div>
-                  <span
-                    className="you-settings-blocked"
-                    data-testid={`you-setting-blocked-${row.id}`}
-                    aria-label={`${row.title}: ${row.blockedReason}`}
-                  >
-                    {row.blockedReason}
-                  </span>
-                </div>
-              );
-            }
             return (
               <button
                 key={row.id}
@@ -1099,24 +1025,12 @@ export function YouSettingsDestination({
           }
           if (row.kind === "field") {
             const key = row.id;
-            const blocked = Boolean(row.blockedReason);
             return (
               <label key={row.id} className="you-settings-field" data-testid={`you-setting-row-${row.id}`}>
-                <span>
-                  {row.label}
-                  {blocked ? (
-                    <span
-                      className="you-settings-blocked"
-                      data-testid={`you-setting-blocked-${row.id}`}
-                    >
-                      {row.blockedReason}
-                    </span>
-                  ) : null}
-                </span>
+                <span>{row.label}</span>
                 <input
                   value={fields[key] ?? ""}
                   placeholder={row.placeholder}
-                  disabled={blocked}
                   onChange={(e) =>
                     setFields((f) => ({ ...f, [key]: e.target.value }))
                   }
@@ -1130,6 +1044,7 @@ export function YouSettingsDestination({
             </p>
           );
         })}
+        {setting === "appearance" ? <AppearanceThemeSection /> : null}
         {setting === "spending-fit" ? (
           <SpendingComfortSection session={session ?? null} />
         ) : null}
@@ -1182,13 +1097,7 @@ export const ACT_ON_BEHALF_CAPABILITIES: ActOnBehalfCapability[] = [
     title: "Let Opal make reservations",
     description: "Opal can hold tables and book on your behalf.",
   },
-  {
-    id: "messaging_business",
-    title: "Message businesses for you",
-    description: "Opal can message businesses on your behalf.",
-    blockedReason:
-      "Business messaging needs a Twilio/business channel connector — not configured.",
-  },
+  // messaging_business hidden from consumer until channel connector ships (Pass B).
 ];
 
 function isActiveGrant(proof: ConsentProof, now = Date.now()): boolean {
@@ -1351,6 +1260,46 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
   );
 }
 
+/** Appearance — System / Dark / Light. Local-only GREEN wire. */
+export function AppearanceThemeSection() {
+  const [preference, setPreference] = useState<AppearancePreference>(() =>
+    readAppearancePreference(),
+  );
+
+  const onSelect = (next: AppearancePreference) => {
+    const applied = setAppearancePreference(next);
+    setPreference(applied.preference);
+  };
+
+  return (
+    <section
+      className="you-appearance-section"
+      aria-label="Theme"
+      data-testid="appearance-theme-picker"
+    >
+      <div className="you-appearance-options" role="radiogroup" aria-label="Appearance">
+        {APPEARANCE_OPTIONS.map((opt) => {
+          const selected = preference === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              className={`you-appearance-option${selected ? " is-selected" : ""}`}
+              data-testid={`appearance-theme-${opt.value}`}
+              onClick={() => onSelect(opt.value)}
+            >
+              <strong>{opt.label}</strong>
+              <span>{opt.description}</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 type SpendingComfortProps = {
   session: ProductSession | null;
 };
@@ -1498,8 +1447,9 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
       );
       if (res.kind === "disabled" || res.loadable === false) {
         setWalletLoadNote(
-          res.message ||
-            "Wallet loading is not connected yet. Opal money stays at $0 until Stripe is enabled.",
+          res.message && !/stripe/i.test(res.message)
+            ? res.message
+            : "Loading Opal money is not available yet. Your balance stays at $0.",
         );
       } else if (res.wallet) {
         setWallet(res.wallet);
@@ -1507,9 +1457,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
         void refresh();
       }
     } catch {
-      setWalletLoadNote(
-        "Wallet loading is not connected yet. See Settings after Stripe is enabled.",
-      );
+      setWalletLoadNote("Loading Opal money is not available yet. Your balance stays at $0.");
     }
   };
 
@@ -1618,7 +1566,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
           </p>
         ) : (
           <p className="you-trust-copy">
-            Load stays disabled until Stripe is connected (honest - no fake money).
+            Load adds Opal money when payments are available. No fake balances.
           </p>
         )}
         {walletTx.length > 0 ? (

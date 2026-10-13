@@ -1,6 +1,6 @@
 /**
- * Screenshot-bug regression: Feed & discovery + Privacy & audience must never
- * show user-facing "Coming soon". Honest blockedReason only.
+ * Screenshot-bug + Pass B regression: Feed & discovery + Privacy must never
+ * show "Coming soon", and blocked inventory must not paint to consumers.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -20,7 +20,6 @@ function stripComments(src: string): string {
 const code = stripComments(youSrc);
 
 function screenBlock(key: string): string {
-  // Match `privacy: {` or `"feed-discovery": {` through the next top-level screen key.
   const re = new RegExp(
     `(?:^|\\n)\\s*(?:${key}|"${key}"):\\s*\\{([\\s\\S]*?)\\n\\s*(?:[a-zA-Z"][\\w-]*"|[a-zA-Z_][\\w-]*):\\s*\\{`,
     "m",
@@ -30,13 +29,14 @@ function screenBlock(key: string): string {
   return m![1];
 }
 
-describe("You settings — zero Coming soon (screenshot bug 1)", () => {
+describe("You settings — zero Coming soon + Pass B hide", () => {
   it("has no user-facing Coming soon anywhere in YouSettingsDestination", () => {
     expect(code).not.toMatch(/Coming soon/i);
     expect(code).not.toMatch(/comingSoon\s*:/);
+    expect(code).not.toMatch(/next build/i);
   });
 
-  it("Privacy & audience rows use honest blockedReason", () => {
+  it("Privacy inventory keeps blockedReason data but render skips blocked rows", () => {
     const block = screenBlock("privacy");
     expect(block).toMatch(/title:\s*"Privacy & audience"/);
     for (const id of [
@@ -47,16 +47,16 @@ describe("You settings — zero Coming soon (screenshot bug 1)", () => {
       "blocked-muted",
     ]) {
       expect(block).toContain(`id: "${id}"`);
-      // Each listed row must carry blockedReason in the same object literal vicinity.
       const rowRe = new RegExp(
         `id:\\s*"${id}"[\\s\\S]{0,220}?blockedReason:\\s*"[^"]+"|blockedReason:\\s*"[^"]+"[\\s\\S]{0,220}?id:\\s*"${id}"`,
       );
       expect(block, `${id} missing blockedReason`).toMatch(rowRe);
     }
+    expect(code).toMatch(/blockedReason" in row && row\.blockedReason\) return null/);
     expect(block).not.toMatch(/Coming soon/i);
   });
 
-  it("Feed & discovery rows use honest blockedReason", () => {
+  it("Feed & discovery inventory keeps blockedReason; nearby-range not pretend-live", () => {
     const block = screenBlock("feed-discovery");
     expect(block).toMatch(/title:\s*"Feed & discovery"/);
     for (const id of [
@@ -71,7 +71,6 @@ describe("You settings — zero Coming soon (screenshot bug 1)", () => {
       );
       expect(block, `${id} missing blockedReason`).toMatch(rowRe);
     }
-    // nearby-range: Pass 1C — static "25 mi" was authority leakage; honest gate now.
     const nearbyObj = block.match(/\{[^{}]*id:\s*"nearby-range"[^{}]*\}/);
     expect(nearbyObj?.[0], "nearby-range object").toBeTruthy();
     expect(nearbyObj![0]).toMatch(/blockedReason:\s*"Needs discovery-distance preference API/);

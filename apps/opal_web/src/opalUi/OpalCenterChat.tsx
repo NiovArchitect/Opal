@@ -35,7 +35,8 @@ import { OpalLivingCharacter } from "./OpalLivingCharacter";
 
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
-const CHIPS = ["Plan something", "Remember something", "What's coming up?"] as const;
+/** Pass 2 memory intelligence LOCKED — no "Remember something" consumer chip. */
+const CHIPS = ["Plan something", "What's coming up?"] as const;
 const SEND_FAIL = "Couldn't send. Tap to retry";
 const LOAD_FAIL = "Couldn't load conversation";
 const MAX_BODY = 2000;

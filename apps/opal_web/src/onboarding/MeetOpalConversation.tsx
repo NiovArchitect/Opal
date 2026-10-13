@@ -53,6 +53,9 @@ type PermDecision = "pending" | "allowed" | "skipped";
 
 type AssistChoice = "pending" | "enabled" | "not_now";
 
+/** Conversational turns — one primary action at a time (order unchanged). */
+type MeetTurn = "name" | "permissions" | "friend" | "ready";
+
 /** Persist via existing contacts/resolve (do not call a missing onboarding route). */
 async function persistOnboardingContact(
   person: HolyShitPerson,
@@ -235,6 +238,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     }),
   );
   const [assistChoice, setAssistChoice] = useState<AssistChoice>("pending");
+  const [meetTurn, setMeetTurn] = useState<MeetTurn>("name");
   const [finishing, setFinishing] = useState(false);
   const [contactPersisted, setContactPersisted] = useState(false);
   const [contactsStatus, setContactsStatus] = useState<string | null>(null);
@@ -556,6 +560,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setConfirmedLine(null);
     setContactsStatus(null);
     setPullingName(null);
+    setMeetTurn("ready");
   };
 
   const setAssist = (enabled: boolean) => {
@@ -622,14 +627,31 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const permissionsDecided = MEET_OPAL_PERMISSION_ORDER.every(
     (kind) => permDecisions[kind] === "allowed" || permDecisions[kind] === "skipped",
   );
+
+  useEffect(() => {
+    if (meetTurn === "permissions" && permissionsDecided) {
+      setMeetTurn("friend");
+    }
+  }, [meetTurn, permissionsDecided]);
+
+  useEffect(() => {
+    if (meetTurn === "friend" && (people.length > 0 || contactPersisted)) {
+      setMeetTurn("ready");
+    }
+  }, [meetTurn, people.length, contactPersisted]);
+
   const canContinue =
-    selfNameDraft.trim().length > 0 && permissionsDecided && !finishing;
+    selfNameDraft.trim().length > 0 &&
+    permissionsDecided &&
+    (meetTurn === "friend" || meetTurn === "ready") &&
+    !finishing;
 
   return (
     <div
       className="hs-meet-opal"
       data-testid="meet-opal-conversation"
       data-hs-phase={phase}
+      data-meet-turn={meetTurn}
       data-orb-mode={orbMode}
       data-people-count={people.length}
       data-first-run-stage="meet_opal"
@@ -652,7 +674,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
           <span className="hs-meet-skip-spacer" aria-hidden />
         )}
         <div className="hs-meet-orb-wrap">
-          <OpalPresenceOrb mode={orbMode} size={80} showStatus />
+          <OpalPresenceOrb mode={orbMode} size={56} showStatus />
         </div>
       </div>
 
@@ -668,7 +690,12 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
           {showForm ? (
             <>
-              {/* ask_name section */}
+              {/* ask_name section — primary on meetTurn=name */}
+              <div
+                className={`hs-meet-turn${meetTurn === "name" ? " is-primary" : " is-settled"}`}
+                data-meet-turn-section="name"
+                data-testid="hs-meet-turn-name"
+              >
               <OpalLine
                 text={HOLY_SHIT_COPY.askSelfName}
                 testId="hs-opal-ask-self-name"
@@ -697,8 +724,25 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                   ) : null}
                 </div>
               </div>
+              {meetTurn === "name" && selfNameDraft.trim() ? (
+                <button
+                  type="button"
+                  className="hs-meet-send hs-meet-send-block"
+                  data-testid="hs-name-turn-continue"
+                  onClick={() => setMeetTurn("permissions")}
+                >
+                  Continue
+                </button>
+              ) : null}
+              </div>
 
-              {/* ask_permissions — compact rows */}
+              {/* ask_permissions — primary on meetTurn=permissions */}
+              {(meetTurn === "permissions" || meetTurn === "friend" || meetTurn === "ready") ? (
+              <div
+                className={`hs-meet-turn${meetTurn === "permissions" ? " is-primary" : " is-settled"}`}
+                data-meet-turn-section="permissions"
+                data-testid="hs-meet-turn-permissions"
+              >
               <OpalLine
                 text={HOLY_SHIT_COPY.askPermissions}
                 testId="hs-opal-ask-permissions"
@@ -750,8 +794,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                   })}
                 </ul>
               </div>
+              </div>
+              ) : null}
 
-              {/* ask_people — W4 dual-path */}
+              {/* ask_people — primary on meetTurn=friend|ready */}
+              {(meetTurn === "friend" || meetTurn === "ready") ? (
+              <div
+                className={`hs-meet-turn${meetTurn === "friend" ? " is-primary" : " is-settled"}`}
+                data-meet-turn-section="friend"
+                data-testid="hs-meet-turn-friend"
+              >
               <OpalLine
                 text={HOLY_SHIT_COPY.askPeople}
                 testId="hs-opal-ask-name"
@@ -910,34 +962,39 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 </div>
               )}
 
-              {/* Opal Assist — ONE row */}
-              <div
-                className="hs-assist-row"
-                data-testid="hs-assist-row"
-                data-assist-choice={assistChoice}
-              >
-                <p className="hs-assist-row-copy">{HOLY_SHIT_COPY.assistRow}</p>
-                <div className="hs-assist-row-actions" role="group" aria-label="Opal Assist">
-                  <button
-                    type="button"
-                    className="hs-pill hs-pill-primary hs-assist-enable"
-                    data-testid="hs-assist-enable"
-                    disabled={assistChoice === "enabled"}
-                    onClick={() => setAssist(true)}
-                  >
-                    {HOLY_SHIT_COPY.assistEnable}
-                  </button>
-                  <button
-                    type="button"
-                    className="hs-pill hs-assist-not-now"
-                    data-testid="hs-assist-not-now"
-                    disabled={assistChoice === "not_now"}
-                    onClick={() => setAssist(false)}
-                  >
-                    {HOLY_SHIT_COPY.assistNotNow}
-                  </button>
-                </div>
               </div>
+              ) : null}
+
+              {/* VISIBLE_CAPABILITY = WORKING_CAPABILITY — hide call/reservation Assist claim in Meet. */}
+              {HOLY_SHIT_COPY.assistRowVisibleInMeet ? (
+                <div
+                  className="hs-assist-row"
+                  data-testid="hs-assist-row"
+                  data-assist-choice={assistChoice}
+                >
+                  <p className="hs-assist-row-copy">{HOLY_SHIT_COPY.assistRow}</p>
+                  <div className="hs-assist-row-actions" role="group" aria-label="Opal Assist">
+                    <button
+                      type="button"
+                      className="hs-pill hs-pill-primary hs-assist-enable"
+                      data-testid="hs-assist-enable"
+                      disabled={assistChoice === "enabled"}
+                      onClick={() => setAssist(true)}
+                    >
+                      {HOLY_SHIT_COPY.assistEnable}
+                    </button>
+                    <button
+                      type="button"
+                      className="hs-pill hs-assist-not-now"
+                      data-testid="hs-assist-not-now"
+                      disabled={assistChoice === "not_now"}
+                      onClick={() => setAssist(false)}
+                    >
+                      {HOLY_SHIT_COPY.assistNotNow}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </>
           ) : null}
         </div>

@@ -49,10 +49,16 @@ export const HOLY_SHIT_COPY = {
  permSkip: "Not now",
  permNotNow: "Not now",
  permContinue: "Continue",
- /** Paste W5 — Assist preference as one Meet Opal row (not a screen). */
- assistRow: "Let Opal place calls and make reservations for you.",
+ /**
+  * VISIBLE_CAPABILITY = WORKING_CAPABILITY.
+  * Call/reservation execution is not end-to-end in founder staging consumer onboarding —
+  * assist row is hidden from Meet (see MeetOpalConversation). Copy retained for tests/docs only.
+  */
+ assistRow: "Let Opal help on calls when you both turn Assist on.",
  assistEnable: "Enable",
  assistNotNow: "Not now",
+ /** Consumer Meet must not show false execution authority. */
+ assistRowVisibleInMeet: false as const,
  meetContinue: "Continue",
  askPeople: "Who's someone you've been meaning to catch up with?",
  /** @deprecated alias - one-person ask */

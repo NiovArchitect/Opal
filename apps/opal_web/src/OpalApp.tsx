@@ -102,6 +102,7 @@ import {
   requestReservation,
   resumeInviteContinuation,
   saveSession,
+  loadProfile,
   setMemoryAccessToken,
   sendMessage,
   sendVoiceMessage,
@@ -2853,9 +2854,9 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W4 / W8 — after OTP, always open Meet Opal (Name → Permissions → Friend).
-   * If Meet already finished (Skip before OTP), land on Opal Center ambient —
-   * never fall through to fr08 → Home. Return true so FirstRunExperience pauses.
+   * After OTP: open Meet Opal (Name → Permissions → Friend).
+   * If Meet already finished (Skip before OTP), land social Home — HOME_SOCIAL_FIRST.
+   * Return true so FirstRunExperience pauses.
    */
   const handleAfterPhoneVerify = (s: ProductSession): boolean => {
     setSession(s);
@@ -2864,15 +2865,10 @@ export function OpalApp() {
     setAuthReady(true);
     setLoadError(null);
     if (meetOpalDone) {
-      // Meet already completed (e.g. Skip before auth). Open Center, not Home.
+      // Meet already completed (e.g. Skip before auth). Social Home, not Center ambient.
       completeFirstRun();
-      try {
-        const q = new URLSearchParams(window.location.search);
-        setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
-      } catch {
-        setOpalAmbientMode("solo");
-      }
-      setOpalAmbientOpen(true);
+      setOpalAmbientOpen(false);
+      setTab("home");
       void refreshLive(s);
       void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
         notifyNativeHostSession(s);
@@ -2885,13 +2881,15 @@ export function OpalApp() {
   };
 
   /**
-   * Paste W6 / W8 — Meet Opal complete → Opal Center (ambient), never Home social feed.
-   * Skips This is you / Assist / ActOnBehalf. Every Meet completion branch lands here.
+   * Founder staging walk correction — Meet Opal complete → social Home.
+   * HOME_SOCIAL_FIRST: post-onboarding lands on people/social feed, not Center ambient day shell.
+   * Center remains the dock OPAL owner ("Your day has room." / chat). Skips This is you / Assist / ActOnBehalf.
    */
   const advanceMeetOpalToAuth = () => {
     setMeetOpalDone(true);
     clearForcedFirstRun();
-    const live = frResumeSession || session;
+    // Prefer live React session; fall back to tab storage (Playwright inject / reload).
+    const live = frResumeSession || session || loadProfile();
     if (live) {
       setSession(live);
       saveSession(live);
@@ -2900,14 +2898,9 @@ export function OpalApp() {
       setLoadError(null);
     }
     completeFirstRun();
-    // Land on Center globe / ambient ("Your day has room."); never navigate to Home feed.
-    try {
-      const q = new URLSearchParams(window.location.search);
-      setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
-    } catch {
-      setOpalAmbientMode("solo");
-    }
-    setOpalAmbientOpen(true);
+    // Social Home ownership — clear ambient Center so dock Home matches the visible surface.
+    setOpalAmbientOpen(false);
+    setTab("home");
     if (live) {
       void refreshLive(live);
       void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
@@ -11713,25 +11706,20 @@ const YOU_HUB_ROWS: {
   {
     key: "privacy",
     title: "Privacy",
-    subtitle: "Graph visibility, blocks, activity",
+    subtitle: "What Opal remembers, celebrations, trust",
   },
   {
     key: "feed-discovery",
     title: "Feed & discovery",
-    subtitle: "Following, local, recommendations",
+    subtitle: "Invite friends",
   },
   {
     key: "location-travel",
     title: "Location & travel",
-    subtitle: "Home, time zone, location services",
+    subtitle: "Home timezone and travel mode",
     semantic: "aqua", // Figma #00F0D1
   },
-  {
-    key: "engagement",
-    title: "Engagement",
-    subtitle: "Likes, reposts, comments, counters",
-    semantic: "magenta", // Figma #D946FF
-  },
+  // Pass B: engagement + safety hub rows hidden — every nested control was blocked (CONSUMER_TECHNICAL_LEAK=0).
   {
     key: "calls-assist",
     title: "Calls & Opal Assist",
@@ -11741,20 +11729,19 @@ const YOU_HUB_ROWS: {
   {
     key: "notifications",
     title: "Notifications",
-    subtitle: "Social, Graphs, critical only",
+    subtitle: "Messages, calls, read receipts",
     semantic: "magenta", // Figma #D946FF
+  },
+  {
+    key: "appearance",
+    title: "Appearance",
+    subtitle: "System, Dark, or Light",
   },
   {
     key: "linked-devices",
     title: "Linked devices",
-    subtitle: "QR and desktop access",
+    subtitle: "This phone session",
     semantic: "aqua",
-  },
-  {
-    key: "safety",
-    title: "Safety",
-    subtitle: "Blocked, muted, reported",
-    semantic: "coral", // Figma #FF6B9D family
   },
 ];
 

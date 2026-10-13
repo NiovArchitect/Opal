@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "id": "MEET_COMPLETE_PATH",
+      "ok": true,
+      "detail": "completed"
+    },
+    {
+      "id": "MEMBER_SHELL",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "id": "HOME_AFTER_MEET",
+      "ok": false,
+      "detail": "dayRoom=0 homeClass=false"
+    }
+  ],
+  "at": "2026-10-13T05:56:36.569Z"
+}

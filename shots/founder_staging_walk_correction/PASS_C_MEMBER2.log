@@ -1,0 +1,3 @@
+PASS MEET_COMPLETE_PATH completed
+FAIL MEMBER_SHELL 
+FAIL HOME_AFTER_MEET dayRoom=0 homeClass=false

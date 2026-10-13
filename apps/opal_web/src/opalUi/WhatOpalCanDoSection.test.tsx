@@ -130,7 +130,7 @@ describe("helpers", () => {
 });
 
 describe("WhatOpalCanDoSection", () => {
-  it("renders three capability rows; messaging_business blocked + disabled", async () => {
+  it("renders two live capability rows; messaging_business hidden (Pass B)", async () => {
     await act(async () => {
       root.render(<WhatOpalCanDoSection session={session} />);
     });
@@ -139,17 +139,9 @@ describe("WhatOpalCanDoSection", () => {
     expect(container.querySelector('[data-testid="what-opal-can-do"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="consent-row-calls_outbound"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="consent-row-bookings_reserve"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="consent-row-messaging_business"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="consent-blocked"]')?.textContent).toMatch(
-      /Twilio|business channel/i,
-    );
-
-    const msgToggle = container.querySelector(
-      '[data-testid="consent-toggle-messaging_business"]',
-    ) as HTMLButtonElement;
-    expect(msgToggle).toBeTruthy();
-    expect(msgToggle.disabled).toBe(true);
-    expect(msgToggle.getAttribute("aria-checked")).toBe("false");
+    expect(container.querySelector('[data-testid="consent-row-messaging_business"]')).toBeNull();
+    expect(container.querySelector('[data-testid="consent-blocked"]')).toBeNull();
+    expect(container.textContent || "").not.toMatch(/Twilio|not configured/i);
   });
 
   it("toggle grants and revokes calls_outbound", async () => {
@@ -189,19 +181,13 @@ describe("WhatOpalCanDoSection", () => {
     expect(toggle.getAttribute("aria-checked")).toBe("false");
   });
 
-  it("Blocked capability toggle does not call grant", async () => {
+  it("hidden messaging_business is not grantable from this surface", async () => {
     await act(async () => {
       root.render(<WhatOpalCanDoSection session={session} />);
     });
     await flush();
 
-    const msgToggle = container.querySelector(
-      '[data-testid="consent-toggle-messaging_business"]',
-    ) as HTMLButtonElement;
-    await act(async () => {
-      msgToggle.click();
-    });
-    await flush();
+    expect(container.querySelector('[data-testid="consent-toggle-messaging_business"]')).toBeNull();
     expect(grantConsent).not.toHaveBeenCalled();
   });
 

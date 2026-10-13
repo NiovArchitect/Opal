@@ -1,0 +1,81 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "results": [
+    {
+      "id": "SPLASH_WORDMARK_TRANSPARENCY",
+      "ok": true,
+      "detail": "{\"w\":1125,\"h\":750,\"clear\":3206,\"opaque\":930,\"ratio\":0.7751450676982592}"
+    },
+    {
+      "id": "SPLASH_RENDER",
+      "ok": true,
+      "detail": "fr00"
+    },
+    {
+      "id": "MEET_MOUNT",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "FALSE_ASSIST_HIDDEN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ONBOARDING_TURN_NAME",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ONBOARDING_PERM_DEFERRED",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ONBOARDING_PERM_AFTER_NAME",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "PERM_ALLOW_IDLE_CLASS",
+      "ok": true,
+      "detail": "hs-pill hs-pill-primary hs-perm-allow"
+    },
+    {
+      "id": "MEMBER_SHELL",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "id": "HOME_TAB_PRESENT",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "id": "HOME_SOCIAL_FIRST",
+      "ok": true,
+      "detail": "dayRoom=0 social=0"
+    },
+    {
+      "id": "CENTER_CHARACTER_SIZE",
+      "ok": false,
+      "detail": "null"
+    },
+    {
+      "id": "REMEMBER_CHIP_HIDDEN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "YOU_TECH_LEAK",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "id": "ATTENTION_TECH_LEAK",
+      "ok": true,
+      "detail": "bell not found — covered by unit path"
+    }
+  ],
+  "at": "2026-10-13T05:52:22.352Z"
+}
