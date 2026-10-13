@@ -1,0 +1,29 @@
+minted_at 2026-10-13T11:21:51.668226Z user 47aa5856-8c56-4b18-a4d4-6a9b456516a8 tokenLen 254
+CONSOLE Failed to load resource: the server responded with a status of 401 (Unauthorized)
+CONSOLE Failed to load resource: the server responded with a status of 401 (Unauthorized)
+CONSOLE Failed to load resource: the server responded with a status of 401 (Unauthorized)
+CONSOLE Failed to load resource: the server responded with a status of 401 (Unauthorized)
+goto 200
+{
+  "title": "Opal Graph",
+  "body": "Start with your phone number.\n\nKeeps your account yours. That's it.\n\nPHONE NUMBER\nCOUNTRY OR REGION CODE\n+1 ▾\n+52 ▾\n+44 ▾\n+63 ▾\n+61 ▾\n+81 ▾\n+49 ▾\n+33 ▾\n+91 ▾\n+55 ▾\n\nWe will text you a one-time security code.\n\nText message consent\nTEXT ME A ONE-TIME SECURITY CODE AT THIS NUMBER. THIS IS ONLY FOR SIGNING IN. NOT FOR MARKETING.\n\nMessage and data rates may apply.\n\nContinue\nSkip for now",
+  "tests": [
+    "premember-activation-shell",
+    "first-run-walkthrough",
+    "fr-step-fr06",
+    "fr06-phone",
+    "fr-character-lockup",
+    "fr06-dial-select",
+    "fr06-phone-input",
+    "fr06-phone-hint",
+    "fr06-otp-consent",
+    "fr06-continue",
+    "fr06-skip-for-now"
+  ],
+  "htmlClass": "opal-native-host"
+}
+CONSOLE Failed to load resource: the server responded with a status of 401 (Unauthorized)
+session {
+  status: 401,
+  text: '{"error_code":"token_expired","message":"Session is not valid"}'
+}

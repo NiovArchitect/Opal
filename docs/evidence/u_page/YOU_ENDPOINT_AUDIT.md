@@ -23,7 +23,8 @@
 | What Opal Remembers | filed on privacy | Memory transparency APIs | Memory stores | Yes | List/manage |
 | Celebrations | filed on privacy | Celebrations product API | Celebrations | Yes | Dates → Attention |
 | Invite friends | filed on feed-discovery | Product invites | invites | Yes | Invite codes / sends |
-| Spending comfort / wallet | filed on spending-fit | Financial + wallet APIs | Profiles / ledger | Yes | Suggestion comfort |
+| Spending comfort / wallet | filed on `spending` | Financial + wallet APIs | Profiles / ledger | Yes | Suggestion comfort |
+| Fit domain | `fit` destination | Boundary notes only | — | Honest empty | Wellness store later |
 | Find people | YOU Account row | `FindPeopleFlow` | Invites / people | Yes | Graph entry |
 | Sign out | YOU Account | Session clear | Session | Yes | Logged out |
 

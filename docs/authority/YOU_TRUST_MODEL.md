@@ -86,14 +86,14 @@ Today: Calls & Assist · Notifications · Appearance · Spending & Fit.
 
 Eventually (after unlock + wiring), users should see what they can ask Opal to do — e.g. Conversations · Planning · Relationships · Places · Reminders · Health · Purchases · Automation — always with Access + Action layers (Suggest → Prepare → Execute).
 
-### Spending & Fit — one card, two scopes
+### Spending and Fit — split cards, separate scopes
 
-Keep the combined card for now. Treat **internally** as separate permission scopes:
+Hub now shows **Spending** and **Fit** as separate How Opal Helps cards (`USER_VS_CONTROL_LAW`).
 
 | Domain | Meaning | Example scope rule |
 |--------|---------|-------------------|
-| **Spending** | Lifestyle constraints (budget, comfort, purchase prefs) | Partner may know “likes hiking”; must not auto-know “$300/mo fitness budget” |
-| **Fit** | Personal goals (fitness, wellness, habits) | Separate visibility from spending |
+| **Spending** | Resource decisions (budget comfort, purchase prefs) | Partner may know “nicer date nights”; must not auto-know personal spend limit |
+| **Fit** | Self-care (activity, wellness, habits) | Workout partner may know “morning runs”; not private wellness goals |
 
 Future intelligence must not collapse these scopes.
 

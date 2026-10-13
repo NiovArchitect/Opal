@@ -18,7 +18,7 @@
 
 Outer pane locked; inner `.you-settings-body` uses **top + bottom** stretch (never `height: auto`, which clipped without scroll). `touch-action: pan-y` · `overscroll-behavior: contain`.
 
-Evidence: `shots/you_page/YOU_HUB_VERIFY.json` (privacy + spending-fit scroll probes GREEN).
+Evidence: `shots/you_page/YOU_HUB_VERIFY.json` (privacy + spending scroll probes GREEN; Fit destination separate).
 
 **Still verify on physical device:** keyboard open on Edit profile; safe-area last-row clearance.
 

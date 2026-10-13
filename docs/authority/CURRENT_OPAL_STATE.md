@@ -14,6 +14,9 @@
 **YOU Trust Layer:** `docs/authority/OPAL_PERMISSION_ARCHITECTURE.md`  
 **YOU hierarchy:** `docs/authority/YOU_PAGE_HIERARCHY.md` (keep YOU; contains settings)  
 **YOU trust model:** `docs/authority/YOU_TRUST_MODEL.md` (what/why/who/change/remove/do)  
+**User vs Control law:** `docs/authority/USER_VS_CONTROL_LAW.md`  
+**Opal Complexity law:** `docs/authority/OPAL_COMPLEXITY_LAW.md` (benefit ≠ machinery)  
+**Temporal + Alignment foundation:** `docs/authority/OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` (context engine prep; no unlock)  
 **YOU capability audit:** `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  
 **YOU hub verify:** `shots/you_page/YOU_HUB_VERIFY.json`  
 **Pass 2 entry review (inventory):** `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md`  

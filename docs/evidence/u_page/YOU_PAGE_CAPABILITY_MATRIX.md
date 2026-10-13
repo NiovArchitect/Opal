@@ -35,7 +35,7 @@ Authority: `docs/authority/YOU_PAGE_HIERARCHY.md` — keep YOU; contains setting
 | Your Identity | Profile header · Edit profile |
 | Your World | Grow Your Circle · Feed & discovery · Location & travel |
 | Your Relationships | Privacy |
-| How Opal Helps | Calls & Opal Assist · Notifications · Appearance · Spending & fit |
+| How Opal Helps | Calls & Opal Assist · Notifications · Appearance · Spending · Fit |
 | Your Account | Linked devices · Account & security · Sign out |
 
 ## Hub (YOU home)
@@ -50,7 +50,8 @@ Authority: `docs/authority/YOU_PAGE_HIERARCHY.md` — keep YOU; contains setting
 | Notifications | Yes | `notifications` | What deserves attention | Prefs persist | Messages + receipts GREEN | Push categories HIDE |
 | Appearance | Yes | `appearance` | How Opal feels present | Theme persists | System/Dark/Light GREEN | Presence/a11y later |
 | Linked devices | Yes | `linked-devices` | Opal follows me | Device state is real | This phone GREEN | Desktop/revoke HIDE |
-| Spending & fit | Yes | `spending-fit` | Lifestyle fit | Comfort persists | SpendingComfort GREEN | Fit split; learn HIDE |
+| Spending | Yes | `spending` | Resource decisions | Comfort persists; private amounts | SpendingComfort GREEN | Learn toggles HIDE |
+| Fit | Yes | `fit` | Self-care domain | Boundary honest; no fake tracking | Scope notes GREEN; goals HIDE | Wire wellness store later |
 | Account & security | Yes | `account-security` | I stay in control | Honest delete / sessions | Nested delete GREEN | Phone/2FA HIDE |
 | Grow Your Circle | Yes (Your World) | `FindPeopleFlow` | I can connect my world | Contacts→match→invite honesty | Real flow; no fake roster | Native contacts path |
 | Engagement / Safety | Hub hidden | — | — | — | All nested HIDE | Keep hidden |

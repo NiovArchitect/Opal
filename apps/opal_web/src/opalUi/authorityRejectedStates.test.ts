@@ -180,7 +180,8 @@ describe("P0-05 rejected-state regressions", () => {
     for (const key of [
       "privacy",
       "location-travel",
-      "spending-fit",
+      "spending",
+      "fit",
       "calls-assist",
       "notifications",
       "appearance",
@@ -194,6 +195,7 @@ describe("P0-05 rejected-state regressions", () => {
     ]) {
       expect(you).toContain(`"${key}"`);
     }
+    expect(you).not.toContain('"spending-fit"');
     expect(group).toMatch(/data-figma-node="618:521"/);
     expect(group).toMatch(/data-nav-active="chats"/);
     expect(css).toMatch(/--you-cyan:\s*#00e5ff/i);

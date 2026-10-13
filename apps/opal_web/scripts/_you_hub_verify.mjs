@@ -108,10 +108,16 @@ const privacyScroll = await measureScroll(page, "privacy");
 await page.screenshot({ path: path.join(outDir, "YOU_PRIVACY_SCROLLED.png") });
 await page.getByTestId("you-setting-back").click();
 
-await page.getByTestId("you-hub-row-spending-fit").click();
+await page.getByTestId("you-hub-row-spending").click();
 await page.waitForSelector('[data-testid="you-settings-pane"]');
-const spendingScroll = await measureScroll(page, "spending-fit");
+const spendingScroll = await measureScroll(page, "spending");
 await page.screenshot({ path: path.join(outDir, "YOU_SPENDING_SCROLLED.png") });
+await page.getByTestId("you-setting-back").click();
+
+await page.getByTestId("you-hub-row-fit").click();
+await page.waitForSelector('[data-testid="you-settings-pane"]');
+const fitVisible = await page.getByTestId("you-setting-fit").isVisible();
+await page.screenshot({ path: path.join(outDir, "YOU_FIT.png") });
 await page.getByTestId("you-setting-back").click();
 
 await page.getByTestId("profile-people").click();
@@ -131,9 +137,15 @@ const result = {
   hasHtmlNative,
   privacyScroll,
   spendingScroll,
+  fitVisible,
   growCircle: { honestChooser, fakeRoster },
   overall:
-    sections.length >= 4 && hasGrow && scrollOk && honestChooser && !fakeRoster
+    sections.length >= 4 &&
+    hasGrow &&
+    scrollOk &&
+    fitVisible &&
+    honestChooser &&
+    !fakeRoster
       ? "GREEN"
       : "YELLOW",
 };

@@ -25,7 +25,8 @@ describe("Wave B Section 06 deep paint", () => {
     // Pass B: engagement hub row hidden; notifications keeps magenta accent.
     expect(app).toMatch(/notifications[\s\S]*?semantic:\s*"magenta"/);
     expect(app).toMatch(/calls-assist[\s\S]*?semantic:\s*"violet"/);
-    expect(app).toMatch(/spending-fit[\s\S]*?semantic:\s*"gold"/);
+    expect(app).toMatch(/spending[\s\S]*?semantic:\s*"gold"/);
+    expect(app).toMatch(/fit[\s\S]*?semantic:\s*"coral"/);
     expect(app).toMatch(/data-semantic=\{row\.semantic/);
   });
 
@@ -33,7 +34,8 @@ describe("Wave B Section 06 deep paint", () => {
     const you = read("opalUi/YouSettingsDestination.tsx");
     expect(you).toMatch(/privacy[\s\S]*?violet|setting === "privacy"[\s\S]*?"violet"/);
     expect(you).toMatch(/location-travel[\s\S]*?"aqua"/);
-    expect(you).toMatch(/spending-fit[\s\S]*?"gold"/);
+    expect(you).toMatch(/spending[\s\S]*?"gold"/);
+    expect(you).toMatch(/fit[\s\S]*?"coral"|setting === "fit"/);
     expect(you).toMatch(/notifications[\s\S]*?"magenta"/);
     expect(you).toMatch(/delete-account[\s\S]*?"coral"/);
   });

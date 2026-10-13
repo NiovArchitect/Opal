@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-13T12:12:56.848Z",
+  "at": "2026-10-13T12:36:00.080Z",
   "sections": [
     "you-hub-section-world",
     "you-hub-section-relationships",
@@ -26,22 +26,23 @@
     "ok": true
   },
   "spendingScroll": {
-    "label": "spending-fit",
+    "label": "spending",
     "before": {
       "top": 0,
-      "sh": 1477,
+      "sh": 1515,
       "ch": 594,
       "height": "594px",
       "overflowY": "auto",
       "touchAction": "pan-y"
     },
     "after": {
-      "top": 883,
-      "sh": 1477,
+      "top": 921,
+      "sh": 1515,
       "ch": 594
     },
     "ok": true
   },
+  "fitVisible": true,
   "growCircle": {
     "honestChooser": true,
     "fakeRoster": false

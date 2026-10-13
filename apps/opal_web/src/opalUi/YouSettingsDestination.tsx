@@ -74,7 +74,8 @@ export type YouSettingKey =
   | "notifications"
   | "linked-devices"
   | "safety"
-  | "spending-fit"
+  | "spending"
+  | "fit"
   | "appearance"
   | "account-security"
   | "delete-account";
@@ -89,7 +90,8 @@ export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
   notifications: "618:1935",
   "linked-devices": "618:2003",
   safety: "618:2060",
-  "spending-fit": "618:1662",
+  spending: "618:1662",
+  fit: "618:1662",
   appearance: "618:1344",
   "account-security": "618:2180",
   "delete-account": "618:2243",
@@ -568,14 +570,14 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
     ],
   },
-  "spending-fit": {
-    title: "Spending & fit",
-    lede: "Give Opal context without turning every experience into a budget form.",
+  spending: {
+    title: "Spending",
+    lede: "How you make decisions around resources — separate from Fit.",
     rows: [
       {
         kind: "note",
         id: "spending-live",
-        text: "Spending comfort (Budget / Moderate / Comfortable / Luxury) lives on this page. Trusted+ unlocks save.",
+        text: "Spending comfort (Budget / Moderate / Comfortable / Luxury) lives here. Trusted+ unlocks save. Exact amounts stay private unless you share them.",
       },
       {
         kind: "toggle",
@@ -610,15 +612,46 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "nav",
-        id: "per-graph-fit",
-        title: "Per-Graph fit",
+        id: "per-graph-spend",
+        title: "Per-Graph spend",
         subtitle: "Every Graph can override these defaults",
         blockedReason: "Per-Graph spend override needs Graph settings API.",
       },
       {
         kind: "note",
         id: "spending-law",
-        text: "This is background intelligence. A specific Graph always wins.",
+        text: "Spending is a separate permission scope from Fit. A partner who knows you like nicer date nights does not automatically see a personal budget limit.",
+      },
+    ],
+  },
+  fit: {
+    title: "Fit",
+    lede: "How you care for yourself — activity, wellness, and habits. Separate from Spending.",
+    rows: [
+      {
+        kind: "note",
+        id: "fit-scope",
+        text: "Fit covers activity preferences, wellness routines, and personal goals. A workout partner may know you like morning runs without seeing a fitness budget.",
+      },
+      {
+        kind: "note",
+        id: "fit-empty",
+        text: "Personal fit goals will live here when you choose to share them with Opal. Nothing is tracked yet — this space protects the boundary.",
+      },
+      {
+        kind: "toggle",
+        blockedReason: "Fitness / wellness preference store not shipped.",
+        id: "share-activity-prefs",
+        title: "Share activity preferences",
+        subtitle: "Let Opal use activity likes for suggestions",
+        defaultOn: false,
+      },
+      {
+        kind: "nav",
+        id: "wellness-goals",
+        title: "Wellness goals",
+        subtitle: "Personal goals you choose to track",
+        blockedReason: "Wellness goal objects not in product domain yet.",
       },
     ],
   },
@@ -821,9 +854,9 @@ export function YouSettingsDestination({
       ? "violet"
       : setting === "location-travel" || setting === "linked-devices"
         ? "aqua"
-        : setting === "spending-fit"
+        : setting === "spending"
           ? "gold"
-          : setting === "engagement" || setting === "safety" || setting === "delete-account"
+          : setting === "fit" || setting === "engagement" || setting === "safety" || setting === "delete-account"
             ? "coral"
             : setting === "notifications"
               ? "magenta"
@@ -1056,7 +1089,7 @@ export function YouSettingsDestination({
           );
         })}
         {setting === "appearance" ? <AppearanceThemeSection /> : null}
-        {setting === "spending-fit" ? (
+        {setting === "spending" ? (
           <SpendingComfortSection session={session ?? null} />
         ) : null}
         {/* Paste W Phase 5 / L8 — filed from You hub, not deleted */}

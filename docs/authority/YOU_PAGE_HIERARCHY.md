@@ -48,7 +48,7 @@ YOU
 | **Your Identity** | Profile header · Edit profile |
 | **Your World** | Feed & discovery · Grow Your Circle · Location & travel |
 | **Your Relationships** | Privacy (future: Opal Understanding card) |
-| **How Opal Helps** | Calls & Opal Assist · Notifications · Appearance · Spending & fit |
+| **How Opal Helps** | Calls & Opal Assist · Notifications · Appearance · **Spending** · **Fit** (separate scopes) |
 | **Your Account** | Linked devices · Account & security · Sign out |
 
 Grow Your Circle (formerly “Find people”) is **social growth**, not configuration — lives under Your World.
@@ -86,6 +86,8 @@ Every YOU domain must prove emotional contract, not only wire:
 ## Related
 
 - `YOU_TRUST_MODEL.md` — trust questions; open Privacy/Control and How Opal Helps evolution  
+- `USER_VS_CONTROL_LAW.md` — User never merges with Control  
+- `OPAL_COMPLEXITY_LAW.md` — users feel alignment; never manage algorithm knobs  
 - `OPAL_PERMISSION_ARCHITECTURE.md`  
 - `OPAL_UNDERSTANDING_LAW.md` (Understanding Candidate)  
 - `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  

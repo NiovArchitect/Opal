@@ -18,6 +18,15 @@ describe("YOU hub hierarchy + trust fixes", () => {
     expect(app).not.toMatch(/More settings below/);
   });
 
+  it("splits Spending and Fit as separate How Opal Helps domains", () => {
+    expect(app).toMatch(/key:\s*"spending"/);
+    expect(app).toMatch(/key:\s*"fit"/);
+    expect(app).not.toMatch(/Spending & fit/);
+    expect(dest).toMatch(/spending:\s*\{/);
+    expect(dest).toMatch(/fit:\s*\{/);
+    expect(dest).not.toContain('"spending-fit"');
+  });
+
   it("patches session after profile save", () => {
     expect(dest).toMatch(/onProfileSaved/);
     expect(app).toMatch(/onProfileSaved/);
