@@ -219,5 +219,8 @@ Until unlock: no memory expansion · partner graph · preference learning · emo
 - `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md` (YOU capability audit)
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` (doctrine; this file is the **entry gate**)
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` (life-intelligence blueprint; not implementation)
+- `docs/authority/OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` (time + place + context; architecture only)
+- `docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md` (alignment engine + guardrail laws; architecture only; no unlock)
+- `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` (relationship gyroscope; architecture only; no unlock)
 - `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md` (code inventory before unlock)
 - `docs/evidence/founder_staging_walk_correction/CONSUMER_REALITY_GATE_RESULT.md` (human loop GREEN; Pass 2 still locked)

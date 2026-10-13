@@ -2,7 +2,7 @@
 
 **Status:** CURRENT PRODUCT LAW  
 **Synced:** physical-contradiction recovery 2026-10-03  
-**Related:** `CURRENT_OPAL_STATE.md`, `OPAL_PRODUCT_OPERATING_SYSTEM.md`, `STATE_COMPLETENESS_LAW.md`
+**Related:** `CURRENT_OPAL_STATE.md`, `OPAL_PRODUCT_OPERATING_SYSTEM.md`, `STATE_COMPLETENESS_LAW.md`, `OPAL_UNDERSTANDING_LAW.md`, `OPAL_CONTEXT_ALIGNMENT_ENGINE.md`, `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md`
 
 ```yaml
 authority_class: PRODUCT_INVARIANTS
@@ -296,7 +296,24 @@ Published Memory requires explicit user-authorized social object (publish action
 
 ## Physical authority
 
-`SIMULATED_PHONE_GREEN ≠ REAL_PHONE_GREEN`  
+`SIMULATED_PHONE_GREEN ≠ REAL_PHONE_GREEN`
+
+## Alignment engine (architecture only — Pass 2 LOCKED)
+
+North star remains **SPEED_TO_ALIGNMENT**. Alignment is not preference overlap, equal sacrifice, or static profiles.
+
+Architecture law (no implementation until founder unlock):
+
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Person + Relationship + Context + Time + Location + Intent + Permission  
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — gyroscope balances relationship context; center may move  
+
+Required zeros (law posture; not productized yet):
+
+- `CONTEXT_BEHAVIOR_PROMOTED_TO_UNIVERSAL_IDENTITY = 0`
+- `RELATIONSHIP_COLLAPSED_TO_PREFERENCE_OVERLAP = 0`
+- `LOCATION_EQUALS_INTENT = 0`
+- `UNKNOWN_FILLED_WITH_ASSUMPTION = 0`
+ 
 `REAL_DEVICE_REGRESSION_CAN_BLOCK_COMMIT = YES`
 
 ## Track B isolation

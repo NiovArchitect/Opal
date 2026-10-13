@@ -160,6 +160,9 @@ Until then: architecture preparation, U Trust Layer honesty, and Pass 1 coherenc
 - `FACT_OWNERSHIP_VISIBILITY_LAW.md` — Owner · Source · Confidence · Scope · Visibility · Expiration · Correction
 - `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` — Pass 2 gate
 - `RELATIONSHIP_CONTEXT_MODEL.md` — dynamic human context + Context Matrix
+- `OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` — time + place + context foundation
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Context Alignment Engine · Context≠Identity · Unknown valid · Final Thesis
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship gyroscope · dynamic balance
 - `OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` — safe projection / alignment edges
 - `PASS2_PLUS_CAPABILITY_MAP.md` — blueprint only
 - `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md` — code inventory before unlock

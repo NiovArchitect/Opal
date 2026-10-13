@@ -73,6 +73,8 @@ See `OPAL_COMPLEXITY_LAW.md`.
 
 - `OPAL_COMPLEXITY_LAW.md` — experience vs engine  
 - `OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` — people + time + place + intent  
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — YOU manages control; Opal manages alignment  
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship balance (engine-side)  
 - `YOU_PAGE_HIERARCHY.md` — Spending and Fit as separate cards  
 - `YOU_TRUST_MODEL.md`  
 - `OPAL_UNDERSTANDING_LAW.md` — Understanding Candidate first  

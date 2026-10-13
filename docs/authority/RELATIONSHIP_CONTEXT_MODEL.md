@@ -237,5 +237,8 @@ Any Pass 2 design must address:
 - `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` — unlock gate  
 - `OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` — safe projection  
 - `OPAL_PERSONAL_TO_INTERPERSONAL_MODEL.md` — Personal / Relational / Shared planes  
+- `OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` — time + place + context  
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Context Alignment Engine (architecture only)  
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship gyroscope (architecture only)  
 - `PASS2_PLUS_CAPABILITY_MAP.md` — capability blueprint  
 - `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md` — what exists in code today  

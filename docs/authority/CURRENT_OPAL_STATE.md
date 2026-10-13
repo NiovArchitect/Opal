@@ -17,6 +17,8 @@
 **User vs Control law:** `docs/authority/USER_VS_CONTROL_LAW.md`  
 **Opal Complexity law:** `docs/authority/OPAL_COMPLEXITY_LAW.md` (benefit ≠ machinery)  
 **Temporal + Alignment foundation:** `docs/authority/OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` (context engine prep; no unlock)  
+**Context Alignment Engine:** `docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md` (foundational law; no unlock; no implementation)  
+**Dynamic Relationship Alignment Matrix:** `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` (gyroscope / relationship balance; no unlock)  
 **YOU capability audit:** `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  
 **YOU hub verify:** `shots/you_page/YOU_HUB_VERIFY.json`  
 **Pass 2 entry review (inventory):** `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md`  
@@ -156,6 +158,8 @@ REALITY_SOURCE_PRIORITY_LAW: ACTIVE
 FACT_OWNERSHIP_VISIBILITY_LAW: ACTIVE
 RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT: ACTIVE_GATE
 PASS2_PLUS_CAPABILITY_MAP: BLUEPRINT_ONLY
+OPAL_CONTEXT_ALIGNMENT_ENGINE: ARCHITECTURE_ONLY
+DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX: ARCHITECTURE_ONLY
 PRODUCTION_READINESS_CLOSURE_MATRIX: ACTIVE
 SURFACE_FRAGMENTATION_REAUDIT: ACTIVE
 PASS_1H_PREFER_REAL_REMEDIATION: SHIPPED

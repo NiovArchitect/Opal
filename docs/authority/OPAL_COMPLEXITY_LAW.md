@@ -108,4 +108,6 @@ The middle is Opal’s responsibility — after founder unlock and Understanding
 - `OPAL_UNDERSTANDING_LAW.md`  
 - `RELATIONSHIP_CONTEXT_MODEL.md`  
 - `OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` — time/place/context + gyroscope alignment (architecture only)  
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Context Alignment Engine (architecture only; users never manage knobs)  
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship gyroscope (engine-side)  
 - Product sequence: finish YOU wiring → permission/action → unlock → Understanding Candidates → context engine → alignment engine  

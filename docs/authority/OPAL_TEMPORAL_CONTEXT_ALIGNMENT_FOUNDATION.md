@@ -163,6 +163,15 @@ Alignment Engine ← this foundation prepares this layer
 Assistance
 ```
 
+## Compound authority (additive — do not replace this foundation)
+
+Future agents must also read:
+
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Context Alignment Engine · guardrail laws · Final Thesis  
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship gyroscope · dynamic balance · seasons  
+
+Those documents **compound** this foundation. They do not supersede it. Pass 2 remains LOCKED.
+
 ## Related
 
 - `USER_VS_CONTROL_LAW.md` — User ≠ Control  
@@ -170,3 +179,5 @@ Assistance
 - `RELATIONSHIP_CONTEXT_MODEL.md` — Person + Context Graph  
 - `OPAL_UNDERSTANDING_LAW.md` — Understanding Candidate first  
 - `YOU_TRUST_MODEL.md` · `YOU_PAGE_HIERARCHY.md`  
+- `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — alignment engine + anti-drift laws  
+- `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — dynamic relationship balance  

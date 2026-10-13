@@ -329,6 +329,8 @@ Founder unlock required. Intelligence expansion remains HOLD.
 **Hold period:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md` — preservation + production readiness only.  
 **Pass 2+ Capability Map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` — proven foundation vs vision domains; does not unlock Pass 2.  
 **Production Readiness Closure Matrix:** `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md` — infrastructure · journeys · surface contracts before intelligence.  
+**Context Alignment Engine (architecture only):** `docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Person+Relationship+Context+Time+Location+Intent+Permission; Pass 2 locked.  
+**Dynamic Relationship Alignment Matrix (architecture only):** `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — gyroscope balances relationship context; Pass 2 locked.  
 After unlock, first work defines graph authority · permissions · candidate lifecycle · correction · explanation surfaces — **then** intelligence. Never “add memory” first.
 
 Thesis: Meta Muse helps accomplish tasks; Opal helps maintain and deepen real-world relationships.
@@ -392,8 +394,21 @@ Do not rebuild. Do not simplify. Compound.
 - `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
 - `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` — Pass 2 gate (LOCKED)
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` — life-intelligence blueprint (LOCKED; no implementation)
+- `docs/authority/OPAL_UNDERSTANDING_LAW.md` — Pass 2 constitution
+- `docs/authority/OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` — time + place + context foundation
+- `docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Context Alignment Engine (LOCKED; architecture only)
+- `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship gyroscope matrix (LOCKED; architecture only)
 - `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md` — leave-the-lab closure matrix
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md`
 - `BLOCKED.md`
 - `shots/walk/W9_VERIFY.md`
 - `docs/TESTFLIGHT_UPLOAD.md`
+
+### Future agent read-first (before architectural decisions)
+
+1. `MASTER_PRODUCTION_CONTINUITY_HANDOFF.md` (this file)
+2. `CURRENT_OPAL_STATE.md`
+3. `PRODUCT_INVARIANTS.md`
+4. `OPAL_UNDERSTANDING_LAW.md`
+5. `OPAL_CONTEXT_ALIGNMENT_ENGINE.md`
+6. `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md`
