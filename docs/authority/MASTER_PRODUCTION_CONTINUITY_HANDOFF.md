@@ -412,3 +412,27 @@ Do not rebuild. Do not simplify. Compound.
 4. `OPAL_UNDERSTANDING_LAW.md`
 5. `OPAL_CONTEXT_ALIGNMENT_ENGINE.md`
 6. `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md`
+
+Continuity integrity evidence: `shots/steward/CONTINUITY_INTEGRITY_AUDIT.md` (2026-10-13; tip `67507b61`).
+
+### Authority precedence when docs disagree
+
+Compound only. Do not invent a competing stack. When two authority documents appear to conflict:
+
+1. **Pass 2 unlock / intelligence shipping** → `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` + `HOLD_PERIOD_CHECKPOINT.md` win (Pass 2 remains LOCKED until founder unlock).
+2. **Rebuild / replace architecture** → this handoff wins (compound-only).
+3. **Ontology / required zeros** → `PRODUCT_INVARIANTS.md` wins (`SPEED_TO_ALIGNMENT`).
+4. **Reality ownership / source priority** → Pass 1 reality laws win (`STATE_OWNERSHIP_LAW` · `REALITY_SOURCE_PRIORITY_LAW` · `FACT_OWNERSHIP_VISIBILITY_LAW` · `STATE_SURFACE_CONTRACT`). Alignment essays are architecture-only and subordinate to reality.
+5. **Among locked architecture docs** → additive compound: Temporal foundation → Context Alignment Engine → Dynamic Relationship Alignment Matrix (later does not supersede earlier).
+6. **Blueprint** (`PASS2_PLUS_CAPABILITY_MAP.md`) never beats gate, constitution, or product law.
+
+Runtime truth never inverts: Postgres → domain → Phoenix → projection → UI. AI never creates truth.
+
+Gyroscope law restated for continuity:
+
+```text
+Opal does not optimize preference similarity.
+Opal optimizes contextual alignment.
+```
+
+(`RELATIONSHIP_COLLAPSED_TO_PREFERENCE_OVERLAP = 0` · `ALIGNMENT_AS_EQUAL_SACRIFICE_AVERAGE = 0`)

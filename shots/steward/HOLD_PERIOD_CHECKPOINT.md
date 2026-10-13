@@ -23,6 +23,7 @@ SPENDING / FIT — SPLIT (separate scopes)
 TEMPORAL CONTEXT + ALIGNMENT FOUNDATION — ARCHITECTURE ONLY
 CONTEXT ALIGNMENT ENGINE — ARCHITECTURE ONLY (docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md)
 DYNAMIC RELATIONSHIP ALIGNMENT MATRIX — ARCHITECTURE ONLY (docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md)
+CONTINUITY INTEGRITY AUDIT — CAPTURED (shots/steward/CONTINUITY_INTEGRITY_AUDIT.md; tip 67507b61)
 PASS 2 ENTRY REVIEW — CAPTURED (inventory only)
 YOU PAGE CAPABILITY AUDIT — CAPTURED (docs/evidence/u_page/)
 CONSUMER REALITY GATE — GATE_GREEN (human loop proven; Pass 2 still locked)
@@ -161,6 +162,7 @@ Defines proven Pass 1 foundation vs vision domains (Relationship · Commerce · 
 - `docs/authority/OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md`
 - `docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — architecture only; Pass 2 locked
 - `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — architecture only; Pass 2 locked
+- `shots/steward/CONTINUITY_INTEGRITY_AUDIT.md` — hierarchy · terminology · boundaries · gyroscope
 - `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`
 - `shots/steward/RENDER_FREE_TIER_FITNESS_AUDIT.md`
 - `shots/steward/CLOUDFLARE_FOUNDER_STAGING_TUNNEL.md`
