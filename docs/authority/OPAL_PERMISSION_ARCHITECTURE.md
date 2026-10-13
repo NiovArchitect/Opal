@@ -94,6 +94,17 @@ Instead: **How deeply should Opal understand your life?** with category permissi
 
 Then still: observation → Candidate → confirmation — never silent Durable.
 
+## Two permission layers (required)
+
+ON/OFF alone is insufficient.
+
+| Layer | Question | Example (Calendar) | Example (Calls) |
+|-------|----------|--------------------|-----------------|
+| **Access** | Can Opal access this? | Read calendar | Assist may see call context |
+| **Action** | What can Opal do with it? | Suggest plans · Create drafts · Create events · Manage events | Suggest · Prepare · Place · Summarize |
+
+Relationship privacy is separate from account privacy: private / shared / public per relationship edge (see Context Model).
+
 ## Action authority
 
 | Level | Meaning |
@@ -134,6 +145,7 @@ Audit: `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md` · `PERMISSION_ACTIO
 
 ## Related
 
+- `YOU_PAGE_HIERARCHY.md` — keep YOU; hierarchy so it is not an iPhone Settings clone  
 - `OPAL_MATURITY_STACK.md`  
 - `OPAL_UNDERSTANDING_LAW.md`  
 - `RELATIONSHIP_CONTEXT_MODEL.md`  

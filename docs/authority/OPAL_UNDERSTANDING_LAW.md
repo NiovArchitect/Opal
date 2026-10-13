@@ -76,20 +76,53 @@ That is the difference between a creepy assistant and a trusted relationship sys
 ## Operating sequence (unchanged)
 
 ```text
-Truth
+Reality
+  ↓
+Understanding
   ↓
 Permission
   ↓
-Context
-  ↓
-Assistance
+Intelligence
 ```
 
 Never:
 
 ```text
-AI guess → Hope it's right
+AI guesses → stores assumptions → tries to justify them
 ```
+
+## First intelligence object = Understanding Candidate (not Memory)
+
+Understanding does **not** start with storage.
+
+When Pass 2 unlocks, the first object is:
+
+```text
+Candidate Understanding
+
+Subject:     Relationship / context
+Observation: Pattern detected
+Source:      Conversation + shared experiences
+Confidence:  Medium
+Scope:       That relationship only
+User action: Confirm / dismiss / correct
+Expiration:  Reviewable
+```
+
+Example: “You and Alex often plan outdoor activities together.”  
+→ Candidate under Alex scope — **not** Durable fact “likes outdoors.”
+
+Memory may later persist **confirmed** candidates. Memory is not the unlock primitive.
+
+## Permission ≠ knowledge
+
+“Allow Opal to understand my conversations” means:
+
+> Opal may process certain signals under defined boundaries.
+
+It does **not** mean:
+
+> Opal now knows everything about me.
 
 ## Person model posture
 

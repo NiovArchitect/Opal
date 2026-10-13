@@ -705,6 +705,8 @@ type Props = {
   ) => void;
   assistCallsEnabled?: boolean | null;
   onAssistPreference?: (enabled: boolean) => void;
+  /** After profile PATCH — parent must update session + local identity so every surface agrees. */
+  onProfileSaved?: (user: { display_name: string; handle: string }) => void;
 };
 
 export function YouSettingsDestination({
@@ -717,6 +719,7 @@ export function YouSettingsDestination({
   onMessagingPreference,
   assistCallsEnabled = null,
   onAssistPreference,
+  onProfileSaved,
 }: Props) {
   const screen = SCREENS[setting];
   const figma = YOU_SETTING_FIGMA[setting];
@@ -1002,7 +1005,15 @@ export function YouSettingsDestination({
                         { displayName, handle: handleValue || undefined },
                         session?.access_token,
                       )
-                        .then(() => {
+                        .then((data) => {
+                          const savedName = data.user?.display_name?.trim() || displayName;
+                          const savedHandle = (data.user?.handle || handleValue || "")
+                            .replace(/^@/, "")
+                            .trim();
+                          onProfileSaved?.({
+                            display_name: savedName,
+                            handle: savedHandle,
+                          });
                           setSaving(false);
                           onBack();
                         })

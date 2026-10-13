@@ -26,25 +26,36 @@ Audit questions per card:
 
 ---
 
+## Hub hierarchy (person-centered)
+
+Authority: `docs/authority/YOU_PAGE_HIERARCHY.md` — keep YOU; contains settings; not a gear drawer.
+
+| Section | Cards |
+|---------|-------|
+| Your Identity | Profile header · Edit profile |
+| Your World | Grow Your Circle · Feed & discovery · Location & travel |
+| Your Relationships | Privacy |
+| How Opal Helps | Calls & Opal Assist · Notifications · Appearance · Spending & fit |
+| Your Account | Linked devices · Account & security · Sign out |
+
 ## Hub (YOU home)
 
-| Card | Visible | Destination | Intent (life domain) | Current consumer reality | Gap vs architecture |
-|------|---------|-------------|----------------------|--------------------------|---------------------|
-| Edit profile | Yes (identity header) | `edit-profile` | Who am I? | Name/username + Save GREEN; bio HIDE | Photo upload HIDE; must remain E2E identity |
-| Privacy | Yes | `privacy` | What may Opal understand? | Filed: What Opal Remembers + Celebrations; audience toggles HIDE | Future **Opal Understanding** depth (Pass 2) — not Memory ON |
-| Feed & discovery | Yes | `feed-discovery` | World vs possibility | Filed: Invite friends; feed/discovery prefs HIDE | **Split Feed vs Discovery** psychologically; today one card |
-| Location & travel | Yes | `location-travel` | Coordinate life | Home TZ + Travel mode GREEN; live share HIDE | Live share / ETA / home area not productized |
-| Calls & Opal Assist | Yes | `calls-assist` | Assist authority | Assist toggle + What Opal Can Do (consent) GREEN | Suggest/Prepare/Execute ladder incomplete |
-| Notifications | Yes | `notifications` | What deserves attention? | Messages & calls + read receipts GREEN | Graph/live/social/critical push HIDE |
-| Appearance | Yes | `appearance` | How Opal feels present | System/Dark/Light GREEN | Presence intensity / reduced motion not yet |
-| Linked devices | Yes | `linked-devices` | Where Opal exists | This phone info GREEN | Desktop link / revoke HIDE |
-| Spending & fit | Yes (More) | `spending-fit` | Lifestyle + wellness | SpendingComfort + wallet filed GREEN | Internal **Spending vs Fit** split; learning toggles HIDE |
-| Account & security | Yes (More) | `account-security` | Control & exit | Linked devices nav + delete nest GREEN | Change phone / 2FA UI / session alerts HIDE |
-| Find people | Yes (Account section) | `FindPeopleFlow` | Graph entry | Opens invite/find flow | Must be contacts → match → invite → relationship (no fake roster) |
-| Engagement | **Hub hidden** | `engagement` | Content engagement prefs | All controls HIDE | Keep hidden until prefs exist |
-| Safety | **Hub hidden** | `safety` | Block/mute/report | All controls HIDE | Keep hidden until lists exist |
+| Card | Visible | Destination | User expects | System must prove | Current | Gap |
+|------|---------|-------------|--------------|-------------------|---------|-----|
+| Edit profile | Yes (identity) | `edit-profile` | Who am I? | UI→API→DB→reload→all surfaces | Save + session patch | Bio/photo HIDE |
+| Privacy | Yes | `privacy` | I control Opal | Permission / transparency persists | Remembers + Celebrations filed | Future Opal Understanding card |
+| Feed & discovery | Yes | `feed-discovery` | My world + possibility | Feed ≠ Discovery psychologically | Invites filed; prefs HIDE | Split UX later |
+| Location & travel | Yes | `location-travel` | Opal helps coordinate | Sharing boundaries | Home TZ + travel GREEN | Live share HIDE |
+| Calls & Opal Assist | Yes | `calls-assist` | Opal helps me communicate | Access + action authority clear | Assist + Can Do GREEN | Suggest/Prepare/Execute UI |
+| Notifications | Yes | `notifications` | What deserves attention | Prefs persist | Messages + receipts GREEN | Push categories HIDE |
+| Appearance | Yes | `appearance` | How Opal feels present | Theme persists | System/Dark/Light GREEN | Presence/a11y later |
+| Linked devices | Yes | `linked-devices` | Opal follows me | Device state is real | This phone GREEN | Desktop/revoke HIDE |
+| Spending & fit | Yes | `spending-fit` | Lifestyle fit | Comfort persists | SpendingComfort GREEN | Fit split; learn HIDE |
+| Account & security | Yes | `account-security` | I stay in control | Honest delete / sessions | Nested delete GREEN | Phone/2FA HIDE |
+| Grow Your Circle | Yes (Your World) | `FindPeopleFlow` | I can connect my world | Contacts→match→invite honesty | Real flow; no fake roster | Native contacts path |
+| Engagement / Safety | Hub hidden | — | — | — | All nested HIDE | Keep hidden |
 
-**Copy:** hub label updated to **“More on You”** (`ce2ff767`) — YOU naming, not generic settings.
+**Naming:** Grow Your Circle (social growth) lives under Your World — not under Account as a setting.
 
 ---
 

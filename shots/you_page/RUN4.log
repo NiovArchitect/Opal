@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-13T12:12:56.848Z",
+  "sections": [
+    "you-hub-section-world",
+    "you-hub-section-relationships",
+    "you-hub-section-opal",
+    "you-hub-section-account"
+  ],
+  "hasGrow": true,
+  "hasHtmlNative": true,
+  "privacyScroll": {
+    "label": "privacy",
+    "before": {
+      "top": 0,
+      "sh": 1202,
+      "ch": 594,
+      "height": "594px",
+      "overflowY": "auto",
+      "touchAction": "pan-y"
+    },
+    "after": {
+      "top": 608,
+      "sh": 1202,
+      "ch": 594
+    },
+    "ok": true
+  },
+  "spendingScroll": {
+    "label": "spending-fit",
+    "before": {
+      "top": 0,
+      "sh": 1477,
+      "ch": 594,
+      "height": "594px",
+      "overflowY": "auto",
+      "touchAction": "pan-y"
+    },
+    "after": {
+      "top": 883,
+      "sh": 1477,
+      "ch": 594
+    },
+    "ok": true
+  },
+  "growCircle": {
+    "honestChooser": true,
+    "fakeRoster": false
+  },
+  "overall": "GREEN"
+}

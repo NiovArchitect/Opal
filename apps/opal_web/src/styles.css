@@ -13893,6 +13893,22 @@ html.opal-native-host .you-hub-pane.scroll {
   color: #6b778c;
   letter-spacing: 0.01em;
 }
+.you-hub-section {
+  margin: 0;
+  padding: 0;
+}
+.you-hub-section-label {
+  margin: 18px 20px 2px;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b778c;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.you-hub-section .you-hub-rows {
+  margin-top: 0;
+}
 .you-hub-account {
   margin-top: 4px;
 }
@@ -14074,14 +14090,22 @@ html.opal-native-host .you-hub-pane.scroll {
   position: absolute;
   left: 20px;
   top: 160px;
+  bottom: 24px;
   width: 350px;
   margin: 0;
   display: flex;
   flex-direction: column;
-  max-height: 580px;
+  /* top+bottom define height — never height:auto (clips without scroll). */
+  max-height: none;
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 0;
+  padding-bottom: 24px;
+  box-sizing: border-box;
+  /* YOU Trust Layer: nested body is the only scroll surface (outer pane locked). */
 }
 .you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-body,
 .you-settings-dest[data-screen="you-setting-engagement"] .you-settings-body {
@@ -14089,7 +14113,8 @@ html.opal-native-host .you-hub-pane.scroll {
 }
 .you-settings-dest[data-screen="you-setting-edit-profile"] .you-settings-body {
   top: 318px;
-  max-height: 420px;
+  bottom: 24px;
+  max-height: none;
 }
 .you-settings-filed {
   margin-top: 18px;
@@ -17272,11 +17297,16 @@ html.opal-native-host .you-settings-lede {
 html.opal-native-host .you-settings-body {
   top: calc(160px + var(--opal-safe-top)) !important;
   bottom: var(--opal-scroll-trail-pad) !important;
+  /* Do NOT set height:auto — it defeats top+bottom stretch and clips without scroll. */
   max-height: none !important;
-  height: auto !important;
+  height: unset !important;
   width: min(350px, calc(100% - 40px)) !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  padding-bottom: 28px !important;
 }
 html.opal-native-host .you-settings-dest[data-screen="you-setting-feed-discovery"] .you-settings-body,
 html.opal-native-host .you-settings-dest[data-screen="you-setting-engagement"] .you-settings-body {

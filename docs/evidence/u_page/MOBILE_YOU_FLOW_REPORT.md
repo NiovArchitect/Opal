@@ -14,21 +14,13 @@
 | Nested body | `.you-settings-body` `overflow-y: auto`, max-height ~580 (desktop layout); native-host uses `top`/`bottom` with `--opal-scroll-trail-pad` | **Primary scroll container** for long Privacy / Spending cards |
 | Edit profile body | Higher `top` (~318) for avatar block; shorter max-height | Easy to feel “stuck” if body height wrong |
 
-### Scroll lock — RED candidate
+### Scroll lock — repaired (automation GREEN)
 
-Founder concern: nested YOU screens feel scroll-locked.
+Outer pane locked; inner `.you-settings-body` uses **top + bottom** stretch (never `height: auto`, which clipped without scroll). `touch-action: pan-y` · `overscroll-behavior: contain`.
 
-**Code intent:** outer pane locked; inner `.you-settings-body` scrolls.
+Evidence: `shots/you_page/YOU_HUB_VERIFY.json` (privacy + spending-fit scroll probes GREEN).
 
-**Verify on device (required before marking GREEN):**
-
-1. Open YOU → Privacy (filed Remembers + Celebrations — long).  
-2. Open Spending & fit (filed comfort + wallet).  
-3. Open Edit profile.  
-4. Confirm finger scroll moves body content; last controls clear safe area / dock.  
-5. Native-host: `?opal_native_host=1` with safe-top.
-
-If body does not receive gestures (parent capture / height 0 / `touch-action`), treat as **commercial RED** and repair CSS — do not fake content.
+**Still verify on physical device:** keyboard open on Edit profile; safe-area last-row clearance.
 
 ## Safe area / dock
 

@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-13T12:10:33.787Z",
+  "sections": [
+    "you-hub-section-world",
+    "you-hub-section-relationships",
+    "you-hub-section-opal",
+    "you-hub-section-account"
+  ],
+  "hasGrow": true,
+  "scroll": {
+    "before": {
+      "top": 0,
+      "sh": 594,
+      "ch": 594
+    },
+    "after": {
+      "top": 0,
+      "sh": 594,
+      "ch": 594
+    },
+    "ok": false
+  },
+  "growCircle": {
+    "honestChooser": true,
+    "fakeRoster": false
+  },
+  "overall": "YELLOW"
+}

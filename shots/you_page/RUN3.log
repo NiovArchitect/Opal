@@ -1,0 +1,13 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByTestId('member-tab-you')
+
+    at /Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/apps/opal_web/scripts/_you_hub_verify.mjs:93:42 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.13.1

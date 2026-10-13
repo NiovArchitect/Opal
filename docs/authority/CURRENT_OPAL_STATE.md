@@ -12,7 +12,9 @@
 **Pass 2 context model:** `docs/authority/RELATIONSHIP_CONTEXT_MODEL.md`  
 **Maturity stack:** `docs/authority/OPAL_MATURITY_STACK.md`  
 **YOU Trust Layer:** `docs/authority/OPAL_PERMISSION_ARCHITECTURE.md`  
+**YOU hierarchy:** `docs/authority/YOU_PAGE_HIERARCHY.md` (keep YOU; contains settings)  
 **YOU capability audit:** `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  
+**YOU hub verify:** `shots/you_page/YOU_HUB_VERIFY.json`  
 **Pass 2 entry review (inventory):** `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md`  
 **Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`  
 **Consumer Reality Gate:** GATE_GREEN — `docs/evidence/founder_staging_walk_correction/CONSUMER_REALITY_GATE_RESULT.md`  

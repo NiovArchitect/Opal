@@ -8995,6 +8995,18 @@ export function OpalApp() {
               });
             }}
             onFindPeople={() => setFindPeopleOpen(true)}
+            onProfileSaved={(user) => {
+              setSession((prev) => {
+                if (!prev) return prev;
+                const next: ProductSession = {
+                  ...prev,
+                  display_name: user.display_name,
+                  handle: user.handle,
+                };
+                saveSession(next);
+                return next;
+              });
+            }}
             onSignOut={async () => {
               productRealtime.stop();
               // Continuation is ephemeral; never survive sign-out (D-002 / Real People).
@@ -11697,71 +11709,96 @@ function PlansPane({
 }
 
 /** Sparse semantic accents from actual Figma 618:1344 row paints (not rainbow-spray). */
-const YOU_HUB_ROWS: {
+type YouHubRow = {
   key: YouSettingKey;
   title: string;
   subtitle: string;
   semantic?: "aqua" | "magenta" | "violet" | "gold" | "coral";
-}[] = [
-  {
-    key: "privacy",
-    title: "Privacy",
-    subtitle: "What Opal remembers, celebrations, trust",
-  },
-  {
-    key: "feed-discovery",
-    title: "Feed & discovery",
-    subtitle: "Invite friends",
-  },
-  {
-    key: "location-travel",
-    title: "Location & travel",
-    subtitle: "Home timezone and travel mode",
-    semantic: "aqua", // Figma #00F0D1
-  },
-  // Pass B: engagement + safety hub rows hidden — every nested control was blocked (CONSUMER_TECHNICAL_LEAK=0).
-  {
-    key: "calls-assist",
-    title: "Calls & Opal Assist",
-    subtitle: "How AI helps on calls",
-    semantic: "violet", // Figma #8B5CF6
-  },
-  {
-    key: "notifications",
-    title: "Notifications",
-    subtitle: "Messages, calls, read receipts",
-    semantic: "magenta", // Figma #D946FF
-  },
-  {
-    key: "appearance",
-    title: "Appearance",
-    subtitle: "System, Dark, or Light",
-  },
-  {
-    key: "linked-devices",
-    title: "Linked devices",
-    subtitle: "This phone session",
-    semantic: "aqua",
-  },
-];
+};
 
-/** 618:1344 "More on You" - Spending & Fit + Account & Security (Delete nested). YOU page, not generic settings. */
-const YOU_MORE_ROWS: {
-  key: YouSettingKey;
-  title: string;
-  subtitle: string;
-  semantic?: "aqua" | "magenta" | "violet" | "gold" | "coral";
+/**
+ * YOU hierarchy — person-centered control center (not iPhone Settings clone).
+ * Authority: docs/authority/YOU_PAGE_HIERARCHY.md
+ * Pass B: engagement + safety remain hub-hidden (all nested controls blocked).
+ */
+const YOU_HUB_SECTIONS: {
+  id: string;
+  label: string;
+  rows: YouHubRow[];
 }[] = [
   {
-    key: "spending-fit",
-    title: "Spending & fit",
-    subtitle: "Suggestions without a budget form",
-    semantic: "gold", // Spending law Gold in nested screen; sparse hub accent OK
+    id: "world",
+    label: "Your World",
+    rows: [
+      {
+        key: "feed-discovery",
+        title: "Feed & discovery",
+        subtitle: "Your world and what could enrich it",
+      },
+      {
+        key: "location-travel",
+        title: "Location & travel",
+        subtitle: "Home timezone and travel mode",
+        semantic: "aqua",
+      },
+    ],
   },
   {
-    key: "account-security",
-    title: "Account & security",
-    subtitle: "Sign-in, sessions, delete",
+    id: "relationships",
+    label: "Your Relationships",
+    rows: [
+      {
+        key: "privacy",
+        title: "Privacy",
+        subtitle: "What Opal may understand, celebrations, trust",
+      },
+    ],
+  },
+  {
+    id: "opal",
+    label: "How Opal Helps",
+    rows: [
+      {
+        key: "calls-assist",
+        title: "Calls & Opal Assist",
+        subtitle: "Suggest, prepare, and help on calls",
+        semantic: "violet",
+      },
+      {
+        key: "notifications",
+        title: "Notifications",
+        subtitle: "What deserves your attention",
+        semantic: "magenta",
+      },
+      {
+        key: "appearance",
+        title: "Appearance",
+        subtitle: "System, Dark, or Light",
+      },
+      {
+        key: "spending-fit",
+        title: "Spending & fit",
+        subtitle: "Lifestyle comfort without a budget form",
+        semantic: "gold",
+      },
+    ],
+  },
+  {
+    id: "account",
+    label: "Your Account",
+    rows: [
+      {
+        key: "linked-devices",
+        title: "Linked devices",
+        subtitle: "Where Opal can exist for you",
+        semantic: "aqua",
+      },
+      {
+        key: "account-security",
+        title: "Account & security",
+        subtitle: "Sign-in, sessions, delete",
+      },
+    ],
   },
 ];
 
@@ -11770,6 +11807,7 @@ function YouPane({
   session,
   onSignOut,
   onFindPeople,
+  onProfileSaved,
   readReceipts,
   messageNotifications,
   onMessagingPreference,
@@ -11778,6 +11816,7 @@ function YouPane({
   session: ProductSession | null;
   onSignOut: () => void | Promise<void>;
   onFindPeople?: () => void;
+  onProfileSaved?: (user: { display_name: string; handle: string }) => void;
   readReceipts?: boolean;
   messageNotifications?: boolean;
   onMessagingPreference?: (
@@ -11796,8 +11835,8 @@ function YouPane({
       window.location.hostname === "127.0.0.1");
 
   /**
-   * YOU = 618:1344 identity / privacy / settings hub.
-   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan)  -  other people only.
+   * YOU = 618:1344 identity / world / relationship-with-Opal control center.
+   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan) — other people only.
    * Never embed person-profile action rails here.
    * Delete Account 618:2243 nests behind Account & Security 618:2180.
    */
@@ -11819,6 +11858,7 @@ function YouPane({
           readReceipts={readReceipts}
           messageNotifications={messageNotifications}
           onMessagingPreference={onMessagingPreference}
+          onProfileSaved={onProfileSaved}
           onOpenSetting={(key) => {
             setYouSettingStack((s) => [...s, youSetting]);
             setYouSetting(key);
@@ -11883,69 +11923,57 @@ function YouPane({
         </div>
       </header>
 
-      <section className="you-hub-rows" aria-label="Settings">
-        {YOU_HUB_ROWS.map((row) => (
-          <button
-            key={row.key}
-            type="button"
-            className="you-hub-row"
-            data-testid={`you-hub-row-${row.key}`}
-            data-semantic={row.semantic || undefined}
-            onClick={() => {
-              setYouSettingStack([]);
-              setYouSetting(row.key);
-            }}
-          >
-            <span className="you-hub-row-copy">
-              <strong>{row.title}</strong>
-              <span>{row.subtitle}</span>
-            </span>
-            <span className="you-hub-chevron" aria-hidden>
-              ›
-            </span>
-          </button>
-        ))}
-      </section>
+      {YOU_HUB_SECTIONS.map((section) => (
+        <section
+          key={section.id}
+          className={`you-hub-section${section.id === "account" ? " you-hub-more-rows" : ""}`}
+          aria-label={section.label}
+          data-testid={`you-hub-section-${section.id}`}
+        >
+          <h2 className="you-hub-section-label">{section.label}</h2>
+          <div className="you-hub-rows">
+            {section.id === "world" && session ? (
+              <button
+                type="button"
+                className="you-hub-row"
+                data-testid="profile-people"
+                onClick={onFindPeople}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>Grow Your Circle</strong>
+                  <span>Invite people you know — connect your world</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {section.rows.map((row) => (
+              <button
+                key={row.key}
+                type="button"
+                className="you-hub-row"
+                data-testid={`you-hub-row-${row.key}`}
+                data-semantic={row.semantic || undefined}
+                onClick={() => {
+                  setYouSettingStack([]);
+                  setYouSetting(row.key);
+                }}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>{row.title}</strong>
+                  <span>{row.subtitle}</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
 
-      <p className="you-hub-more-label">More on You</p>
-
-      <section className="you-hub-rows you-hub-more-rows" aria-label="More settings">
-        {YOU_MORE_ROWS.map((row) => (
-          <button
-            key={row.key}
-            type="button"
-            className="you-hub-row"
-            data-testid={`you-hub-row-${row.key}`}
-            data-semantic={row.semantic || undefined}
-            onClick={() => {
-              setYouSettingStack([]);
-              setYouSetting(row.key);
-            }}
-          >
-            <span className="you-hub-row-copy">
-              <strong>{row.title}</strong>
-              <span>{row.subtitle}</span>
-            </span>
-            <span className="you-hub-chevron" aria-hidden>
-              ›
-            </span>
-          </button>
-        ))}
-      </section>
-
-      <section className="section you-hub-account" aria-label="Account">
-        <h3 className="section-label">Account</h3>
-        {session ? (
-          <button
-            type="button"
-            className="settings-row"
-            data-testid="profile-people"
-            onClick={onFindPeople}
-          >
-            <span>Find people</span>
-            <span className="muted">Invite</span>
-          </button>
-        ) : null}
+      <section className="section you-hub-account" aria-label="Session">
         {session ? (
           <button
             type="button"
