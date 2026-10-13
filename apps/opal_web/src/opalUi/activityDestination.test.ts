@@ -24,10 +24,11 @@ describe("ActivityDestination A6.1 Attention Center", () => {
     expect(src).not.toMatch(/Memory ready/);
   });
 
-  it("empty For-you uses calm copy without zero chrome", () => {
-    expect(src).toMatch(/Nothing yet\. When your people move, you'll see it here\./);
+  it("empty For-you uses PRODUCT_COPY Attention authority (Pass 1I)", () => {
+    expect(src).toMatch(/PRODUCT_COPY\.emptyAttention|PRODUCT_COPY\.emptyNeedsYou/);
     expect(src).toMatch(/attention-nothing-needed/);
     expect(src).toMatch(/attention-empty/);
+    expect(src).not.toMatch(/Nothing yet\. When your people move/);
     expect(src).not.toMatch(/>not found</i);
   });
 

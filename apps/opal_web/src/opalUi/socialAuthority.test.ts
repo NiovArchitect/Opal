@@ -146,11 +146,29 @@ describe("socialAuthority BEAM vs fixture routing", () => {
     expect(resolved[0]?.person).toBe("Jordan Lee");
     expect(resolved.some((s) => s.id.startsWith("story-chanelle"))).toBe(false);
 
-    const fixtureFallback = resolveHomeStories({
+    const productionEmpty = resolveHomeStories({
       mode: "PRODUCTION_HYDRATION",
       productionStories: [],
+      founderSeedEnabled: false,
     });
-    expect(fixtureFallback).toEqual(FOUNDER_STORIES);
+    expect(productionEmpty).toEqual([]);
+
+    const labFallback = resolveHomeStories({
+      mode: "FOUNDER_FIXTURE",
+      productionStories: [],
+      founderSeedEnabled: true,
+    });
+    expect(labFallback).toEqual(FOUNDER_STORIES);
+  });
+
+  it("EMPTY mode never paints FOUNDER_STORIES when seed off", () => {
+    expect(
+      resolveHomeStories({
+        mode: "EMPTY",
+        productionStories: [],
+        founderSeedEnabled: false,
+      }),
+    ).toEqual([]);
   });
 
   it("OpalApp engagement/detail lookup wires production memories", () => {

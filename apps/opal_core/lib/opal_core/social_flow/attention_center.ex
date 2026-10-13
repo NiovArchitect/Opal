@@ -224,11 +224,12 @@ defmodule OpalCore.SocialFlow.AttentionCenter do
       "needs_you" => Enum.map(needs, &AttentionCenterItem.to_contract/1),
       "waiting" => Enum.map(waiting, &AttentionCenterItem.to_contract/1),
       "updated" => Enum.map(updated, &AttentionCenterItem.to_contract/1),
+      # Pass 1I — one Attention empty authority (matches PRODUCT_COPY.emptyNeedsYou / emptyAttention).
       "empty_needs_you_copy" =>
         if(needs == [], do: "Nothing needs your attention right now.", else: nil),
       "empty_copy" =>
         if(needs == [] and waiting == [] and updated == [],
-          do: "You're all caught up.",
+          do: "Nothing needs your attention right now.",
           else: nil
         ),
       "evaluated_at" => DateTime.to_iso8601(now),

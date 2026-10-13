@@ -1072,8 +1072,9 @@ export function GraphSocialHome({
       resolveHomeStories({
         mode: composed.mode,
         productionStories: productionOwners?.stories,
+        founderSeedEnabled: seedOn,
       }),
-    [composed.mode, productionOwners?.stories],
+    [composed.mode, productionOwners?.stories, seedOn],
   );
   const soft = asSet(softInterestIds);
   const liked = asSet(likedMemoryIds);

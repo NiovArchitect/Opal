@@ -32,14 +32,15 @@ Reality → Authority → Consistency → Production readiness → Intelligence
 
 | Surface | Grade | One-liner |
 |---------|-------|-----------|
-| **Home** | **YELLOW → RED residuals** | Feed prefer-real GREEN; Stories fallback + person temporal seed **RED** |
+| **Home** | **GREEN after 1H** | Stories seed fallback closed; feed prefer-real held |
 | **Chats** | **GREEN** | Prefer-real list/open holds; VERIFY seed-off PASS |
-| **Graphs** | **YELLOW → RED residuals** | Card/timeline composers GREEN; person temporal + Full Live fixture **RED** |
-| **Attention** | **YELLOW** | Seen≠resolved + openChat GREEN; empty-copy triad + dual “needs you” |
-| **Center Opal** | **YELLOW** | Chat move-forward GREEN; sample day + dual ask pipes |
+| **Graphs** | **GREEN after 1H** | Person temporal gated; Full Live seed default closed |
+| **Attention** | **GREEN after 1I** | Seen≠resolved held; empty copy unified to PRODUCT_COPY |
+| **Center Opal** | **YELLOW** | Chat move-forward GREEN; sample day + dual ask pipes remain |
 | **Settings** | **GREEN** | Pass 1C honesty held; nearby-range still HONEST_GATE |
 
-**No Pass 2 unlock.** Prefer-real **list composers** for Home feed / Chats / Graphs still hold. New confirmed fragmentation is concentrated on **seed chrome that bypasses composers**.
+**Remediation:** Pass 1H (`PASS1H_PREFER_REAL_REMEDIATION.md`) + Pass 1I (`PASS1I_ATTENTION_COPY_AUTHORITY.md`).  
+**No Pass 2 unlock.** Residual YELLOW: Center sample day / dual ask pipes; Home awaken vs Attention dual projection watch.
 
 ---
 
@@ -47,13 +48,13 @@ Reality → Authority → Consistency → Production readiness → Intelligence
 
 | Class | Status | Where |
 |-------|--------|-------|
-| Stale / historical-as-current chrome | **RED** | `personNodeTemporal` / `PERSON_TEMPORAL_SEED` on Home + Graphs cards (ungated) |
-| Seed leakage (Stories) | **RED** | `resolveHomeStories` → `FOUNDER_STORIES` when production stories empty |
-| Seed leakage (Full Live) | **RED** | `onOpenLive` / portal default `seed-live-sabrina` + `FOUNDER_LIVE_FEED` |
+| Stale / historical-as-current chrome | **CLOSED 1H** | `personNodeTemporal` gated on founder seed |
+| Seed leakage (Stories) | **CLOSED 1H** | `resolveHomeStories` → `[]` when seed off |
+| Seed leakage (Full Live) | **CLOSED 1H** | Seed-off gate + `full-live-empty` honest state |
 | Seed leakage (Chats/Graphs list) | **GREEN closed** | `composeChatsList` / `composeGraphsList` / VERIFY |
 | Seen ≠ resolved | **GREEN closed** | Attention Center + OpalApp badge from `actionable_count` |
 | UI implies gated control | **GREEN closed** | Settings `settingsWireClass` + blockedReason |
-| Competing empty copy | **YELLOW** | Attention PRODUCT_COPY vs backend vs ActivityDestination fallback |
+| Competing empty copy | **CLOSED 1I** | PRODUCT_COPY + Attention Center + ActivityDestination aligned |
 | Dual “needs you” projections | **YELLOW** | Home awaken (`attentionAuthority`) vs server Attention Center |
 | Actions without durable authority | **YELLOW** | Local `createdPlanSurfaces` overlays; Attention no-link honest fallback |
 
@@ -221,18 +222,16 @@ Rule: a capability is **real** only when Local · Production · Device agree.
 
 ---
 
-## Recommended hold-safe remediation order
+## Remediation status
 
-Do **not** draft Person Graph. Do **not** unlock Pass 2.
+### A. Coherence fixes — **DONE (1H + 1I)**
 
-### A. Coherence fixes (agent-eligible now)
+1. ~~Gate or empty `resolveHomeStories` when seed off~~ **1H**  
+2. ~~Gate `personNodeTemporal` chrome behind seed~~ **1H**  
+3. ~~Block Full Live open when seed off~~ **1H**  
+4. ~~Unify Attention quiet empty~~ **1I**  
 
-1. Gate or empty `resolveHomeStories` when seed off  
-2. Gate `personNodeTemporal` chrome behind seed (Home + Graphs + profile fallback)  
-3. Block Full Live open when seed off / no live card — honest empty or hide entry  
-4. Unify Attention quiet empty to one PRODUCT_COPY / backend string; stop Home presence misuse if wrong ontology  
-
-### B. Production path (founder-gated)
+### B. Production path (founder-gated) — NEXT
 
 ```text
 Render payment → prod /health 200 → TestFlight → install → push → two-device

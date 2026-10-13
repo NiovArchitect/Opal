@@ -90,6 +90,6 @@ describe("unified signals", () => {
     expect(signalFamily("tradition")).toBe("continuity");
     expect(familyLabel("needs_action")).toBe("Needs you");
     expect(isProhibitedShellCopy("streak at risk")).toBe(true);
-    expect(isProhibitedShellCopy("Nothing needs you right now.")).toBe(false);
+    expect(isProhibitedShellCopy("Nothing needs your attention right now.")).toBe(false);
   });
 });

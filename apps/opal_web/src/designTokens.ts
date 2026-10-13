@@ -53,7 +53,15 @@ export const PRODUCT_COPY = {
   tagline: "Opal turns social possibility into shared reality.",
   /** Figma 2:2 editorial fallback; live Home uses homeEditorialLines(daypart). */
   homeEditorial: "Tonight is happening.",
-  emptyNeedsYou: "Nothing needs a decision right now.",
+  /**
+   * Pass 1I — single Attention empty authority.
+   * Backend `empty_needs_you_copy` / ActivityDestination fallbacks must match.
+   */
+  emptyNeedsYou: "Nothing needs your attention right now.",
+  /** Fully quiet Attention Center (no sections). Same owner family as emptyNeedsYou. */
+  emptyAttention: "Nothing needs your attention right now.",
+  /** Home presence rail — not Attention ontology. */
+  emptyPresence: "When people are around, they'll show up here.",
   /** Pass 1F — empty invites creation; never inventory "no posts / no graphs found". */
   emptyHomeTitle: "Your world starts here.",
   emptyHomeBody: "Connect people and moments that matter.",

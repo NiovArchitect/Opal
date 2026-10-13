@@ -16,11 +16,17 @@ const root = resolve(__dirname, "..");
 const read = (rel: string) => readFileSync(resolve(root, rel), "utf8");
 
 describe("Paste J Phase 5 graph calendaring", () => {
-  it("person nodes expose next 3 plans and next open loop", () => {
-    const chanelle = personNodeTemporal("Chanelle");
+  it("person nodes expose next 3 plans and next open loop when seed on", () => {
+    const chanelle = personNodeTemporal("Chanelle", { founderSeedEnabled: true });
     expect(chanelle.upcomingPlans.length).toBeGreaterThan(0);
     expect(chanelle.upcomingPlans.length).toBeLessThanOrEqual(3);
     expect(chanelle.nextOpenLoop?.label).toMatch(/table time/i);
+  });
+
+  it("person temporal seed is empty when seed off (Pass 1H)", () => {
+    const chanelle = personNodeTemporal("Chanelle", { founderSeedEnabled: false });
+    expect(chanelle.upcomingPlans).toEqual([]);
+    expect(chanelle.nextOpenLoop).toBeNull();
   });
 
   it("30-day filter keeps near items and drops far next_month estimates in a tight window", () => {

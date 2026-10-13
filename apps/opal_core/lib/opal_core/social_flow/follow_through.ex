@@ -113,7 +113,8 @@ defmodule OpalCore.SocialFlow.FollowThrough do
     |> Enum.map(&AttentionSignal.to_contract/1)
   end
 
-  def needs_you_empty_copy, do: "Nothing needs you right now."
+  # Pass 1I — align with PRODUCT_COPY.emptyNeedsYou / Attention Center.
+  def needs_you_empty_copy, do: "Nothing needs your attention right now."
 
   # --- Evaluate follow-through candidate (deterministic eligibility) ---
 

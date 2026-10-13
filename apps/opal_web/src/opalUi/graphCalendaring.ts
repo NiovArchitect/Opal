@@ -2,7 +2,11 @@
  * Paste J Phase 5 - Graph calendaring helpers.
  * Temporal context on person nodes + 30/90 timeline filter + opt-in ICS.
  * No em dashes in customer-facing strings.
+ *
+ * PERSON_TEMPORAL_SEED is lab/fixture only (Pass 1H). Production seed-off
+ * must not paint inferred person history — that implies Pass 2 intelligence.
  */
+import { isFounderSeedEnabled } from "./founderGraphSeed";
 
 export type TimelineBucket =
   | "now"
@@ -114,18 +118,29 @@ const BUCKET_OFFSET_MS: Record<string, number> = {
   earlier: -30 * 86400_000,
 };
 
-export function personTemporalContext(name: string): PersonTemporalContext | null {
+export function personTemporalContext(
+  name: string,
+  opts?: { founderSeedEnabled?: boolean },
+): PersonTemporalContext | null {
+  const seedOn =
+    typeof opts?.founderSeedEnabled === "boolean"
+      ? opts.founderSeedEnabled
+      : isFounderSeedEnabled();
+  if (!seedOn) return null;
   const key = name.trim().toLowerCase();
   if (!key) return null;
   return PERSON_TEMPORAL_SEED[key] || null;
 }
 
-/** Next 3 upcoming + next open loop for a person node. */
-export function personNodeTemporal(name: string): {
+/** Next 3 upcoming + next open loop for a person node (seed/lab only). */
+export function personNodeTemporal(
+  name: string,
+  opts?: { founderSeedEnabled?: boolean },
+): {
   upcomingPlans: PersonUpcomingPlan[];
   nextOpenLoop: PersonOpenLoop | null;
 } {
-  const ctx = personTemporalContext(name);
+  const ctx = personTemporalContext(name, opts);
   return {
     upcomingPlans: (ctx?.upcomingPlans || []).slice(0, 3),
     nextOpenLoop: ctx?.nextOpenLoop || null,

@@ -2,7 +2,7 @@ import type { SocialFlowSignal } from "./types";
 
 export const MAX_NEEDS_YOU = 3;
 
-export const NEEDS_YOU_EMPTY = "Nothing needs you right now.";
+export const NEEDS_YOU_EMPTY = "Nothing needs your attention right now.";
 
 /** Bound and prioritize Needs you items — usefulness only, no engagement theater. */
 export function selectNeedsYou(
@@ -31,7 +31,7 @@ export const ALLOWED_GRATIFICATION = [
   "Reservation handled.",
   "You followed through.",
   "You closed the loop.",
-  "Nothing needs you right now.",
+  "Nothing needs your attention right now.",
   "This plan is settled.",
 ] as const;
 

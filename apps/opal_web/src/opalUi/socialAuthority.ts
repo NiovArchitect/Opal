@@ -23,6 +23,7 @@ import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
   FOUNDER_STORIES,
+  isFounderSeedEnabled,
   type FounderFeedCard,
   type FounderStoryItem,
 } from "./founderGraphSeed";
@@ -162,17 +163,25 @@ export function productionStoryToItem(obj: Record<string, unknown>): FounderStor
 }
 
 /**
- * PRODUCTION_HYDRATION prefers API TemporaryStories when present.
- * FOUNDER_STORIES remain the fixture/demo rail only.
+ * Prefer-real stories rail (Pass 1H).
+ * Live production stories win when present.
+ * FOUNDER_STORIES only when founder/lab seed is explicitly on.
+ * Production empty → [] (never silent founder universe).
  */
 export function resolveHomeStories(opts: {
   mode: string;
   productionStories?: FounderStoryItem[] | null;
+  /** When omitted, reads `isFounderSeedEnabled()`. */
+  founderSeedEnabled?: boolean;
 }): FounderStoryItem[] {
   const prod = opts.productionStories || [];
-  if (opts.mode === "PRODUCTION_HYDRATION" && prod.length > 0) return prod;
   if (prod.length > 0) return prod;
-  return FOUNDER_STORIES;
+  const seedOn =
+    typeof opts.founderSeedEnabled === "boolean"
+      ? opts.founderSeedEnabled
+      : isFounderSeedEnabled();
+  if (seedOn) return FOUNDER_STORIES;
+  return [];
 }
 
 /**

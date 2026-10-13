@@ -7,6 +7,9 @@
 PASS 1 — CLOSED ✅
 PASS 2 — LOCKED 🔒
 
+PRODUCTION READINESS — ACTIVE
+SURFACE COHERENCE — ACTIVE REMEDIATION (1H+1I SHIPPED)
+
 RELATIONSHIP INTELLIGENCE — NOT IMPLEMENTED
 CAPABILITY MAP — BLUEPRINT ONLY
 ENTRY CONTRACT — ACTIVE
@@ -82,7 +85,9 @@ Two-device proof
 Infrastructure · real-user journeys · surface contracts. Live snapshot 2026-10-13: local `/health` 200 · Vite 200 · prod API **503** (payment).
 
 **Surface fragmentation re-audit:** `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`  
-Prefer-real list composers GREEN. **RED residuals:** Home Stories seed fallback · ungated `personNodeTemporal` · Full Live `seed-live-sabrina` default. Attention empty-copy YELLOW. Fix under coherence before claiming device-ready.
+**Pass 1H:** `PASS1H_PREFER_REAL_REMEDIATION.md` — Stories / person temporal / Full Live REDs closed.  
+**Pass 1I:** `PASS1I_ATTENTION_COPY_AUTHORITY.md` — Attention empty copy unified.  
+SURFACE COHERENCE — ACTIVE (1H+1I shipped). Residual YELLOW: Center sample day / dual ask pipes.
 
 ## Standing architecture principles
 
@@ -132,6 +137,8 @@ Defines proven Pass 1 foundation vs vision domains (Relationship · Commerce · 
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
 - `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`
 - `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`
+- `shots/steward/PASS1H_PREFER_REAL_REMEDIATION.md`
+- `shots/steward/PASS1I_ATTENTION_COPY_AUTHORITY.md`
 - `shots/steward/PASS1_FINAL_CHECKPOINT.md`
 - `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
 - `BLOCKED.md`

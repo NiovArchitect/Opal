@@ -24,6 +24,7 @@ import {
   projectReminder,
   type ReminderProjection,
 } from "./intelligence/reminderLifecycle";
+import { PRODUCT_COPY } from "../designTokens";
 
 type Props = {
   onBack: () => void;
@@ -159,7 +160,7 @@ export function ActivityDestination({
           : "";
       setError(
         code === "not_found" || /not found/i.test(raw)
-          ? "Nothing yet. When your people move, you'll see it here."
+          ? PRODUCT_COPY.emptyAttention
           : raw,
       );
     } finally {
@@ -304,7 +305,7 @@ export function ActivityDestination({
           <p className="activity-empty" data-testid="attention-empty">
             {feed?.empty_copy && !/not found/i.test(feed.empty_copy)
               ? feed.empty_copy
-              : "Nothing yet. When your people move, you'll see it here."}
+              : PRODUCT_COPY.emptyAttention}
           </p>
         ) : null}
 
@@ -312,7 +313,7 @@ export function ActivityDestination({
           <p className="activity-calm" data-testid="attention-nothing-needed">
             {feed?.empty_needs_you_copy && !/not found/i.test(feed.empty_needs_you_copy)
               ? feed.empty_needs_you_copy
-              : "Nothing yet. When your people move, you'll see it here."}
+              : PRODUCT_COPY.emptyNeedsYou}
           </p>
         ) : null}
 

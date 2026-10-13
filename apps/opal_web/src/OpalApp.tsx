@@ -5274,7 +5274,7 @@ export function OpalApp() {
                     ) || FOUNDER_LIVE_FEED[0];
                   if (activeChatId) productRealtime.leaveConversation(activeChatId);
                   setActiveChatId(null);
-                  setLiveCardId(liveCard?.id || "seed-live-sabrina");
+                  setLiveCardId(liveCard?.id || (isFounderSeedEnabled() ? "seed-live-sabrina" : null));
                   setTab("graphs");
                   setLiveSurfaceOpen(true);
                 }}
@@ -8224,6 +8224,11 @@ export function OpalApp() {
             }}
             attentionBadgeCount={attentionBadgeCount}
             onOpenLive={() => {
+              // Pass 1H: Full Live implies presence reality — never default to founder seed.
+              if (!isFounderSeedEnabled()) {
+                setCallsGateNote("Live isn't available yet.");
+                return;
+              }
               setLiveCardId("seed-live-sabrina");
               setTab("graphs"); /* Figma 863:2 Graphs-active dock */
               setLiveSurfaceOpen(true);
@@ -8244,6 +8249,17 @@ export function OpalApp() {
             onOpenStory={(story) => {
               /* Accurate pulse routing: LIVE opens live viewer; MEMORY/GRAPH open story viewer */
               if (story.pulseState === "LIVE") {
+                // Pass 1H: never invent seed-live-* when seed off.
+                if (!isFounderSeedEnabled()) {
+                  if (/^seed-/i.test(story.id)) {
+                    setCallsGateNote("Live isn't available yet.");
+                    return;
+                  }
+                  setLiveCardId(story.id);
+                  setTab("graphs");
+                  setLiveSurfaceOpen(true);
+                  return;
+                }
                 setLiveCardId(
                   story.id.startsWith("seed-live-")
                     ? story.id
@@ -10115,8 +10131,9 @@ export function OpalApp() {
               data-testid="full-live-destination"
               data-figma-node="863:2"
               data-same-reality-home-live="618:211"
-              data-live-card={liveCardId || "seed-live-sabrina"}
+              data-live-card={liveCardId || ""}
               data-live-capability="gated"
+              data-founder-seed={isFounderSeedEnabled() ? "on" : "off"}
               data-nav-active="graphs"
               role="dialog"
               aria-modal="true"
@@ -10137,10 +10154,27 @@ export function OpalApp() {
                 ‹
               </button>
               {(() => {
+                const seedOn = isFounderSeedEnabled();
+                const cardId = liveCardId || (seedOn ? "seed-live-sabrina" : null);
+                if (!cardId || (!seedOn && /^seed-/i.test(cardId))) {
+                  return (
+                    <div className="full-live-empty" data-testid="full-live-empty">
+                      <p className="empty">Live isn&apos;t available yet.</p>
+                      <p className="empty-sub">When someone is live with you, it will show here.</p>
+                    </div>
+                  );
+                }
                 const liveCard =
                   [...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find(
-                    (c) => c.id === (liveCardId || "seed-live-sabrina"),
-                  ) || FOUNDER_LIVE_FEED[0];
+                    (c) => c.id === cardId,
+                  ) || (seedOn ? FOUNDER_LIVE_FEED[0] : undefined);
+                if (!liveCard) {
+                  return (
+                    <div className="full-live-empty" data-testid="full-live-empty">
+                      <p className="empty">Live isn&apos;t available yet.</p>
+                    </div>
+                  );
+                }
                 return (
                   <GraphLivePanel
                     place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
@@ -10149,9 +10183,9 @@ export function OpalApp() {
                     broadcaster={liveCard?.broadcaster || "Sabrina"}
                     mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
                     videoLive={liveCard?.videoLive !== false}
-                    hereLine="Sadeil + 3 are here"
-                    etaLine="Maya is on the way · 8 min"
-                    tableReadyLabel="Table ready · Great news"
+                    hereLine={seedOn ? "Sadeil + 3 are here" : "People here"}
+                    etaLine={seedOn ? "Maya is on the way · 8 min" : ""}
+                    tableReadyLabel={seedOn ? "Table ready · Great news" : undefined}
                     onOnMyWay={() => setOnMyWayActive((v) => !v)}
                     onMyWayActive={onMyWayActive}
                   />
@@ -11253,7 +11287,7 @@ function HomePane({
       <section className="section presence-section" aria-label="With your people">
         {authenticated ? (
           presence.length === 0 && !awaken ? (
-            <p className="empty">{PRODUCT_COPY.emptyNeedsYou}</p>
+            <p className="empty">{PRODUCT_COPY.emptyPresence}</p>
           ) : (
             presence.map((s, i) => {
               const who =

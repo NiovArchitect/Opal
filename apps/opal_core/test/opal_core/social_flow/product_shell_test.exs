@@ -57,7 +57,7 @@ defmodule OpalCore.SocialFlow.ProductShellTest do
 
     home2 = ProductShell.home_snapshot(%{user_id: alex, display_name: "Alex"})
     assert home2["needs_you"] == []
-    assert home2["needs_you_empty_copy"] == "Nothing needs you right now."
+    assert home2["needs_you_empty_copy"] == "Nothing needs your attention right now."
     assert home2["quiet_success"]
   end
 
@@ -360,7 +360,7 @@ defmodule OpalCore.SocialFlow.ProductShellTest do
     needs = ProductShell.unified_needs_you(alex)
     assert length(needs) <= 3
     assert ProductShell.prohibited_shell_copy?("streak at risk")
-    refute ProductShell.prohibited_shell_copy?("Nothing needs you right now.")
+    refute ProductShell.prohibited_shell_copy?("Nothing needs your attention right now.")
   end
 
   test "You snapshot and conversation membership enforcement" do

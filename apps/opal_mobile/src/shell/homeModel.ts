@@ -1,7 +1,7 @@
 import type { ComingUpItem, HomeSnapshot, NeedsYouItem } from "./types";
 import { isProhibitedShellCopy } from "./signals";
 
-export const NEEDS_YOU_EMPTY = "Nothing needs you right now.";
+export const NEEDS_YOU_EMPTY = "Nothing needs your attention right now.";
 export const MAX_NEEDS_YOU = 3;
 
 export function buildHomeSnapshot(input: {
