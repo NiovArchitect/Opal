@@ -1,10 +1,10 @@
 {
-  "at": "2026-10-13T13:12:41.491Z",
+  "at": "2026-10-13T19:33:03.890Z",
   "tip_context": "YOU_PERMISSIONS_TRANCHE",
   "PASS2_UNLOCKED": "NO",
   "TRACK_B_TOUCHED": "NO",
   "DEAD_ACTIONS": 0,
-  "FAKE_SUCCESS": 0,
+  "FAKE_SUCCESS": 1,
   "VISIBLE_BUT_UNWIRED": 0,
   "CONSUMER_TECH_LEAK": 0,
   "cards": {
@@ -83,7 +83,7 @@
       "leak": false,
       "paintedBlocked": [],
       "probes": {
-        "honestEmpty": true
+        "honestEmpty": false
       }
     },
     "linked-devices": {
@@ -107,12 +107,12 @@
   },
   "profile": {
     "ok": true,
-    "stamp": "Walk5895",
-    "hubName": "Walk5895"
+    "stamp": "Walk1835",
+    "hubName": "Walk1835"
   },
   "growCircle": {
     "honestChooser": true,
     "fakeRoster": false
   },
-  "overall": "GREEN"
+  "overall": "RED"
 }

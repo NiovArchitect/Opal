@@ -202,47 +202,45 @@ function Avatar({
 }
 
 /**
- * Lockup-only chrome: single opalLogo (character + bubble letters).
- * NEVER compose opalLogo with a separate wordmark / "OPAL GRAPH" text.
+ * Auth chrome — character identity only (Founder Reality Repair #2).
+ * Never the side-by-side opal-logo collage (character cut + separate wordmark).
  */
 function BrandChrome({ compact = false }: { compact?: boolean }) {
   const h = compact ? 40 : 56;
-  const w = Math.round(h * 1.5);
   return (
     <header className={`fr-brand-chrome ${compact ? "is-compact" : ""}`} data-testid="fr-brand-chrome">
       <img
-        className="fr-brand-chrome-lockup"
-        src={BRAND_ASSETS.opalLogo}
+        className="fr-brand-chrome-lockup fr-brand-chrome-character"
+        src={`${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`}
         alt=""
-        width={w}
+        width={h}
         height={h}
         draggable={false}
-        data-brand-role="logo-lockup"
-        data-brand-source="opal-logo"
+        data-brand-role="character-lockup"
+        data-brand-source="opal-character"
       />
     </header>
   );
 }
 
 /**
- * W6A2 - canonical transparent logo lockup on first-run auth (OTP / phone).
- * True alpha; no abstract OPALGRAPH emblem; no baked checkerboard box.
- * Single opalLogo only: never + wordmark / "OPAL GRAPH" text.
+ * Phone / OTP chrome — character identity (same authority as Splash).
  */
 function CharacterLockup() {
   return (
     <header
-      className="fr-auth-header fr-character-lockup fr-logo-lockup"
+      className="fr-auth-header fr-character-lockup"
       data-testid="fr-character-lockup"
-      data-auth-header="opal-logo"
+      data-auth-header="opal-character"
     >
       <img
-        className="fr-character-lockup-art fr-logo-lockup-img"
-        src={BRAND_ASSETS.opalLogo}
+        className="fr-character-lockup-art"
+        src={`${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`}
         alt=""
-        width={132}
+        width={88}
         height={88}
         draggable={false}
+        data-brand-source="opal-character"
       />
     </header>
   );
@@ -722,16 +720,16 @@ export function FirstRunExperience({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={reduce ? { duration: 0 } : { duration: 0.55, ease: EASE_OUT }}
               >
-                {/* Match FirstRunSplashPage: single opalLogo lockup; no separate OPAL GRAPH text. */}
+                {/* Match FirstRunSplashPage: character-only identity (Repair #2). */}
                 <img
-                  className="fr-splash-spectral-emblem fr-splash-logo-lockup"
-                  src={BRAND_ASSETS.opalLogo}
+                  className="fr-splash-spectral-emblem fr-splash-character-lockup"
+                  src={`${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`}
                   alt=""
                   width={210}
-                  height={140}
+                  height={210}
                   draggable={false}
-                  data-brand-role="logo-lockup"
-                  data-brand-source="opal-logo"
+                  data-brand-role="character-lockup"
+                  data-brand-source="opal-character"
                   data-figma-node="631:3"
                   data-testid="fr00-splash-emblem"
                 />
@@ -739,8 +737,10 @@ export function FirstRunExperience({
               <motion.p
                 className="fr-splash-mechanic"
                 data-testid="opal-graph-tagline"
+                hidden
+                aria-hidden
                 initial={reduce ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
+                animate={{ opacity: 0 }}
                 transition={
                   reduce ? { duration: 0 } : { duration: 0.4, delay: 0.32, ease: EASE_OUT }
                 }

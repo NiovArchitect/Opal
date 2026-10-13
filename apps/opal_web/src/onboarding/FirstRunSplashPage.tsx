@@ -1,7 +1,8 @@
 /**
- * TOP-LEVEL Splash — Figma 618:19 / founder Reality Repair.
+ * TOP-LEVEL Splash — Founder Reality Repair #2.
  *
- * One canonical lockup + Midnight + subtle glow. No second character, wordmark, or collage.
+ * SINGLE approved identity: animated Opal character on Midnight.
+ * No side-by-side character+wordmark collage. No second logo. No tagline layer.
  * NEW_USER_SKIP_SPLASH_2 = 0 — only “I already have an account” bypasses to Phone.
  */
 import React, { useRef } from "react";
@@ -12,8 +13,8 @@ type Props = {
   onAlreadyAccount: () => void;
 };
 
-/** Canonical transparent logo lockup — single runtime asset (DOUBLE_COMPOSITION = 0). */
-const LOCKUP_SRC = `${BRAND_ASSETS.opalLogo}?v=founder-reality-repair-1`;
+/** Character-only splash identity — never the bad side-by-side opal-logo collage. */
+const SPLASH_IDENTITY_SRC = `${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`;
 
 export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount }: Props) {
   const advanced = useRef(false);
@@ -38,27 +39,26 @@ export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount }: Props) {
       data-new-user-skip-splash-2="0"
       data-splash-logo-count="1"
       data-double-composition="0"
-      aria-label={`${PRODUCT_PUBLIC_NAME}. Talk. Align. Go.`}
+      data-splash-runtime-asset="single_source"
+      data-splash-identity="opal-character"
+      aria-label={PRODUCT_PUBLIC_NAME}
     >
       <div className="fr-splash-aura" aria-hidden data-figma-node="631:2" />
       <div className="fr-splash-hero">
-        <div className="fr-splash-mark">
+        <div className="fr-splash-mark fr-splash-mark-character">
           <img
-            className="fr-splash-spectral-emblem fr-splash-logo-lockup"
-            src={LOCKUP_SRC}
+            className="fr-splash-spectral-emblem fr-splash-character-lockup"
+            src={SPLASH_IDENTITY_SRC}
             alt=""
             width={210}
-            height={140}
+            height={210}
             draggable={false}
-            data-brand-role="logo-lockup"
-            data-brand-source="opal-logo"
+            data-brand-role="character-lockup"
+            data-brand-source="opal-character"
             data-figma-node="631:3"
             data-testid="fr00-splash-emblem"
           />
         </div>
-        <p className="fr-splash-mechanic" data-testid="opal-graph-tagline">
-          TALK. ALIGN. GO.
-        </p>
       </div>
       <div className="fr-splash-actions">
         <button

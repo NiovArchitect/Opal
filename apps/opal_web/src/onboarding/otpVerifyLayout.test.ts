@@ -11,25 +11,25 @@ const css = readFileSync(resolve(root, "styles.css"), "utf8");
 const fre = readFileSync(resolve(__dirname, "FirstRunExperience.tsx"), "utf8");
 
 describe("Paste W6 Phase 0 — OTP Verify layout law", () => {
-  it("uses canonical logo lockup, not abstract OPALGRAPH emblem, on verify", () => {
-    expect(fre).toMatch(/fr-character-lockup|CharacterLockup|fr-logo-lockup/);
-    expect(fre).toMatch(/opalLogo|opal-logo\.png/);
+  it("uses character identity, not abstract OPALGRAPH emblem, on verify", () => {
+    expect(fre).toMatch(/fr-character-lockup|CharacterLockup/);
+    expect(fre).toMatch(/opalCharacter|opal-character\.png/);
     // Verify step must not mount AuthHeroMark / graph emblem hero
     const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('step === "fr08"'));
     expect(verifyBlock).toMatch(/CharacterLockup/);
     expect(verifyBlock).not.toMatch(/AuthHeroMark|opalGraphEmblemHero/);
   });
 
-  it("BrandChrome and auth lockups never double-compose opalLogo + wordmark", () => {
+  it("BrandChrome and auth lockups never double-compose character + wordmark", () => {
     const brandChrome = fre.slice(
       fre.indexOf("function BrandChrome"),
       fre.indexOf("function CharacterLockup"),
     );
-    expect(brandChrome).toMatch(/opalLogo/);
+    expect(brandChrome).toMatch(/opalCharacter/);
     expect(brandChrome).not.toMatch(/OpalWordmark|opalWordmark|OpalMark/);
     const lockupStart = fre.indexOf("function CharacterLockup");
     const lockup = fre.slice(lockupStart, lockupStart + 500);
-    expect(lockup).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(lockup).toMatch(/BRAND_ASSETS\.opalCharacter/);
     expect(lockup).not.toMatch(/OpalWordmark|opalWordmark|opal-graph-word-opal/);
   });
 

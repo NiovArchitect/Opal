@@ -18,16 +18,13 @@ describe("YOU hub hierarchy + trust fixes", () => {
     expect(app).not.toMatch(/More settings below/);
   });
 
-  it("keeps Spending live on hub; Fit honestly hidden (no wellness seam)", () => {
+  it("keeps Spending and Fit live on hub (Repair #2 restore)", () => {
     expect(app).toMatch(/key:\s*"spending"/);
-    // FIT_PLACEHOLDER_PAGE = 0 / HONESTLY_HIDDEN — no hub row for Fit.
-    expect(app).not.toMatch(/key:\s*"fit"/);
-    expect(app).toMatch(/FIT_PLACEHOLDER_PAGE\s*=\s*0\s*\/\s*HONESTLY_HIDDEN/);
+    expect(app).toMatch(/key:\s*"fit"/);
+    expect(app).toMatch(/title:\s*"Fit"/);
     expect(app).not.toMatch(/Spending & fit/);
     expect(dest).toMatch(/spending:\s*\{/);
-    // Destination retained for inventory / tests; not consumer-listed.
     expect(dest).toMatch(/fit:\s*\{/);
-    expect(dest).toMatch(/FIT_PLACEHOLDER_PAGE\s*=\s*0\s*\/\s*HONESTLY_HIDDEN/);
     expect(dest).not.toContain('"spending-fit"');
   });
 

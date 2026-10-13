@@ -3383,7 +3383,7 @@ button.plan-card-btn:focus-visible {
 .find-people-overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 80;
   display: grid;
   place-items: end center;
   background: rgba(3, 4, 8, 0.72);
@@ -3395,6 +3395,7 @@ button.plan-card-btn:focus-visible {
   max-height: min(88dvh, 720px);
   overflow: auto;
   padding: 18px 16px 20px;
+  padding-bottom: calc(20px + var(--opal-primary-viewport-inset, 0px));
   border-radius: 20px 20px 16px 16px;
 }
 
@@ -6779,6 +6780,28 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   /* Preserve PNG alpha — no black/white backing plate */
   -webkit-mask-image: none;
   mask-image: none;
+}
+/* Character-only splash — square identity, no side-by-side collage crop */
+.fr-splash-mark-character,
+.fr-splash-mark img.fr-splash-character-lockup {
+  width: min(210px, 58vw) !important;
+  height: min(210px, 58vw) !important;
+  max-width: 210px !important;
+  max-height: 210px !important;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  animation: fr-splash-character-breathe 3.6s ease-in-out infinite;
+}
+@keyframes fr-splash-character-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 18px rgba(0, 229, 255, 0.22));
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+    filter: drop-shadow(0 0 28px rgba(139, 92, 246, 0.28));
+  }
 }
 .fr-splash-logo-lockup,
 .fr-splash-mark img.fr-splash-logo-lockup {
@@ -12315,9 +12338,13 @@ button.gsh-cx-history:focus-visible {
 
 /* Home social destinations 437:* / Stories  -  full-bleed over Home; dock stays visible underneath */
 .memory-detail-sheet,
-.ogsn-graph-detail,
-.story-create-flow {
+.ogsn-graph-detail {
   position: fixed; top: 0; bottom: 0; z-index: 58; background: #050816;
+  overflow-y: auto; padding: 14px 20px var(--dock-clearance);
+}
+/* Story create above dock (70); above viewer (72) while create is open */
+.story-create-flow {
+  position: fixed; top: 0; bottom: 0; z-index: 80; background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
 /* Comments / Discovery / Forward are full destinations — never flex-sliver above dock */
@@ -18766,7 +18793,7 @@ html.opal-native-host .story-create-flow {
   height: 100% !important;
   max-width: none !important;
   transform: none !important;
-  z-index: 10040 !important;
+  z-index: 10060 !important;
   padding-top: calc(12px + var(--opal-safe-top)) !important;
   box-sizing: border-box !important;
 }
@@ -20781,11 +20808,20 @@ html.opal-native-host .opal-center-chat-input {
 .hs-meet-turn.is-primary .hs-line + .hs-self-name-composer {
   margin-top: 14px;
 }
-.hs-meet-turn.is-settled {
-  opacity: 0.55;
+.hs-meet-turn.is-settled,
+.hs-meet-turn.is-history {
+  opacity: 1;
   transform: none;
-  pointer-events: none;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+.hs-meet-turn.is-history .hs-line-opal .hs-line-body,
+.hs-meet-turn.is-history .hs-line-you .hs-line-body {
+  font-size: 15px;
+  line-height: 1.35;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 .hs-meet-turn.is-settled .hs-meet-input,
 .hs-meet-turn.is-settled .hs-pill,
@@ -20793,7 +20829,9 @@ html.opal-native-host .opal-center-chat-input {
   pointer-events: none;
 }
 .hs-meet-turn.is-settled .hs-self-name-composer,
-.hs-meet-turn.is-settled .hs-people-composer {
+.hs-meet-turn.is-settled .hs-people-composer,
+.hs-meet-turn.is-history .hs-self-name-composer,
+.hs-meet-turn.is-history .hs-people-composer {
   display: none;
 }
 .hs-meet-sticky-continue {
@@ -23413,4 +23451,67 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
 .tabbar-option-b .dock-opal[data-dock-active="true"] .dock-opal-center-mark {
   filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.4));
   opacity: 1;
+}
+
+/* Founder Reality Repair #2 — Center composer vs dock keyboard */
+/* When Center composer focused, hide dock so keyboard never covers composer */
+.app:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
+.app:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b,
+.opal-ambient-destination:has(.opal-center-v2-composer:focus-within) ~ .tabbar,
+html.opal-native-host .opal-ambient-destination:has(.opal-composer:focus-within) {
+  /* dock hide handled via sibling / body:has below */
+}
+html.opal-native-host body:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
+html.opal-native-host body:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b,
+.app:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
+.app:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(110%);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.app:has(.opal-center-v2-composer:focus-within) .opal-center-v2,
+.opal-ambient-destination:has(.opal-center-v2-composer:focus-within) .opal-center-v2,
+.app:has(.opal-center-chat-composer:focus-within) .opal-center-chat {
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+}
+
+/* In-Center Context sheet — above Center chrome, not YOU */
+.opal-center-v2 .opal-center-context-sheet {
+  position: absolute;
+  z-index: 20;
+}
+
+/* Member-shell Lives go-live overlay (founder-seed affordance; not ?opal_lives=1) */
+.lives-go-live-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: rgba(3, 4, 8, 0.78);
+  padding: 16px;
+  padding-bottom: calc(16px + var(--opal-primary-viewport-inset, 0px));
+  box-sizing: border-box;
+}
+.lives-go-live-overlay-card {
+  width: min(440px, 100%);
+  max-height: min(88dvh, 720px);
+  overflow: auto;
+  padding: 18px 16px 20px;
+  border-radius: 20px;
+  background: #070a12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+.lives-go-live-overlay-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.lives-go-live-overlay-top h2 {
+  margin: 0;
+  font-size: 1.1rem;
 }

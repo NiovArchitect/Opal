@@ -826,14 +826,6 @@ export function GraphsTripsSection({ bearer, createSignal = 0 }: Props) {
       ) : null}
       <div className="graphs-trips-head">
         <h2 className="graphs-trips-label">Trips</h2>
-        <button
-          type="button"
-          className="btn ghost graphs-trips-new"
-          data-testid="trip-new"
-          onClick={() => setCreating(true)}
-        >
-          New trip
-        </button>
       </div>
 
       {loading ? (

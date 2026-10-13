@@ -363,23 +363,22 @@ try {
       `conv=${conv} oneAnswer=${oneAnswer} provisional=${provisional} note=${String(resolveNote).slice(0, 80)}`,
     );
 
-    // Context → YOU
+    // Context → in-Center sheet (not YOU); Manage permissions is the YOU path
     const contextBtn = page.locator(".opal-center-v2-context-link").first();
     if (await contextBtn.isVisible().catch(() => false)) {
       await contextBtn.click({ force: true });
       await page.waitForTimeout(900);
-      const youTab =
-        (await page.getByTestId("member-tab-you").getAttribute("aria-current").catch(() => null)) ===
-          "page" ||
-        (await page.locator('[data-testid="you-hub"], .you-hub, [data-tab="you"]').first().isVisible().catch(() => false));
-      await page.screenshot({ path: path.join(outDir, "07_context_you.png") });
+      const sheet =
+        (await page.getByTestId("opal-center-context-sheet").isVisible().catch(() => false)) ||
+        (await page.locator(".opal-center-context-sheet").first().isVisible().catch(() => false));
+      await page.screenshot({ path: path.join(outDir, "07_context_sheet.png") });
       mark(
-        "Center Context → YOU",
-        youTab ? "GREEN" : "YELLOW",
-        `youVisibleish=${youTab}`,
+        "Center Context → sheet",
+        sheet ? "GREEN" : "YELLOW",
+        `contextSheet=${sheet}`,
       );
     } else {
-      mark("Center Context → YOU", "YELLOW", "context link not visible on this state");
+      mark("Center Context → sheet", "YELLOW", "context link not visible on this state");
     }
   }
 

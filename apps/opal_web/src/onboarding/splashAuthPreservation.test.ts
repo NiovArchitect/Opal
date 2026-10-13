@@ -94,11 +94,11 @@ describe("P0-05.10 Auth preserves FR06–FR09 geometry", () => {
     expect(ring).not.toMatch(/118px/);
   });
 
-  it("auth header uses compact FR footprint not hero logo", () => {
-    expect(fr).toMatch(/fr-auth-header|fr-character-lockup|fr-logo-lockup/);
-    // W6A2 / P0 brand law: single opalLogo lockup (not 39px emblem + OPAL GRAPH text).
-    expect(fr).toMatch(/BRAND_ASSETS\.opalLogo|opal-logo\.png/);
-    expect(fr).toMatch(/width=\{132\}/);
+  it("auth header uses compact character identity not collage logo", () => {
+    expect(fr).toMatch(/fr-auth-header|fr-character-lockup/);
+    // Repair #2: character identity (not side-by-side opal-logo collage).
+    expect(fr).toMatch(/BRAND_ASSETS\.opalCharacter|opal-character\.png/);
+    expect(fr).toMatch(/width=\{88\}/);
     // No live double-composition class/markup (comments may still name the law).
     expect(fr).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph/);
     expect(css).not.toMatch(/\.fr-auth-hero-mark img[\s\S]*?120px/);

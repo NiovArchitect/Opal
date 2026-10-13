@@ -24,7 +24,7 @@ export const HOLY_SHIT_COPY = {
  selfUsernameQuiet: (handle: string) => `Perfect. You're @${handle}.`,
  /** Handle taken — Opal suggests the next option (no manual username screen). */
  selfUsernameTaken: (handle: string, suggested: string) =>
-  `@${handle} is taken. I found @${suggested}.`,
+  `Your name is popular 😄 I made a small adjustment: @${suggested}`,
  selfUsernameAccept: "Accept",
  selfUsernameTryAnother: "Try another",
  /** @deprecated alias for quiet preview */

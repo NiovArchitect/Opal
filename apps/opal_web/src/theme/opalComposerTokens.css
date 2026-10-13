@@ -50,7 +50,9 @@
    * Shared brand composer shell. Same layouts; tokens only.
    * Use on every surface where the user talks to Opal.
    */
+  /* Unified conversation language — Center + human threads share one shell. */
   .opal-composer-brand,
+  .composer-618.opal-composer-brand,
   html.opal-native-host .opal-composer,
   html.opal-native-host .composer-618,
   .opal-center-chat-composer.opal-composer {

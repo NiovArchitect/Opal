@@ -236,7 +236,7 @@ export function OpalAmbient({
     setExploreMode(false);
     setMediumOpen(false);
     setLowOpen(false);
-    setNote("Resolving nearby with Decision Intelligence…");
+    setNote("Looking nearby…");
 
     const demoCoords = coldStartDemoCoords();
     let lat = demoCoords?.lat;
@@ -315,7 +315,7 @@ export function OpalAmbient({
       return;
     }
     setLiveDecision(null);
-    setNote(`Intent “${chip}” applied with current context. Full Decision Intelligence recompose is P4.`);
+    setNote(`Got it — applying “${chip}” to this context.`);
     // One-tap intent: seed without requiring a second Send when architecture allows
     onSeedGraph?.(chip);
   }
@@ -364,9 +364,9 @@ export function OpalAmbient({
     setSheet({
       kind: "correction",
       title: chip.label,
-      body: `Correction “${chip.label}” recorded locally. Immediate Decision Intelligence recompose (same context, one mutated dimension) is P4_REQUIRED — not faked in P3.1.`,
+      body: `Got it — I’ll keep that in mind for this decision.`,
     });
-    setNote(`Correction operator “${chip.label}” — P4 Decision Intelligence owns full recompose.`);
+    setNote(`Got it — “${chip.label}” noted.`);
   }
 
   function openContext(chip: (typeof CONTEXT)[number]) {
@@ -545,35 +545,31 @@ export function OpalAmbient({
               {resolving
                 ? "Looking nearby…"
                 : liveFailure
-                  ? liveDecision?.note || "Could not settle on one nearby answer yet."
+                  ? "I don't have enough live context to pick one confidently yet. Want me to look nearby or use a place you already like?"
                   : exploreMode
-                    ? "Exploration open — multiple alternatives on purpose."
+                    ? "I found a few nearby options. Here are the best matches."
                     : lowOpen
-                      ? "I understand exactly why this is hard — one real tradeoff."
+                      ? "This one's a real tradeoff — pick the side that fits you."
                       : mediumOpen
                         ? "One thing would finish this — then I can decide."
                         : liveHigh
-                          ? "One best fit for this context — provisional until you accept."
-                          : "One best fit for this context — provisional until you accept."}
+                          ? "One best fit for this context — confirm when you're ready."
+                          : "One best fit for this context — confirm when you're ready."}
             </p>
             <p className="opal-response-picks">
               {resolving
-                ? "Decision Intelligence · connected places when location is present."
+                ? "Using places near you when location is available."
                 : liveFailure
-                  ? `Failure · honest · ${liveDecision?.candidate_source || "unavailable"}.`
+                  ? "No single pick yet — your call."
                   : exploreMode
-                    ? "More ideas escape hatch."
+                    ? "More ideas anytime."
                     : lowOpen
-                      ? liveLow
-                        ? `Low / conflicted · one axis · two sides · 988:263 · ${liveDecision?.candidate_source || "live"}.`
-                        : "Low / conflicted · one axis · two sides · 988:263 · no blame."
+                      ? "Two honest sides. No wrong answer."
                       : mediumOpen
-                        ? liveMedium
-                          ? `Medium · one necessary question · 988:2 · ${liveDecision?.candidate_source || "live"}.`
-                          : "Medium · one necessary question · 988:2 · not a wizard."
+                        ? "One question to finish the decision."
                         : liveHigh
-                          ? `High confidence · violet provisional · ${liveDecision?.candidate_source || "live"} · not confirmed.`
-                          : "High confidence · violet provisional · not confirmed · candidate catalog is fixture."}
+                          ? "Best match — not booked until you confirm."
+                          : "Best match — not booked until you confirm."}
             </p>
           </div>
         </div>
@@ -708,7 +704,7 @@ export function OpalAmbient({
         >
           {liveFailure && !exploreMode ? (
             <p className="opal-ambient-note" data-testid="opal-decision-failure" role="status">
-              {liveDecision?.note || "Nearby resolve did not produce an answer."}
+              I don&apos;t have enough live context to pick one confidently yet. Want me to look nearby or use a place you already like?
             </p>
           ) : (
             <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
@@ -741,10 +737,8 @@ export function OpalAmbient({
                     onSeedGraph?.(idea.title);
                     setNote(
                       exploreMode
-                        ? "Exploration pick seeded into Graph path. Human confirm still required."
-                        : liveHigh
-                          ? `High-confidence answer accepted into same Graph path — provisional, not Gold. Candidate source: ${liveDecision?.candidate_source || "live"}.`
-                          : "High-confidence answer accepted into same Graph path — provisional, not Gold. Candidate source: fixture catalog.",
+                        ? "Added to your Graph path — confirm when you're ready."
+                        : "Looks good — confirm when you're ready.",
                     );
                   }}
                 >

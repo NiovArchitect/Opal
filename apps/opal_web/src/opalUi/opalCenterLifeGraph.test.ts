@@ -28,11 +28,15 @@ describe("Opal Center V2 behavior convergence", () => {
     expect(center).toMatch(/if \(acceptLock\.current\) return/);
   });
 
-  it("exposes claim provenance (no silent fabrication)", () => {
+  it("keeps claim provenance internal and never paints tech leaks", () => {
     expect(center).toMatch(/provenance/);
     expect(center).toMatch(/decision_intelligence/);
     expect(center).toMatch(/opal-center-provenance/);
-    expect(center).toMatch(/No fabricated distance or traffic|not invent/);
+    expect(center).toMatch(/data-consumer-visible="0"/);
+    expect(center).toMatch(/ARCHITECTURE_STAYS_BEHIND_THE_GLASS|humanResolveNote/);
+    // Consumer copy must not paint internal source tokens.
+    expect(center).not.toMatch(/Source:\s*\$\{/);
+    expect(center).not.toMatch(/Resolving with Decision Intelligence/);
   });
 
   it("does not reintroduce rejected 1086 neural dashboard", () => {

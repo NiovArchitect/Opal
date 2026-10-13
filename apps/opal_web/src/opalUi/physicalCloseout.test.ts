@@ -111,7 +111,7 @@ describe("founder physical closeout", () => {
   it("Story viewer / create sit above product chrome on native", () => {
     const css = read("styles.css");
     expect(css).toMatch(/story-viewer[\s\S]*?z-index:\s*10050/);
-    expect(css).toMatch(/story-create-flow[\s\S]*?z-index:\s*10040/);
+    expect(css).toMatch(/story-create-flow[\s\S]*?z-index:\s*10060/);
   });
 
   it("iOS AppIcon is wired in Expo app.json and asset exists", () => {

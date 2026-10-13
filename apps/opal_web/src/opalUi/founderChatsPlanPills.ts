@@ -632,7 +632,7 @@ export function founderSeedThreadMessages(
       {
         id: `${seedId}-m0`,
         from: "them",
-        body: "Say something to open this thread.",
+        body: "Start the conversation whenever you're ready.",
         time: "now",
       },
     ];

@@ -149,12 +149,13 @@ export function PermissionBootstrapPage({ userId, onContinue }: Props) {
         <div className="hs-meet-orb-wrap">
           <img
             className="hs-perm-bootstrap-lockup"
-            src={BRAND_ASSETS.opalLogo}
+            src={`${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`}
             alt=""
-            width={120}
-            height={80}
+            width={88}
+            height={88}
             draggable={false}
-            data-brand-role="logo-lockup"
+            data-brand-role="character-lockup"
+            data-brand-source="opal-character"
             data-testid="permission-bootstrap-lockup"
           />
         </div>

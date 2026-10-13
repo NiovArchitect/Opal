@@ -694,86 +694,100 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
           {showForm ? (
             <>
-              {/* ask_name section — primary on meetTurn=name */}
+              {/* ask_name — active composer OR settled conversational history */}
               <div
-                className={`hs-meet-turn${meetTurn === "name" ? " is-primary" : " is-settled"}`}
+                className={`hs-meet-turn${meetTurn === "name" ? " is-primary" : " is-settled is-history"}`}
                 data-meet-turn-section="name"
                 data-testid="hs-meet-turn-name"
+                data-history={meetTurn === "name" ? "0" : "1"}
               >
               <OpalLine
                 text={HOLY_SHIT_COPY.askSelfName}
                 testId="hs-opal-ask-self-name"
                 index={1}
               />
-              <div
-                className="hs-people-composer hs-self-name-composer hs-meet-section"
-                data-testid="hs-self-name-composer"
-              >
-                <div className="hs-self-name-form">
-                  <div className="hs-meet-composer hs-meet-composer-inline opal-composer-brand">
-                    <input
-                      ref={selfNameRef}
-                      className="hs-meet-input"
-                      data-testid="hs-self-name-input"
-                      placeholder={HOLY_SHIT_COPY.selfNamePlaceholder}
-                      value={selfNameDraft}
-                      onChange={(e) => setSelfNameDraft(e.target.value)}
-                      autoComplete="name"
-                      enterKeyHint="done"
-                      aria-label={HOLY_SHIT_COPY.askSelfName}
+              {meetTurn !== "name" && selfNameDraft.trim() ? (
+                <>
+                  <YouLine text={selfNameDraft.trim()} testId="hs-you-self-name" />
+                  {chosenHandle || derivedHandle ? (
+                    <OpalLine
+                      text={`Got you${chosenHandle || derivedHandle ? ` · @${chosenHandle || derivedHandle}` : ""}.`}
+                      testId="hs-opal-got-you"
+                      index={1}
                     />
-                  </div>
-                  {derivedHandle ? (
-                    <UsernameSettingsHint handle={derivedHandle} variant="plain" />
                   ) : null}
-                  {handleStatus ? (
-                    <div className="hs-handle-collision" data-testid="hs-handle-collision">
-                      <p className="hs-contacts-status" role="status">
-                        {handleStatus}
-                      </p>
-                      <div className="hs-handle-collision-actions">
-                        <button
-                          type="button"
-                          className="hs-pill hs-pill-primary"
-                          data-testid="hs-handle-accept"
-                          disabled={nameAdvancing}
-                          onClick={() => {
-                            const accepted =
-                              chosenHandle || suggestUsernameFromName(selfNameDraft);
-                            void commitIdentityAndAdvance(accepted);
-                          }}
-                        >
-                          {HOLY_SHIT_COPY.selfUsernameAccept}
-                        </button>
-                        <button
-                          type="button"
-                          className="hs-pill hs-perm-not-now"
-                          data-testid="hs-handle-try-another"
-                          disabled={nameAdvancing}
-                          onClick={() => {
-                            const current =
-                              chosenHandle ||
-                              derivedHandle ||
-                              suggestUsernameFromName(selfNameDraft);
-                            const next = suggestUsernameAlternatives(
-                              selfNameDraft,
-                              current,
-                              handleAttempt,
-                            );
-                            setChosenHandle(next);
-                            setHandleAttempt((n) => n + 1);
-                            setHandleStatus(
-                              HOLY_SHIT_COPY.selfUsernameTaken(current, next),
-                            );
-                          }}
-                        >
-                          {HOLY_SHIT_COPY.selfUsernameTryAnother}
-                        </button>
-                      </div>
+                </>
+              ) : (
+                <div
+                  className="hs-people-composer hs-self-name-composer hs-meet-section"
+                  data-testid="hs-self-name-composer"
+                >
+                  <div className="hs-self-name-form">
+                    <div className="hs-meet-composer hs-meet-composer-inline opal-composer-brand">
+                      <input
+                        ref={selfNameRef}
+                        className="hs-meet-input"
+                        data-testid="hs-self-name-input"
+                        placeholder={HOLY_SHIT_COPY.selfNamePlaceholder}
+                        value={selfNameDraft}
+                        onChange={(e) => setSelfNameDraft(e.target.value)}
+                        autoComplete="name"
+                        enterKeyHint="done"
+                        aria-label={HOLY_SHIT_COPY.askSelfName}
+                      />
                     </div>
-                  ) : null}
+                    {derivedHandle ? (
+                      <UsernameSettingsHint handle={derivedHandle} variant="plain" />
+                    ) : null}
+                    {handleStatus ? (
+                      <div className="hs-handle-collision" data-testid="hs-handle-collision">
+                        <p className="hs-contacts-status" role="status">
+                          {handleStatus}
+                        </p>
+                        <div className="hs-handle-collision-actions">
+                          <button
+                            type="button"
+                            className="hs-pill hs-pill-primary"
+                            data-testid="hs-handle-accept"
+                            disabled={nameAdvancing}
+                            onClick={() => {
+                              const accepted =
+                                chosenHandle || suggestUsernameFromName(selfNameDraft);
+                              void commitIdentityAndAdvance(accepted);
+                            }}
+                          >
+                            {HOLY_SHIT_COPY.selfUsernameAccept}
+                          </button>
+                          <button
+                            type="button"
+                            className="hs-pill hs-perm-not-now"
+                            data-testid="hs-handle-try-another"
+                            disabled={nameAdvancing}
+                            onClick={() => {
+                              const current =
+                                chosenHandle ||
+                                derivedHandle ||
+                                suggestUsernameFromName(selfNameDraft);
+                              const next = suggestUsernameAlternatives(
+                                selfNameDraft,
+                                current,
+                                handleAttempt,
+                              );
+                              setChosenHandle(next);
+                              setHandleAttempt((n) => n + 1);
+                              setHandleStatus(
+                                HOLY_SHIT_COPY.selfUsernameTaken(current, next),
+                              );
+                            }}
+                          >
+                            {HOLY_SHIT_COPY.selfUsernameTryAnother}
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
+              )}
               {meetTurn === "name" && selfNameDraft.trim() && !handleStatus ? (
                 <button
                   type="button"
@@ -787,12 +801,13 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
               ) : null}
               </div>
 
-              {/* ask_people — first connection seed before permissions */}
+              {/* ask_people — one active question; completed friend becomes history */}
               {(meetTurn === "friend" || meetTurn === "ready") ? (
               <div
-                className={`hs-meet-turn${meetTurn === "friend" ? " is-primary" : " is-settled"}`}
+                className={`hs-meet-turn${meetTurn === "friend" ? " is-primary" : " is-settled is-history"}`}
                 data-meet-turn-section="friend"
                 data-testid="hs-meet-turn-friend"
+                data-history={meetTurn === "friend" ? "0" : "1"}
               >
               <OpalLine
                 text={HOLY_SHIT_COPY.askPeople}
@@ -817,7 +832,7 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                 />
               ) : null}
 
-              {pendingPhonePerson ? (
+              {meetTurn === "ready" ? null : pendingPhonePerson ? (
                 <div className="hs-people-composer hs-meet-section" data-testid="hs-phone-gate">
                   <p
                     className="hs-contacts-status"

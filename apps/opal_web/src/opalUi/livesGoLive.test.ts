@@ -34,6 +34,15 @@ describe("Paste K Lives go-live honesty", () => {
     expect(src).toMatch(/TEST VENUE/);
   });
 
+  it("founder-seed YOU hub opens LivesGoLivePanel without query flag", () => {
+    const app = readFileSync(join(root, "../OpalApp.tsx"), "utf8");
+    expect(app).toMatch(/you-go-live/);
+    expect(app).toMatch(/livesGoLiveOpen/);
+    expect(app).toMatch(/lives-go-live-overlay/);
+    expect(app).toMatch(/setLivesGoLiveOpen\(true\)/);
+    expect(app).toMatch(/isFounderSeedEnabled\(\)/);
+  });
+
   it("productClient exposes lives search + go-live + pay", () => {
     const client = read("../api/productClient.ts");
     expect(client).toMatch(/\/api\/v1\/product\/lives\/go-live/);

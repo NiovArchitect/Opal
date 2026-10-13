@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createInvitation, normalizePhoneInput } from "../api/productClient";
 import { ContactSuggestPicker } from "./ContactSuggestPicker";
 import { shouldUseNativeContactsBridge } from "../nativeHostBridge";
@@ -54,6 +54,15 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     };
     return Boolean(nav.contacts && typeof nav.contacts.select === "function");
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   if (!open) return null;
 

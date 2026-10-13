@@ -310,13 +310,14 @@ describe("GraphsTripsSection", () => {
   });
 
   it("create flow posts title and shows new trip", async () => {
+    listTrips.mockResolvedValue({ trips: [] });
     await act(async () => {
       root.render(<GraphsTripsSection />);
     });
     await flush();
 
     await act(async () => {
-      container.querySelector<HTMLButtonElement>('[data-testid="trip-new"]')?.click();
+      container.querySelector<HTMLButtonElement>('[data-testid="trip-empty-new"]')?.click();
     });
     await flush();
 

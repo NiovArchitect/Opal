@@ -116,19 +116,20 @@ export function ActOnBehalfOptInStep({
       data-testid="fr10-act-on-behalf"
       data-viewport="390x844"
     >
-      {/* Single opalLogo lockup — never compose with separate OPAL GRAPH text. */}
+      {/* Character identity — never the side-by-side opal-logo collage. */}
       <header
-        className="fr-auth-header fr-character-lockup fr-logo-lockup"
+        className="fr-auth-header fr-character-lockup"
         data-testid="fr-auth-hero-mark"
-        data-auth-header="opal-logo"
+        data-auth-header="opal-character"
       >
         <img
-          className="fr-character-lockup-art fr-logo-lockup-img"
-          src={BRAND_ASSETS.opalLogo}
+          className="fr-character-lockup-art"
+          src={`${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`}
           alt=""
-          width={132}
+          width={88}
           height={88}
           draggable={false}
+          data-brand-source="opal-character"
         />
       </header>
       <h1 className="fr-title">{FR_COPY.actOnBehalfTitle}</h1>

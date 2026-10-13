@@ -767,6 +767,8 @@ export function OpalApp() {
   const [loadingLive, setLoadingLive] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
+  /** Founder-seed / member-shell Lives entry — opens LivesGoLivePanel without ?opal_lives=1. */
+  const [livesGoLiveOpen, setLivesGoLiveOpen] = useState(false);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
   /** Simple Confirm {time} bottom sheet — not the full AvailabilitySheet. */
   const [confirmTimeDraft, setConfirmTimeDraft] = useState<string | null>(null);
@@ -898,6 +900,8 @@ export function OpalApp() {
     signalLabel?: string;
     signalGraphId?: string;
   }>(null);
+  /** Chats|Calls surface ownership — Chat must never leave Calls mode visible. */
+  const [commSurface, setCommSurface] = useState<"chats" | "calls">("chats");
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
   /** Figma 1075:644 Solo = same OpalAmbient, SELF ONLY participant context. */
   const [opalAmbientMode, setOpalAmbientMode] = useState<"global" | "solo">("solo");
@@ -7012,10 +7016,11 @@ export function OpalApp() {
         ) : null}
 
         <form
-          className={`composer glass composer-618${
+          className={`composer glass composer-618 opal-composer-brand${
             composerHasOpal ? " has-opal-context" : ""
           }${primary.kind === "set" ? " has-opal-set" : ""}`}
           data-testid="composer"
+          data-composer-language="center-unified"
           onSubmit={(e) => {
             e.preventDefault();
             setAttachMenuOpen(false);
@@ -7943,6 +7948,31 @@ export function OpalApp() {
           })();
         }}
       />
+      {livesGoLiveOpen ? (
+        <div
+          className="lives-go-live-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lives-go-live-overlay-title"
+          data-testid="lives-go-live-overlay"
+        >
+          <div className="lives-go-live-overlay-card lumen-card">
+            <header className="lives-go-live-overlay-top">
+              <h2 id="lives-go-live-overlay-title">Go live</h2>
+              <button
+                type="button"
+                className="btn ghost"
+                data-testid="lives-go-live-overlay-close"
+                onClick={() => setLivesGoLiveOpen(false)}
+                aria-label="Close"
+              >
+                Close
+              </button>
+            </header>
+            <LivesGoLivePanel />
+          </div>
+        </div>
+      ) : null}
 
       {/* WHO-FAST-PATH-01 intelligence + FINAL WHO 201:6 presentation */}
       {momentForkChooserOpen ? (
@@ -8510,6 +8540,8 @@ export function OpalApp() {
         ) : null}
         {tab === "chats" ? (
           <ChatsHome
+            surface={commSurface}
+            onSurfaceChange={setCommSurface}
             rows={
               (() => {
                 const liveRows = chats.map((c) => {
@@ -9057,6 +9089,7 @@ export function OpalApp() {
               });
             }}
             onFindPeople={() => setFindPeopleOpen(true)}
+            onOpenLives={() => setLivesGoLiveOpen(true)}
             onProfileSaved={(user) => {
               setSession((prev) => {
                 if (!prev) return prev;
@@ -10412,8 +10445,9 @@ export function OpalApp() {
               setProfilePerson(null);
               setSearchReturnPending(false);
               setHomeScrollToken((t) => t + 1);
+              setCommSurface("chats");
+              setTab("chats");
               if (chat) void openChat(chat.id);
-              else setTab("chats");
             }}
             onPlan={() => {
               // WHO already known
@@ -10779,8 +10813,9 @@ export function OpalApp() {
               c.name.toLowerCase().includes(callContinuity.name.toLowerCase()),
             );
             setCallContinuity(null);
+            setCommSurface("chats");
+            setTab("chats");
             if (chat) void openChat(chat.id);
-            else setTab("chats");
           }}
           onOpenGraph={(graphId) => {
             setCallContinuity(null);
@@ -10823,6 +10858,7 @@ export function OpalApp() {
               bearer={session?.access_token}
               userId={session?.user_id || null}
               onClose={() => setOpalAmbientOpen(false)}
+              /* Context sheet owns primary tap; this prop is Manage permissions → YOU only. */
               onOpenSettings={() => {
                 setOpalAmbientOpen(false);
                 setTab("you");
@@ -11785,8 +11821,8 @@ type YouHubRow = {
  * YOU hierarchy — person-centered control center (not iPhone Settings clone).
  * Authority: docs/authority/YOU_PAGE_HIERARCHY.md
  * Pass B: engagement + safety remain hub-hidden (all nested controls blocked).
- * Fit: FIT_PLACEHOLDER_PAGE = 0 / HONESTLY_HIDDEN — no wellness preference
- * persistence seam; destination kept in YouSettingsDestination for inventory.
+ * Fit: restored on hub (Founder Reality Repair #2) — lifestyle signal for rhythm /
+ * availability / Center understanding. Destination controls stay honest.
  */
 const YOU_HUB_SECTIONS: {
   id: string;
@@ -11805,7 +11841,7 @@ const YOU_HUB_SECTIONS: {
       {
         key: "location-travel",
         title: "Location & travel",
-        subtitle: "Home timezone and travel mode",
+        subtitle: "How Opal handles travel timing",
         semantic: "aqua",
       },
     ],
@@ -11817,7 +11853,7 @@ const YOU_HUB_SECTIONS: {
       {
         key: "privacy",
         title: "Privacy",
-        subtitle: "Access permissions, celebrations, and trust",
+        subtitle: "What Opal can understand and use",
       },
     ],
   },
@@ -11828,13 +11864,13 @@ const YOU_HUB_SECTIONS: {
       {
         key: "calls-assist",
         title: "Calls & Opal Assist",
-        subtitle: "Access Assist · Action Suggest → Prepare → Execute",
+        subtitle: "How Opal can help during calls",
         semantic: "violet",
       },
       {
         key: "notifications",
         title: "Notifications",
-        subtitle: "Messages and receipts you control",
+        subtitle: "What deserves your attention",
         semantic: "magenta",
       },
       {
@@ -11847,6 +11883,12 @@ const YOU_HUB_SECTIONS: {
         title: "Spending",
         subtitle: "Budget comfort for suggestions",
         semantic: "gold",
+      },
+      {
+        key: "fit",
+        title: "Fit",
+        subtitle: "Activity and self-care rhythm",
+        semantic: "coral",
       },
     ],
   },
@@ -11874,6 +11916,7 @@ function YouPane({
   session,
   onSignOut,
   onFindPeople,
+  onOpenLives,
   onProfileSaved,
   readReceipts,
   messageNotifications,
@@ -11883,6 +11926,8 @@ function YouPane({
   session: ProductSession | null;
   onSignOut: () => void | Promise<void>;
   onFindPeople?: () => void;
+  /** Founder-seed Lives affordance — opens LivesGoLivePanel without query flag. */
+  onOpenLives?: () => void;
   onProfileSaved?: (user: { display_name: string; handle: string }) => void;
   readReceipts?: boolean;
   messageNotifications?: boolean;
@@ -12009,6 +12054,22 @@ function YouPane({
                 <span className="you-hub-row-copy">
                   <strong>Grow Your Circle</strong>
                   <span>Invite people you know — connect your world</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {section.id === "world" && session && onOpenLives && isFounderSeedEnabled() ? (
+              <button
+                type="button"
+                className="you-hub-row"
+                data-testid="you-go-live"
+                onClick={onOpenLives}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>Go live</strong>
+                  <span>Confirm a venue and start a Live</span>
                 </span>
                 <span className="you-hub-chevron" aria-hidden>
                   ›

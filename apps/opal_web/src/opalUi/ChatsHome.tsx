@@ -56,6 +56,12 @@ type Props = {
   onInviteFriend?: () => void;
   /** Initial surface; defaults to chats (618:271). */
   initialSurface?: CommSurface;
+  /**
+   * Controlled surface — when set, Chats|Calls mode follows parent.
+   * Chat button must force "chats" so Continuity Chat never leaves the call log visible.
+   */
+  surface?: CommSurface;
+  onSurfaceChange?: (surface: CommSurface) => void;
   callRows?: CallsContinuityRow[];
   onOpenCallGraph?: (graphCardId: string) => void;
   onCallBack?: (row: CallsContinuityRow) => void;
@@ -88,6 +94,8 @@ export function ChatsHome({
   onAddContact,
   onInviteFriend,
   initialSurface = "chats",
+  surface: controlledSurface,
+  onSurfaceChange,
   // Empty [] = honest empty. Seed continuity is owned by OpalApp merge, not default.
   callRows = [],
   onOpenCallGraph,
@@ -100,7 +108,13 @@ export function ChatsHome({
   onOpenCalls,
 }: Props) {
   const [q, setQ] = useState("");
-  const [surface, setSurface] = useState<CommSurface>(initialSurface);
+  const [uncontrolledSurface, setUncontrolledSurface] =
+    useState<CommSurface>(initialSurface);
+  const surface = controlledSurface ?? uncontrolledSurface;
+  const setSurface = (next: CommSurface) => {
+    if (controlledSurface === undefined) setUncontrolledSurface(next);
+    onSurfaceChange?.(next);
+  };
   const [callsFilter, setCallsFilter] = useState<CallsFilter>("all");
   const [plusOpen, setPlusOpen] = useState(false);
 

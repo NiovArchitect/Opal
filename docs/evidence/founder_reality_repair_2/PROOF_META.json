@@ -1,0 +1,15 @@
+{
+  "member_shell": false,
+  "fit_visible": false,
+  "visible_leaks": [],
+  "shots": [
+    "01_splash_character.png",
+    "10_member_home.png",
+    "11_chats.png",
+    "12_center.png",
+    "13_graphs.png",
+    "14_you.png"
+  ],
+  "viewport": "390x844",
+  "tip_pre": "ddb112c5"
+}

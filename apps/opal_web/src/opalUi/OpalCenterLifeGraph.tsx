@@ -40,6 +40,7 @@ type DayNode = DayStripNode;
 type Props = {
   onClose?: () => void;
   onSeedGraph?: (hint: string) => void;
+  /** Manage permissions only — Context primary tap opens in-Center sheet, not YOU. */
   onOpenSettings?: () => void;
   onOpenGraphs?: () => void;
   /** When Center confirms a plan — bubble up for Chats pill + feed Graph. */
@@ -49,12 +50,33 @@ type Props = {
   userId?: string | null;
 };
 
-/** Provenance: every customer-facing claim should point at a real source when available. */
+/**
+ * Internal claim provenance — kept for engine honesty / tests.
+ * Never paint source tokens (fixture_shell, decision_intelligence, etc.) to consumers.
+ * ARCHITECTURE_STAYS_BEHIND_THE_GLASS.
+ */
 type ClaimProvenance = {
   claim: string;
   source: "decision_intelligence" | "fixture_shell" | "user_input" | "unavailable";
   detail?: string;
 };
+
+/** Map unresolved / failure outcomes to calm consumer copy. */
+function humanResolveNote(payload: DecisionResolvePayload | null, fallback?: string | null): string {
+  const outcome = (payload?.outcome || "").toUpperCase();
+  if (
+    ["NO_VALID_CANDIDATE", "NOT_RESOLVED", "NOT_HIGH_CONFIDENCE", "FAILURE"].includes(outcome) ||
+    !payload?.answer?.name
+  ) {
+    return (
+      "I don't have enough live context to pick one confidently yet. Want me to look nearby or use a place you already like?"
+    );
+  }
+  if (fallback && !/fixture|decision_intelligence|NOT_RESOLVED|unresolved|Area not asserted/i.test(fallback)) {
+    return fallback;
+  }
+  return "Here are the best matches for this window.";
+}
 
 const WEEK_FRIDAY = [
   { time: "8:00", label: "Work" },
@@ -119,6 +141,7 @@ export function OpalCenterLifeGraph({
   const [phase, setPhase] = useState<Phase>("rest");
   const [query, setQuery] = useState("");
   const [listening, setListening] = useState(false);
+  const [contextSheetOpen, setContextSheetOpen] = useState(false);
   const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(() => loadDismissedNudges());
   const visibleNudges = useMemo(
     () => CENTER_SAMPLE_PROMPTS.filter((n) => !dismissedNudges.has(n.id)).slice(0, 2),
@@ -306,6 +329,7 @@ export function OpalCenterLifeGraph({
       if (name) {
         setSpeakQueue(`${name} fits this window.`);
       }
+      // Internal provenance only — never rendered as consumer copy.
       const claims: ClaimProvenance[] = [
         {
           claim: name ? `${name} fits this window` : "One answer pending",
@@ -324,24 +348,21 @@ export function OpalCenterLifeGraph({
       ];
       setProvenance(claims);
       if (!name) {
-        setResolveNote(
-          payload.note ||
-            "Opal needs a clearer window or location permission before one high-confidence answer.",
-        );
+        setResolveNote(humanResolveNote(payload, payload.note));
+      } else {
+        setResolveNote(null);
       }
     } catch (err) {
       if (gen !== requestGen.current) return;
       setDecision(null);
       setResolveNote(
-        err instanceof Error
-          ? err.message
-          : "Decision Intelligence unavailable — not fabricating a place.",
+        "I don't have enough live context to pick one confidently yet. Want me to look nearby or use a place you already like?",
       );
       setProvenance([
         {
           claim: "No provider answer shown",
           source: "unavailable",
-          detail: "resolveDecision failed; UI does not invent distance/budget/traffic",
+          detail: err instanceof Error ? err.message : "resolveDecision failed",
         },
       ]);
     } finally {
@@ -653,7 +674,12 @@ export function OpalCenterLifeGraph({
         <section className="opal-center-v2-body" data-testid="opal-center-conversation">
           <div className="opal-center-v2-context-pill">
             <span>Just you · Nearby · open window · permitted context</span>
-            <button type="button" className="opal-center-v2-context-link" onClick={onOpenSettings}>
+            <button
+              type="button"
+              className="opal-center-v2-context-link"
+              data-testid="opal-center-context"
+              onClick={() => setContextSheetOpen(true)}
+            >
               Context
             </button>
           </div>
@@ -667,15 +693,15 @@ export function OpalCenterLifeGraph({
             <div>
               <p className="opal-center-v2-signal-primary">
                 {resolving
-                  ? "Resolving with Decision Intelligence…"
+                  ? "Looking nearby…"
                   : decision?.answer?.name
                     ? `${decision.answer.name} fits this window.`
-                    : "One answer first. No setup form."}
+                    : "One answer first — then you confirm."}
               </p>
               <p className="opal-center-v2-signal-secondary">
                 {decision?.provisional
-                  ? "Provisional — confirm before anything is booked."
-                  : resolveNote || "P4: high confidence means one answer."}
+                  ? "Confirm before anything is booked."
+                  : resolveNote || "I'll pick the best fit when I have enough context."}
               </p>
             </div>
           </div>
@@ -694,13 +720,6 @@ export function OpalCenterLifeGraph({
               {decision.answer.area ? (
                 <p className="opal-center-v2-answer-meta">{decision.answer.area}</p>
               ) : null}
-              <p className="opal-center-v2-answer-meta">
-                {decision.candidate_source
-                  ? `Source: ${decision.candidate_source}`
-                  : decision.real
-                    ? "Decision Intelligence"
-                    : "No fabricated distance or traffic"}
-              </p>
               <div className="opal-center-v2-answer-actions">
                 <button
                   type="button"
@@ -767,20 +786,18 @@ export function OpalCenterLifeGraph({
             </>
           ) : null}
 
+          {/* Provenance stays internal — never paint source tokens to consumers. */}
           {provenance.length ? (
             <ul
               className="opal-center-v2-provenance"
               data-testid="opal-center-provenance"
-              aria-label="Claim provenance"
+              data-consumer-visible="0"
+              aria-hidden="true"
+              hidden
             >
               {provenance.map((p) => (
                 <li key={p.claim} data-source={p.source}>
-                  <strong>{p.claim}</strong>
-                  <span>
-                    {" "}
-                    · {p.source}
-                    {p.detail ? ` (${p.detail})` : ""}
-                  </span>
+                  {p.claim}
                 </li>
               ))}
             </ul>
@@ -1103,6 +1120,48 @@ export function OpalCenterLifeGraph({
       </div>
         </>
       )}
+
+      {contextSheetOpen ? (
+        <div
+          className="opal-inline-sheet opal-center-context-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="opal-center-context-title"
+          data-testid="opal-center-context-sheet"
+        >
+          <div className="opal-inline-sheet-card">
+            <header className="opal-inline-sheet-top">
+              <h2 id="opal-center-context-title">Context</h2>
+              <button
+                type="button"
+                data-testid="opal-center-context-close"
+                onClick={() => setContextSheetOpen(false)}
+                aria-label="Close"
+              >
+                Close
+              </button>
+            </header>
+            <p className="opal-inline-sheet-body">
+              Why this suggestion — people, places, and vibe in play right now.
+              {"\n\n"}
+              Privacy boundaries stay on: Opal only uses what you allow for this moment.
+            </p>
+            {onOpenSettings ? (
+              <button
+                type="button"
+                className="opal-inline-sheet-action"
+                data-testid="opal-center-context-manage"
+                onClick={() => {
+                  setContextSheetOpen(false);
+                  onOpenSettings();
+                }}
+              >
+                Manage permissions
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {onClose ? (
         <button type="button" className="opal-center-v2-close sr-only" onClick={onClose}>
