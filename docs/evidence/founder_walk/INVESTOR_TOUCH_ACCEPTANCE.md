@@ -3,34 +3,58 @@
 **Authority:** Founder physical iPhone walk  
 **Not authority:** Automated test counts, isolated route proofs, or “technically green” slices  
 
-**Current tip (repair baseline):** `bf674242` on `muse/packet-b-batch-2`  
+**Repair baseline tip:** `bf674242`  
+**Checklist tip:** `eedf3c69` (update after each push)  
+**Branch:** `muse/packet-b-batch-2`  
 **Classification:** P0 foundation infrastructure GREEN · Consumer experience coherence HOLD  
 **Freeze:** HOLD until this checklist is founder-signed  
 **Pass 2:** LOCKED  
 
+**At this stage: do not expand features. Do not unlock Pass 2. Do not add more intelligence.**  
+Finish the emotional loop first.
+
 ---
 
-## Why this file exists
+## Two gates (do not conflate)
 
-Engineering milestones prove:
+### Engineering truth
 
-- routes exist
+- tests pass
 - APIs respond
-- actions are not fake
+- permissions exist
+- state machines work
+- backend wiring exists
 
-Investor touch proves:
+### Human truth
 
-> I touched this for five minutes and I understand why this needs to exist.
+- “I know what to do next.”
+- “I trust what Opal is telling me.”
+- “I understand why this exists.”
+- “I feel like Opal helps me, not like I’m configuring software.”
 
-Those are different tests.  
-**164/164 vitest is not the stopping point.** The founder phone walk is the acceptance gate because the remaining failures are human interaction failures.
+Investor standard:
+
+> Does a new human understand, trust, and emotionally connect with Opal in five minutes?
 
 Hierarchy for this stage:
 
 1. Real founder phone  
-2. Runtime evidence / screenshots from that walk  
-3. Automated mobile proof  
-4. Source comments / test names  
+2. Cold stranger (uncoached)  
+3. Runtime evidence / screenshots from those walks  
+4. Automated mobile proof  
+5. Source comments / test names  
+
+**164/164 vitest is not the stopping point.**
+
+---
+
+## The five-minute product loop
+
+Everything else is built on whether this moment works:
+
+**Meet Opal → connect one person → have a conversation → see Opal help → feel the Graph forming → trust the system.**
+
+That loop is the product.
 
 ---
 
@@ -48,124 +72,138 @@ Confirm served tip matches branch tip before starting.
 
 ## Hostile consumer walk (not a casual tour)
 
-Try to break it. Pass only if a stranger’s thumb stays confident.
+Try to break it. Focus hardest on the areas most likely to still fail.
 
-### 1. Splash — emotional first touch
+### 1. First 60 seconds — investor moment
+
+Splash → Opal → permissions → name → first person.
+
+A stranger should think:
+
+> “Oh, this is a social intelligence layer.”
+
+They should not think:
+
+> “I am filling out setup screens.”
+
+Watch for: too much text · unclear purpose · repeated explanations · technical language · permission anxiety.
 
 - [ ] Splash emotionally correct
-- [ ] Exactly one Opal character
-- [ ] Exactly one wordmark / lockup (no collage, no second logo layer)
+- [ ] Exactly one Opal character / one lockup (no collage, no second logo layer)
 - [ ] O / P / A counters show midnight background (no white filled holes)
 - [ ] Character does not look pasted into the letters
-- [ ] Continue advances to Splash 2; no Skip-intro for new users
+- [ ] First 60 seconds understandable as social intelligence (not setup forms)
+- [ ] Permission copy is benefit-first; no internal “You” navigation language
+- [ ] Selected / Allowed is unmistakably positive (never muted-as-failure)
+- [ ] Declined / Not now is calm; browser contacts fallback feels intentional
 
-**Phone wins.** Automated “BRAND_ALPHA=GREEN” does not override what you see.
+### 2. First relationship — heartbeat / magic moment
 
-### 2. First 60 seconds — understandable
+The magic is not “Account created.”  
+The magic is: **“I connected with someone I actually know.”**
 
-- [ ] First 60 seconds understandable
-- [ ] Splash 2 → Phone → OTP path is clear without product jargon
-- [ ] Permission bootstrap copy is benefit-first
-- [ ] No internal navigation language (“in You”) on first-run screens
+Choose Chanelle (or a real person).
 
-### 3. Permissions — selected state obvious
+- [ ] First connection created and feels meaningful
+- [ ] Identity committed before friend flow (no late username collision / dead Accept)
+- [ ] No frozen Continue; no stacked compressed bubbles
+- [ ] Transition feels natural into chat / call / graph / shared context
+- [ ] Does **not** feel like a contact-import tool
 
-Tap Contacts, Notifications, Location.
+### 3. Keyboard torture test (`KEYBOARD_SAFE`)
 
-- [ ] Selected / Allowed state is unmistakably positive (glow / check / active color)
-- [ ] Allowed never looks like a muted disabled failure
-- [ ] Declined / Not now is calm and recoverable
-- [ ] Browser contacts fallback feels intentional (“type a name”) — not broken
-
-### 4. Meet — identity then magic
-
-Enter **Sadeil** (or your real name).
-
-- [ ] Name saves
-- [ ] Handle resolves before first-person (no late username collision after friend flow)
-- [ ] Accept / Continue always advances, shows busy, or shows an actionable error
-- [ ] No dead buttons
-- [ ] Name survives refresh / relaunch (display identity persists)
-
-### 5. First connection — the magic moment
-
-Choose **Chanelle** (or a real person).
-
-- [ ] First connection created
-- [ ] No collision weirdness mid-flow
-- [ ] No frozen Continue / Accept
-- [ ] No stacked / compressed chat bubbles fighting each other
-- [ ] Conversation rhythm: prior turns settle; active turn owns focus
-
-### 6. Chats — alive
-
-- [ ] Chat feels alive
-- [ ] Messages readable
-- [ ] Thread feels like a conversation
-- [ ] Call button works from thread chrome
-
-### 7. New Chat — surface ownership
-
-- [ ] New Chat creates without bleeding into Graphs
-- [ ] Switching dock tabs dismisses incompatible overlays
-- [ ] Search / New Chat / phone sheets do not corrupt dock position
-
-### 8. Keyboard / composer (KEYBOARD_SAFE — intentional break tests)
-
-`KEYBOARD_SAFE` remains PARTIAL until these pass on device.
+A mobile app lives or dies here. Remains PARTIAL until these pass on device.
 
 **Chat thread**
 
-- [ ] Tap message box → keyboard opens
-- [ ] Keyboard does not cover the input
-- [ ] Dock does not overlap the composer
-- [ ] Composer stays visible while typing
+- [ ] Tap composer → keyboard opens
+- [ ] Input stays visible; no obstruction
+- [ ] Can type and send
+- [ ] Dock stays correct
 
-**Opal Center**
+**Center** (must feel like talking to a companion — conversation, not form submission)
 
-- [ ] Same keyboard test as Chat
-- [ ] Response area scrolls independently
-- [ ] Composer stays reachable with keyboard open
+- [ ] Same keyboard / composer / dock checks as Chat
+- [ ] Response area scrolls; composer stays reachable
+- [ ] Typing feels like conversation, not form submit
 
 **Search People**
 
-- [ ] Search field is not under the dock
-- [ ] Results appear above the keyboard
+- [ ] Search field not under dock
+- [ ] Results appear above keyboard
+- [ ] Fixed header + resize + list + dock do not corrupt confidence
 
-### 9. Center — powerful without pretending
+### 4. Center honesty test
 
-Ask: **“Help me plan dinner Saturday.”**
+Fake capability destroys trust. Opal does the opposite.
+
+Ask: **“Help me plan something this weekend.”**  
+(Also: “Help me plan dinner Saturday.”)
 
 - [ ] Center feels intelligent
-- [ ] Response helps find options / asks what you want next
+- [ ] Helps find / narrow options; asks what you want next
 - [ ] Does **not** claim “I booked your reservation” (or any external action that did not happen)
-- [ ] Intelligence feels powerful without fake execution authority
+- [ ] Future real actions (OpenTable, calendar, pay, rides, tickets) stay behind real permissions when they exist
 
-### 10. Graphs / YOU / trust
+### 5. Graphs — accumulated understanding
 
-- [ ] Graphs feel meaningful (relationships / context — not a wrong surface)
-- [ ] YOU feels trustworthy (control plane, not a gear drawer of fake toggles)
-- [ ] No visual collisions (false borders, overlapping sheets, dock as obstruction)
-- [ ] No dead buttons anywhere on the walk
+Not “Does Graphs have data?”  
+Does Graphs feel like **accumulated understanding**?
+
+Preference in chat · recurring activity · relationship · shared plan · place · interest — without becoming a noisy database dump.
+
+- [ ] Graphs feel meaningful
+- [ ] Feels like “Opal understands my world”
+- [ ] Does **not** feel like “Opal recorded everything I said”
+- [ ] New Chat / search overlays do not bleed into Graphs
+- [ ] YOU feels trustworthy (control plane, not fake toggles)
+- [ ] No visual collisions; no dead buttons on the walk
+
+### 6. Cold stranger test (final gate)
+
+Before showing anyone as “investor ready”:
+
+1. Hand the phone to someone who knows nothing about Opal.  
+2. Do not explain.  
+3. Watch where they tap, what they misunderstand, where they hesitate, what they assume happens.  
+4. Do not correct them.
+
+Their confusion is the product telling you where it still needs work.
+
+- [ ] Cold stranger completes the five-minute loop without coaching
+- [ ] Hesitation points noted (do not argue them away in the moment)
+- [ ] No founder narration required for “what to do next”
+
+Stranger notes:
+
+```
+Who:     ______________________
+Hesitated at: _________________
+Assumed: ______________________
+Misunderstood: ________________
+Would they open it again?: YES / NO / UNSURE
+```
 
 ---
 
 ## Investor-touch scoreboard (human)
 
-Sign only when every box above is checked on a physical iPhone.
+Sign only when the hostile walk **and** cold stranger test pass on a physical iPhone.
 
 | Signal | Pass? |
 |--------|-------|
 | Splash emotionally correct | [ ] |
 | First 60 seconds understandable | [ ] |
-| First connection created | [ ] |
+| First connection created (meaningful) | [ ] |
 | Chat feels alive | [ ] |
 | Call works | [ ] |
-| Center feels intelligent | [ ] |
-| Graphs feel meaningful | [ ] |
+| Center feels intelligent (honest) | [ ] |
+| Graphs feel like understanding | [ ] |
 | YOU feels trustworthy | [ ] |
+| Keyboard / composers usable | [ ] |
 | No dead buttons | [ ] |
 | No visual collisions | [ ] |
+| Cold stranger completes loop uncoached | [ ] |
 
 **Investor touch readiness:** HOLD until founder signs below.
 
@@ -174,22 +212,23 @@ Founder: ______________________
 Date:     ______________________
 Device:   ______________________
 Tip SHA:  ______________________
+Cold stranger: _________________
 Result:   PASS / FAIL / HOLD
 Notes:    ______________________
 ```
 
 ---
 
-## What engineering already repaired (do not re-litigate as “unfixed” without a new phone fail)
+## What engineering already repaired
 
-From Founder Reality Repair (`bf674242`) — preserved foundation; repaired interaction layer:
+From Founder Reality Repair (`bf674242`) — foundation preserved; interaction layer repaired:
 
-- Fixed dock / independent content scroll (shared shell root cause)
+- Fixed dock / independent content scroll
 - Splash single-lockup runtime + flex layout + counter alpha work
 - Permission granted visual language
 - Meet identity-before-friend state machine
 - New Chat / overlay dismiss on dock change
-- Native profile persist bridge (notify host + `/session` refresh)
+- Native profile persist bridge
 
 If the phone still fails any item above, that item stays RED for investor touch even if tests are green.
 
@@ -199,6 +238,7 @@ If the phone still fails any item above, that item stays RED for investor touch 
 
 Do not open Pass 2.  
 Do not add intelligence depth.  
-Repair the failed human interaction layer, re-prove on device, then return here.
+Do not expand features.  
+Repair the failed human interaction layer, re-prove on device (including cold stranger), then return here.
 
 **Freeze remains HOLD until this checklist is founder-signed PASS.**
