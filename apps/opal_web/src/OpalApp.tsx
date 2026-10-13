@@ -11750,7 +11750,7 @@ const YOU_HUB_SECTIONS: {
       {
         key: "privacy",
         title: "Privacy",
-        subtitle: "What Opal may understand, celebrations, trust",
+        subtitle: "Access permissions, celebrations, and trust",
       },
     ],
   },
@@ -11761,13 +11761,13 @@ const YOU_HUB_SECTIONS: {
       {
         key: "calls-assist",
         title: "Calls & Opal Assist",
-        subtitle: "Suggest, prepare, and help on calls",
+        subtitle: "Access Assist · Action Suggest → Prepare → Execute",
         semantic: "violet",
       },
       {
         key: "notifications",
         title: "Notifications",
-        subtitle: "What deserves your attention",
+        subtitle: "Messages and receipts you control",
         semantic: "magenta",
       },
       {
@@ -11784,7 +11784,7 @@ const YOU_HUB_SECTIONS: {
       {
         key: "fit",
         title: "Fit",
-        subtitle: "How you care for yourself",
+        subtitle: "Self-care boundary — nothing tracked yet",
         semantic: "coral",
       },
     ],

@@ -27,12 +27,12 @@ CONTINUITY INTEGRITY AUDIT — CAPTURED (shots/steward/CONTINUITY_INTEGRITY_AUDI
 AGENT INTERPRETATION GUARDRAIL — ACTIVE (complexity inside Opal; simplicity with humans)
 PASS 2 ENTRY REVIEW — CAPTURED (inventory only)
 YOU PAGE CAPABILITY AUDIT — CAPTURED (docs/evidence/u_page/)
-YOU PERMISSIONS TRANCHE — IN PROGRESS (wiring + hide unwired; Pass 2 stays locked)
+YOU PERMISSIONS TRANCHE — GREEN (docs/evidence/u_page/YOU_PERMISSIONS_TRANCHE.md · YOU_PERMISSIONS_VERIFY.json)
 CONSUMER REALITY GATE — GATE_GREEN (human loop proven; Pass 2 still locked)
 UNDERSTANDING CANDIDATES — NOT STARTED (after YOU wiring + founder unlock)
 CONTEXT / ALIGNMENT ENGINES — NOT STARTED (after Understanding Candidates; authority docs captured)
 
-Authority: COMPLETE ✅ · Implementation: NOT STARTED · Permission: next foundation · Intelligence: waiting for unlock
+Authority: COMPLETE ✅ · Implementation: NOT STARTED · Permission: YOU Access/Action GREEN (Pass 2 still locked) · Intelligence: waiting for unlock
 
 MEMORY EXPANSION — STOPPED
 ASSUMPTION SYSTEMS — STOPPED
@@ -167,6 +167,8 @@ Defines proven Pass 1 foundation vs vision domains (Relationship · Commerce · 
 - `docs/authority/OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — architecture only; Pass 2 locked
 - `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — architecture only; Pass 2 locked
 - `shots/steward/CONTINUITY_INTEGRITY_AUDIT.md` — hierarchy · terminology · boundaries · gyroscope
+- `docs/evidence/u_page/YOU_PERMISSIONS_TRANCHE.md` — YOU Access/Action completeness (GREEN)
+- `shots/you_page/YOU_PERMISSIONS_VERIFY.json`
 - `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`
 - `shots/steward/RENDER_FREE_TIER_FITNESS_AUDIT.md`
 - `shots/steward/CLOUDFLARE_FOUNDER_STAGING_TUNNEL.md`

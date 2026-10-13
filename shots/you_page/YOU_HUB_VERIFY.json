@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-13T12:36:00.080Z",
+  "at": "2026-10-13T13:13:42.091Z",
   "sections": [
     "you-hub-section-world",
     "you-hub-section-relationships",
@@ -12,15 +12,15 @@
     "label": "privacy",
     "before": {
       "top": 0,
-      "sh": 1202,
+      "sh": 1923,
       "ch": 594,
       "height": "594px",
       "overflowY": "auto",
       "touchAction": "pan-y"
     },
     "after": {
-      "top": 608,
-      "sh": 1202,
+      "top": 1329,
+      "sh": 1923,
       "ch": 594
     },
     "ok": true

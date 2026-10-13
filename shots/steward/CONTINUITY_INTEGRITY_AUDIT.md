@@ -25,16 +25,16 @@ Implementation: NOT STARTED
 Reality:        Protected
 Context:        Defined
 Alignment:      Defined
-Permission:     Next foundation
+Permission:     YOU Access/Action tranche GREEN (Pass 2 still locked)
 Intelligence:   Waiting for explicit unlock
 
 Authority tip:  67507b61
-Audit tip:      537d6f97 (and later amendments)
+Audit tip:      537d6f97+ (guardrail · YOU permissions)
 
 Next allowed work:
-  - YOU capability wiring
-  - Permission/action completeness
   - Production readiness
+  - Remaining honest RED YOU repairs only when discovered
+  - OPAL_ACTION_AUTHORITY_MODEL.md later (compound; not unlock)
 ```
 
 **Differentiator to preserve:**

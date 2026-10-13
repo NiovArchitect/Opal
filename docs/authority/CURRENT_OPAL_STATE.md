@@ -21,7 +21,9 @@
 **Dynamic Relationship Alignment Matrix:** `docs/authority/DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` (gyroscope / relationship balance; no unlock)  
 **Continuity integrity audit:** `shots/steward/CONTINUITY_INTEGRITY_AUDIT.md` (hierarchy · terms · boundaries · gyroscope; tip `67507b61`)  
 **YOU capability audit:** `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  
+**YOU permissions tranche:** `docs/evidence/u_page/YOU_PERMISSIONS_TRANCHE.md` (Access vs Action; GREEN zeros)  
 **YOU hub verify:** `shots/you_page/YOU_HUB_VERIFY.json`  
+**YOU permissions verify:** `shots/you_page/YOU_PERMISSIONS_VERIFY.json`  
 **Pass 2 entry review (inventory):** `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md`  
 **Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`  
 **Consumer Reality Gate:** GATE_GREEN — `docs/evidence/founder_staging_walk_correction/CONSUMER_REALITY_GATE_RESULT.md`  
@@ -162,6 +164,7 @@ PASS2_PLUS_CAPABILITY_MAP: BLUEPRINT_ONLY
 OPAL_CONTEXT_ALIGNMENT_ENGINE: ARCHITECTURE_ONLY
 DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX: ARCHITECTURE_ONLY
 CONTINUITY_INTEGRITY_AUDIT: CAPTURED
+YOU_PERMISSIONS_TRANCHE: GREEN
 PRODUCTION_READINESS_CLOSURE_MATRIX: ACTIVE
 SURFACE_FRAGMENTATION_REAUDIT: ACTIVE
 PASS_1H_PREFER_REAL_REMEDIATION: SHIPPED

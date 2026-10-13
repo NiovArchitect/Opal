@@ -167,8 +167,8 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     ],
   },
   privacy: {
-    title: "Privacy & audience",
-    lede: "Keep the social surface open without giving away what should stay private.",
+    title: "Privacy",
+    lede: "Access permissions — what Opal may observe. Not knowledge, scoring, or automation. Understanding Candidates stay locked until founder unlock.",
     rows: [
       {
         kind: "toggle",
@@ -217,7 +217,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
   },
   "feed-discovery": {
     title: "Feed & discovery",
-    lede: "Keep your world relevant without turning it into noise.",
+    lede: "Invite people into your world. Ranking and discovery preferences stay hidden until they have a real wire — no algorithm knobs here.",
     rows: [
       {
         kind: "toggle",
@@ -267,7 +267,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
   },
   "location-travel": {
     title: "Location & travel",
-    lede: "Use location to remove friction, not to expose you.",
+    lede: "Home timezone and travel mode are live. Precise location sharing and ETA stay hidden until those Access paths exist.",
     rows: [
       {
         kind: "field",
@@ -377,13 +377,13 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
   },
   "calls-assist": {
     title: "Calls & Opal Assist",
-    lede: "Make calls more useful without making them feel watched.",
+    lede: "Access: Assist may use call context. Action: grant Suggest → Prepare → Execute below. You control both; Opal does not expose algorithm knobs.",
     rows: [
       {
         kind: "toggle",
         id: "assist",
         title: "Opal Assist on calls",
-        subtitle: "Default for future calls. Pause a private call without changing this.",
+        subtitle: "Access permission — Assist may join future call context. Pause a private call without changing this.",
         defaultOn: false,
       },
       {
@@ -420,13 +420,13 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "assist-law",
-        text: "Opal never speaks as you, sends for you, or publishes a Memory from a call. Assist default above is live.",
+        text: "Opal never speaks as you, sends for you, or publishes a Memory from a call. Assist above is Access. What Opal can do below is Action (Suggest → Prepare → Execute) with revoke.",
       },
     ],
   },
   notifications: {
     title: "Notifications",
-    lede: "Signal only. Opal should interrupt you only when it helps.",
+    lede: "Messages and read receipts are live. Push categories stay hidden until Expo/APNs wires exist — no dead toggles.",
     rows: [
       {
         kind: "toggle",
@@ -929,8 +929,14 @@ export function YouSettingsDestination({
                     }
                     if (row.id === "assist") {
                       onAssistPreference?.(next);
+                      setSaveError(null);
                       void import("../api/productClient").then(({ updateAssistPreference }) =>
-                        updateAssistPreference(next, session?.access_token).catch(() => undefined),
+                        updateAssistPreference(next, session?.access_token)
+                          .then(() => undefined)
+                          .catch(() => {
+                            setToggles((t) => ({ ...t, assist: on }));
+                            setSaveError("Could not save Assist preference. Try again.");
+                          }),
                       );
                     }
                   }}
@@ -1009,9 +1015,16 @@ export function YouSettingsDestination({
                     }
                     setSaving(true);
                     setSaveError(null);
-                    void import("../api/productClient").then(({ updateHomeTimezone }) =>
+                    void import("../api/productClient").then(({ updateHomeTimezone, getHomeTimezone }) =>
                       updateHomeTimezone(tz, session?.access_token)
-                        .then(() => {
+                        .then(() => getHomeTimezone(session?.access_token))
+                        .then((body) => {
+                          setFields((f) => ({
+                            ...f,
+                            "home-timezone":
+                              (typeof body.home_timezone === "string" && body.home_timezone) || tz,
+                            "travel-mode": body.active ? "On" : "Off",
+                          }));
                           setSaving(false);
                         })
                         .catch((e: unknown) => {
@@ -1100,6 +1113,7 @@ export function YouSettingsDestination({
         ) : null}
         {setting === "privacy" && session ? (
           <div className="you-settings-filed" data-testid="you-settings-filed-privacy">
+            <YouAccessControlSection />
             <WhatOpalRemembersSection session={session} />
             <CelebrationsSection session={session} />
           </div>
@@ -1119,6 +1133,61 @@ export function YouSettingsDestination({
   );
 }
 
+/**
+ * Privacy Access layer — what Opal may observe today.
+ * Pass 2 understanding depth / Candidates stay hidden (LOCKED).
+ * Access ≠ knowledge. Access ≠ Action. No algorithm knobs.
+ */
+export function YouAccessControlSection() {
+  return (
+    <section
+      className="section you-access-control"
+      aria-label="What Opal may access"
+      data-testid="you-access-control"
+    >
+      <h3 className="section-label">What Opal may access</h3>
+      <p className="you-settings-note" data-testid="you-access-law">
+        Access is permission to observe a category. It is not memory unlock, scoring, or automation.
+        Action authority (Suggest → Prepare → Execute) lives under Calls & Opal Assist.
+      </p>
+      <div className="you-consent-rows">
+        <div className="you-settings-row" data-testid="you-access-row-remembers">
+          <div className="you-settings-row-copy">
+            <strong>Things already stored</strong>
+            <span>Transparency and correction for facts Opal already holds. Forget anytime below.</span>
+          </div>
+          <span className="you-settings-row-value">Access · live</span>
+        </div>
+        <div className="you-settings-row" data-testid="you-access-row-celebrations">
+          <div className="you-settings-row-copy">
+            <strong>Celebrations you save</strong>
+            <span>Dates you choose to store. Delete a celebration to revoke that Access.</span>
+          </div>
+          <span className="you-settings-row-value">Access · live</span>
+        </div>
+        <div className="you-settings-row" data-testid="you-access-row-relationship-types">
+          <div className="you-settings-row-copy">
+            <strong>Relationship types you set</strong>
+            <span>How you label people (partner, friend, family…). Change or clear below.</span>
+          </div>
+          <span className="you-settings-row-value">Access · live</span>
+        </div>
+        <div className="you-settings-row" data-testid="you-access-row-trust">
+          <div className="you-settings-row-copy">
+            <strong>Trust tier with Opal</strong>
+            <span>Gates sensitive comfort settings. Revoke complete trust anytime below.</span>
+          </div>
+          <span className="you-settings-row-value">Access · live</span>
+        </div>
+      </div>
+      <p className="you-settings-note" data-testid="you-access-pass2-hold">
+        Conversation understanding, relationship intelligence, and Understanding Candidates are not
+        available yet. They stay off until Opal is ready to understand people with explicit permission.
+      </p>
+    </section>
+  );
+}
+
 /** Default grant window — expires_at is required by 1B law (no immortal grants). */
 export const CONSENT_DEFAULT_GRANT_DAYS = 365;
 
@@ -1133,13 +1202,15 @@ export type ActOnBehalfCapability = {
 export const ACT_ON_BEHALF_CAPABILITIES: ActOnBehalfCapability[] = [
   {
     id: "calls_outbound",
-    title: "Let Opal place calls for you",
-    description: "Opal can call on your behalf, with your approval each time.",
+    title: "Place calls for you",
+    description:
+      "Action authority: Suggest a call → Prepare what to say → Execute only with this grant. Revoke anytime.",
   },
   {
     id: "bookings_reserve",
-    title: "Let Opal make reservations",
-    description: "Opal can hold tables and book on your behalf.",
+    title: "Make reservations for you",
+    description:
+      "Action authority: Suggest a booking → Prepare the hold → Execute only with this grant. Revoke anytime.",
   },
   // messaging_business hidden from consumer until channel connector ships (Pass B).
 ];
@@ -1249,6 +1320,10 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
       data-testid="what-opal-can-do"
     >
       <h3 className="section-label">What Opal can do for you</h3>
+      <p className="you-settings-note" data-testid="action-authority-ladder">
+        Action permissions (Suggest → Prepare → Execute). Separate from Assist Access above.
+        You grant and revoke. Opal does not expose weighting or scoring controls.
+      </p>
       <div className="you-consent-rows">
         {ACT_ON_BEHALF_CAPABILITIES.map((cap) => {
           const proof = byCap[cap.id];
@@ -1349,7 +1424,7 @@ type SpendingComfortProps = {
 };
 
 /**
- * P2 — Spending comfort lives only under You → Settings → Spending & fit.
+ * Spending comfort lives under You → Spending (separate from Fit).
  * Trust-gated at trusted+. Reuses you-hub-spending chrome.
  */
 function formatCents(cents: number, currency = "USD"): string {

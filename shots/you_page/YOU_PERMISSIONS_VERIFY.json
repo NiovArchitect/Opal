@@ -1,0 +1,118 @@
+{
+  "at": "2026-10-13T13:12:41.491Z",
+  "tip_context": "YOU_PERMISSIONS_TRANCHE",
+  "PASS2_UNLOCKED": "NO",
+  "TRACK_B_TOUCHED": "NO",
+  "DEAD_ACTIONS": 0,
+  "FAKE_SUCCESS": 0,
+  "VISIBLE_BUT_UNWIRED": 0,
+  "CONSUMER_TECH_LEAK": 0,
+  "cards": {
+    "feed-discovery": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "invites": true
+      }
+    },
+    "location-travel": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "tz": true,
+        "saveTz": true,
+        "travel": true
+      }
+    },
+    "privacy": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "access": true,
+        "remembers": true
+      }
+    },
+    "calls-assist": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "assist": true,
+        "canDo": true,
+        "ladder": true
+      }
+    },
+    "notifications": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "messages": true,
+        "receipts": true
+      }
+    },
+    "appearance": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "themePersist": true
+      }
+    },
+    "spending": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "comfort": true
+      }
+    },
+    "fit": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "honestEmpty": true
+      }
+    },
+    "linked-devices": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {
+        "thisPhone": true,
+        "desktopHidden": true,
+        "revokeHidden": true
+      }
+    },
+    "account-security": {
+      "hubVisible": true,
+      "destination": true,
+      "leak": false,
+      "paintedBlocked": [],
+      "probes": {}
+    }
+  },
+  "profile": {
+    "ok": true,
+    "stamp": "Walk5895",
+    "hubName": "Walk5895"
+  },
+  "growCircle": {
+    "honestChooser": true,
+    "fakeRoster": false
+  },
+  "overall": "GREEN"
+}
