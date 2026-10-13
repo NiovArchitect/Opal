@@ -1,0 +1,7 @@
+apps/opal_web/src/opalUi/youSettingsComingSoon.guard.test.ts:36:    expect(code).not.toMatch(/next build/i);
+apps/opal_web/src/opalUi/YouSettingsDestination.tsx:173:        blockedReason: "Needs per-Graph audience API — not wired yet.",
+apps/opal_web/src/opalUi/YouSettingsDestination.tsx:241:        blockedReason: "Needs discovery-distance preference API — not wired yet.",
+apps/opal_web/src/opalUi/youSettingsRender.proof.test.tsx:42:    expect(text).not.toMatch(/not wired yet/i);
+apps/opal_web/src/opalUi/youSettingsRender.proof.test.tsx:65:    expect(text).not.toMatch(/not wired yet/i);
+apps/opal_web/src/opalUi/settingsWireClass.test.ts:51:  it("consumer paint never claims Coming soon or next build", () => {
+apps/opal_web/src/opalUi/settingsWireClass.test.ts:53:    expect(youSrc).not.toMatch(/next build/i);

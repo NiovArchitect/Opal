@@ -1,0 +1,55 @@
+Consumer Reality Gate tip=3ccbf48c base=http://127.0.0.1:5173
+PASS [G0] phoenix_health — {"db":"up","phone_verify_mode":"production_sms","schema_version":"0.1.0","sentry_configured":false,"service":"opal_core","status":"ok"}
+PASS [G0] production_sms — production_sms
+PASS [G0] vite — 200
+PASS [G0] tip — 3ccbf48c
+PASS [G0] minted_ab — a=47aa5856 b=b599fcd7
+PASS [G4] direct_conversation — status=200 id=ace99adc-db67-4258-9d95-f612246c6c84
+PASS [G4] a_sends — status=201
+PASS [G4] b_receives — count=16 saw=true
+PASS [G4] b_replies — status=201
+PASS [G4] a_sees_reply — count=17
+PASS [G4] both_list_conversation — a=true b=true aN=83 bN=28
+PASS [G6] static_consumer_paint_leaks — raw_hits=0 painted_suspect=0 sample=
+PASS [G1] splash_present
+PASS [G1] splash_no_tech_leak — clean
+PASS [G1] purpose_tagline — TALK. ALIGN. GO.
+PASS [G1] splash_wordmark_transparency — {"ratio":0.7751450676982592,"clear":3206,"opaque":930}
+PASS [G1] meet_mounts
+PASS [G1] assist_hidden
+PASS [G1] remember_absent
+PASS [G1] conversational_name_turn
+PASS [G1] permissions_deferred
+PASS [G2] meet_completed — completed:ready
+PASS [G2] member_shell_after_meet
+PASS [G2] home_not_day_shell — dayRoom=0
+PASS [G3] presence_capped — {"x":167,"y":22,"width":56,"height":56}
+PASS [G3] no_remember_chip
+PASS [G3] has_life_context_copy — context cues
+PASS [G3] center_no_tech_leak — clean
+PASS [G5] you_hub_no_tech_leak — clean
+PASS [G5] appearance_row — Appearance visible
+PASS [G5] appearance_no_tech_leak — clean
+PASS [G5] notifications_no_tech_leak — clean
+PASS [G5] account_no_tech_leak — clean
+PASS [G5] theme_light_applies — light
+PASS [G6] attention_no_tech_leak — clean
+PASS [G7] member_seed_off
+PASS [G7] seed_off_attr — attr=off
+PASS [G7] seed_off_no_fixture_dom — seedDom=0 seedOnPaint=0 attr=off
+PASS [G7] member-tab-chats_no_leak — clean
+PASS [G7] member-tab-graphs_no_leak — clean
+PASS [G7] member-tab-you_no_leak — clean
+PASS [G7] day_shell_on_center_ok — dayOnCenter=1
+
+OVERALL GATE_GREEN (42/42 checks)
+{
+  "G0": "GREEN",
+  "G4": "GREEN",
+  "G6": "GREEN",
+  "G1": "GREEN",
+  "G2": "GREEN",
+  "G3": "GREEN",
+  "G5": "GREEN",
+  "G7": "GREEN"
+}

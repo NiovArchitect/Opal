@@ -117,6 +117,20 @@ Grok owns automation first. Founder owns 1–3 feel judgments last.
 
 **Required:** `CONSUMER_TECHNICAL_LEAK = 0`
 
+### G7 — Reality Consistency
+
+**Question:** If I look in Home, Chats, Graphs, Attention, and Center, am I looking at the same world?
+
+| Automated | Fail class |
+|-----------|------------|
+| Seed OFF: no seed ids / fake Fort Oak / seed-chat leakage on Home/Chats/Graphs | seed leakage |
+| Seed ON (explicit fixture): fixture content present and labeled by founder-seed attrs | fixture honesty |
+| Same plan/person identity across Chats ↔ Graphs ↔ Attention when object exists | surface contradiction |
+| Stale “Ready/Next Together” on past unverified realities absent or subordinate | past blocking present |
+| Home ≠ Center day-shell when Home tab selected | routing drift |
+
+**Required:** one world; no competing realities.
+
 ## Overall gate decision
 
 | Result | Meaning |
