@@ -24,7 +24,9 @@ const SHOTS = resolve(OUT, "shots");
 mkdirSync(SHOTS, { recursive: true });
 
 const FORT_OAK_CONV = "ace99adc-db67-4258-9d95-f612246c6c84";
-const FORT_OAK_PLAN = "70804c05-779f-4991-ab9c-c75c319ebf2f";
+/** Fallback only — prefer lineage from alignment after restore/seed (STATE OWNERSHIP). */
+const FORT_OAK_PLAN_FALLBACK = "70804c05-779f-4991-ab9c-c75c319ebf2f";
+let FORT_OAK_PLAN = FORT_OAK_PLAN_FALLBACK;
 
 const WALK_A = {
   phone: "+12025550101",
@@ -189,6 +191,12 @@ async function seedRealEightPmProposal(a, b) {
   if (proposal.value !== "8:00 PM") {
     throw new Error(`expected 8:00 PM proposal, got ${JSON.stringify(proposal)}`);
   }
+
+  const lineageId =
+    p800.body?.alignment?.lineage_id ||
+    p800.body?.alignment?.plan_id ||
+    FORT_OAK_PLAN;
+  FORT_OAK_PLAN = lineageId;
 
   const sourceId = `p-a8-real-${Date.now()}`;
   const event = {

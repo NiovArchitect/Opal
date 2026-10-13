@@ -225,6 +225,60 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   def active_plan_for_conversation(_), do: nil
 
+  @doc """
+  Reconcile duplicate active SharedPlans for one conversation.
+
+  Keeps `active_plan_for_conversation/1` as current reality.
+  Cancels other tentative|agreed|changed rows and stamps alignment
+  `superseded_by` / `reconcile_reason` so history remains readable.
+
+  Returns `{:ok, %{kept: id, cancelled: [id...]}}` or `{:ok, :noop}`.
+  """
+  def reconcile_conversation_plans(conversation_id) when is_binary(conversation_id) do
+    Repo.transaction(fn ->
+      active =
+        from(p in SharedPlan,
+          where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+          order_by: [desc: p.updated_at, desc: p.inserted_at],
+          lock: "FOR UPDATE"
+        )
+        |> Repo.all()
+
+      case active do
+        [] ->
+          :noop
+
+        [%SharedPlan{id: kept_id} = _kept | rivals] ->
+          cancelled =
+            Enum.map(rivals, fn rival ->
+              alignment =
+                (rival.alignment || %{})
+                |> Map.put("superseded_by", kept_id)
+                |> Map.put("reconcile_reason", "duplicate_active_lineage")
+                |> Map.put(
+                  "reconciled_at",
+                  DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
+                )
+
+              {:ok, updated} =
+                rival
+                |> SharedPlan.changeset(%{
+                  status: "cancelled",
+                  cancelled_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+                  alignment: alignment
+                })
+                |> Repo.update()
+
+              updated.id
+            end)
+
+          %{kept: kept_id, cancelled: cancelled}
+      end
+    end)
+  end
+
+  def reconcile_conversation_plans(_), do: {:error, :invalid}
+
   # Multiple SharedPlans per conversation are lawful; lock the newest active one.
   defp lock_plan(conversation_id) do
     from(p in SharedPlan,

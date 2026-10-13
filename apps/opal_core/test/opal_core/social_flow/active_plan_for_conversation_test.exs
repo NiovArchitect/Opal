@@ -52,4 +52,51 @@ defmodule OpalCore.SocialFlow.ActivePlanForConversationTest do
     assert chosen.id == newer.id
     refute chosen.id == older.id
   end
+
+  test "reconcile_conversation_plans cancels rival active lineages" do
+    uid = System.unique_integer([:positive])
+
+    {:ok, user} =
+      %User{}
+      |> User.changeset(%{display_name: "Rec", handle: "rec-#{uid}"})
+      |> Repo.insert()
+
+    {:ok, conv} =
+      %Conversation{}
+      |> Conversation.changeset(%{label: "rec-plan-#{uid}"})
+      |> Repo.insert()
+
+    older =
+      %SharedPlan{}
+      |> SharedPlan.changeset(%{
+        conversation_id: conv.id,
+        title: "Older",
+        status: "agreed",
+        created_by_user_id: user.id,
+        timezone: "America/Los_Angeles"
+      })
+      |> Repo.insert!()
+
+    Process.sleep(5)
+
+    newer =
+      %SharedPlan{}
+      |> SharedPlan.changeset(%{
+        conversation_id: conv.id,
+        title: "Newer",
+        status: "tentative",
+        created_by_user_id: user.id,
+        timezone: "America/Los_Angeles"
+      })
+      |> Repo.insert!()
+
+    assert {:ok, %{kept: kept, cancelled: cancelled}} =
+             ConversationAlignment.reconcile_conversation_plans(conv.id)
+
+    assert kept == newer.id
+    assert older.id in cancelled
+    assert Repo.get!(SharedPlan, older.id).status == "cancelled"
+    assert Repo.get!(SharedPlan, newer.id).status == "tentative"
+    assert ConversationAlignment.active_plan_for_conversation(conv.id).id == newer.id
+  end
 end

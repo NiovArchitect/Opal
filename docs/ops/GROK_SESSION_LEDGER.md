@@ -168,3 +168,9 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 - Request: Keep steward frame; milestone = whole-system coherence → production validation; add STATE SURFACE completion law; Pass 1 first.
 - Commands: updated MASTER handoff + CURRENT_OPAL_STATE + STATE_SURFACE_CONTRACT; ran PSA/SurfaceProjection mix green; minted Walk sessions; fixed SharedPlan get_by MultipleResultsError via active_plan_for_conversation; A8 auth unblocked, propose no longer 500.
 - Outcome: DONE-PUSHED (pending) — tip after push; A8 full browser still blocked on Fort Oak commitment fixture state (422 not_committed).
+
+## 2026-10-13 — Pass 1 A8 GREEN + STATE OWNERSHIP LAW
+
+- Request: Keep coherence priority; add ownership law; restore Fort Oak as real lifecycle; reusable reconcile; re-run A8.
+- Commands: STATE_OWNERSHIP_LAW.md; reconcile_conversation_plans/1; restore_fort_oak_committed.exs; A8 matrix GREEN failures=0.
+- Outcome: DONE-PUSHED (pending tip).

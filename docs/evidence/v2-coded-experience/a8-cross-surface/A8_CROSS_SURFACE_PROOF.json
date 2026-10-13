@@ -1,7 +1,7 @@
 {
   "square": "TRACK_A8_CROSS_SURFACE",
-  "started_at": "2026-10-03T04:07:57.035Z",
-  "finished_at": "2026-10-03T04:10:18.469Z",
+  "started_at": "2026-10-13T02:55:25.855Z",
+  "finished_at": "2026-10-13T02:59:28.588Z",
   "api": "http://127.0.0.1:4000",
   "web": "http://127.0.0.1:5173",
   "fort_oak_conversation": "ace99adc-db67-4258-9d95-f612246c6c84",
@@ -11,9 +11,9 @@
       "name": "ACTIVATE_WALK_A_B",
       "status": "PASS",
       "detail": {
-        "summary": "cached tokens"
+        "summary": "47aa5856 / b599fcd7"
       },
-      "at": "2026-10-03T04:07:57.165Z"
+      "at": "2026-10-13T02:55:27.465Z"
     },
     {
       "name": "SEED_8PM_PENDING",
@@ -21,7 +21,7 @@
       "detail": {
         "summary": "current=7:30 PM proposed=8:00 PM"
       },
-      "at": "2026-10-03T04:07:58.241Z"
+      "at": "2026-10-13T02:55:29.142Z"
     },
     {
       "name": "CROSS_SURFACE_RESPONDER_ATTENTION",
@@ -29,7 +29,7 @@
       "detail": {
         "summary": "badge=1 needs=1"
       },
-      "at": "2026-10-03T04:07:59.421Z"
+      "at": "2026-10-13T02:55:31.028Z"
     },
     {
       "name": "CROSS_SURFACE_PROPOSER_WAITING",
@@ -37,29 +37,29 @@
       "detail": {
         "summary": "badge=0 waiting=1"
       },
-      "at": "2026-10-03T04:07:59.421Z"
+      "at": "2026-10-13T02:55:31.028Z"
     },
     {
       "name": "UPSTREAM_TIME_PENDING",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:07:59.421Z"
+      "at": "2026-10-13T02:55:31.028Z"
     },
     {
       "name": "DOWNSTREAM_ACTION_COMPETES_WITH_UNSETTLED_UPSTREAM",
       "status": "PASS",
       "detail": {
-        "summary": "proposalPending=true reservation_authorizable=false; compete=0 via shouldShowReservationAuth"
+        "summary": "proposalPending=true reservation_authorizable=true; compete=0 via shouldShowReservationAuth"
       },
-      "at": "2026-10-03T04:07:59.421Z"
+      "at": "2026-10-13T02:55:31.028Z"
     },
     {
       "name": "CHATS_PLAN_PROJECTION_PRESENT",
       "status": "PASS",
       "detail": {
-        "summary": "when=Tuesday · Sep 29 · 7:30 PM pending=true pending_value=8:00 PM"
+        "summary": "when=tomorrow · 7:30 PM pending=true pending_value=8:00 PM"
       },
-      "at": "2026-10-03T04:07:59.421Z"
+      "at": "2026-10-13T02:55:31.028Z"
     },
     {
       "name": "HOME_PENDING_PROPOSAL_VALUE",
@@ -67,7 +67,7 @@
       "detail": {
         "summary": "8:00 PM"
       },
-      "at": "2026-10-03T04:07:59.421Z"
+      "at": "2026-10-13T02:55:31.028Z"
     },
     {
       "name": "HOME_DUPLICATE_ACTION_COUNT",
@@ -75,7 +75,7 @@
       "detail": {
         "summary": "acceptButtons=0"
       },
-      "at": "2026-10-03T04:08:05.497Z"
+      "at": "2026-10-13T02:55:48.813Z"
     },
     {
       "name": "EVERY_ATTENTION_ITEM_APPEARS_ON_HOME",
@@ -83,15 +83,15 @@
       "detail": {
         "summary": "homePendingVisible=0 (quiet/none preferred)"
       },
-      "at": "2026-10-03T04:08:05.497Z"
+      "at": "2026-10-13T02:55:48.813Z"
     },
     {
       "name": "CHATS_COMPACT_COHERENT",
       "status": "PASS",
       "detail": {
-        "summary": "accept=0 consequence=[\"Tue Sep 29 7:30 PM · Fort Oak\"]"
+        "summary": "accept=0 consequence=[]"
       },
-      "at": "2026-10-03T04:08:06.673Z"
+      "at": "2026-10-13T02:55:50.117Z"
     },
     {
       "name": "GRAPH_LIST_NO_ACCEPT_CTA",
@@ -99,7 +99,7 @@
       "detail": {
         "summary": "accept=0"
       },
-      "at": "2026-10-03T04:08:07.729Z"
+      "at": "2026-10-13T02:55:51.173Z"
     },
     {
       "name": "GRAPH_DUPLICATE_ACTION_COUNT",
@@ -107,21 +107,21 @@
       "detail": {
         "summary": "accept=0"
       },
-      "at": "2026-10-03T04:08:08.382Z"
+      "at": "2026-10-13T02:55:51.833Z"
     },
     {
       "name": "GRAPH_PENDING_STATUS",
       "status": "PASS",
       "detail": {
-        "summary": "pendingVisible=true when=Tuesday · Sep 29 · 7:30 PM"
+        "summary": "pendingVisible=true when=tomorrow · 7:30 PM"
       },
-      "at": "2026-10-03T04:08:08.382Z"
+      "at": "2026-10-13T02:55:51.834Z"
     },
     {
       "name": "GRAPH_TO_DETAIL_BACK",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:08:08.992Z"
+      "at": "2026-10-13T02:55:52.456Z"
     },
     {
       "name": "ATTENTION_REVIEW_COUNT",
@@ -129,7 +129,7 @@
       "detail": {
         "summary": "review=1"
       },
-      "at": "2026-10-03T04:08:15.302Z"
+      "at": "2026-10-13T02:55:58.450Z"
     },
     {
       "name": "THREAD_ACTION_COUNT",
@@ -137,13 +137,13 @@
       "detail": {
         "summary": "acceptVisible=true count=1"
       },
-      "at": "2026-10-03T04:08:17.353Z"
+      "at": "2026-10-13T02:56:00.537Z"
     },
     {
       "name": "ATTENTION_TO_ACTION",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:08:17.353Z"
+      "at": "2026-10-13T02:56:00.537Z"
     },
     {
       "name": "DEPENDENCY_RESERVATION_SUPPRESSED",
@@ -151,7 +151,7 @@
       "detail": {
         "summary": "approveReservationVisible=false"
       },
-      "at": "2026-10-03T04:08:17.353Z"
+      "at": "2026-10-13T02:56:00.537Z"
     },
     {
       "name": "PROMINENT_ACTION_COUNT",
@@ -159,13 +159,13 @@
       "detail": {
         "summary": "thread=1 home=0 chats=0 graph=0 reservation=false"
       },
-      "at": "2026-10-03T04:08:17.353Z"
+      "at": "2026-10-13T02:56:00.537Z"
     },
     {
       "name": "BANNER_WHILE_CANONICAL_ACTION_VISIBLE",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:08:17.357Z"
+      "at": "2026-10-13T02:56:00.543Z"
     },
     {
       "name": "ACTIVE_CONTEXT_DUPLICATE_ACTION",
@@ -173,7 +173,7 @@
       "detail": {
         "summary": "acceptButtons=1"
       },
-      "at": "2026-10-03T04:08:17.359Z"
+      "at": "2026-10-13T02:56:00.545Z"
     },
     {
       "name": "BACK_ORIGIN_ATTENTION",
@@ -181,7 +181,7 @@
       "detail": {
         "summary": "activityOpen=true"
       },
-      "at": "2026-10-03T04:08:18.516Z"
+      "at": "2026-10-13T02:56:01.792Z"
     },
     {
       "name": "PROPOSER_APPROVAL_CTA_COUNT",
@@ -189,21 +189,21 @@
       "detail": {
         "summary": "accept=0 approve=0 pageAccept=0"
       },
-      "at": "2026-10-03T04:09:37.348Z"
+      "at": "2026-10-13T02:58:17.822Z"
     },
     {
       "name": "PROPOSER_WAITING_PROJECTION",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:09:37.357Z"
+      "at": "2026-10-13T02:58:47.835Z"
     },
     {
       "name": "RESOLUTION_PLAN_8PM",
       "status": "PASS",
       "detail": {
-        "summary": "lines=[\"Tuesday · sep 29\",\"8:00 PM\",\"Fort Oak\"] proposal=false"
+        "summary": "lines=[\"Tomorrow\",\"8:00 PM\",\"Fort Oak\"] proposal=false"
       },
-      "at": "2026-10-03T04:10:12.782Z"
+      "at": "2026-10-13T02:59:23.071Z"
     },
     {
       "name": "ATTENTION_BADGE",
@@ -211,27 +211,27 @@
       "detail": {
         "summary": "badge=0"
       },
-      "at": "2026-10-03T04:10:12.782Z"
+      "at": "2026-10-13T02:59:23.071Z"
     },
     {
       "name": "STALE_PENDING_PROJECTIONS",
       "status": "PASS",
       "detail": {
-        "summary": "pending=false when=Tuesday · Sep 29 · 8:00 PM"
+        "summary": "pending=false when=tomorrow · 8:00 PM"
       },
-      "at": "2026-10-03T04:10:12.782Z"
+      "at": "2026-10-13T02:59:23.071Z"
     },
     {
       "name": "WALK_A_POST_RESOLVE",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:12.782Z"
+      "at": "2026-10-13T02:59:23.071Z"
     },
     {
       "name": "CROSS_SURFACE_RELOAD",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "HOME_BYPASSES_MUTE_ATTENTION",
@@ -239,7 +239,7 @@
       "detail": {
         "summary": "enforced by SurfaceProjection + AttentionAuthority mute; unit-covered"
       },
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "RECOMMENDATION_CROSS_SURFACE_SPAM",
@@ -247,37 +247,37 @@
       "detail": {
         "summary": "AttentionAuthority + SurfaceProjection silence recommendations without need"
       },
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "THREAD_REALTIME",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "ATTENTION_REALTIME",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "CHATS_REALTIME",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "GRAPH_REALTIME",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     },
     {
       "name": "HOME_REALTIME",
       "status": "PASS",
       "detail": {},
-      "at": "2026-10-03T04:10:18.099Z"
+      "at": "2026-10-13T02:59:27.953Z"
     }
   ],
   "AUTOMATED_FAILURE_COUNT": 0,

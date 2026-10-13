@@ -42,14 +42,18 @@ BLOCKERS:
   - google_oauth_consent_founder
   - google_places_api_billing_founder
 PASS_ORDER:
-  - pass_1_reality_graph_connection   # ACTIVE
+  - pass_1_reality_graph_connection   # A8 GREEN 2026-10-13; keep holding coherence
   - pass_2_relationship_intelligence_foundation
   - pass_3_app_store_readiness        # after Render payment
 NEXT_AUTONOMOUS:
-  - pass_1_audit_conversation_to_attention_chain
-  - close_highest_coherence_gaps_with_regression_proof
+  - hold_pass1_green_scan_remaining_ownership_gaps
+  - settings_live_wire_proofs
+  - seed_off_graphs_chats_prefer_real
   - keep_local_phoenix_vite_healthy
   - when_payment_lands_verify_prod_health_then_testflight_smoke
+A8_CROSS_SURFACE: GREEN
+STATE_OWNERSHIP_LAW: ACTIVE
+RECONCILE_CONVERSATION_PLANS: SHIPPED
 FOUNDER_ONLY:
   - render_billing_restore
   - testflight_transporter_upload

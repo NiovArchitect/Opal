@@ -286,6 +286,14 @@ Conversation ✅  Graph ✅  Home ✅  Attention ✅  Notifications ✅  History
 
 One truth · one canonical action · multiple coherent projections.
 
+## STATE OWNERSHIP LAW
+
+Authority file: `docs/authority/STATE_OWNERSHIP_LAW.md`
+
+> Every piece of information must have exactly one authority owner.
+
+Time → SharedPlan · Approval → Alignment proposal/acceptance · Memory → Candidate→Confirmed · Location → permissioned service. Surfaces project; AI never owns durable truth. Duplicate active plans must be reconciled (`reconcile_conversation_plans/1`).
+
 ---
 
 ## Autonomous execution rule
@@ -337,6 +345,7 @@ Do not rebuild. Do not simplify. Compound.
 - `docs/authority/PRODUCT_INVARIANTS.md`
 - `docs/authority/AI_AUTONOMOUS_EXECUTION_CONTRACT.md`
 - `docs/authority/STATE_SURFACE_CONTRACT.md`
+- `docs/authority/STATE_OWNERSHIP_LAW.md`
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md`
 - `BLOCKED.md`
 - `shots/walk/W9_VERIFY.md`

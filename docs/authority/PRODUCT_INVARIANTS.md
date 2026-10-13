@@ -19,6 +19,15 @@ Optimize for quality of alignment and resulting life experience.
 
 Follow ≠ Connection · Interested ≠ Going · Group ≠ Journey · Conversation ≠ Graph · Graph ≠ Journey · Private intelligence ≠ social visibility · Plan agreement ≠ execution confirmation · Attention ≠ unread · Memory ≠ social post · Past Shared Reality ≠ proven attendance · Past Shared Reality ≠ Durable Memory · Confirmed experience ≠ published Memory · Destination place ≠ user location
 
+## State ownership (one authority per fact)
+
+```text
+ONE_AUTHORITY_OWNER_PER_FACT = 1
+REPO_GET_BY_SHARED_PLAN_BY_CONVERSATION = 0
+```
+
+See `STATE_OWNERSHIP_LAW.md`. Surfaces project; they do not own. Multiple SharedPlan lineages per conversation are lawful — current reality is `active_plan_for_conversation/1` after reconcile.
+
 ## Past is accessible, not prominent
 
 ```text
