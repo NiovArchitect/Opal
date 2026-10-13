@@ -1,7 +1,7 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-13 (Pass 1 hold: ownership law + Graphs/Chats prefer-real; tip `0f98ea5c`)  
+**Updated:** 2026-10-13 (Pass 1C/1D + REALITY SOURCE PRIORITY LAW)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
@@ -9,7 +9,7 @@
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: 0f98ea5c
+implementation_tip: pending_pass1c_1d
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
@@ -40,6 +40,9 @@ COMPLETED:
   - fort_oak_lifecycle_restore
   - a8_cross_surface_green
   - graphs_chats_seed_off_prefer_real
+  - reality_source_priority_law
+  - pass_1c_settings_live_wire
+  - pass_1d_production_seed_audit
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -47,7 +50,7 @@ BLOCKERS:
   - google_oauth_consent_founder
   - google_places_api_billing_founder
 PASS_ORDER:
-  - pass_1_reality_graph_connection   # A8 GREEN; Graphs/Chats prefer-real shipped; hold coherence
+  - pass_1_reality_graph_connection   # 1C/1D shipped; hold coherence; intelligence HOLD
   - pass_2_relationship_intelligence_foundation
   - pass_3_app_store_readiness        # after Render payment
 PHASE_ORDER_LONG:
@@ -56,14 +59,16 @@ PHASE_ORDER_LONG:
   - phase_3_execution_layer
   - phase_4_scale
 NEXT_AUTONOMOUS:
-  - hold_pass1_green_scan_remaining_ownership_gaps
-  - settings_live_wire_proofs
-  - production_seed_auto_enable_audit
+  - hold_pass1_green
+  - optional_settings_browser_roundtrip_proofs
+  - permission_boundary_schema_note_only
   - keep_local_phoenix_vite_healthy
   - when_payment_lands_verify_prod_health_then_testflight_smoke
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
+REALITY_SOURCE_PRIORITY_LAW: ACTIVE
 RECONCILE_CONVERSATION_PLANS: SHIPPED
+PRODUCTION_SEED_DEFAULT: EMPTY
 REALITY_REPAIR_PATTERN: reconcile_conversation_plans_plus_future_domain_tooling
 FOUNDER_ONLY:
   - render_billing_restore

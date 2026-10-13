@@ -1040,13 +1040,70 @@ function logFounderSeedGate(enabled: boolean, reason: string) {
 }
 
 /** Private LAN / loopback — Expo native host against local Vite is founder/dev only. */
-function isPrivateLanHost(hostname: string): boolean {
+export function isPrivateLanHost(hostname: string): boolean {
   const h = (hostname || "").toLowerCase();
   if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h === "::1") return true;
   if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
   if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
   if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
   return false;
+}
+
+/** Production / App Store / TestFlight release builds must never auto-enable seed. */
+export function isProductionWebBuild(): boolean {
+  try {
+    const env = (import.meta as { env?: Record<string, unknown> }).env;
+    if (env?.PROD === true) return true;
+    if (env?.MODE === "production") return true;
+    const flag = env?.VITE_OPAL_PRODUCTION_BUILD;
+    if (flag === "true" || flag === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+/**
+ * Pure gate for Pass 1D / REALITY SOURCE PRIORITY.
+ * Lower sources never beat higher; production never auto-enables LAN seed.
+ */
+export function resolveFounderSeedGate(input: {
+  urlSeed?: string | null;
+  urlHolyShit?: string | null;
+  sessionOptIn?: boolean;
+  localOptIn?: boolean;
+  nativeHost?: boolean;
+  hostname?: string;
+  envSeed?: string | null;
+  productionBuild?: boolean;
+}): { enabled: boolean; reason: string } {
+  if (input.urlSeed === "0") return { enabled: false, reason: "url:opal_founder_seed=0" };
+
+  const prod = input.productionBuild === true;
+  // App Store / TestFlight / production web: empty reality until the user builds it.
+  // Only an explicit lab URL can enable seed on a production build.
+  if (prod) {
+    if (input.urlSeed === "1") return { enabled: true, reason: "url:opal_founder_seed=1" };
+    return { enabled: false, reason: "production_default" };
+  }
+
+  if (input.urlSeed === "1") return { enabled: true, reason: "url:opal_founder_seed=1" };
+  if (input.urlHolyShit === "1") return { enabled: true, reason: "url:opal_holy_shit=1" };
+  if (input.sessionOptIn) return { enabled: true, reason: "sessionStorage" };
+  if (input.localOptIn) return { enabled: true, reason: "localStorage" };
+
+  // Lab only: native host on private LAN (founder phone → LAN Vite).
+  if (input.nativeHost && input.hostname && isPrivateLanHost(input.hostname)) {
+    return { enabled: true, reason: "native_host+lan" };
+  }
+
+  if (input.envSeed === "true" || input.envSeed === "1") {
+    return { enabled: true, reason: "env:VITE_OPAL_FOUNDER_SEED" };
+  }
+  if (input.envSeed === "false" || input.envSeed === "0") {
+    return { enabled: false, reason: "env:VITE_OPAL_FOUNDER_SEED=0" };
+  }
+  return { enabled: false, reason: "default" };
 }
 
 function isNativeHostOptIn(): boolean {
@@ -1071,82 +1128,75 @@ function isNativeHostOptIn(): boolean {
 
 export function isFounderSeedEnabled(): boolean {
   if (typeof window === "undefined") return false;
+
+  let urlSeed: string | null = null;
+  let urlHolyShit: string | null = null;
   try {
     const u = new URL(window.location.href);
-    if (u.searchParams.get("opal_founder_seed") === "1") {
-      // Always persist — survives reset_first_run, replaceState, and tab close.
-      persistFounderSeedOptIn();
-      logFounderSeedGate(true, "url:opal_founder_seed=1");
-      return true;
+    urlSeed = u.searchParams.get("opal_founder_seed");
+    urlHolyShit = u.searchParams.get("opal_holy_shit");
+  } catch {
+    /* ignore */
+  }
+
+  // Explicit off clears persisted opt-in (REALITY SOURCE PRIORITY: empty wins over stale demo).
+  if (urlSeed === "0") {
+    try {
+      window.sessionStorage?.removeItem(FOUNDER_SEED_SESSION_KEY);
+    } catch {
+      /* ignore */
     }
-    // Holy Shit walks continue into the member shell with the same seed chrome.
-    if (u.searchParams.get("opal_holy_shit") === "1") {
-      persistFounderSeedOptIn();
-      logFounderSeedGate(true, "url:opal_holy_shit=1");
-      return true;
+    try {
+      window.localStorage?.removeItem(FOUNDER_SEED_LOCAL_KEY);
+    } catch {
+      /* ignore */
     }
-    if (u.searchParams.get("opal_founder_seed") === "0") {
-      try {
-        window.sessionStorage?.removeItem(FOUNDER_SEED_SESSION_KEY);
-      } catch {
-        /* ignore */
-      }
-      try {
-        window.localStorage?.removeItem(FOUNDER_SEED_LOCAL_KEY);
-      } catch {
-        /* ignore */
-      }
-      logFounderSeedGate(false, "url:opal_founder_seed=0");
-      return false;
-    }
+  }
+
+  let sessionOptIn = false;
+  let localOptIn = false;
+  try {
+    sessionOptIn = window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) === "1";
   } catch {
     /* ignore */
   }
   try {
-    if (window.sessionStorage?.getItem(FOUNDER_SEED_SESSION_KEY) === "1") {
-      logFounderSeedGate(true, "sessionStorage");
-      return true;
-    }
+    localOptIn = window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1";
   } catch {
     /* ignore */
   }
+
+  let envSeed: string | null = null;
   try {
-    // Survives ?opal_reset_first_run=1 (reset must NOT clear this key).
-    if (window.localStorage?.getItem(FOUNDER_SEED_LOCAL_KEY) === "1") {
-      logFounderSeedGate(true, "localStorage");
-      return true;
-    }
+    envSeed =
+      (import.meta as { env?: Record<string, string> }).env?.VITE_OPAL_FOUNDER_SEED ?? null;
   } catch {
     /* ignore */
   }
-  // Expo ProductWebSurface historically loaded bare ?opal_native_host=1 (no seed
-  // query). Founder phone walks against LAN Vite must still get seed chrome —
-  // otherwise chats fall through to Italian/backend residue. Public hosts never
-  // hit this branch. Explicit ?opal_founder_seed=0 still wins above.
-  try {
-    if (isNativeHostOptIn() && isPrivateLanHost(window.location.hostname)) {
-      persistFounderSeedOptIn();
-      logFounderSeedGate(true, "native_host+lan");
-      return true;
-    }
-  } catch {
-    /* ignore */
+
+  const resolved = resolveFounderSeedGate({
+    urlSeed,
+    urlHolyShit,
+    sessionOptIn,
+    localOptIn,
+    nativeHost: isNativeHostOptIn(),
+    hostname: typeof window.location?.hostname === "string" ? window.location.hostname : "",
+    envSeed,
+    productionBuild: isProductionWebBuild(),
+  });
+
+  // Persist only for explicit lab opt-in paths (survives reset / tab close).
+  if (
+    resolved.enabled &&
+    (resolved.reason === "url:opal_founder_seed=1" ||
+      resolved.reason === "url:opal_holy_shit=1" ||
+      resolved.reason === "native_host+lan")
+  ) {
+    persistFounderSeedOptIn();
   }
-  try {
-    const v = (import.meta as { env?: Record<string, string> }).env?.VITE_OPAL_FOUNDER_SEED;
-    if (v === "true" || v === "1") {
-      logFounderSeedGate(true, "env:VITE_OPAL_FOUNDER_SEED");
-      return true;
-    }
-    if (v === "false" || v === "0") {
-      logFounderSeedGate(false, "env:VITE_OPAL_FOUNDER_SEED=0");
-      return false;
-    }
-  } catch {
-    /* ignore */
-  }
-  logFounderSeedGate(false, "default");
-  return false;
+
+  logFounderSeedGate(resolved.enabled, resolved.reason);
+  return resolved.enabled;
 }
 
 /** Default WHO picker people for founder seed (201:6 exact names). */

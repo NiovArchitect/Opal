@@ -230,7 +230,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "nearby-range",
         title: "Nearby range",
         subtitle: "Default discovery distance. Per-search intent can expand it.",
-        value: "25 mi",
+        blockedReason: "Needs discovery-distance preference API — not wired yet.",
       },
       {
         kind: "toggle",

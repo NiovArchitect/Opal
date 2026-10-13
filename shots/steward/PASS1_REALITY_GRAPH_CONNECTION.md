@@ -92,9 +92,11 @@ From `REGRESSION_LEDGER.md` still **PARTIAL** / pending physical:
 2. ~~Restore Fort Oak committed lifecycle~~ **Done**
 3. ~~Re-run A8~~ **GREEN**
 4. ~~Seed-off Graphs / Chats prefer-real~~ **Done** — `composeGraphsList` / `composeChatsList` + vitest (9/0). GraphsHome no longer always merges seed authority cards when seed off.
-5. Keep scanning remaining STATE OWNERSHIP gaps (settings live-wire proofs; production seed auto-enable audit).
-6. Pass 2 relationship substrate only after Pass 1 stays green.
-7. Pass 3 / App Store after founder restores Render payment.
+5. ~~Pass 1C settings live-wire~~ **Done** — GREEN/HONEST_GATE classification; `nearby-range` static "25 mi" → honest gate.
+6. ~~Pass 1D production seed audit~~ **Done** — `resolveFounderSeedGate`; production builds → `production_default` (no founder universe).
+7. Hold: permission-boundary schema note only (Owner/Scope/Confidence/Source/Visibility) — do not expand intelligence.
+8. Pass 2 relationship substrate only after Pass 1 stays green.
+9. Pass 3 / App Store after founder restores Render payment.
 
 ## Milestone (do not flip to intelligence)
 

@@ -179,4 +179,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Affirm Fort Oak = state divergence class; ownership law; lifecycle fixture; A8 surface agreement; RealityRepair pattern; hold intelligence; phase 1→4.
 - Commands: `graphsHydration` / `chatsHydration` + GraphsHome gate + OpalApp chats compose; vitest 9/0; browser seed-off proof failures=0 (`shots/steward/seed_off_prefer_real/`).
+- Outcome: DONE-PUSHED tip `0f98ea5c` / tip-sync `db980520`.
+
+## 2026-10-13 — Pass 1C/1D + REALITY SOURCE PRIORITY LAW
+
+- Request: Same failure class (authority leakage); add reality source priority; Pass 1C settings live-wire; Pass 1D production seed; permission-boundary note; hold intelligence.
+- Commands: `REALITY_SOURCE_PRIORITY_LAW.md`; `resolveFounderSeedGate` production_default; nearby-range honest gate; `settingsWireClass` + Pass 1C/1D steward docs; vitest 16/0 on touched suites.
 - Outcome: DONE-PUSHED (pending tip).

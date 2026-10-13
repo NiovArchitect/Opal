@@ -8,12 +8,6 @@
       "blockedReason": null
     },
     {
-      "kind": "nav",
-      "id": "nearby-range",
-      "title": "Nearby range",
-      "blockedReason": null
-    },
-    {
       "kind": "action",
       "id": "save-home-timezone",
       "title": "Save home timezone",
@@ -69,6 +63,12 @@
     }
   ],
   "blocked": [
+    {
+      "kind": "nav",
+      "id": "nearby-range",
+      "title": "Nearby range",
+      "blockedReason": "Needs discovery-distance preference API \u2014 not wired yet."
+    },
     {
       "kind": "toggle",
       "id": "graph-visibility",
@@ -413,5 +413,9 @@
       "title": "",
       "blockedReason": null
     }
-  ]
+  ],
+  "pass_1c": {
+    "nearby_range": "HONEST_GATE",
+    "classification": "settingsWireClass.ts"
+  }
 }

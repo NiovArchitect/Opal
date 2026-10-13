@@ -1,36 +1,41 @@
-# You settings wire audit (steward, read-only)
+# You settings wire audit (steward)
 
-**Date:** 2026-10-12
-**Tip:** `3c59780f` + home EMPTY regression
+**Date:** 2026-10-13 (Pass 1C refresh)
 **Source:** `apps/opal_web/src/opalUi/YouSettingsDestination.tsx`
 **Law:** Every control must eventually wire UI → API → DB → realtime → behavior. Honest `blockedReason` beats fake toggles.
+**Pass 1C:** `shots/steward/PASS1C_SETTINGS_LIVE_WIRE.md` · `settingsWireClass.ts`
 
 ## Summary
 
 | Class | Count |
 |-------|------:|
-| Live / local (no blockedReason) | 11 |
-| Honestly blocked | 42 |
+| GREEN (wired / honest local) | 10 |
+| HONEST GATE (incl. nearby-range) | 43+ |
 | Notes | 15 |
 | **Total row objects** | **68** |
 
-Machine dump: `shots/steward/SETTINGS_WIRE_AUDIT.json`
+Machine dump: `shots/steward/SETTINGS_WIRE_AUDIT.json` (v1 inventory; prefer `settingsWireClass` for GREEN/GATE)
 
-## Live / local rows (keep + prove)
+## GREEN rows (proved wire path)
 
 | Kind | Id | Title |
 |------|----|-------|
 | action | `save` | Save profile |
-| nav | `nearby-range` | Nearby range |
 | action | `save-home-timezone` | Save home timezone |
-| nav | `travel-mode` | Travel mode |
+| nav | `travel-mode` | Travel mode (read projection) |
 | toggle | `assist` | Opal Assist on calls |
 | toggle | `messages-calls` | Messages & calls |
 | toggle | `read-receipts` | Read receipts |
 | nav | `this-phone` | This phone |
 | nav | `linked-from-account` | Linked devices |
-| action | `delete-account` | Delete account |
+| action | `delete-account` | Delete account (opens nested) |
 | action | `keep-account` | Keep my account |
+
+## Reclassified this pass
+
+| Id | Was | Now |
+|----|-----|-----|
+| `nearby-range` | Live static "25 mi" | **HONEST GATE** — discovery-distance preference API |
 
 ## Honestly blocked (do not fake)
 

@@ -294,6 +294,18 @@ Authority file: `docs/authority/STATE_OWNERSHIP_LAW.md`
 
 Time → SharedPlan · Approval → Alignment proposal/acceptance · Memory → Candidate→Confirmed · Location → permissioned service. Surfaces project; AI never owns durable truth. Duplicate active plans must be reconciled (`reconcile_conversation_plans/1`).
 
+## REALITY SOURCE PRIORITY LAW
+
+Authority file: `docs/authority/REALITY_SOURCE_PRIORITY_LAW.md`
+
+> Opal must have one reality graph. Everything else is a projection.
+
+Resolver order: live user-owned → permissioned shared → historical → explicit demo → empty. Lower never overrides higher. Production builds never auto-enable founder seed.
+
+## Permission boundaries (Pass 1 hold note)
+
+Future coherence layer: every fact carries Owner · Scope · Confidence · Source · Visibility. Do not expand relationship intelligence until reality + source priority stay green. Example: Chanelle ring size stays private relationship context — never graph-wide.
+
 ---
 
 ## Autonomous execution rule
@@ -346,6 +358,7 @@ Do not rebuild. Do not simplify. Compound.
 - `docs/authority/AI_AUTONOMOUS_EXECUTION_CONTRACT.md`
 - `docs/authority/STATE_SURFACE_CONTRACT.md`
 - `docs/authority/STATE_OWNERSHIP_LAW.md`
+- `docs/authority/REALITY_SOURCE_PRIORITY_LAW.md`
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md`
 - `BLOCKED.md`
 - `shots/walk/W9_VERIFY.md`

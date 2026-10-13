@@ -28,6 +28,17 @@ REPO_GET_BY_SHARED_PLAN_BY_CONVERSATION = 0
 
 See `STATE_OWNERSHIP_LAW.md`. Surfaces project; they do not own. Multiple SharedPlan lineages per conversation are lawful — current reality is `active_plan_for_conversation/1` after reconcile.
 
+## Reality source priority
+
+```text
+LIVE_USER > SHARED_PERMISSIONED > HISTORICAL > EXPLICIT_DEMO > EMPTY
+LOWER_SOURCE_BEATS_HIGHER_SOURCE = 0
+SEED_OVERRIDES_LIVE_WHEN_SEED_OFF = 0
+PRODUCTION_AUTO_ENABLES_FOUNDER_SEED = 0
+```
+
+See `REALITY_SOURCE_PRIORITY_LAW.md`. Demo fixtures never pretend to be current reality.
+
 ## Past is accessible, not prominent
 
 ```text
