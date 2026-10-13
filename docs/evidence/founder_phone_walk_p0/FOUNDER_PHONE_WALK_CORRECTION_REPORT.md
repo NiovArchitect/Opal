@@ -1,7 +1,7 @@
 # P0 — Founder Phone Walk Correction (consumer reality repair)
 
 Branch: `muse/packet-b-batch-2`  
-Date: 2026-04-08 (session)  
+Tip: `5b9827f5`  
 Operating law: **PRESERVE → CORRECT → CONNECT → POLISH → REGRESSION PROVE**  
 Pass 2: **LOCKED** (`PASS2_UNLOCKED=NO`)  
 Context Ownership / Temporal Truth: **architecture-only, preserved**
