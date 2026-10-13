@@ -138,6 +138,17 @@ describe("homeHydration production vs fixture boundary", () => {
     expect(productionOwnersPresent(null)).toBe(false);
   });
 
+  it("seed off + no production owners is EMPTY with zero seed cards", () => {
+    const empty = composeHomeFeed({ founderSeedEnabled: false, production: null });
+    expect(empty.mode).toBe("EMPTY");
+    expect(empty.source).toBe("empty");
+    expect(empty.cards).toHaveLength(0);
+    expect(empty.cards.some((c) => String(c.id).startsWith("seed-"))).toBe(false);
+    expect(
+      resolveHomeHydrationSource({ founderSeedEnabled: false, production: null }),
+    ).toBe("empty");
+  });
+
   it("conversation consequences map from authorized signal fields", () => {
     const cards = consequenceCardsFromSignals(
       [

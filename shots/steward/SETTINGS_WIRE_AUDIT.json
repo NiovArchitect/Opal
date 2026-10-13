@@ -1,0 +1,417 @@
+{
+  "total": 68,
+  "live": [
+    {
+      "kind": "action",
+      "id": "save",
+      "title": "Save profile",
+      "blockedReason": null
+    },
+    {
+      "kind": "nav",
+      "id": "nearby-range",
+      "title": "Nearby range",
+      "blockedReason": null
+    },
+    {
+      "kind": "action",
+      "id": "save-home-timezone",
+      "title": "Save home timezone",
+      "blockedReason": null
+    },
+    {
+      "kind": "nav",
+      "id": "travel-mode",
+      "title": "Travel mode",
+      "blockedReason": null
+    },
+    {
+      "kind": "toggle",
+      "id": "assist",
+      "title": "Opal Assist on calls",
+      "blockedReason": null
+    },
+    {
+      "kind": "toggle",
+      "id": "messages-calls",
+      "title": "Messages & calls",
+      "blockedReason": null
+    },
+    {
+      "kind": "toggle",
+      "id": "read-receipts",
+      "title": "Read receipts",
+      "blockedReason": null
+    },
+    {
+      "kind": "nav",
+      "id": "this-phone",
+      "title": "This phone",
+      "blockedReason": null
+    },
+    {
+      "kind": "nav",
+      "id": "linked-from-account",
+      "title": "Linked devices",
+      "blockedReason": null
+    },
+    {
+      "kind": "action",
+      "id": "delete-account",
+      "title": "Delete account",
+      "blockedReason": null
+    },
+    {
+      "kind": "action",
+      "id": "keep-account",
+      "title": "Keep my account",
+      "blockedReason": null
+    }
+  ],
+  "blocked": [
+    {
+      "kind": "toggle",
+      "id": "graph-visibility",
+      "title": "Graph visibility",
+      "blockedReason": "Needs per-Graph audience API \u2014 not wired yet."
+    },
+    {
+      "kind": "toggle",
+      "id": "exact-location",
+      "title": "Exact location after join",
+      "blockedReason": "Needs live location share session API."
+    },
+    {
+      "kind": "toggle",
+      "id": "public-counts",
+      "title": "Public engagement counts",
+      "blockedReason": "Needs engagement-count preference on SocialMoments."
+    },
+    {
+      "kind": "nav",
+      "id": "join-requests",
+      "title": "Join requests",
+      "blockedReason": "Join-request policy API not shipped."
+    },
+    {
+      "kind": "nav",
+      "id": "blocked-muted",
+      "title": "Blocked & muted",
+      "blockedReason": "Use Safety \u2192 Blocked / Muted once those lists ship."
+    },
+    {
+      "kind": "toggle",
+      "id": "people-first",
+      "title": "People you know first",
+      "blockedReason": "Feed ranking prefs need a product preferences API."
+    },
+    {
+      "kind": "toggle",
+      "id": "local-discovery",
+      "title": "Local discovery",
+      "blockedReason": "Needs location permission + discovery index."
+    },
+    {
+      "kind": "toggle",
+      "id": "suggested-people",
+      "title": "Suggested people",
+      "blockedReason": "Suggested-people ranking not exposed as a preference yet."
+    },
+    {
+      "kind": "toggle",
+      "id": "suggested-experiences",
+      "title": "Suggested experiences",
+      "blockedReason": "Suggested-experiences preference API not shipped."
+    },
+    {
+      "kind": "toggle",
+      "id": "timing",
+      "title": "Use location for timing",
+      "blockedReason": "Needs device location permission + ETA service."
+    },
+    {
+      "kind": "toggle",
+      "id": "live-share",
+      "title": "Share live location",
+      "blockedReason": "Live share needs a time-bounded location session API."
+    },
+    {
+      "kind": "nav",
+      "id": "home-area",
+      "title": "Home area",
+      "blockedReason": "Home-area editor needs places storage."
+    },
+    {
+      "kind": "nav",
+      "id": "map-handoff",
+      "title": "Map handoff",
+      "blockedReason": "Map deep-link preference not persisted yet."
+    },
+    {
+      "kind": "toggle",
+      "id": "like-counts",
+      "title": "Public like counts",
+      "blockedReason": "Needs SocialMoment engagement preference fields."
+    },
+    {
+      "kind": "toggle",
+      "id": "view-counts",
+      "title": "Public view counts",
+      "blockedReason": "Needs SocialMoment engagement preference fields."
+    },
+    {
+      "kind": "toggle",
+      "id": "reposts",
+      "title": "Allow reposts",
+      "blockedReason": "Repost permission flag not on content schema yet."
+    },
+    {
+      "kind": "nav",
+      "id": "comments",
+      "title": "Comments",
+      "blockedReason": "Comment audience picker needs content ACL API."
+    },
+    {
+      "kind": "toggle",
+      "id": "private-history",
+      "title": "Private shared history",
+      "blockedReason": "Already private by product law \u2014 no toggle surface yet."
+    },
+    {
+      "kind": "toggle",
+      "id": "ask-every",
+      "title": "Ask on every call",
+      "blockedReason": "Per-call confirm needs Assist prompt UI on call start."
+    },
+    {
+      "kind": "toggle",
+      "id": "suggest-graphs",
+      "title": "Suggest Graph ideas after calls",
+      "blockedReason": "Post-call Graph suggestions need call\u2192Graph bridge."
+    },
+    {
+      "kind": "toggle",
+      "id": "remember-signals",
+      "title": "Remember useful call signals",
+      "blockedReason": "Call-signal memory needs Assist retention policy API."
+    },
+    {
+      "kind": "nav",
+      "id": "call-privacy",
+      "title": "Call privacy",
+      "blockedReason": "Call retention policy screen not built."
+    },
+    {
+      "kind": "toggle",
+      "id": "graph-changes",
+      "title": "Graph changes",
+      "blockedReason": "Push category needs Expo rebuild + APNs project credentials."
+    },
+    {
+      "kind": "toggle",
+      "id": "live-movement",
+      "title": "Live movement",
+      "blockedReason": "Push category needs Expo rebuild + live-location session."
+    },
+    {
+      "kind": "toggle",
+      "id": "social-activity",
+      "title": "Social activity",
+      "blockedReason": "Social push categories need Expo rebuild + preference API."
+    },
+    {
+      "kind": "toggle",
+      "id": "critical-timing",
+      "title": "Critical timing",
+      "blockedReason": "Critical timing push needs reservation hold \u2192 APNs path."
+    },
+    {
+      "kind": "nav",
+      "id": "desktop",
+      "title": "Desktop session",
+      "blockedReason": "QR desktop linking needs signed session mint API."
+    },
+    {
+      "kind": "nav",
+      "id": "revoke",
+      "title": "Revoke a device",
+      "blockedReason": "Session revoke UI needs device roster API."
+    },
+    {
+      "kind": "nav",
+      "id": "blocked",
+      "title": "Blocked people",
+      "blockedReason": "Block list UI needs TrustSafety block list endpoint wired."
+    },
+    {
+      "kind": "nav",
+      "id": "muted",
+      "title": "Muted people",
+      "blockedReason": "Mute list UI needs conversation mute roster."
+    },
+    {
+      "kind": "nav",
+      "id": "reported",
+      "title": "Reported content",
+      "blockedReason": "Report history surface not built."
+    },
+    {
+      "kind": "nav",
+      "id": "unknown",
+      "title": "Unknown contact requests",
+      "blockedReason": "Cold-contact policy API not shipped."
+    },
+    {
+      "kind": "nav",
+      "id": "location-safety",
+      "title": "Location safety",
+      "blockedReason": "Depends on live-location session API."
+    },
+    {
+      "kind": "toggle",
+      "id": "learn-choices",
+      "title": "Learn from my choices",
+      "blockedReason": "Preference learning toggle needs recommend feedback store."
+    },
+    {
+      "kind": "toggle",
+      "id": "budget-private",
+      "title": "Keep my budget private",
+      "blockedReason": "Already private by financial profile policy \u2014 no separate flag."
+    },
+    {
+      "kind": "toggle",
+      "id": "ask-when-cost",
+      "title": "Ask only when cost matters",
+      "blockedReason": "Cost-interrupt policy not separate from comfort level yet."
+    },
+    {
+      "kind": "nav",
+      "id": "trip-goals",
+      "title": "Trip goals",
+      "blockedReason": "Trip goal objects not in Trips domain yet."
+    },
+    {
+      "kind": "nav",
+      "id": "per-graph-fit",
+      "title": "Per-Graph fit",
+      "blockedReason": "Per-Graph spend override needs Graph settings API."
+    },
+    {
+      "kind": "nav",
+      "id": "phone",
+      "title": "Phone number",
+      "blockedReason": "Change-phone requires re-verify OTP flow \u2014 not exposed yet."
+    },
+    {
+      "kind": "nav",
+      "id": "two-step",
+      "title": "Two-step security",
+      "blockedReason": "Phone OTP is the second factor today \u2014 no extra step UI."
+    },
+    {
+      "kind": "nav",
+      "id": "session-alerts",
+      "title": "Session alerts",
+      "blockedReason": "Needs push + session event feed."
+    },
+    {
+      "kind": "action",
+      "id": "confirm-delete",
+      "title": "Delete my account",
+      "blockedReason": "Account deletion endpoint is not exposed yet. Contact support to close your account."
+    }
+  ],
+  "notes": [
+    {
+      "kind": "note",
+      "id": "identity-note",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "privacy-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "feed-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "location-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "engagement-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "assist-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "notif-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "link-qr-soon",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "device-note",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "safety-note",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "spending-live",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "spending-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "account-law",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "delete-warning",
+      "title": "",
+      "blockedReason": null
+    },
+    {
+      "kind": "note",
+      "id": "delete-law",
+      "title": "",
+      "blockedReason": null
+    }
+  ]
+}
