@@ -85,6 +85,7 @@ Every YOU domain must prove emotional contract, not only wire:
 
 ## Related
 
+- `YOU_TRUST_MODEL.md` — trust questions; open Privacy/Control and How Opal Helps evolution  
 - `OPAL_PERMISSION_ARCHITECTURE.md`  
 - `OPAL_UNDERSTANDING_LAW.md` (Understanding Candidate)  
 - `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md`  

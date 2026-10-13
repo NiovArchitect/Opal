@@ -16,9 +16,11 @@ ENTRY CONTRACT — ACTIVE
 UNDERSTANDING LAW — ACTIVE (constitution)
 CONTEXT MODEL — ACTIVE (blueprint)
 PERMISSION ARCHITECTURE — ACTIVE (YOU Trust Layer; not generic settings)
+YOU TRUST MODEL — ACTIVE (architecture; no Pass 2 rush)
 PASS 2 ENTRY REVIEW — CAPTURED (inventory only)
 YOU PAGE CAPABILITY AUDIT — CAPTURED (docs/evidence/u_page/)
 CONSUMER REALITY GATE — GATE_GREEN (human loop proven; Pass 2 still locked)
+UNDERSTANDING CANDIDATES — NOT STARTED (after YOU wiring + founder unlock)
 
 MEMORY EXPANSION — STOPPED
 ASSUMPTION SYSTEMS — STOPPED
