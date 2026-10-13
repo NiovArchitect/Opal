@@ -55,7 +55,16 @@ Probes through tunnel:
 - `GET …/` → **200** (Vite shell)
 - `GET …/api/v1/product/attention` → **401** (API reached; auth required — expected)
 
-## Ops
+## One-command recovery
+
+```bash
+./scripts/opal_founder_staging_up.sh --with-tunnel --caffeinate
+```
+
+Brings up Postgres check → Phoenix → Vite (LAN) → optional Cloudflare + caffeinate.  
+Phone walk: `shots/steward/FOUNDER_STAGING_REALITY_WALK.md`
+
+## Ops (manual)
 
 **Start**
 
@@ -71,6 +80,8 @@ echo $! > ~/.opal/cloudflared-fe.pid
 ```bash
 kill "$(cat ~/.opal/cloudflared-fe.pid)"
 ```
+
+**Note:** Port `:8000` in older LOCAL_DEVELOPMENT docs is the optional Python AI worker — **not** the Opal web/API tunnel target.
 
 **Twilio / invite absolute URLs:** restart Phoenix after `tunnel.env` exists so `OPAL_PUBLIC_BASE_URL` loads (`runtime.exs`). Phone browsing the web shell does **not** require that restart (same-origin API).
 
