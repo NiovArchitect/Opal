@@ -1,17 +1,52 @@
 # CURRENT OPAL STATE
 
-**Status:** LIVE RECOVERY AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-03 (whole-product closure automation GREEN — A8 HOLD, one final founder walk)  
-**Branch:** `build/v2-coded-experience-closure`  
-**Kind:** CHECKPOINT authority (not FROZEN_GREEN)
+**Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
+**Updated:** 2026-10-12 (Master Production Continuity Handoff active; W9 tip `e6455aa1`)  
+**Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
+**Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
+**Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
 
 ```yaml
 authority_class: CURRENT_OPAL_STATE
+steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
+implementation_tip: e6455aa1
+implementation_branch: muse/packet-b-batch-2
+frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
 merge: NO
 public_live: NO
-app_store: NO
+app_store: NOT_YET
+production_api: SUSPENDED_PAYMENT
 journey: BLOCKED
+rebuild: FORBIDDEN
+```
+
+## Active steward mission (2026-10-12)
+
+```yaml
+MISSION: app_store_production_continuity
+MODE: compound_only
+COMPLETED:
+  - W6_W7_foundation
+  - W8_finish_opal_81276ef8
+  - W9_real_for_friends_e6455aa1
+BLOCKERS:
+  - render_payment_api_opal_niovlabs_suspended
+  - testflight_upload_founder_asc
+  - two_device_calling_physical
+  - google_oauth_consent_founder
+  - google_places_api_billing_founder
+NEXT_AUTONOMOUS:
+  - keep_local_phoenix_vite_healthy
+  - inventory_founder_seed_dependency_for_real_account_path
+  - settings_wire_audit
+  - state_consistency_regression_harness
+  - when_payment_lands_verify_prod_health_then_testflight_smoke
+FOUNDER_ONLY:
+  - render_billing_restore
+  - testflight_transporter_upload
+  - google_consent_and_places
+  - two_physical_devices_call_push
 ```
 
 ## What Opal is

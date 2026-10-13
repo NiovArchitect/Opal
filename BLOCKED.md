@@ -1,8 +1,9 @@
 # BLOCKED — founder credentials & operational status
 
 Branch: `muse/packet-b-batch-2`  
-Scope: Real Multi-User Calling + Apple Store Operational Readiness  
-Runtime truth checked: **2026-10-08** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; EAS production IPA succeeded)  
+Tip: `e6455aa1` (W9)  
+Scope: App Store production continuity (steward frame: `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`)  
+Runtime truth checked: **2026-10-12** (Mac BEAM on `:4000` + `~/.opal/r1a1.env`; W9 EAS IPA Finished; **production API suspended for payment**)  
 **Key wire batch (2026-10-08):** keys appended to `~/.opal/r1a1.env` (backed up first; no duplicate exports). Phoenix restarted once. Live curl + Elixir verify. Audit: `shots/audit/KEY_PROVISION_AUDIT.md`. Google click-through: `docs/GOOGLE_CLOUD_SETUP.md`.
 
 Items below are implemented in code with honest stubs / disabled paths where
@@ -10,6 +11,8 @@ credentials are absent. Status reflects **actual runtime**, not hope.
 
 | Item | Needed from | Env / artifact | Status |
 |------|-------------|----------------|--------|
+| Production API (`api.opal.niovlabs.com`) | Founder billing | Render service for API host | **BLOCKED — SUSPENDED FOR PAYMENT (2026-10-12).** `/health` → HTTP 503 "This service has been suspended." Founder: Render down due to lack of payment. Agent Render CLI token also expired (`render login` needed after payment). Local Phoenix remains development authority. TestFlight smoke against prod hosts cannot pass until restored. |
+| EAS iOS production IPA (W9) | — | Expo build `7213e09f-5b2d-4129-a99a-72e3cdd48b1d` · `0.13.0` / build `5` · tip `81276ef8` baked | **FINISHED** — IPA https://expo.dev/artifacts/eas/DFWIEOL2oxIABL-so6mft7NhqzfSKrMpZUPokQGxpYY.ipa . Upload/TestFlight still founder ASC / Transporter (`docs/TESTFLIGHT_UPLOAD.md`). Prior 2026-10-07 IPA also exists; prefer W9 artifact for current tip. |
 | Twilio Verify (SMS OTP) | — | `OPAL_TWILIO_ACCOUNT_SID`, `OPAL_TWILIO_AUTH_TOKEN`, `OPAL_TWILIO_VERIFY_SERVICE_SID` + `OPAL_PHONE_VERIFY_MODE=production_sms` | **LIVE** — founder OTP on phone 2026-10-07; `/health` reports `production_sms` on this Mac BEAM. |
 | Twilio Messaging (invite SMS) | — | `OPAL_TWILIO_FROM_NUMBER` or `OPAL_TWILIO_MESSAGING_SERVICE_SID` (+ account SID/token) | **LIVE** — founder-confirmed invite texts 2026-10-07. |
 | Twilio NTS (TURN) | Uses same Twilio account SID/token | `OPAL_TWILIO_ACCOUNT_SID` + `OPAL_TWILIO_AUTH_TOKEN` | Code mints via NTS Tokens API when those env vars are on the Phoenix process (present via `r1a1.env`). |

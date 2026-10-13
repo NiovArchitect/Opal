@@ -156,3 +156,9 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - **Ledger commit SHA:** `5864591a1f4a41dfa41c8150c23a29515d51c07f` (`5864591`)
 - **Remote:** `origin/build/v2-coded-experience-closure`
+
+## 2026-10-12 — Master Production Continuity Handoff (steward)
+
+- Request: Lock operating frame (do not rebuild; compound; App Store path); Render down for payment.
+- Commands: wrote `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`; updated `CURRENT_OPAL_STATE.md` + `BLOCKED.md`; inventoried founder-seed (39 files / 255 hits).
+- Outcome: `DONE-PUSHED` (pending commit) — tip after push; Render payment remains founder BLOCKED; local Phoenix/Vite healthy.

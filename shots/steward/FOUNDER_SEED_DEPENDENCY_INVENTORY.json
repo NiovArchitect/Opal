@@ -1,0 +1,306 @@
+{
+  "files": 39,
+  "total_hits": 255,
+  "rows": [
+    {
+      "file": "apps/opal_web/src/OpalApp.tsx",
+      "hits": 102,
+      "samples": [
+        "FounderSeed",
+        "OPAL_FOUNDER_SEED",
+        "founderGraphSeed",
+        "founderSeed",
+        "isFounderSeedEnabled",
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/founderGraphSeed.ts",
+      "hits": 43,
+      "samples": [
+        "FOUNDER_SEED",
+        "FounderSeed",
+        "OPAL_FOUNDER_SEED",
+        "founder_seed",
+        "isFounderSeedEnabled",
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/founderChatsPlanPills.test.tsx",
+      "hits": 16,
+      "samples": [
+        "FounderSeed",
+        "founderSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/founderChatsPlanPills.ts",
+      "hits": 14,
+      "samples": [
+        "FounderSeed",
+        "founderSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/founderCommunicationSeed.test.ts",
+      "hits": 8,
+      "samples": [
+        "founderGraphSeed",
+        "founder_seed",
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/homeHydration.ts",
+      "hits": 8,
+      "samples": [
+        "founderGraphSeed",
+        "founderSeed",
+        "isFounderSeedEnabled",
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/homeHydration.test.ts",
+      "hits": 7,
+      "samples": [
+        "founderGraphSeed",
+        "founderSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/main.tsx",
+      "hits": 5,
+      "samples": [
+        "FounderSeed",
+        "founderGraphSeed",
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/onboarding/FirstRunExperience.tsx",
+      "hits": 5,
+      "samples": [
+        "founderGraphSeed",
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/OpalCenterChat.tsx",
+      "hits": 5,
+      "samples": [
+        "founderGraphSeed",
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/GraphSocialHome.tsx",
+      "hits": 4,
+      "samples": [
+        "founderGraphSeed",
+        "founderSeed",
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/OpalCenterChat.planSurface.test.tsx",
+      "hits": 4,
+      "samples": [
+        "founderGraphSeed",
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/authorityRejectedStates.test.ts",
+      "hits": 4,
+      "samples": [
+        "founderGraphSeed",
+        "isFounderSeedEnabled",
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/api/productClient.ts",
+      "hits": 2,
+      "samples": [
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/onboarding/founderAuthRestore.test.ts",
+      "hits": 2,
+      "samples": [
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/onboarding/holyShitGate.ts",
+      "hits": 2,
+      "samples": [
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/realChatPath.ts",
+      "hits": 2,
+      "samples": [
+        "FOUNDER_SEED"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/onboarding/figmaAlignment.test.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/onboarding/holyShitFirstRun.test.ts",
+      "hits": 1,
+      "samples": [
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/onboarding/tranche2AuthLaw.test.ts",
+      "hits": 1,
+      "samples": [
+        "isFounderSeedEnabled"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/DiscoveryDetailSheet.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/GraphDetailSheet.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/GraphsHome.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/JourneyAddPeople.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/MemoryDetailSheet.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/NewCallDestination.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/SearchDestination.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/StoryViewer.tsx",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/alexTripMemories.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/graphSocialHome.test.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/graphSurfaceInterop.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/homeFeedRanking.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/pasteWProtectList.test.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/socialAuthority.test.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/socialAuthority.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/waveBFullLiveExact.test.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/opalUi/waveBHomeExact.test.ts",
+      "hits": 1,
+      "samples": [
+        "founderGraphSeed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/runtime/founderRuntimeCheckpoint.test.ts",
+      "hits": 1,
+      "samples": [
+        "opal_founder_seed"
+      ]
+    },
+    {
+      "file": "apps/opal_web/src/runtime/founderRuntimeCheckpoint.ts",
+      "hits": 1,
+      "samples": [
+        "opal_founder_seed"
+      ]
+    }
+  ]
+}
