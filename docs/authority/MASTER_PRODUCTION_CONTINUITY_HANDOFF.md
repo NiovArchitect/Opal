@@ -320,10 +320,15 @@ Pass 2 entry is **not** “remember everything.” It is:
 
 > Build a permissioned relationship graph where Opal understands people without pretending to know what it does not know.
 
+**Gate contract (no functionality yet):** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`  
+— facts ≠ assumptions · scope required · inference ≠ desire · human explanation · correction first-class · graph ≠ flat profile.
+
 Watch before Pass 2: open disagreement posture · relationship scope ladder · human explanation layer.  
 Founder unlock required. Intelligence expansion remains HOLD.
 
 Thesis: Meta Muse helps accomplish tasks; Opal helps maintain and deepen real-world relationships.
+
+Transition question: not “smarter” — **understand people without violating trust**.
 
 ---
 
@@ -379,6 +384,7 @@ Do not rebuild. Do not simplify. Compound.
 - `docs/authority/STATE_OWNERSHIP_LAW.md`
 - `docs/authority/REALITY_SOURCE_PRIORITY_LAW.md`
 - `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
+- `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` — Pass 2 gate (LOCKED)
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md`
 - `BLOCKED.md`
 - `shots/walk/W9_VERIFY.md`

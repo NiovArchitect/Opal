@@ -197,4 +197,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Founder final review — Pass 1 is the unlock gate; keep Pass 2 locked; record watch risks + Pass 2 entry condition + product thesis.
 - Commands: `PASS1_FINAL_CHECKPOINT.md`; CURRENT_OPAL_STATE Pass 1 CLOSED / Pass 2 LOCKED; MASTER handoff entry condition.
-- Outcome: DONE-PUSHED (pending tip). Pass 2 not started.
+- Outcome: DONE-PUSHED tip `32342676` / sync `00b9dd78`. Pass 2 not started.
+
+## 2026-10-13 — Relationship Intelligence Entry Contract (gate only)
+
+- Request: Final gate document before Pass 2 — facts≠assumptions, scope, inference≠desire, human explanation, correction first-class, graph≠profile; keep Pass 2 locked.
+- Commands: `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`; wired into MASTER / CURRENT / PASS1_FINAL.
+- Outcome: DONE-PUSHED (pending tip). No Pass 2 features.

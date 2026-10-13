@@ -70,13 +70,27 @@ Enter only as:
 
 > Build a permissioned relationship graph where Opal understands people without pretending to know what it does not know.
 
+**Gate document (required before any Pass 2 ship):**  
+`docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`
+
+That contract requires:
+
+1. Facts ≠ assumptions (Candidate before Confirmed)
+2. Relationship context requires scope
+3. Emotional inference stays separate from Confirmed desire
+4. Natural human explanation for surfaced intel
+5. Correction first-class (history preserved; no silent overwrite)
+
+Plus: relationship graph ≠ flat profile (Identity · Preferences · Patterns · Shared Experiences · Commitments · Moments · Boundaries · Dynamics).
+
 Prerequisites:
 
 1. Pass 1 laws stay green (no new authority leakage)
 2. Conflict / disagreement posture designed before automation chooses
 3. Visibility scopes respected on any new durable fact
 4. Surfaced intelligence carries a human explanation path
-5. Founder has not unlocked Pass 2 explicitly for implementation
+5. Founder explicitly unlocks Pass 2
+6. Entry contract unlock checklist completed
 
 ## Intelligence HOLD
 
@@ -84,6 +98,12 @@ Prerequisites:
 PASS_2: LOCKED
 INTELLIGENCE_EXPANSION: HOLD
 REASON: reality_integrity_before_relationship_intelligence
+ENTRY_CONTRACT: RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT
 ```
 
 Without these laws: memory becomes creepy, recommendations become assumptions, automation becomes annoying.
+
+## Transition question (correct)
+
+Not: “How do we make Opal smarter?”  
+Yes: “How do we make Opal understand people without violating trust?”

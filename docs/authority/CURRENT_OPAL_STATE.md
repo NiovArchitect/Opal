@@ -1,16 +1,17 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-13 (Pass 1 FINAL CHECKPOINT CLOSED; Pass 2 LOCKED)  
+**Updated:** 2026-10-13 (Pass 1 CLOSED; Pass 2 LOCKED + entry contract)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`  
-**Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`
+**Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`  
+**Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`
 
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: 32342676
+implementation_tip: 00b9dd78
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
@@ -30,7 +31,9 @@ MODE: compound_only
 INTELLIGENCE_EXPANSION: HOLD_UNTIL_COHERENCE
 PASS_1: CHECKPOINT_CLOSED
 PASS_2: LOCKED
+PASS_2_GATE: RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT
 MILESTONE: why_is_opal_showing_me_this
+TRANSITION_QUESTION: understand_people_without_violating_trust
 PRODUCT_THESIS: opal_deepens_relationships_muse_accomplishes_tasks
 COMPLETED:
   - W6_W7_foundation
@@ -52,6 +55,7 @@ COMPLETED:
   - pass_1f_empty_state_quality
   - pass_1g_endpoint_journey_audit
   - pass_1_final_checkpoint_closed
+  - relationship_intelligence_entry_contract
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -68,6 +72,13 @@ PHASE_ORDER_LONG:
   - phase_3_execution_layer
   - phase_4_scale
 PASS_2_ENTRY: permissioned_relationship_graph_without_pretending_to_know
+PASS_2_CONTRACT_RULES:
+  - facts_are_not_assumptions
+  - context_requires_scope
+  - inference_separate_from_confirmed_desire
+  - human_explanation_required
+  - correction_first_class
+  - graph_not_flat_profile
 PASS_1_WATCH:
   - conflict_resolution_open_disagreement
   - relationship_scope_ladder
@@ -76,11 +87,12 @@ NEXT_AUTONOMOUS:
   - hold_pass1_green
   - keep_local_phoenix_vite_healthy
   - when_payment_lands_verify_prod_health_then_testflight_smoke
-  - do_not_unlock_pass2_without_founder_and_entry_condition
+  - do_not_unlock_pass2_without_founder_and_entry_contract
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
 REALITY_SOURCE_PRIORITY_LAW: ACTIVE
 FACT_OWNERSHIP_VISIBILITY_LAW: ACTIVE
+RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT: ACTIVE_GATE
 RECONCILE_CONVERSATION_PLANS: SHIPPED
 PRODUCTION_SEED_DEFAULT: EMPTY
 EMPTY_STATE_QUALITY: INVITATION_COPY
