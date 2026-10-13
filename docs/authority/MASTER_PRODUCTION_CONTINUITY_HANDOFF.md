@@ -327,6 +327,7 @@ Watch before Pass 2: open disagreement posture · relationship scope ladder · h
 Founder unlock required. Intelligence expansion remains HOLD.
 
 **Hold period:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md` — preservation + production readiness only.  
+**Pass 2+ Capability Map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` — proven foundation vs vision domains; does not unlock Pass 2.  
 After unlock, first work defines graph authority · permissions · candidate lifecycle · correction · explanation surfaces — **then** intelligence. Never “add memory” first.
 
 Thesis: Meta Muse helps accomplish tasks; Opal helps maintain and deepen real-world relationships.
@@ -389,6 +390,7 @@ Do not rebuild. Do not simplify. Compound.
 - `docs/authority/REALITY_SOURCE_PRIORITY_LAW.md`
 - `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
 - `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md` — Pass 2 gate (LOCKED)
+- `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` — life-intelligence blueprint (LOCKED; no implementation)
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md`
 - `BLOCKED.md`
 - `shots/walk/W9_VERIFY.md`

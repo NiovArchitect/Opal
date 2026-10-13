@@ -108,9 +108,18 @@ Until then: steward role is **preservation, validation, and production readiness
 
 Opal’s value depends on users trusting that when it remembers something, it remembers the **right thing**, for the **right reason**, with the **right permission**.
 
+## Pass 2+ Capability Map (blueprint only)
+
+Gate blueprint authored; **no implementation**:
+
+`docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
+
+Defines proven Pass 1 foundation vs vision domains (Relationship · Commerce · Calendar · Fitness · Email · Context Engine · Memory lifecycle · Action Authority). Does **not** unlock Pass 2.
+
 ## Related
 
 - `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`
+- `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
 - `shots/steward/PASS1_FINAL_CHECKPOINT.md`
 - `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
 - `BLOCKED.md`

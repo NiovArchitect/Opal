@@ -7,7 +7,8 @@
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`  
 **Hold checkpoint:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md`  
 **Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`  
-**Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`
+**Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`  
+**Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
 
 ```yaml
 authority_class: CURRENT_OPAL_STATE
@@ -57,6 +58,7 @@ COMPLETED:
   - pass_1g_endpoint_journey_audit
   - pass_1_final_checkpoint_closed
   - relationship_intelligence_entry_contract
+  - pass2_plus_capability_map_blueprint
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -131,6 +133,7 @@ STATE_OWNERSHIP_LAW: ACTIVE
 REALITY_SOURCE_PRIORITY_LAW: ACTIVE
 FACT_OWNERSHIP_VISIBILITY_LAW: ACTIVE
 RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT: ACTIVE_GATE
+PASS2_PLUS_CAPABILITY_MAP: BLUEPRINT_ONLY
 RECONCILE_CONVERSATION_PLANS: SHIPPED
 PRODUCTION_SEED_DEFAULT: EMPTY
 EMPTY_STATE_QUALITY: INVITATION_COPY

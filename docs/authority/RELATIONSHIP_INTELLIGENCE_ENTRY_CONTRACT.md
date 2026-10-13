@@ -201,3 +201,4 @@ Until unlock: no memory expansion · partner graph · preference learning · emo
 - `shots/steward/PASS1_FINAL_CHECKPOINT.md`
 - `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` (doctrine; this file is the **entry gate**)
+- `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` (life-intelligence blueprint; not implementation)
