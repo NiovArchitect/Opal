@@ -87,6 +87,9 @@ Infrastructure · real-user journeys · surface contracts. Live snapshot 2026-10
 **Hosting fitness:** `shots/steward/RENDER_FREE_TIER_FITNESS_AUDIT.md`  
 Render **Free** is **insufficient** for TestFlight (spin-down kills channels; free Postgres 30-day fuse). Prefer restore paid Render (~$13+/mo minimum). Fly = future infra option only — do not migrate from fear.
 
+**Founder staging tunnel (while Render down):** `shots/steward/CLOUDFLARE_FOUNDER_STAGING_TUNNEL.md`  
+`cloudflared` → Vite `:5173` (proxies Phoenix `:4000`). Not production.
+
 **Surface fragmentation re-audit:** `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`  
 **Pass 1H:** `PASS1H_PREFER_REAL_REMEDIATION.md` — Stories / person temporal / Full Live REDs closed.  
 **Pass 1I:** `PASS1I_ATTENTION_COPY_AUTHORITY.md` — Attention empty copy unified.  
@@ -140,6 +143,7 @@ Defines proven Pass 1 foundation vs vision domains (Relationship · Commerce · 
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
 - `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`
 - `shots/steward/RENDER_FREE_TIER_FITNESS_AUDIT.md`
+- `shots/steward/CLOUDFLARE_FOUNDER_STAGING_TUNNEL.md`
 - `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`
 - `shots/steward/PASS1H_PREFER_REAL_REMEDIATION.md`
 - `shots/steward/PASS1I_ATTENTION_COPY_AUTHORITY.md`
