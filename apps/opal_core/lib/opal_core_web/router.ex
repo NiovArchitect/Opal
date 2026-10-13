@@ -331,6 +331,17 @@ defmodule OpalCoreWeb.Router do
     get("/relationships", RelationshipController, :index)
     put("/relationships/:contact_user_id", RelationshipController, :upsert)
 
+    # Relationship Access Model — standing Graphing + multi-dim grants (Pass 2 locked)
+    get("/relationship-access/graphing", RelationshipAccessController, :graphing_show)
+    patch("/relationship-access/graphing", RelationshipAccessController, :graphing_update)
+    post("/relationship-access/graphing/decide", RelationshipAccessController, :graphing_decide)
+    get("/relationship-access/grants", RelationshipAccessController, :grants_index)
+    post("/relationship-access/grants", RelationshipAccessController, :grants_upsert)
+    delete("/relationship-access/grants/:id", RelationshipAccessController, :grants_revoke)
+    post("/relationship-access/templates/apply", RelationshipAccessController, :apply_template)
+    post("/relationship-access/templates/diff", RelationshipAccessController, :type_change_diff)
+    post("/relationship-access/authorize", RelationshipAccessController, :authorize)
+
     # Phase RU-2 — progressive trust tiers
     get("/trust/tier", TrustController, :show)
     post("/trust/tier/grant", TrustController, :grant)

@@ -105,6 +105,25 @@ ON/OFF alone is insufficient.
 
 Relationship privacy is separate from account privacy: private / shared / public per relationship edge (see Context Model).
 
+## Continuous Permission Law (standing capabilities)
+
+> Opal permissions are persistent, user-granted capabilities — not repeated interruptions. A permission grants a bounded capability within defined scope, visibility, expiration, and revocation controls.
+
+| Principle | Rule |
+|-----------|------|
+| Friction | Permission reduces friction; it does not create a notification machine |
+| Boundaries | User controls capability scope |
+| Disclosure | Active sensitive capture shows **Opal Graphing** (Pause · Resume · Stop · Manage) |
+| No silent expand | Scope never grows without explicit user action |
+| Instant revoke | Pause / revoke must take effect immediately |
+| Relationship variance | Different relationships may have different grants |
+| Global pause | Overrides relationship-level grants |
+| Legal | Other-party / jurisdictional consent cannot be skipped by one user's standing grant |
+
+Standing Graphing modes: `never` · `ask_each` · `auto_eligible` · `selected_only`.
+
+**Use ≠ disclose.** Opal may use a private signal for alignment without revealing it to unauthorized people. See `OPAL_RELATIONSHIP_ACCESS_MODEL.md`.
+
 ## Action authority
 
 | Level | Meaning |
@@ -148,6 +167,7 @@ Audit: `docs/evidence/u_page/YOU_PAGE_CAPABILITY_MATRIX.md` · `PERMISSION_ACTIO
 - `YOU_PAGE_HIERARCHY.md` — keep YOU; hierarchy so it is not an iPhone Settings clone  
 - `OPAL_MATURITY_STACK.md`  
 - `OPAL_UNDERSTANDING_LAW.md`  
+- `OPAL_RELATIONSHIP_ACCESS_MODEL.md` — relationship as permission boundary; use ≠ disclose; Graphing standing modes
 - `RELATIONSHIP_CONTEXT_MODEL.md`  
 - `RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`  
 - Wire honesty: `VISIBLE_SETTING_REQUIRES_WORKING_BEHAVIOR` (implementation classifier; surface name remains YOU)  

@@ -3022,6 +3022,134 @@ export async function revokeConsent(proofId: string, bearer?: string) {
   );
 }
 
+/** Relationship Access Model — standing Graphing + multi-dim grants (Pass 2 locked). */
+export type GraphingMode = "never" | "ask_each" | "auto_eligible" | "selected_only";
+
+export type GraphingPolicy = {
+  owner_user_id?: string;
+  call_mode: GraphingMode | string;
+  chat_mode: GraphingMode | string;
+  global_paused: boolean;
+  paused_at?: string | null;
+  other_party_disclosure_required?: boolean;
+  indicator?: { label?: string; when_active_show?: string[] };
+};
+
+export type RelationshipAccessGrant = {
+  id: string;
+  owner_user_id?: string;
+  scope_kind: "contact" | "group" | "global" | string;
+  contact_user_id?: string | null;
+  group_id?: string | null;
+  data_category: string;
+  access_level: "none" | "observe" | "use" | "disclose" | string;
+  action_ceiling: "none" | "suggest" | "prepare" | "execute" | string;
+  visibility: string;
+  source?: string;
+  template_key?: string | null;
+  granted_at?: string | null;
+  expires_at?: string | null;
+  revoked_at?: string | null;
+  active?: boolean;
+};
+
+export async function getGraphingPolicy(bearer?: string) {
+  return request<{ graphing: GraphingPolicy }>("/api/v1/product/relationship-access/graphing", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function updateGraphingPolicy(
+  attrs: Partial<{
+    call_mode: GraphingMode | string;
+    chat_mode: GraphingMode | string;
+    global_paused: boolean;
+    other_party_disclosure_required: boolean;
+  }>,
+  bearer?: string,
+) {
+  return request<{ graphing: GraphingPolicy }>("/api/v1/product/relationship-access/graphing", {
+    method: "PATCH",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function decideGraphing(
+  attrs: { channel: "call" | "chat" | string; contact_user_id?: string | null },
+  bearer?: string,
+) {
+  return request<{
+    allowed: boolean;
+    mode?: string;
+    reason?: string;
+    indicator?: string;
+    other_party_disclosure_required?: boolean;
+    understanding_candidates_active?: boolean;
+  }>("/api/v1/product/relationship-access/graphing/decide", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function listRelationshipAccessGrants(
+  opts?: { contact_user_id?: string },
+  bearer?: string,
+) {
+  const q = opts?.contact_user_id
+    ? `?contact_user_id=${encodeURIComponent(opts.contact_user_id)}`
+    : "";
+  return request<{ grants: RelationshipAccessGrant[]; templates: string[] }>(
+    `/api/v1/product/relationship-access/grants${q}`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function upsertRelationshipAccessGrant(
+  attrs: Partial<RelationshipAccessGrant> & {
+    scope_kind: string;
+    data_category: string;
+  },
+  bearer?: string,
+) {
+  return request<{ grant: RelationshipAccessGrant }>("/api/v1/product/relationship-access/grants", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function revokeRelationshipAccessGrant(grantId: string, bearer?: string) {
+  return request<{ grant: RelationshipAccessGrant }>(
+    `/api/v1/product/relationship-access/grants/${encodeURIComponent(grantId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function authorizeRelationshipAction(
+  attrs: {
+    data_category: string;
+    action_ceiling?: string;
+    contact_user_id?: string | null;
+    disclose?: boolean;
+  },
+  bearer?: string,
+) {
+  return request<{
+    allowed: boolean;
+    action: string;
+    may_use: boolean;
+    may_disclose: boolean;
+    effective_ceiling: string;
+    understanding_candidates_active?: boolean;
+  }>("/api/v1/product/relationship-access/authorize", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
 /** Phase RU-2 — progressive trust tiers. */
 export type TrustTierValue = "new" | "known" | "trusted" | "inner_circle";
 

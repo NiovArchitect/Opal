@@ -19,11 +19,13 @@ import {
   forgetMemoryFact,
   getFinancialProfile,
   getOpalWallet,
+  getGraphingPolicy,
   grantConsent,
   listCelebrations,
   listConsents,
   listOpalWalletTransactions,
   listProductInvites,
+  listRelationshipAccessGrants,
   localProductInviteShareUrl,
   getTrustTier,
   grantInnerCircleTrust,
@@ -35,19 +37,25 @@ import {
   createOpalWalletCheckout,
   requestOpalWalletLoad,
   revokeConsent,
+  revokeRelationshipAccessGrant,
   setFinancialProfile,
   setRelationshipType,
+  updateGraphingPolicy,
+  upsertRelationshipAccessGrant,
   type Celebration,
   type CelebrationCuration,
   type ComfortLevel,
   type ConsentCapability,
   type ConsentProof,
   type FinancialProfile,
+  type GraphingMode,
+  type GraphingPolicy,
   type MemoryFact,
   type OpalWallet,
   type OpalWalletTransaction,
   type ProductInvite,
   type ProductSession,
+  type RelationshipAccessGrant,
   type RelationshipContact,
   type RelationshipTypeValue,
   type TrustTierInfo,
@@ -1108,6 +1116,7 @@ export function YouSettingsDestination({
         {/* Paste W Phase 5 / L8 — filed from You hub, not deleted */}
         {setting === "calls-assist" && session ? (
           <div className="you-settings-filed" data-testid="you-settings-filed-calls-assist">
+            <GraphingStandingPermissionSection session={session} />
             <WhatOpalCanDoSection session={session} />
           </div>
         ) : null}
@@ -1130,6 +1139,260 @@ export function YouSettingsDestination({
         ) : null}
       </div>
     </div>
+  );
+}
+
+const GRAPHING_MODE_OPTIONS: { id: GraphingMode; label: string; hint: string }[] = [
+  { id: "never", label: "Never", hint: "Do not Graph calls." },
+  { id: "ask_each", label: "Ask each time", hint: "Ask before Graphing an eligible call." },
+  {
+    id: "auto_eligible",
+    label: "Automatically Graph allowed calls",
+    hint: "Standing permission — no repeated interruption when already granted.",
+  },
+  {
+    id: "selected_only",
+    label: "Only selected people",
+    hint: "Graph only relationships you opt in below.",
+  },
+];
+
+/**
+ * Continuous Permission — standing Graphing modes (not Pass 2 memory).
+ * Person-agnostic: works for any relationship the user configures.
+ */
+export function GraphingStandingPermissionSection({ session }: WhatOpalCanDoProps) {
+  const token = session?.access_token;
+  const [policy, setPolicy] = useState<GraphingPolicy | null>(null);
+  const [grants, setGrants] = useState<RelationshipAccessGrant[]>([]);
+  const [people, setPeople] = useState<RelationshipContact[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) return;
+    try {
+      const [g, list, rel] = await Promise.all([
+        getGraphingPolicy(token),
+        listRelationshipAccessGrants(undefined, token),
+        listRelationships(token).catch(() => ({
+          contacts: [] as RelationshipContact[],
+          relationships: [],
+        })),
+      ]);
+      setPolicy(g.graphing);
+      setGrants(Array.isArray(list.grants) ? list.grants : []);
+      const fromContacts = Array.isArray(rel.contacts) ? rel.contacts : [];
+      const fromRows = Array.isArray(rel.relationships)
+        ? rel.relationships.map((r) => ({
+            contact_user_id: r.contact_user_id,
+            type: r.type,
+            display_name: null,
+          }))
+        : [];
+      setPeople(fromContacts.length ? fromContacts : fromRows);
+      setError(null);
+    } catch {
+      setError("Couldn't load Graphing permissions.");
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const onMode = async (call_mode: GraphingMode) => {
+    if (!session?.user_id || busy) return;
+    setBusy(true);
+    try {
+      const res = await updateGraphingPolicy({ call_mode }, token);
+      setPolicy(res.graphing);
+    } catch {
+      setError("Couldn't update Graphing mode.");
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onPause = async (paused: boolean) => {
+    if (!session?.user_id || busy) return;
+    setBusy(true);
+    try {
+      const res = await updateGraphingPolicy({ global_paused: paused }, token);
+      setPolicy(res.graphing);
+    } catch {
+      setError("Couldn't update pause.");
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const callSignalOn = (contactId: string) =>
+    grants.some(
+      (g) =>
+        g.contact_user_id === contactId &&
+        g.data_category === "call_signals" &&
+        g.active !== false &&
+        !g.revoked_at &&
+        g.access_level !== "none",
+    );
+
+  const onToggleSelected = async (contact: RelationshipContact, nextOn: boolean) => {
+    if (!session?.user_id || busy || !contact.contact_user_id) return;
+    setBusy(true);
+    try {
+      if (nextOn) {
+        const { grant } = await upsertRelationshipAccessGrant(
+          {
+            scope_kind: "contact",
+            contact_user_id: contact.contact_user_id,
+            data_category: "call_signals",
+            access_level: "observe",
+            action_ceiling: "suggest",
+            visibility: "self_only",
+            source: "explicit",
+          },
+          token,
+        );
+        setGrants((prev) => [...prev.filter((g) => g.id !== grant.id), grant]);
+      } else {
+        const existing = grants.find(
+          (g) =>
+            g.contact_user_id === contact.contact_user_id &&
+            g.data_category === "call_signals" &&
+            !g.revoked_at,
+        );
+        if (existing?.id) {
+          const { grant } = await revokeRelationshipAccessGrant(existing.id, token);
+          setGrants((prev) => prev.map((g) => (g.id === grant.id ? grant : g)));
+        }
+      }
+    } catch {
+      setError("Couldn't update relationship Graphing.");
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!session) return null;
+
+  const mode = (policy?.call_mode as GraphingMode) || "ask_each";
+  const paused = Boolean(policy?.global_paused);
+
+  return (
+    <section
+      className="section you-hub-graphing"
+      aria-label="Opal Graphing"
+      data-testid="opal-graphing-standing"
+    >
+      <h3 className="section-label">Opal Graphing</h3>
+      <p className="you-settings-note" data-testid="opal-graphing-standing-note">
+        Standing permission for calls — not Pass 2 memory. Opal Graphing captures permitted
+        signals for alignment later. Other-party disclosure may still be required by law.
+        Relationship type never auto-grants access.
+      </p>
+
+      <div className="you-settings-row" data-testid="opal-graphing-global-pause">
+        <div className="you-settings-row-copy">
+          <strong>Pause Graphing</strong>
+          <span>Overrides every relationship grant until you resume.</span>
+        </div>
+        <button
+          type="button"
+          className={`you-settings-toggle${paused ? " on" : ""}`}
+          role="switch"
+          aria-checked={paused}
+          aria-label="Pause Graphing"
+          disabled={busy}
+          data-testid="opal-graphing-pause-toggle"
+          onClick={() => void onPause(!paused)}
+        >
+          <span className="you-settings-toggle-knob" />
+        </button>
+      </div>
+
+      <div className="you-consent-rows" role="radiogroup" aria-label="Call Graphing mode">
+        {GRAPHING_MODE_OPTIONS.map((opt) => {
+          const on = mode === opt.id;
+          return (
+            <div
+              key={opt.id}
+              className="you-settings-row"
+              data-testid={`opal-graphing-mode-${opt.id}`}
+              data-selected={on ? "true" : "false"}
+            >
+              <div className="you-settings-row-copy">
+                <strong>{opt.label}</strong>
+                <span>{opt.hint}</span>
+              </div>
+              <button
+                type="button"
+                className={`you-settings-toggle${on ? " on" : ""}`}
+                role="radio"
+                aria-checked={on}
+                aria-label={opt.label}
+                disabled={busy || paused}
+                data-testid={`opal-graphing-mode-toggle-${opt.id}`}
+                onClick={() => void onMode(opt.id)}
+              >
+                <span className="you-settings-toggle-knob" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {mode === "selected_only" ? (
+        <div className="you-consent-rows" data-testid="opal-graphing-selected-people">
+          <p className="you-settings-note">People you allow Graphing with (call signals).</p>
+          {people.length === 0 ? (
+            <p className="you-settings-note" data-testid="opal-graphing-no-people">
+              No relationships yet. Add people, then opt them in here.
+            </p>
+          ) : (
+            people.map((p) => {
+              const id = p.contact_user_id;
+              if (!id) return null;
+              const on = callSignalOn(id);
+              const label = p.display_name || p.handle || "Person";
+              return (
+                <div
+                  key={id}
+                  className="you-settings-row"
+                  data-testid={`opal-graphing-person-${id}`}
+                >
+                  <div className="you-settings-row-copy">
+                    <strong>{label}</strong>
+                    <span>{relationshipTypeLabel(p.type) || "Relationship"}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className={`you-settings-toggle${on ? " on" : ""}`}
+                    role="switch"
+                    aria-checked={on}
+                    aria-label={`Graph calls with ${label}`}
+                    disabled={busy || paused}
+                    data-testid={`opal-graphing-person-toggle-${id}`}
+                    onClick={() => void onToggleSelected(p, !on)}
+                  >
+                    <span className="you-settings-toggle-knob" />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : null}
+
+      {error ? (
+        <p className="you-settings-error" role="alert" data-testid="opal-graphing-error">
+          {error}
+        </p>
+      ) : null}
+    </section>
   );
 }
 

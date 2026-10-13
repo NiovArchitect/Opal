@@ -7,6 +7,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { OpalWordmark } from "../brand/OpalLogo";
 import {
+  authorizeRelationshipAction,
   createCenterPlan,
   fetchCalendarToday,
   resolveDecision,
@@ -380,25 +381,40 @@ export function OpalCenterLifeGraph({
 
     if (bearer) {
       try {
-        const res = await createCenterPlan(
+        // Action ceiling: solo prepare allowed by default; execute never implied.
+        const authz = await authorizeRelationshipAction(
           {
-            title,
-            location: area || title,
-            area,
-            time_label: "Open window",
-            decision_id: decision?.decision_id || undefined,
+            data_category: "plans_commitments",
+            action_ceiling: "prepare",
+            disclose: false,
           },
           bearer,
         );
-        const planId = res.plan?.id;
-        if (planId) {
-          surface = {
-            ...surface,
-            id: planId,
-            sharedPlanId: planId,
-            place: res.plan.location || surface.place,
-          };
-          setResolveNote(res.message || "It's on your day.");
+        if (!authz.allowed) {
+          setResolveNote(
+            "Saved on your day view. Durable plan needs a higher planning permission in YOU.",
+          );
+        } else {
+          const res = await createCenterPlan(
+            {
+              title,
+              location: area || title,
+              area,
+              time_label: "Open window",
+              decision_id: decision?.decision_id || undefined,
+            },
+            bearer,
+          );
+          const planId = res.plan?.id;
+          if (planId) {
+            surface = {
+              ...surface,
+              id: planId,
+              sharedPlanId: planId,
+              place: res.plan.location || surface.place,
+            };
+            setResolveNote(res.message || "It's on your day.");
+          }
         }
       } catch (err) {
         setResolveNote(
