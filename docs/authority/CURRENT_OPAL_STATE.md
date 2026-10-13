@@ -1,7 +1,7 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-13 (Pass 1C/1D + REALITY SOURCE PRIORITY LAW)  
+**Updated:** 2026-10-13 (Pass 1C/1D + REALITY SOURCE PRIORITY LAW; tip `b9da5d2f`)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
@@ -9,7 +9,7 @@
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: pending_pass1c_1d
+implementation_tip: b9da5d2f
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
