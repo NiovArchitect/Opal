@@ -8,7 +8,8 @@
 **Hold checkpoint:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md`  
 **Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`  
 **Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`  
-**Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`
+**Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`  
+**Production readiness matrix:** `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`
 
 ```yaml
 authority_class: CURRENT_OPAL_STATE
@@ -59,6 +60,7 @@ COMPLETED:
   - pass_1_final_checkpoint_closed
   - relationship_intelligence_entry_contract
   - pass2_plus_capability_map_blueprint
+  - production_readiness_closure_matrix
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -134,6 +136,9 @@ REALITY_SOURCE_PRIORITY_LAW: ACTIVE
 FACT_OWNERSHIP_VISIBILITY_LAW: ACTIVE
 RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT: ACTIVE_GATE
 PASS2_PLUS_CAPABILITY_MAP: BLUEPRINT_ONLY
+PRODUCTION_READINESS_CLOSURE_MATRIX: ACTIVE
+PROD_API_HEALTH_SNAPSHOT: HTTP_503_PAYMENT_SUSPENDED
+LOCAL_API_HEALTH_SNAPSHOT: HTTP_200_PRODUCTION_SMS
 RECONCILE_CONVERSATION_PLANS: SHIPPED
 PRODUCTION_SEED_DEFAULT: EMPTY
 EMPTY_STATE_QUALITY: INVITATION_COPY
