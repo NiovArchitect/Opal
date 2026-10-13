@@ -1,0 +1,184 @@
+{
+  "at": "2026-10-13T13:36:21.148Z",
+  "PASS2_UNLOCKED": "NO",
+  "TRACK_B_TOUCHED": "NO",
+  "counts": {
+    "GREEN": 17,
+    "YELLOW": 0,
+    "RED": 0
+  },
+  "DOCUMENTATION_MATCHES_CODE": "YES",
+  "CONSUMER_READY": "YES",
+  "findings": [
+    {
+      "area": "Auth persistence (API)",
+      "status": "GREEN",
+      "detail": "product session returns user",
+      "evidence": {
+        "status": 200,
+        "user": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+      }
+    },
+    {
+      "area": "Member shell + YOU hub",
+      "status": "GREEN",
+      "detail": "member-shell → you-hub-pane",
+      "evidence": {}
+    },
+    {
+      "area": "Edit Profile persistence",
+      "status": "GREEN",
+      "detail": "UI save → hub → API session → reload all show stamp",
+      "evidence": {
+        "stamp": "Reality62975",
+        "hubName": "Reality62975",
+        "apiName": "Reality62975",
+        "afterReload": "Reality62975",
+        "apiStatus": 200
+      }
+    },
+    {
+      "area": "YOU nested Privacy scroll + Access framing",
+      "status": "GREEN",
+      "detail": "scrollOk=true access=true impliesIntel=false",
+      "evidence": {
+        "before": 0,
+        "after": 429,
+        "sh": 1023,
+        "ch": 594,
+        "overflowY": "auto"
+      }
+    },
+    {
+      "area": "Appearance System/Dark/Light",
+      "status": "GREEN",
+      "detail": "{\"system\":{\"pref\":\"system\",\"dataTheme\":\"light\",\"prefMatch\":true},\"dark\":{\"pref\":\"dark\",\"dataTheme\":\"dark\",\"prefMatch\":true},\"light\":{\"pref\":\"light\",\"dataTheme\":\"light\",\"prefMatch\":true}}",
+      "evidence": {
+        "system": {
+          "pref": "system",
+          "dataTheme": "light",
+          "prefMatch": true
+        },
+        "dark": {
+          "pref": "dark",
+          "dataTheme": "dark",
+          "prefMatch": true
+        },
+        "light": {
+          "pref": "light",
+          "dataTheme": "light",
+          "prefMatch": true
+        }
+      }
+    },
+    {
+      "area": "Location home timezone",
+      "status": "GREEN",
+      "detail": "saveError=false apiTz=America/Denver travelRow=Travel mode\nQuiet hours and plan times shift when your device TZ differs from ho",
+      "evidence": {
+        "travel": "Travel mode\nQuiet hours and plan times shift when your device TZ differs from home.\nOff",
+        "api": {
+          "status": 200,
+          "json": {
+            "active": false,
+            "effective_timezone": "America/Denver",
+            "home_timezone": "America/Denver",
+            "privacy": "Opal knows your timezone, never your precise location."
+          }
+        }
+      }
+    },
+    {
+      "area": "Calls Assist + Action ladder",
+      "status": "GREEN",
+      "detail": "assist false→true; ladder=true; consent={\"cBefore\":\"true\",\"cMid\":\"true\",\"cAfter\":\"false\",\"flipped\":false}",
+      "evidence": {
+        "before": "false",
+        "mid": "true",
+        "prefStatus": 200,
+        "consent": {
+          "cBefore": "true",
+          "cMid": "true",
+          "cAfter": "false",
+          "flipped": false
+        }
+      }
+    },
+    {
+      "area": "Notifications read receipts toggle",
+      "status": "GREEN",
+      "detail": "true→false→true",
+      "evidence": {
+        "before": "true",
+        "mid": "false",
+        "after": "true"
+      }
+    },
+    {
+      "area": "Spending ≠ Fit split",
+      "status": "GREEN",
+      "detail": "Separate destinations; Fit honest empty",
+      "evidence": {
+        "spendingSnippet": "Spending comfort (Budget / Moderate / Comfortable / Luxury) lives here. Trusted+ unlocks save. Exact amounts stay privat",
+        "fitSnippet": "Fit covers activity preferences, wellness routines, and personal goals. A workout partner may know you like morning runs"
+      }
+    },
+    {
+      "area": "Grow Your Circle",
+      "status": "GREEN",
+      "detail": "honest=true fakeRoster=false",
+      "evidence": {}
+    },
+    {
+      "area": "Home social surface",
+      "status": "GREEN",
+      "detail": "homeVisible=true alive=true",
+      "evidence": {}
+    },
+    {
+      "area": "Center companion surface",
+      "status": "GREEN",
+      "detail": "clickable=true open=false aliveCopy=true",
+      "evidence": {}
+    },
+    {
+      "area": "Chats surface",
+      "status": "GREEN",
+      "detail": "chatsVisible=true alive=true",
+      "evidence": {}
+    },
+    {
+      "area": "Two-user conversation API",
+      "status": "GREEN",
+      "detail": "A=200 B=200 countA=83",
+      "evidence": {
+        "aOk": true,
+        "bOk": true,
+        "sample": [
+          "ace99adc-db67-4258-9d95-f612246c6c84",
+          "7a3da2ec-0c3f-4914-b539-67e37f1cce76"
+        ]
+      }
+    },
+    {
+      "area": "Linked Devices honesty",
+      "status": "GREEN",
+      "detail": "thisPhone=true desktopHidden=true revokeHidden=true",
+      "evidence": {}
+    },
+    {
+      "area": "Account & security",
+      "status": "GREEN",
+      "detail": "Linked devices\nQR and desktop access\n›\nDelete account\n\nAccount changes stay private. Delete is nested and confirmed — never one tap. Name and username save from",
+      "evidence": {}
+    },
+    {
+      "area": "Feed & Discovery honesty",
+      "status": "GREEN",
+      "detail": "invites=true leak=false",
+      "evidence": {
+        "snippet": "Exact location is never exposed by this setting. Location precision is governed separately.\n\nINVITE FRIENDS\n\nOpal is better with friends. In"
+      }
+    }
+  ]
+}

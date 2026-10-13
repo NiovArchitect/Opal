@@ -1587,6 +1587,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const onSaveFinancial = async () => {
     if (!session?.user_id || !comfortDraft || savingFinancial) return;
     setSavingFinancial(true);
+    setWalletLoadNote(null);
     try {
       const minN = diningMin.trim() === "" ? null : Number(diningMin);
       const maxN = diningMax.trim() === "" ? null : Number(diningMax);
@@ -1604,8 +1605,9 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
       );
       setFinancial(res.profile);
       setDeleteConfirm(false);
+      setWalletLoadNote("Spending comfort saved.");
     } catch {
-      /* keep form */
+      setWalletLoadNote("Could not save spending comfort. Try again.");
     } finally {
       setSavingFinancial(false);
     }
@@ -1614,6 +1616,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
   const onDeleteFinancial = async () => {
     if (!session?.user_id || deletingFinancial) return;
     setDeletingFinancial(true);
+    setWalletLoadNote(null);
     try {
       await deleteFinancialProfile(token);
       setFinancial(null);
@@ -1622,8 +1625,9 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
       setDiningMax("");
       setNotesDraft("");
       setDeleteConfirm(false);
+      setWalletLoadNote("Spending comfort removed.");
     } catch {
-      /* keep confirm */
+      setWalletLoadNote("Could not remove spending comfort. Try again.");
     } finally {
       setDeletingFinancial(false);
     }
@@ -1922,6 +1926,7 @@ export function WhatOpalRemembersSection({
   const onPickType = async (contact: RelationshipContact, type: RelationshipTypeValue) => {
     if (!session?.user_id || savingType) return;
     setSavingType(true);
+    setTrustError(null);
     try {
       await setRelationshipType(contact.contact_user_id, type, undefined, token);
       setContacts((prev) =>
@@ -1931,7 +1936,7 @@ export function WhatOpalRemembersSection({
       );
       setPickingFor(null);
     } catch {
-      /* keep picker open */
+      setTrustError("Couldn't update that relationship type. Try again.");
     } finally {
       setSavingType(false);
     }

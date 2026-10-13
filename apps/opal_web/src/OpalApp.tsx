@@ -8985,10 +8985,13 @@ export function OpalApp() {
             readReceipts={readReceipts}
             messageNotifications={messageNotifications}
             onMessagingPreference={(key, value) => {
+              const token = session?.access_token;
+              if (!token) {
+                // No FAKE_SUCCESS: do not flip UI when persistence is impossible.
+                return;
+              }
               if (key === "read_receipts_enabled") setReadReceipts(value);
               if (key === "message_notifications_enabled") setMessageNotifications(value);
-              const token = session?.access_token;
-              if (!token) return;
               void updateMessagingPreferences({ [key]: value }, token).catch(() => {
                 if (key === "read_receipts_enabled") setReadReceipts(!value);
                 if (key === "message_notifications_enabled") setMessageNotifications(!value);
