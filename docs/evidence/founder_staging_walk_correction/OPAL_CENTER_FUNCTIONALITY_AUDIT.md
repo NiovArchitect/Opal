@@ -172,4 +172,5 @@ PASS2_UNLOCKED = NO
 
 ## Commit hashes
 
-Recorded after push in this tranche (see git log on `muse/packet-b-batch-2`).
+- Repair + audit commit: `06f41a76`
+- Prior tip: `ab08253f`
