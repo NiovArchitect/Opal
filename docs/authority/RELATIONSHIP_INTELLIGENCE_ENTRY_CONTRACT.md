@@ -200,5 +200,9 @@ Until unlock: no memory expansion · partner graph · preference learning · emo
 
 - `shots/steward/PASS1_FINAL_CHECKPOINT.md`
 - `docs/authority/FACT_OWNERSHIP_VISIBILITY_LAW.md`
+- `docs/authority/OPAL_UNDERSTANDING_LAW.md` (constitution — six questions before store/recall/act)
+- `docs/authority/RELATIONSHIP_CONTEXT_MODEL.md` (Person + Context Graph; not static profile)
 - `docs/authority/OPAL_RELATIONSHIP_INTELLIGENCE_DOCTRINE.md` (doctrine; this file is the **entry gate**)
 - `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md` (life-intelligence blueprint; not implementation)
+- `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md` (code inventory before unlock)
+- `docs/evidence/founder_staging_walk_correction/CONSUMER_REALITY_GATE_RESULT.md` (human loop GREEN; Pass 2 still locked)

@@ -13,6 +13,10 @@ SURFACE COHERENCE — ACTIVE REMEDIATION (1H+1I SHIPPED)
 RELATIONSHIP INTELLIGENCE — NOT IMPLEMENTED
 CAPABILITY MAP — BLUEPRINT ONLY
 ENTRY CONTRACT — ACTIVE
+UNDERSTANDING LAW — ACTIVE (constitution)
+CONTEXT MODEL — ACTIVE (blueprint)
+PASS 2 ENTRY REVIEW — CAPTURED (inventory only)
+CONSUMER REALITY GATE — GATE_GREEN (human loop proven; Pass 2 still locked)
 
 MEMORY EXPANSION — STOPPED
 ASSUMPTION SYSTEMS — STOPPED
@@ -20,7 +24,7 @@ SCORING — STOPPED
 PROFILE INFERENCE — STOPPED
 ```
 
-The capability map is **architecture preparation**, not an intelligence unlock.
+The capability map, Understanding Law, Context Model, and Entry Review are **architecture preparation**, not an intelligence unlock.
 
 ## Active work boundaries
 

@@ -8,7 +8,11 @@
 **Hold checkpoint:** `shots/steward/HOLD_PERIOD_CHECKPOINT.md`  
 **Pass 1 closeout:** `shots/steward/PASS1_FINAL_CHECKPOINT.md`  
 **Pass 2 gate:** `docs/authority/RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT.md`  
+**Pass 2 constitution:** `docs/authority/OPAL_UNDERSTANDING_LAW.md`  
+**Pass 2 context model:** `docs/authority/RELATIONSHIP_CONTEXT_MODEL.md`  
+**Pass 2 entry review (inventory):** `docs/evidence/pass2_entry/PASS2_ENTRY_REVIEW.md`  
 **Pass 2+ map (blueprint only):** `docs/authority/PASS2_PLUS_CAPABILITY_MAP.md`  
+**Consumer Reality Gate:** GATE_GREEN — `docs/evidence/founder_staging_walk_correction/CONSUMER_REALITY_GATE_RESULT.md`  
 **Production readiness matrix:** `shots/steward/PRODUCTION_READINESS_CLOSURE_MATRIX.md`  
 **Surface fragmentation re-audit:** `shots/steward/SURFACE_FRAGMENTATION_REAUDIT.md`  
 **Hosting fitness:** `shots/steward/RENDER_FREE_TIER_FITNESS_AUDIT.md`
@@ -16,7 +20,7 @@
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: e091b324
+implementation_tip: a4d48179
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
@@ -26,6 +30,7 @@ app_store: NOT_YET
 production_api: SUSPENDED_PAYMENT
 journey: BLOCKED
 rebuild: FORBIDDEN
+consumer_reality_gate: GATE_GREEN
 ```
 
 ## Active steward mission (2026-10-13)
@@ -37,7 +42,10 @@ INTELLIGENCE_EXPANSION: HOLD_UNTIL_COHERENCE
 PASS_1: CHECKPOINT_CLOSED
 PASS_2: LOCKED
 PASS_2_GATE: RELATIONSHIP_INTELLIGENCE_ENTRY_CONTRACT
-MILESTONE: why_is_opal_showing_me_this
+PASS_2_CONSTITUTION: OPAL_UNDERSTANDING_LAW
+PASS_2_CONTEXT_MODEL: RELATIONSHIP_CONTEXT_MODEL
+PASS_2_ENTRY_REVIEW: CAPTURED
+MILESTONE: human_loop_proven_before_understanding_people
 TRANSITION_QUESTION: understand_people_without_violating_trust
 PRODUCT_THESIS: opal_deepens_relationships_muse_accomplishes_tasks
 COMPLETED:
