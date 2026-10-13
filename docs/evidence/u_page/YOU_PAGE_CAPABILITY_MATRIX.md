@@ -44,7 +44,7 @@ Audit questions per card:
 | Engagement | **Hub hidden** | `engagement` | Content engagement prefs | All controls HIDE | Keep hidden until prefs exist |
 | Safety | **Hub hidden** | `safety` | Block/mute/report | All controls HIDE | Keep hidden until lists exist |
 
-**Copy debt (YELLOW):** hub label “More settings below” still says *settings* — rename later to YOU-aligned language (e.g. “More on You”) without expanding scope this audit.
+**Copy:** hub label updated to **“More on You”** (`ce2ff767`) — YOU naming, not generic settings.
 
 ---
 

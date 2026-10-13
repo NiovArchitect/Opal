@@ -57,7 +57,7 @@ Edit profile / TZ fields: body must remain scrollable when keyboard open (iOS Sa
 
 ## Terminology on device
 
-Hub still shows “More settings below” — product copy debt vs YOU mental model (YELLOW).
+Hub label **“More on You”** (aligned with YOU mental model).
 
 ## What NOT to retest as Pass 2
 
