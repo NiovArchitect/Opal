@@ -87,16 +87,31 @@ PASS_1_WATCH:
 HOLD_PERIOD_WORK: preserve_coherence_and_production_readiness_only
 HOLD_CHECKPOINT: shots/steward/HOLD_PERIOD_CHECKPOINT.md
 GOVERNING_QUESTION: does_every_surface_represent_the_same_reality
-PRODUCTION_PATH: local_health_then_render_payment_then_prod_health_then_testflight_then_smoke
+IF_SURFACE_DISAGREES: fix_authority_path_not_display
+ARCHITECTURE:
+  postgres: truth
+  phoenix: realtime_authority
+  ui: projection
+  ai: subordinate_interpret_assist_explain_propose
+PRODUCTION_PATH: local_then_render_payment_then_prod_health_then_testflight_then_smoke_then_two_device
+ALLOWED_HOLD:
+  - coherence_preservation
+  - regression_protection
+  - production_readiness
+  - infrastructure_validation
+  - honest_capability_verification
+  - ui_ux_fixes_preserving_authority
 FORBIDDEN_UNTIL_PASS_2_UNLOCK:
   - memory_expansion
-  - assumption_engine
+  - assumption_systems
   - partner_graph
   - preference_learning
+  - partner_intelligence
   - emotional_inference
-  - relationship_scoring
+  - memory_promotion_changes
+  - personality_scoring
   - profile_inference
-  - automated_assumptions
+  - automated_assumptions_about_people
 PASS_2_FIRST_WORK_AFTER_UNLOCK:
   - define_relationship_graph_authority
   - define_permission_boundaries

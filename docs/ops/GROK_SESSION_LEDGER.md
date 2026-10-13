@@ -215,4 +215,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Confirm held state; priorities = preserve coherence, production readiness path, honest integrations; Pass 2 first work after unlock = define authority/permissions/lifecycle/correction/explanation then intel.
 - Commands: `HOLD_PERIOD_CHECKPOINT.md`; CURRENT + MASTER updated.
+- Outcome: DONE-PUSHED tip `2c0a57fc` / sync `129aac04`.
+
+## 2026-10-13 — Hold boundaries + architecture principles
+
+- Request: Reaffirm hold status; allowed vs not-allowed; coherence preflight (owner/source/state/permission/projection/regression); DB truth / Phoenix realtime / UI projection / AI subordinate.
+- Commands: refresh `HOLD_PERIOD_CHECKPOINT.md` + CURRENT_OPAL_STATE.
 - Outcome: DONE-PUSHED (pending tip).

@@ -1,7 +1,7 @@
 # Opal steward checkpoint — hold period
 
 **Date:** 2026-10-13  
-**Mission:** Preservation, not expansion.
+**Mission:** Preserve coherence and prepare production readiness without introducing new intelligence layers.
 
 ```text
 PASS 1 — CLOSED ✅
@@ -11,42 +11,81 @@ RELATIONSHIP INTELLIGENCE — NOT IMPLEMENTED
 ENTRY CONTRACT — ACTIVE
 
 MEMORY EXPANSION — STOPPED
-ASSUMPTION ENGINE — STOPPED
+ASSUMPTION SYSTEMS — STOPPED
 SCORING — STOPPED
 PROFILE INFERENCE — STOPPED
 ```
 
-## Hold-period priorities
+## Active work boundaries
 
-### 1. Preserve coherence
+### Allowed
 
-No change may introduce competing realities, seed leakage, stale projections, conflicting surfaces, or fake capability states.
+- Coherence preservation  
+- Regression protection  
+- Production readiness  
+- Infrastructure validation  
+- Honest capability verification  
+- UI/UX fixes that preserve existing authority  
+
+### Not allowed yet
+
+- Relationship graph implementation  
+- Preference learning  
+- Partner intelligence  
+- Emotional inference  
+- Memory promotion changes  
+- Personality scoring  
+- Automated assumptions about people  
+
+## Coherence rule (highest priority)
+
+Before any future change:
+
+```text
+Fact owner?
+Source?
+Current state?
+Permission?
+Surface projection?
+Regression?
+```
+
+If any surface disagrees with reality: **fix the authority path, not the display.**
 
 Governing question:
 
 > Does every surface represent the same reality?
 
-### 2. Production readiness path
+## Production path
 
 ```text
-Local health
-    ↓
+Local development
+        ↓
 Render payment restored
-    ↓
-Production /health = 200
-    ↓
+        ↓
+api.opal.niovlabs.com /health = 200
+        ↓
 TestFlight upload
-    ↓
+        ↓
 Install validation
-    ↓
-Real-user smoke testing
+        ↓
+Smoke tests
+        ↓
+Two-device proof
 ```
 
-### 3. Keep integrations honest
+## Standing architecture principles
 
-Capability foundations exist (Phoenix realtime, Postgres authority, Oban, event architecture, WebRTC/Twilio TURN, Deepgram, ElevenLabs, DeepSeek, Brave, Twilio, Duffel test, etc.).
+| Layer | Role |
+|-------|------|
+| **PostgreSQL** | Truth |
+| **Phoenix** | Realtime authority |
+| **UI** | Projection |
+| **AI** | Subordinate to reality |
 
-**Do not claim production readiness** until physical/prod gates pass.
+The AI cannot create truth. It may only **interpret · assist · explain · propose** within system boundaries.
+
+Keep integrations honest (Phoenix, Postgres, Oban, events, WebRTC/Twilio TURN, Deepgram, ElevenLabs, DeepSeek, Brave, Twilio, Duffel test, etc.). **Do not claim production readiness** until physical/prod gates pass.
 
 ## Future unlock (exact)
 
@@ -62,6 +101,8 @@ Then Pass 2 first work is **not** “add memory.” Order:
 4. Define correction flows  
 5. Define explanation surfaces  
 6. **Then** implement intelligence  
+
+Until then: steward role is **preservation, validation, and production readiness only.**
 
 ## Product advantage
 
