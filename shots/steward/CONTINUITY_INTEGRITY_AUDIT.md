@@ -18,16 +18,28 @@ creates: NONE
 ## Checkpoint preserved
 
 ```text
-Commit:     67507b61
-State:      PASS 1 CLOSED · PASS 2 LOCKED
-Authority:  COMPLETE (constitutional layer captured)
+PASS 1:         CLOSED ✅
+PASS 2:         LOCKED 🔒
+Authority:      COMPLETE ✅
 Implementation: NOT STARTED
+Reality:        Protected
+Context:        Defined
+Alignment:      Defined
+Permission:     Next foundation
+Intelligence:   Waiting for explicit unlock
+
+Authority tip:  67507b61
+Audit tip:      537d6f97 (and later amendments)
+
 Next allowed work:
-  - Continuity validation (this audit)
   - YOU capability wiring
   - Permission/action completeness
   - Production readiness
 ```
+
+**Differentiator to preserve:**
+
+> Opal does not optimize preference similarity. Opal optimizes contextual alignment.
 
 Constitutional stack (order matters):
 
@@ -210,6 +222,35 @@ Supporting quotes:
 - Final Thesis: not “What does this person like?” but strongest alignment given people, relationship, place, time, and what matters now.
 
 **Residual misread risk:** metaphors (“gyroscope,” “balance,” “forces”) could be skimmed as weighted-mean preference vectors if zeros are ignored. Mitigation is already in the authority docs; this audit restates it for continuity.
+
+---
+
+## Agent Interpretation Guardrail
+
+When implementing future Opal capabilities:
+
+**Do not simplify:**
+
+| Collapse | Architectural regression |
+|----------|--------------------------|
+| Context → Preferences | Flat likes replace situational reality |
+| Relationship → Compatibility Score | Living system becomes surveillance math |
+| Alignment → Similarity | Overlap/average replaces contextual fit |
+| Understanding → Memory | Permissioned comprehension becomes a profile database |
+| Assistance → Automation | Human choice is erased by silent execution |
+
+These simplifications are architectural regressions.
+
+Opal's value comes from preserving complexity internally while presenting simplicity externally.
+
+Composes with `OPAL_COMPLEXITY_LAW.md`:
+
+> Complexity belongs inside Opal. Simplicity belongs with humans.
+
+Failure modes this guardrail blocks:
+
+1. **Feature-first drift** — “add AI memory / recommendations / relationship scoring” before foundations.  
+2. **Meaning drift** — Memory as profile DB · Context as preference list · Alignment as matching · Relationship intelligence as surveillance.
 
 ---
 

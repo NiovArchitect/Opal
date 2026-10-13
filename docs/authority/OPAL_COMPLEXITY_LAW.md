@@ -101,6 +101,14 @@ The middle is Opal’s responsibility — after founder unlock and Understanding
 - `OPAL_SOLVED_IT_WITHOUT_CHOICE = 0` (default)  
 - `CONFIDENT_MISUNDERSTANDING_SHIPPED_AS_FACT = 0`
 
+## Agent interpretation (compose with continuity audit)
+
+Complexity belongs inside Opal. Simplicity belongs with humans.
+
+Do not simplify Context→Preferences · Relationship→Compatibility Score · Alignment→Similarity · Understanding→Memory · Assistance→Automation.
+
+See `shots/steward/CONTINUITY_INTEGRITY_AUDIT.md` § Agent Interpretation Guardrail.
+
 ## Related
 
 - `USER_VS_CONTROL_LAW.md`  
@@ -110,4 +118,5 @@ The middle is Opal’s responsibility — after founder unlock and Understanding
 - `OPAL_TEMPORAL_CONTEXT_ALIGNMENT_FOUNDATION.md` — time/place/context + gyroscope alignment (architecture only)  
 - `OPAL_CONTEXT_ALIGNMENT_ENGINE.md` — Context Alignment Engine (architecture only; users never manage knobs)  
 - `DYNAMIC_RELATIONSHIP_ALIGNMENT_MATRIX.md` — relationship gyroscope (engine-side)  
+- `shots/steward/CONTINUITY_INTEGRITY_AUDIT.md` — Agent Interpretation Guardrail  
 - Product sequence: finish YOU wiring → permission/action → unlock → Understanding Candidates → context engine → alignment engine  
