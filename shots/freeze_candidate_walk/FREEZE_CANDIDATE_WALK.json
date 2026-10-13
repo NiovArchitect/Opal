@@ -1,0 +1,36 @@
+{
+  "tip_expected": null,
+  "served_git_head": "8e4f5d5",
+  "phases": {
+    "clean_install_to_phone": "GREEN",
+    "meet_force": "GREEN",
+    "permission_bootstrap_taste": "FOUNDER_FRICTION",
+    "member_continuity": "GREEN_WITH_NOTES"
+  },
+  "friction": [
+    "Meet name ask is functional but generic form-voice: “What should I call you?” — founder taste: more companion framing before world-building",
+    "Permission bootstrap copy is setup-correct but benefit framing is thin (“Set up what Opal can use” / title-first Contacts) — founder taste pass before freeze",
+    "Onboarding-first-person → later Chat continuity not fully proven under production_sms without burning OTP; founder live walk required"
+  ],
+  "green": [
+    "Splash 1: no Skip intro; Continue + returning account only",
+    "Splash 1: single lockup, no OPAL GRAPH text double-composition",
+    "Splash 1 → Splash 2 (Promise) runtime path",
+    "Splash 2 → Phone",
+    "Meet greeting identity present: Hey, I'm Opal.",
+    "Browser contacts honesty: unavailable fallback shown (not fake native access)",
+    "Chats surface reachable with social/people content",
+    "Calls surface reachable from Chats/chrome",
+    "Opal Center reachable",
+    "YOU hub reachable",
+    "YOU no obvious tech-leak strings",
+    "Fit honestly hidden from YOU hub",
+    "Opened Chanelle thread from Chats — people continuity present",
+    "Thread exposes Call action (Calls continuity via conversation)"
+  ],
+  "native_blockers": [
+    "Native contacts match + resolve proof requires iOS/TestFlight ReactNativeWebView host",
+    "Full clean-install OTP → Permission Bootstrap → Meet → first contact resolve requires live SMS + native host for contacts"
+  ],
+  "ok": true
+}
