@@ -7,28 +7,21 @@ export const HOLY_SHIT_COPY = {
  landingHook: "Tell Opal who you want to stay close with.",
  /** Paste W6 Phase 1 — Meet Opal greeting (no em-dashes). */
  greetingHeadline: "Hey, I'm Opal.",
- greetingSubhead: "Real people. Brighter together.",
- greetingValueLines: [
-  "Plans with your people, minus the group-chat chaos.",
-  "Birthdays, trips, Tuesday nights. Handled.",
-  "You bring the people. I bring the timing.",
- ] as const,
- /** Joined greeting for tests / voice asserts (headline + subhead + values). */
+ /** Companion intro — short, warm; Splash 2 already carried the product thesis. */
+ greetingSubhead: "I'm here to help you stay connected with the people who matter.",
+ greetingValueLines: [] as const,
+ /** Joined greeting for tests / voice asserts (headline + subhead). */
  greeting: [
   "Hey, I'm Opal.",
-  "Real people. Brighter together.",
-  "Plans with your people, minus the group-chat chaos.",
-  "Birthdays, trips, Tuesday nights. Handled.",
-  "You bring the people. I bring the timing.",
+  "I'm here to help you stay connected with the people who matter.",
  ].join(" "),
  /** Paste W4 Phase 0 — user's own name before permissions. */
- askSelfName: "What should I call you?",
+ askSelfName: "What's your name?",
  selfNamePlaceholder: "Your name",
  /** @deprecated Paste W4 — username is derived; no separate input. */
  selfUsernamePlaceholder: "Username (optional)",
  /** Quiet handle preview after name typed (Paste W6: settings, not You). */
- selfUsernameQuiet: (handle: string) =>
-  `Perfect. You're @${handle}. Change anytime in settings.`,
+ selfUsernameQuiet: (handle: string) => `Perfect. You're @${handle}.`,
  /** Handle taken — Opal suggests the next option (no manual username screen). */
  selfUsernameTaken: (handle: string, suggested: string) =>
   `@${handle} is taken. I found @${suggested}.`,
@@ -45,13 +38,13 @@ export const HOLY_SHIT_COPY = {
  askPermissionsFor: (name: string) =>
   `Allow contacts so I can find and connect with ${name}.`,
  permContactsTitle: "Contacts",
- permContactsWhy: "Find and connect with people you know.",
+ permContactsWhy: "Find people you already know.",
  /** @deprecated Paste W6 — calendar row removed from Meet permissions. */
  permCalendarTitle: "Calendar",
  /** @deprecated Paste W6 — calendar row removed from Meet permissions. */
  permCalendarWhy: "Never double-book you.",
  permNotificationsTitle: "Notifications",
- permNotificationsWhy: "Stay connected when people respond.",
+ permNotificationsWhy: "Stay updated when your people respond.",
  permLocationTitle: "Location",
  permLocationWhy: "Help coordinate nearby plans.",
  permAllow: "Allow",
@@ -70,9 +63,9 @@ export const HOLY_SHIT_COPY = {
  /** Consumer Meet must not show false execution authority. */
  assistRowVisibleInMeet: false as const,
  meetContinue: "Continue",
- askPeople: "Who do you want to connect with first?",
+ askPeople: "Who's the first person you want to connect with?",
  /** @deprecated alias - one-person ask */
- askName: "Who do you want to connect with first?",
+ askName: "Who's the first person you want to connect with?",
  peoplePlaceholder: "Type a name",
  namePlaceholder: "Type a name",
  peopleContinue: "Continue",
@@ -83,15 +76,15 @@ export const HOLY_SHIT_COPY = {
  phoneContinue: "Continue",
  phoneSkipInvite: "Continue without inviting",
  contactsDeniedOnce:
- "You can enable contacts later in Settings to pick people directly.",
- /** When Contact Picker / bridge is unavailable — hide Choose from contacts. */
- contactsUnavailableTyping: "Contacts aren't available. Typing works great.",
+ "You can enable contacts later to pick people directly.",
+ /** When Contact Picker / bridge is unavailable — honest, intentional fallback. */
+ contactsUnavailableTyping: "Contacts aren't available here. Type a name instead.",
  contactsNoPhone: (name: string) =>
  `${name} has no phone number. Add one to invite, or continue without sending.`,
  pullingUp: (name: string) => `Looking up ${name} in your contacts.`,
  /** Talk TO the user ABOUT the friend. Never greet the friend mid-flow. */
  confirmContact: (name: string, _phone?: string) =>
-  `Let's connect ${name} so you can build your first connection.`,
+  `Let's connect ${name}.`,
  askMore: (name: string) =>
  `Got ${name}. Add anyone else, or plan something with them?`,
  addAnother: "Add another",

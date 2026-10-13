@@ -52,17 +52,17 @@ describe("first-run fluid phone shell", () => {
     expect(css).toMatch(/\.first-run-promise-page\s*\{[^}]*height:\s*100dvh/);
   });
 
-  it("bottom-anchors primary CTAs with safe-area on phone widths", () => {
+  it("keeps Splash CTAs in flex stack with safe-area padding on phone widths", () => {
     const phone = block(
       css,
       "Fluid phone first-run / auth (browser + native).",
       ".app-first-run-splash .app-ambient",
     );
     expect(phone).toMatch(/@media\s*\(max-width:\s*519px\)/);
-    // Splash primary stays bottom-anchored with safe-area.
-    expect(phone).toMatch(
-      /\.fr-splash-tap[\s\S]*?bottom:\s*calc\(100px \+ env\(safe-area-inset-bottom, 0px\)\)/,
-    );
+    // Founder Reality Repair: Splash uses flex hero/actions (not absolute Figma stage).
+    expect(baseRule(".fr-splash")).toMatch(/display:\s*flex/);
+    expect(baseRule(".fr-splash")).toMatch(/safe-area-inset-bottom/);
+    expect(baseRule(".fr-splash-actions")).toMatch(/flex-direction:\s*column/);
     expect(phone).toMatch(/env\(safe-area-inset-top, 0px\)/);
     // Phone Continue is document-flow (Paste W4/W6) — not absolute bottom-anchored.
     expect(css).toMatch(

@@ -93,6 +93,8 @@ export default function App() {
         accessToken={session.accessToken}
         userId={session.userId}
         displayName={session.displayName}
+        handle={session.handle}
+        onSessionUpdated={setSession}
         onSignOut={async () => {
           await signOutProduct(session.accessToken);
           setSession(null);

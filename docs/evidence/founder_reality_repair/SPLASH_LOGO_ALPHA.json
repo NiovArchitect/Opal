@@ -1,0 +1,14 @@
+{
+  "asset": "public/brand/opal-logo.png",
+  "size": [
+    1125,
+    750
+  ],
+  "letter_band_y": [
+    580,
+    710
+  ],
+  "near_white_opaque_in_band": 46,
+  "clear_in_band": 106116,
+  "COUNTERS_TRUE_ALPHA": "YES"
+}

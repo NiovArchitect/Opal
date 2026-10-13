@@ -22,7 +22,7 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(native).toMatch(/--opal-dock-base-height:\s*74px/);
     expect(native).toMatch(/--opal-dock-bar-top:\s*10px/);
     expect(native).toMatch(/--opal-dock-bar-height:\s*60px/);
-    expect(native).toMatch(/--opal-center-opal-top:\s*0px/);
+    expect(native).toMatch(/--opal-center-opal-top:\s*8px/);
     expect(native).toMatch(/--opal-center-opal-width:\s*86px/);
     expect(native).toMatch(/--opal-dock-side-margin:\s*10px/);
     expect(native).toMatch(/--opal-dock-lift:\s*0px/);
@@ -36,16 +36,19 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
     expect(native).toMatch(/390×844/);
   });
 
-  it("dock floats above safe-bottom (height is NOT 74+safe)", () => {
+  it("dock floats above safe-bottom (height is NOT 74+safe) and is FIXED to viewport", () => {
     const dockRule = native.match(
       /html\.opal-native-host \.tabbar\.tabbar-option-b \{[^}]+\}/,
     )?.[0];
     expect(dockRule).toBeTruthy();
+    expect(dockRule).toMatch(/position:\s*fixed\s*!important/);
     expect(dockRule).toMatch(/bottom:\s*calc\(var\(--opal-safe-bottom\) \+ var\(--opal-dock-lift\)\)/);
     expect(dockRule).toMatch(/height:\s*var\(--opal-dock-base-height\)/);
     expect(dockRule).not.toMatch(/height:\s*calc\(var\(--opal-dock-base-height\) \+ var\(--opal-safe-bottom\)\)/);
     expect(dockRule).toMatch(/left:\s*var\(--opal-dock-side-margin\)/);
     expect(dockRule).toMatch(/width:\s*auto/);
+    expect(native).toMatch(/DOCK_FIXED\s*=\s*YES/);
+    expect(native).toMatch(/CONTENT_SCROLL_INDEPENDENT\s*=\s*YES/);
   });
 
   it("dock bar is 60pt frost with spectral edge; slots scale from 370", () => {
@@ -79,7 +82,7 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
 
   it("Graphs/Chats pages do not double-apply safe-top with sticky chrome", () => {
     expect(native).toMatch(
-      /html\.opal-native-host \.graphs-home[\s\S]*?padding:\s*0 20px var\(--opal-scroll-trail-pad\)/,
+      /html\.opal-native-host \.graphs-home[\s\S]*?padding:\s*0 12px var\(--opal-scroll-trail-pad\)/,
     );
     expect(native).toMatch(
       /html\.opal-native-host \.chats-home[\s\S]*?padding-top:\s*0\s*!important/,

@@ -13,6 +13,7 @@ import { installIncomingCallPushListeners } from "../bridge/incomingCallPush";
 import { setupCallKeep, wireCallKeepEvents } from "../bridge/callKeepBridge";
 import { bridgeExpoPushTokenAfterAuth } from "../bridge/pushTokenBridge";
 import { PRODUCT_WEB_URL, RELEASE_PROFILE } from "../config";
+import { saveProductSession, type ProductSession } from "../api/productSession";
 // Pressable/Text retained for missing-URL fallback Sign out control.
 
 /** LAN/dev profiles only. Production / internal_rc must never inject founder seed. */
@@ -22,10 +23,20 @@ type Props = {
   accessToken: string;
   userId: string;
   displayName?: string;
+  handle?: string;
   onSignOut: () => void | Promise<void>;
+  /** PROFILE_NAME_PERSIST — web Edit Profile posts opal_native_session; host must store it. */
+  onSessionUpdated?: (session: ProductSession) => void;
 };
 
-export function ProductWebSurface({ accessToken, userId, displayName, onSignOut }: Props) {
+export function ProductWebSurface({
+  accessToken,
+  userId,
+  displayName,
+  handle,
+  onSignOut,
+  onSessionUpdated,
+}: Props) {
   const webRef = useRef<WebView>(null);
   const pushBridgedRef = useRef(false);
 
@@ -91,6 +102,7 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
       access_token: accessToken,
       user_id: userId,
       display_name: displayName || "",
+      handle: handle || "",
       platform: Platform.OS,
     });
     const hostUrl = JSON.stringify(PRODUCT_WEB_URL || "");
@@ -118,7 +130,7 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
         true;
       })();
     `;
-  }, [accessToken, userId, displayName, uri]);
+  }, [accessToken, userId, displayName, handle, uri]);
 
   if (!PRODUCT_WEB_URL) {
     return (
@@ -169,6 +181,17 @@ export function ProductWebSurface({ accessToken, userId, displayName, onSignOut 
         onMessage={(event) => {
           void handleWebViewMessage(event.nativeEvent.data, webRef, {
             onSignOut,
+            onSession: async (msg) => {
+              const session: ProductSession = {
+                accessToken: msg.access_token,
+                userId: msg.user_id,
+                displayName: msg.display_name || displayName || "Opal",
+                handle: msg.handle || handle,
+                sessionId: msg.session_id,
+              };
+              await saveProductSession(session);
+              onSessionUpdated?.(session);
+            },
           });
         }}
         allowsBackForwardNavigationGestures

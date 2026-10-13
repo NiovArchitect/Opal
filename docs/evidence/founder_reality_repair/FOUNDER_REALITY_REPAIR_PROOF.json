@@ -1,0 +1,137 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "viewports": {
+    "390x844": {
+      "scrollCheck": {
+        "before": {
+          "ok": true,
+          "position": "fixed",
+          "dockTop": 770,
+          "dockBottom": 844,
+          "appHeight": 844,
+          "viewportH": 844,
+          "dockFixedToViewport": true,
+          "dockNearBottom": true
+        },
+        "after": {
+          "ok": true,
+          "position": "fixed",
+          "dockTop": 770,
+          "dockBottom": 844,
+          "appHeight": 844,
+          "viewportH": 844,
+          "dockFixedToViewport": true,
+          "dockNearBottom": true
+        },
+        "dockDidNotMove": true
+      },
+      "keyboardDock": {
+        "ok": true,
+        "position": "fixed",
+        "dockTop": 406,
+        "dockBottom": 480,
+        "appHeight": 480,
+        "viewportH": 480,
+        "dockFixedToViewport": true,
+        "dockNearBottom": true
+      },
+      "DOCK_FIXED": true
+    },
+    "393x852": {
+      "scrollCheck": {
+        "before": {
+          "ok": true,
+          "position": "fixed",
+          "dockTop": 778,
+          "dockBottom": 852,
+          "appHeight": 852,
+          "viewportH": 852,
+          "dockFixedToViewport": true,
+          "dockNearBottom": true
+        },
+        "after": {
+          "ok": true,
+          "position": "fixed",
+          "dockTop": 778,
+          "dockBottom": 852,
+          "appHeight": 852,
+          "viewportH": 852,
+          "dockFixedToViewport": true,
+          "dockNearBottom": true
+        },
+        "dockDidNotMove": true
+      },
+      "keyboardDock": {
+        "ok": true,
+        "position": "fixed",
+        "dockTop": 406,
+        "dockBottom": 480,
+        "appHeight": 480,
+        "viewportH": 480,
+        "dockFixedToViewport": true,
+        "dockNearBottom": true
+      },
+      "DOCK_FIXED": true
+    },
+    "430x932": {
+      "scrollCheck": {
+        "before": {
+          "ok": true,
+          "position": "fixed",
+          "dockTop": 858,
+          "dockBottom": 932,
+          "appHeight": 932,
+          "viewportH": 932,
+          "dockFixedToViewport": true,
+          "dockNearBottom": true
+        },
+        "after": {
+          "ok": true,
+          "position": "fixed",
+          "dockTop": 858,
+          "dockBottom": 932,
+          "appHeight": 932,
+          "viewportH": 932,
+          "dockFixedToViewport": true,
+          "dockNearBottom": true
+        },
+        "dockDidNotMove": true
+      },
+      "keyboardDock": {
+        "ok": true,
+        "position": "fixed",
+        "dockTop": 438,
+        "dockBottom": 512,
+        "appHeight": 512,
+        "viewportH": 512,
+        "dockFixedToViewport": true,
+        "dockNearBottom": true
+      },
+      "DOCK_FIXED": true
+    }
+  },
+  "splash": {
+    "present": true,
+    "logoCount": 1,
+    "doubleComposition": "0",
+    "splashLogoCountAttr": "1",
+    "imgs": [
+      {
+        "src": "/brand/opal-logo.png?v=founder-reality-repair-1",
+        "role": "logo-lockup",
+        "testid": "fr00-splash-emblem"
+      }
+    ],
+    "wordmarkPainted": false
+  },
+  "permissions": {},
+  "meet": {},
+  "shell": {},
+  "flags": {
+    "DOCK_FIXED": "YES",
+    "SPLASH_RUNTIME_LOGO_COUNT": "1",
+    "DOUBLE_COMPOSITION": "0",
+    "PASS2_UNLOCKED": "NO",
+    "FREEZE": "HOLD"
+  }
+}

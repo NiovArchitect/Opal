@@ -56,7 +56,7 @@ describe("Holy Shit first-run Moments 1–5", () => {
     const gate = src("holyShitGate.ts");
     const app = src("../OpalApp.tsx");
     // Single-page sections present (not multi-screen phase gates)
-    expect(meet).toMatch(/askSelfName|What should I call you/);
+    expect(meet).toMatch(/askSelfName|What's your name/);
     expect(meet).toMatch(/askPeople|ask_people/);
     // Permissions moved to PermissionBootstrapPage (post-OTP, pre-Meet).
     const bootstrap = src("PermissionBootstrapPage.tsx");
@@ -98,21 +98,14 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(orb).not.toMatch(/opal-center-opal-645-3-rest-512/);
     // W6 greeting rewrite — no old birthday/staying close/I got you block
     expect(HOLY_SHIT_COPY.greetingHeadline).toBe("Hey, I'm Opal.");
-    expect(HOLY_SHIT_COPY.greetingSubhead).toBe("Real people. Brighter together.");
-    expect([...HOLY_SHIT_COPY.greetingValueLines]).toEqual([
-      "Plans with your people, minus the group-chat chaos.",
-      "Birthdays, trips, Tuesday nights. Handled.",
-      "You bring the people. I bring the timing.",
-    ]);
+    expect(HOLY_SHIT_COPY.greetingSubhead).toMatch(/stay connected with the people who matter/i);
+    expect([...HOLY_SHIT_COPY.greetingValueLines]).toEqual([]);
     expect(copy).not.toMatch(/Birthdays, plans, staying close\. I got you/);
+    expect(copy).not.toMatch(/Real people\. Brighter together/);
+    expect(copy).not.toMatch(/group-chat chaos/);
     expect(HOLY_SHIT_COPY.greetingHeadline).not.toMatch(/[—–―]/);
     expect(HOLY_SHIT_COPY.greetingSubhead).not.toMatch(/[—–―]/);
-    for (const line of HOLY_SHIT_COPY.greetingValueLines) {
-      expect(line).not.toMatch(/[—–―]/);
-    }
-    expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).toBe(
-      "Perfect. You're @sadeil. Change anytime in settings.",
-    );
+    expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).toBe("Perfect. You're @sadeil.");
     expect(HOLY_SHIT_COPY.selfUsernameQuiet("sadeil")).not.toMatch(/in You/);
     expect(copy).toContain(HOLY_SHIT_COPY.askPeople);
     expect(copy).toContain(HOLY_SHIT_COPY.assistRow);
@@ -121,27 +114,30 @@ describe("Holy Shit first-run Moments 1–5", () => {
     expect(copy).toContain(HOLY_SHIT_COPY.assistEnable);
     expect(copy).toContain(HOLY_SHIT_COPY.assistNotNow);
     expect(copy).toContain(HOLY_SHIT_COPY.meetContinue);
-    expect(copy).toMatch(/What should I call you\?/);
+    expect(copy).toMatch(/What's your name\?/);
     expect(copy).toMatch(/askSelfName/);
-    expect(copy).toMatch(/Who do you want to connect with first/);
+    expect(copy).toMatch(/Who's the first person you want to connect with/);
     expect(copy).toMatch(/Choose from contacts|Select from contacts/);
     expect(HOLY_SHIT_COPY.askPermissions).toMatch(/permissions so I can help you stay connected/i);
-    expect(HOLY_SHIT_COPY.permContactsWhy).toMatch(/Find and connect with people you know/i);
-    expect(HOLY_SHIT_COPY.permNotificationsWhy).toBe("Stay connected when people respond.");
+    expect(HOLY_SHIT_COPY.permContactsWhy).toMatch(/Find people you already know/i);
+    expect(HOLY_SHIT_COPY.permNotificationsWhy).toBe("Stay updated when your people respond.");
     expect(HOLY_SHIT_COPY.permLocationWhy).toBe("Help coordinate nearby plans.");
     expect(HOLY_SHIT_COPY.permNotNow).toBe("Not now");
     expect(HOLY_SHIT_COPY.permAllow).toBe("Allow");
+    expect(HOLY_SHIT_COPY.contactsUnavailableTyping).toMatch(/Type a name instead/);
     expect(copy).not.toMatch(/Let Opal place calls and make reservations/);
     expect(copy).not.toMatch(/Find in contacts/);
     expect(copy).not.toMatch(/Add them fresh/);
     expect(copy).not.toMatch(/3–5 people/);
     expect(meet).toMatch(/ContactSuggestPicker|requestNativeContacts|nav\.contacts\.select/);
     expect(meet).toMatch(/hs-resolve-contacts/);
+    expect(meet).toMatch(/commitIdentityAndAdvance|handleCommitted/);
+    expect(meet).toMatch(/DEAD_CONTINUE|hs-handle-accept/);
     expect(meet).toMatch(/hs-friend-or|peopleOr/);
     expect(meet).toMatch(/hs-friend-skip/);
     expect(meet).toMatch(/contactsUnavailable|contactsUnavailableTyping|couldn't access your contacts/i);
     expect(meet).toMatch(/confirmContact/);
-    expect(copy).toMatch(/Let's connect \$\{name\} so you can build your first connection/);
+    expect(copy).toMatch(/Let's connect \$\{name\}\./);
     expect(meet).not.toMatch(/hs-people-tags/);
     expect(meet).not.toMatch(/ask_vibe_mode/);
     // Permissions: exactly 3 rows (no calendar) above Assist; persist to profile

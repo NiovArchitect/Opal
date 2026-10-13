@@ -2200,11 +2200,26 @@ export function OpalApp() {
           window.sessionStorage?.getItem("opal_native_host") === "1";
         if (nativeHost && native?.access_token && native?.user_id) {
           setMemoryAccessToken(native.access_token);
-          const next: ProductSession = {
+          let next: ProductSession = {
             user_id: native.user_id,
             display_name: native.display_name || "Opal",
             access_token: native.access_token,
           };
+          // PROFILE_RELOAD_MATCH: SecureStore inject is a bootstrap hint — live session wins.
+          try {
+            const live = await withTimeout(fetchSession(native.access_token), BOOT_MS);
+            if (live?.user?.id) {
+              next = {
+                ...next,
+                user_id: live.user.id,
+                display_name: live.user.display_name || next.display_name,
+                handle: live.user.handle || next.handle,
+                access_token: native.access_token,
+              };
+            }
+          } catch {
+            /* keep inject identity if /session unreachable */
+          }
           setSession(next);
           saveSession(next);
           if (!cancelled) setAuthReady(true);
@@ -7318,6 +7333,8 @@ export function OpalApp() {
                   data-testid={`member-tab-${t.id}`}
                   data-dock-slot={t.id}
                   onClick={() => {
+                    /* Conversation tree returns before selectPrimaryTab is defined —
+                     * clear incompatible overlays inline (CROSS_SURFACE_BLEED = 0). */
                     if (activeChatId) productRealtime.leaveConversation(activeChatId);
                     setActiveChatId(null);
                     setCallSurface(null);
@@ -7325,6 +7342,15 @@ export function OpalApp() {
                     setGraphCreateOpen(false);
                     setGraphCreateContext({});
                     setOpalAmbientOpen(false);
+                    setNewChatOpen(false);
+                    setNewChatBusy(false);
+                    setNewChatError(null);
+                    setPlanComposerOpen(false);
+                    setPlanComposerSeed(null);
+                    setFindPeopleOpen(false);
+                    setSearchOpen(false);
+                    setActivityOpen(false);
+                    setNewCallOpen(false);
                     setTab(t.id);
                   }}
                 >
@@ -7774,6 +7800,13 @@ export function OpalApp() {
     /* Global dock law: Create/overlays must not stale-restore after tab change */
     setGraphCreateOpen(false);
     setGraphCreateContext({});
+    /* CROSS_SURFACE_BLEED = 0 — Chats children must not survive into Graphs/YOU/Home */
+    setNewChatOpen(false);
+    setNewChatBusy(false);
+    setNewChatError(null);
+    setPlanComposerOpen(false);
+    setPlanComposerSeed(null);
+    setFindPeopleOpen(false);
   };
 
   /**
@@ -9033,6 +9066,9 @@ export function OpalApp() {
                   handle: user.handle,
                 };
                 saveSession(next);
+                void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+                  notifyNativeHostSession(next);
+                });
                 return next;
               });
             }}

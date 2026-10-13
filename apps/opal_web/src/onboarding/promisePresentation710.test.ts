@@ -66,16 +66,18 @@ describe("P0-05.11 Promise 710:8 presentation", () => {
   });
 });
 
-describe("P0-05.11 Splash wordmark spectral + Global Opal mount", () => {
-  it("SPLASH_WORDMARK_HAS_SPECTRAL_STOPS", () => {
+describe("P0-05.11 Splash wordmark retired + Global Opal mount", () => {
+  it("SPLASH_WORDMARK_HIDDEN_DOUBLE_COMPOSITION_0", () => {
+    // Founder Reality Repair: Splash 1 paints one lockup only — legacy wordmark CSS must not paint.
     const wm = css.slice(css.indexOf(".fr-splash-wordmark {"));
-    expect(wm).toMatch(/#15bae5/i);
-    expect(wm).toMatch(/#74d9ed/i);
-    expect(wm).toMatch(/#f3c36b/i);
-    expect(wm).toMatch(/#e27a67/i);
-    expect(wm).toMatch(/#d85acd/i);
-    expect(wm).toMatch(/#7b45e5/i);
-    expect(wm).toMatch(/background-clip:\s*text/);
+    expect(wm).toMatch(/display:\s*none\s*!important/);
+    expect(app).toMatch(/FirstRunSplashPage|data-splash-owner/);
+    const splash = readFileSync(
+      resolve(__dirname, "./FirstRunSplashPage.tsx"),
+      "utf8",
+    );
+    expect(splash).toMatch(/data-double-composition="0"/);
+    expect(splash).toMatch(/data-splash-logo-count="1"/);
   });
 
   it("GLOBAL_OPAL_NOT_OVERLAY_OVER_GRAPHS", () => {

@@ -163,6 +163,7 @@ function buildState(input: {
 
 function OpalGreeting({ index }: { index: number }) {
   const reduce = useReducedMotion();
+  const valueLines = HOLY_SHIT_COPY.greetingValueLines;
   return (
     <motion.div
       className="hs-line hs-line-opal"
@@ -182,13 +183,15 @@ function OpalGreeting({ index }: { index: number }) {
         <p className="hs-greeting-subhead" data-testid="hs-greeting-subhead">
           {HOLY_SHIT_COPY.greetingSubhead}
         </p>
-        <div className="hs-greeting-values" data-testid="hs-greeting-values">
-          {HOLY_SHIT_COPY.greetingValueLines.map((line) => (
-            <p key={line} className="hs-greeting-value-line">
-              {line}
-            </p>
-          ))}
-        </div>
+        {valueLines.length > 0 ? (
+          <div className="hs-greeting-values" data-testid="hs-greeting-values">
+            {valueLines.map((line) => (
+              <p key={line} className="hs-greeting-value-line">
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : null}
       </div>
     </motion.div>
   );
@@ -220,6 +223,9 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
   const [chosenHandle, setChosenHandle] = useState<string | null>(null);
   const [handleAttempt, setHandleAttempt] = useState(0);
   const [handleStatus, setHandleStatus] = useState<string | null>(null);
+  /** Identity must resolve before friend turn (LATE_USERNAME_COLLISION = 0). */
+  const [handleCommitted, setHandleCommitted] = useState(false);
+  const [nameAdvancing, setNameAdvancing] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [contactPersisted, setContactPersisted] = useState(false);
   const [contactsStatus, setContactsStatus] = useState<string | null>(null);
@@ -243,7 +249,65 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     setChosenHandle(null);
     setHandleAttempt(0);
     setHandleStatus(null);
+    setHandleCommitted(false);
   }, [selfNameDraft]);
+
+  /**
+   * NAME → HANDLE RESOLVED → FRIEND.
+   * Never advance to first-person while a collision is open.
+   * Every CTA advances, shows busy, or shows an actionable error (DEAD_CONTINUE = 0).
+   */
+  const commitIdentityAndAdvance = async (handleOverride?: string) => {
+    const display = selfNameDraft.trim();
+    if (!display || nameAdvancing || finishing) return;
+    const handle = (handleOverride || chosenHandle || suggestUsernameFromName(display)).trim();
+    if (!handle) {
+      setHandleStatus("Enter your name to continue.");
+      return;
+    }
+    setNameAdvancing(true);
+    setHandleStatus(null);
+    try {
+      try {
+        const prev = loadProfile();
+        saveProfile({
+          user_id: prev?.user_id || "pending-onboarding",
+          display_name: display,
+          handle,
+          session_id: prev?.session_id,
+          access_token: prev?.access_token,
+          refresh_token: prev?.refresh_token,
+          cookie_session: prev?.cookie_session,
+        });
+      } catch {
+        /* private mode */
+      }
+      if (bearer) {
+        try {
+          await updateProfile({ displayName: display, handle }, bearer);
+        } catch (e) {
+          const err = e as Error & { code?: string };
+          if (err.code === "handle_taken" || /taken/i.test(err.message || "")) {
+            const next = suggestUsernameAlternatives(display, handle, handleAttempt);
+            setChosenHandle(next);
+            setHandleAttempt((n) => n + 1);
+            setHandleStatus(HOLY_SHIT_COPY.selfUsernameTaken(handle, next));
+            setHandleCommitted(false);
+            return;
+          }
+          setHandleStatus(err.message || "Could not save your name. Try again.");
+          setHandleCommitted(false);
+          return;
+        }
+      }
+      setChosenHandle(handle);
+      setHandleCommitted(true);
+      setHandleStatus(null);
+      setMeetTurn("friend");
+    } finally {
+      setNameAdvancing(false);
+    }
+  };
 
   // Short greeting reveal, then show ALL sections at once (no phase screens).
   useEffect(() => {
@@ -504,10 +568,16 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
     void updateAssistPreference(enabled, bearer ?? undefined).catch(() => undefined);
   };
 
-  /** Sticky Continue: save profile + perms, persist friend if chosen, then onComplete. */
+  /** Sticky Continue: identity already committed on name turn; persist friend then finish. */
   const handleMeetContinue = async () => {
     const display = selfNameDraft.trim();
     if (!display || finishing) return;
+    if (!handleCommitted) {
+      // Should not reach sticky finish without identity — route back to name resolve.
+      setMeetTurn("name");
+      setHandleStatus("Confirm your name to continue.");
+      return;
+    }
     setFinishing(true);
     setHandleStatus(null);
     const handle = (chosenHandle || suggestUsernameFromName(display)).trim();
@@ -538,25 +608,6 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
       },
       profileUserId,
     );
-
-    if (bearer && handle) {
-      try {
-        await updateProfile({ displayName: display, handle }, bearer);
-      } catch (e) {
-        const err = e as Error & { code?: string };
-        if (err.code === "handle_taken" || /taken/i.test(err.message || "")) {
-          const next = suggestUsernameAlternatives(display, handle, handleAttempt);
-          setChosenHandle(next);
-          setHandleAttempt((n) => n + 1);
-          setHandleStatus(HOLY_SHIT_COPY.selfUsernameTaken(handle, next));
-          setFinishing(false);
-          return;
-        }
-        setHandleStatus(err.message || "Could not save your name. Try again.");
-        setFinishing(false);
-        return;
-      }
-    }
 
     const friend = people[0] ?? null;
     let persisted = contactPersisted;
@@ -594,8 +645,10 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
 
   const canContinue =
     selfNameDraft.trim().length > 0 &&
+    handleCommitted &&
     (meetTurn === "ready" || (meetTurn === "friend" && people.length > 0)) &&
-    !finishing;
+    !finishing &&
+    !nameAdvancing;
 
   return (
     <div
@@ -683,8 +736,11 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                           type="button"
                           className="hs-pill hs-pill-primary"
                           data-testid="hs-handle-accept"
+                          disabled={nameAdvancing}
                           onClick={() => {
-                            setHandleStatus(null);
+                            const accepted =
+                              chosenHandle || suggestUsernameFromName(selfNameDraft);
+                            void commitIdentityAndAdvance(accepted);
                           }}
                         >
                           {HOLY_SHIT_COPY.selfUsernameAccept}
@@ -693,8 +749,12 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                           type="button"
                           className="hs-pill hs-perm-not-now"
                           data-testid="hs-handle-try-another"
+                          disabled={nameAdvancing}
                           onClick={() => {
-                            const current = derivedHandle || suggestUsernameFromName(selfNameDraft);
+                            const current =
+                              chosenHandle ||
+                              derivedHandle ||
+                              suggestUsernameFromName(selfNameDraft);
                             const next = suggestUsernameAlternatives(
                               selfNameDraft,
                               current,
@@ -714,14 +774,15 @@ export function MeetOpalConversation({ bearer, onComplete, onSkipToAuth }: Props
                   ) : null}
                 </div>
               </div>
-              {meetTurn === "name" && selfNameDraft.trim() ? (
+              {meetTurn === "name" && selfNameDraft.trim() && !handleStatus ? (
                 <button
                   type="button"
                   className="hs-meet-send hs-meet-send-block"
                   data-testid="hs-name-turn-continue"
-                  onClick={() => setMeetTurn("friend")}
+                  disabled={nameAdvancing}
+                  onClick={() => void commitIdentityAndAdvance()}
                 >
-                  Continue
+                  {nameAdvancing ? "Saving…" : "Continue"}
                 </button>
               ) : null}
               </div>

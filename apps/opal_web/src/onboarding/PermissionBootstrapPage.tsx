@@ -166,7 +166,7 @@ export function PermissionBootstrapPage({ userId, onContinue }: Props) {
             <div className="hs-line-body">
               <p className="hs-greeting-headline">Set up what Opal can use</p>
               <p className="hs-greeting-subhead">
-                Allow only what you are comfortable with. You can change this later in You.
+                Choose what you&apos;re comfortable sharing. You can change this later.
               </p>
             </div>
           </div>
@@ -189,24 +189,52 @@ export function PermissionBootstrapPage({ userId, onContinue }: Props) {
                       <span className="hs-perm-row-why">{copy.why}</span>
                     </div>
                     <div className="hs-perm-row-actions" role="group" aria-label={copy.title}>
-                      <button
-                        type="button"
-                        className="hs-pill hs-pill-primary hs-perm-allow"
-                        data-testid={`hs-perm-allow-${kind}`}
-                        disabled={permBusy === kind || decision !== "pending"}
-                        onClick={() => void requestPermission(kind)}
-                      >
-                        {HOLY_SHIT_COPY.permAllow}
-                      </button>
-                      <button
-                        type="button"
-                        className="hs-pill hs-perm-skip hs-perm-not-now"
-                        data-testid={`hs-perm-skip-${kind}`}
-                        disabled={permBusy === kind || decision !== "pending"}
-                        onClick={() => markPerm(kind, "skipped")}
-                      >
-                        {HOLY_SHIT_COPY.permNotNow}
-                      </button>
+                      {decision === "allowed" ? (
+                        <button
+                          type="button"
+                          className="hs-pill hs-pill-primary hs-perm-allow hs-perm-granted"
+                          data-testid={`hs-perm-allow-${kind}`}
+                          data-perm-state="granted"
+                          aria-pressed="true"
+                          disabled
+                        >
+                          Allowed
+                        </button>
+                      ) : decision === "skipped" ? (
+                        <button
+                          type="button"
+                          className="hs-pill hs-perm-skip hs-perm-not-now"
+                          data-testid={`hs-perm-skip-${kind}`}
+                          data-perm-state="declined"
+                          aria-pressed="true"
+                          disabled
+                        >
+                          Not now
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="hs-pill hs-pill-primary hs-perm-allow"
+                            data-testid={`hs-perm-allow-${kind}`}
+                            data-perm-state="pending"
+                            disabled={permBusy === kind}
+                            onClick={() => void requestPermission(kind)}
+                          >
+                            {HOLY_SHIT_COPY.permAllow}
+                          </button>
+                          <button
+                            type="button"
+                            className="hs-pill hs-perm-skip hs-perm-not-now"
+                            data-testid={`hs-perm-skip-${kind}`}
+                            data-perm-state="pending"
+                            disabled={permBusy === kind}
+                            onClick={() => markPerm(kind, "skipped")}
+                          >
+                            {HOLY_SHIT_COPY.permNotNow}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </li>
                 );
