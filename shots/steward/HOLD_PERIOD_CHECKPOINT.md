@@ -8,6 +8,7 @@ PASS 1 — CLOSED ✅
 PASS 2 — LOCKED 🔒
 
 RELATIONSHIP INTELLIGENCE — NOT IMPLEMENTED
+CAPABILITY MAP — BLUEPRINT ONLY
 ENTRY CONTRACT — ACTIVE
 
 MEMORY EXPANSION — STOPPED
@@ -15,6 +16,8 @@ ASSUMPTION SYSTEMS — STOPPED
 SCORING — STOPPED
 PROFILE INFERENCE — STOPPED
 ```
+
+The capability map is **architecture preparation**, not an intelligence unlock.
 
 ## Active work boundaries
 
@@ -30,12 +33,13 @@ PROFILE INFERENCE — STOPPED
 ### Not allowed yet
 
 - Relationship graph implementation  
+- Memory promotion  
 - Preference learning  
 - Partner intelligence  
 - Emotional inference  
-- Memory promotion changes  
 - Personality scoring  
 - Automated assumptions about people  
+- Automated life management  
 
 ## Coherence rule (highest priority)
 
