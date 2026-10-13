@@ -83,15 +83,24 @@ From `REGRESSION_LEDGER.md` still **PARTIAL** / pending physical:
 | Ownership law | `docs/authority/STATE_OWNERSHIP_LAW.md` |
 | Regression | `active_plan_for_conversation_test.exs` (active + reconcile) **2/0** |
 | A8 matrix | **GREEN failures=0** |
+| Graphs seed-off always showed fixture cards | `composeGraphsList` + GraphsHome gate; EMPTY when seed off + no live |
+| Chats seed-off composition | `composeChatsList` (drops `seed-chat-*` / seed-peer fixtures) |
 
 ## Next autonomous compound steps (ordered)
 
 1. ~~Unblock A8 auth without SMS~~ **Done**
 2. ~~Restore Fort Oak committed lifecycle~~ **Done**
 3. ~~Re-run A8~~ **GREEN**
-4. Keep scanning for remaining STATE OWNERSHIP / surface divergences (settings live-wire proofs, seed-off Graphs/Chats).
-5. Pass 2 relationship substrate only after Pass 1 stays green.
-6. Pass 3 / App Store after founder restores Render payment.
+4. ~~Seed-off Graphs / Chats prefer-real~~ **Done** — `composeGraphsList` / `composeChatsList` + vitest (9/0). GraphsHome no longer always merges seed authority cards when seed off.
+5. Keep scanning remaining STATE OWNERSHIP gaps (settings live-wire proofs; production seed auto-enable audit).
+6. Pass 2 relationship substrate only after Pass 1 stays green.
+7. Pass 3 / App Store after founder restores Render payment.
+
+## Milestone (do not flip to intelligence)
+
+> Can Opal represent one person's shared reality consistently across every surface?
+
+Phase order remains: **1 Reality coherence → 2 Relationship intelligence → 3 Execution → 4 Scale**.
 
 ## Settings three-state law (reinforced)
 

@@ -46,8 +46,8 @@ Spelling lock from handoff: relationship examples use **Chanelle**.
 
 1. Classify each of the 39 files: `lab-only` / `dual-path` / `must-prefer-real`.
 2. ~~Add a regression test: seed off → Home empty-or-real, never seed rows.~~ **Done:** `homeHydration.test.ts` — `seed off + no production owners is EMPTY with zero seed cards` (12/12 PASS).
-3. Production/TestFlight profile: assert seed cannot auto-enable from LAN heuristics.
-4. Extend EMPTY/prefer-real proofs to Graphs / Chats list composition (same law).
+3. ~~Extend EMPTY/prefer-real proofs to Graphs / Chats list composition.~~ **Done:** `graphsHydration.ts` / `chatsHydration.ts` + tests (9/0). GraphsHome gates seed authority cards; seed-off EMPTY when no live.
+4. Production/TestFlight profile: assert seed cannot auto-enable from LAN heuristics.
 5. After Render payment restore + TestFlight install: founder smoke with seed **off**.
 
 ## Non-goals this pass

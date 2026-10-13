@@ -173,4 +173,10 @@ stash@{1}: On build/shared-reality-closure-ui: docs-logo-wip
 
 - Request: Keep coherence priority; add ownership law; restore Fort Oak as real lifecycle; reusable reconcile; re-run A8.
 - Commands: STATE_OWNERSHIP_LAW.md; reconcile_conversation_plans/1; restore_fort_oak_committed.exs; A8 matrix GREEN failures=0.
+- Outcome: DONE-PUSHED tip `179a4f68`.
+
+## 2026-10-13 — Pass 1 Graphs/Chats seed-off prefer-real
+
+- Request: Affirm Fort Oak = state divergence class; ownership law; lifecycle fixture; A8 surface agreement; RealityRepair pattern; hold intelligence; phase 1→4.
+- Commands: `graphsHydration` / `chatsHydration` + GraphsHome gate + OpalApp chats compose; vitest 9/0; browser seed-off proof failures=0 (`shots/steward/seed_off_prefer_real/`).
 - Outcome: DONE-PUSHED (pending tip).

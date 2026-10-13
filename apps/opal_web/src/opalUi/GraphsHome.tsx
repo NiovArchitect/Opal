@@ -4,38 +4,27 @@
  * No Enter Journey. No auto-Journey. No media-card reinterpretation.
  * Past preserves the same Reality lineage after scheduled time.
  * Paste J Phase 5: person-node temporal context + live/seed timeline wiring.
+ * Pass 1: seed-off prefer-real via composeGraphsList (never paint seed as current).
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FOUNDER_HOME_FEED } from "./founderGraphSeed";
-import { GRAPH_AUTHORITY_CHROME } from "./graphAuthorityChrome";
+import { isFounderSeedEnabled, FOUNDER_GRAPH_SEED_ID } from "./founderGraphSeed";
+import { personNodeTemporal } from "./graphCalendaring";
+import { type CreatedPlanSurface } from "./graphSurfaceInterop";
 import {
-  liveGraphsToTimelineItems,
-  personNodeTemporal,
-} from "./graphCalendaring";
-import {
-  createdPlanGraphOverlay,
-  type CreatedPlanSurface,
-} from "./graphSurfaceInterop";
+  composeGraphsList,
+  type GraphStatus,
+  type LiveGraphCard,
+} from "./graphsHydration";
 import { GraphsTripsSection } from "./GraphsTripsSection";
 import {
   GraphsTemporalTimeline,
-  SEED_TIMELINE_ITEMS,
   type TimelineItem,
 } from "./GraphsTemporalTimeline";
 
 type Lens = "all" | "action" | "ready" | "past";
 type GraphMode = "people" | "timeline";
 
-export type LiveGraph = {
-  id: string;
-  title: string;
-  whenLine: string;
-  signalLine: string;
-  status: "ready" | "action" | "forming" | "aligned" | "past";
-  person?: string;
-  startsAt?: string | null;
-  who?: string[];
-};
+export type LiveGraph = LiveGraphCard;
 
 type Props = {
   onOpenGraph: (cardId: string) => void;
@@ -61,30 +50,6 @@ type Props = {
   tripCreateSignal?: number;
 };
 
-type GraphStatus = "ready" | "action" | "aligned" | "forming" | "idea" | "past";
-
-/** Chrome titles + lines matching 618:674; ids remain domain/seed owners. */
-const AUTHORITY_CARDS: {
-  id: string;
-  title: string;
-  whenLine: string;
-  signalLine: string;
-  status: GraphStatus;
-}[] = (
-  [
-    ["seed-chanelle-juniper", "ready"],
-    ["seed-maya-graph-coast", "forming"],
-    ["seed-alex-graph-gallery", "aligned"],
-    ["seed-near-rooftop", "idea"],
-  ] as const
-).map(([id, status]) => ({
-  id,
-  title: GRAPH_AUTHORITY_CHROME[id].title,
-  whenLine: GRAPH_AUTHORITY_CHROME[id].whenLine,
-  signalLine: GRAPH_AUTHORITY_CHROME[id].signalLine,
-  status: status as GraphStatus,
-}));
-
 const STATUS_LABEL: Record<GraphStatus, string> = {
   ready: "Ready",
   action: "Action",
@@ -92,15 +57,6 @@ const STATUS_LABEL: Record<GraphStatus, string> = {
   forming: "Forming",
   idea: "Idea",
   past: "Past",
-};
-
-const STATUS_RANK: Record<GraphStatus, number> = {
-  action: 0,
-  ready: 1,
-  aligned: 2,
-  forming: 3,
-  idea: 4,
-  past: 5,
 };
 
 const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
@@ -122,6 +78,7 @@ export function GraphsHome({
   const [mode, setMode] = useState<GraphMode>("people");
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const seedOn = isFounderSeedEnabled();
 
   useEffect(() => {
     if (!createMenuOpen) return;
@@ -153,79 +110,18 @@ export function GraphsHome({
     node.addEventListener("scroll", remember, { passive: true });
     return () => node.removeEventListener("scroll", remember);
   }, []);
-  const graphs = useMemo(() => {
-    const all = FOUNDER_HOME_FEED.filter((c) => c.kind === "graph" || c.kind === "live");
-    const byId = new Map(all.map((g) => [g.id, g]));
-    const overlayByCardId = new Map<string, ReturnType<typeof createdPlanGraphOverlay>>();
-    for (const plan of createdPlans) {
-      const overlay = createdPlanGraphOverlay(plan);
-      overlayByCardId.set(plan.id, overlay);
-      if (plan.sourceIdeaId) overlayByCardId.set(plan.sourceIdeaId, overlay);
-    }
-    const seeds = AUTHORITY_CARDS.map((card) => {
-      const src = byId.get(card.id);
-      const overlay = overlayByCardId.get(card.id);
-      if (overlay) {
-        // Idea → composer confirm: replace stale "Open · no one asked yet" with forming people+when.
-        return {
-          id: card.id,
-          title: overlay.title || card.title,
-          whenLine: overlay.whenLine,
-          signalLine: overlay.signalLine,
-          status: "forming" as GraphStatus,
-          person: overlay.person || src?.person || "",
-          who: overlay.who,
-          real: true,
-        };
-      }
-      return {
-        id: card.id,
-        title: card.title,
-        whenLine: card.whenLine,
-        signalLine: card.signalLine,
-        status: card.status,
-        person: src?.person || "",
-        real: false,
-      };
-    });
-    const seededIds = new Set(seeds.map((s) => s.id));
-    const live = liveGraphs.map((card) => ({
-      ...card,
-      person: card.person || "",
-      real: true,
-    }));
-    const createdExtras = createdPlans
-      .filter((p) => !seededIds.has(p.id) && !(p.sourceIdeaId && seededIds.has(p.sourceIdeaId)))
-      .map((p) => {
-        const overlay = createdPlanGraphOverlay(p);
-        return {
-          id: overlay.id,
-          title: overlay.title,
-          whenLine: overlay.whenLine,
-          signalLine: overlay.signalLine,
-          status: "forming" as GraphStatus,
-          person: overlay.person,
-          who: overlay.who,
-          real: true,
-        };
-      });
-    // Combined All list: past ranks last so a lone live Past Graph does not sit first.
-    return [...live, ...createdExtras, ...seeds].sort(
-      (a, b) => (STATUS_RANK[a.status] ?? 99) - (STATUS_RANK[b.status] ?? 99),
-    );
-  }, [liveGraphs, createdPlans]);
 
-  const timelineItems = useMemo(() => {
-    if (!liveGraphs.length) return SEED_TIMELINE_ITEMS;
-    const liveItems = liveGraphsToTimelineItems(liveGraphs);
-    // Live first; keep seed someday/earlier for walk continuity when live is thin.
-    const liveIds = new Set(liveItems.map((i) => i.id));
-    const seedExtras = SEED_TIMELINE_ITEMS.filter(
-      (s) =>
-        !liveIds.has(s.id) && (s.bucket === "someday" || s.bucket === "earlier"),
-    );
-    return [...liveItems, ...seedExtras];
-  }, [liveGraphs]);
+  const composed = useMemo(
+    () =>
+      composeGraphsList({
+        liveGraphs,
+        createdPlans,
+        founderSeedEnabled: seedOn,
+      }),
+    [liveGraphs, createdPlans, seedOn],
+  );
+  const graphs = composed.graphs;
+  const timelineItems = composed.timelineItems;
 
   const visible =
     lens === "ready"
@@ -245,6 +141,8 @@ export function GraphsHome({
       data-figma-graphs="618:674"
       data-figma-authority="618:674"
       data-legacy-figma-graphs="368:23"
+      data-founder-seed={seedOn ? FOUNDER_GRAPH_SEED_ID : "off"}
+      data-graphs-mode={composed.mode}
     >
       <div className="graphs-ambient" aria-hidden />
 
@@ -370,7 +268,7 @@ export function GraphsHome({
       {mode === "timeline" ? (
         <GraphsTemporalTimeline
           items={timelineItems}
-          seedLabeled={!liveGraphs.length}
+          seedLabeled={composed.seedLabeled}
           onOpenItem={onOpenGraph}
           onMessageGroup={onMessageTimelineItem}
           onAdjust={onAdjustTimelineItem || ((item) => onOpenGraph(item.id))}

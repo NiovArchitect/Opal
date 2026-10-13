@@ -1,7 +1,7 @@
 # CURRENT OPAL STATE
 
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
-**Updated:** 2026-10-12 (Master Production Continuity Handoff active; W9 tip `e6455aa1`)  
+**Updated:** 2026-10-13 (Pass 1 hold: ownership law + Graphs/Chats prefer-real; tip advancing past `179a4f68`)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
 **Kind:** CHECKPOINT authority (not FROZEN_GREEN)  
 **Steward frame:** `docs/authority/MASTER_PRODUCTION_CONTINUITY_HANDOFF.md`
@@ -9,7 +9,7 @@
 ```yaml
 authority_class: CURRENT_OPAL_STATE
 steward_handoff: MASTER_PRODUCTION_CONTINUITY_HANDOFF
-implementation_tip: e6455aa1
+implementation_tip: 179a4f68
 implementation_branch: muse/packet-b-batch-2
 frozen_reference_branch: build/v2-coded-experience-closure
 supersedes_conflicting_a8_handoff: true
@@ -21,12 +21,13 @@ journey: BLOCKED
 rebuild: FORBIDDEN
 ```
 
-## Active steward mission (2026-10-12)
+## Active steward mission (2026-10-13)
 
 ```yaml
 MISSION: whole_system_coherence_then_production_validation
 MODE: compound_only
 INTELLIGENCE_EXPANSION: HOLD_UNTIL_COHERENCE
+MILESTONE: one_person_shared_reality_consistent_across_surfaces
 COMPLETED:
   - W6_W7_foundation
   - W8_finish_opal_81276ef8
@@ -35,6 +36,10 @@ COMPLETED:
   - founder_seed_inventory
   - home_seed_off_empty_regression
   - settings_wire_audit_v1
+  - state_ownership_law
+  - fort_oak_lifecycle_restore
+  - a8_cross_surface_green
+  - graphs_chats_seed_off_prefer_real
 BLOCKERS:
   - render_payment_api_opal_niovlabs_suspended
   - testflight_upload_founder_asc
@@ -42,18 +47,24 @@ BLOCKERS:
   - google_oauth_consent_founder
   - google_places_api_billing_founder
 PASS_ORDER:
-  - pass_1_reality_graph_connection   # A8 GREEN 2026-10-13; keep holding coherence
+  - pass_1_reality_graph_connection   # A8 GREEN; Graphs/Chats prefer-real shipped; hold coherence
   - pass_2_relationship_intelligence_foundation
   - pass_3_app_store_readiness        # after Render payment
+PHASE_ORDER_LONG:
+  - phase_1_reality_coherence
+  - phase_2_relationship_intelligence
+  - phase_3_execution_layer
+  - phase_4_scale
 NEXT_AUTONOMOUS:
   - hold_pass1_green_scan_remaining_ownership_gaps
   - settings_live_wire_proofs
-  - seed_off_graphs_chats_prefer_real
+  - production_seed_auto_enable_audit
   - keep_local_phoenix_vite_healthy
   - when_payment_lands_verify_prod_health_then_testflight_smoke
 A8_CROSS_SURFACE: GREEN
 STATE_OWNERSHIP_LAW: ACTIVE
 RECONCILE_CONVERSATION_PLANS: SHIPPED
+REALITY_REPAIR_PATTERN: reconcile_conversation_plans_plus_future_domain_tooling
 FOUNDER_ONLY:
   - render_billing_restore
   - testflight_transporter_upload

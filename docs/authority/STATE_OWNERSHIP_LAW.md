@@ -62,7 +62,13 @@ Detect ambiguity
   → Project one reality across surfaces
 ```
 
-Reusable entry: `ConversationAlignment.reconcile_conversation_plans/1` (and future RealityRepair tooling). Do not one-off repair only Fort Oak.
+Reusable domain entry today:
+
+```text
+ConversationAlignment.reconcile_conversation_plans/1
+```
+
+Grow this into `RealityRepair` (or equivalent) domain tooling — detect ambiguity → choose authority lineage → supersede competitors → project one reality. Do not one-off repair only Fort Oak. Real users create duplicates, date changes, cancels, calendar conflicts, and relationship changes; Opal must reconcile.
 
 ## Required zeros
 

@@ -1,0 +1,47 @@
+{
+  "square": "PASS1_SEED_OFF_GRAPHS_CHATS",
+  "finished_at": "2026-10-13T03:06:41.022Z",
+  "failures": 0,
+  "results": [
+    {
+      "name": "ACTIVATE",
+      "status": "PASS",
+      "detail": {
+        "summary": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+      },
+      "at": "2026-10-13T03:06:23.430Z"
+    },
+    {
+      "name": "GRAPHS_SEED_ATTR",
+      "status": "PASS",
+      "detail": {
+        "summary": "data-founder-seed=off"
+      },
+      "at": "2026-10-13T03:06:38.602Z"
+    },
+    {
+      "name": "GRAPHS_MODE",
+      "status": "PASS",
+      "detail": {
+        "summary": "data-graphs-mode=PRODUCTION_HYDRATION"
+      },
+      "at": "2026-10-13T03:06:38.602Z"
+    },
+    {
+      "name": "GRAPHS_NO_SEED_CARDS",
+      "status": "PASS",
+      "detail": {
+        "summary": "seedCards=0"
+      },
+      "at": "2026-10-13T03:06:38.602Z"
+    },
+    {
+      "name": "CHATS_NO_SEED_ROW_IDS",
+      "status": "PASS",
+      "detail": {
+        "summary": "seedChatDom=[]"
+      },
+      "at": "2026-10-13T03:06:40.948Z"
+    }
+  ]
+}

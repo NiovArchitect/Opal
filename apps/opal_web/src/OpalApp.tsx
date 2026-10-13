@@ -224,7 +224,6 @@ import {
   loadCreatedPlans,
   loadTravelOverrides,
   localPlanSurfaceId,
-  mergeChatRowsWithCreated,
   mergeFeedWithCreated,
   persistCreatedPlans,
   persistTravelOverrides,
@@ -232,6 +231,7 @@ import {
   type CreatedPlanSurface,
   type TravelOverride,
 } from "./opalUi/graphSurfaceInterop";
+import { composeChatsList } from "./opalUi/chatsHydration";
 import { GraphsHome } from "./opalUi/GraphsHome";
 import { createVoiceNoteRecorder } from "./opalUi/voiceNoteRecorder";
 import { SearchDestination } from "./opalUi/SearchDestination";
@@ -8510,8 +8510,7 @@ export function OpalApp() {
                   : undefined,
               };
             });
-                // Founder seed: keep plan-pill chrome, but bind rows to live conversation ids
-                // so openChat / Channel join / messages hit the real backend.
+                // Prefer-real / seed-off via composeChatsList (STATE OWNERSHIP LAW).
                 const seedOn = isFounderSeedEnabled();
                 if (seedOn) {
                   const w = window as Window & {
@@ -8533,20 +8532,30 @@ export function OpalApp() {
                     });
                   }
                 }
-                const base = seedOn
-                  ? remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, liveRows)
-                  : liveRows;
-                if (seedOn && base.length === 0) {
+                const composed = composeChatsList({
+                  liveRows,
+                  createdPlans: createdPlanSurfaces,
+                  founderSeedEnabled: seedOn,
+                  liveChats: chats.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    kind: (c.composition === "group" || (c.memberCount ?? 0) >= 3
+                      ? "group"
+                      : "direct") as "direct" | "group",
+                    memberCount: c.memberCount,
+                    peers: c.peers,
+                    preview: c.preview,
+                    title: c.name,
+                  })),
+                });
+                if (seedOn && composed.rows.length === 0) {
                   console.warn("[opal-seed]", {
                     step: "chats-list-fallback-risk",
-                    detail: "remap produced 0 rows — UI would fall back to live backend",
+                    detail: "compose produced 0 rows — UI would fall back to live backend",
                     liveLen: liveRows.length,
                   });
                 }
-                return applyTravelToChatRows(
-                  mergeChatRowsWithCreated(base, createdPlanSurfaces),
-                  travelOverrides,
-                );
+                return applyTravelToChatRows(composed.rows, travelOverrides);
               })()
             }
             onOpenChat={(id) => {
