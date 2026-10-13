@@ -1,0 +1,172 @@
+{
+  "tip": null,
+  "generated_at": "2026-10-13T14:43:24.287Z",
+  "metrics": {
+    "OPAL_CENTER_UI": "VERIFIED",
+    "OPAL_CENTER_ACTIONS": "VERIFIED",
+    "PERMISSION_BOUNDARIES": "PRESERVED",
+    "FAKE_SUCCESS": 0,
+    "PASS2_UNLOCKED": "NO",
+    "INVESTOR_TOUCH_READY": "YES",
+    "REAL_ACTIONS_ONLY": "YES",
+    "FAKE_CAPABILITIES": 0,
+    "TRACK_B": "UNTOUCHED",
+    "counts": {
+      "green": 21,
+      "yellow": 0,
+      "red": 0
+    }
+  },
+  "findings": [
+    {
+      "area": "API plan_modify honesty (no fake Done)",
+      "status": "GREEN",
+      "detail": "status=201 body=I don't see Oak on your calendar. Want to create it?",
+      "evidence": {
+        "opal": "I don't see Oak on your calendar. Want to create it?",
+        "fakeDone": false,
+        "prepare": true
+      }
+    },
+    {
+      "area": "API plan confirm copy (no booking/outbound promise)",
+      "status": "GREEN",
+      "detail": "status=201 bookingPromise=false body=Saturday's open, so I can set dinner with Chanelle then. Want a specific time, or should I just hold the evening?",
+      "evidence": {
+        "confirmBody": "Saturday's open, so I can set dinner with Chanelle then. Want a specific time, or should I just hold the evening?"
+      }
+    },
+    {
+      "area": "API chat copy (Pass 2 remember not advertised)",
+      "status": "GREEN",
+      "detail": "rememberAd=false body=Hey Walk. Still holding Saturday evening for dinner with Chanelle — want me to lock in a time, or just keep it open for ",
+      "evidence": {
+        "chatBody": "Hey Walk. Still holding Saturday evening for dinner with Chanelle — want me to lock in a time, or just keep it open for now?"
+      }
+    },
+    {
+      "area": "API investor ask (Chanelle weekend) real context",
+      "status": "GREEN",
+      "detail": "status=201 body=Saturday evening's still open for you and Chanelle. Want me to lock in a time, or keep it loose and just hold the evening?",
+      "evidence": {
+        "weekendBody": "Saturday evening's still open for you and Chanelle. Want me to lock in a time, or keep it loose and just hold the evening?"
+      }
+    },
+    {
+      "area": "Center rest opens",
+      "status": "GREEN",
+      "detail": "centerOpen=true",
+      "evidence": {}
+    },
+    {
+      "area": "Character presence scale (≤72, target ~56)",
+      "status": "GREEN",
+      "detail": "box={\"x\":167,\"y\":22,\"width\":56,\"height\":56} state=idle",
+      "evidence": {}
+    },
+    {
+      "area": "Rest lede honesty (no fake free-window count)",
+      "status": "GREEN",
+      "detail": "fakeWindows=false lede=Sample day below — ask when you want a real answer.",
+      "evidence": {}
+    },
+    {
+      "area": "Sample prompts labeled",
+      "status": "GREEN",
+      "detail": "sampleNote=true",
+      "evidence": {}
+    },
+    {
+      "area": "Nearby chips honest (no Curate/Move theater)",
+      "status": "GREEN",
+      "detail": "nearby=true curateGone=true moveGone=true",
+      "evidence": {}
+    },
+    {
+      "area": "Talk to Opal → chat phase",
+      "status": "GREEN",
+      "detail": "chatVisible=true",
+      "evidence": {}
+    },
+    {
+      "area": "Pass 2 Remember chip locked",
+      "status": "GREEN",
+      "detail": "rememberChip=false empty=false plan=false coming=false",
+      "evidence": {}
+    },
+    {
+      "area": "Chat character scale (~64)",
+      "status": "GREEN",
+      "detail": "box={\"x\":163,\"y\":14,\"width\":64,\"height\":64}",
+      "evidence": {}
+    },
+    {
+      "area": "Investor UI ask → real reply",
+      "status": "GREEN",
+      "detail": "typing=true thinkingHonesty=true reply=Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?",
+      "evidence": {
+        "reply": "Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?"
+      }
+    },
+    {
+      "area": "Plan something → OC pipeline",
+      "status": "GREEN",
+      "detail": "via=typed reply=Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?",
+      "evidence": {}
+    },
+    {
+      "area": "What's coming up? → check_status",
+      "status": "GREEN",
+      "detail": "via=typed reply=Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?",
+      "evidence": {}
+    },
+    {
+      "area": "Chat back → rest",
+      "status": "GREEN",
+      "detail": "backRest=true",
+      "evidence": {}
+    },
+    {
+      "area": "Nearby now → Decision Intelligence conversation",
+      "status": "GREEN",
+      "detail": "conv=true oneAnswer=false provisional=false note=Could not settle on one answer yet.",
+      "evidence": {}
+    },
+    {
+      "area": "Center Context → YOU",
+      "status": "GREEN",
+      "detail": "youVisibleish=true",
+      "evidence": {}
+    },
+    {
+      "area": "Chats surface reachable",
+      "status": "GREEN",
+      "detail": "chats=true",
+      "evidence": {}
+    },
+    {
+      "area": "Calls surface reachable",
+      "status": "GREEN",
+      "detail": "calls=true",
+      "evidence": {}
+    },
+    {
+      "area": "Mobile+430 viewport Center renders",
+      "status": "GREEN",
+      "detail": "viewport 430",
+      "evidence": {}
+    }
+  ],
+  "shots": [
+    "01_center_rest.png",
+    "02_center_chat.png",
+    "03_chat_reply_chanelle.png",
+    "04_plan_chip.png",
+    "05_coming_up.png",
+    "06_nearby_di.png",
+    "07_context_you.png",
+    "08_chats.png",
+    "09_calls.png",
+    "10_center_430.png"
+  ]
+}

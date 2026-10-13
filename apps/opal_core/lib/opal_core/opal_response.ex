@@ -62,7 +62,12 @@ defmodule OpalCore.OpalResponse do
               _ -> nil
             end
 
-          maybe_llm_phrase(template, intent, intent_map, context_map)
+          # Action-boundary intents stay template-only so LLM cannot invent
+          # Done mutations, outbound send, or booking success.
+          case intent do
+            i when i in [:plan_modify, :coordinate] -> template
+            _ -> maybe_llm_phrase(template, intent, intent_map, context_map)
+          end
       end
 
     if is_binary(text) and String.trim(text) != "" do
@@ -224,7 +229,8 @@ defmodule OpalCore.OpalResponse do
         "Done. #{what}#{when_bit}#{with_who} is set for Online. Add a join link anytime by pasting it."
 
       true ->
-        "Done. #{what}#{when_bit}#{with_who} is set up. Say if you want me to hold a table or message them."
+        # Honest success: plan is durable on Graph. Booking/outbound stay gated.
+        "Done. #{what}#{when_bit}#{with_who} is set up. It's on your Graph."
     end
   end
 
@@ -278,18 +284,19 @@ defmodule OpalCore.OpalResponse do
         String.contains?(String.downcase(title), String.downcase(plan_ref))
       end)
 
+    # Suggest → Prepare only. Chat does not mutate SharedPlan yet (no fake Done).
     cond do
       found? and is_binary(new_when) and new_when != "" and action in ["move", "reschedule", "change"] ->
-        "Done. #{plan_ref} moved to #{new_when}."
+        "I can help move #{plan_ref} to #{new_when}. Open it on your Graph to confirm — chat updates aren't live yet."
 
       found? and action == "cancel" ->
-        "Done. #{plan_ref} cancelled."
+        "I can help cancel #{plan_ref}. Open it on your Graph to confirm — chat cancels aren't live yet."
 
       found? and is_binary(new_when) and new_when != "" ->
-        "Done. #{plan_ref} updated to #{new_when}."
+        "I can help update #{plan_ref} to #{new_when}. Open it on your Graph to confirm."
 
       found? ->
-        "Done. #{plan_ref} updated."
+        "I found #{plan_ref}. Open it on your Graph to change it — chat updates aren't live yet."
 
       true ->
         "I don't see #{plan_ref} on your calendar. Want to create it?"
@@ -336,7 +343,7 @@ defmodule OpalCore.OpalResponse do
 
         case memories do
           [] ->
-            "I don't have anything saved about #{topic} yet. Want me to remember something?"
+            "I don't have anything saved about #{topic} yet."
 
           list ->
             summary =
@@ -860,14 +867,14 @@ defmodule OpalCore.OpalResponse do
 
       String.length(String.trim(raw)) <= 2 ->
         if is_binary(name) and name != "" do
-          "Hey #{first_name(name)}. Want to plan something, remember a detail, or check what's coming up?"
+          "Hey #{first_name(name)}. Want to plan something or check what's coming up?"
         else
-          "Want to plan something, remember a detail, or check what's coming up?"
+          "Want to plan something or check what's coming up?"
         end
 
       true ->
-        # Contextual OC-4 — never the OC-1 placeholder.
-        "Tell me more — I can help you plan, remember something, or check what's coming up."
+        # Pass 2 memory advertising locked — offer plan / status only.
+        "Tell me more — I can help you plan or check what's coming up."
     end
   end
 

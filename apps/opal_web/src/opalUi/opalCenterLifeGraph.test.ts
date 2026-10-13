@@ -84,6 +84,16 @@ describe("Opal Center V2 behavior convergence", () => {
     expect(center).toMatch(/stripAttribution/);
     expect(center).not.toMatch(/REST_NODES/);
   });
+
+  it("Investor honesty: rest lede + nearby chips do not fake free windows or curation", () => {
+    expect(center).not.toMatch(/Two open windows before tonight/);
+    expect(center).toMatch(/opal-center-rest-lede/);
+    expect(center).toMatch(/Sample day below/);
+    expect(center).toMatch(/Nearby now/);
+    expect(center).toMatch(/Tonight ideas/);
+    expect(center).not.toMatch(/Curate my time/);
+    expect(center).not.toMatch(/Move something/);
+  });
 });
 
 describe("Paste J media validation", () => {

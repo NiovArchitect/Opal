@@ -517,7 +517,17 @@ export function OpalCenterLifeGraph({
         <section className="opal-center-v2-body" data-testid="opal-center-rest">
           <p className="opal-center-v2-kicker">{dateLine}</p>
           <h1 className="opal-center-v2-title">Your day has room.</h1>
-          <p className="opal-center-v2-lede">Two open windows before tonight.</p>
+          <p
+            className="opal-center-v2-lede"
+            data-testid="opal-center-rest-lede"
+            data-strip-source={stripSource}
+          >
+            {stripSource === "calendar"
+              ? dayNodes.some((n) => n.kind === "now" && n.label === "Open")
+                ? "Right now looks open — ask and I'll shape one answer."
+                : "Here's what's next on your linked calendar."
+              : "Sample day below — ask when you want a real answer."}
+          </p>
 
           <LifeGraphStrip nodes={dayNodes} source={stripSource} />
           <p
@@ -591,14 +601,29 @@ export function OpalCenterLifeGraph({
           </button>
 
           <div className="opal-center-v2-quick" role="group" aria-label="Quick actions">
-            <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("Curate my time")}>
-              Curate my time
+            <button
+              type="button"
+              className="opal-center-v2-chip"
+              data-testid="opal-center-chip-nearby"
+              onClick={() => askAboutDay("What's nearby in an open window?")}
+            >
+              Nearby now
             </button>
-            <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("What's next?")}>
+            <button
+              type="button"
+              className="opal-center-v2-chip"
+              data-testid="opal-center-chip-whats-next"
+              onClick={() => askAboutDay("What's next?")}
+            >
               What&apos;s next?
             </button>
-            <button type="button" className="opal-center-v2-chip" onClick={() => askAboutDay("Move something")}>
-              Move something
+            <button
+              type="button"
+              className="opal-center-v2-chip"
+              data-testid="opal-center-chip-tonight"
+              onClick={() => askAboutDay("Ideas for tonight nearby")}
+            >
+              Tonight ideas
             </button>
           </div>
 

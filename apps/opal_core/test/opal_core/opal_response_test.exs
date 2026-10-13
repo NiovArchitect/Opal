@@ -121,7 +121,10 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "Done. Oak moved to Saturday."
+    assert text =~ "I can help move Oak to Saturday"
+    assert text =~ "Open it on your Graph"
+    assert text =~ "aren't live yet"
+    refute text =~ "Done. Oak moved"
   end
 
   test "plan_modify honest when plan not found" do
@@ -191,7 +194,7 @@ defmodule OpalCore.OpalResponseTest do
              )
 
     assert text =~ "I don't have anything saved about zzzunique yet"
-    assert text =~ "Want me to remember something?"
+    refute text =~ "Want me to remember something?"
   end
 
   test "recommend with taste/plans returns ONE recommendation referencing real data" do
@@ -336,6 +339,9 @@ defmodule OpalCore.OpalResponseTest do
     assert text =~ "Done"
     assert text =~ "dinner"
     assert text =~ "Maya"
+    assert text =~ "Graph" or text =~ "set up"
+    refute text =~ "hold a table"
+    refute text =~ "message them"
     refute text =~ "I'm listening"
   end
 
