@@ -56,23 +56,23 @@ defmodule OpalCore.Center.DependencyPlanner do
       "venue" =>
         cond do
           c["wants_restaurant"] == true or c["category"] in ["restaurant", "dinner", "food"] ->
-            if venue?, do: "resolved", else: "pending"
+            status_resolved(venue?)
 
           true ->
             "not_applicable"
         end,
       "travel" =>
         cond do
-          dest? and venue? -> if travel?, do: "resolved", else: "pending"
-          dest? -> if travel?, do: "resolved", else: "pending"
+          dest? and venue? -> status_resolved(travel?)
+          dest? -> status_resolved(travel?)
           true -> "not_applicable"
         end,
       "lodging" =>
         cond do
-          dest? and multi_day?(c) -> if lodging?, do: "resolved", else: "pending"
+          dest? and multi_day?(c) -> status_resolved(lodging?)
           true -> "not_applicable"
         end,
-      "work_conflict" => if(work?, do: "resolved", else: "pending"),
+      "work_conflict" => status_resolved(work?),
       "reservation" => if(venue?, do: "pending", else: "not_applicable"),
       "reveal_invite" =>
         cond do
@@ -112,6 +112,9 @@ defmodule OpalCore.Center.DependencyPlanner do
     c["multi_day"] == true or
       (is_binary(c["destination"]) and c["wants_lodging"] == true)
   end
+
+  defp status_resolved(true), do: "resolved"
+  defp status_resolved(_), do: "pending"
 
   defp present?(v) when is_binary(v), do: String.trim(v) != ""
   defp present?(v) when is_list(v), do: v != []

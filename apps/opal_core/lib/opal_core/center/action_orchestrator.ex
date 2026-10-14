@@ -142,7 +142,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
   def after_classify(_, _, intent, _), do: {intent, nil, %{}}
 
-  defp conversation_opts(user_id, planning \\ %{}) do
+  defp conversation_opts(user_id, planning) do
     base =
       case OpalConversations.get_or_create_conversation(user_id) do
         {:ok, c} -> [conversation_id: c.id]
