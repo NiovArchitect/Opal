@@ -1,4 +1,5 @@
 PASS member_shell visible
+PASS SERVED_PRODUCT_TIP {"product_tip":"84008a97","served_data_git_head":"84008a9","served_data_git_head_full":"84008a97ec447a21ef5bd6f394e8c7be5a2cbd33"}
 PASS seed_enabled_via_url {"seedAttr":"1","pipeEnabled":true,"pipeReason":"url:opal_founder_seed=1","href":"http://127.0.0.1:5173/?opal_founder_seed=1&opal_native_host=1"}
 PASS FOUNDER_PHONE_CHAT_ROWS {"names":["Chanelle","Maya","Juniper crew","Sabrina","Alex"],"compose":{"seedEnabled":true,"liveRows":0,"fixtureRows":5,"composedRows":5,"paintedRows":5,"hardFa
 PASS CALLS_WORLD {"ready":true,"missed":true,"maya":true,"cancelled":true,"completed":true}

@@ -42,7 +42,9 @@ defmodule OpalCore.Reminders.ReminderDeliveryWorker do
   def notify(%Reminder{} = r) do
     overdue_prefix = if r.overdue, do: "(overdue) ", else: ""
     title = "Reminder"
-    body = overdue_prefix <> r.task
+    # Consumer-visible copy only — strip isolation/test markers that may live in task.
+    consumer_task = consumer_task_copy(r.task)
+    body = overdue_prefix <> consumer_task
 
     _ =
       DeliverPushWorker.enqueue(r.account_id, title, body, %{
@@ -100,4 +102,19 @@ defmodule OpalCore.Reminders.ReminderDeliveryWorker do
   rescue
     _ -> :ok
   end
+
+  # Keep the underlying reminder task intact in DB; only sanitize painted copy.
+  # W9 / isolation fixtures embed tokens like W9ISO_PRIVATE_<hex> that must never
+  # appear in consumer Center / push / AttentionCenter surfaces.
+  defp consumer_task_copy(task) when is_binary(task) do
+    cleaned =
+      task
+      |> String.replace(~r/\bW9ISO_(?:PRIVATE|SHARED)_[0-9a-fA-F]+\b/, "")
+      |> String.replace(~r/\s{2,}/, " ")
+      |> String.trim()
+
+    if cleaned == "", do: "Private reminder", else: cleaned
+  end
+
+  defp consumer_task_copy(_), do: "Private reminder"
 end

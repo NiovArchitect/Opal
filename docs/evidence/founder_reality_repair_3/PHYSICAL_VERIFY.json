@@ -1,6 +1,11 @@
 {
-  "at": "2026-10-14T05:15:58.616Z",
-  "tip": "ce00c150",
+  "at": "2026-10-14T05:41:45.642Z",
+  "tip": "84008a97",
+  "tip_full": "345a1860278ded90e86d6ca2e0ae0086e5891111",
+  "git_head_at_run": "345a1860",
+  "product_tip": "84008a97",
+  "PHYSICAL_VERIFY_PRODUCT_TIP": "84008a97",
+  "served_data_git_head": "84008a9",
   "path": "PHYSICAL_PATH",
   "vs_inject": "no seed-storage inject; URL opal_founder_seed=1 only",
   "base": "http://127.0.0.1:5173",
@@ -12,6 +17,14 @@
     "member_shell": {
       "ok": true,
       "detail": "visible"
+    },
+    "SERVED_PRODUCT_TIP": {
+      "ok": true,
+      "detail": {
+        "product_tip": "84008a97",
+        "served_data_git_head": "84008a9",
+        "served_data_git_head_full": "84008a97ec447a21ef5bd6f394e8c7be5a2cbd33"
+      }
     },
     "seed_enabled_via_url": {
       "ok": true,
@@ -64,5 +77,6 @@
     }
   },
   "overall": "GREEN_PHYSICAL_COMPOSE",
-  "FAKE_SUCCESS": 0
+  "FAKE_SUCCESS": 0,
+  "served_data_git_head_full": "84008a97ec447a21ef5bd6f394e8c7be5a2cbd33"
 }

@@ -1,0 +1,27 @@
+{
+  "cap": "CENTER_REAL_REQUEST_DEEPSEEK_TRACE",
+  "at": "2026-10-14T05:42:35.323Z",
+  "tip_at_run": "345a1860",
+  "product_tip": "84008a97",
+  "prompt": "What should I know about my week?",
+  "center_request_id": "195dbb55-ea9f-433e-a520-26f6a18a2a2e",
+  "opal_intent": "recommend",
+  "llm_provider": "deepseek",
+  "model": "deepseek-chat",
+  "llm_called": true,
+  "draft_source": "llm",
+  "response_id": "47e1c9c2-3062-488a-aa47-bcd21dd6b9b4",
+  "rendered_reply_excerpt": "I'd love to help, but I don't have your week's details in front of me yet — and I still don't know your budget for Saturday with Maya. Want to set that so I can suggest something that actually fits?",
+  "posts": 1,
+  "chat_visible": true,
+  "painted_has_week_ask": true,
+  "correlated": true,
+  "notes": [
+    "No API key or private prompt context printed",
+    "plan_create/confirm/modify/coordinate remain template-controlled",
+    "check_status/chat/recommend may draft via LlmRespond when ready"
+  ],
+  "FOUNDER_ACCEPTED": "NO",
+  "FREEZE": "HOLD",
+  "PASS2_UNLOCKED": "NO"
+}

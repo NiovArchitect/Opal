@@ -9,11 +9,14 @@ defmodule OpalCore.OpalResponse do
 
   require Logger
 
+  alias OpalCore.Intelligence.LlmAdapter
   alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.Memory
   alias OpalCore.Oracle
   alias OpalCore.Push.DeviceTokens
   alias OpalCore.TrustTiers
+
+  @draft_meta_key :opal_response_last_draft_meta
 
   @fallback "I'm having trouble thinking right now. Try again in a moment."
 
@@ -26,12 +29,25 @@ defmodule OpalCore.OpalResponse do
   def above_tier_text, do: @above_tier_msg
 
   @doc """
+  Non-secret draft metadata from the most recent `generate/2` in this process.
+
+  Keys: draft_source, llm_called, llm_provider, model. Never includes prompts or API keys.
+  """
+  def last_draft_meta do
+    case Process.get(@draft_meta_key) do
+      %{} = m -> m
+      _ -> %{}
+    end
+  end
+
+  @doc """
   Generate response text from an intent map and context map.
 
   Returns `{:ok, response_text}` | `{:error, reason}`.
   """
   def generate(intent_map, context_map)
       when is_map(intent_map) and is_map(context_map) do
+    Process.delete(@draft_meta_key)
     intent = intent_key(intent_map)
     entities = entities_map(intent_map)
     raw = raw_text(intent_map, context_map)
@@ -41,6 +57,7 @@ defmodule OpalCore.OpalResponse do
       cond do
         above_tier_request?(raw, tier) ->
           # Trust-tier gate — must stay deterministic.
+          put_draft_meta(template_meta())
           @above_tier_msg
 
         true ->
@@ -68,6 +85,7 @@ defmodule OpalCore.OpalResponse do
           # DeepSeek may still polish chat / recommend / status phrasing.
           case intent do
             i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate] ->
+              put_draft_meta(template_meta())
               template
 
             _ ->
@@ -126,8 +144,27 @@ defmodule OpalCore.OpalResponse do
         "Keep facts from the template floor (names, plans, memories). Warm Center voice. Max 3 short sentences."
     }
 
-    {text, _source} = LlmRespond.draft_or_template(draft_ctx)
+    {text, source} = LlmRespond.draft_or_template(draft_ctx)
+
+    put_draft_meta(%{
+      "draft_source" => source,
+      "llm_called" => source == "llm",
+      "llm_provider" => LlmAdapter.provider_name(),
+      "model" => LlmAdapter.model_name()
+    })
+
     text
+  end
+
+  defp put_draft_meta(meta) when is_map(meta), do: Process.put(@draft_meta_key, meta)
+
+  defp template_meta do
+    %{
+      "draft_source" => "template",
+      "llm_called" => false,
+      "llm_provider" => LlmAdapter.provider_name(),
+      "model" => LlmAdapter.model_name()
+    }
   end
 
   defp raw_text(intent_map, context) do

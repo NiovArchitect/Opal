@@ -23,6 +23,7 @@ Opal Center had two brains:
 | CENTER_NATURAL_LANGUAGE_PLAN | OpalIntent `plan_create` (plans?/let's do) | utterance + contacts | explicit | plan flow | SharedPlan | Graphs + thread | API plan_id | PROVEN |
 | CENTER_DEEPSEEK_READY | LlmAdapter.readiness | OPAL_LLM_* | server | readiness | — | evidence only | :ready | PROVEN |
 | CENTER_DEEPSEEK_RUNTIME_CALL | LlmAdapter.chat smoke | DeepSeek API | key present | completion | — | evidence only | pong | PROVEN |
+| CENTER_REAL_REQUEST_DEEPSEEK_TRACE | Center composer → OpalIntent → LlmRespond → DeepSeek | week ask | member | draft | opal_messages.metadata | Center chat | request↔reply ids | PROVEN |
 | CENTER_PLAN_DURABLE | template-only plan_create/confirm → OpalPlanConfirm | intent entities | action ceiling | create SharedPlan | Graph | Graphs, thread | API + unit | PROVEN |
 | FIT_TO_CENTER | `readFitSliceForOpal` → client_context → gated `:fit` | local Fit prefs | share gate | influence recommend | — | Center | unit 62+21 | PROVEN |
 | SPENDING_TO_CENTER | OpalContext.financial | FinancialProfiles | trusted+ | filter recommend | — | Center | unit | PROVEN |
@@ -50,8 +51,9 @@ CENTER_ONE_INTELLIGENCE_PATH     YES
 CENTER_NATURAL_LANGUAGE_PLAN     YES
 CENTER_DEEPSEEK_READY            YES (provider=deepseek model=deepseek-chat)
 CENTER_DEEPSEEK_RUNTIME_CALL     YES (content_len=4, no secret printed)
+CENTER_REAL_REQUEST_DEEPSEEK_TRACE YES (week ask → draft_source=llm)
 CENTER_PLAN_DURABLE              YES (SharedPlan id on Yes)
-FOUNDER_CHAT_WORLD_PHYSICAL_PATH YES (paintedRows=5 path B)
+FOUNDER_CHAT_WORLD_PHYSICAL_PATH YES (paintedRows=5 path B; tip 84008a97)
 CHAT_SEND_RECEIVE                YES
 PERSON_CHAT_OPENS_THREAD         YES (ID-stable)
 PERSON_PROFILE_COMPLETE          YES (privacy-aware)
@@ -93,8 +95,11 @@ FOUNDER_ACCEPTED                 NO (physical phone walk next)
 ## Evidence
 
 - `communication_social/CENTER_ONE_INTELLIGENCE_PATH.md`
+- `communication_social/CENTER_ONE_PATH_VERIFY.json` (TECH_LEAK recalculated)
+- `communication_social/CENTER_REAL_REQUEST_DEEPSEEK_TRACE.json`
 - `communication_social/DEEPSEEK_RUNTIME.json`
+- `communication_social/EVIDENCE_RECONCILIATION.md`
 - `communication_social/FIT_SPEND_TO_CENTER.md`
 - `communication_social/LIVE_JOURNEY_VERIFY.json`
-- `PHYSICAL_PATH_SEED_WORLD.md` / `PHYSICAL_VERIFY.json`
+- `PHYSICAL_PATH_SEED_WORLD.md` / `PHYSICAL_VERIFY.json` (`PHYSICAL_VERIFY_PRODUCT_TIP=84008a97`)
 - `PERSON_CHAT_ID_STABLE.md`

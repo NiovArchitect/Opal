@@ -105,6 +105,10 @@ async function main() {
     /Got it:/i.test(bodyText) ||
     /Maya/i.test(bodyText);
 
+  // Consumer-visible DOM only — isolation fixture tokens must not paint.
+  const leakMatches = bodyText.match(/\bW9ISO_(?:PRIVATE|SHARED)_[0-9a-fA-F]+\b/g) || [];
+  const techLeak = leakMatches.length;
+
   const caps = {
     CENTER_ONE_INTELLIGENCE_PATH:
       (chatVisible || phaseAfter === "chat") && nearbyCard === 0,
@@ -115,10 +119,13 @@ async function main() {
   };
 
   const report = {
-    overall: Object.values(caps).every(Boolean) ? "GREEN" : "RED",
+    overall: Object.values(caps).every(Boolean) && techLeak === 0 ? "GREEN" : "RED",
     caps,
     posts: posts.length,
     sampleBody: bodyText.slice(0, 400),
+    PRIVATE_REMINDER_TOKEN_VISIBLE: techLeak > 0,
+    TECH_LEAK: techLeak,
+    leak_tokens_sample: leakMatches.slice(0, 3),
     at: new Date().toISOString(),
   };
   fs.writeFileSync(OUT, JSON.stringify(report, null, 2));

@@ -20,7 +20,11 @@ const { chromium } = require("playwright");
 const BASE = (process.env.OPAL_BASE || "http://127.0.0.1:5173").replace(/\/$/, "");
 const outDir = path.join(__dirname, "shots_physical");
 fs.mkdirSync(outDir, { recursive: true });
-const TIP = execSync("git rev-parse --short HEAD", { cwd: root }).toString().trim();
+const TIP_FULL = execSync("git rev-parse HEAD", { cwd: root }).toString().trim();
+const TIP = execSync("git rev-parse --short=7 HEAD", { cwd: root }).toString().trim();
+/** Repair #4 product tip — PHYSICAL proof must stamp this, not a stale baseline. */
+const PRODUCT_TIP =
+  process.env.PHYSICAL_VERIFY_PRODUCT_TIP || "84008a97";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const mintPath =
@@ -35,7 +39,13 @@ try {
 
 const report = {
   at: new Date().toISOString(),
-  tip: TIP,
+  // Stamp product tip under proof (Repair #4), not whatever docs/CAPS HEAD is.
+  tip: PRODUCT_TIP,
+  tip_full: TIP_FULL,
+  git_head_at_run: TIP_FULL.slice(0, 8),
+  product_tip: PRODUCT_TIP,
+  PHYSICAL_VERIFY_PRODUCT_TIP: PRODUCT_TIP,
+  served_data_git_head: null,
   path: "PHYSICAL_PATH",
   vs_inject: "no seed-storage inject; URL opal_founder_seed=1 only",
   base: BASE,
@@ -121,6 +131,33 @@ if (!shell) {
   process.exit(1);
 }
 pass("member_shell", "visible");
+
+const served = await page.evaluate(() => ({
+  data_git_head:
+    document.documentElement.getAttribute("data-git-head") ||
+    document.querySelector("[data-git-head]")?.getAttribute("data-git-head") ||
+    null,
+  data_git_head_full:
+    document.documentElement.getAttribute("data-git-head-full") || null,
+}));
+report.served_data_git_head = served.data_git_head;
+report.served_data_git_head_full = served.data_git_head_full;
+const servedOk =
+  !!served.data_git_head &&
+  (served.data_git_head_full || "").startsWith(PRODUCT_TIP.slice(0, 7));
+if (servedOk) {
+  pass("SERVED_PRODUCT_TIP", {
+    product_tip: PRODUCT_TIP,
+    served_data_git_head: served.data_git_head,
+    served_data_git_head_full: served.data_git_head_full,
+  });
+} else {
+  fail("SERVED_PRODUCT_TIP", {
+    product_tip: PRODUCT_TIP,
+    served,
+    note: "Vite must be restarted on product tip so data-git-head matches",
+  });
+}
 
 const gate = await page.evaluate(() => {
   const pipe = window.__opalSeedPipeline || null;

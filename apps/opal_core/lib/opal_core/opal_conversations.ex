@@ -103,7 +103,7 @@ defmodule OpalCore.OpalConversations do
       true ->
         with :ok <- ensure_opal_rate_limit(user_id),
              {:ok, conversation} <- get_or_create_conversation(user_id) do
-          {context_snapshot, intent_snapshot, response_text} =
+          {context_snapshot, intent_snapshot, response_text, draft_meta} =
             assemble_classify_generate(user_id, trimmed, client_context)
 
           result =
@@ -136,6 +136,14 @@ defmodule OpalCore.OpalConversations do
                   end
                 end)
                 |> Map.put("generated_at", generated_at)
+                # Non-secret draft correlation (provider/model/source). Never prompts or keys.
+                |> then(fn m ->
+                  if is_map(draft_meta) and map_size(draft_meta) > 0 do
+                    Map.merge(m, draft_meta)
+                  else
+                    m
+                  end
+                end)
                 |> case do
                   m when map_size(m) == 0 -> nil
                   m -> m
@@ -210,11 +218,12 @@ defmodule OpalCore.OpalConversations do
           end
 
         {intent, text} = generate_with_side_effects(user_id, intent, ctx)
+        draft_meta = OpalResponse.last_draft_meta()
 
-        {ctx, intent, text}
+        {ctx, intent, text, draft_meta}
 
       _ ->
-        {nil, nil, OpalResponse.fallback_text()}
+        {nil, nil, OpalResponse.fallback_text(), %{}}
     end
   end
 
