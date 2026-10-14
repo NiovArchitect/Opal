@@ -1,0 +1,18 @@
+{
+  "chat_open": true,
+  "optionCards": 3,
+  "optionSet": 1,
+  "composer_dock_gap_px": 43,
+  "frost": {
+    "maskImage": "none",
+    "backdrop": "none"
+  },
+  "recent_bodies": [
+    "Got it: something soon with Chanelle. Want me to set this up?",
+    "Mexico City with Chanelle sounds like a great trip. What dates are you thinking, and is this a surprise or should I loop",
+    "Got it — Saturday night in Mexico City with Chanelle. Checking dinner options in Mexico City now.",
+    "I found a few strong options in Mexico City, CMX, Mexico: La Terraza del Conquistador, La Terraza Majestic, Primer Cuadr",
+    "Locked in La Terraza del Conquistador in Mexico City. It's on the same plan — I'll keep Graph and Chat aligned.",
+    "Locked in La Terraza del Conquistador in Mexico City with Chanelle. Same plan — Graph and Chat stay aligned."
+  ]
+}

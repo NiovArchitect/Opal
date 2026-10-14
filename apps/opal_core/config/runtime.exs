@@ -112,6 +112,11 @@ if k = System.get_env("GOOGLE_PLACES_API_KEY") || System.get_env("OPAL_GOOGLE_PL
   config :opal_core, :google_places_api_key, k
 end
 
+# Geoapify Places + Geocode (primary live places while Google Places New is billing-deferred).
+if k = System.get_env("GEOAPIFY_API_KEY") || System.get_env("OPAL_GEOAPIFY_API_KEY") do
+  config :opal_core, :geoapify_api_key, k
+end
+
 if k = System.get_env("TICKETMASTER_API_KEY") || System.get_env("OPAL_TICKETMASTER_API_KEY") do
   config :opal_core, :ticketmaster_api_key, k
 end

@@ -43,6 +43,15 @@ const LOAD_FAIL = "Couldn't load conversation";
 const MAX_BODY = 2000;
 const MAX_LINES = 5;
 
+type PlaceOption = {
+  id?: string;
+  name?: string;
+  address?: string;
+  search_geography?: string;
+  cuisine?: string | null;
+  provider?: string;
+};
+
 type LocalMsg = {
   key: string;
   id?: string;
@@ -50,6 +59,7 @@ type LocalMsg = {
   body: string;
   inserted_at?: string | null;
   status?: "pending" | "sent" | "failed";
+  metadata?: Record<string, unknown> | null;
 };
 
 type Props = {
@@ -180,7 +190,24 @@ function fromServer(m: OpalChatMessage): LocalMsg {
     body: m.body,
     inserted_at: m.inserted_at,
     status: "sent",
+    metadata: (m.metadata || null) as Record<string, unknown> | null,
   };
+}
+
+function optionsFromMeta(meta?: Record<string, unknown> | null): PlaceOption[] {
+  const raw = meta?.options;
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((o): o is Record<string, unknown> => !!o && typeof o === "object")
+    .map((o) => ({
+      id: typeof o.id === "string" ? o.id : undefined,
+      name: typeof o.name === "string" ? o.name : undefined,
+      address: typeof o.address === "string" ? o.address : undefined,
+      search_geography: typeof o.search_geography === "string" ? o.search_geography : undefined,
+      cuisine: typeof o.cuisine === "string" ? o.cuisine : null,
+      provider: typeof o.provider === "string" ? o.provider : undefined,
+    }))
+    .filter((o) => !!o.name);
 }
 
 /** Prefer prop; else product profile in localStorage (per-device voice preference). */
@@ -295,6 +322,30 @@ export function OpalCenterChat({
       stopSpeaking();
     };
   }, [load]);
+
+  // Poll while a provider action is queued/running so RESULTS_READY options appear.
+  useEffect(() => {
+    const waiting = messages.some(
+      (m) =>
+        m.role === "opal" &&
+        (m.metadata?.action_state === "queued" || m.metadata?.action_state === "running"),
+    );
+    if (!waiting) return;
+    const t = window.setInterval(() => {
+      void (async () => {
+        try {
+          const res = await getOpalConversation(bearer);
+          const list = Array.isArray(res.conversation?.messages)
+            ? res.conversation.messages.map(fromServer)
+            : [];
+          setMessages(list);
+        } catch {
+          /* keep prior messages */
+        }
+      })();
+    }, 1800);
+    return () => window.clearInterval(t);
+  }, [messages, bearer]);
 
   useEffect(() => {
     setVoiceModeState(getVoiceMode(resolveVoiceUserId(userId)));
@@ -733,6 +784,55 @@ export function OpalCenterChat({
                         <time dateTime={m.inserted_at}>{formatTime(m.inserted_at)}</time>
                       ) : null}
                     </div>
+                    {!isUser && m.metadata?.action_state === "queued" ? (
+                      <div
+                        className="opal-center-action-working"
+                        data-testid="opal-center-action-working"
+                        role="status"
+                      >
+                        <span className="opal-center-action-working-pulse" aria-hidden />
+                        Checking {String(m.metadata.search_geography || "places")}…
+                      </div>
+                    ) : null}
+                    {!isUser
+                      ? (() => {
+                          const opts = optionsFromMeta(m.metadata);
+                          if (opts.length === 0) return null;
+                          return (
+                            <div
+                              className="opal-center-option-set"
+                              data-testid="opal-center-option-set"
+                            >
+                              {opts.map((opt, idx) => (
+                                <button
+                                  key={opt.id || `${opt.name}-${idx}`}
+                                  type="button"
+                                  className="opal-center-option-card"
+                                  data-testid="opal-center-option-card"
+                                  onClick={() =>
+                                    void sendBody(
+                                      `Let's go with ${opt.name}${
+                                        opt.address ? ` (${opt.address})` : ""
+                                      }.`,
+                                    )
+                                  }
+                                >
+                                  <span className="opal-center-option-name">{opt.name}</span>
+                                  {opt.cuisine ? (
+                                    <span className="opal-center-option-meta">{opt.cuisine}</span>
+                                  ) : null}
+                                  {opt.address ? (
+                                    <span className="opal-center-option-addr">{opt.address}</span>
+                                  ) : null}
+                                </button>
+                              ))}
+                              {typeof m.metadata?.attribution === "string" ? (
+                                <p className="opal-center-option-attr">{m.metadata.attribution}</p>
+                              ) : null}
+                            </div>
+                          );
+                        })()
+                      : null}
                     {m.status === "failed" ? (
                       <button
                         type="button"

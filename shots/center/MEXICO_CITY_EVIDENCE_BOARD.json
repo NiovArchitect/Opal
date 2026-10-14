@@ -1,0 +1,55 @@
+{
+  "GEOAPIFY_GEOCODE": "GREEN",
+  "GEOAPIFY_PLACES": "GREEN",
+  "WHO_PRESERVED_ACROSS_DESTINATION_EXTRACTION": "YES",
+  "WHO_PRESERVED_ACROSS_PLACE_DISCOVERY": "YES",
+  "WHO_PRESERVED_ACROSS_PLAN_CONFIRM": "YES",
+  "DESTINATION_PRESERVED": "YES",
+  "PROVIDER_ACTION_JOB_CREATED": "YES",
+  "ACTION_STATUS_VISIBLE": "YES",
+  "RESTAURANT_RESULT_COUNT": 3,
+  "REAL_PROVIDER_RESULTS": true,
+  "SEARCH_CENTER_LAT_LON": [
+    19.432650566666666,
+    -99.13436436666666
+  ],
+  "SEARCH_GEOGRAPHY": "Mexico City, CMX, Mexico",
+  "SAN_DIEGO_BIAS": "NO",
+  "PLAN_ID_BEFORE": "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+  "PLAN_ID_AFTER": "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+  "PLAN_ID_STABLE": true,
+  "OPTION_SELECTED": "YES",
+  "GRAPH_PROJECTION": "YES",
+  "CHAT_PROJECTION": "YES",
+  "CENTER_PROJECTION": "YES",
+  "FAKE_RESULTS": 0,
+  "PROMISE_WITHOUT_JOB": 0,
+  "SECRET_EXPOSED": "NO",
+  "CAPABILITY_LOSS": 0,
+  "FOUNDER_ACCEPTED": "NO",
+  "FREEZE": "HOLD",
+  "PASS2_UNLOCKED": "NO",
+  "options": [
+    {
+      "name": "La Terraza del Conquistador",
+      "address": "La Terraza del Conquistador, Plaza de la Constituci\u00f3n 13, 06000 Mexico City, Mexico",
+      "provider": "geoapify",
+      "lat": 19.4325078,
+      "lon": -99.1343718
+    },
+    {
+      "name": "La Terraza Majestic",
+      "address": "La Terraza Majestic, Calle Francisco I. Madero 73, Roma, 06000 Mexico City, Mexico",
+      "provider": "geoapify",
+      "lat": 19.4330074,
+      "lon": -99.1343325
+    },
+    {
+      "name": "Primer Cuadro",
+      "address": "Primer Cuadro, Plaza de la Constituci\u00f3n 13, 06000 Mexico City, Mexico",
+      "provider": "geoapify",
+      "lat": 19.4324365,
+      "lon": -99.1343888
+    }
+  ]
+}

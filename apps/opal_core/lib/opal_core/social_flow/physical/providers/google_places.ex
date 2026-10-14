@@ -158,6 +158,8 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
     lng = PayloadSanitize.number(q["lng"] || q["longitude"])
 
     cond do
+      # Explicit coords only — never default to San Diego (destination searches
+      # like "restaurants in Mexico City" must not inherit home-metro bias).
       is_number(lat) and is_number(lng) ->
         Map.put(body, "locationBias", %{
           "circle" => %{
@@ -166,14 +168,18 @@ defmodule OpalCore.SocialFlow.Physical.Providers.GooglePlaces do
           }
         })
 
-      true ->
-        # Default bias: San Diego metro for Opal demos — not a geocode claim
+      q["local_discovery"] in [true, "true", 1, "1"] ->
+        # Opt-in local bias for current-area discovery only.
         Map.put(body, "locationBias", %{
           "circle" => %{
             "center" => %{"latitude" => 32.7157, "longitude" => -117.1611},
             "radius" => 40_000.0
           }
         })
+
+      true ->
+        # Destination-qualified textQuery without coords: no locationBias.
+        body
     end
   end
 

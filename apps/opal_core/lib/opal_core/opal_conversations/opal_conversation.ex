@@ -12,6 +12,7 @@ defmodule OpalCore.OpalConversations.OpalConversation do
   schema "opal_conversations" do
     field :user_id, :binary_id
     field :title, :string
+    field :planning_context, :map
 
     has_many :messages, OpalCore.OpalConversations.OpalMessage, foreign_key: :conversation_id
 
@@ -20,7 +21,7 @@ defmodule OpalCore.OpalConversations.OpalConversation do
 
   def changeset(conversation, attrs) do
     conversation
-    |> cast(attrs, [:user_id, :title])
+    |> cast(attrs, [:user_id, :title, :planning_context])
     |> validate_required([:user_id])
     |> unique_constraint(:user_id)
     |> update_change(:title, &trim_or_nil/1)

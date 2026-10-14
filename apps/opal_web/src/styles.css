@@ -16901,8 +16901,9 @@ html.opal-native-host {
   /* Pill sits on safe-area bottom; Center Opal protrudes independently above frost. */
   --opal-dock-lift: 0px;
   /* Soft fade zone above dock (illusion of emerging behind frost).
-   * Repair #3 raises default gap so Center/composer rest-state clears frost. */
-  --opal-dock-content-gap: 12px;
+   * --opal-center-dock-gap: premium breathing gap (keep INTERACTIVE_OVERLAP=0). */
+  --opal-center-dock-gap: 8px;
+  --opal-dock-content-gap: var(--opal-center-dock-gap, 8px);
   --opal-scroll-trail-pad: 10px;
   --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
@@ -20020,6 +20021,24 @@ button.alignment-choice:focus-visible,
   width: 100%;
   height: 100%;
 }
+.opal-center-chat::before,
+.opal-center-chat::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 4;
+}
+.opal-center-chat::before {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(5, 8, 22, 0.88), transparent);
+}
+.opal-center-chat::after {
+  bottom: 68px;
+  background: linear-gradient(to top, rgba(5, 8, 22, 0.55), transparent);
+}
 .opal-center-chat-header {
   flex: 0 0 auto;
   display: flex;
@@ -20027,6 +20046,8 @@ button.alignment-choice:focus-visible,
   justify-content: space-between;
   gap: 8px;
   padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 8px;
+  position: relative;
+  z-index: 5;
 }
 .opal-center-chat-presence {
   flex: 1 1 auto;
@@ -20092,6 +20113,21 @@ button.alignment-choice:focus-visible,
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 12px;
+  /* OpalScrollFrost — progressive fade; content passes beneath chrome. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
 }
 .opal-center-chat-empty {
   margin: auto 0;
@@ -20145,6 +20181,78 @@ button.alignment-choice:focus-visible,
   pointer-events: auto;
   position: relative;
   z-index: 6;
+}
+
+/* Center provider action — working + option cards */
+.opal-center-action-working {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(120, 180, 255, 0.1);
+  border: 1px solid rgba(160, 200, 255, 0.22);
+  color: rgba(230, 238, 255, 0.92);
+  font-size: 13px;
+  font-weight: 500;
+}
+.opal-center-action-working-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7ec8ff;
+  box-shadow: 0 0 10px rgba(126, 200, 255, 0.8);
+  animation: opal-action-pulse 1.2s ease-in-out infinite;
+}
+@keyframes opal-action-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.opal-center-option-set {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  width: min(100%, 320px);
+}
+.opal-center-option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(180, 210, 255, 0.22);
+  background: linear-gradient(165deg, rgba(28, 40, 72, 0.92), rgba(12, 18, 36, 0.96));
+  color: #eef3ff;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.opal-center-option-card:active {
+  transform: scale(0.99);
+  border-color: rgba(140, 200, 255, 0.45);
+}
+.opal-center-option-name {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.opal-center-option-meta {
+  font-size: 12px;
+  color: rgba(180, 210, 255, 0.78);
+  text-transform: capitalize;
+}
+.opal-center-option-addr {
+  font-size: 12px;
+  color: rgba(200, 210, 230, 0.62);
+  line-height: 1.35;
+}
+.opal-center-option-attr {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: rgba(180, 190, 210, 0.5);
 }
 .opal-center-chat-composer {
   flex: 0 0 auto;

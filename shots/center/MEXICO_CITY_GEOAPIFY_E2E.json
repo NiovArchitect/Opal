@@ -1,0 +1,137 @@
+{
+  "turns": [
+    {
+      "n": 1,
+      "user": "I want to make plans with Chanelle.",
+      "http": 201,
+      "body": "Got it: something soon with Chanelle. Want me to set this up?",
+      "action_state": null,
+      "job": null,
+      "plan_id": null,
+      "who": [
+        "Chanelle"
+      ],
+      "destination": null,
+      "when": null,
+      "promise_guard": null,
+      "search_geography": null
+    },
+    {
+      "n": 2,
+      "user": "I want to take her to Mexico City.",
+      "http": 201,
+      "body": "Mexico City with Chanelle sounds like a great trip. What dates are you thinking, and is this a surprise or should I loop her in?",
+      "action_state": null,
+      "job": null,
+      "plan_id": null,
+      "who": [
+        "Chanelle"
+      ],
+      "destination": "Mexico City",
+      "when": null,
+      "promise_guard": null,
+      "search_geography": null
+    },
+    {
+      "n": 3,
+      "user": "Let's do Saturday at a great restaurant.",
+      "http": 201,
+      "body": "Got it \u2014 Saturday night in Mexico City with Chanelle. Checking dinner options in Mexico City now.",
+      "action_state": "queued",
+      "job": "0522eb19-9589-477c-9464-32d4b2fdcd26",
+      "plan_id": "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+      "who": [
+        "Chanelle"
+      ],
+      "destination": "Mexico City",
+      "when": "Saturday",
+      "promise_guard": true,
+      "search_geography": "Mexico City"
+    }
+  ],
+  "SECRET_EXPOSED": "NO",
+  "FAKE_RESULTS": 0,
+  "PROMISE_WITHOUT_JOB": 0,
+  "RESULTS_READY": true,
+  "RESTAURANT_RESULT_COUNT": 3,
+  "options": [
+    {
+      "name": "La Terraza del Conquistador",
+      "address": "La Terraza del Conquistador, Plaza de la Constituci\u00f3n 13, 06000 Mexico City, Mexico",
+      "provider": "geoapify",
+      "lat": 19.4325078,
+      "lon": -99.1343718
+    },
+    {
+      "name": "La Terraza Majestic",
+      "address": "La Terraza Majestic, Calle Francisco I. Madero 73, Roma, 06000 Mexico City, Mexico",
+      "provider": "geoapify",
+      "lat": 19.4330074,
+      "lon": -99.1343325
+    },
+    {
+      "name": "Primer Cuadro",
+      "address": "Primer Cuadro, Plaza de la Constituci\u00f3n 13, 06000 Mexico City, Mexico",
+      "provider": "geoapify",
+      "lat": 19.4324365,
+      "lon": -99.1343888
+    }
+  ],
+  "SEARCH_GEOGRAPHY": "Mexico City, CMX, Mexico",
+  "REAL_PROVIDER_RESULTS": true,
+  "results_body": "I found a few strong options in Mexico City, CMX, Mexico: La Terraza del Conquistador, La Terraza Majestic, Primer Cuadro. Pick one and I'll attach it to the plan. Powered by Geoapify",
+  "SEARCH_CENTER_LAT_LON": [
+    19.432650566666666,
+    -99.13436436666666
+  ],
+  "SAN_DIEGO_BIAS": "NO",
+  "select": {
+    "http": 201,
+    "body": "Locked in La Terraza del Conquistador in Mexico City with Chanelle. Same plan \u2014 Graph and Chat stay aligned.",
+    "action_state": "option_selected",
+    "plan_id": "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+    "venue": "La Terraza del Conquistador",
+    "graph_projection": true,
+    "chat_projection": true,
+    "center_projection": true,
+    "option_selected": true,
+    "who": [
+      "Chanelle"
+    ]
+  },
+  "final_planning": {},
+  "PLAN_IDS": [
+    "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+    "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2"
+  ],
+  "PLAN_ID_BEFORE": "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+  "PLAN_ID_AFTER": "a36a4a2b-8e8e-419c-9427-860a4e3d6ce2",
+  "PLAN_ID_STABLE": true,
+  "WHO_VALUES": [
+    [
+      "Chanelle"
+    ],
+    [
+      "Chanelle"
+    ],
+    [
+      "Chanelle"
+    ]
+  ],
+  "WHO_PRESERVED_ACROSS_DESTINATION_EXTRACTION": "YES",
+  "WHO_PRESERVED_ACROSS_PLACE_DISCOVERY": "YES",
+  "WHO_PRESERVED_ACROSS_PLAN_CONFIRM": "YES",
+  "GEOAPIFY_GEOCODE": "GREEN",
+  "GEOAPIFY_PLACES": "GREEN",
+  "PROVIDER_ACTION_JOB_CREATED": "YES",
+  "ACTION_STATUS_VISIBLE": "YES",
+  "DESTINATION_PRESERVED": "YES",
+  "OPTION_SELECTED": "YES",
+  "GRAPH_PROJECTION": "YES",
+  "CHAT_PROJECTION": "YES",
+  "CENTER_PROJECTION": "YES",
+  "FOUNDER_ACCEPTED": "NO",
+  "FREEZE": "HOLD",
+  "PASS2_UNLOCKED": "NO",
+  "CAPABILITY_LOSS": 0
+}

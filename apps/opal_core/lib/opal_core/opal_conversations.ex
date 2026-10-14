@@ -103,7 +103,7 @@ defmodule OpalCore.OpalConversations do
       true ->
         with :ok <- ensure_opal_rate_limit(user_id),
              {:ok, conversation} <- get_or_create_conversation(user_id) do
-          {context_snapshot, intent_snapshot, response_text, draft_meta} =
+          {context_snapshot, intent_snapshot, response_text, draft_meta, action_meta} =
             assemble_classify_generate(user_id, trimmed, client_context)
 
           result =
@@ -140,6 +140,13 @@ defmodule OpalCore.OpalConversations do
                 |> then(fn m ->
                   if is_map(draft_meta) and map_size(draft_meta) > 0 do
                     Map.merge(m, draft_meta)
+                  else
+                    m
+                  end
+                end)
+                |> then(fn m ->
+                  if is_map(action_meta) and map_size(action_meta) > 0 do
+                    Map.merge(m, stringify_context(action_meta))
                   else
                     m
                   end
@@ -217,13 +224,23 @@ defmodule OpalCore.OpalConversations do
             _ -> nil
           end
 
-        {intent, text} = generate_with_side_effects(user_id, intent, ctx)
+        {intent, override, action_meta} =
+          OpalCore.Center.ActionOrchestrator.after_classify(user_id, trimmed, intent, ctx)
+
+        {intent, text} =
+          if is_binary(override) and String.trim(override) != "" do
+            # Promise language only after job creation (override includes action_job_id).
+            {intent, override}
+          else
+            generate_with_side_effects(user_id, intent, ctx)
+          end
+
         draft_meta = OpalResponse.last_draft_meta()
 
-        {ctx, intent, text, draft_meta}
+        {ctx, intent, text, draft_meta, action_meta}
 
       _ ->
-        {nil, nil, OpalResponse.fallback_text(), %{}}
+        {nil, nil, OpalResponse.fallback_text(), %{}, %{}}
     end
   end
 

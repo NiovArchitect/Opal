@@ -701,10 +701,13 @@ defmodule OpalCore.OpalIntent do
       remember note save suggest recommend invite tell ask message
       what when where who how what's how's status upcoming
       with for on at to from of in by and or but
-      dinner lunch brunch breakfast coffee drinks restaurant
+      dinner lunch brunch breakfast coffee drinks restaurant restaurants
       zoom meet teams facetime virtual online video call meeting
       something anything everything nothing
       hey hello hi please thanks thank
+      mexico city diego san vista california cdmx
+      take bring go visit travel trip great best top
+      let's lets want make plans place places destination
     ))
   end
 
