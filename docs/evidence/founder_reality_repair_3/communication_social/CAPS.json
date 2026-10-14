@@ -39,6 +39,13 @@
     "TECH_LEAK": 0,
     "FAKE_SUCCESS": 0,
     "DEAD_ACTIONS": 0,
-    "CAPABILITY_LOSS": 0
-  }
+    "CAPABILITY_LOSS": 0,
+    "CENTER_PHYSICAL_P0": "YES",
+    "CENTER_COMPOSER_PREFOCUS": "YES"
+  },
+  "CENTER_PHONE_USABLE": "YES",
+  "CENTER_PHYSICAL_GEOMETRY": "PROVEN",
+  "CENTER_PREFocus_HITTABLE": "PROVEN",
+  "DOCK_INTERCEPTS_CENTER": "NO",
+  "notes_physical_p0": "inset:auto self-cancel fixed; elementFromPoint + real send/follow-up GREEN"
 }

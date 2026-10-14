@@ -9022,20 +9022,18 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 .tab-opal-float { transform: none; }
 /* P0-05.11  -  Global Opal is a FULL-SCREEN destination (618:902), not a modal over Graphs.
  * Phone/native: fill the real viewport (not a frozen 390×844 card). Desktop ≥520 keeps stage.
- * Founder Reality Repair #3 — permanent dock exclusion BEFORE focus so Center composer is hittable.
- * Rest-state geometry owns clearance; :focus-within only handles keyboard hide. */
+ * FOUNDER PHONE P0 — ONE authoritative inset. Never follow with `inset: auto` (that shorthand
+ * resets top/right/bottom/left and cancels dock exclusion → composer under dock → stolen taps).
+ * Rest-state geometry owns clearance; :focus-within only handles keyboard hide AFTER focus. */
 .opal-ambient-overlay,
 .opal-ambient-destination {
   position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: var(--opal-primary-viewport-inset, calc(74px + env(safe-area-inset-bottom, 0px) + 12px)) !important;
+  /* top | right | bottom | left — bottom stops strictly above persistent dock. */
+  inset: 0 0 var(--opal-primary-viewport-inset, calc(74px + env(safe-area-inset-bottom, 0px) + 12px)) 0 !important;
   width: 100% !important;
   height: auto !important;
   max-width: none !important;
   max-height: none !important;
-  inset: auto !important;
   z-index: 10040 !important;
   background: #050816;
   overflow: hidden;
@@ -9046,14 +9044,15 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 @media (min-width: 520px) {
   .opal-ambient-overlay,
   .opal-ambient-destination {
+    /* Desktop card: reset first, then set edges AFTER (never leave inset:auto last). */
+    inset: auto !important;
     left: 50% !important;
+    top: 50% !important;
     right: auto !important;
     bottom: auto !important;
     width: 390px !important;
     height: min(844px, 100dvh) !important;
     max-width: 390px !important;
-    inset: auto !important;
-    top: 50% !important;
     transform: translate(-50%, -50%) !important;
   }
 }
@@ -17466,10 +17465,8 @@ html.opal-native-host .opal-ambient-destination,
 html.opal-native-host .opal-ambient-overlay {
   width: 100% !important;
   max-width: none !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: 0 !important;
-  bottom: var(--opal-primary-viewport-inset) !important;
+  /* Same single-inset law as base — do not reintroduce longhands + inset:auto. */
+  inset: 0 0 var(--opal-primary-viewport-inset) 0 !important;
   height: auto !important;
   max-height: none !important;
   transform: none !important;
@@ -20132,14 +20129,22 @@ button.alignment-choice:focus-visible,
   display: block;
 }
 .opal-center-chat-send-error {
+  /* SEND_FAILURE_VISIBLE — stay in reachable chat region above dock, not console-only. */
   border: 0;
-  background: transparent;
+  background: rgba(255, 138, 138, 0.12);
   color: #ff8a8a;
   font: inherit;
-  font-size: 12px;
-  padding: 4px 2px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 138, 138, 0.28);
   cursor: pointer;
   text-align: left;
+  pointer-events: auto;
+  position: relative;
+  z-index: 6;
 }
 .opal-center-chat-composer {
   flex: 0 0 auto;

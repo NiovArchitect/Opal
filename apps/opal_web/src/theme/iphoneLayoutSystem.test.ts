@@ -122,9 +122,21 @@ describe("iPhone layout system (native host · 1114:2 compact)", () => {
 
   it("Center ambient stage clips to primary viewport inset (composer clears dock)", () => {
     expect(native).toMatch(
-      /html\.opal-native-host \.opal-ambient-destination[\s\S]*?bottom:\s*var\(--opal-primary-viewport-inset\)/,
+      /html\.opal-native-host \.opal-ambient-destination[\s\S]*?inset:\s*0\s+0\s+var\(--opal-primary-viewport-inset\)\s+0/,
     );
     expect(native).toMatch(/CENTER_COMPOSER_OVERLAPS_DOCK = 0/);
+  });
+
+  it("mobile Center ambient never cancels dock exclusion with trailing inset:auto", () => {
+    // Extract base (non-media) .opal-ambient-destination block before @media.
+    const base = css.match(
+      /\.opal-ambient-overlay,\s*\n\.opal-ambient-destination \{[\s\S]*?\n\}/,
+    )?.[0];
+    expect(base).toBeTruthy();
+    expect(base).toMatch(
+      /inset:\s*0\s+0\s+var\(--opal-primary-viewport-inset/,
+    );
+    expect(base).not.toMatch(/inset:\s*auto/);
   });
 
   it("does not reintroduce 390 letterbox card on native host", () => {

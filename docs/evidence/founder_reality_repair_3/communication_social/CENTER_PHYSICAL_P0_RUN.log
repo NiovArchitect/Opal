@@ -1,0 +1,360 @@
+run 390x844
+run 393x852
+run 414x896
+{
+  "cap": "CENTER_PHYSICAL_P0",
+  "at": "2026-10-14T06:43:42.835Z",
+  "tip": "0b0e0496",
+  "tip_full": "0b0e04961035b11d72fe86d96baafe1dc90862dd",
+  "engine": "chromium",
+  "runs": [
+    {
+      "viewport": "390x844",
+      "geometry": {
+        "CENTER_CONTAINER_BOTTOM": 758,
+        "DOCK_TOP": 770,
+        "GAP_BETWEEN_CENTER_AND_DOCK": 12,
+        "COMPOSER_TOP": 688,
+        "COMPOSER_BOTTOM": 742,
+        "SEND_RECT": {
+          "top": 695,
+          "bottom": 735,
+          "left": 325,
+          "right": 365,
+          "width": 40,
+          "height": 40
+        },
+        "INPUT_RECT": {
+          "top": 699,
+          "bottom": 735,
+          "left": 73,
+          "right": 317,
+          "width": 244,
+          "height": 36
+        },
+        "destStyle": {
+          "top": "0px",
+          "right": "0px",
+          "bottom": "86px",
+          "left": "0px"
+        },
+        "INPUT_TOPMOST_HIT": {
+          "x": 195,
+          "y": 717,
+          "testid": "opal-center-chat-input",
+          "tag": "TEXTAREA",
+          "owned": true,
+          "dockish": false
+        },
+        "SEND_TOPMOST_HIT": {
+          "x": 345,
+          "y": 715,
+          "testid": null,
+          "tag": "path",
+          "owned": true,
+          "dockish": false
+        },
+        "COMPOSER_BOTTOM_LT_DOCK_TOP": true,
+        "INTERACTIVE_OVERLAP": 0,
+        "DOCK_INTERCEPTS_INPUT": false,
+        "DOCK_INTERCEPTS_SEND": false
+      },
+      "geometryOk": true,
+      "sendEnabled": true,
+      "CENTER_SEND_CLICK_COUNT": 2,
+      "CENTER_POST_COUNT": 2,
+      "CENTER_FOLLOWUP_POSTS": 1,
+      "CENTER_REQUEST_ID": "e02be1ff-b893-4bf4-8b7a-45dcea9e261b",
+      "CENTER_INTENT": "recommend",
+      "CENTER_RESPONSE_ID": "6535e4d0-4748-4791-97bb-915616dd8ab1",
+      "CENTER_USER_BUBBLE_VISIBLE": true,
+      "CENTER_OPAL_BUBBLE_VISIBLE": true,
+      "after": {
+        "userCount": 27,
+        "opalCount": 27,
+        "hasPlanAsk": true,
+        "hasWeekAsk": true,
+        "opalBodies": [
+          "Here's what's coming up: Maya's birthday in 6 days — she'd love a rematch of Saturday opens like last time. Friday dinner with Maya is still on too, and I'm sti",
+          "Happy to plan something — is this the weekend hang with Chanelle, or something else? Give me a day and what you're in the mood for, and I'll take it from there.",
+          "I don't see Oak on your calendar. Want to create it?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "Got it — dinner with Chanelle this weekend. Which night works better, Friday or Saturday?",
+          "No rush — want me to just pencil in Saturday with Chanelle and you can tweak it later?",
+          "Saturday's still open, so I can pencil in dinner with Chanelle then. Want me to lock it in, or keep it loose for now?",
+          "Saturday's still open — want me to lock in dinner with Chanelle then, or were you thinking something other than dinner?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "Saturday's open, so I can set dinner with Chanelle then. Want a specific time, or should I just hold the evening?",
+          "Hey Walk. Still holding Saturday evening for dinner with Chanelle — want me to lock in a time, or just keep it open for now?",
+          "Saturday evening's still open for you and Chanelle. Want me to lock in a time, or keep it loose and just hold the evening?",
+          "Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?",
+          "Saturday evening's still open for you and Chanelle. Want me to pick a time and lock it in, or keep it loose?",
+          "Got it — Saturday with Maya. What time works, and any spot in mind, or should I suggest something?",
+          "Saturday dinner with Maya it is. What time were you thinking, and should I pick a spot or do you have one in mind?",
+          "Saturday dinner with Maya is locked in. Want me to pick a time and a spot, or are you two handling that?",
+          "Got it: dinner Saturday with Maya. Want me to set this up?",
+          "Done. dinner Saturday with Maya is set up. It's on your Graph.",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "I'd love to help, but I don't have your week's details in front of me yet — and I still don't know your budget for Saturday with Maya. Want to set that so I can",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Happy to lock in Saturday with Maya — just tell me your budget so I can suggest something that actually fits."
+        ],
+        "composerReachable": true,
+        "inputStillThere": true
+      },
+      "served": {
+        "data_git_head": "84008a9",
+        "data_git_head_full": "84008a97ec447a21ef5bd6f394e8c7be5a2cbd33",
+        "native": true
+      },
+      "sendOk": true,
+      "responseStatuses": [
+        201,
+        201
+      ]
+    },
+    {
+      "viewport": "393x852",
+      "geometry": {
+        "CENTER_CONTAINER_BOTTOM": 766,
+        "DOCK_TOP": 778,
+        "GAP_BETWEEN_CENTER_AND_DOCK": 12,
+        "COMPOSER_TOP": 696,
+        "COMPOSER_BOTTOM": 750,
+        "SEND_RECT": {
+          "top": 703,
+          "bottom": 743,
+          "left": 326.5,
+          "right": 366.5,
+          "width": 40,
+          "height": 40
+        },
+        "INPUT_RECT": {
+          "top": 707,
+          "bottom": 743,
+          "left": 74.5,
+          "right": 318.5,
+          "width": 244,
+          "height": 36
+        },
+        "destStyle": {
+          "top": "0px",
+          "right": "0px",
+          "bottom": "86px",
+          "left": "0px"
+        },
+        "INPUT_TOPMOST_HIT": {
+          "x": 196.5,
+          "y": 725,
+          "testid": "opal-center-chat-input",
+          "tag": "TEXTAREA",
+          "owned": true,
+          "dockish": false
+        },
+        "SEND_TOPMOST_HIT": {
+          "x": 346.5,
+          "y": 723,
+          "testid": null,
+          "tag": "path",
+          "owned": true,
+          "dockish": false
+        },
+        "COMPOSER_BOTTOM_LT_DOCK_TOP": true,
+        "INTERACTIVE_OVERLAP": 0,
+        "DOCK_INTERCEPTS_INPUT": false,
+        "DOCK_INTERCEPTS_SEND": false
+      },
+      "geometryOk": true,
+      "sendEnabled": true,
+      "CENTER_SEND_CLICK_COUNT": 2,
+      "CENTER_POST_COUNT": 2,
+      "CENTER_FOLLOWUP_POSTS": 1,
+      "CENTER_REQUEST_ID": "abc7779f-aae1-491f-b086-27f708d35345",
+      "CENTER_INTENT": "recommend",
+      "CENTER_RESPONSE_ID": "ca221d02-9c39-47e0-a9cd-56442401639a",
+      "CENTER_USER_BUBBLE_VISIBLE": true,
+      "CENTER_OPAL_BUBBLE_VISIBLE": true,
+      "after": {
+        "userCount": 27,
+        "opalCount": 27,
+        "hasPlanAsk": true,
+        "hasWeekAsk": true,
+        "opalBodies": [
+          "I don't see Oak on your calendar. Want to create it?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "Got it — dinner with Chanelle this weekend. Which night works better, Friday or Saturday?",
+          "No rush — want me to just pencil in Saturday with Chanelle and you can tweak it later?",
+          "Saturday's still open, so I can pencil in dinner with Chanelle then. Want me to lock it in, or keep it loose for now?",
+          "Saturday's still open — want me to lock in dinner with Chanelle then, or were you thinking something other than dinner?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "Saturday's open, so I can set dinner with Chanelle then. Want a specific time, or should I just hold the evening?",
+          "Hey Walk. Still holding Saturday evening for dinner with Chanelle — want me to lock in a time, or just keep it open for now?",
+          "Saturday evening's still open for you and Chanelle. Want me to lock in a time, or keep it loose and just hold the evening?",
+          "Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?",
+          "Saturday evening's still open for you and Chanelle. Want me to pick a time and lock it in, or keep it loose?",
+          "Got it — Saturday with Maya. What time works, and any spot in mind, or should I suggest something?",
+          "Saturday dinner with Maya it is. What time were you thinking, and should I pick a spot or do you have one in mind?",
+          "Saturday dinner with Maya is locked in. Want me to pick a time and a spot, or are you two handling that?",
+          "Got it: dinner Saturday with Maya. Want me to set this up?",
+          "Done. dinner Saturday with Maya is set up. It's on your Graph.",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "I'd love to help, but I don't have your week's details in front of me yet — and I still don't know your budget for Saturday with Maya. Want to set that so I can",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Happy to lock in Saturday with Maya — just tell me your budget so I can suggest something that actually fits.",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "I can't see your week's details yet, so I don't want to guess. Before I plan Saturday with Maya, what's your budget so my suggestions actually fit?"
+        ],
+        "composerReachable": true,
+        "inputStillThere": true
+      },
+      "served": {
+        "data_git_head": "84008a9",
+        "data_git_head_full": "84008a97ec447a21ef5bd6f394e8c7be5a2cbd33",
+        "native": true
+      },
+      "sendOk": true,
+      "responseStatuses": [
+        201,
+        201
+      ]
+    },
+    {
+      "viewport": "414x896",
+      "geometry": {
+        "CENTER_CONTAINER_BOTTOM": 810,
+        "DOCK_TOP": 822,
+        "GAP_BETWEEN_CENTER_AND_DOCK": 12,
+        "COMPOSER_TOP": 740,
+        "COMPOSER_BOTTOM": 794,
+        "SEND_RECT": {
+          "top": 747,
+          "bottom": 787,
+          "left": 337,
+          "right": 377,
+          "width": 40,
+          "height": 40
+        },
+        "INPUT_RECT": {
+          "top": 751,
+          "bottom": 787,
+          "left": 85,
+          "right": 329,
+          "width": 244,
+          "height": 36
+        },
+        "destStyle": {
+          "top": "0px",
+          "right": "0px",
+          "bottom": "86px",
+          "left": "0px"
+        },
+        "INPUT_TOPMOST_HIT": {
+          "x": 207,
+          "y": 769,
+          "testid": "opal-center-chat-input",
+          "tag": "TEXTAREA",
+          "owned": true,
+          "dockish": false
+        },
+        "SEND_TOPMOST_HIT": {
+          "x": 357,
+          "y": 767,
+          "testid": null,
+          "tag": "path",
+          "owned": true,
+          "dockish": false
+        },
+        "COMPOSER_BOTTOM_LT_DOCK_TOP": true,
+        "INTERACTIVE_OVERLAP": 0,
+        "DOCK_INTERCEPTS_INPUT": false,
+        "DOCK_INTERCEPTS_SEND": false
+      },
+      "geometryOk": true,
+      "sendEnabled": true,
+      "CENTER_SEND_CLICK_COUNT": 2,
+      "CENTER_POST_COUNT": 2,
+      "CENTER_FOLLOWUP_POSTS": 1,
+      "CENTER_REQUEST_ID": "2e6e2ca3-c343-4cac-a216-746804a34eac",
+      "CENTER_INTENT": "recommend",
+      "CENTER_RESPONSE_ID": "254ed44d-8ad7-48fe-9799-825684b109d5",
+      "CENTER_USER_BUBBLE_VISIBLE": true,
+      "CENTER_OPAL_BUBBLE_VISIBLE": true,
+      "after": {
+        "userCount": 27,
+        "opalCount": 27,
+        "hasPlanAsk": true,
+        "hasWeekAsk": true,
+        "opalBodies": [
+          "Got it — dinner with Chanelle this weekend. Which night works better, Friday or Saturday?",
+          "No rush — want me to just pencil in Saturday with Chanelle and you can tweak it later?",
+          "Saturday's still open, so I can pencil in dinner with Chanelle then. Want me to lock it in, or keep it loose for now?",
+          "Saturday's still open — want me to lock in dinner with Chanelle then, or were you thinking something other than dinner?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "I don't see Oak on your calendar. Want to create it?",
+          "Saturday's open, so I can set dinner with Chanelle then. Want a specific time, or should I just hold the evening?",
+          "Hey Walk. Still holding Saturday evening for dinner with Chanelle — want me to lock in a time, or just keep it open for now?",
+          "Saturday evening's still open for you and Chanelle. Want me to lock in a time, or keep it loose and just hold the evening?",
+          "Saturday evening's still free for you and Chanelle — want me to lock in a time, or just keep it open for now?",
+          "Saturday evening's still open for you and Chanelle. Want me to pick a time and lock it in, or keep it loose?",
+          "Got it — Saturday with Maya. What time works, and any spot in mind, or should I suggest something?",
+          "Saturday dinner with Maya it is. What time were you thinking, and should I pick a spot or do you have one in mind?",
+          "Saturday dinner with Maya is locked in. Want me to pick a time and a spot, or are you two handling that?",
+          "Got it: dinner Saturday with Maya. Want me to set this up?",
+          "Done. dinner Saturday with Maya is set up. It's on your Graph.",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "I'd love to help, but I don't have your week's details in front of me yet — and I still don't know your budget for Saturday with Maya. Want to set that so I can",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "Happy to lock in Saturday with Maya — just tell me your budget so I can suggest something that actually fits.",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "I can't see your week's details yet, so I don't want to guess. Before I plan Saturday with Maya, what's your budget so my suggestions actually fit?",
+          "Got it: something Saturday with Maya. Want me to set this up?",
+          "I still don't know your budget for Saturday with Maya, and I'd rather not guess. Give me a rough range and I'll find something that fits."
+        ],
+        "composerReachable": true,
+        "inputStillThere": true
+      },
+      "served": {
+        "data_git_head": "84008a9",
+        "data_git_head_full": "84008a97ec447a21ef5bd6f394e8c7be5a2cbd33",
+        "native": true
+      },
+      "sendOk": true,
+      "responseStatuses": [
+        201,
+        201
+      ]
+    }
+  ],
+  "CENTER_PHYSICAL_GEOMETRY": "PROVEN",
+  "CENTER_PREFocus_HITTABLE": "PROVEN",
+  "CENTER_SEND": "PROVEN",
+  "CENTER_FOLLOWUP_SEND": "PROVEN",
+  "CENTER_RESPONSE": "PROVEN",
+  "CENTER_PLAN_REQUEST": "PROVEN",
+  "CENTER_DEEPSEEK_CONVERSATION": "PROVEN",
+  "DOCK_FIXED": "PROVEN",
+  "DOCK_INTERCEPTS_CENTER": "NO",
+  "SERVED_BUILD_CURRENT": "NO",
+  "HEAD_MATCHES_SERVED_PRODUCT": false,
+  "served": {
+    "data_git_head": "84008a9",
+    "data_git_head_full": "84008a97ec447a21ef5bd6f394e8c7be5a2cbd33",
+    "native": true
+  },
+  "FOUNDER_ACCEPTED": "NO",
+  "FREEZE": "HOLD",
+  "PASS2_UNLOCKED": "NO",
+  "CENTER_PHONE_USABLE": "YES",
+  "overall": "GREEN"
+}
