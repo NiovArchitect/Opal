@@ -392,12 +392,40 @@ Tip after narrow P0: see `git log -1`. Canonical evidence:
 - `shots/center/PERSON_AGNOSTIC_BEHAVIOR_E2E.json` (River/Quinn)
 - `FOUNDER_ACCEPTED=NO` · `FREEZE=HOLD` · `PASS2_UNLOCKED=NO`
 
+## Pre-walk semantic integrity (2026-10-14) — IMPLEMENTED/PROVEN NOW
+
+Narrow Center patch only. Runtime: `OpalCore.Center.ResponseFactContract` + `DependencyPlanner.travel_class` + paint/LLM wiring.
+
+```text
+LLM_INVENTED_SURPRISE = 0
+QUESTIONS_BATCHED_GLOBAL = 0
+LOCAL_SOLO_FALSE_TRAVEL_DEPENDENCY = 0
+STATE_LANGUAGE_CONTRACT = PROVEN
+SOLO_FLOW = PROVEN
+ONE_TO_ONE_FLOW = PROVEN
+PERSON_AGNOSTIC_BEHAVIOR_TEST = YES
+PLAN_ID_STABLE_AFTER_CORRECTION = PROVEN
+FAKE_SUCCESS = 0 · DEAD_ACTIONS = 0 · CAPABILITY_LOSS = 0
+FOUNDER_ACCEPTED = NO · FREEZE = HOLD · PASS2_UNLOCKED = NO
+GROUP_FLOW / HOME_PROJECTION / CALL_LOG_PROJECTION = STILL_MISSING_E2E
+```
+
+Authority: `docs/authority/OPAL_STATE_LANGUAGE_CONTRACT.md` · Non-regression: `docs/authority/OPAL_NON_REGRESSION_PRESERVE_EXTEND_COMPOUND.md`
+
 ## Additive authority (2026-10-14) — calendar / question economy / cohort
 
 - `docs/authority/OPAL_QUESTION_ECONOMY_AND_ASSUMPTION_LAW.md` — minimum friction at sufficient confidence; wires `docs/architecture/MINIMUM_QUESTION_ENGINE.md`
 - `docs/authority/OPAL_CALENDAR_WORK_AND_SURPRISE_ACTION_MODEL.md` — USE≠DISCLOSE; surprise visibility; work/PTO ladder; **Graphing ≠ publishing**
 - `docs/authority/OPAL_COHORT_LEARNING_LAW.md` — ARCHITECTURE ONLY; `COHORT_IMPLEMENTATION_ACTIVE = NO`; Pass 2 locked
-- Center runtime: `OpalCore.Center.{PlanContextPatch,DependencyPlanner,QuestionEconomy,SurprisePlanning,AvailabilityUse,ScheduleFeasibility,IntelligenceOrchestrator}`
+- Center runtime: `OpalCore.Center.{PlanContextPatch,DependencyPlanner,QuestionEconomy,SurprisePlanning,AvailabilityUse,ScheduleFeasibility,IntelligenceOrchestrator,ResponseFactContract}`
 - Evidence: `shots/center/ORCHESTRATION_CAPABILITY_BOARD.json` · `ORCHESTRATION_E2E.json` · `HARDCODED_PERSON_BEHAVIOR_GUARD.json`
 - Status: `FREEZE=HOLD` · `PASS2_UNLOCKED=NO` · `FOUNDER_ACCEPTED=NO` · consumer phone walk PENDING
 - Next after phone PASS (locked order): composer spacing + frosted scroll edges → real temporal Center graph — no unrelated feature branch
+
+## AUTHORITY / NEXT TRANCHE only (not PROVEN this tip)
+
+Doctrine: **PRESERVE → EXTEND → COMPOUND**. Docs do **not** authorize replacement of GREEN paths.
+
+- `docs/authority/OPAL_PERSONAL_FEED_PROJECTION_LAW.md` — PERSONAL ≠ PUBLISHED; Home personal moments; `HOME_PROJECTION=STILL_MISSING_E2E`
+- `docs/authority/OPAL_TEMPORAL_FOLLOW_THROUGH_AND_CONTEXTUAL_VALUE.md` — dynamic LeaveBy / ETA; Contextual Value separate from Personal Moment; engagement optimization forbidden
+- Do **not** mark Personal Feed / LeaveBy / Contextual Value GREEN because these authority files exist

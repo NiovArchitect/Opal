@@ -136,18 +136,31 @@ defmodule OpalCore.OpalResponse do
     solo? = solo_turn?(ents, raw)
     participants = if solo?, do: [], else: ents[:who] || ents["who"] || ents[:participants]
 
+    surprise? =
+      ents[:surprise] == true or ents["surprise"] == true or
+        ents[:visibility_mode] == "surprise" or ents["visibility_mode"] == "surprise"
+
     instruction =
       cond do
         solo? ->
           "Keep facts from the template floor. Warm Center voice. Max 3 short sentences. " <>
             "This is a SOLO request — participant_set is the current user only. " <>
             "Do NOT mention, invite, or ask about any other person (including contacts from memory). " <>
-            "Ask at most ONE narrow question if truly required. Prefer useful options over interrogation. " <>
-            "Empty budget or preference fields must NOT block a helpful reply."
+            "Ask at most ONE narrow question if truly required — never two questions in one turn. " <>
+            "Prefer useful options over interrogation. Empty budget must NOT block a helpful reply. " <>
+            "Do NOT call this a surprise unless surprise=true in entities."
+
+        surprise? ->
+          "Keep facts from the template floor. Warm Center voice. Max 3 short sentences. " <>
+            "Visibility is surprise — do not reveal the plan to the invitee. " <>
+            "Ask at most ONE narrow question if needed."
 
         true ->
           "Keep facts from the template floor (names, plans, memories). Warm Center voice. Max 3 short sentences. " <>
-            "Ask at most ONE narrow question if needed. Never invent that someone is joining."
+            "Ask at most ONE narrow question if needed — never two questions joined by 'and'. " <>
+            "Never invent that someone is joining. " <>
+            "Do NOT say 'surprise' or 'since it's a surprise' unless entities.surprise=true or visibility_mode=surprise. " <>
+            "If visibility is unknown and not consequential yet, stay neutral — do not ask about surprise."
       end
 
     draft_ctx = %{

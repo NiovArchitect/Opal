@@ -3,10 +3,15 @@
   "SOLO_UNREQUESTED_PERSON_INJECTION": 0,
   "SOLO_REAL_PROVIDER_RESULTS": 3,
   "QUESTIONS_BATCHED": 0,
+  "QUESTIONS_BATCHED_GLOBAL": 0,
   "OPTIONAL_UNKNOWN_BLOCKS_RESULT": "NO",
   "DUPLICATE_DAYPART_COPY": 0,
-  "PLAN_ID_BEFORE_CORRECTION": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
-  "PLAN_ID_AFTER_CORRECTION": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+  "LLM_INVENTED_SURPRISE": 0,
+  "LOCAL_SOLO_FALSE_TRAVEL_DEPENDENCY": 0,
+  "STATE_LANGUAGE_CONTRACT": "PROVEN",
+  "ONE_TO_ONE_FLOW": "PROVEN",
+  "PLAN_ID_BEFORE_CORRECTION": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
+  "PLAN_ID_AFTER_CORRECTION": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
   "WHEN_BEFORE": "Saturday",
   "WHEN_AFTER": "Sunday",
   "SLOTS_CHANGED": [
@@ -31,13 +36,14 @@
   "HARDCODED_PERSON_BEHAVIOR": 0,
   "CANCEL_VENUE_KEEP_TRIP": "PROVEN",
   "CONSUMER_WORKING_STATE": "PROVEN",
+  "MX_TRAVEL_DEPENDENCY_ALLOWED": "YES",
   "e2e": {
     "solo": {
       "http": 201,
       "body": "Got it \u2014 tonight in San Diego. Checking San Diego\u2026 I'll aim for around 7:30 unless you want later.",
       "action_state": "queued",
-      "job": "43e0b16d-1903-4c7e-820c-131ee32e8657",
-      "plan_id": "d2212fdb-9a39-49db-80c6-bb206447db1c",
+      "job": "f639e61c-5d9a-45a9-a1cb-6336f85cac1d",
+      "plan_id": "16817640-81e6-4844-b5ae-7c4c4c90fb8b",
       "who": null,
       "dest": "San Diego",
       "when": "tonight",
@@ -49,9 +55,13 @@
       "before_context": null,
       "after_context": null,
       "patch": null,
-      "next_dependency": "travel",
+      "next_dependency": null,
+      "fact_contract_repairs": null,
       "fixture_names_in_body": [],
       "question_marks": 0,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
       "duplicate_daypart": false,
       "eng_leak": false
     },
@@ -69,10 +79,10 @@
     },
     "solo_select": {
       "http": 201,
-      "body": "Perfect \u2014 I added Al Teatro Panini Grill to tonight in San Diego. Travel isn't attached yet. Want me to check that next?",
+      "body": "Perfect \u2014 I added Al Teatro Panini Grill to tonight in San Diego.",
       "action_state": "option_selected",
       "job": null,
-      "plan_id": "d2212fdb-9a39-49db-80c6-bb206447db1c",
+      "plan_id": "16817640-81e6-4844-b5ae-7c4c4c90fb8b",
       "who": null,
       "dest": "San Diego",
       "when": "tonight",
@@ -84,9 +94,106 @@
       "before_context": null,
       "after_context": null,
       "patch": null,
-      "next_dependency": "travel",
+      "next_dependency": null,
+      "fact_contract_repairs": null,
       "fixture_names_in_body": [],
+      "question_marks": 0,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
+      "duplicate_daypart": false,
+      "eng_leak": false
+    },
+    "t1": {
+      "http": 201,
+      "body": "Got it: something soon with Chanelle. Want me to set this up?",
+      "action_state": null,
+      "job": null,
+      "plan_id": null,
+      "who": [
+        "Chanelle"
+      ],
+      "dest": null,
+      "when": null,
+      "venue": null,
+      "solo": null,
+      "visibility": "normal",
+      "surprise": null,
+      "slots_changed": null,
+      "before_context": null,
+      "after_context": null,
+      "patch": null,
+      "next_dependency": "when",
+      "fact_contract_repairs": null,
+      "fixture_names_in_body": [
+        "chanelle"
+      ],
       "question_marks": 1,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
+      "duplicate_daypart": false,
+      "eng_leak": false
+    },
+    "t2": {
+      "http": 201,
+      "body": "Mexico City with Chanelle sounds like a great trip to build out. Do you have dates in mind yet?",
+      "action_state": null,
+      "job": null,
+      "plan_id": null,
+      "who": [
+        "Chanelle"
+      ],
+      "dest": "Mexico City",
+      "when": null,
+      "venue": null,
+      "solo": null,
+      "visibility": "normal",
+      "surprise": null,
+      "slots_changed": null,
+      "before_context": null,
+      "after_context": null,
+      "patch": null,
+      "next_dependency": "when",
+      "fact_contract_repairs": null,
+      "fixture_names_in_body": [
+        "chanelle"
+      ],
+      "question_marks": 1,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
+      "duplicate_daypart": false,
+      "eng_leak": false
+    },
+    "t3": {
+      "http": 201,
+      "body": "Got it \u2014 Saturday night in Mexico City with Chanelle. Checking Mexico City\u2026 I'll aim for around 7:30 unless you want later.",
+      "action_state": "queued",
+      "job": "0d29786d-2f0d-4de4-b26e-930d7bed0d17",
+      "plan_id": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
+      "who": [
+        "Chanelle"
+      ],
+      "dest": "Mexico City",
+      "when": "Saturday",
+      "venue": null,
+      "solo": null,
+      "visibility": "normal",
+      "surprise": null,
+      "slots_changed": null,
+      "before_context": null,
+      "after_context": null,
+      "patch": null,
+      "next_dependency": "travel",
+      "fact_contract_repairs": null,
+      "fixture_names_in_body": [
+        "chanelle"
+      ],
+      "question_marks": 0,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
       "duplicate_daypart": false,
       "eng_leak": false
     },
@@ -95,13 +202,13 @@
       "body": "Updated \u2014 Sunday night in Mexico City.",
       "action_state": "plan_patched",
       "job": null,
-      "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+      "plan_id": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
       "who": [
         "Chanelle"
       ],
       "dest": "Mexico City",
       "when": "Sunday",
-      "venue": "La Terraza del Conquistador",
+      "venue": "Al Teatro Panini Grill",
       "solo": null,
       "visibility": "normal",
       "surprise": null,
@@ -110,7 +217,7 @@
       ],
       "before_context": {
         "destination": "Mexico City",
-        "venue": "La Terraza del Conquistador",
+        "venue": "Al Teatro Panini Grill",
         "visibility_mode": "normal",
         "when": "Saturday",
         "who": [
@@ -119,7 +226,7 @@
       },
       "after_context": {
         "destination": "Mexico City",
-        "venue": "La Terraza del Conquistador",
+        "venue": "Al Teatro Panini Grill",
         "visibility_mode": "normal",
         "when": "Sunday",
         "who": [
@@ -130,14 +237,18 @@
         "when": "Sunday"
       },
       "next_dependency": "travel",
+      "fact_contract_repairs": null,
       "fixture_names_in_body": [],
       "question_marks": 0,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
       "duplicate_daypart": false,
       "eng_leak": false
     },
     "correction_proof": {
-      "PLAN_ID_BEFORE_CORRECTION": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
-      "PLAN_ID_AFTER_CORRECTION": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+      "PLAN_ID_BEFORE_CORRECTION": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
+      "PLAN_ID_AFTER_CORRECTION": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
       "WHEN_BEFORE": "Saturday",
       "WHEN_AFTER": "Sunday",
       "SLOTS_CHANGED": [
@@ -149,7 +260,7 @@
       "SAME_PLAN_ID": true,
       "before_context": {
         "destination": "Mexico City",
-        "venue": "La Terraza del Conquistador",
+        "venue": "Al Teatro Panini Grill",
         "visibility_mode": "normal",
         "when": "Saturday",
         "who": [
@@ -161,7 +272,7 @@
       },
       "after_context": {
         "destination": "Mexico City",
-        "venue": "La Terraza del Conquistador",
+        "venue": "Al Teatro Panini Grill",
         "visibility_mode": "normal",
         "when": "Sunday",
         "who": [
@@ -174,7 +285,7 @@
       "body": "Okay \u2014 I dropped the restaurant and kept the Mexico City plan.",
       "action_state": "venue_cancelled",
       "job": null,
-      "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+      "plan_id": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
       "who": [
         "Chanelle"
       ],
@@ -189,23 +300,27 @@
       "after_context": null,
       "patch": null,
       "next_dependency": "travel",
+      "fact_contract_repairs": null,
       "fixture_names_in_body": [],
       "question_marks": 0,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
       "duplicate_daypart": false,
       "eng_leak": false
     },
     "select": {
       "http": 201,
-      "body": "Perfect \u2014 I added La Terraza del Conquistador to Saturday night in Mexico City. Travel isn't attached yet. Want me to check that next?",
+      "body": "Perfect \u2014 I added Al Teatro Panini Grill to Saturday night in Mexico City. Travel isn't attached yet. Want me to check that next?",
       "action_state": "option_selected",
       "job": null,
-      "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+      "plan_id": "ae65cfbc-837f-403c-b9ba-cfc765473e2d",
       "who": [
         "Chanelle"
       ],
       "dest": "Mexico City",
       "when": "Saturday",
-      "venue": "La Terraza del Conquistador",
+      "venue": "Al Teatro Panini Grill",
       "solo": null,
       "visibility": "normal",
       "surprise": null,
@@ -214,12 +329,15 @@
       "after_context": null,
       "patch": null,
       "next_dependency": "travel",
+      "fact_contract_repairs": null,
       "fixture_names_in_body": [],
       "question_marks": 1,
+      "questions_batched": false,
+      "invented_surprise": false,
+      "false_travel_claim": false,
       "duplicate_daypart": false,
       "eng_leak": false
     },
-    "stale_solo_note": "Prior ORCHESTRATION_E2E_FULL solo (Maya/budget) was pre-fix Walk B LLM path when restaurant search was blocked by who-required; superseded by this canonical run.",
     "person_agnostic": {
       "participant_resolved": true,
       "destination_preserved": true,
@@ -233,7 +351,16 @@
       "identities": {
         "organizer": "River",
         "participant": "Quinn"
-      }
+      },
+      "questions_batched_any": false,
+      "invented_surprise_any": false
+    },
+    "stale_solo_note": "Prior ORCHESTRATION_E2E_FULL solo (Maya/budget) superseded; this run proves LLM_INVENTED_SURPRISE=0, QUESTIONS_BATCHED_GLOBAL=0, LOCAL_SOLO_FALSE_TRAVEL_DEPENDENCY=0.",
+    "semantic": {
+      "LLM_INVENTED_SURPRISE": 0,
+      "QUESTIONS_BATCHED_GLOBAL": 0,
+      "LOCAL_SOLO_FALSE_TRAVEL_DEPENDENCY": 0,
+      "STATE_LANGUAGE_CONTRACT": "PROVEN"
     }
   }
 }

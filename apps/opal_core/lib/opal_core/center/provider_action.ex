@@ -305,9 +305,23 @@ defmodule OpalCore.Center.ProviderAction do
     when_s =
       get_in(plan.alignment || %{}, ["when"]) || plan.time_label || "Saturday"
 
+    planning =
+      PlanningContext.get_for_user(user_id)
+      |> Map.merge(%{
+        "destination" => dest,
+        "venue" => venue_name,
+        "when" => when_s,
+        "plan_id" => plan.id
+      })
+
+    next_dep = OpalCore.Center.DependencyPlanner.next_after(planning, "venue")
+
     body =
-      "Perfect — I added #{venue_name} to #{OpalCore.Center.TemporalPhrase.when_phrase(when_s)} in #{dest}. " <>
-        "Travel isn't attached yet. Want me to check that next?"
+      "Perfect — I added #{venue_name} to #{OpalCore.Center.TemporalPhrase.when_phrase(when_s)} in #{dest}." <>
+        case next_dep do
+          %{"prompt" => prompt} when is_binary(prompt) and prompt != "" -> " #{prompt}"
+          _ -> ""
+        end
 
     case OpalConversations.get_or_create_conversation(user_id) do
       {:ok, conversation} ->

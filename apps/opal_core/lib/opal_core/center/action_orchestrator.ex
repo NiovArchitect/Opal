@@ -112,7 +112,15 @@ defmodule OpalCore.Center.ActionOrchestrator do
                         {intent2, soft_copy, Map.put(meta, "soft_assumption", true)}
 
                       {intent2, override, meta} when is_binary(override) ->
-                        {intent2, override <> " " <> soft_copy, Map.put(meta, "soft_assumption", true)}
+                        # Soft assumption may annotate working copy, but never add a second question.
+                        annotated =
+                          if is_binary(soft_copy) and String.contains?(soft_copy, "?") do
+                            override
+                          else
+                            override <> " " <> soft_copy
+                          end
+
+                        {intent2, annotated, Map.put(meta, "soft_assumption", true)}
 
                       other ->
                         other
@@ -431,11 +439,8 @@ defmodule OpalCore.Center.ActionOrchestrator do
                   %{prompt: prompt} when is_binary(prompt) and prompt != "" ->
                     " #{prompt}"
 
-                  "travel" ->
-                    " Travel isn't attached yet. Want me to check that next?"
-
                   _ ->
-                    " Travel isn't attached yet. Want me to check that next?"
+                    ""
                 end
 
             meta = %{

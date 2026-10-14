@@ -1,9 +1,10 @@
 # Founder phone walk — Mexico City orchestration (consumer quality)
 
 **Status:** `FOUNDER_ACCEPTED = NO` · `FREEZE = HOLD` · `PASS2 = LOCKED`  
-**Evidence tip:** post-reconciliation (solo no person-injection; Saturday→Sunday slots_changed=[when]; TemporalPhrase).  
+**Evidence tip:** post semantic-integrity patch (`LLM_INVENTED_SURPRISE=0`, `QUESTIONS_BATCHED_GLOBAL=0`, `LOCAL_SOLO_FALSE_TRAVEL_DEPENDENCY=0`, `STATE_LANGUAGE_CONTRACT=PROVEN`).  
 **Architecture freeze:** do not re-architect before this walk.  
-**After PASS (locked order):** composer spacing + frosted scroll edges → real temporal Center graph.
+**After PASS (locked order):** composer spacing + frosted scroll edges → real temporal Center graph.  
+**Not in this walk:** Personal Home feed redesign, LeaveBy Home cards, Contextual Value commerce (authority-only next tranche).
 
 LAN Vite: `http://192.168.86.156:5173/?opal_native_host=1` (or current CF tunnel).
 
@@ -26,7 +27,9 @@ LAN Vite: `http://192.168.86.156:5173/?opal_native_host=1` (or current CF tunnel
 - First tap selects
 - Chosen place enters the conversation as consumer copy, e.g.  
   `Perfect — I added … to Saturday night in Mexico City.`  
-  Optionally: `Travel isn't attached yet. Want me to check that next?`  
+  For Mexico City: `Travel isn't attached yet. Want me to check that next?` is OK.  
+  For **local** San Diego solo dinner: do **not** expect a travel dependency.  
+  Never invent “since it's a surprise” unless you said surprise.  
   (No “Graph and Chat stay aligned” engineering language)
 - **Graphs** shows the same plan
 - **Chanelle’s chat** shows the same plan

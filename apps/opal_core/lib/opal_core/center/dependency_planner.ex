@@ -35,6 +35,7 @@ defmodule OpalCore.Center.DependencyPlanner do
     lodging? = present?(c["lodging"]) or c["lodging_attached"] == true
     avail? = c["availability_checked"] == true
     work? = c["work_conflict_evaluated"] == true
+    travel_class = travel_class(c)
 
     %{
       # Solo is first-class: missing who is not_applicable unless multi-person intent.
@@ -63,14 +64,17 @@ defmodule OpalCore.Center.DependencyPlanner do
         end,
       "travel" =>
         cond do
-          dest? and venue? -> status_resolved(travel?)
-          dest? -> status_resolved(travel?)
-          true -> "not_applicable"
+          not travel_applicable?(c) -> "not_applicable"
+          travel? -> "resolved"
+          true -> "pending"
         end,
       "lodging" =>
         cond do
-          dest? and multi_day?(c) -> status_resolved(lodging?)
-          true -> "not_applicable"
+          travel_class in ["trip", "destination_travel"] and multi_day?(c) ->
+            status_resolved(lodging?)
+
+          true ->
+            "not_applicable"
         end,
       "work_conflict" => status_resolved(work?),
       "reservation" => if(venue?, do: "pending", else: "not_applicable"),
@@ -92,11 +96,18 @@ defmodule OpalCore.Center.DependencyPlanner do
   def next_after(planning, just_resolved \\ nil) when is_map(planning) do
     status = build(planning)
 
-    # After venue selection, prefer travel as the next useful surface.
+    # After venue selection, prefer travel only when travel is applicable.
     ordered =
       case just_resolved do
-        "venue" -> Enum.drop_while(@trip_order, fn {id, _} -> id != "travel" end)
-        _ -> @trip_order
+        "venue" ->
+          if travel_applicable?(planning) do
+            Enum.drop_while(@trip_order, fn {id, _} -> id != "travel" end)
+          else
+            Enum.reject(@trip_order, fn {id, _} -> id in ["travel", "lodging"] end)
+          end
+
+        _ ->
+          @trip_order
       end
 
     Enum.find_value(ordered, fn {id, prompt} ->
@@ -108,10 +119,104 @@ defmodule OpalCore.Center.DependencyPlanner do
     end)
   end
 
+  @doc """
+  Travel dependency is only for meaningful destination travel — not local dinner.
+
+  Classes: `local_activity` | `regional_outing` | `trip` | `destination_travel`
+  """
+  def travel_class(planning) when is_map(planning) do
+    c = stringify(planning)
+    dest = c["destination"]
+
+    cond do
+      c["travel_required"] == true or c["wants_travel"] == true -> "destination_travel"
+      multi_day?(c) -> "trip"
+      is_binary(dest) and distant_destination?(dest, c) -> "destination_travel"
+      is_binary(dest) and local_destination?(dest, c) -> "local_activity"
+      c["solo"] == true and c["wants_restaurant"] == true -> "local_activity"
+      is_binary(dest) -> "regional_outing"
+      true -> "local_activity"
+    end
+  end
+
+  def travel_class(_), do: "local_activity"
+
+  def travel_applicable?(planning) when is_map(planning) do
+    travel_class(planning) in ["trip", "destination_travel"]
+  end
+
+  def travel_applicable?(_), do: false
+
   defp multi_day?(c) do
     c["multi_day"] == true or
       (is_binary(c["destination"]) and c["wants_lodging"] == true)
   end
+
+  # Known long-haul / foreign destinations that justify travel dependency.
+  defp distant_destination?(dest, _c) when is_binary(dest) do
+    d = String.downcase(dest)
+
+    Enum.any?(
+      [
+        "mexico city",
+        "cdmx",
+        "tokyo",
+        "paris",
+        "london",
+        "rome",
+        "lisbon",
+        "barcelona",
+        "madrid",
+        "berlin",
+        "amsterdam",
+        "seoul",
+        "bangkok",
+        "dubai",
+        "sydney",
+        "honolulu",
+        "hawaii",
+        "nyc",
+        "new york",
+        "miami",
+        "chicago",
+        "seattle",
+        "boston",
+        "austin",
+        "denver",
+        "las vegas"
+      ],
+      &String.contains?(d, &1)
+    ) or Regex.match?(~r/\b(flight|fly|airport|overnight|weekend trip|road trip)\b/i, d)
+  end
+
+  defp distant_destination?(_, _), do: false
+
+  # Local / home-metro places for Walk fixtures and common CA metros.
+  defp local_destination?(dest, c) when is_binary(dest) do
+    d = String.downcase(dest)
+    home = String.downcase(to_string(c["home_metro"] || c["user_metro"] || "san diego"))
+
+    Enum.any?(
+      [
+        "san diego",
+        "la jolla",
+        "pacific beach",
+        "north park",
+        "hillcrest",
+        "downtown",
+        "gaslamp",
+        "mission valley",
+        "chula vista",
+        "carlsbad",
+        "encinitas",
+        "del mar",
+        "oceanside"
+      ],
+      &String.contains?(d, &1)
+    ) or String.contains?(d, home)
+  end
+
+  defp local_destination?(_, _), do: false
 
   defp status_resolved(true), do: "resolved"
   defp status_resolved(_), do: "pending"

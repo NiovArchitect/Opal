@@ -235,6 +235,20 @@ defmodule OpalCore.OpalConversations do
             generate_with_side_effects(user_id, intent, ctx)
           end
 
+        planning =
+          (is_map(action_meta) && (action_meta["planning_context"] || action_meta[:planning_context])) ||
+            OpalCore.Center.PlanningContext.get_for_user(user_id)
+
+        {text, fact_repairs} =
+          OpalCore.Center.ResponseFactContract.validate(text || "", planning, action_meta || %{})
+
+        action_meta =
+          if fact_repairs != [] and is_map(action_meta) do
+            Map.put(action_meta, "fact_contract_repairs", Enum.map(fact_repairs, &to_string/1))
+          else
+            action_meta
+          end
+
         draft_meta = OpalResponse.last_draft_meta()
 
         {ctx, intent, text, draft_meta, action_meta}
