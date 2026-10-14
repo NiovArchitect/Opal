@@ -47,5 +47,8 @@
   "CENTER_PHYSICAL_GEOMETRY": "PROVEN",
   "CENTER_PREFocus_HITTABLE": "PROVEN",
   "DOCK_INTERCEPTS_CENTER": "NO",
-  "notes_physical_p0": "inset:auto self-cancel fixed; elementFromPoint + real send/follow-up GREEN"
+  "notes_physical_p0": "inset:auto self-cancel fixed; elementFromPoint + real send/follow-up GREEN",
+  "physical_p0_tip": "b0c62ad0",
+  "SERVED_BUILD_CURRENT": "YES",
+  "HEAD_MATCHES_SERVED_PRODUCT": true
 }
