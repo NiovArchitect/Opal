@@ -784,7 +784,9 @@ export function OpalCenterChat({
                         <time dateTime={m.inserted_at}>{formatTime(m.inserted_at)}</time>
                       ) : null}
                     </div>
-                    {!isUser && m.metadata?.action_state === "queued" ? (
+                    {!isUser &&
+                    (m.metadata?.action_state === "queued" ||
+                      m.metadata?.action_state === "running") ? (
                       <div
                         className="opal-center-action-working"
                         data-testid="opal-center-action-working"

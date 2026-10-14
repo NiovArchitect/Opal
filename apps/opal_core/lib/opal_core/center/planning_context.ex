@@ -57,21 +57,42 @@ defmodule OpalCore.Center.PlanningContext do
     end
   end
 
+  @doc "Replace durable planning context with an already-composed map (patch apply)."
+  def put(user_id, ctx) when is_binary(user_id) and is_map(ctx) do
+    case Repo.get_by(OpalConversation, user_id: user_id) do
+      %OpalConversation{} = c ->
+        next =
+          ctx
+          |> stringify()
+          |> Map.put("updated_at", DateTime.utc_now() |> DateTime.to_iso8601())
+
+        c
+        |> change(%{planning_context: next})
+        |> Repo.update()
+        |> case do
+          {:ok, updated} -> {:ok, get(updated)}
+          err -> err
+        end
+
+      _ ->
+        {:error, :no_conversation}
+    end
+  end
+
   @doc "True when we have enough to start restaurant discovery without more questions."
   def ready_for_restaurant_search?(ctx) when is_map(ctx) do
     c = stringify(ctx)
     dest = c["destination"]
-    who = c["who"] || c["primary_person"] || c["participants"]
     when_s = c["when"] || c["when_resolved"]
     category = c["category"]
 
+    # Solo is first-class: who/participants are optional.
     restaurant? =
       category in ["restaurant", "dinner", "food"] or
-        c["quality_intent"] in ["top", "best", "high"] or
+        c["quality_intent"] in ["top", "best", "high", "strong"] or
         c["wants_restaurant"] == true
 
     is_binary(dest) and dest != "" and restaurant? and
-      who_present?(who) and
       is_binary(when_s) and when_s != ""
   end
 

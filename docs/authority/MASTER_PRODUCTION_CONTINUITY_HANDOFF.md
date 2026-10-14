@@ -406,6 +406,11 @@ Do not rebuild. Do not simplify. Compound.
 
 ### Future agent read-first (before architectural decisions)
 
+- `docs/authority/OPAL_QUESTION_ECONOMY_AND_ASSUMPTION_LAW.md`
+- `docs/authority/OPAL_CALENDAR_WORK_AND_SURPRISE_ACTION_MODEL.md`
+- `docs/authority/OPAL_COHORT_LEARNING_LAW.md` (architecture only)
+
+
 1. `MASTER_PRODUCTION_CONTINUITY_HANDOFF.md` (this file)
 2. `CURRENT_OPAL_STATE.md`
 3. `PRODUCT_INVARIANTS.md`

@@ -6,9 +6,19 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
   import Ecto.Query
 
-  alias OpalCore.Center.{PlanningContext, ProviderAction, ProviderActionJob}
+  alias OpalCore.Center.{
+    PlanningContext,
+    ProviderAction,
+    ProviderActionJob,
+    PlanContextPatch,
+    SurprisePlanning,
+    QuestionEconomy,
+    DependencyPlanner,
+  }
+
   alias OpalCore.OpalConversations
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.SharedPlan
 
   @destination_re ~r/\b(?:in|to|at)\s+([A-Z][\w]+(?:\s+[A-Z][\w]+){0,3})\b/
   @restaurant_re ~r/\b(restaurant|dinner|brunch|lunch|food|eat|dining|top\s+restaurant|best\s+restaurant|great\s+restaurant)\b/i
@@ -29,27 +39,100 @@ defmodule OpalCore.Center.ActionOrchestrator do
       when is_binary(user_id) and is_binary(raw_text) do
     intent = intent || %{intent: :chat, confidence: :low, entities: %{}}
     entities = Map.get(intent, :entities) || Map.get(intent, "entities") || %{}
+    prior = PlanningContext.get_for_user(user_id)
+
+    # Delta patch first — corrections mutate one slot; missing means unchanged.
+    patch =
+      PlanContextPatch.extract_from_text(raw_text, prior)
+      |> Map.merge(SurprisePlanning.detect(raw_text))
+
     from_text = extract_from_text(raw_text)
     enriched = enrich_entities(raw_text, entities, ctx, from_text)
 
-    # Drop place-like who from classifier before durable merge (P0 slot isolation).
-    dest_hint = from_text["destination"] || enriched[:destination] || enriched["destination"]
+    dest_hint =
+      from_text["destination"] || enriched[:destination] || enriched["destination"] ||
+        prior["destination"]
 
     enriched =
       enriched
       |> Map.update(:who, nil, &PlanningContext.sanitize_who(&1, dest_hint))
       |> Map.reject(fn {_k, v} -> is_nil(v) or v == "" or v == [] end)
 
-    case PlanningContext.merge(user_id, enriched, from_text) do
-      {:ok, planning} ->
+    # Compose patch + turn extract; patch wins on explicit corrections.
+    merge_extras = Map.merge(from_text, patch)
+
+    case PlanningContext.merge(user_id, enriched, merge_extras) do
+      {:ok, planning0} ->
+        planning =
+          planning0
+          |> then(&PlanContextPatch.apply(&1, patch))
+          |> then(fn p ->
+            SurprisePlanning.enrich(user_id, p, conversation_opts(user_id, p))
+          end)
+          |> then(fn p ->
+            Map.merge(p, %{
+              "dependencies" => DependencyPlanner.build(p),
+              "next_dependency" =>
+                case DependencyPlanner.next_after(p) do
+                  %{"id" => id} -> id
+                  _ -> p["next_dependency"]
+                end
+            })
+          end)
+
+        # Persist composed planning (incl. surprise / deps / clears).
+        {:ok, planning} = PlanningContext.put(user_id, planning)
+
         intent = put_entities(intent, Map.merge(atomize(enriched), string_to_atom_map(planning)))
 
-        case maybe_attach_selection(user_id, raw_text, intent, planning) do
-          {:attached, intent2, override, meta} ->
-            {intent2, override, meta}
+        cond do
+          still_need_trip?(raw_text) ->
+            handle_still_need(user_id, intent, planning)
 
-          :no_selection ->
-            maybe_start_search(user_id, intent, planning)
+          patch["cancel_venue_keep_plan"] == true ->
+            handle_cancel_venue(user_id, intent, planning)
+
+          Map.has_key?(patch, "when") and is_binary(planning["plan_id"]) and
+              not Regex.match?(@select_option_re, raw_text) ->
+            handle_when_correction(user_id, intent, planning, prior)
+
+          true ->
+            case maybe_attach_selection(user_id, raw_text, intent, planning) do
+              {:attached, intent2, override, meta} ->
+                {intent2, override, meta}
+
+              :no_selection ->
+                case QuestionEconomy.decide(planning) do
+                  {:soft_assume, soft, soft_copy} ->
+                    {:ok, soft} = PlanningContext.merge(user_id, %{}, soft)
+
+                    case maybe_start_search(user_id, intent, soft) do
+                      {intent2, nil, meta} ->
+                        {intent2, soft_copy, Map.put(meta, "soft_assumption", true)}
+
+                      {intent2, override, meta} when is_binary(override) ->
+                        {intent2, override <> " " <> soft_copy, Map.put(meta, "soft_assumption", true)}
+
+                      other ->
+                        other
+                    end
+
+                  {:ask, asked_planning, question} ->
+                    {intent, question,
+                     %{
+                       "planning_context" => asked_planning,
+                       "question_economy" => true,
+                       "assumption_class" => "ask"
+                     }}
+
+                  {:proceed, proceeded} ->
+                    maybe_start_search(user_id, intent, proceeded)
+
+                  {:block, blocked, reason} ->
+                    {intent, consequential_copy(reason),
+                     %{"planning_context" => blocked, "blocked" => true}}
+                end
+            end
         end
 
       {:error, _} ->
@@ -58,6 +141,222 @@ defmodule OpalCore.Center.ActionOrchestrator do
   end
 
   def after_classify(_, _, intent, _), do: {intent, nil, %{}}
+
+  defp conversation_opts(user_id, planning \\ %{}) do
+    base =
+      case OpalConversations.get_or_create_conversation(user_id) do
+        {:ok, c} -> [conversation_id: c.id]
+        _ -> []
+      end
+
+    case resolve_window(planning) do
+      {start_at, end_at} ->
+        Keyword.merge(base, start_at: start_at, end_at: end_at)
+
+      _ ->
+        base
+    end
+  end
+
+  defp resolve_window(planning) when is_map(planning) do
+    when_s = planning["when"] || planning["when_resolved"]
+    time_s = planning["when_time"] || "19:30"
+
+    date_iso =
+      cond do
+        match?(%Date{}, when_s) -> Date.to_iso8601(when_s)
+        is_binary(when_s) and String.match?(when_s, ~r/^\d{4}-\d{2}-\d{2}/) -> String.slice(when_s, 0, 10)
+        is_binary(when_s) -> PlanningContext.resolve_when(when_s)
+        true -> nil
+      end
+
+    with true <- is_binary(date_iso) and String.match?(date_iso, ~r/^\d{4}-\d{2}-\d{2}/),
+         {:ok, date} <- Date.from_iso8601(String.slice(date_iso, 0, 10)),
+         {h, m} <- parse_clock(time_s),
+         {:ok, naive} <- NaiveDateTime.new(date, Time.new!(h, m, 0)),
+         {:ok, start_at} <- DateTime.from_naive(naive, "Etc/UTC") do
+      {start_at, DateTime.add(start_at, 2 * 60 * 60, :second)}
+    else
+      _ -> nil
+    end
+  end
+
+  defp resolve_window(_), do: nil
+
+  defp parse_clock(s) when is_binary(s) do
+    down = String.downcase(String.trim(s))
+
+    cond do
+      m = Regex.run(~r/^(\d{1,2}):(\d{2})\s*(am|pm)?$/, down) ->
+        {h0, _} = Integer.parse(Enum.at(m, 1))
+        {mi, _} = Integer.parse(Enum.at(m, 2))
+        meridiem = Enum.at(m, 3)
+        h = adjust_hour(h0, meridiem)
+        {h, mi}
+
+      m = Regex.run(~r/^(\d{1,2})\s*(am|pm)$/, down) ->
+        {h0, _} = Integer.parse(Enum.at(m, 1))
+        {adjust_hour(h0, Enum.at(m, 2)), 0}
+
+      m = Regex.run(~r/^(\d{1,2}):(\d{2})$/, down) ->
+        {h, _} = Integer.parse(Enum.at(m, 1))
+        {mi, _} = Integer.parse(Enum.at(m, 2))
+        {h, mi}
+
+      true ->
+        {19, 30}
+    end
+  end
+
+  defp parse_clock(_), do: {19, 30}
+
+  defp adjust_hour(h, "pm") when h < 12, do: h + 12
+  defp adjust_hour(12, "am"), do: 0
+  defp adjust_hour(h, _), do: h
+
+  defp still_need_trip?(raw) when is_binary(raw) do
+    Regex.match?(
+      ~r/\b(?:what\s+do\s+i\s+still\s+need|what'?s\s+(?:still\s+)?missing|what\s+else\s+(?:do\s+i\s+need|for\s+(?:this\s+)?(?:trip|plan)))\b/i,
+      raw
+    )
+  end
+
+  defp handle_still_need(_user_id, intent, planning) do
+    next = DependencyPlanner.next_after(planning)
+    avail = planning["availability_result"] || %{}
+
+    override =
+      cond do
+        is_map(next) and is_binary(next["prompt"]) and next["prompt"] != "" ->
+          next["prompt"]
+
+        is_binary(avail["consumer_copy"]) and avail["consumer_copy"] != "" ->
+          avail["consumer_copy"]
+
+        true ->
+          "You've got the core of this plan. Travel and lodging are the usual next steps when you're ready."
+      end
+
+    meta = %{
+      "action_state" => "dependency_surface",
+      "planning_context" => planning,
+      "next_dependency" => next && next["id"],
+      "plan_id" => planning["plan_id"],
+      "GRAPHING_IS_NOT_PUBLISHING" => true
+    }
+
+    {put_entities(intent, string_to_atom_map(planning)), override, meta}
+  end
+
+  defp handle_cancel_venue(user_id, intent, planning) do
+    plan_id = planning["plan_id"]
+
+    if is_binary(plan_id) do
+      case Repo.get(SharedPlan, plan_id) do
+        %SharedPlan{} = plan ->
+          alignment =
+            (plan.alignment || %{})
+            |> Map.delete("venue")
+            |> Map.put("venue_cancelled", true)
+            |> Map.put("option_selected", false)
+
+          {:ok, _} =
+            plan
+            |> SharedPlan.changeset(%{
+              "location" => planning["destination"] || plan.location,
+              "alignment" => alignment
+            })
+            |> Repo.update()
+
+          planning2 =
+            PlanContextPatch.apply(planning, %{
+              "venue" => "__clear__",
+              "plan_id" => plan_id
+            })
+            |> Map.put("venue_cancelled", true)
+            |> Map.put("plan_id", plan_id)
+
+          {:ok, planning2} = PlanningContext.put(user_id, planning2)
+
+          override =
+            "Okay — I dropped the restaurant and kept the #{planning["destination"] || "trip"} plan."
+
+          meta = %{
+            "action_state" => "venue_cancelled",
+            "plan_id" => plan_id,
+            "planning_context" => planning2,
+            "PLAN_ID_STABLE" => true,
+            "trip_kept" => true
+          }
+
+          {put_entities(intent, string_to_atom_map(planning2)), override, meta}
+
+        _ ->
+          {intent, "Okay — restaurant cleared from the draft.",
+           %{"planning_context" => planning}}
+      end
+    else
+      planning2 =
+        PlanContextPatch.apply(planning, %{"venue" => "__clear__"})
+        |> Map.put("venue_cancelled", true)
+
+      {:ok, planning2} = PlanningContext.put(user_id, planning2)
+
+      {intent, "Okay — I cleared the restaurant pick.",
+       %{"planning_context" => planning2}}
+    end
+  end
+
+  defp handle_when_correction(_user_id, intent, planning, prior) do
+    plan_id = planning["plan_id"]
+    when_s = planning["when"]
+
+    if is_binary(plan_id) do
+      case Repo.get(SharedPlan, plan_id) do
+        %SharedPlan{} = plan ->
+          title =
+            case planning["venue"] do
+              v when is_binary(v) and v != "" -> "#{v} · #{when_s}"
+              _ -> String.replace(plan.title || "Plans", ~r/\b(Saturday|Sunday|Friday)\b/i, when_s)
+            end
+
+          {:ok, _} =
+            plan
+            |> SharedPlan.changeset(%{
+              "time_label" => when_s,
+              "title" => title,
+              "alignment" => Map.put(plan.alignment || %{}, "when", when_s)
+            })
+            |> Repo.update()
+
+          changed = PlanContextPatch.slots_changed(prior, planning)
+
+          override = "Updated — #{when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
+
+          meta = %{
+            "action_state" => "plan_patched",
+            "plan_id" => plan_id,
+            "planning_context" => planning,
+            "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
+            "slots_changed" => changed,
+            "graph_projection" => true
+          }
+
+          {put_entities(intent, string_to_atom_map(planning)), override, meta}
+
+        _ ->
+          {intent, "Updated to #{when_s}.",
+           %{"planning_context" => planning, "PLAN_ID_STABLE_AFTER_CORRECTION" => true}}
+      end
+    else
+      {intent, "Updated to #{when_s}.", %{"planning_context" => planning}}
+    end
+  end
+
+  defp consequential_copy(:need_authority),
+    do: "I can prepare that, but I need your go-ahead before I take the action."
+
+  defp consequential_copy(_), do: "I need a bit more authority before I can do that."
 
   defp maybe_attach_selection(user_id, raw_text, intent, planning) do
     case Regex.run(@select_option_re, raw_text) do
@@ -74,11 +373,25 @@ defmodule OpalCore.Center.ActionOrchestrator do
         case ProviderAction.attach_selected_venue(user_id, venue, planning) do
           {:ok, result} ->
             dest = planning["destination"] || "there"
-            who = format_who(planning["who"] || planning["primary_person"])
+
+            when_s = planning["when"] || "Saturday"
+            next_dep = Map.get(result, :next_dependency) || result[:next_dependency]
 
             override =
-              "Locked in #{result.venue} in #{dest}#{who}. " <>
-                "Same plan — Graph and Chat stay aligned."
+              "Perfect — I added #{result.venue} to #{when_phrase(when_s)} in #{dest}." <>
+                case next_dep do
+                  %{"prompt" => prompt} when is_binary(prompt) and prompt != "" ->
+                    " #{prompt}"
+
+                  %{prompt: prompt} when is_binary(prompt) and prompt != "" ->
+                    " #{prompt}"
+
+                  "travel" ->
+                    " Travel isn't attached yet. Want me to check that next?"
+
+                  _ ->
+                    " Travel isn't attached yet. Want me to check that next?"
+                end
 
             meta = %{
               "action_state" => "option_selected",
@@ -175,10 +488,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
             when_s = planning["when"] || "Saturday"
             dest = planning["destination"]
 
-            # Honest working copy — no invented "top" ranking claim.
+            # Honest working copy — consumer language; no invented ranking claim.
             override =
-              "Got it — #{when_s} night in #{dest}#{who}. " <>
-                "Checking dinner options in #{dest} now."
+              "Got it — #{when_phrase(when_s)} in #{dest}#{who}. " <>
+                "Checking #{dest}…"
 
             meta = %{
               "action_job_id" => job.id,
@@ -328,6 +641,24 @@ defmodule OpalCore.Center.ActionOrchestrator do
   defp format_who(who) when is_binary(who), do: " with #{who}"
   defp format_who([n | _]) when is_binary(n), do: " with #{n}"
   defp format_who(_), do: ""
+
+  # Avoid "tonight night" / "tomorrow night night" for relative when labels.
+  defp when_phrase(when_s) when is_binary(when_s) do
+    down = String.downcase(String.trim(when_s))
+
+    cond do
+      down in ["tonight", "tomorrow", "this evening", "this afternoon", "this morning"] ->
+        String.trim(when_s)
+
+      String.contains?(down, "night") or String.contains?(down, "evening") ->
+        String.trim(when_s)
+
+      true ->
+        "#{String.trim(when_s)} night"
+    end
+  end
+
+  defp when_phrase(_), do: "Saturday night"
 
   defp atomize(map) when is_map(map) do
     Map.new(map, fn

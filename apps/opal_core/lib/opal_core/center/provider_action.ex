@@ -186,6 +186,26 @@ defmodule OpalCore.Center.ProviderAction do
       chat_proj = maybe_project_peer_chat(user_id, planning2, updated, name)
       center_proj = paint_center_attach(user_id, updated, name, dest)
 
+      planning3 =
+        planning2
+        |> Map.put("plan_id", plan_id)
+        |> Map.put("venue", name)
+        |> Map.delete("venue_cancelled")
+
+      next_dep = OpalCore.Center.DependencyPlanner.next_after(planning3, "venue")
+
+      _ =
+        PlanningContext.merge(
+          user_id,
+          %{
+            "plan_id" => plan_id,
+            "venue" => name,
+            "next_dependency" => next_dep && next_dep["id"],
+            "dependencies" => OpalCore.Center.DependencyPlanner.build(planning3)
+          },
+          %{}
+        )
+
       {:ok,
        %{
          plan_id: plan_id,
@@ -194,7 +214,8 @@ defmodule OpalCore.Center.ProviderAction do
          graph_projection: true,
          chat_projection: chat_proj,
          center_projection: center_proj,
-         planning: Map.merge(planning2, %{"plan_id" => plan_id, "venue" => name})
+         next_dependency: next_dep,
+         planning: Map.merge(planning3, %{"next_dependency" => next_dep && next_dep["id"]})
        }}
     else
       nil -> {:error, :plan_missing}
@@ -281,8 +302,20 @@ defmodule OpalCore.Center.ProviderAction do
     alias OpalCore.OpalConversations
     alias OpalCore.OpalConversations.OpalMessage
 
+    when_s =
+      get_in(plan.alignment || %{}, ["when"]) || plan.time_label || "Saturday"
+
+    when_phrase =
+      cond do
+        is_binary(when_s) and String.downcase(when_s) in ["tonight", "tomorrow"] -> when_s
+        is_binary(when_s) and (String.contains?(String.downcase(when_s), "night") or String.contains?(String.downcase(when_s), "evening")) -> when_s
+        is_binary(when_s) -> "#{when_s} night"
+        true -> "Saturday night"
+      end
+
     body =
-      "Locked in #{venue_name} in #{dest}. It's on the same plan — I'll keep Graph and Chat aligned."
+      "Perfect — I added #{venue_name} to #{when_phrase} in #{dest}. " <>
+        "Travel isn't attached yet. Want me to check that next?"
 
     case OpalConversations.get_or_create_conversation(user_id) do
       {:ok, conversation} ->

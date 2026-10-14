@@ -383,3 +383,13 @@ WALK_B_OTP: "222222"
 FOUNDER_PHYSICAL_CHECK_REQUIRED: YES — ONE FINAL CLEAN PHONE WALK ONLY
 A8_COMMIT: NO until FOUNDER_GREEN
 ```
+
+## Additive authority (2026-10-14) — calendar / question economy / cohort
+
+- `docs/authority/OPAL_QUESTION_ECONOMY_AND_ASSUMPTION_LAW.md` — minimum friction at sufficient confidence; wires `docs/architecture/MINIMUM_QUESTION_ENGINE.md`
+- `docs/authority/OPAL_CALENDAR_WORK_AND_SURPRISE_ACTION_MODEL.md` — USE≠DISCLOSE; surprise visibility; work/PTO ladder; **Graphing ≠ publishing**
+- `docs/authority/OPAL_COHORT_LEARNING_LAW.md` — ARCHITECTURE ONLY; `COHORT_IMPLEMENTATION_ACTIVE = NO`; Pass 2 locked
+- Center runtime: `OpalCore.Center.{PlanContextPatch,DependencyPlanner,QuestionEconomy,SurprisePlanning,AvailabilityUse,ScheduleFeasibility,IntelligenceOrchestrator}`
+- Evidence: `shots/center/ORCHESTRATION_CAPABILITY_BOARD.json` · `ORCHESTRATION_E2E.json` · `HARDCODED_PERSON_BEHAVIOR_GUARD.json`
+- Status: `FREEZE=HOLD` · `PASS2_UNLOCKED=NO` · `FOUNDER_ACCEPTED=NO` · consumer phone walk PENDING
+- Next after phone PASS (locked order): composer spacing + frosted scroll edges → real temporal Center graph — no unrelated feature branch
