@@ -384,6 +384,14 @@ FOUNDER_PHYSICAL_CHECK_REQUIRED: YES — ONE FINAL CLEAN PHONE WALK ONLY
 A8_COMMIT: NO until FOUNDER_GREEN
 ```
 
+## Orchestration evidence reconciliation (2026-10-14)
+
+Tip after narrow P0: see `git log -1`. Canonical evidence:
+- `shots/center/ORCHESTRATION_CAPABILITY_BOARD.json` (matches E2E)
+- `shots/center/ORCHESTRATION_E2E.json` (= FULL; stale Maya/budget solo superseded)
+- `shots/center/PERSON_AGNOSTIC_BEHAVIOR_E2E.json` (River/Quinn)
+- `FOUNDER_ACCEPTED=NO` · `FREEZE=HOLD` · `PASS2_UNLOCKED=NO`
+
 ## Additive authority (2026-10-14) — calendar / question economy / cohort
 
 - `docs/authority/OPAL_QUESTION_ECONOMY_AND_ASSUMPTION_LAW.md` — minimum friction at sufficient confidence; wires `docs/architecture/MINIMUM_QUESTION_ENGINE.md`

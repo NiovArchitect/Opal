@@ -14,6 +14,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
     SurprisePlanning,
     QuestionEconomy,
     DependencyPlanner,
+    TemporalPhrase
   }
 
   alias OpalCore.OpalConversations
@@ -94,7 +95,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
           Map.has_key?(patch, "when") and is_binary(planning["plan_id"]) and
               not Regex.match?(@select_option_re, raw_text) ->
-            handle_when_correction(user_id, intent, planning, prior)
+            handle_when_correction(user_id, intent, planning, prior, patch)
 
           true ->
             case maybe_attach_selection(user_id, raw_text, intent, planning) do
@@ -307,9 +308,18 @@ defmodule OpalCore.Center.ActionOrchestrator do
     end
   end
 
-  defp handle_when_correction(_user_id, intent, planning, prior) do
+  defp handle_when_correction(_user_id, intent, planning, prior, patch) do
     plan_id = planning["plan_id"]
     when_s = planning["when"]
+    when_before = prior["when"]
+    changed = PlanContextPatch.slots_changed_by_patch(patch)
+
+    changed =
+      if "when" in changed or (is_binary(when_s) and when_s != when_before) do
+        Enum.uniq(["when" | changed])
+      else
+        changed
+      end
 
     if is_binary(plan_id) do
       case Repo.get(SharedPlan, plan_id) do
@@ -329,9 +339,8 @@ defmodule OpalCore.Center.ActionOrchestrator do
             })
             |> Repo.update()
 
-          changed = PlanContextPatch.slots_changed(prior, planning)
-
-          override = "Updated — #{when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
+          override =
+            "Updated — #{TemporalPhrase.when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
 
           meta = %{
             "action_state" => "plan_patched",
@@ -339,6 +348,21 @@ defmodule OpalCore.Center.ActionOrchestrator do
             "planning_context" => planning,
             "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
             "slots_changed" => changed,
+            "before_context" => %{
+              "when" => when_before,
+              "who" => prior["who"],
+              "destination" => prior["destination"],
+              "venue" => prior["venue"],
+              "visibility_mode" => prior["visibility_mode"]
+            },
+            "patch" => Map.take(stringify_map(patch), ["when", "when_time", "visibility_mode"]),
+            "after_context" => %{
+              "when" => when_s,
+              "who" => planning["who"],
+              "destination" => planning["destination"],
+              "venue" => planning["venue"],
+              "visibility_mode" => planning["visibility_mode"]
+            },
             "graph_projection" => true
           }
 
@@ -346,12 +370,33 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
         _ ->
           {intent, "Updated to #{when_s}.",
-           %{"planning_context" => planning, "PLAN_ID_STABLE_AFTER_CORRECTION" => true}}
+           %{
+             "planning_context" => planning,
+             "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
+             "slots_changed" => changed,
+             "before_context" => %{"when" => when_before},
+             "after_context" => %{"when" => when_s}
+           }}
       end
     else
-      {intent, "Updated to #{when_s}.", %{"planning_context" => planning}}
+      {intent, "Updated to #{when_s}.",
+       %{
+         "planning_context" => planning,
+         "slots_changed" => changed,
+         "before_context" => %{"when" => when_before},
+         "after_context" => %{"when" => when_s}
+       }}
     end
   end
+
+  defp stringify_map(map) when is_map(map) do
+    Map.new(map, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {to_string(k), v}
+    end)
+  end
+
+  defp stringify_map(_), do: %{}
 
   defp consequential_copy(:need_authority),
     do: "I can prepare that, but I need your go-ahead before I take the action."
@@ -378,7 +423,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
             next_dep = Map.get(result, :next_dependency) || result[:next_dependency]
 
             override =
-              "Perfect — I added #{result.venue} to #{when_phrase(when_s)} in #{dest}." <>
+              "Perfect — I added #{result.venue} to #{TemporalPhrase.when_phrase(when_s)} in #{dest}." <>
                 case next_dep do
                   %{"prompt" => prompt} when is_binary(prompt) and prompt != "" ->
                     " #{prompt}"
@@ -490,7 +535,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
             # Honest working copy — consumer language; no invented ranking claim.
             override =
-              "Got it — #{when_phrase(when_s)} in #{dest}#{who}. " <>
+              "Got it — #{TemporalPhrase.when_phrase(when_s)} in #{dest}#{who}. " <>
                 "Checking #{dest}…"
 
             meta = %{
@@ -618,12 +663,23 @@ defmodule OpalCore.Center.ActionOrchestrator do
         Regex.match?(~r/\bsaturday\b/i, raw) -> "Saturday"
         Regex.match?(~r/\bsunday\b/i, raw) -> "Sunday"
         Regex.match?(~r/\bfriday\b/i, raw) -> "Friday"
+        Regex.match?(~r/\btonight\b/i, raw) -> "tonight"
+        Regex.match?(~r/\btomorrow\b/i, raw) -> "tomorrow"
+        Regex.match?(~r/\btoday\b/i, raw) -> "today"
         true -> nil
       end
 
+    solo? = PlanContextPatch.solo_intent?(raw)
+
     %{}
     |> then(fn m -> if dest, do: Map.put(m, "destination", dest), else: m end)
-    |> then(fn m -> if who, do: Map.put(m, "who", who), else: m end)
+    |> then(fn m ->
+      cond do
+        solo? -> Map.put(m, "solo", true)
+        who -> Map.put(m, "who", who)
+        true -> m
+      end
+    end)
     |> then(fn m ->
       if restaurant?,
         do: Map.merge(m, %{"category" => "restaurant", "wants_restaurant" => true}),
@@ -642,23 +698,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
   defp format_who([n | _]) when is_binary(n), do: " with #{n}"
   defp format_who(_), do: ""
 
-  # Avoid "tonight night" / "tomorrow night night" for relative when labels.
-  defp when_phrase(when_s) when is_binary(when_s) do
-    down = String.downcase(String.trim(when_s))
 
-    cond do
-      down in ["tonight", "tomorrow", "this evening", "this afternoon", "this morning"] ->
-        String.trim(when_s)
-
-      String.contains?(down, "night") or String.contains?(down, "evening") ->
-        String.trim(when_s)
-
-      true ->
-        "#{String.trim(when_s)} night"
-    end
-  end
-
-  defp when_phrase(_), do: "Saturday night"
 
   defp atomize(map) when is_map(map) do
     Map.new(map, fn

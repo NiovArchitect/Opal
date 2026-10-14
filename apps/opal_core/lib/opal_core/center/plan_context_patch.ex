@@ -11,8 +11,8 @@ defmodule OpalCore.Center.PlanContextPatch do
 
   @slot_keys ~w(
     who primary_person participants
-    destination venue when when_resolved what
-    category quality_intent wants_restaurant
+    destination venue when when_resolved when_time what
+    category quality_intent wants_restaurant solo
     plan_id visibility_mode surprise
     dependencies next_dependency
   )
@@ -99,8 +99,34 @@ defmodule OpalCore.Center.PlanContextPatch do
       end
 
     patch =
-      if Regex.match?(~r/\bsurprise\b/i, raw) do
-        Map.merge(patch, %{"visibility_mode" => "surprise", "surprise" => true})
+      cond do
+        Regex.match?(
+          ~r/\b(?:don'?t|do not|no longer|stop)\s+(?:make it |keep it )?a?\s*surprise\b/i,
+          raw
+        ) or Regex.match?(~r/\bnot a surprise\b/i, raw) or
+            Regex.match?(~r/\breveal (?:it|the plan|this)\b/i, raw) ->
+          Map.merge(patch, %{
+            "visibility_mode" => "normal",
+            "surprise" => false,
+            "reveal_blocked" => false,
+            "invite_blocked" => false
+          })
+
+        Regex.match?(~r/\bsurprise\b/i, raw) ->
+          Map.merge(patch, %{"visibility_mode" => "surprise", "surprise" => true})
+
+        true ->
+          patch
+      end
+
+    patch =
+      if solo_intent?(raw) do
+        Map.merge(patch, %{
+          "solo" => true,
+          "who" => "__clear__",
+          "primary_person" => "__clear__",
+          "participants" => "__clear__"
+        })
       else
         patch
       end
@@ -137,6 +163,16 @@ defmodule OpalCore.Center.PlanContextPatch do
     patch
   end
 
+  @doc "True when user explicitly asked for solo / just-for-me planning."
+  def solo_intent?(raw) when is_binary(raw) do
+    Regex.match?(
+      ~r/\b(?:just for me|for myself|by myself|solo|alone|on my own)\b/i,
+      raw
+    )
+  end
+
+  def solo_intent?(_), do: false
+
   @doc "True when patch only mutates listed slots (for PLAN_ID_STABLE proofs)."
   def slots_changed(prior, next) do
     prior = stringify(prior)
@@ -145,6 +181,22 @@ defmodule OpalCore.Center.PlanContextPatch do
     @slot_keys
     |> Enum.filter(fn k -> Map.get(prior, k) != Map.get(next, k) end)
   end
+
+  @doc """
+  Slots the patch explicitly intends to change (absent keys = unchanged).
+
+  Prefer this for correction evidence — comparing prior/next alone can hide a
+  no-op re-assertion of the same value.
+  """
+  def slots_changed_by_patch(patch) when is_map(patch) do
+    patch
+    |> stringify()
+    |> Map.keys()
+    |> Enum.filter(&(&1 in @slot_keys))
+    |> Enum.sort()
+  end
+
+  def slots_changed_by_patch(_), do: []
 
   defp put_slot(acc, "who", value) do
     clean = PlanningContext.sanitize_who(value, acc["destination"])
@@ -163,6 +215,19 @@ defmodule OpalCore.Center.PlanContextPatch do
     acc
     |> Map.delete("venue")
     |> Map.put("venue_cancelled", true)
+  end
+
+  defp put_slot(acc, key, "__clear__") when key in ~w(who primary_person participants) do
+    acc
+    |> Map.delete("who")
+    |> Map.delete("primary_person")
+    |> Map.delete("participants")
+  end
+
+  defp put_slot(acc, "surprise", false) do
+    acc
+    |> Map.put("surprise", false)
+    |> Map.put("visibility_mode", "normal")
   end
 
   defp put_slot(acc, key, value), do: Map.put(acc, key, value)

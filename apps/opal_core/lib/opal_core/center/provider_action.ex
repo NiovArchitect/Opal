@@ -305,16 +305,8 @@ defmodule OpalCore.Center.ProviderAction do
     when_s =
       get_in(plan.alignment || %{}, ["when"]) || plan.time_label || "Saturday"
 
-    when_phrase =
-      cond do
-        is_binary(when_s) and String.downcase(when_s) in ["tonight", "tomorrow"] -> when_s
-        is_binary(when_s) and (String.contains?(String.downcase(when_s), "night") or String.contains?(String.downcase(when_s), "evening")) -> when_s
-        is_binary(when_s) -> "#{when_s} night"
-        true -> "Saturday night"
-      end
-
     body =
-      "Perfect — I added #{venue_name} to #{when_phrase} in #{dest}. " <>
+      "Perfect — I added #{venue_name} to #{OpalCore.Center.TemporalPhrase.when_phrase(when_s)} in #{dest}. " <>
         "Travel isn't attached yet. Want me to check that next?"
 
     case OpalConversations.get_or_create_conversation(user_id) do

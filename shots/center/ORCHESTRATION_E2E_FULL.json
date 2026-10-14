@@ -1,177 +1,284 @@
 {
-  "solo_1": {
+  "tip_note": "canonical reconciliation from current tip",
+  "stale_solo_note": "Prior ORCHESTRATION_E2E_FULL solo (Maya/budget) was pre-fix Walk B LLM path when restaurant search was blocked by who-required; superseded by this canonical run.",
+  "solo": {
     "http": 201,
-    "body": "I still don't have your budget preferences, so I can't narrow down San Diego spots well yet \u2014 want to set a range? And is tonight with Maya? If so, I'll keep it vegetarian-friendly.",
-    "action_state": null,
-    "job": null,
-    "plan_id": null,
+    "body": "Got it \u2014 tonight in San Diego. Checking San Diego\u2026 I'll aim for around 7:30 unless you want later.",
+    "action_state": "queued",
+    "job": "43e0b16d-1903-4c7e-820c-131ee32e8657",
+    "plan_id": "d2212fdb-9a39-49db-80c6-bb206447db1c",
     "who": null,
     "dest": "San Diego",
     "when": "tonight",
     "venue": null,
+    "solo": true,
     "visibility": "normal",
     "surprise": null,
-    "titles_exposed": false,
-    "auto_grant": false,
-    "next_dependency": "people",
-    "search_geography": null,
-    "trip_kept": null,
-    "avail_permission": null,
-    "avail_copy": "",
-    "working": false,
-    "eng_leak": false,
-    "slots_changed": null
-  },
-  "solo_2": {
-    "http": 201,
-    "body": "I can help with that \u2014 I just need two quick things: your budget range, and whether Maya's joining (so I keep it vegetarian-friendly). Then I'll pull together strong San Diego spots for tonight.",
-    "action_state": null,
-    "job": null,
-    "plan_id": null,
-    "who": null,
-    "dest": "San Diego",
-    "when": "tonight",
-    "venue": null,
-    "visibility": "normal",
-    "surprise": null,
-    "titles_exposed": false,
-    "auto_grant": false,
-    "next_dependency": "people",
-    "search_geography": null,
-    "trip_kept": null,
-    "avail_permission": null,
-    "avail_copy": "",
-    "working": false,
-    "eng_leak": false,
-    "slots_changed": null
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
+    "next_dependency": "travel",
+    "fixture_names_in_body": [],
+    "question_marks": 0,
+    "duplicate_daypart": false,
+    "eng_leak": false
   },
   "solo_results": {
-    "count": 0,
-    "names": []
+    "count": 3,
+    "names": [
+      "Al Teatro Panini Grill",
+      "Lucy's taco shop",
+      "Tender Greens"
+    ],
+    "providers": [
+      "geoapify"
+    ],
+    "body": "I found a few strong options in San Diego, CA, United States of America: Al Teatro Panini Grill, Lucy's taco shop, Tender Greens. Pick one and I'll attach it to the plan. Powered by Geoapify"
+  },
+  "solo_select": {
+    "http": 201,
+    "body": "Perfect \u2014 I added Al Teatro Panini Grill to tonight in San Diego. Travel isn't attached yet. Want me to check that next?",
+    "action_state": "option_selected",
+    "job": null,
+    "plan_id": "d2212fdb-9a39-49db-80c6-bb206447db1c",
+    "who": null,
+    "dest": "San Diego",
+    "when": "tonight",
+    "venue": "Al Teatro Panini Grill",
+    "solo": true,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
+    "next_dependency": "travel",
+    "fixture_names_in_body": [],
+    "question_marks": 1,
+    "duplicate_daypart": false,
+    "eng_leak": false
+  },
+  "t1": {
+    "http": 201,
+    "body": "Got it: something soon with Chanelle. Want me to set this up?",
+    "action_state": null,
+    "job": null,
+    "plan_id": null,
+    "who": [
+      "Chanelle"
+    ],
+    "dest": null,
+    "when": null,
+    "venue": null,
+    "solo": null,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
+    "next_dependency": "when",
+    "fixture_names_in_body": [
+      "chanelle"
+    ],
+    "question_marks": 1,
+    "duplicate_daypart": false,
+    "eng_leak": false
+  },
+  "t2": {
+    "http": 201,
+    "body": "Mexico City for Chanelle \u2014 love that. Since it's a surprise, want me to keep the restaurant options quiet too, or should I still attach one to the plan?",
+    "action_state": null,
+    "job": null,
+    "plan_id": null,
+    "who": [
+      "Chanelle"
+    ],
+    "dest": "Mexico City",
+    "when": null,
+    "venue": null,
+    "solo": null,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
+    "next_dependency": "when",
+    "fixture_names_in_body": [
+      "chanelle"
+    ],
+    "question_marks": 1,
+    "duplicate_daypart": false,
+    "eng_leak": false
+  },
+  "t3": {
+    "http": 201,
+    "body": "Got it \u2014 Saturday night in Mexico City with Chanelle. Checking Mexico City\u2026 I'll aim for around 7:30 unless you want later.",
+    "action_state": "queued",
+    "job": "f0600c8b-0e7f-4c03-90d5-c9cfa556fc34",
+    "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+    "who": [
+      "Chanelle"
+    ],
+    "dest": "Mexico City",
+    "when": "Saturday",
+    "venue": null,
+    "solo": null,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
+    "next_dependency": "travel",
+    "fixture_names_in_body": [
+      "chanelle"
+    ],
+    "question_marks": 0,
+    "duplicate_daypart": false,
+    "eng_leak": false
+  },
+  "mx_results": {
+    "count": 3,
+    "names": [
+      "La Terraza del Conquistador",
+      "La Terraza Majestic",
+      "Primer Cuadro"
+    ],
+    "providers": [
+      "geoapify"
+    ],
+    "body": "I found a few strong options in Mexico City, CMX, Mexico: La Terraza del Conquistador, La Terraza Majestic, Primer Cuadro. Pick one and I'll attach it to the plan. Powered by Geoapify"
   },
   "select": {
     "http": 201,
-    "body": "Perfect \u2014 I added La Terraza del Conquistador to Sunday night in Mexico City. Travel isn't attached yet. Want me to check that next?",
+    "body": "Perfect \u2014 I added La Terraza del Conquistador to Saturday night in Mexico City. Travel isn't attached yet. Want me to check that next?",
     "action_state": "option_selected",
     "job": null,
-    "plan_id": "88ca56ce-4622-417e-994f-8a112e3d6790",
+    "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
     "who": [
       "Chanelle"
     ],
     "dest": "Mexico City",
-    "when": "Sunday",
+    "when": "Saturday",
     "venue": "La Terraza del Conquistador",
-    "visibility": "surprise",
-    "surprise": true,
-    "titles_exposed": false,
-    "auto_grant": false,
+    "solo": null,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
     "next_dependency": "travel",
-    "search_geography": null,
-    "trip_kept": null,
-    "avail_permission": "missing",
-    "avail_copy": "I can keep planning without checking their calendar until they allow Opal to use availability with you.",
-    "working": false,
-    "eng_leak": false,
-    "slots_changed": null
-  },
-  "still_need": {
-    "http": 201,
-    "body": "Travel isn't attached yet. Want me to check that next?",
-    "action_state": "dependency_surface",
-    "job": null,
-    "plan_id": "88ca56ce-4622-417e-994f-8a112e3d6790",
-    "who": [
-      "Chanelle"
-    ],
-    "dest": "Mexico City",
-    "when": "Sunday",
-    "venue": "La Terraza del Conquistador",
-    "visibility": "surprise",
-    "surprise": true,
-    "titles_exposed": false,
-    "auto_grant": false,
-    "next_dependency": "travel",
-    "search_geography": null,
-    "trip_kept": null,
-    "avail_permission": "missing",
-    "avail_copy": "I can keep planning without checking their calendar until they allow Opal to use availability with you.",
-    "working": false,
-    "eng_leak": false,
-    "slots_changed": null
+    "fixture_names_in_body": [],
+    "question_marks": 1,
+    "duplicate_daypart": false,
+    "eng_leak": false
   },
   "correction": {
     "http": 201,
     "body": "Updated \u2014 Sunday night in Mexico City.",
     "action_state": "plan_patched",
     "job": null,
-    "plan_id": "88ca56ce-4622-417e-994f-8a112e3d6790",
+    "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
     "who": [
       "Chanelle"
     ],
     "dest": "Mexico City",
     "when": "Sunday",
     "venue": "La Terraza del Conquistador",
-    "visibility": "surprise",
-    "surprise": true,
-    "titles_exposed": false,
-    "auto_grant": false,
+    "solo": null,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": [
+      "when"
+    ],
+    "before_context": {
+      "destination": "Mexico City",
+      "venue": "La Terraza del Conquistador",
+      "visibility_mode": "normal",
+      "when": "Saturday",
+      "who": [
+        "Chanelle"
+      ]
+    },
+    "after_context": {
+      "destination": "Mexico City",
+      "venue": "La Terraza del Conquistador",
+      "visibility_mode": "normal",
+      "when": "Sunday",
+      "who": [
+        "Chanelle"
+      ]
+    },
+    "patch": {
+      "when": "Sunday"
+    },
     "next_dependency": "travel",
-    "search_geography": null,
-    "trip_kept": null,
-    "avail_permission": "missing",
-    "avail_copy": "I can keep planning without checking their calendar until they allow Opal to use availability with you.",
-    "working": false,
-    "eng_leak": false,
-    "slots_changed": []
+    "fixture_names_in_body": [],
+    "question_marks": 0,
+    "duplicate_daypart": false,
+    "eng_leak": false
+  },
+  "correction_proof": {
+    "PLAN_ID_BEFORE_CORRECTION": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+    "PLAN_ID_AFTER_CORRECTION": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
+    "WHEN_BEFORE": "Saturday",
+    "WHEN_AFTER": "Sunday",
+    "SLOTS_CHANGED": [
+      "when"
+    ],
+    "WHO_UNCHANGED": true,
+    "DESTINATION_UNCHANGED": true,
+    "VENUE_UNCHANGED": true,
+    "SAME_PLAN_ID": true,
+    "before_context": {
+      "destination": "Mexico City",
+      "venue": "La Terraza del Conquistador",
+      "visibility_mode": "normal",
+      "when": "Saturday",
+      "who": [
+        "Chanelle"
+      ]
+    },
+    "patch": {
+      "when": "Sunday"
+    },
+    "after_context": {
+      "destination": "Mexico City",
+      "venue": "La Terraza del Conquistador",
+      "visibility_mode": "normal",
+      "when": "Sunday",
+      "who": [
+        "Chanelle"
+      ]
+    }
   },
   "cancel": {
     "http": 201,
     "body": "Okay \u2014 I dropped the restaurant and kept the Mexico City plan.",
     "action_state": "venue_cancelled",
     "job": null,
-    "plan_id": "88ca56ce-4622-417e-994f-8a112e3d6790",
+    "plan_id": "2c72a166-cd16-421b-ac34-950d02b7fc4a",
     "who": [
       "Chanelle"
     ],
     "dest": "Mexico City",
     "when": "Sunday",
     "venue": null,
-    "visibility": "surprise",
-    "surprise": true,
-    "titles_exposed": false,
-    "auto_grant": false,
+    "solo": null,
+    "visibility": "normal",
+    "surprise": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "patch": null,
     "next_dependency": "travel",
-    "search_geography": null,
-    "trip_kept": true,
-    "avail_permission": "missing",
-    "avail_copy": "I can keep planning without checking their calendar until they allow Opal to use availability with you.",
-    "working": false,
-    "eng_leak": false,
-    "slots_changed": null
-  },
-  "surprise": {
-    "http": 201,
-    "body": "Got it \u2014 Sunday night in Mexico City with Chanelle. Checking Mexico City\u2026",
-    "action_state": "queued",
-    "job": "75012960-13cd-4b95-b58b-0ae7902cd6ea",
-    "plan_id": "88ca56ce-4622-417e-994f-8a112e3d6790",
-    "who": [
-      "Chanelle"
-    ],
-    "dest": "Mexico City",
-    "when": "Sunday",
-    "venue": null,
-    "visibility": "surprise",
-    "surprise": true,
-    "titles_exposed": false,
-    "auto_grant": false,
-    "next_dependency": "travel",
-    "search_geography": "Mexico City",
-    "trip_kept": null,
-    "avail_permission": "missing",
-    "avail_copy": "I can keep planning without checking their calendar until they allow Opal to use availability with you.",
-    "working": true,
-    "eng_leak": false,
-    "slots_changed": null
+    "fixture_names_in_body": [],
+    "question_marks": 0,
+    "duplicate_daypart": false,
+    "eng_leak": false
   }
 }

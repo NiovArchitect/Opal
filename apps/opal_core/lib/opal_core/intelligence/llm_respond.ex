@@ -172,8 +172,12 @@ defmodule OpalCore.Intelligence.LlmRespond do
     account_id = ctx[:account_id] || ctx["account_id"]
     conversation_id = ctx[:conversation_id] || ctx["conversation_id"]
     text = ctx[:template_message] || ""
+    skip? = ctx[:skip_social_memory] == true or ctx["skip_social_memory"] == true
 
     cond do
+      skip? ->
+        nil
+
       not SocialMemory.enabled?() ->
         nil
 

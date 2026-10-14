@@ -1,6 +1,7 @@
 # Founder phone walk — Mexico City orchestration (consumer quality)
 
 **Status:** `FOUNDER_ACCEPTED = NO` · `FREEZE = HOLD` · `PASS2 = LOCKED`  
+**Evidence tip:** post-reconciliation (solo no person-injection; Saturday→Sunday slots_changed=[when]; TemporalPhrase).  
 **Architecture freeze:** do not re-architect before this walk.  
 **After PASS (locked order):** composer spacing + frosted scroll edges → real temporal Center graph.
 

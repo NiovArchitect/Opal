@@ -132,16 +132,36 @@ defmodule OpalCore.OpalResponse do
         recent
       end
 
+    ents = entities_map(intent_map)
+    solo? = solo_turn?(ents, raw)
+    participants = if solo?, do: [], else: ents[:who] || ents["who"] || ents[:participants]
+
+    instruction =
+      cond do
+        solo? ->
+          "Keep facts from the template floor. Warm Center voice. Max 3 short sentences. " <>
+            "This is a SOLO request — participant_set is the current user only. " <>
+            "Do NOT mention, invite, or ask about any other person (including contacts from memory). " <>
+            "Ask at most ONE narrow question if truly required. Prefer useful options over interrogation. " <>
+            "Empty budget or preference fields must NOT block a helpful reply."
+
+        true ->
+          "Keep facts from the template floor (names, plans, memories). Warm Center voice. Max 3 short sentences. " <>
+            "Ask at most ONE narrow question if needed. Never invent that someone is joining."
+      end
+
     draft_ctx = %{
       action: "respond.center",
       intent: intent,
-      entities: entities_map(intent_map),
+      entities: ents,
+      participants: participants,
       template_message: template,
       account_id: account_id,
       conversation_id: conversation_id,
       recent_messages: recent,
-      instruction:
-        "Keep facts from the template floor (names, plans, memories). Warm Center voice. Max 3 short sentences."
+      # Solo: do not inject relationship memory people into the draft.
+      instruction: instruction,
+      skip_social_memory: solo?
     }
 
     {text, source} = LlmRespond.draft_or_template(draft_ctx)
@@ -1108,6 +1128,14 @@ defmodule OpalCore.OpalResponse do
   defp entities_map(%{entities: e}) when is_map(e), do: e
   defp entities_map(%{"entities" => e}) when is_map(e), do: e
   defp entities_map(_), do: %{}
+
+  defp solo_turn?(ents, raw) when is_map(ents) do
+    ents[:solo] == true or ents["solo"] == true or
+      OpalCore.Center.PlanContextPatch.solo_intent?(raw || "") or
+      (is_binary(raw) and Regex.match?(~r/\bjust for me\b/i, raw))
+  end
+
+  defp solo_turn?(_, raw), do: OpalCore.Center.PlanContextPatch.solo_intent?(raw || "")
 
   defp entity(map, key) when is_atom(key) do
     Map.get(map, key) || Map.get(map, Atom.to_string(key))

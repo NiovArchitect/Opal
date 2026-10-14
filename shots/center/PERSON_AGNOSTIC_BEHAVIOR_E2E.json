@@ -1,0 +1,128 @@
+{
+  "t1": {
+    "http": 201,
+    "body": "Got it: something soon with Quinn. Want me to set this up?",
+    "action_state": null,
+    "plan_id": null,
+    "who": [
+      "Quinn"
+    ],
+    "dest": null,
+    "when": null,
+    "venue": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "fixture_bleed": [],
+    "duplicate_daypart": false
+  },
+  "t2": {
+    "http": 201,
+    "body": "Lisbon with Quinn sounds lovely. What time of year are you thinking, and is this a surprise or are you planning it together?",
+    "action_state": null,
+    "plan_id": null,
+    "who": [
+      "Quinn"
+    ],
+    "dest": "Lisbon",
+    "when": null,
+    "venue": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "fixture_bleed": [],
+    "duplicate_daypart": false
+  },
+  "t3": {
+    "http": 201,
+    "body": "Got it \u2014 Saturday night in Lisbon with Quinn. Checking Lisbon\u2026 I'll aim for around 7:30 unless you want later.",
+    "action_state": "queued",
+    "plan_id": "cf17b2ec-0567-423c-89d9-5c2a64001b08",
+    "who": [
+      "Quinn"
+    ],
+    "dest": "Lisbon",
+    "when": "Saturday",
+    "venue": null,
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "fixture_bleed": [],
+    "duplicate_daypart": false
+  },
+  "results": {
+    "count": 3,
+    "names": [
+      "Squisito",
+      "Ministerium Cantina",
+      "Nosolo Italia"
+    ]
+  },
+  "select": {
+    "http": 201,
+    "body": "Perfect \u2014 I added Squisito to Saturday night in Lisbon. Travel isn't attached yet. Want me to check that next?",
+    "action_state": "option_selected",
+    "plan_id": "cf17b2ec-0567-423c-89d9-5c2a64001b08",
+    "who": [
+      "Quinn"
+    ],
+    "dest": "Lisbon",
+    "when": "Saturday",
+    "venue": "Squisito",
+    "slots_changed": null,
+    "before_context": null,
+    "after_context": null,
+    "fixture_bleed": [],
+    "duplicate_daypart": false
+  },
+  "correction": {
+    "http": 201,
+    "body": "Updated \u2014 Sunday night in Lisbon.",
+    "action_state": "plan_patched",
+    "plan_id": "cf17b2ec-0567-423c-89d9-5c2a64001b08",
+    "who": [
+      "Quinn"
+    ],
+    "dest": "Lisbon",
+    "when": "Sunday",
+    "venue": "Squisito",
+    "slots_changed": [
+      "when"
+    ],
+    "before_context": {
+      "destination": "Lisbon",
+      "venue": "Squisito",
+      "visibility_mode": "normal",
+      "when": "Saturday",
+      "who": [
+        "Quinn"
+      ]
+    },
+    "after_context": {
+      "destination": "Lisbon",
+      "venue": "Squisito",
+      "visibility_mode": "normal",
+      "when": "Sunday",
+      "who": [
+        "Quinn"
+      ]
+    },
+    "fixture_bleed": [],
+    "duplicate_daypart": false
+  },
+  "proof": {
+    "participant_resolved": true,
+    "destination_preserved": true,
+    "same_plan": true,
+    "when_before": "Saturday",
+    "when_after": "Sunday",
+    "slots_changed": [
+      "when"
+    ],
+    "fixture_bleed": [],
+    "identities": {
+      "organizer": "River",
+      "participant": "Quinn"
+    }
+  }
+}
