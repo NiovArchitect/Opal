@@ -4,9 +4,10 @@ defmodule OpalCore.Intelligence.TravelMode do
 
   ## Detection (city/TZ only — never GPS)
 
-  Two coarse readings ≥6h apart with ≥3h timezone shift from **home timezone**
-  activate travel. Product framing: sustained away-from-home TZ (often multi-day /
-  >24h trips); the detector uses the existing 6h reading gap + 3h shift rule.
+  A **single** coarse reading with ≥3h timezone shift from **home timezone**
+  activates travel (device TZ ≠ home drives automatic travel). Dual readings
+  ≥6h apart with the same shift remain as a fallback when the newest reading
+  alone does not qualify.
 
   **Timezone-only POST is enough.** City is optional and should be sent only when
   the user granted coarse location. `ingest_reading/2` rejects any lat/lng/gps keys
@@ -241,6 +242,24 @@ defmodule OpalCore.Intelligence.TravelMode do
   defp do_ingest(_, _, _, _), do: {:error, :invalid}
 
   defp detect_activation(readings, home_tz) when is_list(readings) do
+    case readings do
+      [a | _] when is_map(a) ->
+        tz_a = a["timezone"]
+
+        cond do
+          is_binary(tz_a) and tz_shift_hours(tz_a, home_tz) >= @tz_shift_hours ->
+            {:activate, tz_a, a["city"]}
+
+          true ->
+            detect_activation_dual(readings, home_tz)
+        end
+
+      _ ->
+        :wait
+    end
+  end
+
+  defp detect_activation_dual(readings, home_tz) when is_list(readings) do
     with [a, b | _] <- readings,
          {:ok, at_a} <- parse_dt(a["at"]),
          {:ok, at_b} <- parse_dt(b["at"]) do
@@ -248,7 +267,6 @@ defmodule OpalCore.Intelligence.TravelMode do
       tz_a = a["timezone"]
       tz_b = b["timezone"]
 
-      # Prefer the most recent reading that is away from home.
       remote_tz =
         cond do
           tz_shift_hours(tz_a, home_tz) >= @tz_shift_hours -> tz_a

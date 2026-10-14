@@ -21,12 +21,12 @@ type Props = {
   onInvited?: () => void;
 };
 
-/** Contact / select trust (founder-approved). Selected-only invites; no continuous sync language. */
+/** One human intent: find / connect / invite — not separate infrastructure concepts. */
 export const FIND_PEOPLE_COPY = {
-  emptyTitle: "Your people will show up here",
-  emptyBody: "Invite someone you know to begin.",
-  permissionLine: "Only the people you select are invited.",
-  chooserIntro: "Choose people you already know.",
+  emptyTitle: "Find people you know",
+  emptyBody: "Connect someone already on Opal, or invite someone who isn’t yet.",
+  permissionLine: "Only the people you choose are contacted. Nothing syncs in the background.",
+  chooserIntro: "Connect on Opal or invite. Same intent.",
   skip: "Skip for now",
 } as const;
 
@@ -230,7 +230,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     <div className="find-people-overlay" role="dialog" aria-modal="true" aria-labelledby="find-people-title">
       <div className="find-people-sheet lumen-card">
         <header className="find-people-header">
-          <h2 id="find-people-title">People you know</h2>
+          <h2 id="find-people-title">{FIND_PEOPLE_COPY.emptyTitle}</h2>
           <button type="button" className="btn ghost" onClick={close} aria-label="Close">
             Close
           </button>
@@ -238,8 +238,11 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
 
         {mode === "chooser" ? (
           <div className="find-people-body">
-            <p className="lede muted-lede">Your people will show up here.</p>
+            <p className="lede muted-lede">{FIND_PEOPLE_COPY.emptyBody}</p>
             <p className="permission-line">{PERMISSION_LINE}</p>
+            <p className="muted-lede" data-testid="find-people-intent">
+              {FIND_PEOPLE_COPY.chooserIntro}
+            </p>
             <div className="find-people-actions">
               <button
                 type="button"
@@ -248,17 +251,17 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
                   if (pickerSupported) void tryContactPicker();
                   else {
                     setMode("manual");
-                    setStatus("Invite with a number, or share a link after.");
+                    setStatus("Add a name or number. Opal will connect or invite.");
                   }
                 }}
               >
-                Select from contacts
+                From your contacts
               </button>
               <button type="button" className="btn" onClick={() => setMode("manual")}>
-                Type a name
+                Name or number
               </button>
               <button type="button" className="btn ghost" onClick={close}>
-                Skip for now
+                {FIND_PEOPLE_COPY.skip}
               </button>
             </div>
           </div>

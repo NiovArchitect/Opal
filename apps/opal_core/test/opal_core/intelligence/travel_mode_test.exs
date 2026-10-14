@@ -40,11 +40,6 @@ defmodule OpalCore.Intelligence.TravelModeTest do
   end
 
   test "timezone-only ingest is enough; city optional", %{a: a} do
-    t0 = DateTime.utc_now() |> DateTime.add(-7 * 3600, :second)
-
-    assert {:ok, :tracking} =
-             TravelMode.ingest_reading(a, %{timezone: "Asia/Tokyo", at: t0})
-
     assert {:ok, :activated} =
              TravelMode.ingest_reading(a, %{timezone: "Asia/Tokyo", at: DateTime.utc_now()})
 
@@ -52,18 +47,35 @@ defmodule OpalCore.Intelligence.TravelModeTest do
     assert TravelMode.effective_tz(a) == "Asia/Tokyo"
   end
 
-  test "device TZ Tokyo, home LA → travel activates, quiet hours shift, dual times; return resolves",
-       %{a: a, b: b} do
+  test "single reading with TZ shift ≥3h from home activates travel", %{a: a} do
     assert TravelMode.home_timezone(a) == "America/Los_Angeles"
 
-    t0 = DateTime.utc_now() |> DateTime.add(-7 * 3600, :second)
-
-    assert {:ok, :tracking} =
+    assert {:ok, :activated} =
              TravelMode.ingest_reading(a, %{
                city: "Tokyo",
                timezone: "Asia/Tokyo",
-               at: t0
+               at: DateTime.utc_now()
              })
+
+    assert TravelMode.active?(a)
+    assert TravelMode.effective_tz(a) == "Asia/Tokyo"
+  end
+
+  test "home-TZ reading alone does not activate", %{a: a} do
+    assert TravelMode.home_timezone(a) == "America/Los_Angeles"
+
+    assert {:ok, :tracking} =
+             TravelMode.ingest_reading(a, %{
+               timezone: "America/Los_Angeles",
+               at: DateTime.utc_now()
+             })
+
+    refute TravelMode.active?(a)
+  end
+
+  test "device TZ Tokyo, home LA → travel activates, quiet hours shift, dual times; return resolves",
+       %{a: a, b: b} do
+    assert TravelMode.home_timezone(a) == "America/Los_Angeles"
 
     assert {:ok, :activated} =
              TravelMode.ingest_reading(a, %{
@@ -153,11 +165,6 @@ defmodule OpalCore.Intelligence.TravelModeTest do
   end
 
   test "privacy: B's prompt never contains A's travel", %{a: a, b: b} do
-    t0 = DateTime.utc_now() |> DateTime.add(-7 * 3600, :second)
-
-    assert {:ok, :tracking} =
-             TravelMode.ingest_reading(a, %{city: "Paris", timezone: "Europe/Paris", at: t0})
-
     assert {:ok, :activated} =
              TravelMode.ingest_reading(a, %{
                city: "Paris",
@@ -187,11 +194,6 @@ defmodule OpalCore.Intelligence.TravelModeTest do
   end
 
   test "end travel logs routine gap and clears active", %{a: a} do
-    t0 = DateTime.utc_now() |> DateTime.add(-7 * 3600, :second)
-
-    assert {:ok, :tracking} =
-             TravelMode.ingest_reading(a, %{city: "London", timezone: "Europe/London", at: t0})
-
     assert {:ok, :activated} =
              TravelMode.ingest_reading(a, %{
                city: "London",

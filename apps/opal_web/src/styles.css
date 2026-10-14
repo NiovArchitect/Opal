@@ -9017,24 +9017,27 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 /* legacy float class  -  keep harmless if referenced */
 .tab-opal-float { transform: none; }
 /* P0-05.11  -  Global Opal is a FULL-SCREEN destination (618:902), not a modal over Graphs.
- * Phone/native: fill the real viewport (not a frozen 390×844 card). Desktop ≥520 keeps stage. */
+ * Phone/native: fill the real viewport (not a frozen 390×844 card). Desktop ≥520 keeps stage.
+ * Founder Reality Repair #3 — permanent dock exclusion BEFORE focus so Center composer is hittable.
+ * Rest-state geometry owns clearance; :focus-within only handles keyboard hide. */
 .opal-ambient-overlay,
 .opal-ambient-destination {
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
   right: 0 !important;
-  bottom: 0 !important;
+  bottom: var(--opal-primary-viewport-inset, calc(74px + env(safe-area-inset-bottom, 0px) + 12px)) !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   max-width: none !important;
   max-height: none !important;
-  inset: 0 !important;
+  inset: auto !important;
   z-index: 10040 !important;
   background: #050816;
   overflow: hidden;
   margin: 0 !important;
   transform: none !important;
+  box-sizing: border-box !important;
 }
 @media (min-width: 520px) {
   .opal-ambient-overlay,
@@ -9049,6 +9052,10 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
   }
+}
+/* Soften content gap while Center owns the stage so composer clears frost/glyph. */
+.app:has(.opal-ambient-destination) {
+  --opal-dock-content-gap: 16px;
 }
 /* Dock must remain above Global Opal stage so Center Opal can close (Figma dock @y758) */
 .app:has(.opal-ambient-destination) .tabbar,
@@ -16890,8 +16897,9 @@ html.opal-native-host {
   --opal-dock-field-fill: rgba(8, 13, 30, 0.94);
   /* Pill sits on safe-area bottom; Center Opal protrudes independently above frost. */
   --opal-dock-lift: 0px;
-  /* Soft fade zone above dock (illusion of emerging behind frost) */
-  --opal-dock-content-gap: 6px;
+  /* Soft fade zone above dock (illusion of emerging behind frost).
+   * Repair #3 raises default gap so Center/composer rest-state clears frost. */
+  --opal-dock-content-gap: 12px;
   --opal-scroll-trail-pad: 10px;
   --dock-overlap: var(--opal-dock-base-height);
   --dock-offset: 0px;
@@ -18208,11 +18216,17 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   top: auto !important;
   flex: 0 0 auto;
   width: min(358px, calc(100% - 32px)) !important;
-  margin: 0 auto 8px !important;
+  /* Repair #3 — rest-state clearance above dock; hittable before focus. */
+  margin: 0 auto 12px !important;
   z-index: 5;
+  pointer-events: auto;
+}
+.opal-center-v2 {
+  /* Permanent bottom reserve so composer never sits under dock before focus. */
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
 }
 html.opal-native-host .opal-center-v2 {
-  padding-bottom: 0 !important;
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
   height: 100% !important;
   min-height: 0 !important;
 }
@@ -22863,8 +22877,10 @@ html.opal-native-host .trip-canvas {
   padding: 8px;
   border-radius: 14px;
   border: 1px solid #2a3548;
-  background: rgba(8, 14, 28, 0.96);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  /* Repair #3 — stable opaque layer; underlying list must not bleed through. */
+  background: #080e1c;
+  isolation: isolate;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
 }
 .graphs-create-menu-title {
   margin: 0 0 6px;
@@ -23453,14 +23469,9 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   opacity: 1;
 }
 
-/* Founder Reality Repair #2 — Center composer vs dock keyboard */
-/* When Center composer focused, hide dock so keyboard never covers composer */
-.app:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
-.app:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b,
-.opal-ambient-destination:has(.opal-center-v2-composer:focus-within) ~ .tabbar,
-html.opal-native-host .opal-ambient-destination:has(.opal-composer:focus-within) {
-  /* dock hide handled via sibling / body:has below */
-}
+/* Founder Reality Repair #3 — keyboard-open: hide dock AFTER composer is already hittable.
+ * Rest-state clearance is permanent dock exclusion on .opal-ambient-destination (above).
+ * This block only clears remaining keyboard collision once focus exists. */
 html.opal-native-host body:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
 html.opal-native-host body:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b,
 .app:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,

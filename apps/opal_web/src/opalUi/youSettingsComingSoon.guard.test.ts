@@ -36,7 +36,7 @@ describe("You settings — zero Coming soon + Pass B hide", () => {
     expect(code).not.toMatch(/next build/i);
   });
 
-  it("Spending / Fit inventory: blockedReason rows exist; no architecture-note paint ids", () => {
+  it("Spending / Fit inventory: spending blockedReason rows; Fit is functional via FitPreferencesSection", () => {
     const spending = screenBlock("spending");
     expect(spending).toMatch(/title:\s*"Spending"/);
     expect(spending).not.toContain('id: "spending-live"');
@@ -52,13 +52,11 @@ describe("You settings — zero Coming soon + Pass B hide", () => {
     expect(fit).toMatch(/title:\s*"Fit"/);
     expect(fit).not.toContain('id: "fit-scope"');
     expect(fit).not.toContain('id: "fit-empty"');
-    for (const id of ["share-activity-prefs", "wellness-goals"]) {
-      expect(fit).toContain(`id: "${id}"`);
-      const rowRe = new RegExp(
-        `id:\\s*"${id}"[\\s\\S]{0,220}?blockedReason:\\s*"[^"]+"|blockedReason:\\s*"[^"]+"[\\s\\S]{0,220}?id:\\s*"${id}"`,
-      );
-      expect(fit, `${id} missing blockedReason`).toMatch(rowRe);
-    }
+    expect(fit).not.toMatch(/blockedReason/);
+    expect(fit).not.toContain('id: "share-activity-prefs"');
+    expect(fit).not.toContain('id: "wellness-goals"');
+    expect(code).toMatch(/FitPreferencesSection/);
+    expect(code).toMatch(/data-testid="fit-prefs-section"/);
     expect(code).toMatch(/blockedReason" in row && row\.blockedReason\) return null/);
   });
 

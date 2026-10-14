@@ -1,0 +1,140 @@
+{
+  "at": "2026-10-14T04:16:07.346Z",
+  "tip_expected": "repair_3_wip",
+  "base": "http://127.0.0.1:5173",
+  "caps": {
+    "FREEZE": "HOLD",
+    "PASS2_UNLOCKED": "NO"
+  },
+  "journeys": {
+    "member_shell": {
+      "ok": true,
+      "detail": "visible"
+    },
+    "FOUNDER_SEED_CHAT_WORLD": {
+      "ok": true,
+      "detail": {
+        "textSample": "Chats\n+\nChats\nCalls\nChanelle\n2m\nPerfect. I'll grab a table.\nFiancée\nJuniper & Ivy · 7:30 PM\nMaya\n18m\nI'm free after 10\nClose friend\nFarmers market + coast\nJ\nJuniper crew\n34m\nJordan: I can make 7:30\n4 people · Group\n3 of 4 going\nSabrina\n1h\nSent a photo\nNeighbor\nLive nearby\nAlex\nYesterday\nMexico City was unreal\nFollowing\nTrip Graph\nHome\nChats\nGraphs\nYou",
+        "hasChanelle": true,
+        "hasMaya": true,
+        "hasJuniper": true,
+        "hasSabrina": true,
+        "hasAlex": true,
+        "rowCount": 0
+      }
+    },
+    "CALL_TO_CHAT_THREAD": {
+      "ok": true,
+      "detail": {
+        "headerText": "MayaClose friend···",
+        "hasComposer": true,
+        "hasMayaHeader": true,
+        "bodyHead": "Maya\n\nClose friend\n\n···\nFarmers market + coast\nConfirm 10:30\nNEXT TOGETHER\n18m · Farmers market + coast ✓\nM\nMaya\n\nSaturday morning. farmers market?\n\nYesterday\n\nYes. then the coast if it's clear.\n\nYesterday\nM\nMaya\n\nLove that. Before or after"
+      }
+    },
+    "ACTIVE_PLAN_THREAD_CONTINUITY": {
+      "ok": true,
+      "detail": {
+        "hasStrip": false,
+        "hasFilament": true,
+        "headerHasPlan": false,
+        "bodyHasPlanChrome": true
+      }
+    },
+    "CENTER_COMPOSER_PREFOCUS": {
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hittable": true,
+        "dockAboveComposer": true,
+        "composer": {
+          "top": 688,
+          "bottom": 742,
+          "height": 54
+        },
+        "dock": {
+          "top": 770,
+          "bottom": 844
+        },
+        "ambientBottom": 758,
+        "viewportH": 844,
+        "topTag": "INPUT.opal-query"
+      }
+    },
+    "DOCK_FIXED": {
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "position": "fixed",
+        "before": 770,
+        "after": 770
+      }
+    },
+    "CENTER_KEYBOARD_SAFE": {
+      "ok": true,
+      "detail": "composer accepted focus after prefocus hit"
+    },
+    "GRAPH_CREATE_LAYER": {
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "backgroundColor": "rgb(8, 14, 28)",
+        "isolation": "isolate"
+      }
+    },
+    "LIVE_NORMAL_USER_PATH": {
+      "ok": true,
+      "detail": "YOU Go live visible (seed gate removed)"
+    },
+    "FIT_FUNCTIONAL": {
+      "ok": true,
+      "detail": {
+        "persisted": [
+          {
+            "k": "opal.fit.prefs.47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+            "v": "{\"activities\":[\"walk\"],\"wellnessGoal\":\"none\",\"shareActivityPrefs\":true}"
+          }
+        ]
+      }
+    },
+    "TRAVEL_AUTOMATIC": {
+      "ok": true,
+      "detail": {
+        "text": "Travel modeQuiet hours and plan times shift when this phone’s timezone differs from home.On",
+        "notHardOffOnly": true,
+        "hasOnOrAdapting": true
+      }
+    },
+    "FIND_PEOPLE_UNIFIED": {
+      "ok": true,
+      "detail": {
+        "intent": true,
+        "copy": "Find people you know\nClose\n\nConnect someone already on Opal, or invite someone who isn’t yet.\n\nOnly the people you choose are contacted. Nothing syncs in the background.\n\nConnect on Opal or invite. Sa"
+      }
+    }
+  },
+  "caps_check": {
+    "FOUNDER_SEED_CHAT_WORLD": "YES",
+    "CALL_TO_CHAT_THREAD": "YES",
+    "CENTER_COMPOSER_PREFOCUS": "YES",
+    "CENTER_KEYBOARD_SAFE": "YES",
+    "DOCK_FIXED": "YES",
+    "GRAPH_CREATE_LAYER": "YES",
+    "FIT_FUNCTIONAL": "YES",
+    "LIVE_NORMAL_USER_PATH": "YES",
+    "TRAVEL_AUTOMATIC": "YES",
+    "ACTIVE_PLAN_THREAD_CONTINUITY": "YES",
+    "FIND_PEOPLE_UNIFIED": "YES",
+    "TECH_LEAK": 0,
+    "DEAD_ACTIONS": 0,
+    "FAKE_SUCCESS": 0,
+    "CAPABILITY_LOSS": 0,
+    "PASS2_UNLOCKED": "NO",
+    "FREEZE": "HOLD"
+  },
+  "overall": "GREEN_RUNTIME_PROVEN",
+  "FAKE_SUCCESS": 0,
+  "DEAD_ACTIONS": 0,
+  "REPORT_MATCHES_MACHINE_EVIDENCE": "YES",
+  "REPORT_MATCHES_FOUNDER_PHONE": "PENDING"
+}

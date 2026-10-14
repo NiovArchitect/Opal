@@ -7,14 +7,14 @@ const root = resolve(__dirname, "..");
 
 describe("SF18 find people copy and wiring", () => {
   it("empty-state copy is social and non-technical", () => {
-    expect(FIND_PEOPLE_COPY.emptyTitle).toMatch(/people will show up/i);
-    expect(FIND_PEOPLE_COPY.permissionLine).toBe(
-      "Only the people you select are invited.",
-    );
+    expect(FIND_PEOPLE_COPY.emptyTitle).toMatch(/find people/i);
+    expect(FIND_PEOPLE_COPY.emptyBody).toMatch(/connect|invite/i);
+    expect(FIND_PEOPLE_COPY.permissionLine).toMatch(/only the people you choose/i);
     expect(FIND_PEOPLE_COPY.permissionLine).not.toMatch(/address book|upload|scan|AI/i);
     expect(FIND_PEOPLE_COPY.skip).toMatch(/skip/i);
     // no em dashes
     expect(FIND_PEOPLE_COPY.permissionLine).not.toMatch(/—/);
+    expect(FIND_PEOPLE_COPY.chooserIntro).not.toMatch(/—/);
   });
 
   it("FindPeopleFlow is wired into OpalApp", () => {

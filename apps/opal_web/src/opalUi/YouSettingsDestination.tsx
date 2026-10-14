@@ -64,6 +64,15 @@ import {
   setAppearancePreference,
   type AppearancePreference,
 } from "../theme/appearanceTheme";
+import {
+  FIT_ACTIVITY_OPTIONS,
+  WELLNESS_GOAL_OPTIONS,
+  loadFitPreferences,
+  saveFitPreferences,
+  type FitActivityId,
+  type FitPreferences,
+  type WellnessGoal,
+} from "./fitPreferences";
 
 export type YouSettingKey =
   | "edit-profile"
@@ -80,6 +89,23 @@ export type YouSettingKey =
   | "appearance"
   | "account-security"
   | "delete-account";
+
+function normalizeTimezoneLabel(tz: string | null | undefined): string {
+  return (tz || "").trim().toLowerCase();
+}
+
+/** Backend active wins; else device TZ ≠ home projects Adapting (not hardcoded Off). */
+export function projectTravelModeLabel(
+  active: boolean,
+  deviceTz: string,
+  homeTz: string,
+): string {
+  if (active) return "On";
+  const device = normalizeTimezoneLabel(deviceTz);
+  const home = normalizeTimezoneLabel(homeTz);
+  if (device && home && device !== home) return "Adapting";
+  return "Off";
+}
 
 export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
   "edit-profile": "618:2123",
@@ -620,19 +646,9 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     lede: "Activity and self-care rhythm.",
     rows: [
       {
-        kind: "toggle",
-        blockedReason: "Activity preferences aren’t available yet.",
-        id: "share-activity-prefs",
-        title: "Share activity preferences",
-        subtitle: "Let Opal use activity likes for suggestions",
-        defaultOn: false,
-      },
-      {
-        kind: "nav",
-        id: "wellness-goals",
-        title: "Wellness goals",
-        subtitle: "Personal goals you choose to track",
-        blockedReason: "Wellness goals aren’t available yet.",
+        kind: "note",
+        id: "fit-prefs-note",
+        text: "Choose what Opal may use for activity and wellness suggestions. Nothing is shared until you turn sharing on and save.",
       },
     ],
   },
@@ -813,11 +829,15 @@ export function YouSettingsDestination({
             setFields((f) => ({
               ...f,
               "home-timezone": tz,
-              "travel-mode": body.active ? "On" : "Off",
+              "travel-mode": projectTravelModeLabel(body.active === true, fallbackTz, tz),
             }));
           })
           .catch(() => {
-            setFields((f) => ({ ...f, "home-timezone": fallbackTz, "travel-mode": "Off" }));
+            setFields((f) => ({
+              ...f,
+              "home-timezone": fallbackTz,
+              "travel-mode": projectTravelModeLabel(false, fallbackTz, fallbackTz),
+            }));
           }),
       );
     }
@@ -1000,11 +1020,20 @@ export function YouSettingsDestination({
                       updateHomeTimezone(tz, session?.access_token)
                         .then(() => getHomeTimezone(session?.access_token))
                         .then((body) => {
+                          const homeTz =
+                            (typeof body.home_timezone === "string" && body.home_timezone) || tz;
+                          const deviceNow =
+                            typeof Intl !== "undefined"
+                              ? Intl.DateTimeFormat().resolvedOptions().timeZone || homeTz
+                              : homeTz;
                           setFields((f) => ({
                             ...f,
-                            "home-timezone":
-                              (typeof body.home_timezone === "string" && body.home_timezone) || tz,
-                            "travel-mode": body.active ? "On" : "Off",
+                            "home-timezone": homeTz,
+                            "travel-mode": projectTravelModeLabel(
+                              body.active === true,
+                              deviceNow,
+                              homeTz,
+                            ),
                           }));
                           setSaving(false);
                         })
@@ -1085,6 +1114,9 @@ export function YouSettingsDestination({
         {setting === "appearance" ? <AppearanceThemeSection /> : null}
         {setting === "spending" ? (
           <SpendingComfortSection session={session ?? null} />
+        ) : null}
+        {setting === "fit" ? (
+          <FitPreferencesSection session={session ?? null} />
         ) : null}
         {/* Paste W Phase 5 / L8 — filed from You hub, not deleted */}
         {setting === "calls-assist" && session ? (
@@ -1650,6 +1682,137 @@ export function AppearanceThemeSection() {
         })}
       </div>
     </section>
+  );
+}
+
+type FitPreferencesSectionProps = {
+  session: ProductSession | null;
+};
+
+/**
+ * Fit preferences live under You → Fit (separate from Spending).
+ * Local substrate today; share gate controls Center/context summary later.
+ */
+export function FitPreferencesSection({ session }: FitPreferencesSectionProps) {
+  const userId = session?.user_id ?? null;
+  const [share, setShare] = useState(false);
+  const [activities, setActivities] = useState<FitActivityId[]>([]);
+  const [wellnessGoal, setWellnessGoal] = useState<WellnessGoal>("none");
+  const [saving, setSaving] = useState(false);
+  const [statusNote, setStatusNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prefs = loadFitPreferences(userId);
+    setShare(prefs.shareActivityPrefs);
+    setActivities([...prefs.activities]);
+    setWellnessGoal(prefs.wellnessGoal);
+    setStatusNote(null);
+  }, [userId]);
+
+  const toggleActivity = (id: FitActivityId) => {
+    setActivities((prev) =>
+      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id],
+    );
+    setStatusNote(null);
+  };
+
+  const onSave = () => {
+    if (saving) return;
+    setSaving(true);
+    setStatusNote(null);
+    try {
+      const next: FitPreferences = {
+        activities: [...activities],
+        wellnessGoal,
+        shareActivityPrefs: share,
+      };
+      saveFitPreferences(userId, next);
+      setStatusNote("Fit preferences saved.");
+    } catch {
+      setStatusNote("Could not save Fit preferences. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="you-hub-spending you-settings-spending" data-testid="fit-prefs-section">
+      <h5 className="you-spending-label">Activity preferences</h5>
+      <p className="you-trust-copy">
+        Tell Opal what moves you. Sharing is off until you turn it on.
+      </p>
+      <div className="you-settings-row" data-testid="fit-share-row">
+        <div className="you-settings-row-copy">
+          <strong>Share activity preferences</strong>
+          <span>Let Opal use these for suggestions</span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          className={`you-settings-toggle${share ? " on" : ""}`}
+          aria-checked={share}
+          aria-label="Share activity preferences"
+          data-testid="fit-share-toggle"
+          disabled={saving}
+          onClick={() => {
+            setShare((v) => !v);
+            setStatusNote(null);
+          }}
+        >
+          <span className="you-settings-toggle-knob" />
+        </button>
+      </div>
+      <div className="you-spending-options" data-testid="fit-activity-picker">
+        {FIT_ACTIVITY_OPTIONS.map((opt) => {
+          const selected = activities.includes(opt.id);
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              className={`you-spending-option${selected ? " is-selected" : ""}`}
+              data-testid={`fit-activity-${opt.id}`}
+              aria-pressed={selected}
+              disabled={saving}
+              onClick={() => toggleActivity(opt.id)}
+            >
+              <strong>{opt.label}</strong>
+            </button>
+          );
+        })}
+      </div>
+      <label className="you-spending-field">
+        Wellness goal
+        <select
+          value={wellnessGoal}
+          data-testid="fit-wellness-goal"
+          disabled={saving}
+          onChange={(e) => {
+            setWellnessGoal(e.target.value as WellnessGoal);
+            setStatusNote(null);
+          }}
+        >
+          {WELLNESS_GOAL_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        className="you-trust-grant"
+        data-testid="fit-save"
+        disabled={saving}
+        onClick={onSave}
+      >
+        Save Fit preferences
+      </button>
+      {statusNote ? (
+        <p className="you-trust-copy" data-testid="fit-status-note">
+          {statusNote}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

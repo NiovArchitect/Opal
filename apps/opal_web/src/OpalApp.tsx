@@ -3036,8 +3036,30 @@ export function OpalApp() {
             }));
       setThreads((prev) => ({ ...prev, [id]: threadLocal }));
       setChats((prev) => {
+        const seedPlan = seedRow?.planConsequence;
+        const withSeedPlan = {
+          signalLabel: seedPlan?.label || undefined,
+          planProjection: seedPlan
+            ? {
+                place: seedPlan.label,
+                when_label: seedRow?.when || undefined,
+                lineage_id: seedPlan.planId || seedRow?.id,
+                temporal_state: seedPlan.state === "ready" ? "upcoming" : undefined,
+                upcoming_ready: seedPlan.state === "ready",
+              }
+            : undefined,
+        };
         if (prev.some((c) => c.id === id)) {
-          return prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c));
+          return prev.map((c) =>
+            c.id === id
+              ? {
+                  ...c,
+                  unread: 0,
+                  name: seedRow?.name || c.name,
+                  ...withSeedPlan,
+                }
+              : c,
+          );
         }
         return [
           ...prev,
@@ -3052,6 +3074,7 @@ export function OpalApp() {
             peers: seedRow
               ? [{ id: `seed-peer-${seedRow.id}`, display_name: seedRow.name }]
               : undefined,
+            ...withSeedPlan,
           },
         ];
       });
@@ -3766,6 +3789,80 @@ export function OpalApp() {
   }, [profilePerson, chats, session?.access_token, session?.cookie_session]);
 
   /**
+   * Founder Reality Repair #3 — Call/Profile → Chat must resolve a real thread.
+   * Never: Chat action → generic Chats list with no open conversation.
+   * Ladder: live name match → founder seed fixture → connected peer ensure → New Chat.
+   */
+  const openChatForPersonName = async (personName: string): Promise<boolean> => {
+    const needle = personName.trim().toLowerCase();
+    if (!needle) return false;
+
+    const nameMatch = (hay: string) => {
+      const h = hay.trim().toLowerCase();
+      return h.includes(needle) || needle.includes(h);
+    };
+
+    // Founder fixture person → deterministic seed thread first (never depend on remapped
+    // live UUIDs that may fail membership and silently dead-end on the Chats list).
+    if (isFounderSeedEnabled()) {
+      const seed = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => nameMatch(r.name));
+      if (seed) {
+        setCommSurface("chats");
+        setTab("chats");
+        await openChat(seed.id);
+        return true;
+      }
+    }
+
+    const live = chats.find((c) => nameMatch(c.name));
+    if (live) {
+      setCommSurface("chats");
+      setTab("chats");
+      await openChat(live.id);
+      return true;
+    }
+
+    const people = listDirectPeopleFromChats(chats);
+    const peer = people.find((p) => nameMatch(p.displayName));
+    if (peer) {
+      let conversationId =
+        peer.conversationId ||
+        resolveDirectConversationForPerson(chats, peer.peerUserId)?.conversationId ||
+        null;
+      if (!conversationId && session?.access_token) {
+        try {
+          const ensured = await ensureDirectConversation(
+            peer.peerUserId,
+            session.access_token,
+          );
+          if (
+            ensured.composition !== "group" &&
+            (ensured.member_count ?? 0) < 3 &&
+            ensured.direct !== false
+          ) {
+            conversationId = ensured.conversation_id;
+            await refreshLive(session);
+          }
+        } catch {
+          /* ensure soft-fail — fall through to New Chat */
+        }
+      }
+      if (conversationId) {
+        setCommSurface("chats");
+        setTab("chats");
+        await openChat(conversationId);
+        return true;
+      }
+    }
+
+    setCommSurface("chats");
+    setTab("chats");
+    setNewChatOpen(true);
+    setCallsGateNote(`Open a chat with ${personName.trim()} to continue.`);
+    return false;
+  };
+
+  /**
    * P0-05.5  -  Graph open must NOT auto-activate Journey.
    * 618:674 "Tap a Graph to open it." → 618:758 Graph Detail persists.
    * 618:3288 Journey requires existing SharedPlan/commit  -  not Graph Detail mount.
@@ -4127,8 +4224,23 @@ export function OpalApp() {
     // Upcoming: Next Together strip stays in-thread.
     // Past: PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0 — access via header overflow
     // ("Earlier together"), not a sticky banner between person and messages.
-    const headerPlan =
+    // Repair #3 — prefer alignment lines; fall back to chat planProjection / seed signal
+    // so relationship threads keep active-plan continuity without requiring full settlement.
+    const headerPlanFromAlignment =
       planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
+    const projectionSummary = [
+      activeChat.planProjection?.when_label,
+      activeChat.planProjection?.place,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const headerPlan =
+      headerPlanFromAlignment ||
+      (projectionSummary
+        ? { summary: projectionSummary, moreCount: 0 }
+        : activeChat.signalLabel
+          ? { summary: activeChat.signalLabel, moreCount: 0 }
+          : null);
     const pastHistorySummary =
       planSettled && temporalState === "past"
         ? selectHeaderPlan(alignment?.plan_lines)?.summary ||
@@ -4636,8 +4748,8 @@ export function OpalApp() {
         </div>
         <ConnectionHint state={connectionState} />
 
-        {/* Next / Last together  -  thin reality shortcut, not a second database. */}
-        {isFounderSeedEnabled() && activeChat.signalLabel ? (
+        {/* Next / Last together — relationship continuity; not founder-seed gated. */}
+        {!headerPlan && activeChat.signalLabel ? (
           <button
             type="button"
             className="next-together-strip"
@@ -8648,12 +8760,14 @@ export function OpalApp() {
                     title: c.name,
                   })),
                 });
-                if (seedOn && composed.rows.length === 0) {
+                if (seedOn && composed.rows.length < 5) {
                   console.warn("[opal-seed]", {
-                    step: "chats-list-fallback-risk",
-                    detail: "compose produced 0 rows — UI would fall back to live backend",
+                    step: "chats-list-hard-fallback",
+                    detail: "compose under-delivered founder world — painting FOUNDER_CHATS_PLAN_PILL_ROWS",
+                    composedLen: composed.rows.length,
                     liveLen: liveRows.length,
                   });
+                  return applyTravelToChatRows(FOUNDER_CHATS_PLAN_PILL_ROWS, travelOverrides);
                 }
                 return applyTravelToChatRows(composed.rows, travelOverrides);
               })()
@@ -10439,15 +10553,11 @@ export function OpalApp() {
               }
             }}
             onMessage={() => {
-              const chat = chats.find((c) =>
-                c.name.toLowerCase().includes(profilePerson.toLowerCase()),
-              );
+              const personName = profilePerson;
               setProfilePerson(null);
               setSearchReturnPending(false);
               setHomeScrollToken((t) => t + 1);
-              setCommSurface("chats");
-              setTab("chats");
-              if (chat) void openChat(chat.id);
+              void openChatForPersonName(personName);
             }}
             onPlan={() => {
               // WHO already known
@@ -10809,13 +10919,12 @@ export function OpalApp() {
             });
           }}
           onChat={() => {
-            const chat = chats.find((c) =>
-              c.name.toLowerCase().includes(callContinuity.name.toLowerCase()),
-            );
+            const personName = callContinuity.name;
             setCallContinuity(null);
-            setCommSurface("chats");
-            setTab("chats");
-            if (chat) void openChat(chat.id);
+            // Defer past Continuity unmount so openChat state is not raced away.
+            window.setTimeout(() => {
+              void openChatForPersonName(personName);
+            }, 0);
           }}
           onOpenGraph={(graphId) => {
             setCallContinuity(null);
@@ -12060,7 +12169,7 @@ function YouPane({
                 </span>
               </button>
             ) : null}
-            {section.id === "world" && session && onOpenLives && isFounderSeedEnabled() ? (
+            {section.id === "world" && session && onOpenLives ? (
               <button
                 type="button"
                 className="you-hub-row"

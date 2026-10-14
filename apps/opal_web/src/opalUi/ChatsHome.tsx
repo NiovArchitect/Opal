@@ -405,11 +405,11 @@ export function ChatsHome({
                   type="button"
                   className="calls-continuity-copy"
                   data-testid={`calls-open-continuity-${r.id}`}
-                  aria-label={`Call ${r.name}`}
+                  aria-label={`Open ${r.name}`}
                   onClick={() => {
-                    /* Founder walk: tap call-log entry → call back */
-                    if (r.signal?.kind === "callback") onCallBack?.(r);
-                    else onQuickCallRow?.(r);
+                    /* Repair #3 — person row opens Continuity (Chat/Call/Video live there).
+                     * One-tap dial stays on calls-quick-dial-*. */
+                    onOpenCallsContinuityRow?.(r);
                   }}
                 >
                   <strong className="chats-home-name">{r.name}</strong>
