@@ -140,6 +140,8 @@ export function OpalCenterLifeGraph({
 }: Props) {
   const [phase, setPhase] = useState<Phase>("rest");
   const [query, setQuery] = useState("");
+  /** Repair #4 — seed utterance handed to OpalCenterChat (one intelligence path). */
+  const [chatSeed, setChatSeed] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [contextSheetOpen, setContextSheetOpen] = useState(false);
   const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(() => loadDismissedNudges());
@@ -296,6 +298,22 @@ export function OpalCenterLifeGraph({
     }
   }
 
+  /**
+   * Repair #4 P0 — one Opal intelligence path.
+   * Rest composer, chips, nudges, and mic enter Talk-to-Opal orchestration
+   * (OpalConversations → Intent → Response → DeepSeek when ready).
+   * Decision Intelligence nearby_now is no longer the free-text brain.
+   */
+  function openChatWith(text?: string) {
+    const q = (text ?? query).trim();
+    if (!q) return;
+    setQuery(q);
+    setChatSeed(q);
+    setAttachNote(null);
+    setPhase("chat");
+  }
+
+  /** Kept for conversation-phase DI card adjustments only (Timing/Budget/Vibe). */
   async function askAboutDay(text?: string) {
     const q = (text ?? query).trim() || "I've got two hours. What fits me nearby?";
     setQuery(q);
@@ -508,10 +526,15 @@ export function OpalCenterLifeGraph({
 
       {phase === "chat" ? (
         <OpalCenterChat
-          onBack={() => setPhase("rest")}
+          onBack={() => {
+            setPhase("rest");
+            setChatSeed(null);
+            setQuery("");
+          }}
           onPlanCreated={onPlanCreated}
           bearer={bearer}
           userId={userId}
+          initialMessage={chatSeed}
         />
       ) : (
         <>
@@ -527,8 +550,8 @@ export function OpalCenterLifeGraph({
             onTranscript={(text) => {
               setQuery(text);
               setAttachNote(null);
-              // Drive thinking → response on the real ask path after a live utterance.
-              void askAboutDay(text);
+              // One intelligence path — live utterance enters OC chat orchestration.
+              openChatWith(text);
             }}
           />
         </div>
@@ -604,11 +627,11 @@ export function OpalCenterLifeGraph({
                     className="opal-center-nudge-body"
                     role="button"
                     tabIndex={0}
-                    onClick={() => void askAboutDay(n.body)}
+                    onClick={() => openChatWith(n.body)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        void askAboutDay(n.body);
+                        openChatWith(n.body);
                       }
                     }}
                   >
@@ -632,7 +655,10 @@ export function OpalCenterLifeGraph({
             type="button"
             className="opal-center-v2-primary opal-center-talk-to-opal"
             data-testid="opal-center-talk-to-opal"
-            onClick={() => setPhase("chat")}
+            onClick={() => {
+              setChatSeed(null);
+              setPhase("chat");
+            }}
           >
             Talk to Opal
           </button>
@@ -642,7 +668,7 @@ export function OpalCenterLifeGraph({
               type="button"
               className="opal-center-v2-chip"
               data-testid="opal-center-chip-nearby"
-              onClick={() => askAboutDay("What's nearby in an open window?")}
+              onClick={() => openChatWith("What's nearby in an open window?")}
             >
               Nearby now
             </button>
@@ -650,7 +676,7 @@ export function OpalCenterLifeGraph({
               type="button"
               className="opal-center-v2-chip"
               data-testid="opal-center-chip-whats-next"
-              onClick={() => askAboutDay("What's next?")}
+              onClick={() => openChatWith("What's next?")}
             >
               What&apos;s next?
             </button>
@@ -658,7 +684,7 @@ export function OpalCenterLifeGraph({
               type="button"
               className="opal-center-v2-chip"
               data-testid="opal-center-chip-tonight"
-              onClick={() => askAboutDay("Ideas for tonight nearby")}
+              onClick={() => openChatWith("Ideas for tonight nearby")}
             >
               Tonight ideas
             </button>
@@ -903,7 +929,7 @@ export function OpalCenterLifeGraph({
                 type="button"
                 className="opal-center-v2-primary"
                 onClick={() =>
-                  askAboutDay(
+                  openChatWith(
                     weekDay === "Fri"
                       ? "Shape Friday open window"
                       : `Shape ${weekDay} open window`,
@@ -1079,7 +1105,7 @@ export function OpalCenterLifeGraph({
           placeholder={composerPlaceholder()}
           autoComplete="off"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && hasText) void askAboutDay();
+            if (e.key === "Enter" && hasText) openChatWith();
           }}
         />
         {hasText ? (
@@ -1088,7 +1114,7 @@ export function OpalCenterLifeGraph({
             className="opal-center-send"
             data-testid="opal-center-send"
             aria-label="Send"
-            onClick={() => void askAboutDay()}
+            onClick={() => openChatWith()}
           >
             <span className="opal-center-send-glyph" aria-hidden>
               ↑

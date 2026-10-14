@@ -3,6 +3,7 @@ import {
   fitPreferencesStorageKey,
   loadFitPreferences,
   readFitContextForOpal,
+  readFitSliceForOpal,
   saveFitPreferences,
   type FitPreferences,
 } from "./fitPreferences";
@@ -48,6 +49,7 @@ describe("fitPreferences", () => {
       shareActivityPrefs: false,
     });
     expect(readFitContextForOpal("user-a")).toBeNull();
+    expect(readFitSliceForOpal("user-a")).toBeNull();
   });
 
   it("readFitContextForOpal returns a summary when share is on", () => {
@@ -60,6 +62,22 @@ describe("fitPreferences", () => {
     expect(summary).toMatch(/Walk/i);
     expect(summary).toMatch(/Strength/i);
     expect(summary).toMatch(/Recover/i);
+    expect(readFitSliceForOpal("user-a")).toEqual({
+      activities: ["walk", "strength"],
+      goal: "recover",
+    });
+  });
+
+  it("readFitSliceForOpal caps activities and omits none goal", () => {
+    saveFitPreferences("user-a", {
+      activities: ["walk", "run", "yoga", "strength", "outdoors", "rest", "extra"],
+      wellnessGoal: "none",
+      shareActivityPrefs: true,
+    });
+    expect(readFitSliceForOpal("user-a")).toEqual({
+      activities: ["walk", "run", "yoga", "strength", "outdoors", "rest"],
+      goal: null,
+    });
   });
 
   it("uses anon key when userId is null", () => {

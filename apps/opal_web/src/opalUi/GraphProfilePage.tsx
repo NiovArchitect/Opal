@@ -34,11 +34,18 @@ export type ProfileMemoryItem = {
 
 type Props = {
   name: string;
+  /** Public @handle when known (Opal user). */
+  handle?: string | null;
   connectionLabel?: string;
   /** RU-1 type when known - editable via onSetRelationshipType. */
   relationshipType?: RelationshipTypeValue | string | null;
   onSetRelationshipType?: (type: RelationshipTypeValue) => void | Promise<void>;
   phoneNumber?: string | null;
+  /**
+   * shared = relationship-authorized; owner_private = address-book / local only.
+   * Owner-private must never be implied as mutual relationship data.
+   */
+  phoneProvenance?: "shared" | "owner_private" | null;
   onSavePhone?: (phone: string) => void | Promise<void>;
   avatarSrc?: string;
   onMessage?: () => void;
@@ -60,10 +67,12 @@ type Props = {
 
 export function GraphProfilePage({
   name,
+  handle = null,
   connectionLabel = "Direct connection",
   relationshipType = null,
   onSetRelationshipType,
   phoneNumber = null,
+  phoneProvenance = null,
   onSavePhone,
   avatarSrc,
   onMessage,
@@ -152,7 +161,14 @@ export function GraphProfilePage({
         ) : (
           <span className="gprof-avatar gprof-avatar-fallback">{initial}</span>
         )}
-        <h1 className="gprof-name">{name}</h1>
+        <h1 className="gprof-name" data-testid="gprof-name">
+          {name}
+        </h1>
+        {handle ? (
+          <p className="gprof-handle" data-testid="gprof-handle">
+            {handle.startsWith("@") ? handle : `@${handle}`}
+          </p>
+        ) : null}
         {onSetRelationshipType ? (
           <button
             type="button"
@@ -171,7 +187,9 @@ export function GraphProfilePage({
             </span>
           </button>
         ) : (
-          <p className="gprof-conn">{typeLabel}</p>
+          <p className="gprof-conn" data-testid="gprof-connection-label">
+            {typeLabel}
+          </p>
         )}
       </div>
 
@@ -232,11 +250,11 @@ export function GraphProfilePage({
           data-testid="gprof-call"
           data-mode={onCall ? "active" : "conditional"}
           disabled={!onCall}
-          title={onCall ? "Call" : "Call capability gated"}
+          title={onCall ? "Audio Call" : "Call capability gated"}
           onClick={onCall}
         >
           <img className="gprof-action-icon" src="/figma-v2/person/icon-call.svg" alt="" width={18} height={18} aria-hidden />
-          <span className="gprof-action-label">Call</span>
+          <span className="gprof-action-label">Audio Call</span>
         </button>
         <button
           type="button"
@@ -244,11 +262,11 @@ export function GraphProfilePage({
           data-testid="gprof-video"
           data-mode={onVideo ? "active" : "conditional"}
           disabled={!onVideo}
-          title={onVideo ? "Video" : "Video capability gated"}
+          title={onVideo ? "Video Call" : "Video capability gated"}
           onClick={onVideo}
         >
           <img className="gprof-action-icon" src="/figma-v2/person/icon-video.svg" alt="" width={18} height={18} aria-hidden />
-          <span className="gprof-action-label">Video</span>
+          <span className="gprof-action-label">Video Call</span>
         </button>
         <button
           type="button"
@@ -262,9 +280,13 @@ export function GraphProfilePage({
         </button>
       </div>
 
-      {onSavePhone ? (
-        <div className="gprof-phone" data-testid="gprof-phone-row">
-          {phoneOpen ? (
+      {onSavePhone || phoneNumber ? (
+        <div
+          className="gprof-phone"
+          data-testid="gprof-phone-row"
+          data-phone-provenance={phoneProvenance || undefined}
+        >
+          {phoneOpen && onSavePhone ? (
             <form
               className="gprof-phone-form"
               data-testid="gprof-phone-form"
@@ -309,7 +331,38 @@ export function GraphProfilePage({
                 Cancel
               </button>
             </form>
-          ) : (
+          ) : phoneNumber ? (
+            <div className="gprof-phone-display">
+              {onSavePhone ? (
+                <button
+                  type="button"
+                  className="gprof-phone-add"
+                  data-testid="gprof-phone-add"
+                  disabled={savingMeta}
+                  onClick={() => {
+                    setTypeOpen(false);
+                    setPhoneDraft(phoneNumber || "");
+                    setPhoneOpen(true);
+                  }}
+                >
+                  {phoneNumber}
+                </button>
+              ) : (
+                <p className="gprof-phone-value" data-testid="gprof-phone-value">
+                  {phoneNumber}
+                </p>
+              )}
+              {phoneProvenance === "owner_private" ? (
+                <p className="gprof-phone-privacy" data-testid="gprof-phone-privacy">
+                  Only visible to you
+                </p>
+              ) : phoneProvenance === "shared" ? (
+                <p className="gprof-phone-privacy" data-testid="gprof-phone-privacy">
+                  Shared with you
+                </p>
+              ) : null}
+            </div>
+          ) : onSavePhone ? (
             <button
               type="button"
               className="gprof-phone-add"
@@ -321,9 +374,9 @@ export function GraphProfilePage({
                 setPhoneOpen(true);
               }}
             >
-              {phoneNumber ? phoneNumber : "Add number"}
+              Add number
             </button>
-          )}
+          ) : null}
         </div>
       ) : null}
 

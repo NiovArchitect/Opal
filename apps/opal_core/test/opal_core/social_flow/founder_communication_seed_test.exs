@@ -24,22 +24,34 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeedTest do
              FounderCommunicationSeed.ensure!(viewer.id, explicit_opt_in: false)
   end
 
-  test "provisions Direct Chanelle + Saturday Crew group via Messages", %{viewer: viewer} do
+  test "provisions five founder directs + Saturday Crew group via Messages", %{viewer: viewer} do
     assert {:ok, payload} =
              FounderCommunicationSeed.ensure!(viewer.id, explicit_opt_in: true)
 
     assert payload["parallel_chat_owner"] == false
     assert payload["via"] == "Messages"
+    assert payload["founder_phone_chat_rows"] == 5
     assert payload["direct"]["peer_display_name"] == "Chanelle"
     assert is_binary(payload["direct"]["conversation_id"])
     assert payload["group"]["label"] == "Saturday Crew"
     assert length(payload["group"]["member_ids"]) >= 3
 
+    directs = payload["directs"]
+    assert is_map(directs)
+    for key <- ["chanelle", "maya", "sabrina", "alex"] do
+      assert is_binary(directs[key]["conversation_id"])
+      assert directs[key]["peer_display_name"] in ["Chanelle", "Maya", "Sabrina", "Alex"]
+    end
+
     convs = Messages.list_conversations(viewer.id)
-    assert length(convs) >= 2
+    # 4 directs + 1 group
+    assert length(convs) >= 5
 
     titles = Enum.map(convs, & &1["title"])
     assert "Chanelle" in titles or Enum.any?(titles, &String.contains?(&1, "Chanelle"))
+    assert Enum.any?(titles, &String.contains?(&1, "Maya"))
+    assert Enum.any?(titles, &String.contains?(&1, "Sabrina"))
+    assert Enum.any?(titles, &String.contains?(&1, "Alex"))
     assert "Saturday Crew" in titles
 
     compositions = Enum.map(convs, & &1["composition"])
@@ -56,6 +68,8 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeedTest do
 
     assert first["direct"]["conversation_id"] == second["direct"]["conversation_id"]
     assert first["group"]["conversation_id"] == second["group"]["conversation_id"]
-    assert length(Messages.list_conversations(viewer.id)) >= 2
+    assert first["directs"]["maya"]["conversation_id"] ==
+             second["directs"]["maya"]["conversation_id"]
+    assert length(Messages.list_conversations(viewer.id)) >= 5
   end
 end

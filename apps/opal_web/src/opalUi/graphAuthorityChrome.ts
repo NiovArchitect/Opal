@@ -9,7 +9,7 @@ export const GRAPH_AUTHORITY_CHROME: Record<
   // Correlated with Chats/Calls seed: same people + plans across surfaces.
   "seed-chanelle-juniper": {
     title: "Juniper & Ivy",
-    whenLine: "Tonight · 7:30 PM · Chanelle",
+    whenLine: "Saturday · 7:30 PM · Chanelle",
     signalLine: "Ready · leave 6:55",
   },
   "seed-maya-graph-coast": {

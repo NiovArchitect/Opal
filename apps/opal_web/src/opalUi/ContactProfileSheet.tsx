@@ -13,27 +13,36 @@ export type ContactSharedPlan = {
 
 type Props = {
   name: string;
+  handle?: string | null;
   relationshipLabel?: string | null;
   phone?: string | null;
+  /** shared = authorized; owner_private = address-book / local only. */
+  phoneProvenance?: "shared" | "owner_private" | null;
   sharedPlans?: ContactSharedPlan[];
   avatarSrc?: string | null;
   onClose: () => void;
   onOpenPlan?: (planId: string) => void;
   onMessage?: () => void;
   onCall?: () => void;
+  onVideo?: () => void;
+  onPlan?: () => void;
   onOpenMemories?: () => void;
 };
 
 export function ContactProfileSheet({
   name,
+  handle = null,
   relationshipLabel,
   phone,
+  phoneProvenance = null,
   sharedPlans = [],
   avatarSrc,
   onClose,
   onOpenPlan,
   onMessage,
   onCall,
+  onVideo,
+  onPlan,
   onOpenMemories,
 }: Props) {
   const initial = name.slice(0, 1).toUpperCase();
@@ -84,15 +93,40 @@ export function ContactProfileSheet({
           <h2 className="contact-profile-title" data-testid="contact-profile-name">
             {name}
           </h2>
+          {handle ? (
+            <p className="contact-profile-handle" data-testid="contact-profile-handle">
+              {handle.startsWith("@") ? handle : `@${handle}`}
+            </p>
+          ) : null}
           {relationshipLabel ? (
             <p className="contact-profile-rel" data-testid="contact-profile-relationship">
               {relationshipLabel}
             </p>
           ) : null}
           {phone ? (
-            <p className="contact-profile-phone" data-testid="contact-profile-phone">
-              {phone}
-            </p>
+            <div
+              className="contact-profile-phone-wrap"
+              data-phone-provenance={phoneProvenance || undefined}
+            >
+              <p className="contact-profile-phone" data-testid="contact-profile-phone">
+                {phone}
+              </p>
+              {phoneProvenance === "owner_private" ? (
+                <p
+                  className="contact-profile-phone-privacy"
+                  data-testid="contact-profile-phone-privacy"
+                >
+                  Only visible to you
+                </p>
+              ) : phoneProvenance === "shared" ? (
+                <p
+                  className="contact-profile-phone-privacy"
+                  data-testid="contact-profile-phone-privacy"
+                >
+                  Shared with you
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </div>
 
@@ -114,7 +148,27 @@ export function ContactProfileSheet({
               data-testid="contact-profile-call"
               onClick={onCall}
             >
-              Call
+              Audio Call
+            </button>
+          ) : null}
+          {onVideo ? (
+            <button
+              type="button"
+              className="btn ghost contact-profile-video"
+              data-testid="contact-profile-video"
+              onClick={onVideo}
+            >
+              Video Call
+            </button>
+          ) : null}
+          {onPlan ? (
+            <button
+              type="button"
+              className="btn ghost contact-profile-plan"
+              data-testid="contact-profile-plan"
+              onClick={onPlan}
+            >
+              Plan
             </button>
           ) : null}
         </div>

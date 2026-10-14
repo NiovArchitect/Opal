@@ -32,6 +32,7 @@ import {
 } from "./graphSurfaceInterop";
 import { isFounderSeedEnabled } from "./founderGraphSeed";
 import { OpalLivingCharacter } from "./OpalLivingCharacter";
+import { readFitSliceForOpal } from "./fitPreferences";
 
 const PLACEHOLDER = "Talk to Opal…";
 const EMPTY_COPY = "Say hello to Opal";
@@ -58,6 +59,11 @@ type Props = {
   userId?: string | null;
   /** Fired when a plan is confirmed (backend metadata or founder-seed local). */
   onPlanCreated?: (plan: CreatedPlanSurface) => void;
+  /**
+   * Repair #4 — rest composer / chips converge here.
+   * When set, auto-send once after conversation hydrate (one intelligence path).
+   */
+  initialMessage?: string | null;
 };
 
 function MeridianGlobeMark({ size = 24 }: { size?: number }) {
@@ -190,7 +196,13 @@ function resolveVoiceUserId(explicit?: string | null): string | null {
   }
 }
 
-export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props) {
+export function OpalCenterChat({
+  onBack,
+  bearer,
+  userId,
+  onPlanCreated,
+  initialMessage = null,
+}: Props) {
   const voiceUserId = resolveVoiceUserId(userId);
   const [messages, setMessages] = useState<LocalMsg[]>([]);
   const [draft, setDraft] = useState("");
@@ -216,6 +228,9 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
   const surfacedPlanIds = useRef<Set<string>>(new Set());
   const onPlanCreatedRef = useRef(onPlanCreated);
   onPlanCreatedRef.current = onPlanCreated;
+  const initialSentRef = useRef(false);
+  const initialMessageRef = useRef(initialMessage);
+  initialMessageRef.current = initialMessage;
 
   // Holistic loop: when founder-seed thread shows plan-ask → Yes, surface a plan
   // even if the backend replied with generic chat (no plan_confirm metadata).
@@ -376,7 +391,11 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
 
       setSending(true);
       try {
-        const res = await postOpalMessage(body, bearer);
+        // Share-gated Fit → private Center context only (never disclose to others).
+        const fit = readFitSliceForOpal(userId);
+        const res = fit
+          ? await postOpalMessage(body, bearer, { clientContext: { fit } })
+          : await postOpalMessage(body, bearer);
         const rawMsgs = Array.isArray(res.messages) ? res.messages : [];
         const serverMsgs = rawMsgs.map(fromServer);
         setMessages((prev) => {
@@ -468,6 +487,16 @@ export function OpalCenterChat({ onBack, bearer, userId, onPlanCreated }: Props)
     },
     [bearer, sending, emitPlanIfAny],
   );
+
+  // One intelligence path: rest composer / chips hand utterance here once hydrated.
+  useEffect(() => {
+    if (loading || loadError || sending) return;
+    if (initialSentRef.current) return;
+    const seed = (initialMessageRef.current || "").trim();
+    if (!seed) return;
+    initialSentRef.current = true;
+    void sendBody(seed);
+  }, [loading, loadError, sending, sendBody]);
 
   const onSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();

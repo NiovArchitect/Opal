@@ -1037,6 +1037,16 @@ export async function ensureFounderCommunicationSeed(bearer?: string) {
       peer_display_name: string;
       origin: string;
     };
+    /** All founder directs (Chanelle/Maya/Sabrina/Alex) for physical remap. */
+    directs?: Record<
+      string,
+      {
+        conversation_id: string;
+        peer_user_id: string;
+        peer_display_name: string;
+        origin: string;
+      }
+    >;
     group: {
       conversation_id: string;
       label: string;
@@ -1045,6 +1055,7 @@ export async function ensureFounderCommunicationSeed(bearer?: string) {
     };
     peers: Record<string, { id: string; display_name: string; handle: string }>;
     parallel_chat_owner: boolean;
+    founder_phone_chat_rows?: number;
   }>("/api/v1/product/dev/founder-communication-seed", {
     method: "POST",
     bearer: resolveBearer(bearer),
@@ -3701,13 +3712,29 @@ export async function getOpalConversation(bearer?: string) {
   );
 }
 
-export async function postOpalMessage(body: string, bearer?: string) {
+/** Optional Center client_context — requesting-user Fit only (share-gated). */
+export type OpalClientContext = {
+  fit?: {
+    activities?: string[];
+    goal?: string | null;
+  } | null;
+};
+
+export async function postOpalMessage(
+  body: string,
+  bearer?: string,
+  opts?: { clientContext?: OpalClientContext | null },
+) {
+  const payload: { body: string; client_context?: OpalClientContext } = { body };
+  if (opts?.clientContext && typeof opts.clientContext === "object") {
+    payload.client_context = opts.clientContext;
+  }
   return request<{ messages: OpalChatMessage[] }>(
     "/api/v1/product/opal/conversation/messages",
     {
       method: "POST",
       bearer: resolveBearer(bearer),
-      body: JSON.stringify({ body }),
+      body: JSON.stringify(payload),
     },
   );
 }
@@ -3821,6 +3848,8 @@ export async function postLivesGoLive(
     city?: string;
     provisional?: boolean;
     allow_provisional?: boolean;
+    audience?: "friends" | "close_circle";
+    location_precision?: "venue" | "area";
   },
   bearer?: string,
 ) {
@@ -3829,6 +3858,8 @@ export async function postLivesGoLive(
     venue?: Record<string, unknown>;
     consequence: string;
     trade: string;
+    audience?: string;
+    location_precision?: string;
     test_only?: boolean;
     test_venue_badge?: string | null;
     error?: string;
@@ -3838,6 +3869,46 @@ export async function postLivesGoLive(
     bearer: resolveBearer(bearer),
     body: JSON.stringify(attrs),
   });
+}
+
+export async function getLivesVisible(bearer?: string) {
+  return request<{
+    lives: Array<{ live_room: Record<string, unknown> }>;
+    count: number;
+  }>("/api/v1/product/lives/visible", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function getLivesMine(bearer?: string) {
+  return request<{
+    live_room: Record<string, unknown> | null;
+    active: boolean;
+  }>("/api/v1/product/lives/mine", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function getLive(liveId: string, bearer?: string) {
+  return request<{ live_room: Record<string, unknown> }>(
+    `/api/v1/product/lives/${encodeURIComponent(liveId)}`,
+    {
+      method: "GET",
+      bearer: resolveBearer(bearer),
+    },
+  );
+}
+
+export async function postLivesEnd(liveId: string, bearer?: string) {
+  return request<{ live_room: Record<string, unknown>; error?: string }>(
+    `/api/v1/product/lives/${encodeURIComponent(liveId)}/end`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+    },
+  );
 }
 
 export async function postLiveSticker(

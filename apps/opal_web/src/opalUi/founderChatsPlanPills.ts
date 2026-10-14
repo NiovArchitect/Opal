@@ -44,7 +44,11 @@ export function resolveFounderPeerAvatarSrc(
   return undefined;
 }
 
-/** Exact five rows from founder screenshot A. */
+/**
+ * Exact five rows for founder phone + lab walks (FOUNDER_PHONE_CHAT_ROWS ≥ 5).
+ * Unread variety: some read, some unread — never all-zero or all-badged.
+ * Coherent with Graphs/Calls: Maya = Saturday farmers market + coast.
+ */
 export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
   {
     id: "seed-chat-chanelle",
@@ -53,6 +57,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     // Preview = last human message in seed thread
     preview: "Perfect. I'll grab a table.",
     when: "2m",
+    unread: 0,
     relationshipLabel: "Fiancée",
     planConsequence: {
       state: "ready",
@@ -70,6 +75,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     kind: "direct",
     preview: "I'm free after 10",
     when: "18m",
+    unread: 2,
     relationshipLabel: "Close friend",
     planConsequence: {
       state: "ready",
@@ -87,6 +93,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     preview: "I can make 7:30",
     previewSender: "Jordan",
     when: "34m",
+    unread: 1,
     memberCount: 4,
     relationshipLabel: "4 people · Group",
     planConsequence: {
@@ -103,6 +110,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     kind: "direct",
     preview: "Sent a photo",
     when: "1h",
+    unread: 3,
     relationshipLabel: "Neighbor",
     planConsequence: {
       state: "action",
@@ -119,6 +127,7 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     kind: "direct",
     preview: "Mexico City was unreal",
     when: "Yesterday",
+    unread: 0,
     relationshipLabel: "Following",
     planConsequence: {
       state: "ready",
@@ -130,6 +139,9 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     avatarTone: "#8B5CF6",
   },
 ];
+
+/** Cap for physical founder phone acceptance (Chats world density). */
+export const FOUNDER_PHONE_CHAT_ROWS_MIN = 5;
 
 export function isFounderSeedChatId(id: string | null | undefined): boolean {
   return typeof id === "string" && /^seed-chat-/i.test(id.trim());

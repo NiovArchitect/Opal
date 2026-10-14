@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-14T04:16:07.346Z",
+  "at": "2026-10-14T05:12:40.725Z",
   "tip_expected": "repair_3_wip",
   "base": "http://127.0.0.1:5173",
   "caps": {
@@ -14,7 +14,7 @@
     "FOUNDER_SEED_CHAT_WORLD": {
       "ok": true,
       "detail": {
-        "textSample": "Chats\n+\nChats\nCalls\nChanelle\n2m\nPerfect. I'll grab a table.\nFiancée\nJuniper & Ivy · 7:30 PM\nMaya\n18m\nI'm free after 10\nClose friend\nFarmers market + coast\nJ\nJuniper crew\n34m\nJordan: I can make 7:30\n4 people · Group\n3 of 4 going\nSabrina\n1h\nSent a photo\nNeighbor\nLive nearby\nAlex\nYesterday\nMexico City was unreal\nFollowing\nTrip Graph\nHome\nChats\nGraphs\nYou",
+        "textSample": "Chats\n+\nChats\nCalls\nChanelle\n2m\nPerfect. I'll grab a table.\nFiancée\nJuniper & Ivy · 7:30 PM\nMaya\n18m\nI'm free after 10\nClose friend\nFarmers market + coast\n2\nJ\nJuniper crew\n34m\nJordan: I can make 7:30\n4 people · Group\n3 of 4 going\n1\nSabrina\n1h\nSent a photo\nNeighbor\nLive nearby\n3\nAlex\nYesterday\nMexico City was unreal\nFollowing\nTrip Graph\nHome\nChats\nGraphs\nYou",
         "hasChanelle": true,
         "hasMaya": true,
         "hasJuniper": true,
@@ -39,6 +39,39 @@
         "hasFilament": true,
         "headerHasPlan": false,
         "bodyHasPlanChrome": true
+      }
+    },
+    "PERSON_PROFILE_TO_CHAT_MAYA": {
+      "ok": true,
+      "detail": {
+        "openedProfile": {
+          "via": "hook"
+        },
+        "handleOk": true,
+        "actionsOk": true,
+        "threadOpened": true,
+        "headerText": "MayaClose friend···",
+        "hasPersonHeader": true,
+        "landedChatsHomeOnly": false,
+        "newChatOpen": false,
+        "bodyHead": "Maya\n\nClose friend\n\n···\nMaya\nConfirm 10:30\nM\nMaya\n\nSaturday morning. farmers market?\n\nYesterday\n\nYes. then the coast if it's clear.\n\nYesterday\nM\nMaya\n\nLove that. Before or after coffee?\n\nYesterday\nOpa"
+      }
+    },
+    "PERSON_CALL_TO_CHAT_CHANELLE": {
+      "ok": true,
+      "detail": {
+        "headerText": "ChanelleFiancée···",
+        "hasChanelleHeader": true,
+        "landedChatsHomeOnly": false,
+        "hasComposer": true
+      }
+    },
+    "LIVE_IDENTITY_CHAT_PATH": {
+      "ok": true,
+      "detail": {
+        "path": "PersonChatTarget{peerUserId} → resolvePersonChatTarget → ensureDirectConversation → openChat(conversation_id)",
+        "never": "Message → fuzzy displayName → chats home",
+        "privacy": "ownerPrivatePhone local-only; sharedPhone only when relationship-authorized; no address inference"
       }
     },
     "CENTER_COMPOSER_PREFOCUS": {
@@ -116,6 +149,9 @@
   "caps_check": {
     "FOUNDER_SEED_CHAT_WORLD": "YES",
     "CALL_TO_CHAT_THREAD": "YES",
+    "PERSON_PROFILE_TO_CHAT_MAYA": "YES",
+    "PERSON_CALL_TO_CHAT_CHANELLE": "YES",
+    "LIVE_IDENTITY_CHAT_PATH": "YES",
     "CENTER_COMPOSER_PREFOCUS": "YES",
     "CENTER_KEYBOARD_SAFE": "YES",
     "DOCK_FIXED": "YES",

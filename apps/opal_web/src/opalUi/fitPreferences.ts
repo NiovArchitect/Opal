@@ -119,22 +119,51 @@ export function saveFitPreferences(
   }
 }
 
-export function readFitContextForOpal(
+/** Bounded Fit slice for Center client_context (share gate required). */
+export type FitContextSlice = {
+  activities: FitActivityId[];
+  goal: WellnessGoal | null;
+};
+
+const FIT_SLICE_ACTIVITY_CAP = 6;
+
+/**
+ * Structured Fit prefs for Opal Center → BE OpalContext `:fit`.
+ * Null when share is off or nothing useful is set. Never invents prefs.
+ */
+export function readFitSliceForOpal(
   userId: string | null | undefined,
-): string | null {
+): FitContextSlice | null {
   const prefs = loadFitPreferences(userId);
   if (!prefs.shareActivityPrefs) return null;
 
-  const labels = prefs.activities
+  const activities = prefs.activities.slice(0, FIT_SLICE_ACTIVITY_CAP);
+  const goal =
+    prefs.wellnessGoal && prefs.wellnessGoal !== "none" ? prefs.wellnessGoal : null;
+  if (!activities.length && !goal) return null;
+  return { activities, goal };
+}
+
+export function readFitContextForOpal(
+  userId: string | null | undefined,
+): string | null {
+  const slice = readFitSliceForOpal(userId);
+  if (!slice) {
+    const prefs = loadFitPreferences(userId);
+    if (!prefs.shareActivityPrefs) return null;
+    return "Fit preferences shared (none set yet).";
+  }
+
+  const labels = slice.activities
     .map((id) => FIT_ACTIVITY_OPTIONS.find((o) => o.id === id)?.label || id)
     .filter(Boolean);
   const goalLabel =
-    WELLNESS_GOAL_OPTIONS.find((o) => o.value === prefs.wellnessGoal)?.label ||
-    (prefs.wellnessGoal !== "none" ? prefs.wellnessGoal : null);
+    slice.goal &&
+    (WELLNESS_GOAL_OPTIONS.find((o) => o.value === slice.goal)?.label || slice.goal);
 
   const parts: string[] = [];
   if (labels.length) parts.push(`activities: ${labels.join(", ")}`);
-  if (goalLabel && prefs.wellnessGoal !== "none") parts.push(`goal: ${goalLabel}`);
+  if (goalLabel) parts.push(`goal: ${goalLabel}`);
   if (!parts.length) return "Fit preferences shared (none set yet).";
   return `Fit — ${parts.join("; ")}.`;
 }

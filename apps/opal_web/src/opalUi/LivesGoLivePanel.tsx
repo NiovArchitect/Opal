@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   getLivesGoLiveCopy,
+  getLivesMine,
   getLivesStickerCatalog,
+  postLivesEnd,
   postLivesGoLive,
   searchLivesVenues,
   type LivesGoLiveCopy,
@@ -13,15 +15,29 @@ type VenueCandidate = {
   formatted_address?: string;
 };
 
+type Audience = "friends" | "close_circle";
+type LocationPrecision = "venue" | "area";
+
+type Props = {
+  /** Local/dev overlay may offer provisional TEST VENUE when Places is empty. */
+  allowTestingFallback?: boolean;
+  onLiveChanged?: (active: boolean) => void;
+};
+
 /**
  * Paste K — go-live requires venue confirmation (no skip).
- * Under ?opal_lives=1 only: if Places search is empty/unavailable,
+ * Under ?opal_lives=1 (or allowTestingFallback): if Places search is empty/unavailable,
  * offer "Enter venue manually (testing)" → provisional test-<slug> venue.
+ * Audience + location precision are privacy choices (no GPS).
  */
-export function LivesGoLivePanel() {
+export function LivesGoLivePanel({
+  allowTestingFallback = false,
+  onLiveChanged,
+}: Props) {
   const testingSurface =
-    typeof window !== "undefined" &&
-    new URL(window.location.href).searchParams.get("opal_lives") === "1";
+    allowTestingFallback ||
+    (typeof window !== "undefined" &&
+      new URL(window.location.href).searchParams.get("opal_lives") === "1");
 
   const [copy, setCopy] = useState<LivesGoLiveCopy | null>(null);
   const [query, setQuery] = useState("");
@@ -31,10 +47,13 @@ export function LivesGoLivePanel() {
   const [manualOpen, setManualOpen] = useState(false);
   const [manualName, setManualName] = useState("");
   const [manualCity, setManualCity] = useState("");
+  const [audience, setAudience] = useState<Audience>("friends");
+  const [precision, setPrecision] = useState<LocationPrecision>("venue");
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consequence, setConsequence] = useState<string | null>(null);
   const [liveResult, setLiveResult] = useState<Record<string, unknown> | null>(null);
+  const [ending, setEnding] = useState(false);
   const [stickerHonesty, setStickerHonesty] = useState(
     "Stickers use test credits for now.",
   );
@@ -42,12 +61,21 @@ export function LivesGoLivePanel() {
   useEffect(() => {
     void (async () => {
       try {
-        const [c, catalog] = await Promise.all([
+        const [c, catalog, mine] = await Promise.all([
           getLivesGoLiveCopy(),
           getLivesStickerCatalog(),
+          getLivesMine().catch(() => null),
         ]);
         setCopy(c);
         if (catalog?.honesty) setStickerHonesty(catalog.honesty);
+        if (mine?.active && mine.live_room) {
+          setLiveResult(mine.live_room);
+          const meta = (mine.live_room.metadata || {}) as Record<string, unknown>;
+          setConsequence(
+            (typeof meta.consequence === "string" && meta.consequence) ||
+              "You're Live.",
+          );
+        }
       } catch {
         setCopy({
           step: 1,
@@ -68,7 +96,6 @@ export function LivesGoLivePanel() {
   async function onSearch() {
     setError(null);
     setConsequence(null);
-    setLiveResult(null);
     setSelected(null);
     setSearching(true);
     const q = query.trim();
@@ -114,6 +141,8 @@ export function LivesGoLivePanel() {
         place_id: selected.place_id,
         name: selected.name,
         title: selected.formatted_address || selected.name,
+        audience,
+        location_precision: precision,
       });
       if ((res as { error?: string }).error) {
         setError(
@@ -124,7 +153,8 @@ export function LivesGoLivePanel() {
         return;
       }
       setConsequence(res.consequence);
-      setLiveResult(res as unknown as Record<string, unknown>);
+      setLiveResult((res.live_room || res) as Record<string, unknown>);
+      onLiveChanged?.(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not go live");
     }
@@ -149,6 +179,8 @@ export function LivesGoLivePanel() {
         allow_provisional: true,
         venue_name: name,
         city,
+        audience,
+        location_precision: precision,
       });
       if ((res as { error?: string }).error) {
         setError(
@@ -159,9 +191,35 @@ export function LivesGoLivePanel() {
         return;
       }
       setConsequence(res.consequence);
-      setLiveResult(res as unknown as Record<string, unknown>);
+      setLiveResult((res.live_room || res) as Record<string, unknown>);
+      onLiveChanged?.(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not go live");
+    }
+  }
+
+  async function onEndLive() {
+    const id = typeof liveResult?.id === "string" ? liveResult.id : null;
+    if (!id) {
+      setError("No active Live to end");
+      return;
+    }
+    setEnding(true);
+    setError(null);
+    try {
+      const res = await postLivesEnd(id);
+      if ((res as { error?: string }).error) {
+        setError((res as { error?: string }).error || "Could not end Live");
+        return;
+      }
+      setLiveResult(null);
+      setConsequence(null);
+      setSelected(null);
+      onLiveChanged?.(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not end Live");
+    } finally {
+      setEnding(false);
     }
   }
 
@@ -169,8 +227,71 @@ export function LivesGoLivePanel() {
     (liveResult?.test_venue_badge as string | undefined) ||
     (liveResult?.test_only ? "TEST VENUE" : null);
 
+  const placeLabel = (() => {
+    const venue = liveResult?.venue as Record<string, unknown> | undefined;
+    if (precision === "area") {
+      return (
+        (typeof venue?.formatted_address === "string" && venue.formatted_address) ||
+        "nearby"
+      );
+    }
+    return (
+      (typeof venue?.display_name === "string" && venue.display_name) ||
+      (typeof venue?.name === "string" && venue.name) ||
+      (typeof liveResult?.title === "string" && liveResult.title) ||
+      "your venue"
+    );
+  })();
+
+  if (liveResult && liveResult.status !== "ended") {
+    return (
+      <section className="lives-go-live" data-testid="lives-go-live-panel" data-live-state="active">
+        <p className="lives-active-pill" data-testid="lives-active-pill">
+          LIVE
+        </p>
+        <h2 data-testid="lives-active-title">You're Live</h2>
+        <p data-testid="lives-active-place">At {placeLabel}</p>
+        {consequence ? (
+          <p data-testid="lives-go-live-consequence">{consequence}</p>
+        ) : null}
+        {testBadge ? (
+          <p data-testid="lives-test-venue-badge" style={{ fontWeight: 700 }}>
+            {testBadge}
+          </p>
+        ) : null}
+        <p data-testid="lives-go-live-success">Live started</p>
+        <p data-testid="lives-active-audience">
+          Audience: {audience === "close_circle" ? "Close circle" : "Friends"} · Precision:{" "}
+          {precision === "area" ? "Area only" : "Venue name"}
+        </p>
+        <button
+          type="button"
+          className="btn primary"
+          data-testid="lives-end-submit"
+          onClick={() => void onEndLive()}
+          disabled={ending}
+          style={{ marginTop: 12 }}
+        >
+          {ending ? "Ending…" : "End Live"}
+        </button>
+        {error ? (
+          <p data-testid="lives-go-live-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <p data-testid="lives-sticker-honesty" className="lives-sticker-honesty">
+          {stickerHonesty}
+        </p>
+        <p data-testid="lives-anti-mercenary" className="lives-anti-mercenary">
+          Stickers are celebratory, never required. A live with zero stickers is
+          complete.
+        </p>
+      </section>
+    );
+  }
+
   return (
-    <section className="lives-go-live" data-testid="lives-go-live-panel">
+    <section className="lives-go-live" data-testid="lives-go-live-panel" data-live-state="compose">
       <h2 data-testid="lives-go-live-prompt">{copy?.prompt || "Where are you?"}</h2>
       <p className="lives-go-live-trade" data-testid="lives-go-live-trade">
         {copy?.trade}
@@ -197,7 +318,6 @@ export function LivesGoLivePanel() {
         </button>
       </div>
 
-      {/* Keep place_id test hook for vitest / direct confirm */}
       <input
         type="hidden"
         data-testid="lives-place-id"
@@ -230,6 +350,53 @@ export function LivesGoLivePanel() {
           ))}
         </ul>
       ) : null}
+
+      <p className="gsh-meta" style={{ marginTop: 14 }}>
+        Who can see you're Live?
+      </p>
+      <div className="opal-refine" data-testid="lives-audience-row">
+        <button
+          type="button"
+          className={`gsh-chip ${audience === "close_circle" ? "is-active" : ""}`}
+          data-testid="lives-audience-close"
+          onClick={() => setAudience("close_circle")}
+        >
+          Close circle
+        </button>
+        <button
+          type="button"
+          className={`gsh-chip ${audience === "friends" ? "is-active" : ""}`}
+          data-testid="lives-audience-friends"
+          onClick={() => setAudience("friends")}
+        >
+          Friends
+        </button>
+      </div>
+
+      <p className="gsh-meta" style={{ marginTop: 10 }}>
+        Location precision
+      </p>
+      <div className="opal-refine" data-testid="lives-precision-row">
+        <button
+          type="button"
+          className={`gsh-chip ${precision === "venue" ? "is-active" : ""}`}
+          data-testid="lives-precision-venue"
+          onClick={() => setPrecision("venue")}
+        >
+          Venue name
+        </button>
+        <button
+          type="button"
+          className={`gsh-chip ${precision === "area" ? "is-active" : ""}`}
+          data-testid="lives-precision-area"
+          onClick={() => setPrecision("area")}
+        >
+          Area only
+        </button>
+      </div>
+      <p className="lives-go-live-note" data-testid="lives-precision-note">
+        Opal never shares live GPS. You choose venue name or area only.
+      </p>
 
       {selected?.place_id ? (
         <button
@@ -296,17 +463,6 @@ export function LivesGoLivePanel() {
         <p data-testid="lives-go-live-error" role="alert">
           {error}
         </p>
-      ) : null}
-      {consequence ? (
-        <p data-testid="lives-go-live-consequence">{consequence}</p>
-      ) : null}
-      {testBadge ? (
-        <p data-testid="lives-test-venue-badge" style={{ fontWeight: 700 }}>
-          {testBadge}
-        </p>
-      ) : null}
-      {liveResult ? (
-        <p data-testid="lives-go-live-success">Live started</p>
       ) : null}
 
       <p data-testid="lives-sticker-honesty" className="lives-sticker-honesty">

@@ -89,6 +89,7 @@ import {
   ensureFounderCommunicationSeed,
   ensureFounderGraphCommitmentSeed,
   listIncoming,
+  getLivesVisible,
   listMessages,
   listMyAvailabilityWindows,
   loadBrowserAccessToken,
@@ -279,12 +280,19 @@ import {
 import { TimelineAdjustSheet } from "./opalUi/TimelineAdjustSheet";
 import type { TimelineItem } from "./opalUi/GraphsTemporalTimeline";
 import {
+  ownerVisiblePhone,
   readPersonContactMeta,
   relationshipTypeLabel,
   writePersonContactMeta,
 } from "./opalUi/relationshipTypes";
+import {
+  founderSeedConversationIdForName,
+  resolvePersonChatTarget,
+  type PersonChatTarget,
+} from "./opalUi/openPersonChat";
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
 import { LivesGoLivePanel } from "./opalUi/LivesGoLivePanel";
+import { liveRoomsToFeedCards } from "./opalUi/livesFeedCards";
 import { MemoryDetailSheet } from "./opalUi/MemoryDetailSheet";
 import { MemoryCommentsSheet } from "./opalUi/MemoryCommentsSheet";
 import { SaveToCollectionSheet } from "./opalUi/SaveToCollectionSheet";
@@ -769,6 +777,9 @@ export function OpalApp() {
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
   /** Founder-seed / member-shell Lives entry — opens LivesGoLivePanel without ?opal_lives=1. */
   const [livesGoLiveOpen, setLivesGoLiveOpen] = useState(false);
+  /** Paste K visible LiveRooms → Home live cards (other-user + mine). */
+  const [visibleLiveCards, setVisibleLiveCards] = useState<FounderFeedCard[]>([]);
+  const [livesRefreshToken, setLivesRefreshToken] = useState(0);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
   /** Simple Confirm {time} bottom sheet — not the full AvailabilitySheet. */
   const [confirmTimeDraft, setConfirmTimeDraft] = useState<string | null>(null);
@@ -899,6 +910,9 @@ export function OpalApp() {
     signalEyebrow?: string;
     signalLabel?: string;
     signalGraphId?: string;
+    /** ID-stable Continuity → Chat (primary over display name). */
+    conversationId?: string | null;
+    peerUserId?: string | null;
   }>(null);
   /** Chats|Calls surface ownership — Chat must never leave Calls mode visible. */
   const [commSurface, setCommSurface] = useState<"chats" | "calls">("chats");
@@ -1068,10 +1082,19 @@ export function OpalApp() {
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
   const [profileContactId, setProfileContactId] = useState<string | null>(null);
+  /** Direct conversation id when known — Message uses this, not fuzzy name. */
+  const [profileConversationId, setProfileConversationId] = useState<string | null>(
+    null,
+  );
+  const [profileHandle, setProfileHandle] = useState<string | null>(null);
   const [profileRelationshipType, setProfileRelationshipType] = useState<
     RelationshipTypeValue | string | null
   >(null);
   const [profilePhone, setProfilePhone] = useState<string | null>(null);
+  /** shared = relationship-authorized; owner_private = address-book / local only. */
+  const [profilePhoneProvenance, setProfilePhoneProvenance] = useState<
+    "shared" | "owner_private" | null
+  >(null);
   const [profileBounds, setProfileBounds] = useState<RelationshipBounds>({});
   const [profileMetaSaving, setProfileMetaSaving] = useState(false);
   /** Group Info 618:521  -  communication context; Chats stays active via activeChatId. */
@@ -2805,6 +2828,41 @@ export function OpalApp() {
     });
   }, [authenticated, liveSignals, chats]);
 
+  // Paste K — hydrate Home with visible LiveRooms (friends / close circle / mine).
+  useEffect(() => {
+    if (!authenticated || !session?.access_token) {
+      setVisibleLiveCards([]);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await getLivesVisible(session.access_token);
+        if (cancelled) return;
+        setVisibleLiveCards(
+          liveRoomsToFeedCards(res.lives || [], {
+            excludeMine: false,
+            selfUserId: session.user_id,
+          }),
+        );
+        if (!isFounderSeedEnabled()) {
+          setProductionOwners((prev) => ({
+            ...(prev || {}),
+            liveEligibility: liveRoomsToFeedCards(res.lives || [], {
+              excludeMine: true,
+              selfUserId: session.user_id,
+            }),
+          }));
+        }
+      } catch {
+        if (!cancelled) setVisibleLiveCards([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token, session?.user_id, livesRefreshToken]);
+
   // Load comments from BEAM (or fixture cache) when sheet opens.
   useEffect(() => {
     if (!commentsCardId) return;
@@ -3734,18 +3792,38 @@ export function OpalApp() {
     return () => window.clearTimeout(t);
   }, [journeyNote]);
 
-  /** Person profile — resolve RU-1 type + phone (API when known, else local meta). */
+  /** Proof / QA: open person profile by display name without fuzzy Message routing. */
+  useEffect(() => {
+    const w = window as Window & {
+      __opalOpenPersonProfile?: (name: string) => void;
+    };
+    w.__opalOpenPersonProfile = (name: string) => {
+      const n = (name || "").trim();
+      if (!n) return;
+      setProfilePerson(n);
+    };
+    return () => {
+      delete w.__opalOpenPersonProfile;
+    };
+  }, []);
+
+  /** Person profile — resolve RU-1 type + IDs + privacy-correct phone. */
   useEffect(() => {
     if (!profilePerson) {
       setProfileContactId(null);
+      setProfileConversationId(null);
+      setProfileHandle(null);
       setProfileRelationshipType(null);
       setProfilePhone(null);
+      setProfilePhoneProvenance(null);
       setProfileBounds({});
       return;
     }
     const local = readPersonContactMeta(profilePerson);
     setProfileRelationshipType(local.type || null);
-    setProfilePhone(local.phone || null);
+    const localPhone = ownerVisiblePhone(local);
+    setProfilePhone(localPhone.value);
+    setProfilePhoneProvenance(localPhone.provenance);
     setProfileBounds({});
     const peer =
       listDirectPeopleFromChats(chats).find(
@@ -3753,6 +3831,25 @@ export function OpalApp() {
       ) || null;
     const peerId = peer?.peerUserId || null;
     setProfileContactId(peerId);
+    const fromChat =
+      (peer?.conversationId &&
+        chats.find((c) => c.id === peer.conversationId)) ||
+      chats.find(
+        (c) =>
+          (c.composition !== "group" && (c.memberCount ?? 0) < 3) &&
+          (c.name || "").toLowerCase() === profilePerson.toLowerCase(),
+      ) ||
+      null;
+    const seedConv =
+      isFounderSeedEnabled()
+        ? founderSeedConversationIdForName(profilePerson)
+        : null;
+    setProfileConversationId(fromChat?.id || peer?.conversationId || seedConv || null);
+    const peerHandle = fromChat?.peers?.[0]?.handle || null;
+    const seedHandle = seedConv
+      ? `@${profilePerson.trim().toLowerCase().replace(/\s+/g, "")}`
+      : null;
+    setProfileHandle(peerHandle ? (peerHandle.startsWith("@") ? peerHandle : `@${peerHandle}`) : seedHandle);
     let cancelled = false;
     void (async () => {
       if (!session?.access_token && !session?.cookie_session) return;
@@ -3761,22 +3858,31 @@ export function OpalApp() {
         if (cancelled) return;
         const contacts = Array.isArray(res.contacts) ? res.contacts : [];
         const hit =
+          (peerId
+            ? contacts.find((c: RelationshipContact) => c.contact_user_id === peerId)
+            : undefined) ||
           contacts.find(
             (c: RelationshipContact) =>
               (c.display_name || "").toLowerCase() === profilePerson.toLowerCase(),
-          ) ||
-          (peerId
-            ? contacts.find((c: RelationshipContact) => c.contact_user_id === peerId)
-            : undefined);
+          );
         if (hit) {
           setProfileContactId(hit.contact_user_id);
           if (hit.type) setProfileRelationshipType(hit.type);
-          const bounds = (hit.communication_bounds || {}) as RelationshipBounds & {
-            phone?: string;
-          };
+          const bounds = (hit.communication_bounds || {}) as RelationshipBounds;
           setProfileBounds(bounds);
-          if (typeof bounds.phone === "string" && bounds.phone.trim()) {
-            setProfilePhone(bounds.phone.trim());
+          // Phone from relationship bounds only when explicitly present — shared authority.
+          // Never treat owner address-book fields as relationship-visible.
+          const sharedPhone =
+            typeof (bounds as { phone?: string }).phone === "string"
+              ? (bounds as { phone?: string }).phone!.trim()
+              : "";
+          if (sharedPhone) {
+            setProfilePhone(sharedPhone);
+            setProfilePhoneProvenance("shared");
+            writePersonContactMeta(profilePerson, { sharedPhone });
+            if (hit.contact_user_id) {
+              writePersonContactMeta(hit.contact_user_id, { sharedPhone });
+            }
           }
         }
       } catch {
@@ -3789,78 +3895,60 @@ export function OpalApp() {
   }, [profilePerson, chats, session?.access_token, session?.cookie_session]);
 
   /**
-   * Founder Reality Repair #3 — Call/Profile → Chat must resolve a real thread.
-   * Never: Chat action → generic Chats list with no open conversation.
-   * Ladder: live name match → founder seed fixture → connected peer ensure → New Chat.
+   * Founder Reality Repair #3 — Call/Profile → Chat must open that person's thread.
+   * Authority: conversationId / peerUserId first; never fuzzy name → Chats home.
    */
-  const openChatForPersonName = async (personName: string): Promise<boolean> => {
-    const needle = personName.trim().toLowerCase();
-    if (!needle) return false;
+  const openChatForPerson = async (target: PersonChatTarget): Promise<boolean> => {
+    const resolved = resolvePersonChatTarget(target, chats, {
+      founderSeedEnabled: isFounderSeedEnabled(),
+    });
 
-    const nameMatch = (hay: string) => {
-      const h = hay.trim().toLowerCase();
-      return h.includes(needle) || needle.includes(h);
-    };
-
-    // Founder fixture person → deterministic seed thread first (never depend on remapped
-    // live UUIDs that may fail membership and silently dead-end on the Chats list).
-    if (isFounderSeedEnabled()) {
-      const seed = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => nameMatch(r.name));
-      if (seed) {
-        setCommSurface("chats");
-        setTab("chats");
-        await openChat(seed.id);
-        return true;
-      }
-    }
-
-    const live = chats.find((c) => nameMatch(c.name));
-    if (live) {
+    if (resolved.ok) {
       setCommSurface("chats");
       setTab("chats");
-      await openChat(live.id);
+      setNewChatOpen(false);
+      await openChat(resolved.conversationId);
       return true;
     }
 
-    const people = listDirectPeopleFromChats(chats);
-    const peer = people.find((p) => nameMatch(p.displayName));
-    if (peer) {
-      let conversationId =
-        peer.conversationId ||
-        resolveDirectConversationForPerson(chats, peer.peerUserId)?.conversationId ||
-        null;
-      if (!conversationId && session?.access_token) {
-        try {
-          const ensured = await ensureDirectConversation(
-            peer.peerUserId,
-            session.access_token,
-          );
-          if (
-            ensured.composition !== "group" &&
-            (ensured.member_count ?? 0) < 3 &&
-            ensured.direct !== false
-          ) {
-            conversationId = ensured.conversation_id;
-            await refreshLive(session);
-          }
-        } catch {
-          /* ensure soft-fail — fall through to New Chat */
+    if (resolved.reason === "empty") return false;
+
+    // Ensure permitted direct when we have peerUserId; else New Chat for that person.
+    let conversationId: string | null = null;
+    const peerId = resolved.peerUserId || target.peerUserId || null;
+    if (peerId && session?.access_token) {
+      try {
+        const ensured = await ensureDirectConversation(peerId, session.access_token);
+        if (
+          ensured.composition !== "group" &&
+          (ensured.member_count ?? 0) < 3 &&
+          ensured.direct !== false
+        ) {
+          conversationId = ensured.conversation_id;
+          await refreshLive(session);
         }
+      } catch {
+        /* soft-fail → New Chat */
       }
-      if (conversationId) {
-        setCommSurface("chats");
-        setTab("chats");
-        await openChat(conversationId);
-        return true;
-      }
+    }
+    if (conversationId) {
+      setCommSurface("chats");
+      setTab("chats");
+      setNewChatOpen(false);
+      await openChat(conversationId);
+      return true;
     }
 
     setCommSurface("chats");
     setTab("chats");
     setNewChatOpen(true);
-    setCallsGateNote(`Open a chat with ${personName.trim()} to continue.`);
+    setCallsGateNote(`Open a chat with ${resolved.displayName} to continue.`);
     return false;
   };
+
+  /** @deprecated name-only entry — prefer openChatForPerson with IDs. */
+  const openChatForPersonName = async (personName: string): Promise<boolean> =>
+    openChatForPerson({ displayName: personName });
 
   /**
    * P0-05.5  -  Graph open must NOT auto-activate Journey.
@@ -4564,6 +4652,20 @@ export function OpalApp() {
                 ? founderSeedDisplayNameForId(activeChat.id)
                 : null) || activeChat.name
             }
+            handle={(() => {
+              const peerHandle = activeChat.peers?.[0]?.handle;
+              if (peerHandle) {
+                return peerHandle.startsWith("@") ? peerHandle : `@${peerHandle}`;
+              }
+              const seedName =
+                (isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name;
+              if (isFounderSeedEnabled() && seedName) {
+                return `@${seedName.trim().toLowerCase().replace(/\s+/g, "")}`;
+              }
+              return null;
+            })()}
             relationshipLabel={
               (() => {
                 if (isFounderSeedEnabled()) {
@@ -4581,7 +4683,10 @@ export function OpalApp() {
                 return label !== "Not set" ? label : null;
               })()
             }
-            phone={readPersonContactMeta(activeChat.name).phone || null}
+            phone={ownerVisiblePhone(readPersonContactMeta(activeChat.name)).value}
+            phoneProvenance={
+              ownerVisiblePhone(readPersonContactMeta(activeChat.name)).provenance
+            }
             avatarSrc={
               resolveFounderPeerAvatarSrc(
                 (isFounderSeedEnabled()
@@ -4635,6 +4740,30 @@ export function OpalApp() {
                   ? "Calls aren't available on this build yet."
                   : "Sign in to place a call.",
               );
+            }}
+            onVideo={() => {
+              setContactProfileOpen(false);
+              setCallSurface({
+                kind: "video",
+                direction: "outgoing",
+                peerName:
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name,
+              });
+            }}
+            onPlan={() => {
+              setContactProfileOpen(false);
+              setMomentForkChooserOpen(false);
+              setMomentPeopleOpen(false);
+              setWhoTogether(true);
+              setMomentSelectedPeople([activeChat.name]);
+              setGraphCreateContext({
+                who: activeChat.name,
+                where: null,
+                when: null,
+              });
+              setGraphCreateOpen(true);
             }}
             onOpenMemories={() => {
               setContactProfileOpen(false);
@@ -7631,7 +7760,7 @@ export function OpalApp() {
           padding: 24,
         }}
       >
-        <LivesGoLivePanel />
+        <LivesGoLivePanel allowTestingFallback onLiveChanged={() => setLivesRefreshToken((t) => t + 1)} />
       </div>
     );
   }
@@ -7899,8 +8028,11 @@ export function OpalApp() {
     setJourneyAddPeopleOpen(false);
     setProfilePerson(null);
     setProfileContactId(null);
+    setProfileConversationId(null);
+    setProfileHandle(null);
     setProfileRelationshipType(null);
     setProfilePhone(null);
+    setProfilePhoneProvenance(null);
     setProfileBounds({});
     setGroupInfoOpen(false);
     setOpalAmbientOpen(false);
@@ -8081,7 +8213,15 @@ export function OpalApp() {
                 Close
               </button>
             </header>
-            <LivesGoLivePanel />
+            <LivesGoLivePanel
+              allowTestingFallback={
+                typeof window !== "undefined" &&
+                (window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1" ||
+                  new URL(window.location.href).searchParams.get("opal_lives") === "1")
+              }
+              onLiveChanged={() => setLivesRefreshToken((t) => t + 1)}
+            />
           </div>
         </div>
       ) : null}
@@ -8633,12 +8773,15 @@ export function OpalApp() {
               setSaveCardId(cardId);
             }}
             productionOwners={productionOwners}
-            // Fixture extras: durable memories only under explicit founder seed.
+            // Fixture extras: durable memories under founder seed + real Paste K LiveRooms.
             // Never dump liveSignal consequence clones into FOUNDER_FIXTURE (86-card defect).
             fixtureExtras={mergeFeedWithCreated(
-              isFounderSeedEnabled()
-                ? durableMemoryCards.filter((c) => c.kind !== "consequence")
-                : [],
+              [
+                ...(isFounderSeedEnabled()
+                  ? durableMemoryCards.filter((c) => c.kind !== "consequence")
+                  : []),
+                ...visibleLiveCards,
+              ],
               createdPlanSurfaces,
             )}
             durableMemoryCards={durableMemoryCards}
@@ -8760,12 +8903,25 @@ export function OpalApp() {
                     title: c.name,
                   })),
                 });
+                // Physical path: composeChatsList already hard-falls back to fixtures.
+                // Evidence-only counters live on composed.diagnostics / __opalSeedPipeline.
+                if (seedOn && composed.diagnostics) {
+                  const w = window as Window & {
+                    __opalSeedPipeline?: Record<string, unknown>;
+                  };
+                  w.__opalSeedPipeline = {
+                    ...(w.__opalSeedPipeline || {}),
+                    paintedRows: composed.diagnostics.paintedRows,
+                    chatsCompose: composed.diagnostics,
+                  };
+                }
                 if (seedOn && composed.rows.length < 5) {
                   console.warn("[opal-seed]", {
                     step: "chats-list-hard-fallback",
                     detail: "compose under-delivered founder world — painting FOUNDER_CHATS_PLAN_PILL_ROWS",
                     composedLen: composed.rows.length,
                     liveLen: liveRows.length,
+                    diagnostics: composed.diagnostics,
                   });
                   return applyTravelToChatRows(FOUNDER_CHATS_PLAN_PILL_ROWS, travelOverrides);
                 }
@@ -9001,6 +9157,17 @@ export function OpalApp() {
             }}
             onOpenCallsContinuityRow={(row: CallsContinuityRow) => {
               const isGroup = row.kind === "group";
+              const seedConv =
+                row.conversationId ||
+                (!isGroup ? founderSeedConversationIdForName(row.name) : null);
+              const peer =
+                !isGroup
+                  ? listDirectPeopleFromChats(chats).find(
+                      (p) =>
+                        p.displayName.toLowerCase() ===
+                        (row.peerName || row.name).toLowerCase(),
+                    )
+                  : null;
               setCallContinuity({
                 kind: isGroup ? "group" : "person",
                 name: row.name,
@@ -9023,6 +9190,8 @@ export function OpalApp() {
                   row.signal && "graphCardId" in row.signal
                     ? row.signal.graphCardId
                     : undefined,
+                conversationId: seedConv || peer?.conversationId || null,
+                peerUserId: peer?.peerUserId || null,
               });
             }}
           />
@@ -10382,9 +10551,14 @@ export function OpalApp() {
                   );
                 }
                 const liveCard =
-                  [...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find(
+                  [...visibleLiveCards, ...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find(
                     (c) => c.id === cardId,
-                  ) || (seedOn ? FOUNDER_LIVE_FEED[0] : undefined);
+                  ) ||
+                  (cardId.startsWith("live-room-")
+                    ? visibleLiveCards[0]
+                    : seedOn
+                      ? FOUNDER_LIVE_FEED[0]
+                      : undefined);
                 if (!liveCard) {
                   return (
                     <div className="full-live-empty" data-testid="full-live-empty">
@@ -10392,18 +10566,27 @@ export function OpalApp() {
                     </div>
                   );
                 }
+                const pasteK = liveCard.id.startsWith("live-room-");
                 return (
                   <GraphLivePanel
                     place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
-                    area="Downtown"
+                    area={pasteK ? liveCard.placeLine || "Nearby" : "Downtown"}
                     host={liveCard?.host || "Jordan"}
                     broadcaster={liveCard?.broadcaster || "Sabrina"}
                     mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
-                    videoLive={liveCard?.videoLive !== false}
-                    hereLine={seedOn ? "Sadeil + 3 are here" : "People here"}
-                    etaLine={seedOn ? "Maya is on the way · 8 min" : ""}
-                    tableReadyLabel={seedOn ? "Table ready · Great news" : undefined}
-                    onOnMyWay={() => setOnMyWayActive((v) => !v)}
+                    videoLive={pasteK ? false : liveCard?.videoLive !== false}
+                    hereLine={
+                      pasteK
+                        ? `${liveCard.person} is Live · presence, not a stream`
+                        : seedOn
+                          ? "Sadeil + 3 are here"
+                          : "People here"
+                    }
+                    etaLine={pasteK ? "" : seedOn ? "Maya is on the way · 8 min" : ""}
+                    tableReadyLabel={
+                      pasteK ? undefined : seedOn ? "Table ready · Great news" : undefined
+                    }
+                    onOnMyWay={pasteK ? undefined : () => setOnMyWayActive((v) => !v)}
                     onMyWayActive={onMyWayActive}
                   />
                 );
@@ -10418,6 +10601,7 @@ export function OpalApp() {
           <GraphProfilePage
             key={profilePerson}
             name={profilePerson}
+            handle={profileHandle}
             connectionLabel={
               profileRelationshipType
                 ? relationshipTypeLabel(profileRelationshipType)
@@ -10425,6 +10609,7 @@ export function OpalApp() {
             }
             relationshipType={profileRelationshipType}
             phoneNumber={profilePhone}
+            phoneProvenance={profilePhoneProvenance}
             savingMeta={profileMetaSaving}
             onSetRelationshipType={async (type) => {
               setProfileMetaSaving(true);
@@ -10435,10 +10620,8 @@ export function OpalApp() {
                 }
                 setProfileRelationshipType(type);
                 if (profileContactId && (session?.access_token || session?.cookie_session)) {
-                  const bounds = {
-                    ...profileBounds,
-                    ...(profilePhone ? { phone: profilePhone } : {}),
-                  } as RelationshipBounds & { phone?: string };
+                  // Do not attach owner-private address-book phone to relationship bounds.
+                  const bounds = { ...profileBounds } as RelationshipBounds;
                   const res = await setRelationshipType(
                     profileContactId,
                     type,
@@ -10456,30 +10639,19 @@ export function OpalApp() {
             onSavePhone={async (phone) => {
               setProfileMetaSaving(true);
               try {
-                writePersonContactMeta(profilePerson, { phone });
+                // Owner-private local save only — never promote into relationship template.
+                writePersonContactMeta(profilePerson, {
+                  ownerPrivatePhone: phone,
+                  phone,
+                });
                 if (profileContactId) {
-                  writePersonContactMeta(profileContactId, { phone });
+                  writePersonContactMeta(profileContactId, {
+                    ownerPrivatePhone: phone,
+                    phone,
+                  });
                 }
                 setProfilePhone(phone);
-                if (
-                  profileContactId &&
-                  profileRelationshipType &&
-                  (session?.access_token || session?.cookie_session)
-                ) {
-                  const bounds = {
-                    ...profileBounds,
-                    phone,
-                  } as RelationshipBounds & { phone?: string };
-                  const res = await setRelationshipType(
-                    profileContactId,
-                    profileRelationshipType,
-                    bounds,
-                    session?.access_token,
-                  );
-                  setProfileBounds(
-                    (res.relationship?.communication_bounds || bounds) as RelationshipBounds,
-                  );
-                }
+                setProfilePhoneProvenance("owner_private");
               } finally {
                 setProfileMetaSaving(false);
               }
@@ -10553,11 +10725,15 @@ export function OpalApp() {
               }
             }}
             onMessage={() => {
-              const personName = profilePerson;
+              const target: PersonChatTarget = {
+                conversationId: profileConversationId,
+                peerUserId: profileContactId,
+                displayName: profilePerson,
+              };
               setProfilePerson(null);
               setSearchReturnPending(false);
               setHomeScrollToken((t) => t + 1);
-              void openChatForPersonName(personName);
+              void openChatForPerson(target);
             }}
             onPlan={() => {
               // WHO already known
@@ -10850,6 +11026,10 @@ export function OpalApp() {
           }}
           onOpenPersonContinuity={(person: NewCallPerson) => {
             setNewCallOpen(false);
+            const seedConv = founderSeedConversationIdForName(person.name);
+            const peer = listDirectPeopleFromChats(chats).find(
+              (p) => p.displayName.toLowerCase() === person.name.toLowerCase(),
+            );
             setCallContinuity({
               kind: "person",
               name: person.name,
@@ -10864,6 +11044,8 @@ export function OpalApp() {
               signalGraphId: /chanelle/i.test(person.name)
                 ? "seed-chanelle-juniper"
                 : undefined,
+              conversationId: seedConv || peer?.conversationId || null,
+              peerUserId: peer?.peerUserId || null,
             });
           }}
           onOpenGroupContinuity={(group: NewCallGroup) => {
@@ -10876,6 +11058,7 @@ export function OpalApp() {
               signalEyebrow: "SHARED SIGNAL",
               signalLabel: "3 of 4 aligned · Saturday 7:30",
               signalGraphId: "seed-chanelle-juniper",
+              conversationId: founderSeedConversationIdForName(group.name),
             });
           }}
         />
@@ -10919,11 +11102,15 @@ export function OpalApp() {
             });
           }}
           onChat={() => {
-            const personName = callContinuity.name;
+            const target: PersonChatTarget = {
+              conversationId: callContinuity.conversationId,
+              peerUserId: callContinuity.peerUserId,
+              displayName: callContinuity.name,
+            };
             setCallContinuity(null);
             // Defer past Continuity unmount so openChat state is not raced away.
             window.setTimeout(() => {
-              void openChatForPersonName(personName);
+              void openChatForPerson(target);
             }, 0);
           }}
           onOpenGraph={(graphId) => {

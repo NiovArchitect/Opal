@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   FOUNDER_CALLS_CONTINUITY_ROWS,
   FORBIDDEN_PROVIDER_CALL_ROW_IDS,
+  founderGraphingEnabledCallRows,
 } from "./callsContinuitySeed";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -78,5 +79,28 @@ describe("P2 Calls Continuity 928:3", () => {
     expect(chats).not.toMatch(/createCallGraph|CallGraphDomain|new CallGraph/);
     expect(seed).not.toMatch(/createCallGraph|CallGraphDomain/);
     expect(app).not.toMatch(/createCallGraph|CallGraphDomain/);
+  });
+
+  it("covers completed, missed, cancelled, audio, video, group", () => {
+    const rows = FOUNDER_CALLS_CONTINUITY_ROWS;
+    expect(rows.some((r) => /Completed/i.test(r.metadata))).toBe(true);
+    expect(rows.some((r) => r.missed)).toBe(true);
+    expect(rows.some((r) => r.cancelled)).toBe(true);
+    expect(rows.some((r) => r.callMedia === "audio")).toBe(true);
+    expect(rows.some((r) => r.callMedia === "video")).toBe(true);
+    expect(rows.some((r) => r.callMedia === "group")).toBe(true);
+  });
+
+  it("two Graphing-enabled rows use privately without disclosure", () => {
+    const graphing = founderGraphingEnabledCallRows();
+    expect(graphing.length).toBeGreaterThanOrEqual(2);
+    for (const r of graphing) {
+      expect(r.graphing?.usePermission).toBe(true);
+      expect(r.graphing?.disclosurePermission).toBe(false);
+      expect(r.graphing?.usePermission).not.toBe(r.graphing?.disclosurePermission);
+    }
+    const labels = graphing.map((r) => r.graphing?.derivedLabel || "").join(" ");
+    expect(labels).toMatch(/Dinner Saturday/i);
+    expect(labels).toMatch(/morning markets/i);
   });
 });

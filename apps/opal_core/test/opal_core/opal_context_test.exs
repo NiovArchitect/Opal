@@ -144,6 +144,7 @@ defmodule OpalCore.OpalContextTest do
     assert Map.keys(ctx) |> Enum.sort() == [
              :conversation_history,
              :financial,
+             :fit,
              :group_tastes,
              :message,
              :preferences,
@@ -191,6 +192,7 @@ defmodule OpalCore.OpalContextTest do
     assert Map.keys(ctx) |> Enum.sort() == [
              :conversation_history,
              :financial,
+             :fit,
              :group_tastes,
              :message,
              :preferences,
@@ -397,6 +399,29 @@ defmodule OpalCore.OpalContextTest do
     # Must stay bounded (no per-row queries). Cap at 20.
     assert count > 0
     assert count <= 20, "expected <=20 queries, got #{count}"
+  end
+
+  test "gated fit accepts share-gated client_context for requesting user only" do
+    u = fresh_user!("fit_ctx")
+
+    assert {:ok, ctx_nil} = OpalContext.assemble(u.id, "hello")
+    assert ctx_nil.fit == nil
+
+    assert {:ok, ctx} =
+             OpalContext.assemble(u.id, "suggest an activity", %{
+               "fit" => %{
+                 "activities" => ["walk", "outdoors", "hacking", "WALK"],
+                 "goal" => "move_more"
+               }
+             })
+
+    assert ctx.fit.activities == ["walk", "outdoors"]
+    assert ctx.fit.goal == "move_more"
+
+    assert {:ok, ctx_bad} =
+             OpalContext.assemble(u.id, "hello", %{"fit" => %{"activities" => ["unknown"]}})
+
+    assert ctx_bad.fit == nil
   end
 
 end

@@ -8134,7 +8134,11 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   background: #1a2338; color: #f8faff; font-size: 36px; font-weight: 700;
 }
 .gprof-name { margin: 10px 20px 0; font-size: 27px; font-weight: 600; line-height: 33px; color: #f4f7fa; text-align: left; }
+.gprof-handle { margin: 2px 20px 0; font-size: 14px; line-height: 18px; color: #00e5ff; text-align: left; }
 .gprof-conn { margin: 1px 20px 0; font-size: 13px; line-height: 16px; color: #8a96a8; text-align: left; }
+.gprof-phone-display { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.gprof-phone-privacy { margin: 0; font-size: 11px; line-height: 14px; color: #8a96a8; }
+.gprof-phone-value { margin: 0; font-size: 13px; color: #d1d9e5; }
 .gprof-conn-edit {
   display: inline-flex;
   align-items: center;
@@ -22675,6 +22679,22 @@ html.opal-native-host .trip-canvas {
   font-size: 14px;
   color: #00e5ff;
 }
+.contact-profile-handle {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: #00e5ff;
+}
+.contact-profile-phone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.contact-profile-phone-privacy {
+  margin: 0;
+  font-size: 11px;
+  color: #8a96a8;
+}
 .contact-profile-phone {
   margin: 0;
   font-size: 13px;
@@ -23525,4 +23545,18 @@ html.opal-native-host body:has(.opal-center-chat-composer:focus-within) .tabbar.
 .lives-go-live-overlay-top h2 {
   margin: 0;
   font-size: 1.1rem;
+}
+.lives-active-pill {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #0b1020;
+  background: #ffc86b;
+}
+.lives-go-live[data-live-state="active"] h2 {
+  margin: 0 0 6px;
 }

@@ -59,6 +59,24 @@ describe("Opal Center V2 behavior convergence", () => {
     expect(center).toMatch(/opal-center-conversation/);
   });
 
+  it("Repair #4: rest composer + chips use one intelligence path (OC chat), not hardcoded nearby_now", () => {
+    expect(center).toMatch(/function openChatWith/);
+    expect(center).toMatch(/setChatSeed/);
+    expect(center).toMatch(/initialMessage=\{chatSeed\}/);
+    // Primary rest entries must route through openChatWith → chat phase.
+    expect(center).toMatch(/onClick=\{\(\) => openChatWith\(\)\}/);
+    expect(center).toMatch(/openChatWith\("What's nearby in an open window\?"\)/);
+    expect(center).toMatch(/openChatWith\("What's next\?"\)/);
+    expect(center).toMatch(/openChatWith\("Ideas for tonight nearby"\)/);
+    // Free-text composer must not force intent nearby_now on the primary path.
+    // (DI nearby_now may remain only for conversation-phase Timing/Budget/Vibe adjustments.)
+    const composerSendIdx = center.indexOf('data-testid="opal-center-send"');
+    expect(composerSendIdx).toBeGreaterThan(-1);
+    const afterSend = center.slice(composerSendIdx, composerSendIdx + 280);
+    expect(afterSend).toMatch(/openChatWith/);
+    expect(afterSend).not.toMatch(/askAboutDay/);
+  });
+
   it("Paste J Phase 1: Go with this creates durable center plan", () => {
     expect(center).toMatch(/createCenterPlan/);
     expect(center).toMatch(/onPlanCreated/);

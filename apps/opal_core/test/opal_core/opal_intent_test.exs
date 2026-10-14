@@ -76,6 +76,18 @@ defmodule OpalCore.OpalIntentTest do
     assert r.entities.when == "next week"
   end
 
+  test "plan_create positive: Make plans for me and Maya Saturday" do
+    r = assert_intent("Make plans for me and Maya Saturday.", :plan_create)
+    assert "Maya" in (r.entities.who || [])
+    assert r.entities.when == "Saturday" or r.entities.when == "saturday" or
+             String.downcase(to_string(r.entities.when || "")) =~ "saturday"
+  end
+
+  test "plan_create positive: Let's do dinner with Chanelle tonight" do
+    r = assert_intent("Let's do dinner with Chanelle tonight.", :plan_create)
+    assert "Chanelle" in (r.entities.who || [])
+  end
+
   test "plan_create negative: Suggest a restaurant" do
     refute_intent("Suggest a restaurant", :plan_create)
   end

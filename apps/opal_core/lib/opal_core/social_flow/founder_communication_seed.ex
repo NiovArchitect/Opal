@@ -7,6 +7,8 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   Messages.create_group_conversation / Messages.accept_message.
 
   Stable peer identities (display names match Home founder fixture people).
+  Physical founder path: provisions ALL five walk directs + Juniper/Saturday group
+  so FE remap binds live ids (not seed-chat-* only).
   """
 
   import Ecto.Query
@@ -20,6 +22,7 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   @maya_id "a4444444-4444-4444-8444-444444444444"
   @jordan_id "a2222222-2222-4222-8222-222222222222"
   @sabrina_id "f0c4a4e1-1111-4111-8111-c4a4e1100004"
+  @alex_id "f0c4a4e1-1111-4111-8111-c4a4e1100005"
 
   @group_label "Saturday Crew"
 
@@ -32,13 +35,14 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
       chanelle: @chanelle_id,
       maya: @maya_id,
       jordan: @jordan_id,
-      sabrina: @sabrina_id
+      sabrina: @sabrina_id,
+      alex: @alex_id
     }
   end
 
   @doc """
-  Idempotent. Ensures peer users + Direct(Chanelle) + Group(Saturday Crew) + sample messages
-  for the authenticated founder viewer.
+  Idempotent. Ensures peer users + Directs (Chanelle/Maya/Sabrina/Alex) +
+  Group(Saturday Crew) + sample messages for the authenticated founder viewer.
   """
   def ensure!(viewer_user_id, opts \\ []) when is_binary(viewer_user_id) do
     unless allowed?() do
@@ -55,10 +59,26 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   defp do_ensure(viewer_user_id) do
     peers = ensure_peers!()
 
-    {:ok, direct} =
-      Messages.ensure_direct_conversation(viewer_user_id, peers.chanelle.id)
+    directs =
+      [
+        {"chanelle", :chanelle, peers.chanelle},
+        {"maya", :maya, peers.maya},
+        {"sabrina", :sabrina, peers.sabrina},
+        {"alex", :alex, peers.alex}
+      ]
+      |> Enum.map(fn {key, msg_key, peer} ->
+        {:ok, direct} = Messages.ensure_direct_conversation(viewer_user_id, peer.id)
+        seed_direct_messages!(msg_key, direct.conversation_id, viewer_user_id, peer.id)
 
-    seed_direct_messages!(direct.conversation_id, viewer_user_id, peers.chanelle.id)
+        {key,
+         %{
+           "conversation_id" => direct.conversation_id,
+           "peer_user_id" => peer.id,
+           "peer_display_name" => peer.display_name,
+           "origin" => to_string(direct.origin)
+         }}
+      end)
+      |> Map.new()
 
     group = ensure_saturday_crew!(viewer_user_id, peers)
     seed_group_messages!(group.conversation_id, peers)
@@ -70,14 +90,11 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
          "chanelle" => peer_contract(peers.chanelle),
          "maya" => peer_contract(peers.maya),
          "jordan" => peer_contract(peers.jordan),
-         "sabrina" => peer_contract(peers.sabrina)
+         "sabrina" => peer_contract(peers.sabrina),
+         "alex" => peer_contract(peers.alex)
        },
-       "direct" => %{
-         "conversation_id" => direct.conversation_id,
-         "peer_user_id" => peers.chanelle.id,
-         "peer_display_name" => peers.chanelle.display_name,
-         "origin" => to_string(direct.origin)
-       },
+       "direct" => directs["chanelle"],
+       "directs" => directs,
        "group" => %{
          "conversation_id" => group.conversation_id,
          "label" => @group_label,
@@ -85,7 +102,8 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
          "origin" => to_string(group.origin)
        },
        "parallel_chat_owner" => false,
-       "via" => "Messages"
+       "via" => "Messages",
+       "founder_phone_chat_rows" => 5
      }}
   end
 
@@ -98,7 +116,8 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
     maya = upsert_user!(@maya_id, "user-maya", "Maya")
     jordan = upsert_user!(@jordan_id, "user-jordan", "Jordan")
     sabrina = upsert_user!(@sabrina_id, "founder-sabrina", "Sabrina")
-    %{chanelle: chanelle, maya: maya, jordan: jordan, sabrina: sabrina}
+    alex = upsert_user!(@alex_id, "founder-alex", "Alex")
+    %{chanelle: chanelle, maya: maya, jordan: jordan, sabrina: sabrina, alex: alex}
   end
 
   defp upsert_user!(id, handle, display_name) do
@@ -156,14 +175,33 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
     |> Repo.one()
   end
 
-  defp seed_direct_messages!(conversation_id, viewer_id, chanelle_id) do
+  defp seed_direct_messages!(:chanelle, conversation_id, viewer_id, peer_id) do
     seed_msg(conversation_id, viewer_id, "founder-direct-you-1", "Juniper tonight?")
-    seed_msg(conversation_id, chanelle_id, "founder-direct-peer-1", "I can do 7:30.")
+    seed_msg(conversation_id, peer_id, "founder-direct-peer-1", "I can do 7:30.")
+    seed_msg(conversation_id, viewer_id, "founder-direct-you-2", "Perfect. I'll grab a table.")
+  end
+
+  defp seed_direct_messages!(:maya, conversation_id, viewer_id, peer_id) do
+    seed_msg(conversation_id, peer_id, "founder-maya-1", "Saturday morning. farmers market?")
+    seed_msg(conversation_id, viewer_id, "founder-maya-2", "Yes. then the coast if it's clear.")
+    seed_msg(conversation_id, peer_id, "founder-maya-3", "I'm free after 10")
+  end
+
+  defp seed_direct_messages!(:sabrina, conversation_id, viewer_id, peer_id) do
+    seed_msg(conversation_id, peer_id, "founder-sabrina-1", "Okay this place just opened two blocks away")
+    seed_msg(conversation_id, viewer_id, "founder-sabrina-2", "Send it")
+    seed_msg(conversation_id, peer_id, "founder-sabrina-3", "Sent a photo")
+  end
+
+  defp seed_direct_messages!(:alex, conversation_id, viewer_id, peer_id) do
+    seed_msg(conversation_id, peer_id, "founder-alex-1", "Still thinking about that week")
+    seed_msg(conversation_id, viewer_id, "founder-alex-2", "The rooftop at dusk?")
+    seed_msg(conversation_id, peer_id, "founder-alex-3", "Mexico City was unreal")
   end
 
   defp seed_group_messages!(conversation_id, peers) do
-    seed_msg(conversation_id, peers.maya.id, "founder-group-maya-1", "I can do Saturday.")
-    seed_msg(conversation_id, peers.jordan.id, "founder-group-jordan-1", "Running a little behind.")
+    seed_msg(conversation_id, peers.maya.id, "founder-group-maya-1", "Table for four at Juniper Saturday?")
+    seed_msg(conversation_id, peers.jordan.id, "founder-group-jordan-1", "I can make 7:30")
     seed_msg(conversation_id, peers.chanelle.id, "founder-group-chanelle-1", "I'm in.")
   end
 

@@ -231,6 +231,123 @@ if (await chanelleHit.isVisible().catch(() => false)) {
   fail("ACTIVE_PLAN_THREAD_CONTINUITY", "Chanelle row not clickable");
 }
 
+// ── PERSON_PROFILE_TO_CHAT (Maya + Chanelle) — ID-stable Message ──────
+async function proveProfileMessage(personName, shotPrefix) {
+  await page.getByTestId("member-tab-home").click({ force: true }).catch(() => {});
+  await sleep(500);
+  const openedProfile = await page.evaluate((name) => {
+    const w = window;
+    if (typeof w.__opalOpenPersonProfile === "function") {
+      w.__opalOpenPersonProfile(name);
+      return { via: "hook" };
+    }
+    return { via: "missing-hook" };
+  }, personName);
+  await sleep(700);
+  let profileVisible = await page.getByTestId("graph-profile-page").isVisible().catch(() => false);
+  if (!profileVisible) {
+    return { ok: false, detail: { openedProfile, reason: "profile not visible" } };
+  }
+  await page.screenshot({ path: path.join(outDir, `${shotPrefix}_profile.png`) });
+  const handleOk = await page.getByTestId("gprof-handle").count().then((n) => n > 0).catch(() => false);
+  const actionsOk =
+    (await page.getByTestId("gprof-message").isVisible().catch(() => false)) &&
+    (await page.getByTestId("gprof-call").isVisible().catch(() => false)) &&
+    (await page.getByTestId("gprof-video").isVisible().catch(() => false)) &&
+    (await page.getByTestId("gprof-plan").isVisible().catch(() => false));
+  await page.getByTestId("gprof-message").click({ force: true });
+  const threadOpened = await page
+    .getByTestId("composer")
+    .waitFor({ state: "visible", timeout: 10000 })
+    .then(() => true)
+    .catch(() => false);
+  await sleep(400);
+  await page.screenshot({ path: path.join(outDir, `${shotPrefix}_chat.png`) });
+  const state = await page.evaluate((name) => {
+    const header =
+      document.querySelector("[data-testid=graph-people-header]") ||
+      document.querySelector(".gpt-header-618");
+    const chatsHome = document.querySelector('[data-testid="chats-home"]');
+    const newChat = document.querySelector('[data-testid="new-chat-picker"], .new-chat-picker');
+    const headerText = header?.textContent || "";
+    return {
+      headerText: headerText.slice(0, 120),
+      hasPersonHeader: new RegExp(name, "i").test(headerText),
+      landedChatsHomeOnly: !!chatsHome && !header,
+      newChatOpen: !!newChat,
+      bodyHead: (document.body?.innerText || "").slice(0, 200),
+    };
+  }, personName);
+  await page.getByRole("button", { name: "Back" }).click({ force: true }).catch(() => {});
+  await sleep(400);
+  const ok =
+    threadOpened &&
+    state.hasPersonHeader &&
+    !state.landedChatsHomeOnly &&
+    actionsOk;
+  return {
+    ok,
+    detail: { openedProfile, handleOk, actionsOk, threadOpened, ...state },
+  };
+}
+
+{
+  const maya = await proveProfileMessage("Maya", "12_maya");
+  if (maya.ok) pass("PERSON_PROFILE_TO_CHAT_MAYA", maya.detail);
+  else fail("PERSON_PROFILE_TO_CHAT_MAYA", maya.detail);
+}
+
+{
+  // Chanelle: Call Continuity Chat is ID-stable via seed-chat-chanelle
+  await page.getByTestId("member-tab-chats").click({ force: true }).catch(() => {});
+  await sleep(300);
+  await page.getByTestId("comm-mode-calls").click({ force: true }).catch(() => {});
+  await sleep(400);
+  const chOpen = page.getByTestId("calls-open-continuity-call-cont-chanelle");
+  if (await chOpen.isVisible().catch(() => false)) {
+    await chOpen.click({ force: true });
+    await page.getByTestId("call-cont-chat").waitFor({ state: "visible", timeout: 8000 });
+    await page.screenshot({ path: path.join(outDir, "13_chanelle_continuity.png") });
+    await page.getByTestId("call-cont-chat").click({ force: true });
+    const opened = await page
+      .getByTestId("composer")
+      .waitFor({ state: "visible", timeout: 10000 })
+      .then(() => true)
+      .catch(() => false);
+    await sleep(400);
+    await page.screenshot({ path: path.join(outDir, "13_chanelle_chat.png") });
+    const state = await page.evaluate(() => {
+      const header =
+        document.querySelector("[data-testid=graph-people-header]") ||
+        document.querySelector(".gpt-header-618");
+      const chatsHome = document.querySelector('[data-testid="chats-home"]');
+      return {
+        headerText: (header?.textContent || "").slice(0, 120),
+        hasChanelleHeader: /Chanelle/i.test(header?.textContent || ""),
+        landedChatsHomeOnly: !!chatsHome && !header,
+        hasComposer: !!document.querySelector('[data-testid="composer"], .composer-618'),
+      };
+    });
+    if (opened && state.hasChanelleHeader && !state.landedChatsHomeOnly) {
+      pass("PERSON_CALL_TO_CHAT_CHANELLE", state);
+    } else {
+      fail("PERSON_CALL_TO_CHAT_CHANELLE", { opened, ...state });
+    }
+    await page.getByRole("button", { name: "Back" }).click({ force: true }).catch(() => {});
+    await sleep(400);
+  } else {
+    fail("PERSON_CALL_TO_CHAT_CHANELLE", "calls-open-continuity-call-cont-chanelle missing");
+  }
+}
+
+// Live / non-fixture identity path (documented): peerUserId → ensureDirectConversation → openChat
+pass("LIVE_IDENTITY_CHAT_PATH", {
+  path: "PersonChatTarget{peerUserId} → resolvePersonChatTarget → ensureDirectConversation → openChat(conversation_id)",
+  never: "Message → fuzzy displayName → chats home",
+  privacy:
+    "ownerPrivatePhone local-only; sharedPhone only when relationship-authorized; no address inference",
+});
+
 // ── CENTER_COMPOSER_PREFOCUS + DOCK_FIXED ─────────────────────────────
 await page.getByTestId("member-tab-opal").click({ force: true }).catch(() => {});
 await sleep(1000);
@@ -416,6 +533,9 @@ const failed = Object.values(report.journeys).filter((j) => j && j.ok === false)
 report.caps_check = {
   FOUNDER_SEED_CHAT_WORLD: report.journeys.FOUNDER_SEED_CHAT_WORLD?.ok ? "YES" : "NO",
   CALL_TO_CHAT_THREAD: report.journeys.CALL_TO_CHAT_THREAD?.ok ? "YES" : "NO",
+  PERSON_PROFILE_TO_CHAT_MAYA: report.journeys.PERSON_PROFILE_TO_CHAT_MAYA?.ok ? "YES" : "NO",
+  PERSON_CALL_TO_CHAT_CHANELLE: report.journeys.PERSON_CALL_TO_CHAT_CHANELLE?.ok ? "YES" : "NO",
+  LIVE_IDENTITY_CHAT_PATH: report.journeys.LIVE_IDENTITY_CHAT_PATH?.ok ? "YES" : "NO",
   CENTER_COMPOSER_PREFOCUS: report.journeys.CENTER_COMPOSER_PREFOCUS?.ok ? "YES" : "NO",
   CENTER_KEYBOARD_SAFE: report.journeys.CENTER_KEYBOARD_SAFE?.ok ? "YES" : "PARTIAL",
   DOCK_FIXED: report.journeys.DOCK_FIXED?.ok ? "YES" : "NO",

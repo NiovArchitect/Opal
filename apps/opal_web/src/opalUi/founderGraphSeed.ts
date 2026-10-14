@@ -330,10 +330,12 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     thumbSrc: `${DEMO}/food.jpg`,
     when: "4m",
     relationshipLabel: "Graph",
-    title: "Farmers market + coast",
+    // Distinct from Maya's Del Mar Saturday market (seed-maya-graph-coast) —
+    // Jordan hosts Oceanside; Maya thread/graph own "Farmers market + coast".
+    title: "Oceanside market Saturday",
     detail: "Saturday · 10:00 AM · Oceanside",
     placeLine: "Saturday · 10:00 AM · Oceanside",
-    caption: "Farmers market + coast",
+    caption: "Oceanside market Saturday",
     meta: "4 interested · 2 going",
     interestedCount: 4,
     goingCount: 2,
@@ -361,8 +363,8 @@ export const FOUNDER_HOME_FEED: FounderFeedCard[] = [
     avatarSrc: `${ASSET}/avatar-chanelle.png`,
     mediaSrc: "/figma-v2/person/graph-juniper.png",
     when: "2m ago",
-    title: "Juniper & Ivy tonight",
-    detail: "7:30 PM · San Diego",
+    title: "Juniper & Ivy",
+    detail: "Saturday · 7:30 PM · San Diego",
     placeLine: "Saturday · 7:30 PM · San Diego",
     meta: "Sadeil and Sabrina are interested",
     interestedCount: 2,
@@ -802,7 +804,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     personInitial: "M",
     avatarSrc: "/figma-v2/stories/maya.png",
     mediaSrc: `${ASSET}/media-maya.png`,
-    caption: "Golden hour walk before we meet up",
+    caption: "Saturday market stalls · meet after 10",
     when: "3h",
     pulseState: "MEMORY",
   },
@@ -812,7 +814,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     personInitial: "J",
     avatarSrc: "/figma-v2/stories/jordan.png",
     mediaSrc: `${DEMO}/restaurant.jpg`,
-    caption: "Who's actually free tonight?",
+    caption: "Juniper crew · who's locking 7:30?",
     when: "6h",
     pulseState: "GRAPH",
   },
@@ -822,7 +824,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     personInitial: "S",
     avatarSrc: "/figma-v2/stories/sabrina.png",
     mediaSrc: `${DEMO}/food.jpg`,
-    caption: "Late dessert run. join?",
+    caption: "Neighborhood outing · patio lights on",
     when: "11h",
     pulseState: "LIVE",
   },
@@ -842,7 +844,7 @@ export const FOUNDER_STORIES: FounderStoryItem[] = [
     personInitial: "A",
     avatarSrc: "/figma-v2/stories/alex.png",
     mediaSrc: `${DEMO}/portrait.jpg`,
-    caption: "Temporary share. disappears.",
+    caption: "Mexico City travel note · Trip Graph",
     when: "18h",
     pulseState: "GRAPH",
   },
@@ -1082,6 +1084,7 @@ export function resolveFounderSeedGate(input: {
   const prod = input.productionBuild === true;
   // App Store / TestFlight / production web: empty reality until the user builds it.
   // Only an explicit lab URL can enable seed on a production build.
+  // Founder phone physical path uses LAN Vite (non-prod) + URL seed / native_host+lan.
   if (prod) {
     if (input.urlSeed === "1") return { enabled: true, reason: "url:opal_founder_seed=1" };
     return { enabled: false, reason: "production_default" };

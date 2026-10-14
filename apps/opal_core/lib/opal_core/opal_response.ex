@@ -62,11 +62,16 @@ defmodule OpalCore.OpalResponse do
               _ -> nil
             end
 
-          # Action-boundary intents stay template-only so LLM cannot invent
-          # Done mutations, outbound send, or booking success.
+          # Action-boundary + plan commit path stay template-only.
+          # LLM must not rewrite "Want me to set this up?" / "Done… Graph"
+          # or invent mutations, outbound send, or booking success.
+          # DeepSeek may still polish chat / recommend / status phrasing.
           case intent do
-            i when i in [:plan_modify, :coordinate] -> template
-            _ -> maybe_llm_phrase(template, intent, intent_map, context_map)
+            i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate] ->
+              template
+
+            _ ->
+              maybe_llm_phrase(template, intent, intent_map, context_map)
           end
       end
 
@@ -268,6 +273,17 @@ defmodule OpalCore.OpalResponse do
         "Based on what you both enjoy (#{first}), I have some ideas."
 
       _ ->
+        plan_create_fit_hint(context)
+    end
+  end
+
+  # Private Fit influence — suggest an activity shape, never announce Fit prefs.
+  defp plan_create_fit_hint(context) do
+    case fit_activity_phrase(get_in_ctx(context, [:fit])) do
+      phrase when is_binary(phrase) and phrase != "" ->
+        "#{String.capitalize(phrase)} could work well."
+
+      _ ->
         nil
     end
   end
@@ -437,10 +453,19 @@ defmodule OpalCore.OpalResponse do
     intimate? = intimate_relationship?(context, for_who)
     tier = get_in_ctx(context, [:trust_tier]) || "new"
     financial = get_in_ctx(context, [:financial])
+    fit = get_in_ctx(context, [:fit])
+    category = entity(entities, :category)
+    raw = get_in_ctx(context, [:message, :text]) || ""
 
     cond do
+      # Activity / Fit path first when the ask is activity-shaped (private use only).
+      fit_rec = recommend_from_fit(fit, category, raw, who_label, intimate?) ->
+        fit_rec
+
       # Trusted+ but no profile yet — invite them to set spending comfort.
-      TrustTiers.can_access_tier?(tier, :financial) and is_nil(financial) ->
+      # Skip budget ask for clear activity asks without Fit (handled above as nil).
+      TrustTiers.can_access_tier?(tier, :financial) and is_nil(financial) and
+          not activity_shaped_ask?(category, raw) ->
         @ask_budget
 
       # D-1 — known group pattern
@@ -492,6 +517,118 @@ defmodule OpalCore.OpalResponse do
         end
     end
   end
+
+  defp recommend_from_fit(nil, _category, _raw, _who, _intimate?), do: nil
+
+  defp recommend_from_fit(fit, category, raw, who_label, intimate?) when is_map(fit) do
+    if activity_shaped_ask?(category, raw) or vague_non_dining_recommend?(raw) do
+      case fit_activity_phrase(fit) do
+        phrase when is_binary(phrase) and phrase != "" ->
+          cond do
+            is_binary(who_label) and who_label != "" and intimate? ->
+              "How about #{phrase} — something easy for you and #{who_label}?"
+
+            is_binary(who_label) and who_label != "" ->
+              "How about #{phrase} with #{who_label}?"
+
+            true ->
+              "How about #{phrase}?"
+          end
+
+        _ ->
+          nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp recommend_from_fit(_, _, _, _, _), do: nil
+
+  defp activity_shaped_ask?(category, raw) when is_binary(raw) do
+    cat = category && to_string(category) |> String.downcase()
+
+    cat in ["activity", "hike", "walk", "yoga", "run", "outdoors"] or
+      Regex.match?(
+        ~r/\b(activit(?:y|ies)|hike|hiking|walk|walking|outdoors?|yoga|run|running|workout|exercise)\b/i,
+        raw
+      )
+  end
+
+  defp activity_shaped_ask?(_, _), do: false
+
+  defp vague_non_dining_recommend?(raw) when is_binary(raw) do
+    Regex.match?(~r/\b(suggest|recommend|ideas?)\b/i, raw) and
+      not Regex.match?(~r/\b(dinner|lunch|brunch|restaurant|cafe|coffee|drinks|bar|food)\b/i, raw)
+  end
+
+  defp vague_non_dining_recommend?(_), do: false
+
+  # Map gated Fit activities → a natural activity phrase (no Fit/settings disclosure).
+  defp fit_activity_phrase(fit) when is_map(fit) do
+    activities =
+      (fit[:activities] || fit["activities"] || [])
+      |> Enum.map(&to_string/1)
+      |> Enum.map(&String.downcase/1)
+
+    goal =
+      case fit[:goal] || fit["goal"] do
+        g when is_binary(g) -> String.downcase(g)
+        g when is_atom(g) -> g |> Atom.to_string() |> String.downcase()
+        _ -> nil
+      end
+
+    has? = fn id -> id in activities end
+
+    cond do
+      activities == [] and is_nil(goal) ->
+        nil
+
+      has?.("walk") and has?.("outdoors") ->
+        "an outdoor walk"
+
+      has?.("run") and has?.("outdoors") ->
+        "an outdoor run"
+
+      has?.("yoga") and goal == "recover" ->
+        "a gentle yoga session"
+
+      has?.("rest") and goal == "recover" ->
+        "an easy recovery afternoon"
+
+      has?.("walk") ->
+        "a walk"
+
+      has?.("run") ->
+        "a run"
+
+      has?.("yoga") ->
+        "a yoga session"
+
+      has?.("strength") ->
+        "a strength session"
+
+      has?.("outdoors") ->
+        "something outdoors"
+
+      has?.("rest") ->
+        "a restful stretch of time"
+
+      goal == "move_more" ->
+        "something active"
+
+      goal == "stay_active" ->
+        "a light active outing"
+
+      goal == "recover" ->
+        "a low-key recovery plan"
+
+      true ->
+        nil
+    end
+  end
+
+  defp fit_activity_phrase(_), do: nil
 
   defp recommend_from_group(for_who, context, financial) do
     case match_group_taste(for_who, context) do

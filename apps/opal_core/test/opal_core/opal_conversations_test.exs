@@ -73,14 +73,33 @@ defmodule OpalCore.OpalConversationsTest do
     snap = opal_msg.metadata["context_snapshot"]
     assert is_map(snap)
 
-    for key <- ~w(user taste temporal social message relationships trust_tier) do
+    for key <- ~w(user taste temporal social message relationships trust_tier financial fit) do
       assert Map.has_key?(snap, key), "missing context key #{key}"
     end
     assert is_map(snap["relationships"])
     assert snap["trust_tier"] in ~w(new known trusted inner_circle)
+    assert snap["fit"] == nil
 
     assert snap["message"]["text"] == "context please"
     assert is_binary(opal_msg.metadata["generated_at"])
+  end
+
+  test "client_context Fit influences activity recommend on Center chat path" do
+    assert {:ok, {_conv, _user_msg, opal_msg}} =
+             OpalConversations.create_user_message(
+               alex(),
+               "suggest an activity",
+               client_context: %{
+                 "fit" => %{"activities" => ["walk", "outdoors"], "goal" => "move_more"}
+               }
+             )
+
+    assert opal_msg.body =~ "outdoor walk"
+    refute opal_msg.body =~ "Fit"
+    refute opal_msg.body =~ "move_more"
+    snap = opal_msg.metadata["context_snapshot"]
+    assert snap["fit"]["activities"] == ["walk", "outdoors"]
+    assert snap["fit"]["goal"] == "move_more"
   end
 
   test "OC-3 stores intent; OC-4 generates response from intent + context" do

@@ -50,9 +50,13 @@ describe("coherence reset: FR09 lands on Home 618:44", () => {
     expect(nina?.likesLabel).toMatch(/Liked by Maya/);
     expect(nina?.likeCount).toBe(1200);
     const jordan = FOUNDER_HOME_FEED.find((c) => c.id === "seed-jordan-market");
-    expect(jordan?.title).toBe("Farmers market + coast");
+    // Distinct from Maya's Del Mar "Farmers market + coast" (seed-maya-graph-coast).
+    expect(jordan?.title).toMatch(/Oceanside market/i);
     expect(jordan?.placeLine).toMatch(/Oceanside/);
     expect(jordan?.joinability).toBe("joinable_friends");
+    const mayaMarket = FOUNDER_HOME_FEED.find((c) => c.id === "seed-maya-graph-coast");
+    expect(mayaMarket?.title).toBe("Farmers market + coast");
+    expect(mayaMarket?.placeLine).toMatch(/Saturday · after 10/);
     const live = FOUNDER_LIVE_FEED.find((c) => c.id === "seed-live-sabrina");
     expect(live?.meta).toMatch(/Jordan just arrived/);
     expect(live?.goingCount).toBe(3);

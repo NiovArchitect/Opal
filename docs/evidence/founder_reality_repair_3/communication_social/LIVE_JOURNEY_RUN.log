@@ -1,0 +1,38 @@
+{
+  "overall": "GREEN",
+  "caps": {
+    "LIVE_OTHER_USER_FIXTURE": {
+      "ok": true,
+      "detail": {
+        "audience": "friends",
+        "host_user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+        "live_room_id": "d589c349-10a3-4c7c-83b0-0c43f2f2424d",
+        "location_precision": "venue",
+        "place_id": "test-maya-spot-san-diego",
+        "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+        "venue_name": "Maya Spot",
+        "viewer_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "visible_count_walk_a": 1,
+        "visible_to_walk_a": true
+      }
+    },
+    "LIVE_NORMAL_USER_START": {
+      "ok": true,
+      "live_id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+      "consequence": "Friends can see you're at TEST VENUE · Maya Spot.",
+      "audience": "friends",
+      "location_precision": "venue"
+    },
+    "LIVE_ACTIVE_STATE": {
+      "ok": true,
+      "mine_active": true,
+      "status": "live"
+    },
+    "LIVE_END": {
+      "ok": true,
+      "status": "ended",
+      "show_status": "ended",
+      "mine_active": false
+    }
+  }
+}

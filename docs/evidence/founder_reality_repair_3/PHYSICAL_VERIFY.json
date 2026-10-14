@@ -1,0 +1,68 @@
+{
+  "at": "2026-10-14T05:15:58.616Z",
+  "tip": "ce00c150",
+  "path": "PHYSICAL_PATH",
+  "vs_inject": "no seed-storage inject; URL opal_founder_seed=1 only",
+  "base": "http://127.0.0.1:5173",
+  "caps": {
+    "FREEZE": "HOLD",
+    "PASS2_UNLOCKED": "NO"
+  },
+  "journeys": {
+    "member_shell": {
+      "ok": true,
+      "detail": "visible"
+    },
+    "seed_enabled_via_url": {
+      "ok": true,
+      "detail": {
+        "seedAttr": "1",
+        "pipeEnabled": true,
+        "pipeReason": "url:opal_founder_seed=1",
+        "href": "http://127.0.0.1:5173/?opal_founder_seed=1&opal_native_host=1"
+      }
+    },
+    "FOUNDER_PHONE_CHAT_ROWS": {
+      "ok": true,
+      "detail": {
+        "names": [
+          "Chanelle",
+          "Maya",
+          "Juniper crew",
+          "Sabrina",
+          "Alex"
+        ],
+        "compose": {
+          "seedEnabled": true,
+          "liveRows": 0,
+          "fixtureRows": 5,
+          "composedRows": 5,
+          "paintedRows": 5,
+          "hardFallback": false,
+          "path": "physical_compose",
+          "names": [
+            "Chanelle",
+            "Maya",
+            "Juniper crew",
+            "Sabrina",
+            "Alex"
+          ]
+        },
+        "unreadAny": true,
+        "mayaMarket": true
+      }
+    },
+    "CALLS_WORLD": {
+      "ok": true,
+      "detail": {
+        "ready": true,
+        "missed": true,
+        "maya": true,
+        "cancelled": true,
+        "completed": true
+      }
+    }
+  },
+  "overall": "GREEN_PHYSICAL_COMPOSE",
+  "FAKE_SUCCESS": 0
+}

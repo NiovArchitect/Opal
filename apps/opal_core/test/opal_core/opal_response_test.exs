@@ -99,7 +99,7 @@ defmodule OpalCore.OpalResponseTest do
   end
 
   test "plan_create without taste omits taste hint" do
-    ctx = base_context(%{taste: %{vibes: [], cuisines: [], price_comfort: nil}})
+    ctx = base_context(%{taste: %{vibes: [], cuisines: [], price_comfort: nil}, fit: nil})
 
     assert {:ok, text} =
              OpalResponse.generate(
@@ -110,6 +110,49 @@ defmodule OpalCore.OpalResponseTest do
     assert text =~ "Got it: something soon."
     refute text =~ "Based on what you both enjoy"
     assert text =~ "Want me to set this up?"
+  end
+
+  test "plan_create uses Fit activity hint without disclosing Fit prefs" do
+    ctx =
+      base_context(%{
+        taste: %{vibes: [], cuisines: [], price_comfort: nil},
+        fit: %{activities: ["walk", "outdoors"], goal: "move_more"}
+      })
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:plan_create, %{what: "something", when: "Saturday", who: nil}),
+               ctx
+             )
+
+    assert text =~ "Got it: something Saturday."
+    assert text =~ "An outdoor walk could work well."
+    refute text =~ "Fit"
+    refute text =~ "share"
+    refute text =~ "preferences"
+  end
+
+  test "recommend uses Fit for activity asks without disclosing private Fit" do
+    ctx =
+      base_context(%{
+        taste: %{vibes: [], cuisines: [], price_comfort: nil},
+        temporal: %{recent_plans: [], upcoming_celebrations: [], active_conversation_count: 0},
+        financial: nil,
+        fit: %{activities: ["walk", "outdoors"], goal: "move_more"},
+        message: %{text: "suggest an activity", length: 18, sent_at: "x"},
+        trust_tier: "trusted"
+      })
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:recommend, %{category: "activity"}, "suggest an activity"),
+               ctx
+             )
+
+    assert text =~ "outdoor walk"
+    refute text =~ "Fit"
+    refute text =~ "move_more"
+    refute text =~ "budget preferences"
   end
 
   test "plan_modify confirms when plan_ref matches recent_plans" do

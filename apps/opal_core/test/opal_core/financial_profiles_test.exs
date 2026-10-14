@@ -177,6 +177,7 @@ defmodule OpalCore.FinancialProfilesTest do
       relationships: %{},
       trust_tier: "trusted",
       financial: %{level: "budget", dining_range: %{"min" => 0, "max" => 25}},
+      fit: nil,
       message: %{text: "recommend a place for dinner", length: 10, sent_at: "x"}
     }
 
@@ -191,6 +192,36 @@ defmodule OpalCore.FinancialProfilesTest do
     refute text =~ "tasting"
     refute text =~ "polished"
     assert text =~ "taco" or text =~ "fit" or text =~ "spot"
+    refute text =~ ~r/\$\d+/
+    refute text =~ "budget"
+  end
+
+  test "OC-4 recommend comfortable opens broader catalog" do
+    ctx = %{
+      user: %{id: "x", display_name: "Alex", handle: "a", timezone: "America/Los_Angeles"},
+      taste: %{vibes: [], cuisines: [], price_comfort: nil},
+      temporal: %{recent_plans: [], upcoming_celebrations: [], active_conversation_count: 0},
+      social: %{frequent_contacts: [], group_patterns: []},
+      relationships: %{},
+      trust_tier: "trusted",
+      financial: %{level: "comfortable", dining_range: %{"min" => 60, "max" => 150}},
+      fit: nil,
+      message: %{text: "recommend a place for dinner", length: 10, sent_at: "x"}
+    }
+
+    intent = %{
+      intent: :recommend,
+      confidence: :high,
+      entities: %{},
+      raw_text: "recommend a place for dinner"
+    }
+
+    assert {:ok, text} = OpalResponse.generate(intent, ctx)
+    assert text =~ "polished"
+    refute text =~ "taco"
+    refute text =~ "tasting"
+    refute text =~ ~r/\$\d+/
+    refute text =~ "comfortable"
   end
 
   test "OC-4 recommend asks for budget when trusted without profile" do
@@ -202,6 +233,7 @@ defmodule OpalCore.FinancialProfilesTest do
       relationships: %{},
       trust_tier: "trusted",
       financial: nil,
+      fit: nil,
       message: %{text: "recommend dinner", length: 10, sent_at: "x"}
     }
 
@@ -215,6 +247,32 @@ defmodule OpalCore.FinancialProfilesTest do
     assert {:ok, text} = OpalResponse.generate(intent, ctx)
     assert text =~ "budget preferences"
     refute text =~ "tier"
+  end
+
+  test "Center chat path recommend filters by spending comfort" do
+    alias OpalCore.OpalConversations
+
+    u = fresh_user!("fp_chat_budget")
+    grant_trusted!(u.id)
+
+    assert {:ok, _} =
+             FinancialProfiles.set_profile(u.id, %{
+               "comfort_level" => "budget",
+               "dining_range" => %{"min" => 0, "max" => 25}
+             })
+
+    assert {:ok, {_c, _user_msg, opal}} =
+             OpalConversations.create_user_message(u.id, "recommend a place for dinner")
+
+    refute opal.body =~ "tasting"
+    refute opal.body =~ "polished"
+    assert opal.body =~ "taco" or opal.body =~ "spot" or opal.body =~ "cafe"
+    refute opal.body =~ ~r/\$\d+/
+
+    snap = get_in(opal.metadata, ["context_snapshot", "financial"])
+    assert is_map(snap)
+    assert snap["level"] == "budget"
+    refute Map.has_key?(snap, "notes")
   end
 
   test "context_slice never includes notes" do

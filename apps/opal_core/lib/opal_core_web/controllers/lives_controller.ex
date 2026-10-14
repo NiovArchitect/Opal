@@ -50,12 +50,37 @@ defmodule OpalCoreWeb.LivesController do
     end
   end
 
+  def visible(conn, _params) do
+    lives = Lives.list_visible_lives(conn.assigns.current_user_id)
+    json(conn, %{"lives" => lives, "count" => length(lives)})
+  end
+
+  def mine(conn, _params) do
+    case Lives.active_live_for(conn.assigns.current_user_id) do
+      {:ok, room, venue} ->
+        json(conn, %{
+          "live_room" => LiveRoom.to_contract(room, venue),
+          "active" => true
+        })
+
+      {:error, :not_found} ->
+        json(conn, %{"live_room" => nil, "active" => false})
+
+      {:error, _} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => "invalid"})
+    end
+  end
+
   def go_live(conn, params) do
     user_id = conn.assigns.current_user_id
     place_id = params["place_id"]
     provisional? = truthy?(params["provisional"] || params["allow_provisional"])
     venue_name = params["venue_name"] || params["name"]
     city = params["city"] || params["address"]
+    privacy_opts = [
+      audience: params["audience"],
+      location_precision: params["location_precision"] || params["precision"]
+    ]
 
     cond do
       # Production never accepts provisional venues
@@ -65,9 +90,11 @@ defmodule OpalCoreWeb.LivesController do
         |> json(%{"error" => "provisional_not_allowed", "message" => "Manual venues are testing-only"})
 
       provisional? and is_binary(venue_name) and is_binary(city) ->
-        case Lives.go_live_provisional(user_id, venue_name, city,
-               title: params["title"],
-               allow_provisional: true
+        case Lives.go_live_provisional(
+               user_id,
+               venue_name,
+               city,
+               [title: params["title"], allow_provisional: true] ++ privacy_opts
              ) do
           {:ok, result} ->
             respond_go_live(conn, result)
@@ -94,15 +121,16 @@ defmodule OpalCoreWeb.LivesController do
           Mix.env() != :prod and
             (String.starts_with?(place_id, "test-") or truthy?(params["allow_provisional"]))
 
-        opts = [
-          title: params["title"],
-          allow_fixture: Mix.env() != :prod,
-          allow_provisional: allow_provisional?,
-          name: params["name"] || venue_name,
-          address: params["address"] || city,
-          types: params["types"],
-          test_only: String.starts_with?(place_id, "test-")
-        ]
+        opts =
+          [
+            title: params["title"],
+            allow_fixture: Mix.env() != :prod,
+            allow_provisional: allow_provisional?,
+            name: params["name"] || venue_name,
+            address: params["address"] || city,
+            types: params["types"],
+            test_only: String.starts_with?(place_id, "test-")
+          ] ++ privacy_opts
 
         case Lives.go_live(user_id, place_id, opts) do
           {:ok, result} ->
@@ -121,14 +149,20 @@ defmodule OpalCoreWeb.LivesController do
   end
 
   defp respond_go_live(conn, %{live_room: room, venue: venue}) do
-    display = Venue.display_name(venue)
+    consequence =
+      case room.metadata do
+        %{"consequence" => c} when is_binary(c) -> c
+        _ -> "Friends can see you're at #{Venue.display_name(venue)}."
+      end
 
     conn
     |> put_status(:created)
     |> json(%{
       "live_room" => LiveRoom.to_contract(room, venue),
       "venue" => Venue.to_public_contract(venue),
-      "consequence" => "Anyone can see you're at #{display}",
+      "consequence" => consequence,
+      "audience" => get_in(room.metadata, ["audience"]) || "friends",
+      "location_precision" => get_in(room.metadata, ["location_precision"]) || "venue",
       "trade" =>
         "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
       "test_only" => Venue.test_only?(venue),

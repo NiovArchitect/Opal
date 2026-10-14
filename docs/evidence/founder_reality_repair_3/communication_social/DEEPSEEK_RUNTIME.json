@@ -1,0 +1,26 @@
+{
+  "cap": "CENTER_DEEPSEEK",
+  "baseline_tip": "ce00c150",
+  "checked_at": "2026-10-13",
+  "LLM_PROVIDER_READY": true,
+  "readiness": "ready",
+  "configured": true,
+  "provider": "deepseek",
+  "model": "deepseek-chat",
+  "api_key": "PRESENT",
+  "LLM_CALLED": true,
+  "LLM_RESPONSE_USED": true,
+  "smoke": {
+    "prompt": "Reply with exactly: pong",
+    "content_len": 4,
+    "usage": { "prompt_tokens": 10, "completion_tokens": 2, "total_tokens": 12 }
+  },
+  "notes": [
+    "Secret never printed",
+    "Path A Decision Intelligence does not call LlmAdapter",
+    "Path B OpalCenterChat → postOpalMessage → LlmRespond → LlmAdapter when ready",
+    "Repair #4 unifies rest composer onto Path B"
+  ],
+  "TEMPLATE_FALLBACK_USED": false,
+  "authority": "DeepSeek understands/drafts; Opal domain/permission laws authorize and execute"
+}

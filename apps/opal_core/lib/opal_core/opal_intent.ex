@@ -267,16 +267,19 @@ defmodule OpalCore.OpalIntent do
     |> String.trim(" .,—-")
   end
 
+  # Repair #4 — natural phrasing founders actually type ("make plans", "let's do dinner").
+  @plan_create_trigger ~r/\b(set\s+up|organize|arrange|plans?|schedule|make\s+plans?|help\s+me\s+plan|let'?s\s+do)\b/i
+
   defp try_plan_create(norm, names) do
     virtual? = virtual_meeting?(norm)
 
     cond do
-      match_phrase?(norm, ~r/\b(set\s+up|organize|arrange|plan|schedule)\b/i) or virtual? ->
+      match_phrase?(norm, @plan_create_trigger) or virtual? ->
         trigger =
-          if virtual? and not match_phrase?(norm, ~r/\b(set\s+up|organize|arrange|plan|schedule)\b/i) do
+          if virtual? and not match_phrase?(norm, @plan_create_trigger) do
             ~r/\b(?:zoom|google\s*meet|teams|facetime|video\s+call|virtual)\b/i
           else
-            ~r/\b(?:set\s+up|organize|arrange|plan|schedule)\b/i
+            @plan_create_trigger
           end
 
         what =
@@ -471,7 +474,10 @@ defmodule OpalCore.OpalIntent do
       match_phrase?(norm, ~r/\b(suggest|recommend)\b/i) or
         match_phrase?(norm, ~r/\bwhere\s+should\b/i) or
         match_phrase?(norm, ~r/\bwhat\s+should\b/i) or
-        match_phrase?(norm, ~r/\bideas?\s+for\b/i)
+        match_phrase?(norm, ~r/\bideas?\s+for\b/i) or
+        # Repair #4 — founder Center phrasing
+        match_phrase?(norm, ~r/\bfind\s+(something|somewhere|a\s+place)\b/i) or
+        match_phrase?(norm, ~r/\bnearby\b/i)
 
     if hit? do
       category = extract_recommend_category(norm)
@@ -547,7 +553,10 @@ defmodule OpalCore.OpalIntent do
         match_phrase?(norm, ~r/\bhows\b/i) or
         match_phrase?(norm, ~r/\bstatus\b/i) or
         match_phrase?(norm, ~r/\bupcoming\b/i) or
-        match_phrase?(norm, ~r/\bcoming\s+up\b/i)
+        match_phrase?(norm, ~r/\bcoming\s+up\b/i) or
+        # Repair #4 — calendar/people status phrasing
+        match_phrase?(norm, ~r/\bwho\s+am\s+i\s+seeing\b/i) or
+        match_phrase?(norm, ~r/\bwhat'?s\s+next\b/i)
 
     if hit? do
       scope = extract_status_scope(norm)

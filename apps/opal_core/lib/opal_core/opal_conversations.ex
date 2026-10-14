@@ -78,10 +78,17 @@ defmodule OpalCore.OpalConversations do
   @doc """
   Create user message + OC-4 generated Opal reply in one transaction.
   Auto-sets conversation title from first user message when title is nil.
+
+  Opts:
+  - `:client_context` — optional map from FE (e.g. share-gated Fit slice).
+    Applied only for the requesting user; never unlocks Pass 2 inference.
   """
-  def create_user_message(user_id, body)
-      when is_binary(user_id) and is_binary(body) do
+  def create_user_message(user_id, body, opts \\ [])
+
+  def create_user_message(user_id, body, opts)
+      when is_binary(user_id) and is_binary(body) and is_list(opts) do
     trimmed = String.trim(body)
+    client_context = Keyword.get(opts, :client_context)
 
     cond do
       trimmed == "" ->
@@ -97,7 +104,7 @@ defmodule OpalCore.OpalConversations do
         with :ok <- ensure_opal_rate_limit(user_id),
              {:ok, conversation} <- get_or_create_conversation(user_id) do
           {context_snapshot, intent_snapshot, response_text} =
-            assemble_classify_generate(user_id, trimmed)
+            assemble_classify_generate(user_id, trimmed, client_context)
 
           result =
             Repo.transaction(fn ->
@@ -171,7 +178,7 @@ defmodule OpalCore.OpalConversations do
     end
   end
 
-  def create_user_message(_, _), do: {:error, :invalid}
+  def create_user_message(_, _, _), do: {:error, :invalid}
 
   # Paste J 3.3 — 90 Center messages / minute per user (never crash on flood).
   defp ensure_opal_rate_limit(user_id) do
@@ -193,8 +200,8 @@ defmodule OpalCore.OpalConversations do
 
   def message_limit, do: @message_limit
 
-  defp assemble_classify_generate(user_id, trimmed) do
-    case OpalContext.assemble(user_id, trimmed) do
+  defp assemble_classify_generate(user_id, trimmed, client_context) do
+    case OpalContext.assemble(user_id, trimmed, client_context) do
       {:ok, ctx} ->
         intent =
           case OpalIntent.classify(trimmed, ctx) do

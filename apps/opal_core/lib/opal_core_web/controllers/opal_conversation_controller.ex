@@ -36,22 +36,30 @@ defmodule OpalCoreWeb.OpalConversationController do
   def create_message(conn, params) do
     user_id = conn.assigns.current_user_id
     body = Map.get(params, "body")
+    client_context = Map.get(params, "client_context")
 
     # Optional conversation_id: if present and foreign → 404 (auth isolation).
     case Map.get(params, "conversation_id") do
       id when is_binary(id) and id != "" ->
         case OpalConversations.get_conversation_for_user(user_id, id) do
-          {:ok, _} -> do_create_message(conn, user_id, body)
+          {:ok, _} -> do_create_message(conn, user_id, body, client_context)
           {:error, :not_found} -> not_found(conn)
         end
 
       _ ->
-        do_create_message(conn, user_id, body)
+        do_create_message(conn, user_id, body, client_context)
     end
   end
 
-  defp do_create_message(conn, user_id, body) when is_binary(body) do
-    case OpalConversations.create_user_message(user_id, body) do
+  defp do_create_message(conn, user_id, body, client_context) when is_binary(body) do
+    opts =
+      if is_map(client_context) do
+        [client_context: client_context]
+      else
+        []
+      end
+
+    case OpalConversations.create_user_message(user_id, body, opts) do
       {:ok, {_conversation, user_msg, opal_msg}} ->
         conn
         |> put_status(201)
@@ -95,7 +103,7 @@ defmodule OpalCoreWeb.OpalConversationController do
     end
   end
 
-  defp do_create_message(conn, _user_id, _body) do
+  defp do_create_message(conn, _user_id, _body, _client_context) do
     conn
     |> put_status(422)
     |> json(%{"error_code" => "invalid", "errors" => %{"body" => ["can't be blank"]}})

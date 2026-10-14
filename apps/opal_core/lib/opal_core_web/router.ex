@@ -440,6 +440,8 @@ defmodule OpalCoreWeb.Router do
     get("/lives/go-live-copy", LivesController, :go_live_copy)
     get("/lives/stickers", LivesController, :catalog)
     get("/lives/venue-search", LivesController, :venue_search)
+    get("/lives/visible", LivesController, :visible)
+    get("/lives/mine", LivesController, :mine)
     post("/lives/go-live", LivesController, :go_live)
     get("/lives/:id", LivesController, :show)
     post("/lives/:id/end", LivesController, :end_live)

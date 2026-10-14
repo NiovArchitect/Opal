@@ -35,6 +35,26 @@ describe("chatsHydration prefer-real / seed-off", () => {
     );
   });
 
+  it("physical seed on with empty live paints ≥5 coherent founder rows", () => {
+    const fix = composeChatsList({
+      founderSeedEnabled: true,
+      liveRows: [],
+    });
+    expect(fix.mode).toBe("FOUNDER_FIXTURE");
+    expect(fix.rows.length).toBeGreaterThanOrEqual(5);
+    const names = fix.rows.map((r) => r.name);
+    for (const n of ["Chanelle", "Maya", "Juniper crew", "Sabrina", "Alex"]) {
+      expect(names).toContain(n);
+    }
+    expect(fix.diagnostics?.seedEnabled).toBe(true);
+    expect(fix.diagnostics?.paintedRows).toBeGreaterThanOrEqual(5);
+    expect(fix.diagnostics?.path).toBe("physical_compose");
+    expect(fix.rows.some((r) => (r.unread || 0) > 0)).toBe(true);
+    expect(fix.rows.some((r) => !r.unread)).toBe(true);
+    const maya = fix.rows.find((r) => r.name === "Maya");
+    expect(maya?.planConsequence?.label).toMatch(/Farmers market/i);
+  });
+
   it("seed off + no live is EMPTY with zero seed-chat rows", () => {
     const empty = composeChatsList({
       founderSeedEnabled: false,

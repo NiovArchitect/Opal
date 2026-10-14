@@ -68,8 +68,8 @@ Status vocabulary (no “done” from file/DOM existence alone):
 |---|---|---|---|---|---|
 | Founder chat list populated | Walk | compose when seedOn | Phone empty | `BROKEN` | P0 B |
 | New chat works | Product | NewChatPicker | — | `IMPLEMENTED_NOT_PHONE_PROVEN` | Prove |
-| Person/profile Chat opens thread | Walk #2 / #3 | openChat if chats.find match | — | `PARTIAL` | Same as Call→Chat resolve |
-| **New Call / Continuity → Chat opens that person’s thread** | Founder Maya failure | `onChat`: find by name → setTab chats; **openChat only if match** (`OpalApp.tsx` ~10811–10818) | Exact dead-end when no loaded chat | `BROKEN` | Resolve seed id / `ensureDirectConversation` / create+open; never land on list alone |
+| Person/profile Chat opens thread | Walk #2 / #3 | `openChatForPerson` ID-first (`conversationId`/`peerUserId`) | VERIFY PERSON_PROFILE_TO_CHAT_MAYA | `DONE_AND_PROVEN` (machine); phone PENDING | Founder phone |
+| **New Call / Continuity → Chat opens that person’s thread** | Founder Maya failure | Continuity carries `conversationId`; `resolvePersonChatTarget` | VERIFY CALL_TO_CHAT + PERSON_CALL_TO_CHAT_CHANELLE | `DONE_AND_PROVEN` (machine); phone PENDING | Founder phone |
 | Thread composer = Center language | Walk #2 | `opal-composer-brand` on composer-618 | Code | `IMPLEMENTED_NOT_PHONE_PROVEN` | Phone |
 | Keyboard never blocks composer | Shell | Thread bottom inset; Center focus-within hide | Center pre-focus RED | `BROKEN` (Center) | Geometry first |
 | Active shared plan visible in thread | Walk #2 | Plan pills on list; strip in-thread PARTIAL | Report admitted partial | `PARTIAL` | Complete plan context strip |

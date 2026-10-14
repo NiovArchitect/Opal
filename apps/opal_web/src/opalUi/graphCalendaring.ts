@@ -67,8 +67,11 @@ export const PERSON_TEMPORAL_SEED: Record<string, PersonTemporalContext> = {
   maya: {
     person: "Maya",
     upcomingPlans: [
-      { id: "seed-maya-graph-coast", title: "Coast walk", whenLabel: "Tonight" },
-      { id: "seed-jordan-market", title: "Farmers market", whenLabel: "Saturday · 10" },
+      {
+        id: "seed-maya-graph-coast",
+        title: "Farmers market + coast",
+        whenLabel: "Saturday · after 10",
+      },
     ],
     nextOpenLoop: {
       id: "loop-maya-coast",
@@ -89,7 +92,16 @@ export const PERSON_TEMPORAL_SEED: Record<string, PersonTemporalContext> = {
   jordan: {
     person: "Jordan",
     upcomingPlans: [
-      { id: "seed-jordan-market", title: "Farmers market + coast", whenLabel: "Saturday · 10" },
+      {
+        id: "seed-jordan-market",
+        title: "Oceanside market (with Maya)",
+        whenLabel: "Saturday · 10",
+      },
+      {
+        id: "seed-chanelle-juniper",
+        title: "Juniper crew dinner",
+        whenLabel: "Saturday · 7:30",
+      },
     ],
     nextOpenLoop: {
       id: "loop-jordan-skate",

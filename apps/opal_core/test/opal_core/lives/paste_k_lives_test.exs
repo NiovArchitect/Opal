@@ -281,6 +281,38 @@ defmodule OpalCore.Lives.PasteKLivesTest do
              Lives.send_sticker(room.id, viewer, "fire", "idem-prov-sticker")
   end
 
+  test "audience + location precision + end + own visible active", %{host: host} do
+    assert {:ok, %{live_room: room, venue: venue}} =
+             Lives.go_live(host, "fixture_audience_#{System.unique_integer([:positive])}",
+               allow_fixture: true,
+               name: "Harbor Cafe",
+               address: "San Diego",
+               types: ["cafe", "establishment"],
+               audience: "friends",
+               location_precision: "area"
+             )
+
+    assert get_in(room.metadata, ["audience"]) == "friends"
+    assert get_in(room.metadata, ["location_precision"]) == "area"
+    assert get_in(room.metadata, ["consequence"]) =~ "Friends can see you're at San Diego"
+
+    assert {:ok, active, _} = Lives.active_live_for(host)
+    assert active.id == room.id
+
+    visible = Lives.list_visible_lives(host)
+    assert Enum.any?(visible, fn row -> get_in(row, ["live_room", "id"]) == room.id end)
+    assert Enum.any?(visible, fn row -> get_in(row, ["live_room", "place_label"]) == "San Diego" end)
+
+    assert {:ok, ended} = Lives.end_live(room.id, host)
+    assert ended.status == "ended"
+    assert {:error, :not_found} = Lives.active_live_for(host)
+    refute Enum.any?(Lives.list_visible_lives(host), fn row ->
+             get_in(row, ["live_room", "id"]) == room.id
+           end)
+
+    _ = venue
+  end
+
   test "venue search returns places_unavailable when Places key missing" do
     prior = System.get_env("GOOGLE_PLACES_API_KEY")
     System.delete_env("GOOGLE_PLACES_API_KEY")

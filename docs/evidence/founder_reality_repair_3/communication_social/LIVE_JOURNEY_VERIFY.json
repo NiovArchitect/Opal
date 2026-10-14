@@ -1,0 +1,247 @@
+{
+  "caps": {
+    "LIVE_OTHER_USER_FIXTURE": {
+      "ok": true,
+      "detail": {
+        "audience": "friends",
+        "host_user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+        "live_room_id": "d589c349-10a3-4c7c-83b0-0c43f2f2424d",
+        "location_precision": "venue",
+        "place_id": "test-maya-spot-san-diego",
+        "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+        "venue_name": "Maya Spot",
+        "viewer_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "visible_count_walk_a": 1,
+        "visible_to_walk_a": true
+      }
+    },
+    "LIVE_NORMAL_USER_START": {
+      "ok": true,
+      "live_id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+      "consequence": "Friends can see you're at TEST VENUE · Maya Spot.",
+      "audience": "friends",
+      "location_precision": "venue"
+    },
+    "LIVE_ACTIVE_STATE": {
+      "ok": true,
+      "mine_active": true,
+      "status": "live"
+    },
+    "LIVE_END": {
+      "ok": true,
+      "status": "ended",
+      "show_status": "ended",
+      "mine_active": false
+    }
+  },
+  "api": {
+    "walk_a": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+    "walk_b": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+    "seed_other_user": {
+      "status": 0,
+      "tail": [
+        "SELECT TRUE FROM \"safety_blocks\" AS s0 WHERE (((s0.\"status\" = 'active') AND (s0.\"blocker_user_id\" = $1)) AND (s0.\"blocked_user_id\" = $2)) LIMIT 1 [\"b599fcd7-7a97-4736-8221-86e0a6d8dc7a\", \"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]",
+        "\u001b[90m↳ OpalCore.SocialFlow.RelationshipGraph.safety_blocked?/2, at: lib/opal_core/social_flow/relationship_graph.ex:174\u001b[0m",
+        "[debug] QUERY OK source=\"relationship_establishments\" db=1.7ms idle=94.0ms",
+        "SELECT TRUE FROM \"relationship_establishments\" AS r0 WHERE (((r0.\"status\" = 'active') AND $1 = ANY(r0.\"participant_ids\")) AND $2 = ANY(r0.\"participant_ids\")) LIMIT 1 [\"b599fcd7-7a97-4736-8221-86e0a6d8dc7a\", \"47aa5856-8c56-4b18-a4d4-6a9b456516a8\"]",
+        "\u001b[90m↳ OpalCore.SocialFlow.RelationshipGraph.establishment_active?/2, at: lib/opal_core/social_flow/relationship_graph.ex:183\u001b[0m",
+        "WROTE /tmp/opal_other_user_live.json",
+        "{\"audience\":\"friends\",\"host_user_id\":\"b599fcd7-7a97-4736-8221-86e0a6d8dc7a\",\"live_room_id\":\"d589c349-10a3-4c7c-83b0-0c43f2f2424d\",\"location_precision\":\"venue\",\"place_id\":\"test-maya-spot-san-diego\",\"venue_id\":\"b42c5a31-ac6a-4cab-90db-425f020f2d55\",\"venue_name\":\"Maya Spot\",\"viewer_user_id\":\"47aa5856-8c56-4b18-a4d4-6a9b456516a8\",\"visible_count_walk_a\":1,\"visible_to_walk_a\":true}",
+        ""
+      ]
+    },
+    "other_user_fixture": {
+      "audience": "friends",
+      "host_user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      "live_room_id": "d589c349-10a3-4c7c-83b0-0c43f2f2424d",
+      "location_precision": "venue",
+      "place_id": "test-maya-spot-san-diego",
+      "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+      "venue_name": "Maya Spot",
+      "viewer_user_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+      "visible_count_walk_a": 1,
+      "visible_to_walk_a": true
+    },
+    "visible_for_a": {
+      "status": 200,
+      "count": 1,
+      "hosts": [
+        {
+          "id": "d589c349-10a3-4c7c-83b0-0c43f2f2424d",
+          "host": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+          "place": "TEST VENUE · Maya Spot",
+          "mine": false
+        }
+      ]
+    },
+    "start": {
+      "status": 201,
+      "body": {
+        "audience": "friends",
+        "consequence": "Friends can see you're at TEST VENUE · Maya Spot.",
+        "live_room": {
+          "ended_at": null,
+          "heat_contribution_frozen": false,
+          "host_account_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+          "location_required": true,
+          "placed": true,
+          "presence_report_count": 0,
+          "started_at": "2026-10-14T05:10:57.603973Z",
+          "status": "live",
+          "title": "Normal user Live proof",
+          "venue": {
+            "display_name": "TEST VENUE · Maya Spot",
+            "formatted_address": "San Diego",
+            "heat_frozen": false,
+            "id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+            "name": "Maya Spot",
+            "place_id": "test-maya-spot-san-diego",
+            "quarantine": true,
+            "status": "quarantine",
+            "stickers_enabled": false,
+            "test_only": true,
+            "test_venue_badge": "TEST VENUE"
+          },
+          "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55"
+        },
+        "location_precision": "venue",
+        "test_only": true,
+        "test_venue_badge": "TEST VENUE",
+        "trade": "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
+        "venue": {
+          "display_name": "TEST VENUE · Maya Spot",
+          "formatted_address": "San Diego",
+          "heat_frozen": false,
+          "id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+          "name": "Maya Spot",
+          "place_id": "test-maya-spot-san-diego",
+          "quarantine": true,
+          "status": "quarantine",
+          "stickers_enabled": false,
+          "test_only": true,
+          "test_venue_badge": "TEST VENUE"
+        }
+      }
+    },
+    "mine": {
+      "active": true,
+      "live_room": {
+        "ended_at": null,
+        "heat_contribution_frozen": false,
+        "host_account_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+        "location_required": true,
+        "placed": true,
+        "presence_report_count": 0,
+        "started_at": "2026-10-14T05:10:57.603973Z",
+        "status": "live",
+        "title": "Normal user Live proof",
+        "venue": {
+          "display_name": "TEST VENUE · Maya Spot",
+          "formatted_address": "San Diego",
+          "heat_frozen": false,
+          "id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+          "name": "Maya Spot",
+          "place_id": "test-maya-spot-san-diego",
+          "quarantine": true,
+          "status": "quarantine",
+          "stickers_enabled": false,
+          "test_only": true,
+          "test_venue_badge": "TEST VENUE"
+        },
+        "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55"
+      }
+    },
+    "show": {
+      "live_room": {
+        "ended_at": null,
+        "heat_contribution_frozen": false,
+        "host_account_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+        "location_required": true,
+        "placed": true,
+        "presence_report_count": 0,
+        "started_at": "2026-10-14T05:10:57.603973Z",
+        "status": "live",
+        "title": "Normal user Live proof",
+        "venue": {
+          "display_name": "TEST VENUE · Maya Spot",
+          "formatted_address": "San Diego",
+          "heat_frozen": false,
+          "id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+          "name": "Maya Spot",
+          "place_id": "test-maya-spot-san-diego",
+          "quarantine": true,
+          "status": "quarantine",
+          "stickers_enabled": false,
+          "test_only": true,
+          "test_venue_badge": "TEST VENUE"
+        },
+        "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55"
+      }
+    },
+    "end": {
+      "status": 200,
+      "body": {
+        "live_room": {
+          "ended_at": "2026-10-14T05:11:19.233851Z",
+          "heat_contribution_frozen": false,
+          "host_account_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+          "id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+          "location_required": true,
+          "placed": true,
+          "presence_report_count": 0,
+          "started_at": "2026-10-14T05:10:57.603973Z",
+          "status": "ended",
+          "title": "Normal user Live proof",
+          "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55"
+        }
+      }
+    },
+    "mine_after_end": {
+      "active": false,
+      "live_room": null
+    },
+    "show_after_end": {
+      "live_room": {
+        "ended_at": "2026-10-14T05:11:19.233851Z",
+        "heat_contribution_frozen": false,
+        "host_account_id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+        "id": "6f9dfb37-207a-40b8-99f8-c31732542b07",
+        "location_required": true,
+        "placed": true,
+        "presence_report_count": 0,
+        "started_at": "2026-10-14T05:10:57.603973Z",
+        "status": "ended",
+        "title": "Normal user Live proof",
+        "venue": {
+          "display_name": "TEST VENUE · Maya Spot",
+          "formatted_address": "San Diego",
+          "heat_frozen": false,
+          "id": "b42c5a31-ac6a-4cab-90db-425f020f2d55",
+          "name": "Maya Spot",
+          "place_id": "test-maya-spot-san-diego",
+          "quarantine": true,
+          "status": "quarantine",
+          "stickers_enabled": false,
+          "test_only": true,
+          "test_venue_badge": "TEST VENUE"
+        },
+        "venue_id": "b42c5a31-ac6a-4cab-90db-425f020f2d55"
+      }
+    }
+  },
+  "browser": {
+    "you_go_live": true,
+    "active_pill": true,
+    "home_has_live_room": true
+  },
+  "story_gap": {
+    "add_story_visible": false,
+    "note": "Story create is adjacent; Live prioritized. Broken story paths noted only."
+  },
+  "overall": "GREEN",
+  "PASS2_UNLOCKED": "NO",
+  "FREEZE": "HOLD"
+}

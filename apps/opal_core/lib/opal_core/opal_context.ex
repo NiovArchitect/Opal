@@ -30,16 +30,26 @@ defmodule OpalCore.OpalContext do
   @default_timezone "America/Los_Angeles"
   @max_message 2000
   @history_limit 10
-  @context_keys ~w(user taste temporal social message relationships trust_tier financial group_tastes conversation_history preferences)a
+  @fit_activity_cap 6
+  @fit_activities ~w(walk run yoga strength outdoors rest)
+  @fit_goals ~w(move_more recover stay_active)
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial fit group_tastes conversation_history preferences)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
 
+  Optional `client_context` may carry a share-gated `:fit` / `"fit"` slice from
+  the requesting user's device. Fit is never inferred (Pass 2 locked) and is
+  never a disclosure grant to other people — use-permission only.
+
   Returns `{:ok, context_map}` with keys including RU-2 `:trust_tier`,
-  RU-3 `:financial`, D-1 `:group_tastes`, and short-term
+  RU-3 `:financial`, gated `:fit`, D-1 `:group_tastes`, and short-term
   `:conversation_history` (last 10 Opal Center messages, role+body only).
   """
-  def assemble(user_id, message_text) when is_binary(user_id) and is_binary(message_text) do
+  def assemble(user_id, message_text, client_context \\ nil)
+
+  def assemble(user_id, message_text, client_context)
+      when is_binary(user_id) and is_binary(message_text) do
     case Repo.get(User, user_id) do
       nil ->
         {:error, :user_not_found}
@@ -62,6 +72,8 @@ defmodule OpalCore.OpalContext do
           trust_tier: tier,
           # RU-3 — trusted+ and profile present only; no notes
           financial: gated_financial(user_id, tier),
+          # Explicit Fit prefs from requesting user only (share-gated FE)
+          fit: gated_fit(client_context),
           # D-1 — top groups (plan_count >= 3), aggregate only
           group_tastes: GroupTastes.context_slices_for(user_id),
           # Short-term memory — prior Opal Center turns (not the inbound text)
@@ -73,7 +85,7 @@ defmodule OpalCore.OpalContext do
     end
   end
 
-  def assemble(_, _), do: {:error, :invalid}
+  def assemble(_, _, _), do: {:error, :invalid}
 
   def context_keys, do: @context_keys
 
@@ -174,6 +186,46 @@ defmodule OpalCore.OpalContext do
       nil
     end
   end
+
+  # Requesting-user Fit only. Explicit client_context — no Pass 2 inference.
+  defp gated_fit(client_context) when is_map(client_context) do
+    raw = Map.get(client_context, "fit") || Map.get(client_context, :fit)
+
+    case normalize_fit_slice(raw) do
+      %{activities: [], goal: nil} -> nil
+      slice when is_map(slice) -> slice
+      _ -> nil
+    end
+  end
+
+  defp gated_fit(_), do: nil
+
+  defp normalize_fit_slice(raw) when is_map(raw) do
+    activities =
+      (Map.get(raw, "activities") || Map.get(raw, :activities) || [])
+      |> List.wrap()
+      |> Enum.map(&normalize_fit_token/1)
+      |> Enum.filter(&(&1 in @fit_activities))
+      |> Enum.uniq()
+      |> Enum.take(@fit_activity_cap)
+
+    goal =
+      case normalize_fit_token(Map.get(raw, "goal") || Map.get(raw, :goal)) do
+        g when g in @fit_goals -> g
+        _ -> nil
+      end
+
+    %{activities: activities, goal: goal}
+  end
+
+  defp normalize_fit_slice(_), do: nil
+
+  defp normalize_fit_token(v) when is_binary(v) do
+    v |> String.trim() |> String.downcase()
+  end
+
+  defp normalize_fit_token(v) when is_atom(v), do: normalize_fit_token(Atom.to_string(v))
+  defp normalize_fit_token(_), do: nil
 
   defp recent_plans(user_id) do
     from(sp in SharedPlan,

@@ -163,6 +163,40 @@ describe("OpalCenterChat", () => {
     expect(container.textContent).toContain(sampleOpalReply);
   });
 
+  it("attaches share-gated Fit client_context on send (no Fit diagnostics in UI)", async () => {
+    const { saveFitPreferences } = await import("./fitPreferences");
+    saveFitPreferences("u-fit", {
+      activities: ["walk", "outdoors"],
+      wellnessGoal: "move_more",
+      shareActivityPrefs: true,
+    });
+
+    await act(async () => {
+      root.render(<OpalCenterChat onBack={() => undefined} userId="u-fit" />);
+    });
+    await flush();
+
+    const input = container.querySelector(
+      '[data-testid="opal-center-chat-input"]',
+    ) as HTMLTextAreaElement;
+    await act(async () => {
+      setTextarea(input, "suggest an activity");
+    });
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-testid="opal-center-chat-send"]')?.click();
+    });
+    await flush();
+    await flush();
+
+    expect(postOpalMessage).toHaveBeenCalledWith("suggest an activity", undefined, {
+      clientContext: {
+        fit: { activities: ["walk", "outdoors"], goal: "move_more" },
+      },
+    });
+    expect(container.textContent).not.toMatch(/FIT_/i);
+    expect(container.textContent).not.toMatch(/LLM_/i);
+  });
+
   it("chip tap sends that text", async () => {
     await act(async () => {
       root.render(<OpalCenterChat onBack={() => undefined} />);
@@ -178,6 +212,38 @@ describe("OpalCenterChat", () => {
     await flush();
 
     expect(postOpalMessage).toHaveBeenCalledWith("Plan something", undefined);
+  });
+
+  it("Repair #4: initialMessage auto-sends once after hydrate (composer handoff)", async () => {
+    postOpalMessage.mockResolvedValue({
+      messages: [
+        msg({ id: "m1", role: "user", body: "Make plans for me and Maya Saturday" }),
+        msg({
+          id: "m2",
+          role: "opal",
+          body: "Want me to set up plans with Maya for Saturday?",
+          metadata: { intent: { intent: "plan_create" } },
+        }),
+      ],
+    });
+    await act(async () => {
+      root.render(
+        <OpalCenterChat
+          onBack={() => undefined}
+          initialMessage="Make plans for me and Maya Saturday"
+        />,
+      );
+    });
+    await flush();
+    await flush();
+    await flush();
+
+    expect(postOpalMessage).toHaveBeenCalledTimes(1);
+    expect(postOpalMessage).toHaveBeenCalledWith(
+      "Make plans for me and Maya Saturday",
+      undefined,
+    );
+    expect(container.textContent).toContain("Make plans for me and Maya Saturday");
   });
 
   it("shows load error with retry", async () => {
