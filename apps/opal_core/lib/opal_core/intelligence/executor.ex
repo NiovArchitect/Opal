@@ -154,7 +154,7 @@ defmodule OpalCore.Intelligence.Executor do
         {:ok, _result} ->
           msg =
             if decision == "reject",
-              do: "Noted — I won't lock that in.",
+              do: "Noted. I won't lock that in.",
               else: "Confirmed."
 
           notify(conversation_id, d.id, msg, Map.put(base, "confirmed", true))
@@ -218,7 +218,7 @@ defmodule OpalCore.Intelligence.Executor do
             notify(
               conversation_id,
               d.id,
-              "#{speaker} can't make it — noted for \"#{title}\". The plan itself is unchanged.",
+              "#{speaker} can't make it. Noted for \"#{title}\". The plan itself is unchanged.",
               Map.merge(base, %{"kind" => "withdrawal", "plan_id" => plan.id})
             )
 
@@ -234,7 +234,7 @@ defmodule OpalCore.Intelligence.Executor do
       proposal_phrasing?(body) or (whole_plan_phrasing?(body) and not organizer?(plan, user_id)) ->
         lead_in =
           if whole_plan_phrasing?(body),
-            do: "Only the organizer can cancel the whole plan outright — ",
+            do: "Only the organizer can cancel the whole plan outright. ",
             else: ""
 
         case OpalCore.SocialFlow.propose_cancel_revision(%{
@@ -246,7 +246,7 @@ defmodule OpalCore.Intelligence.Executor do
             notify(
               conversation_id,
               d.id,
-              "#{lead_in}I've proposed cancelling \"#{title}\" — the group needs to weigh in before anything changes.",
+              "#{lead_in}I've proposed cancelling \"#{title}\". The group needs to weigh in before anything changes.",
               Map.merge(base, %{"kind" => "propose_cancel", "plan_id" => plan.id})
             )
 
@@ -310,7 +310,7 @@ defmodule OpalCore.Intelligence.Executor do
         notify(
           conversation_id,
           d.id,
-          "Just to be clear — do you want to cancel just for yourself, or cancel the whole plan for everyone?",
+          "Just to be clear: do you want to cancel just for yourself, or cancel the whole plan for everyone?",
           Map.merge(base, %{"kind" => "clarify", "no_state_change" => true})
         )
     end

@@ -608,7 +608,7 @@ defmodule OpalCore.OpalResponse do
 
     cond do
       is_binary(name) and name != "" and is_binary(loc) and loc != "" ->
-        "Looking into #{name} in #{loc} — I'll share what I can verify."
+        "Looking into #{name} in #{loc}. I'll share what I can verify."
 
       is_binary(name) and name != "" ->
         "Which city is #{name} in?"
