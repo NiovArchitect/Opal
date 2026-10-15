@@ -327,6 +327,7 @@ defmodule OpalCore.Contracts do
                no_plan
                commitment_candidate
                revision_candidate
+               revision_confirmation
                memory_candidate
                no_memory
                relevance_ranking

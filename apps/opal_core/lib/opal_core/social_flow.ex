@@ -61,6 +61,22 @@ defmodule OpalCore.SocialFlow do
         result_type == "revision_candidate" ->
           handle_revision_candidate(conversation_id, requester_user_id, candidate, trace_id)
 
+        # Repair #11 — chat-text confirmation ("I confirm") of a pending revision.
+        # Never a free-floating reply: always routes to confirm_pending_revision/1.
+        result_type == "revision_confirmation" ->
+          decision =
+            case (candidate || %{})["decision"] || output["decision"] do
+              d when d in ["accept", "reject"] -> d
+              _ -> "accept"
+            end
+
+          confirm_pending_revision(%{
+            conversation_id: conversation_id,
+            user_id: requester_user_id,
+            decision: decision,
+            trace_id: trace_id
+          })
+
         result_type == "plan_candidate" ->
           insert_plan_proposal(%{
             conversation_id: conversation_id,
