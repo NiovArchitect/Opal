@@ -29,6 +29,15 @@ type Props = {
   peerLabel: string;
 };
 
+type PlanSummary = {
+  id: string;
+  title: string;
+  status: string;
+  timeLabel: string | null;
+  leadUserId: string | null;
+  createdAt: string;
+};
+
 function fromServer(m: ServerMessage): ChatMessage {
   return {
     id: m.id,
@@ -63,8 +72,14 @@ export function ConversationScreen({
   const sfRepoRef = useRef(new SocialFlowRepository(driverRef.current));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [signals, setSignals] = useState<SocialFlowSignal[]>([]);
+  const [plans, setPlans] = useState<PlanSummary[]>([]);
   const [text, setText] = useState("");
   const [status, setStatus] = useState("connecting");
+  // Repair #11 B3: inline schedule editor shown only to the plan lead/organizer.
+  const [editingSchedule, setEditingSchedule] = useState<{
+    mode: "time" | "date";
+    value: string;
+  } | null>(null);
   const channelRef = useRef<Channel | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
@@ -154,6 +169,20 @@ export function ConversationScreen({
           timeLabel: plan.time_label == null ? null : String(plan.time_label),
           createdAt: String(plan.created_at || new Date().toISOString()),
         });
+        // Repair #11 B3: keep the lead/organizer identity for the plan card.
+        const summary: PlanSummary = {
+          id: String(plan.id),
+          title: String(plan.title || "Plan"),
+          status: String(plan.status),
+          timeLabel: plan.time_label == null ? null : String(plan.time_label),
+          leadUserId:
+            plan.lead_user_id == null ? null : String(plan.lead_user_id),
+          createdAt: String(plan.created_at || new Date().toISOString()),
+        };
+        setPlans((prev) => [
+          ...prev.filter((x) => x.id !== summary.id),
+          summary,
+        ]);
       }
       if (p.reminder) {
         const rem = p.reminder;
@@ -245,44 +274,162 @@ export function ConversationScreen({
     };
   }, [conversationId, deviceId, refresh, userId]);
 
-  const onSend = async () => {
-    const body = text.trim();
-    if (!body || !channelRef.current) return;
-    const clientMessageId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const pending: ChatMessage = {
-      id: clientMessageId,
-      clientMessageId,
-      conversationId,
-      senderUserId: userId,
-      body,
-      serverSeq: null,
-      deliveryState: "locally_pending",
-      createdAt: new Date().toISOString(),
-    };
-    repoRef.current.upsert(pending);
-    repoRef.current.enqueueOutbound({
-      id: `q-${clientMessageId}`,
-      conversationId,
-      clientMessageId,
-      body,
-    });
-    refresh();
-    setText("");
-
-    try {
-      const { message } = await sendText(channelRef.current, {
+  const sendChatText = useCallback(
+    async (body: string) => {
+      const channel = channelRef.current;
+      const trimmed = body.trim();
+      if (!trimmed || !channel) return;
+      const clientMessageId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const pending: ChatMessage = {
+        id: clientMessageId,
         clientMessageId,
         conversationId,
-        body,
-        traceId: `trace-mobile-${Date.now()}`,
+        senderUserId: userId,
+        body: trimmed,
+        serverSeq: null,
+        deliveryState: "locally_pending",
+        createdAt: new Date().toISOString(),
+      };
+      repoRef.current.upsert(pending);
+      repoRef.current.enqueueOutbound({
+        id: `q-${clientMessageId}`,
+        conversationId,
+        clientMessageId,
+        body: trimmed,
       });
-      repoRef.current.reconcileFromServer(fromServer(message));
       refresh();
-    } catch {
-      repoRef.current.setDeliveryState(clientMessageId, "failed");
-      refresh();
-    }
+
+      try {
+        const { message } = await sendText(channel, {
+          clientMessageId,
+          conversationId,
+          body: trimmed,
+          traceId: `trace-mobile-${Date.now()}`,
+        });
+        repoRef.current.reconcileFromServer(fromServer(message));
+        refresh();
+      } catch {
+        repoRef.current.setDeliveryState(clientMessageId, "failed");
+        refresh();
+      }
+    },
+    [conversationId, refresh, userId],
+  );
+
+  const onSend = async () => {
+    const body = text.trim();
+    if (!body) return;
+    setText("");
+    await sendChatText(body);
   };
+
+  /**
+   * Repair #11 task 1 — wire signal-card actions to the conversation channel.
+   * Revision cards: "accept_revision" -> accept, "keep_current" -> reject,
+   * pushed as social_flow:respond_revision with {revision_id, decision, trace_id}.
+   * Option cards: "accept_option:<id>" -> social_flow:respond_option.
+   * ok -> re-render; error/timeout -> status (never a silent no-op).
+   */
+  const onSignalAction = useCallback(
+    (actionId: string, signal: SocialFlowSignal) => {
+      const channel = channelRef.current;
+      if (!channel) return;
+      const traceId = `trace-mobile-sf-${Date.now()}`;
+
+      if (
+        (actionId === "accept_revision" || actionId === "keep_current") &&
+        signal.revisionId
+      ) {
+        const decision = actionId === "accept_revision" ? "accept" : "reject";
+        channel
+          .push("social_flow:respond_revision", {
+            revision_id: signal.revisionId,
+            decision,
+            trace_id: traceId,
+          })
+          .receive("ok", () => {
+            refresh();
+          })
+          .receive("error", () => setStatus("revision_failed"))
+          .receive("timeout", () => setStatus("revision_failed"));
+        return;
+      }
+
+      if (actionId.startsWith("accept_option:")) {
+        const optionId = actionId.slice("accept_option:".length);
+        channel
+          .push("social_flow:respond_option", {
+            option_id: optionId,
+            response: "accept",
+            trace_id: traceId,
+          })
+          .receive("ok", () => {
+            refresh();
+          })
+          .receive("error", () => setStatus("option_failed"))
+          .receive("timeout", () => setStatus("option_failed"));
+      }
+    },
+    [refresh],
+  );
+
+  const activePlan = useMemo(() => {
+    const actives = plans.filter((p) =>
+      ["agreed", "changed", "tentative"].includes(p.status),
+    );
+    actives.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return actives[0] ?? null;
+  }, [plans]);
+
+  const isPlanLead = activePlan != null && activePlan.leadUserId === userId;
+
+  /**
+   * Repair #11 B3 — lead-only direct schedule edit. Pushes
+   * social_flow:change_plan_time / social_flow:change_plan_date; the server
+   * half (handle_in in conversation_channel.ex) is owned by the channel
+   * agent — until it lands, error/timeout surfaces honestly in status and the
+   * UI never claims a change that did not happen.
+   */
+  const submitScheduleChange = useCallback(() => {
+    const channel = channelRef.current;
+    if (!channel || !activePlan || !editingSchedule) return;
+    const value = editingSchedule.value.trim();
+    if (!value) return;
+    const event =
+      editingSchedule.mode === "time"
+        ? "social_flow:change_plan_time"
+        : "social_flow:change_plan_date";
+    const payload =
+      editingSchedule.mode === "time"
+        ? {
+            plan_id: activePlan.id,
+            new_time_label: value,
+            trace_id: `trace-mobile-sched-${Date.now()}`,
+          }
+        : {
+            plan_id: activePlan.id,
+            new_date_label: value,
+            trace_id: `trace-mobile-sched-${Date.now()}`,
+          };
+    channel
+      .push(event, payload)
+      .receive("ok", () => {
+        setEditingSchedule(null);
+        refresh();
+      })
+      .receive("error", () => setStatus("change_failed"))
+      .receive("timeout", () => setStatus("change_failed"));
+  }, [activePlan, editingSchedule, refresh]);
+
+  /**
+   * Repair #11 B3 — non-lead change-request path: a plain chat message, which
+   * routes through the normal conversation -> routing-agent path where the
+   * lead can approve. Never a dead control.
+   */
+  const requestPlanChange = useCallback(() => {
+    if (!activePlan) return;
+    void sendChatText(`Could we change the time for "${activePlan.title}"?`);
+  }, [activePlan, sendChatText]);
 
   const data = useMemo(() => messages, [messages]);
 
@@ -309,8 +456,94 @@ export function ConversationScreen({
           </View>
         )}
       />
+      {activePlan ? (
+        <View style={styles.planCard} testID="sf-plan-card">
+          <Text style={styles.planTitle}>{activePlan.title}</Text>
+          {activePlan.timeLabel ? (
+            <Text style={styles.planMeta}>{activePlan.timeLabel}</Text>
+          ) : null}
+          <Text style={styles.planMeta}>
+            {activePlan.leadUserId === userId
+              ? "Organized by you"
+              : `Organized by ${peerLabel}`}
+          </Text>
+          {isPlanLead ? (
+            editingSchedule ? (
+              <View style={styles.planActions}>
+                <TextInput
+                  style={styles.planInput}
+                  value={editingSchedule.value}
+                  onChangeText={(value) =>
+                    setEditingSchedule({ ...editingSchedule, value })
+                  }
+                  placeholder={
+                    editingSchedule.mode === "time"
+                      ? "New time, e.g. Friday at 7:30 PM"
+                      : "New date, e.g. Saturday"
+                  }
+                  placeholderTextColor="#6B7280"
+                />
+                <Pressable
+                  style={styles.smallButton}
+                  onPress={submitScheduleChange}
+                  accessibilityRole="button"
+                  accessibilityLabel="Save schedule change"
+                >
+                  <Text style={styles.smallButtonText}>Save</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.smallButtonSecondary}
+                  onPress={() => setEditingSchedule(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cancel schedule change"
+                >
+                  <Text style={styles.smallButtonTextSecondary}>Cancel</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.planActions}>
+                <Pressable
+                  style={styles.smallButton}
+                  onPress={() =>
+                    setEditingSchedule({ mode: "time", value: "" })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="Change plan time"
+                >
+                  <Text style={styles.smallButtonText}>Change time</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.smallButton}
+                  onPress={() =>
+                    setEditingSchedule({ mode: "date", value: "" })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="Change plan date"
+                >
+                  <Text style={styles.smallButtonText}>Change date</Text>
+                </Pressable>
+              </View>
+            )
+          ) : (
+            <View style={styles.planActions}>
+              <Pressable
+                style={styles.smallButton}
+                onPress={requestPlanChange}
+                accessibilityRole="button"
+                accessibilityLabel="Request a schedule change from the organizer"
+              >
+                <Text style={styles.smallButtonText}>Request change</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      ) : null}
       {signals.slice(0, 3).map((signal) => (
-        <SocialFlowSignalCard key={signal.id} signal={signal} />
+        <SocialFlowSignalCard
+          key={signal.id}
+          signal={signal}
+          onAction={onSignalAction}
+        />
       ))}
       <View style={styles.composer}>
         <TextInput
@@ -354,4 +587,45 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   sendText: { color: "#fff", fontWeight: "600" },
+  planCard: {
+    marginVertical: 6,
+    marginHorizontal: 12,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#C5CDD8",
+    backgroundColor: "#F4F7FB",
+  },
+  planTitle: { color: "#0F172A", fontSize: 16, fontWeight: "600", marginBottom: 2 },
+  planMeta: { color: "#475569", fontSize: 13, marginTop: 2 },
+  planActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
+  planInput: {
+    flex: 1,
+    minWidth: 160,
+    borderWidth: 1,
+    borderColor: "#94A3B8",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: "#0F172A",
+    backgroundColor: "#FFFFFF",
+  },
+  smallButton: {
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#1D4ED8",
+    justifyContent: "center",
+  },
+  smallButtonText: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+  smallButtonSecondary: {
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#E2E8F0",
+    justifyContent: "center",
+  },
+  smallButtonTextSecondary: { color: "#0F172A", fontSize: 14, fontWeight: "600" },
 });
