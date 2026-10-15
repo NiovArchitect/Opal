@@ -49,7 +49,11 @@ defmodule OpalCore.SocialFlow.AlignmentAuthority do
     affirmatives = Enum.uniq(message_affirmatives ++ private_affirmatives)
 
     plan? = plan_evidence?(messages)
-    canceled? = cancel_evidence?(messages)
+    # Repair #11: the @cancel_patterns message-body regex is retired as a plan-state
+    # signal. Cancel/withdrawal now flows through SocialFlow revision authorities
+    # and JourneyAuthority.cant_make_it — a regex must never block Set elevation
+    # or influence any plan decision here.
+    canceled? = false
     blocked? = any_pair_blocked?(member_ids)
     private_inv? = PrivateParticipation.invalidates_set?(conversation_id, proposal_key)
 
@@ -107,12 +111,6 @@ defmodule OpalCore.SocialFlow.AlignmentAuthority do
     ~r/\bget together\b/i
   ]
 
-  @cancel_patterns [
-    ~r/\bnot this time\b/i,
-    ~r/\bcancel\b/i,
-    ~r/\bnot happening\b/i
-  ]
-
   defp affirmative_message_user_ids(messages, min_seq) do
     messages
     |> Enum.filter(fn m ->
@@ -126,10 +124,6 @@ defmodule OpalCore.SocialFlow.AlignmentAuthority do
 
   defp plan_evidence?(messages) do
     Enum.any?(messages, fn m -> match_any?(m.body || "", @plan_patterns) end)
-  end
-
-  defp cancel_evidence?(messages) do
-    Enum.any?(messages, fn m -> match_any?(m.body || "", @cancel_patterns) end)
   end
 
   defp match_any?(body, patterns), do: Enum.any?(patterns, &Regex.match?(&1, body))
