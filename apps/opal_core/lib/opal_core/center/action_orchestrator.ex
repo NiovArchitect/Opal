@@ -47,6 +47,17 @@ defmodule OpalCore.Center.ActionOrchestrator do
       PlanContextPatch.extract_from_text(raw_text, prior)
       |> Map.merge(SurprisePlanning.detect(raw_text))
 
+    # Repair #11 — the :named_venue intent is the classifier's exact-entity
+    # verdict. Force exact mode from intent entities so the intent and the
+    # exact-entity routing agree even when the patch regex missed the turn
+    # (e.g. no locality yet). Never discovery.
+    patch =
+      if (intent[:intent] || intent["intent"]) == :named_venue do
+        apply_named_venue_intent(patch, intent)
+      else
+        patch
+      end
+
     from_text = extract_from_text(raw_text)
     enriched = enrich_entities(raw_text, entities, ctx, from_text)
 
@@ -380,6 +391,43 @@ defmodule OpalCore.Center.ActionOrchestrator do
     end
   end
 
+  # Repair #11 — apply the :named_venue intent's exact-entity verdict to the patch.
+  # Mirrors the patch's own exact_venue branch (new exact-venue task isolates from
+  # prior cuisine / discovery / plan continuity) so intent and routing agree.
+  defp apply_named_venue_intent(patch, intent) do
+    entities = intent[:entities] || intent["entities"] || %{}
+    name = entities[:venue_name] || entities["venue_name"]
+    locality = entities[:locality] || entities["locality"]
+
+    if is_binary(name) and String.trim(name) != "" do
+      name = String.trim(name)
+
+      patch
+      |> Map.merge(%{
+        "search_mode" => "exact_entity",
+        "requested_venue_name" => name,
+        "requested_venue_locality" =>
+          if(is_binary(locality) and String.trim(locality) != "", do: String.trim(locality), else: "__clear__"),
+        "venue" => name,
+        "category" => patch["category"] || "restaurant",
+        "wants_restaurant" => true,
+        "intent_scope" => "exact_venue",
+        "discovery_request" => "__clear__",
+        "cuisine" => "__clear__",
+        "plan_id" => "__clear__"
+      })
+      |> then(fn p ->
+        if is_binary(locality) and String.trim(locality) != "" do
+          Map.put(p, "destination", String.trim(locality))
+        else
+          p
+        end
+      end)
+    else
+      patch
+    end
+  end
+
   defp skip_provider_search_this_turn?(intent, patch, raw_text)
        when is_map(intent) and is_map(patch) and is_binary(raw_text) do
     atom = intent[:intent] || intent["intent"]
@@ -403,6 +451,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
       atom in [:coordinate, :chat, :remember, :recall, :check_status] ->
         true
+
+      # Named-venue turns must reach the provider path in exact mode — never parked.
+      atom == :named_venue ->
+        false
 
       # Birthday / plan create without restaurant cues must not restart a sticky venue job.
       atom in [:plan_create, :plan_modify, :recommend] ->

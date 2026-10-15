@@ -376,8 +376,13 @@ defmodule OpalCore.Center.ProviderAction do
     requested = job.request["requested_venue_name"]
     locality = job.request["requested_venue_locality"] || dest
 
+    # Repair #11 — exact-entity jobs must resolve via Gateway.resolve_exact_entity,
+    # never discovery. The named-venue intent is an exact-entity request; returning
+    # discovery substitutes for it is forbidden.
+    exact_query? = mode == "exact_entity" and is_binary(requested) and String.trim(requested) != ""
+
     query =
-      if mode == "exact_entity" and is_binary(requested) and String.trim(requested) != "" do
+      if exact_query? do
         %{
           "search_mode" => "exact_entity",
           "requested_venue_name" => String.trim(requested),
@@ -396,7 +401,14 @@ defmodule OpalCore.Center.ProviderAction do
         }
       end
 
-    case Gateway.search_places(query) do
+    result =
+      if exact_query? do
+        Gateway.resolve_exact_entity(query)
+      else
+        Gateway.search_places(query)
+      end
+
+    case result do
       {:ok, result} ->
         cands =
           (result["candidates"] || [])

@@ -16,6 +16,7 @@ defmodule OpalCore.OpalIntent do
     :plan_modify,
     :remember,
     :recall,
+    :named_venue,
     :recommend,
     :coordinate,
     :check_status,
@@ -62,6 +63,9 @@ defmodule OpalCore.OpalIntent do
                   # Recall before remember so "what do you remember about X" is not stored.
                   &try_recall/2,
                   &try_remember/2,
+                  # Named venue before recommend: "Find Nighthawk in Coronado" is an
+                  # exact-entity request, never category discovery.
+                  &try_named_venue/2,
                   &try_recommend/2,
                   &try_coordinate/2,
                   &try_check_status/2
@@ -469,8 +473,86 @@ defmodule OpalCore.OpalIntent do
       match_phrase?(norm, ~r/\bwhat\s+have\s+i\s+told\s+you\b/i)
   end
 
-  defp try_recommend(norm, names) do
-    hit? =
+  # Repair #11 — named-venue search intent: "Find <Name> in <Place>" is an
+  # exact-entity request, never category discovery. Reuses the Center's exact
+  # venue extraction so the classifier and the exact-entity routing agree on
+  # what counts as named-venue vs discovery.
+  defp try_named_venue(norm, _names) do
+    original = norm.original
+
+    case OpalCore.Center.PlanContextPatch.extract_exact_venue(original) do
+      %{name: name, locality: locality} ->
+        named_venue_hit(name, locality)
+
+      nil ->
+        case named_find_no_locality(original) do
+          %{name: name} -> named_venue_hit(name, nil)
+          nil -> nil
+        end
+    end
+  end
+
+  defp named_venue_hit(name, locality) do
+    entities = %{venue_name: name, search_mode: "exact_entity"}
+
+    entities =
+      if is_binary(locality) and String.trim(locality) != "" do
+        Map.put(entities, :locality, String.trim(locality))
+      else
+        entities
+      end
+
+    conf = if Map.has_key?(entities, :locality), do: :high, else: :medium
+
+    %{intent: :named_venue, confidence: conf, entities: entities}
+  end
+
+  # "Find Nighthawk" without a locality — still a named entity; the Center asks
+  # for the city rather than guessing or substituting discovery results.
+  # Proper-noun phrase only: generic/cuisine words never become a venue name.
+  defp named_find_no_locality(original) when is_binary(original) do
+    case Regex.run(
+           ~r/\b(?:find|look\s+up|search\s+for)\s+(?:the\s+)?([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*)*{0,3})/,
+           original
+         ) do
+      [_, name] ->
+        name =
+          name
+          |> String.trim()
+          |> String.replace(~r/\s+restaurants?$/i, "")
+          |> String.trim()
+
+        if named_venue_name_ok?(name), do: %{name: name}, else: nil
+
+      _ ->
+        nil
+    end
+  end
+
+  defp named_find_no_locality(_), do: nil
+
+  defp named_venue_name_ok?(name) when is_binary(name) and name != "" do
+    down = String.downcase(name)
+
+    generic? =
+      down in ~w(something somewhere anywhere place places restaurant restaurants dinner lunch brunch food cafe coffee bar) or
+        Regex.match?(~r/^(?:a|an|some|the)\b/i, name)
+
+    cuisine? = down in named_venue_cuisine_words()
+
+    not generic? and not cuisine?
+  end
+
+  defp named_venue_name_ok?(_), do: false
+
+  # Generic cuisine tokens — person-agnostic, no venue hardcodes.
+  defp named_venue_cuisine_words do
+    ~w(mediterranean italian mexican japanese sushi thai chinese indian korean french greek
+       lebanese turkish vietnamese american seafood steak pizza vegan vegetarian ethiopian
+       peruvian spanish portuguese caribbean)
+  end
+
+  defp try_recommend(norm, names) do    hit? =
       match_phrase?(norm, ~r/\b(suggest|recommend)\b/i) or
         match_phrase?(norm, ~r/\bwhere\s+should\b/i) or
         match_phrase?(norm, ~r/\bwhat\s+should\b/i) or
