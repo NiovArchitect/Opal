@@ -714,11 +714,15 @@ html[data-theme="light"] .gsh-story-avatar {
   color: var(--opal-luminous-white);
   border-radius: 0;
 }
-/* Graph Detail — full mobile column; dock z=70 stays above; stage-centered (FW-D4) */
+/* Graph Detail — full mobile column; dock z=70 stays above; stage-centered (FW-D4).
+   Opaque + z above chat chrome (header/call controls) so opening from Chat
+   cannot leave Chanelle header artifacts bleeding through (Repair #8). */
 .app .ogsn-graph-detail.social-dest-373-385 {
   background: #050816;
   padding: 15px 12px var(--dock-clearance);
-  z-index: 56;
+  z-index: 68;
+  isolation: isolate;
+  box-shadow: 0 0 0 100vmax #050816;
 }
 .app .search-dest-373-261 .search-brand-row,
 .app .activity-dest-473-141 .social-dest-brand {

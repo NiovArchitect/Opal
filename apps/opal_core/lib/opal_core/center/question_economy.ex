@@ -38,8 +38,10 @@ defmodule OpalCore.Center.QuestionEconomy do
         soft = Map.put(c, "when_resolved", resolved)
         {:proceed, soft}
 
-      # Soft dinner time if restaurant intent and no clock.
-      restaurant?(c) and is_nil(c["when_time"]) and is_binary(c["when"]) ->
+      # Soft dinner time ONLY when no clock exists and user did not state one.
+      # Explicit current instruction outranks soft defaults (Repair #8).
+      restaurant?(c) and is_nil(c["when_time"]) and is_binary(c["when"]) and
+          c["when_time_explicit"] != true ->
         soft = Map.put(c, "when_time", "19:30")
         {:soft_assume, soft, "I'll aim for around 7:30 unless you want later."}
 

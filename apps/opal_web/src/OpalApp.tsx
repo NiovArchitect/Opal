@@ -3106,7 +3106,12 @@ export function OpalApp() {
               humanSpeaker: true as const,
               senderDisplayName: null as string | null,
             }));
-      setThreads((prev) => ({ ...prev, [id]: threadLocal }));
+      // Preserve in-session human sends across reopen — seed fixture must not wipe them.
+      const extras = collectSeedLocalExtras(id, threadLocal, seedRow?.name || seedDisplayName);
+      setThreads((prev) => ({
+        ...prev,
+        [id]: extras.length ? [...threadLocal, ...extras] : threadLocal,
+      }));
       setChats((prev) => {
         const seedPlan = seedRow?.planConsequence;
         const withSeedPlan = {
@@ -3162,7 +3167,25 @@ export function OpalApp() {
           (r) => r.name === seedDisplayName || r.id === id,
         );
       const local = mapSeedTurns(seedTurns);
-      setThreads((prev) => ({ ...prev, [id]: local }));
+      const seedPlan = seedRow?.planConsequence;
+      const withSeedPlan = {
+        signalLabel: seedPlan?.label || undefined,
+        planProjection: seedPlan
+          ? {
+              place: seedPlan.label,
+              when_label: seedRow?.when || undefined,
+              lineage_id: seedPlan.planId || seedRow?.id,
+              temporal_state: seedPlan.state === "ready" ? "upcoming" : undefined,
+              upcoming_ready: seedPlan.state === "ready",
+            }
+          : undefined,
+      };
+      // Preserve in-session human sends; remapping must not erase them.
+      const extras = collectSeedLocalExtras(id, local, seedRow?.name || seedDisplayName);
+      setThreads((prev) => ({
+        ...prev,
+        [id]: extras.length ? [...local, ...extras] : local,
+      }));
       setChats((prev) =>
         prev.map((c) =>
           c.id === id
@@ -3176,6 +3199,7 @@ export function OpalApp() {
                     : seedRow
                       ? [{ id: `seed-peer-${seedRow.id}`, display_name: seedRow.name }]
                       : c.peers,
+                ...withSeedPlan,
               }
             : c,
         ),
@@ -3205,8 +3229,56 @@ export function OpalApp() {
             displayName: matchedSeedRow.name,
           });
           if (forced.length) {
-            setThreads((prev) => ({ ...prev, [id]: mapSeedTurns(forced) }));
+            const mapped = mapSeedTurns(forced);
+            const extras = collectSeedLocalExtras(id, mapped, matchedSeedRow.name);
+            setThreads((prev) => ({
+              ...prev,
+              [id]: extras.length ? [...mapped, ...extras] : mapped,
+            }));
           }
+        } else if (seedPainted) {
+          // Re-open with same paint — still merge any sessionStorage extras under this id.
+          const extras = collectSeedLocalExtras(
+            id,
+            existing,
+            matchedSeedRow?.name || seedDisplayName,
+          );
+          if (extras.length) {
+            const have = new Set(existing.map((m) => m.id));
+            const missing = extras.filter((m) => !have.has(m.id));
+            if (missing.length) {
+              setThreads((prev) => ({
+                ...prev,
+                [id]: [...(prev[id] || existing), ...missing],
+              }));
+            }
+          }
+        }
+        // Ensure Next Together / plan-strip chrome survives reopen.
+        const seedRowForPlan =
+          matchedSeedRow ||
+          FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+            (r) => r.name === seedDisplayName || r.id === id,
+          );
+        const seedPlan = seedRowForPlan?.planConsequence;
+        if (seedPlan) {
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === id
+                ? {
+                    ...c,
+                    signalLabel: seedPlan.label || c.signalLabel,
+                    planProjection: {
+                      place: seedPlan.label,
+                      when_label: seedRowForPlan?.when || undefined,
+                      lineage_id: seedPlan.planId || seedRowForPlan?.id,
+                      temporal_state: seedPlan.state === "ready" ? "upcoming" : undefined,
+                      upcoming_ready: seedPlan.state === "ready",
+                    },
+                  }
+                : c,
+            ),
+          );
         }
         setActiveChatId(id);
         setLoadError(null);
@@ -3486,6 +3558,85 @@ export function OpalApp() {
     }
   };
 
+  /** Persist in-session human sends for founder-seed chats across reopen / id remap. */
+  const seedLocalStorageKey = (name: string | null | undefined) => {
+    const n = (name || "").trim().toLowerCase();
+    return n ? `opal.seed.local_msgs.v1:${n}` : null;
+  };
+  const rememberSeedLocalMessage = (
+    chatId: string,
+    name: string | null | undefined,
+    msg: Message,
+  ) => {
+    if (!isFounderSeedEnabled()) return;
+    if (msg.from !== "me" || msg.humanSpeaker === false) return;
+    const mid = typeof msg.id === "string" ? msg.id : "";
+    if (!(mid.startsWith("local-") || mid.startsWith("failed-") || msg.from === "me")) return;
+    const key = seedLocalStorageKey(name);
+    if (!key) return;
+    try {
+      const prev = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
+      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
+      sessionStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      /* ignore quota */
+    }
+    // Mirror under chatId for same-session reopen before name resolve.
+    try {
+      const idKey = `opal.seed.local_msgs.id.v1:${chatId}`;
+      const prev = JSON.parse(sessionStorage.getItem(idKey) || "[]") as Message[];
+      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
+      sessionStorage.setItem(idKey, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  };
+  const collectSeedLocalExtras = (
+    chatId: string,
+    seedLocal: Message[],
+    name: string | null | undefined,
+  ): Message[] => {
+    const seedIds = new Set(seedLocal.map((m) => m.id));
+    const isExtra = (m: Message) => {
+      const mid = typeof m.id === "string" ? m.id : "";
+      if (seedIds.has(mid)) return false;
+      if (mid.startsWith("local-") || mid.startsWith("failed-")) return true;
+      return m.from === "me" && m.humanSpeaker !== false;
+    };
+    const fromState: Message[] = [];
+    const seen = new Set<string>();
+    const push = (m: Message) => {
+      if (!isExtra(m) || seen.has(m.id)) return;
+      seen.add(m.id);
+      fromState.push(m);
+    };
+    for (const m of threadsRef.current[chatId] || []) push(m);
+    // Cross-id: same person may have been opened under a prior remapped UUID.
+    const want = (name || "").trim().toLowerCase();
+    if (want) {
+      for (const [tid, list] of Object.entries(threadsRef.current)) {
+        if (tid === chatId) continue;
+        const chatName = (chats.find((c) => c.id === tid)?.name || "").trim().toLowerCase();
+        if (chatName === want || tid.toLowerCase().includes(want)) {
+          for (const m of list || []) push(m);
+        }
+      }
+    }
+    try {
+      for (const key of [
+        seedLocalStorageKey(name),
+        `opal.seed.local_msgs.id.v1:${chatId}`,
+      ]) {
+        if (!key) continue;
+        const stored = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
+        for (const m of stored) push(m);
+      }
+    } catch {
+      /* ignore */
+    }
+    return fromState;
+  };
+
   const applySeedThreadIntelligence = (chatId: string, userBody: string) => {
     if (!isFounderSeedEnabled()) return;
     const liveForName = chats.map((c) => ({
@@ -3670,6 +3821,11 @@ export function OpalApp() {
             prev.map((c) =>
               c.id === activeChatId ? { ...c, preview: body, time: "Now" } : c,
             ),
+          );
+          rememberSeedLocalMessage(
+            activeChatId,
+            founderSeedDisplayNameForId(activeChatId) || activeChat?.name,
+            msg,
           );
           setDraft("");
           applySeedThreadIntelligence(chatIdForIntel, body);
@@ -4902,15 +5058,32 @@ export function OpalApp() {
         </div>
         <ConnectionHint state={connectionState} />
 
-        {/* Next / Last together — relationship continuity; not founder-seed gated. */}
+        {/* Next / Last together — opens authoritative plan (same as next-plan-strip). */}
         {!headerPlan && activeChat.signalLabel ? (
           <button
             type="button"
             className="next-together-strip"
             data-testid="next-together"
+            data-destination="graph-detail"
             onClick={() => {
+              const planId =
+                chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+                alignment?.lineage_id ||
+                (activeChat as { planConsequence?: { planId?: string } }).planConsequence?.planId ||
+                (/juniper|crew/i.test(
+                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                )
+                  ? "seed-chanelle-juniper"
+                  : null);
+              if (planId) {
+                openGraphDetail(String(planId), "chats");
+                return;
+              }
+              // Fallback: scroll to in-thread plan filament when no lineage yet.
               document
-                .querySelector('[data-testid="opal-moment"], .opal-resolution, .thread')
+                .querySelector(
+                  '[data-testid="next-plan-strip"], [data-testid="opal-moment"], .opal-resolution, .thread',
+                )
                 ?.scrollIntoView({ behavior: "smooth", block: "center" });
             }}
           >
@@ -5156,7 +5329,12 @@ export function OpalApp() {
               onClick={() => {
                 const planId =
                   chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
-                  alignment?.lineage_id;
+                  alignment?.lineage_id ||
+                  (/juniper|crew/i.test(
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                  )
+                    ? "seed-chanelle-juniper"
+                    : null);
                 if (planId) {
                   openGraphDetail(planId, "chats");
                   return;

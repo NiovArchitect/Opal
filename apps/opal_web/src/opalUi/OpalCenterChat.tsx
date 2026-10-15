@@ -236,6 +236,7 @@ export function OpalCenterChat({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [sending, setSending] = useState(false);
+  const [queuedCount, setQueuedCount] = useState(0);
   const [showTimeKey, setShowTimeKey] = useState<string | null>(null);
   const [voiceMode, setVoiceModeState] = useState(() => getVoiceMode(voiceUserId));
   const [listening, setListening] = useState(false);
@@ -258,6 +259,11 @@ export function OpalCenterChat({
   const initialSentRef = useRef(false);
   const initialMessageRef = useRef(initialMessage);
   initialMessageRef.current = initialMessage;
+  // Per-conversation ordered send queue — composer stays responsive while prior POSTs flush.
+  const sendQueueRef = useRef<Array<{ body: string; optimisticKey: string }>>([]);
+  const flushingRef = useRef(false);
+  const lastEnqueuedBodyRef = useRef<string | null>(null);
+  const lastEnqueueAtRef = useRef(0);
 
   // Holistic loop: when founder-seed thread shows plan-ask → Yes, surface a plan
   // even if the backend replied with generic chat (no plan_confirm metadata).
@@ -411,26 +417,134 @@ export function OpalCenterChat({
     onPlanCreatedRef.current?.(plan);
   }, []);
 
+  const flushSendQueue = useCallback(async () => {
+    if (flushingRef.current) return;
+    const next = sendQueueRef.current[0];
+    if (!next) {
+      setSending(false);
+      setQueuedCount(0);
+      return;
+    }
+    flushingRef.current = true;
+    setSending(true);
+    setQueuedCount(Math.max(0, sendQueueRef.current.length - 1));
+
+    const { body, optimisticKey } = next;
+    stopSpeaking();
+    stopListening();
+    setListening(false);
+    // Invalidate in-flight history fetches so a late GET cannot wipe local rows.
+    loadGen.current += 1;
+    setLoading(false);
+    setLoadError(false);
+
+    try {
+      const fit = readFitSliceForOpal(userId);
+      const res = fit
+        ? await postOpalMessage(body, bearer, { clientContext: { fit } })
+        : await postOpalMessage(body, bearer);
+      const rawMsgs = Array.isArray(res.messages) ? res.messages : [];
+      const serverMsgs = rawMsgs.map(fromServer);
+      setMessages((prev) => {
+        const without = prev.filter((m) => m.key !== optimisticKey);
+        return [...without, ...serverMsgs];
+      });
+      let surfaced = false;
+      for (const m of rawMsgs) {
+        if (m.role !== "opal") continue;
+        const fromMeta = planFromOpalMetadata(
+          (m.metadata || null) as Record<string, unknown> | null,
+        );
+        if (fromMeta) {
+          emitPlanIfAny(fromMeta);
+          surfaced = true;
+          lastUserPlanAsk.current = null;
+          break;
+        }
+      }
+      if (!surfaced && isFounderSeedEnabled() && lastUserPlanAsk.current) {
+        const local = planFromLocalConfirm({
+          priorUserText: lastUserPlanAsk.current,
+          affirmText: body,
+        });
+        if (local) {
+          emitPlanIfAny(local);
+          lastUserPlanAsk.current = null;
+        }
+      }
+    } catch {
+      if (isFounderSeedEnabled() && lastUserPlanAsk.current) {
+        const local = planFromLocalConfirm({
+          priorUserText: lastUserPlanAsk.current,
+          affirmText: body,
+        });
+        if (local) {
+          emitPlanIfAny(local);
+          lastUserPlanAsk.current = null;
+          setMessages((prev) => {
+            const without = prev.filter((m) => m.key !== optimisticKey);
+            return [
+              ...without,
+              { key: optimisticKey, role: "user", body, status: "sent" },
+              {
+                key: `local-opal-${Date.now()}`,
+                role: "opal",
+                body: `Done. ${local.title}${local.when ? ` · ${local.when}` : ""} is on your Graph.`,
+                status: "sent",
+              },
+            ];
+          });
+          sendQueueRef.current.shift();
+          flushingRef.current = false;
+          requestAnimationFrame(() => inputRef.current?.focus());
+          void flushSendQueue();
+          return;
+        }
+      }
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.key === optimisticKey);
+        if (!exists) {
+          return [...prev, { key: optimisticKey, role: "user", body, status: "failed" }];
+        }
+        return prev.map((m) =>
+          m.key === optimisticKey ? { ...m, status: "failed" } : m,
+        );
+      });
+    }
+
+    sendQueueRef.current.shift();
+    flushingRef.current = false;
+    requestAnimationFrame(() => inputRef.current?.focus());
+    if (sendQueueRef.current.length === 0) {
+      setSending(false);
+      setQueuedCount(0);
+    } else {
+      setQueuedCount(sendQueueRef.current.length);
+      void flushSendQueue();
+    }
+  }, [bearer, userId, emitPlanIfAny]);
+
   const sendBody = useCallback(
     async (raw: string, retryKey?: string) => {
       const body = raw.trim().slice(0, MAX_BODY);
-      if (!body || sending) return;
+      if (!body) return;
 
-      stopSpeaking();
-      stopListening();
-      setListening(false);
-
-      // Invalidate in-flight history fetches so a late GET cannot wipe local rows.
-      loadGen.current += 1;
-      setLoading(false);
-      setLoadError(false);
+      // Soft-debounce identical rapid doubles — never silently drop a new turn.
+      const now = Date.now();
+      if (
+        !retryKey &&
+        lastEnqueuedBodyRef.current === body &&
+        now - lastEnqueueAtRef.current < 400
+      ) {
+        return;
+      }
 
       const looksLikePlanAsk =
         /\b(plan|dinner|brunch|lunch|hike|coffee|drinks)\b/i.test(body) &&
         /\b(with|for|[A-Z][a-z]+)\b/.test(body);
       if (looksLikePlanAsk) lastUserPlanAsk.current = body;
 
-      const optimisticKey = retryKey || `local-${Date.now()}`;
+      const optimisticKey = retryKey || `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       if (!retryKey) {
         setDraft("");
         setMessages((prev) => [
@@ -441,105 +555,24 @@ export function OpalCenterChat({
         setMessages((prev) =>
           prev.map((m) => (m.key === retryKey ? { ...m, status: "pending" } : m)),
         );
+        // Retry: re-queue only this key if not already queued.
+        if (!sendQueueRef.current.some((q) => q.optimisticKey === optimisticKey)) {
+          sendQueueRef.current.push({ body, optimisticKey });
+        }
+        lastEnqueuedBodyRef.current = body;
+        lastEnqueueAtRef.current = now;
+        setQueuedCount(Math.max(0, sendQueueRef.current.length - (flushingRef.current ? 1 : 0)));
+        void flushSendQueue();
+        return;
       }
 
-      setSending(true);
-      try {
-        // Share-gated Fit → private Center context only (never disclose to others).
-        const fit = readFitSliceForOpal(userId);
-        const res = fit
-          ? await postOpalMessage(body, bearer, { clientContext: { fit } })
-          : await postOpalMessage(body, bearer);
-        const rawMsgs = Array.isArray(res.messages) ? res.messages : [];
-        const serverMsgs = rawMsgs.map(fromServer);
-        setMessages((prev) => {
-          const without = prev.filter((m) => m.key !== optimisticKey);
-          return [...without, ...serverMsgs];
-        });
-        let surfaced = false;
-        for (const m of rawMsgs) {
-          if (m.role !== "opal") continue;
-          const fromMeta = planFromOpalMetadata(
-            (m.metadata || null) as Record<string, unknown> | null,
-          );
-          if (fromMeta) {
-            emitPlanIfAny(fromMeta);
-            surfaced = true;
-            lastUserPlanAsk.current = null;
-            break;
-          }
-        }
-        // Founder-seed local confirm when backend has no peer / no plan_id yet.
-        if (!surfaced && isFounderSeedEnabled()) {
-          const priorAsk =
-            lastUserPlanAsk.current ||
-            [...messages]
-              .reverse()
-              .find(
-                (m) =>
-                  m.role === "user" &&
-                  /\b(plan|dinner|brunch|lunch)\b/i.test(m.body || ""),
-              )?.body ||
-            null;
-          if (priorAsk) {
-            const local = planFromLocalConfirm({
-              priorUserText: priorAsk,
-              affirmText: body,
-            });
-            if (local) {
-              emitPlanIfAny(local);
-              lastUserPlanAsk.current = null;
-              surfaced = true;
-            }
-          }
-        }
-      } catch {
-        // Founder-seed: still surface a local plan on Yes so the holistic loop works offline.
-        if (isFounderSeedEnabled() && lastUserPlanAsk.current) {
-          const local = planFromLocalConfirm({
-            priorUserText: lastUserPlanAsk.current,
-            affirmText: body,
-          });
-          if (local) {
-            emitPlanIfAny(local);
-            lastUserPlanAsk.current = null;
-            setMessages((prev) => {
-              const without = prev.filter((m) => m.key !== optimisticKey);
-              return [
-                ...without,
-                { key: optimisticKey, role: "user", body, status: "sent" },
-                {
-                  key: `local-opal-${Date.now()}`,
-                  role: "opal",
-                  body: `Done. ${local.title}${local.when ? ` · ${local.when}` : ""} is on your Graph.`,
-                  status: "sent",
-                },
-              ];
-            });
-            setSending(false);
-            requestAnimationFrame(() => inputRef.current?.focus());
-            return;
-          }
-        }
-        setDraft((d) => (d.trim() ? d : body));
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.key === optimisticKey);
-          if (!exists) {
-            return [
-              ...prev,
-              { key: optimisticKey, role: "user", body, status: "failed" },
-            ];
-          }
-          return prev.map((m) =>
-            m.key === optimisticKey ? { ...m, status: "failed" } : m,
-          );
-        });
-      } finally {
-        setSending(false);
-        requestAnimationFrame(() => inputRef.current?.focus());
-      }
+      sendQueueRef.current.push({ body, optimisticKey });
+      lastEnqueuedBodyRef.current = body;
+      lastEnqueueAtRef.current = now;
+      setQueuedCount(Math.max(0, sendQueueRef.current.length - (flushingRef.current ? 1 : 0)));
+      void flushSendQueue();
     },
-    [bearer, sending, emitPlanIfAny],
+    [flushSendQueue],
   );
 
   // One intelligence path: rest composer / chips hand utterance here once hydrated.
@@ -931,8 +964,10 @@ export function OpalCenterChat({
           type="submit"
           className="opal-center-send"
           data-testid="opal-center-chat-send"
-          aria-label="Send"
-          disabled={!hasText || sending}
+          aria-label={queuedCount > 0 ? `Send (${queuedCount} queued)` : "Send"}
+          data-queued={queuedCount > 0 ? String(queuedCount) : undefined}
+          data-sending={sending ? "true" : undefined}
+          disabled={!hasText}
         >
           <SendArrow />
         </button>

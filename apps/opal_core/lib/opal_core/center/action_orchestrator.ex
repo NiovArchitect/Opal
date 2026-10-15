@@ -105,12 +105,24 @@ defmodule OpalCore.Center.ActionOrchestrator do
           still_need_trip?(raw_text) ->
             handle_still_need(user_id, intent, planning)
 
-          patch["cancel_venue_keep_plan"] == true ->
+          patch["cancel_venue_keep_plan"] == true or
+              patch["conversation_act"] == "cancel_venue_keep_plan" ->
             handle_cancel_venue(user_id, intent, planning)
+
+          # Challenge / meta questions must never restart venue lookup.
+          is_binary(patch["conversation_act"]) and
+              patch["conversation_act"] in [
+                "challenge_prior_action",
+                "challenge_question",
+                "correct_venue",
+                "correct_slot"
+              ] ->
+            handle_conversation_challenge(user_id, intent, planning, prior, patch, raw_text)
 
           (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
               is_binary(planning["plan_id"]) and
-              not Regex.match?(@select_option_re, raw_text) ->
+              not Regex.match?(@select_option_re, raw_text) and
+              patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"] ->
             handle_when_correction(user_id, intent, planning, prior, patch)
 
           true ->
@@ -448,6 +460,117 @@ defmodule OpalCore.Center.ActionOrchestrator do
        }}
     end
   end
+
+  # Repair #8: "Why did you change the time…" / "That's not the place…"
+  # Acknowledge mismatch, restore explicit constraints, never restart lookup.
+  defp handle_conversation_challenge(user_id, intent, planning, prior, patch, raw_text) do
+    act = patch["conversation_act"]
+    explicit = planning["explicit_constraints"] || prior["explicit_constraints"] || %{}
+
+    # Prefer constraints stated in this challenge utterance, then stored explicit, then prior.
+    restore_time =
+      Map.get(patch, "when_time") || explicit["when_time"] ||
+        extract_stated_time_from_challenge(raw_text)
+
+    restore_when = Map.get(patch, "when") || explicit["when"] || planning["when"] || prior["when"]
+
+    current_time = planning["when_time"] || prior["when_time"]
+    mismatched_time? =
+      is_binary(restore_time) and is_binary(current_time) and
+        normalize_ampm(restore_time) != normalize_ampm(current_time)
+
+    {planning2, restored?} =
+      if act in ["challenge_prior_action", "correct_slot"] and is_binary(restore_time) do
+        next =
+          planning
+          |> Map.put("when_time", restore_time)
+          |> Map.put("when_time_explicit", true)
+          |> Map.put("when", restore_when)
+          |> Map.put(
+            "explicit_constraints",
+            Map.merge(explicit, %{"when_time" => restore_time, "when" => restore_when})
+          )
+
+        {:ok, next} = PlanningContext.put(user_id, next)
+
+        if is_binary(next["plan_id"]) do
+          case Repo.get(SharedPlan, next["plan_id"]) do
+            %SharedPlan{} = plan ->
+              time_label = compose_time_label(restore_when, restore_time, next)
+
+              alignment =
+                (plan.alignment || %{})
+                |> Map.put("when", restore_when)
+                |> Map.put("when_time", restore_time)
+
+              _ =
+                plan
+                |> SharedPlan.changeset(%{
+                  "time_label" => time_label,
+                  "alignment" => alignment
+                })
+                |> Repo.update()
+
+            _ ->
+              :ok
+          end
+        end
+
+        {next, true}
+      else
+        {planning, false}
+      end
+
+    override =
+      cond do
+        act == "challenge_question" ->
+          venue = planning2["venue"] || planning2["requested_venue_name"]
+
+          if is_binary(venue) do
+            "You're right to ask — #{venue} in #{planning2["destination"] || "that area"} is already set, so I shouldn't have asked where you're headed."
+          else
+            "You're right to call that out — I shouldn't ask for something we already know."
+          end
+
+        restored? and mismatched_time? ->
+          "You're right — you said #{normalize_ampm(restore_time)}. I had #{normalize_ampm(current_time)} from an earlier soft default. Restored to #{normalize_ampm(restore_time)}. Same plan otherwise."
+
+        restored? ->
+          "Keeping #{normalize_ampm(restore_time)} as you specified. Same plan, same place."
+
+        act == "correct_venue" ->
+          "Understood — I'll drop that venue and keep the rest of the plan. What place did you mean?"
+
+        true ->
+          "I may have drifted from what you said. Tell me the exact day and time you want and I'll lock those in."
+      end
+
+    meta = %{
+      "conversation_act" => act,
+      "planning_context" => planning2,
+      "plan_id" => planning2["plan_id"],
+      "PLAN_ID_STABLE" => true,
+      "restored_explicit" => restored?,
+      "slots_changed" => if(restored?, do: ["when_time"], else: []),
+      "before_context" => %{"when_time" => current_time, "when" => prior["when"]},
+      "after_context" => %{
+        "when_time" => planning2["when_time"],
+        "when" => planning2["when"]
+      },
+      "no_provider_restart" => true
+    }
+
+    {put_entities(intent, string_to_atom_map(planning2)), override, meta}
+  end
+
+  defp extract_stated_time_from_challenge(raw) when is_binary(raw) do
+    case Regex.run(~r/\bi\s+said\s+(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\b/i, raw) do
+      [_, t] -> normalize_ampm(t)
+      _ -> nil
+    end
+  end
+
+  defp extract_stated_time_from_challenge(_), do: nil
 
   defp stringify_map(map) when is_map(map) do
     Map.new(map, fn

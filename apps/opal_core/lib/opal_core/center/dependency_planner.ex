@@ -28,8 +28,11 @@ defmodule OpalCore.Center.DependencyPlanner do
 
     who? = present?(c["who"] || c["primary_person"] || c["participants"])
     when? = present?(c["when"] || c["when_resolved"])
-    dest? = present?(c["destination"])
     venue? = present?(c["venue"]) and c["venue_cancelled"] != true
+    # Exact venue / selected place already answers "where are you headed?"
+    dest? =
+      present?(c["destination"]) or venue? or
+        present?(c["requested_venue_name"]) or present?(c["requested_venue_locality"])
     surprise? = c["visibility_mode"] == "surprise" or c["surprise"] == true
     travel? = present?(c["travel"]) or c["travel_attached"] == true
     lodging? = present?(c["lodging"]) or c["lodging_attached"] == true
@@ -95,19 +98,27 @@ defmodule OpalCore.Center.DependencyPlanner do
   """
   def next_after(planning, just_resolved \\ nil) when is_map(planning) do
     status = build(planning)
+    c = stringify(planning)
 
-    # After venue selection, prefer travel only when travel is applicable.
+    # After venue selection, never ask destination — venue/locality already known.
+    # Prefer travel only when travel is applicable; otherwise no destination prompt.
     ordered =
       case just_resolved do
         "venue" ->
           if travel_applicable?(planning) do
             Enum.drop_while(@trip_order, fn {id, _} -> id != "travel" end)
           else
-            Enum.reject(@trip_order, fn {id, _} -> id in ["travel", "lodging"] end)
+            Enum.reject(@trip_order, fn {id, _} ->
+              id in ["travel", "lodging", "destination", "people"]
+            end)
           end
 
         _ ->
-          @trip_order
+          if present?(c["venue"]) or present?(c["requested_venue_name"]) do
+            Enum.reject(@trip_order, fn {id, _} -> id == "destination" end)
+          else
+            @trip_order
+          end
       end
 
     Enum.find_value(ordered, fn {id, prompt} ->

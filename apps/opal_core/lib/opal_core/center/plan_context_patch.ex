@@ -18,6 +18,8 @@ defmodule OpalCore.Center.PlanContextPatch do
     intent_scope initial_planning_visibility who_unresolved
     search_mode requested_venue_name requested_venue_locality
     opportunity_fingerprint discovery_request
+    when_time_explicit when_explicit conversation_act
+    explicit_constraints
   )
 
   @doc """
@@ -100,29 +102,38 @@ defmodule OpalCore.Center.PlanContextPatch do
     down = String.downcase(raw)
     patch = %{}
 
+    # Conversation act is turn-local. Clear sticky prior acts unless this utterance is one.
     patch =
-      cond do
-        Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+sunday\b/i, raw) ->
-          Map.put(patch, "when", "Sunday")
+      case classify_conversation_act(raw) do
+        nil -> Map.put(patch, "conversation_act", "__clear__")
+        act -> Map.put(patch, "conversation_act", act)
+      end
 
-        Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+saturday\b/i, raw) ->
-          Map.put(patch, "when", "Saturday")
+    # Explicit day + clock from the utterance (outranks inherited defaults).
+    # "for Sunday, 10 a.m." / "Sunday at 10am" / "Make it 8 PM" / "actually 7:30"
+    patch =
+      case extract_explicit_temporal(raw) do
+        %{when: w, when_time: t} ->
+          patch
+          |> Map.put("when", w)
+          |> Map.put("when_time", t)
+          |> Map.put("when_explicit", true)
+          |> Map.put("when_time_explicit", true)
+          |> put_explicit_constraints(%{"when" => w, "when_time" => t})
 
-        Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+friday\b/i, raw) ->
-          Map.put(patch, "when", "Friday")
+        %{when: w} ->
+          patch
+          |> Map.put("when", w)
+          |> Map.put("when_explicit", true)
+          |> put_explicit_constraints(%{"when" => w})
 
-        # Clock-time corrections: "change the time to 8 PM", "make it 8pm", "actually 7:30"
-        m =
-            Regex.run(
-              ~r/\b(?:actually|make it|change (?:the )?(?:time|it|that) to)\s+(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\b/i,
-              raw
-            ) ->
-          Map.put(patch, "when_time", normalize_clock(Enum.at(m, 1)))
+        %{when_time: t} ->
+          patch
+          |> Map.put("when_time", t)
+          |> Map.put("when_time_explicit", true)
+          |> put_explicit_constraints(%{"when_time" => t})
 
-        m = Regex.run(~r/\b(?:actually|make it)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b/i, raw) ->
-          Map.put(patch, "when_time", normalize_clock(Enum.at(m, 1)))
-
-        true ->
+        _ ->
           patch
       end
 
@@ -203,12 +214,28 @@ defmodule OpalCore.Center.PlanContextPatch do
 
     # Birthday / celebration opportunity — owner-private by default; new scope.
     # Possessive "River's birthday" sets WHO from the utterance (person-agnostic).
+    # Never inherit prior venue/city/search from an unrelated dinner task.
     patch =
       if birthday_intent?(raw) do
         base = %{
           "intent_scope" => "birthday",
           "initial_planning_visibility" => "owner_private",
-          "category" => "celebration"
+          "category" => "celebration",
+          "wants_restaurant" => false,
+          "venue" => "__clear__",
+          "requested_venue_name" => "__clear__",
+          "requested_venue_locality" => "__clear__",
+          "destination" => "__clear__",
+          "cuisine" => "__clear__",
+          "search_mode" => "__clear__",
+          "discovery_request" => "__clear__",
+          "plan_id" => "__clear__",
+          "when" => "__clear__",
+          "when_resolved" => "__clear__",
+          "when_time" => "__clear__",
+          "when_time_explicit" => "__clear__",
+          "when_explicit" => "__clear__",
+          "explicit_constraints" => "__clear__"
         }
 
         who_from_text =
@@ -217,28 +244,56 @@ defmodule OpalCore.Center.PlanContextPatch do
             _ -> nil
           end
 
-        if is_binary(who_from_text) do
-          Map.merge(base, %{"who" => who_from_text, "primary_person" => who_from_text})
-        else
-          base
-        end
-        |> then(&Map.merge(patch, &1))
+        base =
+          if is_binary(who_from_text) do
+            Map.merge(base, %{
+              "who" => who_from_text,
+              "primary_person" => who_from_text,
+              "participants" => who_from_text
+            })
+          else
+            base
+          end
+
+        base =
+          cond do
+            Regex.match?(~r/\bin three days\b/i, raw) -> Map.put(base, "when", "in three days")
+            Regex.match?(~r/\bthis weekend\b/i, raw) -> Map.put(base, "when", "this weekend")
+            true -> base
+          end
+
+        Map.merge(patch, base)
       else
         patch
       end
 
     # Scope change clears prior trip/venue so Mexico City etc. cannot ride into Friday dinner.
+    # Also drop prior explicit_constraints — a new task must not inherit Sunday/10 AM from Henry.
     # (No Map.get/2 in guards — illegal in Elixir.)
     patch =
       case {Map.get(prior, "intent_scope"), Map.get(patch, "intent_scope")} do
         {old, new} when is_binary(old) and is_binary(new) and old != new ->
-          Map.merge(patch, %{
+          cleared = %{
             "destination" => "__clear__",
             "venue" => "__clear__",
             "plan_id" => "__clear__",
             "wants_restaurant" => "__clear__",
-            "when_time" => "__clear__"
-          })
+            "when_time" => "__clear__",
+            "when_time_explicit" => "__clear__",
+            "when_explicit" => "__clear__",
+            "explicit_constraints" => "__clear__"
+          }
+
+          # Preserve constraints freshly extracted from THIS utterance.
+          cleared =
+            if Map.get(patch, "when_explicit") == true or Map.get(patch, "when_time_explicit") == true do
+              cleared
+              |> Map.drop(["when_time", "when_time_explicit", "when_explicit", "explicit_constraints"])
+            else
+              cleared
+            end
+
+          Map.merge(patch, cleared)
 
         {nil, new} when is_binary(new) ->
           prior_plan_id = Map.get(prior, "plan_id")
@@ -248,7 +303,8 @@ defmodule OpalCore.Center.PlanContextPatch do
             Map.merge(patch, %{
               "destination" => "__clear__",
               "venue" => "__clear__",
-              "plan_id" => "__clear__"
+              "plan_id" => "__clear__",
+              "explicit_constraints" => "__clear__"
             })
           else
             patch
@@ -288,10 +344,11 @@ defmodule OpalCore.Center.PlanContextPatch do
       end
 
     # Exact named venue: "Nighthawk in Coronado", "take us to Pujol in Mexico City"
+    # New exact-venue task: clear inherited WHEN unless this utterance supplies it.
     patch =
       case extract_exact_venue(raw) do
         %{name: name, locality: locality} ->
-          Map.merge(patch, %{
+          base = %{
             "search_mode" => "exact_entity",
             "requested_venue_name" => name,
             "requested_venue_locality" => locality,
@@ -307,7 +364,32 @@ defmodule OpalCore.Center.PlanContextPatch do
             "primary_person" => "__clear__",
             "participants" => "__clear__",
             "plan_id" => "__clear__"
-          })
+          }
+
+          # Explicit current instruction outranks historical WHEN from prior tasks.
+          base =
+            if Map.get(patch, "when_explicit") == true or is_binary(Map.get(patch, "when")) do
+              base
+            else
+              base
+              |> Map.put("when", "__clear__")
+              |> Map.put("when_resolved", "__clear__")
+            end
+
+          base =
+            if Map.get(patch, "when_time_explicit") == true or is_binary(Map.get(patch, "when_time")) do
+              base
+            else
+              base
+              |> Map.put("when_time", "__clear__")
+              |> Map.put("when_time_explicit", "__clear__")
+              |> Map.put("explicit_constraints", "__clear__")
+            end
+
+          # New exact-venue task: drop sticky conversation_act from prior challenges.
+          base = Map.put_new(base, "conversation_act", Map.get(patch, "conversation_act") || "__clear__")
+
+          Map.merge(patch, base)
 
         nil ->
           patch
@@ -435,34 +517,47 @@ defmodule OpalCore.Center.PlanContextPatch do
   Examples: "Nighthawk in Coronado", "take us to Pujol in Mexico City".
   """
   def extract_exact_venue(raw) when is_binary(raw) do
-    # Discovery phrasing must not become exact entity.
+    # Discovery phrasing must not become exact entity — except "look up NAME".
     discovery? =
       Regex.match?(
         ~r/\b(?:find|look for|search for|somewhere|options?|recommendations?|top restaurant|best restaurant|a restaurant|some restaurants)\b/i,
         raw
-      )
+      ) and not Regex.match?(~r/\blook\s+up\b/i, raw)
 
-    # Patterns: "to/at/for NAME in LOCALITY" or "NAME in LOCALITY"
+    # Patterns: plan/look-up/to/at NAME in LOCALITY.
+    # Locality allows multi-word places (Mexico City) but not day names / clock tails.
+    locality = ~S"((?:Mexico\s+City|San\s+Diego|La\s+Jolla|Del\s+Mar|[A-Z][\w]+))"
+
     patterns = [
-      ~r/\b(?:take (?:us|me|her|him|them) to|go to|meet (?:at|us at)|dinner at|eat at|reservations? at)\s+([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,4})\s+(?:in|on|at)\s+([A-Z][\w]+(?:\s+[A-Z][\w]+){0,3})\b/,
-      ~r/\b([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,4})\s+in\s+([A-Z][\w]+(?:\s+[A-Z][\w]+){0,3})\b/
+      Regex.compile!(
+        "\\b(?:(?:make\\s+a\\s+)?plan\\s+to|look\\s+up|arrange(?:\\s+dinner)?\\s+at|take (?:us|me|her|him|them) to|go to|meet (?:at|us at)|dinner at|eat at|reservations? at)\\s+([A-Z][\\w'&.]*(?:\\s+[A-Z][\\w'&.]*){0,4})\\s+(?:in|on|at)\\s+#{locality}\\b",
+        "i"
+      ),
+      Regex.compile!(
+        "\\b(?:plan|arrange)\\s+([A-Z][\\w'&.]*(?:\\s+[A-Z][\\w'&.]*){0,4})\\s+in\\s+#{locality}\\b"
+      ),
+      Regex.compile!(
+        "\\b([A-Z][\\w'&.]*(?:\\s+[A-Z][\\w'&.]*){0,4})\\s+in\\s+#{locality}\\b"
+      )
     ]
 
     stop = MapSet.new(~w(
       Friday Saturday Sunday Monday Tuesday Wednesday Thursday Tonight Tomorrow Weekend
       Dinner Lunch Brunch Breakfast Restaurant Plans Something Somewhere Mexico City
-      San Diego The A An
+      San Diego The A An Plan Arrange Look Make
     ))
 
     found =
       Enum.find_value(patterns, fn re ->
         case Regex.run(re, raw) do
           [_, name, locality] ->
-            name = String.trim(name)
-            locality = String.trim(locality)
+            name = name |> String.trim() |> strip_venue_lead_verbs()
+            locality = locality |> String.trim() |> sanitize_locality()
 
             if MapSet.member?(stop, name) or MapSet.member?(stop, locality) or
-                 String.downcase(name) in ~w(friday saturday sunday monday tuesday wednesday thursday tonight tomorrow dinner lunch brunch) do
+                 day_word?(name) or day_word?(locality) or
+                 String.downcase(name) in ~w(dinner lunch brunch plan arrange) or
+                 place_confused_as_venue?(name, locality) do
               nil
             else
               %{name: name, locality: locality}
@@ -474,7 +569,11 @@ defmodule OpalCore.Center.PlanContextPatch do
       end)
 
     cond do
-      discovery? and not Regex.match?(~r/\b(?:take|go to|meet|dinner at|eat at|reservations? at)\b/i, raw) ->
+      discovery? and
+          not Regex.match?(
+            ~r/\b(?:take|go to|meet|dinner at|eat at|reservations? at|plan to|look up|arrange)\b/i,
+            raw
+          ) ->
         nil
 
       match?(%{name: _}, found) ->
@@ -486,6 +585,146 @@ defmodule OpalCore.Center.PlanContextPatch do
   end
 
   def extract_exact_venue(_), do: nil
+
+  # "Coronado in San Diego" is geography, not a restaurant named Coronado.
+  defp place_confused_as_venue?(name, locality) when is_binary(name) and is_binary(locality) do
+    n = String.downcase(name)
+    l = String.downcase(locality)
+
+    place_words = ~w(coronado la jolla del mar pacific beach mission beach ocean beach downtown)
+    region_words = ~w(san diego california ca usa united states)
+
+    n in place_words and l in region_words
+  end
+
+  defp place_confused_as_venue?(_, _), do: false
+
+  defp strip_venue_lead_verbs(name) when is_binary(name) do
+    name
+    |> String.replace(~r/^(?:Plan|Arrange|Look(?:\s+Up)?|Make)\s+/i, "")
+    |> String.trim()
+  end
+
+  defp strip_venue_lead_verbs(other), do: other
+
+  # Keep first locality; trailing "in San Diego" is regional context, not the venue.
+  defp sanitize_locality(locality) when is_binary(locality) do
+    locality
+    |> String.replace(~r/\s+in\s+(?:San\s+Diego|California|CA)\b.*$/i, "")
+    |> String.replace(
+      ~r/\s+(?:for|on|,)\s+(?:Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday)\b.*$/i,
+      ""
+    )
+    |> String.replace(~r/\s+(?:at|,)\s*\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?\b.*$/i, "")
+    |> String.trim()
+  end
+
+  defp sanitize_locality(other), do: other
+
+  defp day_word?(s) when is_binary(s) do
+    String.downcase(s) in ~w(friday saturday sunday monday tuesday wednesday thursday tonight tomorrow weekend)
+  end
+
+  defp day_word?(_), do: false
+
+  @doc """
+  Extract explicit day-of-week and/or clock time from natural language.
+  Explicit values outrank soft defaults and inherited prior context.
+  """
+  def extract_explicit_temporal(raw) when is_binary(raw) do
+    when_s =
+      cond do
+        Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+sunday\b/i, raw) -> "Sunday"
+        Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+saturday\b/i, raw) -> "Saturday"
+        Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+friday\b/i, raw) -> "Friday"
+        Regex.match?(~r/\bsunday\b/i, raw) -> "Sunday"
+        Regex.match?(~r/\bsaturday\b/i, raw) -> "Saturday"
+        Regex.match?(~r/\bfriday\b/i, raw) -> "Friday"
+        Regex.match?(~r/\bthursday\b/i, raw) -> "Thursday"
+        Regex.match?(~r/\btonight\b/i, raw) -> "tonight"
+        Regex.match?(~r/\btomorrow\b/i, raw) -> "tomorrow"
+        true -> nil
+      end
+
+    time_s =
+      cond do
+        m =
+            Regex.run(
+              ~r/\b(?:actually|make it|change (?:the )?(?:time|it|that) to)\s+(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\b/i,
+              raw
+            ) ->
+          normalize_clock(Enum.at(m, 1))
+
+        m = Regex.run(~r/\b(?:actually|make it)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i, raw) ->
+          normalize_clock(Enum.at(m, 1))
+
+        # "for Sunday, 10 a.m." / "at 10am" / "Sunday 10:00 AM" / "10 a.m."
+        m =
+            Regex.run(
+              ~r/\b(?:at|,|for)?\s*(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\b/i,
+              raw
+            ) ->
+          normalize_clock(Enum.at(m, 1))
+
+        true ->
+          nil
+      end
+
+    cond do
+      is_binary(when_s) and is_binary(time_s) -> %{when: when_s, when_time: time_s}
+      is_binary(when_s) -> %{when: when_s}
+      is_binary(time_s) -> %{when_time: time_s}
+      true -> nil
+    end
+  end
+
+  def extract_explicit_temporal(_), do: nil
+
+  @doc """
+  Classify meta conversation acts that must not restart provider lookup.
+  """
+  def classify_conversation_act(raw) when is_binary(raw) do
+    cond do
+      Regex.match?(
+        ~r/\bwhy\s+did\s+you\s+(?:change|switch|pick|choose|ask|ignore|overwrite|alter)\b/i,
+        raw
+      ) ->
+        "challenge_prior_action"
+
+      Regex.match?(~r/\bthat'?s\s+not\s+the\s+(?:place|venue|restaurant|one)\b/i, raw) ->
+        "correct_venue"
+
+      Regex.match?(~r/\bno,?\s+i\s+meant\b/i, raw) ->
+        "correct_slot"
+
+      Regex.match?(~r/\bwhy\s+are\s+you\s+asking\b/i, raw) ->
+        "challenge_question"
+
+      Regex.match?(~r/\bgo\s+back\s+to\s+(?:the\s+)?birthday\b/i, raw) ->
+        "switch_task_birthday"
+
+      Regex.match?(~r/\bforget\s+that\s+venue\b/i, raw) ->
+        "cancel_venue_keep_plan"
+
+      Regex.match?(~r/\bshow\s+me\s+the\s+other\b/i, raw) ->
+        "show_other_options"
+
+      true ->
+        nil
+    end
+  end
+
+  def classify_conversation_act(_), do: nil
+
+  defp put_explicit_constraints(patch, attrs) when is_map(patch) and is_map(attrs) do
+    prior =
+      case Map.get(patch, "explicit_constraints") do
+        m when is_map(m) -> m
+        _ -> %{}
+      end
+
+    Map.put(patch, "explicit_constraints", Map.merge(prior, attrs))
+  end
 
   @doc """
   Cuisine / category restaurant discovery (not exact entity).

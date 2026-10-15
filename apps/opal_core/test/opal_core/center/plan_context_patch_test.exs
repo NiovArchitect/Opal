@@ -131,6 +131,111 @@ defmodule OpalCore.Center.PlanContextPatchTest do
     refute Map.get(next, "when_time")
   end
 
+  test "Henry Sunday 10am preserves all explicit constraints" do
+    prior = %{
+      "when" => "Friday",
+      "when_time" => "19:30",
+      "destination" => "Coronado",
+      "venue" => "Night Hawk",
+      "search_mode" => "exact_entity"
+    }
+
+    patch =
+      PlanContextPatch.extract_from_text(
+        "Make a plan to The Henry in Coronado for Sunday, 10 a.m.",
+        prior
+      )
+
+    assert patch["requested_venue_name"] == "The Henry"
+    assert patch["requested_venue_locality"] == "Coronado"
+    assert patch["when"] == "Sunday"
+    assert patch["when_time"] == "10 AM"
+    assert patch["when_time_explicit"] == true
+    refute patch["requested_venue_locality"] =~ ~r/Sunday/i
+
+    next = PlanContextPatch.apply(prior, patch)
+    assert next["venue"] == "The Henry"
+    assert next["destination"] == "Coronado"
+    assert next["when"] == "Sunday"
+    assert next["when_time"] == "10 AM"
+  end
+
+  test "Plan Night Hawk in Coronado in San Diego does not name venue Plan Night Hawk" do
+    patch =
+      PlanContextPatch.extract_from_text("Plan Night Hawk in Coronado in San Diego.", %{})
+
+    assert patch["requested_venue_name"] == "Night Hawk"
+    assert patch["requested_venue_locality"] == "Coronado"
+  end
+
+  test "why did you change the time is a challenge act not a venue search" do
+    patch =
+      PlanContextPatch.extract_from_text("Why did you change the time when I said 10 a.m.?", %{
+        "venue" => "The Henry",
+        "when_time" => "19:30"
+      })
+
+    assert patch["conversation_act"] == "challenge_prior_action"
+    assert patch["when_time"] == "10 AM"
+    refute patch["search_mode"] == "exact_entity"
+  end
+
+  test "birthday clears prior Coronado venue contamination" do
+    prior = %{
+      "destination" => "Coronado",
+      "venue" => "Night Hawk",
+      "when" => "Friday",
+      "when_time" => "19:30",
+      "search_mode" => "exact_entity",
+      "intent_scope" => "exact_venue",
+      "explicit_constraints" => %{"when" => "Sunday", "when_time" => "10 AM"},
+      "conversation_act" => "challenge_prior_action"
+    }
+
+    patch = PlanContextPatch.extract_from_text("Maya's birthday is in three days.", prior)
+    assert patch["intent_scope"] == "birthday"
+    assert patch["who"] == "Maya"
+    assert patch["destination"] == "__clear__"
+    assert patch["venue"] == "__clear__"
+    assert patch["explicit_constraints"] == "__clear__"
+    assert patch["conversation_act"] == "__clear__"
+
+    next = PlanContextPatch.apply(prior, patch)
+    refute next["destination"]
+    refute next["venue"]
+    refute next["explicit_constraints"]
+    refute next["conversation_act"]
+    assert next["when"] == "in three days"
+    assert next["who"] == "Maya"
+  end
+
+  test "exact venue after Henry does not inherit Sunday 10 AM constraints" do
+    prior = %{
+      "venue" => "The Henry",
+      "destination" => "Coronado",
+      "when" => "Sunday",
+      "when_time" => "10 AM",
+      "when_time_explicit" => true,
+      "explicit_constraints" => %{"when" => "Sunday", "when_time" => "10 AM"},
+      "intent_scope" => "exact_venue",
+      "conversation_act" => "challenge_prior_action"
+    }
+
+    patch = PlanContextPatch.extract_from_text("Plan Night Hawk in Coronado in San Diego.", prior)
+    assert patch["requested_venue_name"] == "Night Hawk"
+    assert patch["when"] == "__clear__" or is_nil(Map.get(patch, "when"))
+    assert patch["when_time"] == "__clear__"
+    assert patch["explicit_constraints"] == "__clear__"
+    assert patch["conversation_act"] == "__clear__"
+
+    next = PlanContextPatch.apply(prior, patch)
+    assert next["venue"] == "Night Hawk"
+    refute next["when"]
+    refute next["when_time"]
+    refute next["explicit_constraints"]
+    refute next["conversation_act"]
+  end
+
   test "generic Friday dinner clears who inheritance cues" do
     assert PlanContextPatch.generic_open_window?("Friday dinner — still open")
     assert PlanContextPatch.generic_open_window?("Dinner Friday")

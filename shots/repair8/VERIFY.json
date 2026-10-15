@@ -1,0 +1,831 @@
+{
+  "build": {
+    "sha": "1143d0dd626b1c787e1a482474712c561da5e83f",
+    "vite": "http://127.0.0.1:5173",
+    "api": "http://127.0.0.1:4000",
+    "userId": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+  },
+  "findings": [
+    {
+      "id": "BROWSER_MEMBER_SHELL",
+      "status": "BROWSER_PASS",
+      "detail": "member=true",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:26.994Z"
+    },
+    {
+      "id": "BROWSER_CENTER_READY",
+      "status": "BROWSER_PASS",
+      "detail": "centerReady=true",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:28.970Z"
+    },
+    {
+      "id": "BROWSER_BIRTHDAY_NO_VENUE_BLEED",
+      "status": "BROWSER_PASS",
+      "detail": "hasMarker=true slice=Maya's birthday is in three days.\n\nMaya's birthday in three days \u2014 got it. What are you thinking for celebrating her?\n\nYes, plan something for Maya's birthday.\n\nGot it \u2014 I'll start planning privately with Maya.",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:37.567Z"
+    },
+    {
+      "id": "BROWSER_HENRY_EXPLICIT",
+      "status": "BROWSER_PASS",
+      "detail": "slice=Make a plan to The Henry in Coronado for Sunday, 10 a.m.\n\nLooking up The Henry in Coronado\u2026\n\nChecking Coronado\u2026",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:39.975Z"
+    },
+    {
+      "id": "BROWSER_CHALLENGE_RESTORE",
+      "status": "BROWSER_PASS",
+      "detail": "slice=Why did you change the time when I said 10 a.m.?\n\nKeeping 10 AM as you specified. Same plan, same place.",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:47.331Z"
+    },
+    {
+      "id": "BROWSER_CHAT_ORDER",
+      "status": "BROWSER_PASS",
+      "detail": "sent=true ascending=true probeIdx=4 pageHasProbe=true",
+      "evidence": {
+        "visible": [
+          "C\nChanelle\n\nDinner might work Saturday. Juniper?\n\n8:05 PM",
+          "Juniper tonight?\n\n8:12 PM",
+          "C\nChanelle\n\nI can do 7:30.\n\n8:14 PM",
+          "Perfect. I'll grab a table.\n\n8:15 PM",
+          "R8 persist probe 1792040930897\n\nNow\nSent"
+        ]
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:51.031Z"
+    },
+    {
+      "id": "BROWSER_CHAT_PERSIST_AFTER_NAV",
+      "status": "BROWSER_PASS",
+      "detail": "found=true rows=5 reopened=true",
+      "evidence": {
+        "after": [
+          "C\nChanelle\n\nDinner might work Saturday. Juniper?\n\n8:05 PM",
+          "Juniper tonight?\n\n8:12 PM",
+          "C\nChanelle\n\nI can do 7:30.\n\n8:14 PM",
+          "Perfect. I'll grab a table.\n\n8:15 PM",
+          "R8 persist probe 1792040930897\n\nNow\nSent"
+        ]
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:56.423Z"
+    },
+    {
+      "id": "BROWSER_NEXT_TOGETHER",
+      "status": "BROWSER_PASS",
+      "detail": "entry=next-plan-strip sheetVisible=true",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:58.062Z"
+    },
+    {
+      "id": "BROWSER_GRAPH_OVERLAY_ISOLATION",
+      "status": "BROWSER_PASS",
+      "detail": "{\"ok\":true,\"z\":68,\"bg\":\"rgb(5, 8, 22)\",\"headerOnTop\":false}",
+      "evidence": {
+        "ok": true,
+        "z": 68,
+        "bg": "rgb(5, 8, 22)",
+        "headerOnTop": false
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:58.064Z"
+    },
+    {
+      "id": "BROWSER_BACK_TO_CHAT",
+      "status": "BROWSER_PASS",
+      "detail": "rows=5",
+      "evidence": {},
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:08:59.079Z"
+    },
+    {
+      "id": "API_BIRTHDAY_NO_CORONADO",
+      "status": "API_PASS",
+      "detail": "scope=birthday who=Maya dest=undefined venue=undefined act=undefined body=Maya's birthday in three days \u2014 got it. What are you thinking for celebrating her?",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "celebration",
+          "dependencies": {
+            "availability": "pending",
+            "destination": "pending",
+            "lodging": "not_applicable",
+            "people": "resolved",
+            "reservation": "not_applicable",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "not_applicable",
+            "when": "resolved",
+            "work_conflict": "pending"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "birthday",
+          "next_dependency": "destination",
+          "opportunity_fingerprint": "376063258768f117",
+          "participants": "Maya",
+          "primary_person": "Maya",
+          "updated_at": "2026-10-15T05:09:00.459686Z",
+          "visibility_mode": "normal",
+          "wants_restaurant": false,
+          "when": "in three days",
+          "when_resolved": "in three days",
+          "who": "Maya"
+        },
+        "body": "Maya's birthday in three days \u2014 got it. What are you thinking for celebrating her?"
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:01.341Z"
+    },
+    {
+      "id": "API_BIRTHDAY_AFFIRM_CLEAN",
+      "status": "API_PASS",
+      "detail": "dest=undefined venue=undefined constraints=undefined body=Got it \u2014 I'll start planning privately with Maya.",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "celebration",
+          "dependencies": {
+            "availability": "pending",
+            "destination": "pending",
+            "lodging": "not_applicable",
+            "people": "resolved",
+            "reservation": "not_applicable",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "not_applicable",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "birthday",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "6f3e837b420d948e",
+          "participants": "Maya",
+          "primary_person": "Maya",
+          "updated_at": "2026-10-15T05:09:01.461131Z",
+          "visibility_mode": "normal",
+          "wants_restaurant": false,
+          "who": "Maya"
+        },
+        "body": "Got it \u2014 I'll start planning privately with Maya."
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:01.470Z"
+    },
+    {
+      "id": "API_HENRY_EXPLICIT_CONSTRAINTS",
+      "status": "API_PASS",
+      "detail": "venue=The Henry dest=Coronado when=Sunday time=10 AM soft=undefined body=Looking up The Henry in Coronado\u2026",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "pending",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "resolved",
+            "when": "resolved",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "explicit_constraints": {
+            "when": "Sunday",
+            "when_time": "10 AM"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "exact_venue",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "34e6352503f65b65",
+          "plan_id": "585824a7-4fc1-4a2d-8f0a-b6b583576cbe",
+          "requested_venue_locality": "Coronado",
+          "requested_venue_name": "The Henry",
+          "search_mode": "exact_entity",
+          "updated_at": "2026-10-15T05:09:01.601566Z",
+          "venue": "The Henry",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "to",
+          "when": "Sunday",
+          "when_explicit": true,
+          "when_resolved": "2026-10-18",
+          "when_time": "10 AM",
+          "when_time_explicit": true
+        },
+        "body": "Looking up The Henry in Coronado\u2026",
+        "job": "6cb03808-5778-4957-9bd6-134d4640d6b2"
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:01.627Z"
+    },
+    {
+      "id": "API_CHALLENGE_NO_LOOKUP",
+      "status": "API_PASS",
+      "detail": "act=challenge_prior_action restored=true time=10 AM job=undefined body=Keeping 10 AM as you specified. Same plan, same place.",
+      "evidence": {
+        "metadata": {
+          "PLAN_ID_STABLE": true,
+          "after_context": {
+            "when": "Sunday",
+            "when_time": "10 AM"
+          },
+          "before_context": {
+            "when": "Sunday",
+            "when_time": "10 AM"
+          },
+          "context_snapshot": {
+            "conversation_history": [
+              {
+                "body": "Maya's birthday is in three days.",
+                "role": "user"
+              },
+              {
+                "body": "Maya's birthday in three days \u2014 got it. What are you thinking for celebrating her?",
+                "intent": {
+                  "confidence": "high",
+                  "entities": {
+                    "category": "celebration",
+                    "participants": "Maya",
+                    "primary_person": "Maya",
+                    "wants_restaurant": false,
+                    "when": "in three days",
+                    "who": "Maya"
+                  },
+                  "intent": "chat",
+                  "raw_text": "Maya's birthday is in three days."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "Yes, plan something for Maya's birthday.",
+                "role": "user"
+              },
+              {
+                "body": "Got it \u2014 I'll start planning privately with Maya.",
+                "intent": {
+                  "confidence": "medium",
+                  "entities": {
+                    "category": "celebration",
+                    "nudge_affirmed": true,
+                    "participants": "Maya",
+                    "plan_type": "in_person",
+                    "primary_person": "Maya",
+                    "wants_restaurant": false,
+                    "who": "Maya"
+                  },
+                  "intent": "plan_create",
+                  "raw_text": "Yes, plan something for Maya's birthday."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "Make a plan to The Henry in Coronado for Sunday, 10 a.m.",
+                "role": "user"
+              },
+              {
+                "body": "Looking up The Henry in Coronado\u2026",
+                "intent": {
+                  "confidence": "high",
+                  "entities": {
+                    "category": "restaurant",
+                    "destination": "Coronado",
+                    "plan_type": "in_person",
+                    "venue": "The Henry",
+                    "wants_restaurant": true,
+                    "what": "to",
+                    "when": "Sunday",
+                    "when_resolved": "2026-10-18",
+                    "who": [
+                      "Coronado"
+                    ]
+                  },
+                  "intent": "plan_create",
+                  "raw_text": "Make a plan to The Henry in Coronado for Sunday, 10 a.m."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "I couldn't verify The Henry in Coronado from available sources yet. Want to keep The Henry as the requested venue, or should I look for nearby alternatives?",
+                "role": "opal"
+              }
+            ],
+            "financial": null,
+            "fit": null,
+            "group_tastes": [],
+            "message": {
+              "length": 48,
+              "sent_at": "2026-10-15T05:09:16.301215Z",
+              "text": "Why did you change the time when I said 10 a.m.?"
+            },
+            "preferences": {
+              "timezone": "America/Denver",
+              "usual_meeting_link": null
+            },
+            "relationships": {
+              "657f9c05-e106-453d-b1ec-c8bd557fc30a": "friend",
+              "a530b927-81df-4816-be69-a7eb08c21f68": "friend",
+              "b599fcd7-7a97-4736-8221-86e0a6d8dc7a": "close_friend"
+            },
+            "social": {
+              "frequent_contacts": [
+                {
+                  "display_name": "Founder",
+                  "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                },
+                {
+                  "display_name": "Walk B",
+                  "user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Maya",
+                  "user_id": "a4444444-4444-4444-8444-444444444444"
+                },
+                {
+                  "display_name": "Sabrina",
+                  "user_id": "f0c4a4e1-1111-4111-8111-c4a4e1100004"
+                },
+                {
+                  "display_name": "Nina",
+                  "user_id": "f0c4a4e1-1111-4111-8111-c4a4e1100005"
+                }
+              ],
+              "group_patterns": []
+            },
+            "taste": {
+              "cuisines": [
+                "quiet restaurants codeword W9ISO_PRIVATE_d627448c"
+              ],
+              "price_comfort": null,
+              "vibes": []
+            },
+            "temporal": {
+              "active_conversation_count": 1,
+              "recent_plans": [
+                {
+                  "date": "2026-10-15T05:09:01.608135Z",
+                  "id": "585824a7-4fc1-4a2d-8f0a-b6b583576cbe",
+                  "status": "tentative",
+                  "title": "Dinner Sunday"
+                },
+                {
+                  "date": "2026-10-15T05:06:31.345591Z",
+                  "id": "6fd84aaa-ea45-4cb6-9924-e37bc97275e7",
+                  "status": "tentative",
+                  "title": "Dinner soon"
+                }
+              ],
+              "upcoming_celebrations": [
+                {
+                  "days_until": 4,
+                  "id": "720294c4-b037-42bd-98f8-5304a280efe7",
+                  "kind": "birthday",
+                  "name": "Maya",
+                  "top_idea": "A rematch of Dinner Saturday with Maya"
+                },
+                {
+                  "days_until": 150,
+                  "id": "24a2c147-8cbe-4c63-b39b-cd8d1d86dc0d",
+                  "kind": "birthday",
+                  "name": "Secret Aunt W9ISO_PRIVATE_d627448c",
+                  "top_idea": "Spa day"
+                }
+              ]
+            },
+            "trust_tier": "trusted",
+            "user": {
+              "display_name": "Walk1835",
+              "handle": "realitygate",
+              "id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+              "timezone": "America/Denver"
+            }
+          },
+          "conversation_act": "challenge_prior_action",
+          "generated_at": "2026-10-15T05:09:16.315959Z",
+          "intent": {
+            "confidence": "high",
+            "entities": {
+              "category": "restaurant",
+              "destination": "Coronado",
+              "plan_id": "585824a7-4fc1-4a2d-8f0a-b6b583576cbe",
+              "venue": "The Henry",
+              "wants_restaurant": true,
+              "what": "to",
+              "when": "Sunday",
+              "when_resolved": "2026-10-18"
+            },
+            "intent": "plan_modify",
+            "raw_text": "Why did you change the time when I said 10 a.m.?"
+          },
+          "no_provider_restart": true,
+          "plan_id": "585824a7-4fc1-4a2d-8f0a-b6b583576cbe",
+          "planning_context": {
+            "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+            "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+            "category": "restaurant",
+            "conversation_act": "challenge_prior_action",
+            "dependencies": {
+              "availability": "not_applicable",
+              "destination": "resolved",
+              "lodging": "not_applicable",
+              "people": "not_applicable",
+              "reservation": "pending",
+              "reveal_invite": "not_applicable",
+              "travel": "not_applicable",
+              "venue": "resolved",
+              "when": "resolved",
+              "work_conflict": "pending"
+            },
+            "destination": "Coronado",
+            "explicit_constraints": {
+              "when": "Sunday",
+              "when_time": "10 AM"
+            },
+            "initial_planning_visibility": "owner_private",
+            "intent_scope": "exact_venue",
+            "next_dependency": "when",
+            "opportunity_fingerprint": "34e6352503f65b65",
+            "plan_id": "585824a7-4fc1-4a2d-8f0a-b6b583576cbe",
+            "requested_venue_locality": "Coronado",
+            "requested_venue_name": "The Henry",
+            "search_mode": "exact_entity",
+            "updated_at": "2026-10-15T05:09:16.311737Z",
+            "venue": "The Henry",
+            "visibility_mode": "normal",
+            "wants_restaurant": true,
+            "what": "to",
+            "when": "Sunday",
+            "when_explicit": true,
+            "when_resolved": "2026-10-18",
+            "when_time": "10 AM",
+            "when_time_explicit": true
+          },
+          "restored_explicit": true,
+          "slots_changed": [
+            "when_time"
+          ]
+        },
+        "body": "Keeping 10 AM as you specified. Same plan, same place."
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:16.323Z"
+    },
+    {
+      "id": "API_NIGHTHAWK_NOT_CORONADO_VENUE",
+      "status": "API_PASS",
+      "detail": "venue=Night Hawk loc=Coronado when=undefined time=undefined constraints=undefined body=Looking up Night Hawk in Coronado\u2026",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "pending",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "resolved",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "exact_venue",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "41dd5b419e8844c8",
+          "plan_id": "ca62b668-6df0-4488-b9cf-8e6cb73db908",
+          "requested_venue_locality": "Coronado",
+          "requested_venue_name": "Night Hawk",
+          "search_mode": "exact_entity",
+          "updated_at": "2026-10-15T05:09:16.446504Z",
+          "venue": "Night Hawk",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "Night Hawk in Coronado in San Diego",
+          "when_explicit": true
+        },
+        "body": "Looking up Night Hawk in Coronado\u2026"
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:16.471Z"
+    },
+    {
+      "id": "ADV_LOOK_UP_VARIANT",
+      "status": "API_PASS",
+      "detail": "act=undefined venue=Night Hawk scope=exact_venue body=I looked for Night Hawk in Coronado but couldn't verify it from available sources yet. Want to keep Night Hawk as the re",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "pending",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "resolved",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "exact_venue",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "41dd5b419e8844c8",
+          "requested_venue_locality": "Coronado",
+          "requested_venue_name": "Night Hawk",
+          "search_mode": "exact_entity",
+          "updated_at": "2026-10-15T05:09:16.596223Z",
+          "venue": "Night Hawk",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "Night Hawk in Coronado in San Diego",
+          "when_explicit": true
+        },
+        "metadata": {}
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.308Z"
+    },
+    {
+      "id": "ADV_CORRECTION_NOT_PLACE",
+      "status": "API_PASS",
+      "detail": "act=correct_venue venue=Night Hawk scope=exact_venue body=Understood \u2014 I'll drop that venue and keep the rest of the plan. What place did you mean?",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "conversation_act": "correct_venue",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "pending",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "resolved",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "exact_venue",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "41dd5b419e8844c8",
+          "requested_venue_locality": "Coronado",
+          "requested_venue_name": "Night Hawk",
+          "search_mode": "exact_entity",
+          "updated_at": "2026-10-15T05:09:17.433715Z",
+          "venue": "Night Hawk",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "Night Hawk in Coronado in San Diego",
+          "when_explicit": true
+        },
+        "metadata": {
+          "conversation_act": "correct_venue",
+          "no_provider_restart": true
+        }
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.441Z"
+    },
+    {
+      "id": "ADV_SUNDAY_MORNING",
+      "status": "API_PASS",
+      "detail": "act=correct_slot venue=Night Hawk scope=exact_venue body=I may have drifted from what you said. Tell me the exact day and time you want and I'll lock those in.",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "conversation_act": "correct_slot",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "pending",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "resolved",
+            "when": "resolved",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "explicit_constraints": {
+            "when": "Sunday"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "exact_venue",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "d2461f58a5bda04c",
+          "requested_venue_locality": "Coronado",
+          "requested_venue_name": "Night Hawk",
+          "search_mode": "exact_entity",
+          "updated_at": "2026-10-15T05:09:17.561644Z",
+          "venue": "Night Hawk",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "Night Hawk in Coronado in San Diego",
+          "when": "Sunday",
+          "when_explicit": true,
+          "when_resolved": "2026-10-18"
+        },
+        "metadata": {
+          "conversation_act": "correct_slot",
+          "no_provider_restart": true
+        }
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.570Z"
+    },
+    {
+      "id": "ADV_WHY_WHERE_HEADED",
+      "status": "API_PASS",
+      "detail": "act=challenge_question venue=Night Hawk scope=exact_venue body=You're right to ask \u2014 Night Hawk in Coronado is already set, so I shouldn't have asked where you're headed.",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "conversation_act": "challenge_question",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "pending",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "resolved",
+            "when": "resolved",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "explicit_constraints": {
+            "when": "Sunday"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "exact_venue",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "d2461f58a5bda04c",
+          "requested_venue_locality": "Coronado",
+          "requested_venue_name": "Night Hawk",
+          "search_mode": "exact_entity",
+          "updated_at": "2026-10-15T05:09:17.686338Z",
+          "venue": "Night Hawk",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "Night Hawk in Coronado in San Diego",
+          "when": "Sunday",
+          "when_explicit": true,
+          "when_resolved": "2026-10-18"
+        },
+        "metadata": {
+          "conversation_act": "challenge_question",
+          "no_provider_restart": true
+        }
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.695Z"
+    },
+    {
+      "id": "ADV_TASK_SWITCH_BIRTHDAY",
+      "status": "API_PASS",
+      "detail": "act=undefined venue=undefined scope=birthday body=Got it: Night Hawk in Coronado in San Diego soon. Want me to set this up?",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "celebration",
+          "conversation_act": "switch_task_birthday",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "pending",
+            "lodging": "not_applicable",
+            "people": "pending",
+            "reservation": "not_applicable",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "not_applicable",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "birthday",
+          "next_dependency": "people",
+          "opportunity_fingerprint": "082fd40fb3c14690",
+          "updated_at": "2026-10-15T05:09:17.816114Z",
+          "visibility_mode": "normal",
+          "what": "Night Hawk in Coronado in San Diego"
+        },
+        "metadata": {}
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.823Z"
+    },
+    {
+      "id": "ADV_FORGET_VENUE_KEEP_REST",
+      "status": "API_PASS",
+      "detail": "act=undefined venue=undefined scope=birthday body=Okay \u2014 I cleared the restaurant pick.",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "celebration",
+          "conversation_act": "cancel_venue_keep_plan",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "pending",
+            "lodging": "not_applicable",
+            "people": "pending",
+            "reservation": "not_applicable",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "not_applicable",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "birthday",
+          "next_dependency": "people",
+          "opportunity_fingerprint": "082fd40fb3c14690",
+          "updated_at": "2026-10-15T05:09:17.939192Z",
+          "venue_cancelled": true,
+          "visibility_mode": "normal",
+          "what": "Night Hawk in Coronado in San Diego"
+        },
+        "metadata": {}
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.946Z"
+    },
+    {
+      "id": "ADV_SUITE_SUMMARY",
+      "status": "API_PASS",
+      "detail": "passed=6/6 dimensions=correction,task-switch,challenge,venue-cancel,look-up-variant,morning-correction",
+      "evidence": {
+        "cases": [
+          {
+            "id": "ADV_LOOK_UP_VARIANT",
+            "pass": true
+          },
+          {
+            "id": "ADV_CORRECTION_NOT_PLACE",
+            "pass": true
+          },
+          {
+            "id": "ADV_SUNDAY_MORNING",
+            "pass": true
+          },
+          {
+            "id": "ADV_WHY_WHERE_HEADED",
+            "pass": true
+          },
+          {
+            "id": "ADV_TASK_SWITCH_BIRTHDAY",
+            "pass": true
+          },
+          {
+            "id": "ADV_FORGET_VENUE_KEEP_REST",
+            "pass": true
+          }
+        ]
+      },
+      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "at": "2026-10-15T05:09:17.946Z"
+    }
+  ],
+  "counts": {
+    "BROWSER_PASS": 10,
+    "API_PASS": 12
+  },
+  "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
+  "PASS2_UNLOCKED": "NO",
+  "FREEZE": "HOLD",
+  "FOUNDER_ACCEPTED": "NO"
+}

@@ -8637,7 +8637,8 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: auto !important;
   max-width: 390px !important;
   max-height: none !important;
-  z-index: 56 !important;
+  /* Repair #8: above chat header/call chrome (was 56 — Chanelle artifacts bled through). */
+  z-index: 68 !important;
   background: #050816 !important;
   isolation: isolate;
   /* Paste W4 5.5 — clear safe inset without clipping 7:30 PM timeblock */
