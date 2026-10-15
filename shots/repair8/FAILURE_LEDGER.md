@@ -18,6 +18,8 @@
 | FL-R8-07 | Graph detail under chat chrome | `styles.css` `z-index: 56 !important` beat spectral 68 | Raised to `z-index: 68 !important` |
 | FL-R8-08 | Harness false confidence | API jobs polluted Center thread; `fill()` skipped React `draft` | Clear fixture conversation before browser; `pressSequentially` / native value setter |
 
+**Ship SHA:** `3944906f298aae752aaed329b02bb099e1cccd81`
+
 ## Gate evidence (automated)
 
 - Unit: `plan_context_patch_test.exs` — 19 tests, 0 failures

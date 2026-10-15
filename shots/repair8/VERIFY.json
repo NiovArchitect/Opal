@@ -1,6 +1,6 @@
 {
   "build": {
-    "sha": "1143d0dd626b1c787e1a482474712c561da5e83f",
+    "sha": "3944906f298aae752aaed329b02bb099e1cccd81",
     "vite": "http://127.0.0.1:5173",
     "api": "http://127.0.0.1:4000",
     "userId": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
@@ -11,7 +11,7 @@
       "status": "BROWSER_PASS",
       "detail": "member=true",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:26.994Z"
     },
     {
@@ -19,7 +19,7 @@
       "status": "BROWSER_PASS",
       "detail": "centerReady=true",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:28.970Z"
     },
     {
@@ -27,7 +27,7 @@
       "status": "BROWSER_PASS",
       "detail": "hasMarker=true slice=Maya's birthday is in three days.\n\nMaya's birthday in three days \u2014 got it. What are you thinking for celebrating her?\n\nYes, plan something for Maya's birthday.\n\nGot it \u2014 I'll start planning privately with Maya.",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:37.567Z"
     },
     {
@@ -35,7 +35,7 @@
       "status": "BROWSER_PASS",
       "detail": "slice=Make a plan to The Henry in Coronado for Sunday, 10 a.m.\n\nLooking up The Henry in Coronado\u2026\n\nChecking Coronado\u2026",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:39.975Z"
     },
     {
@@ -43,7 +43,7 @@
       "status": "BROWSER_PASS",
       "detail": "slice=Why did you change the time when I said 10 a.m.?\n\nKeeping 10 AM as you specified. Same plan, same place.",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:47.331Z"
     },
     {
@@ -59,7 +59,7 @@
           "R8 persist probe 1792040930897\n\nNow\nSent"
         ]
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:51.031Z"
     },
     {
@@ -75,7 +75,7 @@
           "R8 persist probe 1792040930897\n\nNow\nSent"
         ]
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:56.423Z"
     },
     {
@@ -83,7 +83,7 @@
       "status": "BROWSER_PASS",
       "detail": "entry=next-plan-strip sheetVisible=true",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:58.062Z"
     },
     {
@@ -96,7 +96,7 @@
         "bg": "rgb(5, 8, 22)",
         "headerOnTop": false
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:58.064Z"
     },
     {
@@ -104,7 +104,7 @@
       "status": "BROWSER_PASS",
       "detail": "rows=5",
       "evidence": {},
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:08:59.079Z"
     },
     {
@@ -143,7 +143,7 @@
         },
         "body": "Maya's birthday in three days \u2014 got it. What are you thinking for celebrating her?"
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:01.341Z"
     },
     {
@@ -180,7 +180,7 @@
         },
         "body": "Got it \u2014 I'll start planning privately with Maya."
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:01.470Z"
     },
     {
@@ -231,7 +231,7 @@
         "body": "Looking up The Henry in Coronado\u2026",
         "job": "6cb03808-5778-4957-9bd6-134d4640d6b2"
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:01.627Z"
     },
     {
@@ -482,7 +482,7 @@
         },
         "body": "Keeping 10 AM as you specified. Same plan, same place."
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:16.323Z"
     },
     {
@@ -524,7 +524,7 @@
         },
         "body": "Looking up Night Hawk in Coronado\u2026"
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:16.471Z"
     },
     {
@@ -565,7 +565,7 @@
         },
         "metadata": {}
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.308Z"
     },
     {
@@ -610,7 +610,7 @@
           "no_provider_restart": true
         }
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.441Z"
     },
     {
@@ -660,7 +660,7 @@
           "no_provider_restart": true
         }
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.570Z"
     },
     {
@@ -710,7 +710,7 @@
           "no_provider_restart": true
         }
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.695Z"
     },
     {
@@ -745,7 +745,7 @@
         },
         "metadata": {}
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.823Z"
     },
     {
@@ -781,7 +781,7 @@
         },
         "metadata": {}
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.946Z"
     },
     {
@@ -816,7 +816,7 @@
           }
         ]
       },
-      "sha_hint": "1143d0dd626b1c787e1a482474712c561da5e83f",
+      "sha_hint": "3944906f298aae752aaed329b02bb099e1cccd81",
       "at": "2026-10-15T05:09:17.946Z"
     }
   ],
