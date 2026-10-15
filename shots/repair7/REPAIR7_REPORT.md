@@ -1,5 +1,7 @@
 # Repair #7 — Runtime Truth Report
 
+**Ship SHA:** `281718f7`
+
 **Baseline rejected:** `6c744119` (Repair #6 machine GREEN / founder phone FAIL)  
 **Branch:** `muse/packet-b-batch-2`  
 **FOUNDER_ACCEPTED:** NO  

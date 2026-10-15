@@ -1,17 +1,19 @@
 {
   "build": {
-    "branch_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+    "branch_hint": "281718f75d2e337a5c7451ed7836e7aba429fc7f",
     "vite": "http://127.0.0.1:5173",
     "api": "http://127.0.0.1:4000",
-    "userId": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+    "userId": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+    "ship_sha": "281718f75d2e337a5c7451ed7836e7aba429fc7f",
+    "proof_baseline_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e"
   },
   "findings": [
     {
       "id": "API_NIGHTHAWK_QUEUED",
       "status": "API_PASS",
-      "detail": "status=201 body=Looking up Nighthawk in Coronado… job=0b09b0a6-f7a2-43de-ba5d-343fc88021c1",
+      "detail": "status=201 body=Looking up Nighthawk in Coronado\u2026 job=0b09b0a6-f7a2-43de-ba5d-343fc88021c1",
       "evidence": {
-        "body": "Looking up Nighthawk in Coronado…",
+        "body": "Looking up Nighthawk in Coronado\u2026",
         "job": "0b09b0a6-f7a2-43de-ba5d-343fc88021c1"
       },
       "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
@@ -20,7 +22,7 @@
     {
       "id": "API_NIGHTHAWK_RESOLVED",
       "status": "API_PASS",
-      "detail": "state=results_ready body=Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powere opts=Night Hawk",
+      "detail": "state=results_ready body=Found it \u2014 Night Hawk \u00b7 Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powere opts=Night Hawk",
       "evidence": {
         "options": [
           {
@@ -39,7 +41,7 @@
             "search_geography": "Coronado"
           }
         ],
-        "body": "Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify"
+        "body": "Found it \u2014 Night Hawk \u00b7 Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify"
       },
       "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
       "at": "2026-10-15T03:47:16.407Z"
@@ -47,7 +49,7 @@
     {
       "id": "API_MED_QUEUED_DISCOVERY",
       "status": "API_PASS",
-      "detail": "job=53822bef-56d7-4a39-ba72-74a556f282e5 mode=discovery when=undefined body=Looking for Mediterranean restaurants in Coronado…",
+      "detail": "job=53822bef-56d7-4a39-ba72-74a556f282e5 mode=discovery when=undefined body=Looking for Mediterranean restaurants in Coronado\u2026",
       "evidence": {
         "planning": {
           "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
@@ -81,7 +83,7 @@
           "wants_restaurant": true,
           "what": "dinner"
         },
-        "body": "Looking for Mediterranean restaurants in Coronado…"
+        "body": "Looking for Mediterranean restaurants in Coronado\u2026"
       },
       "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
       "at": "2026-10-15T03:47:16.585Z"
@@ -291,7 +293,7 @@
     {
       "id": "BROWSER_NIGHTHAWK",
       "status": "BROWSER_PASS",
-      "detail": "netPosts=1 hasNighthawk=true snippet=cking Coronado…\n\nFound it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify\n\nNight Hawk\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\n\nPowered by Geoapify",
+      "detail": "netPosts=1 hasNighthawk=true snippet=cking Coronado\u2026\n\nFound it \u2014 Night Hawk \u00b7 Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify\n\nNight Hawk\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\n\nPowered by Geoapify",
       "evidence": {
         "net": [
           {
@@ -307,7 +309,7 @@
             "post": "{\"body\":\"Let's arrange dinner Friday.\"}"
           }
         ],
-        "snippet": " States of America\n\nPowered by Geoapify\n\nLet's arrange dinner Friday.\n\nI'll aim for around 7:30 unless you want later.\n\nArrange dinner at Nighthawk in Coronado.\n\nLooking up Nighthawk in Coronado…\n\nChecking Coronado…\n\nFound it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify\n\nNight Hawk\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\n\nPowered by Geoapify"
+        "snippet": " States of America\n\nPowered by Geoapify\n\nLet's arrange dinner Friday.\n\nI'll aim for around 7:30 unless you want later.\n\nArrange dinner at Nighthawk in Coronado.\n\nLooking up Nighthawk in Coronado\u2026\n\nChecking Coronado\u2026\n\nFound it \u2014 Night Hawk \u00b7 Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify\n\nNight Hawk\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\n\nPowered by Geoapify"
       },
       "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
       "at": "2026-10-15T03:47:41.211Z"
@@ -317,7 +319,7 @@
       "status": "BROWSER_PASS",
       "detail": "snippet= it to the plan. Powered by Geoapify\n\nNight Hawk\nGreek;Mediterranean\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify",
       "evidence": {
-        "snippet": "…\n\nChecking Coronado…\n\nI found 3 mediterranean options in Coronado, CA, United States of America: Night Hawk, Mimosa, Callie. Pick one and I'll attach it to the plan. Powered by Geoapify\n\nNight Hawk\nGreek;Mediterranean\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify"
+        "snippet": "\u2026\n\nChecking Coronado\u2026\n\nI found 3 mediterranean options in Coronado, CA, United States of America: Night Hawk, Mimosa, Callie. Pick one and I'll attach it to the plan. Powered by Geoapify\n\nNight Hawk\nGreek;Mediterranean\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify"
       },
       "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
       "at": "2026-10-15T03:47:52.792Z"
@@ -406,7 +408,7 @@
     {
       "id": "API_FOUNDER_LED_TIME_PATCH",
       "status": "API_PASS",
-      "detail": "planBefore=62110290-7bd1-4af4-b23c-a139fc3840e3 planAfter=62110290-7bd1-4af4-b23c-a139fc3840e3 state=plan_patched slots=[\"when_time\"] body=Updated — Friday · 9:15 PM. Same plan, same people.",
+      "detail": "planBefore=62110290-7bd1-4af4-b23c-a139fc3840e3 planAfter=62110290-7bd1-4af4-b23c-a139fc3840e3 state=plan_patched slots=[\"when_time\"] body=Updated \u2014 Friday \u00b7 9:15 PM. Same plan, same people.",
       "evidence": {
         "planId": "62110290-7bd1-4af4-b23c-a139fc3840e3",
         "corrPlan": "62110290-7bd1-4af4-b23c-a139fc3840e3",
@@ -416,7 +418,7 @@
           "action_state": "plan_patched",
           "after_context": {
             "destination": "Coronado",
-            "time_label": "Friday · 9:15 PM",
+            "time_label": "Friday \u00b7 9:15 PM",
             "venue": "Nighthawk",
             "visibility_mode": "normal",
             "when": "Friday",
@@ -434,7 +436,7 @@
           "context_snapshot": {
             "conversation_history": [
               {
-                "body": "Looking up Nighthawk in Coronado…",
+                "body": "Looking up Nighthawk in Coronado\u2026",
                 "intent": {
                   "confidence": "high",
                   "entities": {
@@ -456,7 +458,7 @@
                 "role": "opal"
               },
               {
-                "body": "Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify",
+                "body": "Found it \u2014 Night Hawk \u00b7 Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify",
                 "role": "opal"
               },
               {
@@ -464,7 +466,7 @@
                 "role": "user"
               },
               {
-                "body": "Looking for Mediterranean restaurants in Coronado…",
+                "body": "Looking for Mediterranean restaurants in Coronado\u2026",
                 "intent": {
                   "confidence": "high",
                   "entities": {
@@ -509,7 +511,7 @@
                 "role": "user"
               },
               {
-                "body": "Looking up Nighthawk in Coronado…",
+                "body": "Looking up Nighthawk in Coronado\u2026",
                 "intent": {
                   "confidence": "high",
                   "entities": {
@@ -531,7 +533,7 @@
                 "role": "opal"
               },
               {
-                "body": "Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify",
+                "body": "Found it \u2014 Night Hawk \u00b7 Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify",
                 "role": "opal"
               }
             ],
@@ -603,13 +605,13 @@
                   "date": "2026-10-15T03:44:21.272910Z",
                   "id": "0aea6ee5-b479-4d72-8c72-408cc24bc406",
                   "status": "tentative",
-                  "title": "Nighthawk · Friday · 9:15 PM"
+                  "title": "Nighthawk \u00b7 Friday \u00b7 9:15 PM"
                 },
                 {
                   "date": "2026-10-15T03:41:47.023130Z",
                   "id": "48bde20e-29cf-4451-86be-3ab7c56cce65",
                   "status": "tentative",
-                  "title": "Nighthawk · Friday · 8 PM"
+                  "title": "Nighthawk \u00b7 Friday \u00b7 8 PM"
                 }
               ],
               "upcoming_celebrations": [
@@ -697,7 +699,7 @@
             "when_time"
           ]
         },
-        "body": "Updated — Friday · 9:15 PM. Same plan, same people."
+        "body": "Updated \u2014 Friday \u00b7 9:15 PM. Same plan, same people."
       },
       "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
       "at": "2026-10-15T03:48:13.596Z"
@@ -725,5 +727,14 @@
   },
   "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
   "PASS2_UNLOCKED": "NO",
-  "FREEZE": "HOLD"
+  "FREEZE": "HOLD",
+  "gate": {
+    "API_PASS": 6,
+    "BROWSER_PASS": 13,
+    "FAIL": 0,
+    "YELLOW": 0,
+    "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
+    "FREEZE": "HOLD",
+    "PASS2_UNLOCKED": "NO"
+  }
 }
