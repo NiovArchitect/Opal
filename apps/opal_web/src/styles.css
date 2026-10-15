@@ -23602,22 +23602,58 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   opacity: 1;
 }
 
-/* Founder Reality Repair #3 — keyboard-open: hide dock AFTER composer is already hittable.
- * Rest-state clearance is permanent dock exclusion on .opal-ambient-destination (above).
- * This block only clears remaining keyboard collision once focus exists. */
+/* Founder Reality Repair #5 — Center composer vs dock + keyboard
+ *
+ * Keyboard closed: ambient keeps dock exclusion; composer sits above the
+ * protruding Center Opal mark (~46px) so dock cannot steal taps.
+ * Keyboard open (focus-within): hide dock, collapse ambient bottom inset,
+ * composer hugs keyboard (CENTER_LARGE_KEYBOARD_GAP = 0).
+ */
+.opal-ambient-destination .opal-center-chat-composer,
+.opal-ambient-destination .opal-center-v2-composer {
+  /* Clear floating dock-opal mark so INPUT/SEND are topmost hits. */
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 2;
+}
 html.opal-native-host body:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
 html.opal-native-host body:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b,
 .app:has(.opal-center-v2-composer:focus-within) .tabbar.tabbar-option-b,
 .app:has(.opal-center-chat-composer:focus-within) .tabbar.tabbar-option-b {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(110%);
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(110%) !important;
   transition: opacity 160ms ease, transform 160ms ease;
+}
+/* Authoritative keyboard-open stage: bottom = 0 (visualViewport already shrinks). */
+html.opal-native-host body:has(.opal-center-v2-composer:focus-within) .opal-ambient-destination,
+html.opal-native-host body:has(.opal-center-chat-composer:focus-within) .opal-ambient-destination,
+.app:has(.opal-center-v2-composer:focus-within) .opal-ambient-destination,
+.app:has(.opal-center-chat-composer:focus-within) .opal-ambient-destination,
+.opal-ambient-destination:has(.opal-center-v2-composer:focus-within),
+.opal-ambient-destination:has(.opal-center-chat-composer:focus-within) {
+  inset: 0 0 0 0 !important;
+  bottom: 0 !important;
+}
+.opal-ambient-destination:has(.opal-center-chat-composer:focus-within) .opal-center-chat-composer,
+.opal-ambient-destination:has(.opal-center-v2-composer:focus-within) .opal-center-v2-composer,
+.app:has(.opal-center-chat-composer:focus-within) .opal-center-chat-composer,
+.app:has(.opal-center-v2-composer:focus-within) .opal-center-v2-composer {
+  margin-bottom: 8px;
 }
 .app:has(.opal-center-v2-composer:focus-within) .opal-center-v2,
 .opal-ambient-destination:has(.opal-center-v2-composer:focus-within) .opal-center-v2,
-.app:has(.opal-center-chat-composer:focus-within) .opal-center-chat {
-  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+.app:has(.opal-center-chat-composer:focus-within) .opal-center-chat,
+.opal-ambient-destination:has(.opal-center-chat-composer:focus-within) .opal-center-chat {
+  padding-bottom: 8px;
+}
+/* Keep latest bubble reachable above composer (no clip behind composer). */
+.app:has(.opal-center-chat-composer:focus-within) .opal-center-chat-thread,
+.opal-ambient-destination:has(.opal-center-chat-composer:focus-within) .opal-center-chat-thread,
+.app:has(.opal-center-v2-composer:focus-within) .opal-center-v2-scroll,
+.opal-ambient-destination:has(.opal-center-v2-composer:focus-within) .opal-center-v2-scroll {
+  padding-bottom: 12px;
+  scroll-padding-bottom: 12px;
 }
 
 /* In-Center Context sheet — above Center chrome, not YOU */

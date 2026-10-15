@@ -590,11 +590,20 @@ defmodule OpalCore.OpalIntent do
   defp match_phrase?(%{lower: lower}, %Regex{} = re), do: Regex.match?(re, lower)
 
   defp capture_after(%{original: original, lower: lower}, %Regex{} = re) do
+    # Regex :index is byte offsets; String.slice/3 is grapheme-based.
+    # Multi-byte chars (’ —) before the match caused "something" → "omething".
     case Regex.run(re, lower, return: :index) do
       [{start, len} | _] ->
-        String.slice(original, start + len, byte_size(original))
-        |> String.trim()
-        |> strip_trailing_punct()
+        offset = start + len
+        size = byte_size(original)
+
+        if offset >= 0 and offset <= size do
+          binary_part(original, offset, size - offset)
+          |> String.trim()
+          |> strip_trailing_punct()
+        else
+          ""
+        end
 
       _ ->
         ""
@@ -605,6 +614,10 @@ defmodule OpalCore.OpalIntent do
     after_trigger = capture_after(norm, trigger_re)
 
     after_trigger
+    # Seed handoff may append "— yes, plan something"; keep first clause only.
+    |> String.split(~r/[?—–]/u)
+    |> List.first()
+    |> to_string()
     |> String.replace(~r/\b(with|for|on|at|this|next|a|an|the)\b.*$/i, "")
     |> String.trim()
     |> strip_trailing_punct()
@@ -615,7 +628,8 @@ defmodule OpalCore.OpalIntent do
     end
   end
 
-  defp vague_whats, do: MapSet.new(~w(something anything everything nothing stuff things))
+  defp vague_whats,
+    do: MapSet.new(~w(something anything everything nothing stuff things omething thing ome))
 
   defp extract_when(%{original: original, lower: lower}) do
     cond do

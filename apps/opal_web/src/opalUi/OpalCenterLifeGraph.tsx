@@ -43,11 +43,16 @@ type Props = {
   /** Manage permissions only — Context primary tap opens in-Center sheet, not YOU. */
   onOpenSettings?: () => void;
   onOpenGraphs?: () => void;
-  /** When Center confirms a plan — bubble up for Chats pill + feed Graph. */
+  /** When Center confirms a plan — bubble up for Graph surface (stay in Center). */
   onPlanCreated?: (plan: CreatedPlanSurface) => void;
   /** Product session bearer for Opal Center chat API. */
   bearer?: string;
   userId?: string | null;
+  /**
+   * Repair #5 — dock reselect: bump while Center is open to return to Center root.
+   * Must never open Talk to Opal.
+   */
+  centerRootEpoch?: number;
 };
 
 /**
@@ -129,6 +134,17 @@ function loadDismissedNudges(): Set<string> {
   }
 }
 
+/** Affirmative seed from a sample nudge — tap = yes for birthday CTAs. */
+function seedFromNudge(n: { id: string; body: string }): string {
+  const body = n.body.trim();
+  if (/birthday/i.test(body) && /want me to plan/i.test(body)) {
+    // Tap is the affirmative; keep person/context, mark as plan something.
+    return body.replace(/\?\s*$/, "") + " — yes, plan something.";
+  }
+  // Generic open window: WHO unresolved — send body as-is (BE clears stale who).
+  return body;
+}
+
 export function OpalCenterLifeGraph({
   onClose,
   onSeedGraph,
@@ -137,6 +153,7 @@ export function OpalCenterLifeGraph({
   onPlanCreated,
   bearer,
   userId,
+  centerRootEpoch = 0,
 }: Props) {
   const [phase, setPhase] = useState<Phase>("rest");
   const [query, setQuery] = useState("");
@@ -312,6 +329,15 @@ export function OpalCenterLifeGraph({
     setAttachNote(null);
     setPhase("chat");
   }
+
+  // Repair #5 — dock reselect returns to Center root; never opens Talk to Opal.
+  useEffect(() => {
+    if (!centerRootEpoch) return;
+    setPhase("rest");
+    setChatSeed(null);
+    setQuery("");
+    setAttachNote(null);
+  }, [centerRootEpoch]);
 
   /** Kept for conversation-phase DI card adjustments only (Timing/Budget/Vibe). */
   async function askAboutDay(text?: string) {
@@ -627,11 +653,11 @@ export function OpalCenterLifeGraph({
                     className="opal-center-nudge-body"
                     role="button"
                     tabIndex={0}
-                    onClick={() => openChatWith(n.body)}
+                    onClick={() => openChatWith(seedFromNudge(n))}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        openChatWith(n.body);
+                        openChatWith(seedFromNudge(n));
                       }
                     }}
                   >

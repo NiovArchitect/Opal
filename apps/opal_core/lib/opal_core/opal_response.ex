@@ -67,7 +67,9 @@ defmodule OpalCore.OpalResponse do
               # Paste J — grounded answers from real data; never invent.
               render_oracle(entities, context_map, intent_map)
 
-            :plan_create -> render_plan_create(entities, context_map)
+            :plan_create ->
+                render_plan_create(Map.put(entities, :raw_text, raw), context_map)
+
               :plan_confirm -> render_plan_confirm(entities, context_map)
               :plan_modify -> render_plan_modify(entities, context_map)
               :remember -> render_remember(entities, context_map)
@@ -233,13 +235,21 @@ defmodule OpalCore.OpalResponse do
   # --- templates -------------------------------------------------------------
 
   defp render_plan_create(entities, context) do
-    what = entity(entities, :what) || "something"
+    what = sanitize_consumer_what(entity(entities, :what)) || "something"
     when_s = entity(entities, :when) || "soon"
     who = entity(entities, :who)
     with_who = format_with_who(who)
     plan_type = entity(entities, :plan_type)
     meeting_link = entity(entities, :meeting_link)
     virtual? = plan_type == "virtual" or plan_type == :virtual
+    raw = entity(entities, :raw_text) || ""
+    affirmed? =
+      entity(entities, :nudge_affirmed) == true or entity(entities, :user_affirmed) == true or
+        OpalCore.Center.PlanContextPatch.nudge_affirmed?(raw)
+
+    # Birthday private planning: don't force a named "what" that was mangled.
+    birthday? = OpalCore.Center.PlanContextPatch.birthday_intent?(raw)
+    what = if birthday? and what in ["something", nil], do: "a birthday celebration", else: what
 
     if virtual? do
       render_virtual_plan_create(what, when_s, with_who, meeting_link, context)
@@ -247,16 +257,57 @@ defmodule OpalCore.OpalResponse do
       group_hint = plan_create_group_hint(who, context)
       taste_hint = if group_hint, do: nil, else: plan_create_taste_hint(context)
 
+      lead = "Got it: #{what} #{when_s}#{with_who}."
+
       parts =
-        # Colon keeps lead as one sentence (≤3 sentence budget with taste + ask).
-        ["Got it: #{what} #{when_s}#{with_who}."]
-        |> maybe_append(group_hint)
-        |> maybe_append(taste_hint)
-        |> Kernel.++(["Want me to set this up?"])
+        if affirmed? do
+          # Nudge tap already affirmed — do not ask "Want me to set this up?" again.
+          start =
+            if birthday? do
+              "Got it — I'll start planning privately#{with_who}."
+            else
+              "Got it — I'll start planning #{what}#{with_who}."
+            end
+
+          [start]
+          |> maybe_append(group_hint)
+          |> maybe_append(taste_hint)
+        else
+          [lead]
+          |> maybe_append(group_hint)
+          |> maybe_append(taste_hint)
+          |> Kernel.++(["Want me to set this up?"])
+        end
 
       Enum.join(parts, " ")
     end
   end
+
+  # Never paint byte-slice damage ("omething") or vague / over-captured nouns.
+  defp sanitize_consumer_what(nil), do: nil
+
+  defp sanitize_consumer_what(w) when is_binary(w) do
+    # Stop at question/em-dash tail from seed handoff ("something? — yes, plan…").
+    t =
+      w
+      |> String.trim()
+      |> String.split(~r/[?—–]/u)
+      |> List.first()
+      |> to_string()
+      |> String.trim()
+
+    down = String.downcase(t)
+
+    cond do
+      t == "" -> nil
+      down in ~w(omething thing ome anything something everything nothing stuff things) -> nil
+      String.starts_with?(down, "something") -> nil
+      String.length(t) < 3 -> nil
+      true -> t
+    end
+  end
+
+  defp sanitize_consumer_what(_), do: nil
 
   defp render_virtual_plan_create(what, when_s, with_who, meeting_link, context) do
     lead = "Got it: #{what} #{when_s}#{with_who} (online)."

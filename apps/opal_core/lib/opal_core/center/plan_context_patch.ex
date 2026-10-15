@@ -15,6 +15,7 @@ defmodule OpalCore.Center.PlanContextPatch do
     category quality_intent wants_restaurant solo
     plan_id visibility_mode surprise
     dependencies next_dependency
+    intent_scope initial_planning_visibility who_unresolved
   )
 
   @doc """
@@ -34,7 +35,15 @@ defmodule OpalCore.Center.PlanContextPatch do
           acc
 
         {:ok, "__clear__"} ->
-          Map.delete(acc, key)
+          # who/participants clear must wipe the whole person cluster.
+          if key in ~w(who primary_person participants) do
+            acc
+            |> Map.delete("who")
+            |> Map.delete("primary_person")
+            |> Map.delete("participants")
+          else
+            Map.delete(acc, key)
+          end
 
         {:ok, nil} ->
           # Missing/null in patch means unchanged (contract).
@@ -51,12 +60,21 @@ defmodule OpalCore.Center.PlanContextPatch do
       end
     end)
     |> then(fn ctx ->
-      # Slot isolation: destination/venue patches cannot invent who.
-      dest_patched? = is_binary(Map.get(patch_s, "destination"))
-      venue_patched? = is_binary(Map.get(patch_s, "venue"))
+      # Slot isolation: real destination/venue patches cannot invent who.
+      # "__clear__" is not a destination patch — and explicit who clear must win.
+      who_cleared? =
+        Map.get(patch_s, "who") == "__clear__" or
+          Map.get(patch_s, "primary_person") == "__clear__" or
+          Map.get(patch_s, "participants") == "__clear__"
+
+      dest_val = Map.get(patch_s, "destination")
+      venue_val = Map.get(patch_s, "venue")
+
+      dest_patched? = is_binary(dest_val) and dest_val != "__clear__"
+      venue_patched? = is_binary(venue_val) and venue_val != "__clear__"
       who = Map.get(prior_s, "who")
 
-      if (dest_patched? or venue_patched?) and not is_nil(who) do
+      if not who_cleared? and (dest_patched? or venue_patched?) and not is_nil(who) do
         primary_person =
           prior_s["primary_person"] ||
             who |> PlanningContext.sanitize_who(ctx["destination"]) |> primary()
@@ -131,6 +149,77 @@ defmodule OpalCore.Center.PlanContextPatch do
         patch
       end
 
+    # Intent-scope isolation: generic "someone close" must NOT inherit prior WHO.
+    patch =
+      if generic_open_window?(raw) do
+        Map.merge(patch, %{
+          "intent_scope" => "generic_open_window",
+          "who" => "__clear__",
+          "primary_person" => "__clear__",
+          "participants" => "__clear__",
+          "solo" => false
+        })
+      else
+        patch
+      end
+
+    # Birthday / celebration opportunity — owner-private by default; new scope.
+    # Possessive "River's birthday" sets WHO from the utterance (person-agnostic).
+    patch =
+      if birthday_intent?(raw) do
+        base = %{
+          "intent_scope" => "birthday",
+          "initial_planning_visibility" => "owner_private",
+          "category" => "celebration"
+        }
+
+        who_from_text =
+          case Regex.run(~r/\b([A-Z][a-zA-Z']{1,30})(?:'s|’s)\s+birthday\b/, raw) do
+            [_, name] -> name
+            _ -> nil
+          end
+
+        if is_binary(who_from_text) do
+          Map.merge(base, %{"who" => who_from_text, "primary_person" => who_from_text})
+        else
+          base
+        end
+        |> then(&Map.merge(patch, &1))
+      else
+        patch
+      end
+
+    # Scope change clears prior trip/venue so Mexico City etc. cannot ride into Friday dinner.
+    # (No Map.get/2 in guards — illegal in Elixir.)
+    patch =
+      case {Map.get(prior, "intent_scope"), Map.get(patch, "intent_scope")} do
+        {old, new} when is_binary(old) and is_binary(new) and old != new ->
+          Map.merge(patch, %{
+            "destination" => "__clear__",
+            "venue" => "__clear__",
+            "plan_id" => "__clear__",
+            "wants_restaurant" => "__clear__",
+            "when_time" => "__clear__"
+          })
+
+        {nil, new} when is_binary(new) ->
+          prior_plan_id = Map.get(prior, "plan_id")
+
+          if is_binary(prior_plan_id) do
+            # Prior durable trip without scope → entering a named opportunity clears trip slots.
+            Map.merge(patch, %{
+              "destination" => "__clear__",
+              "venue" => "__clear__",
+              "plan_id" => "__clear__"
+            })
+          else
+            patch
+          end
+
+        _ ->
+          patch
+      end
+
     patch =
       cond do
         Regex.match?(
@@ -173,6 +262,34 @@ defmodule OpalCore.Center.PlanContextPatch do
 
   def solo_intent?(_), do: false
 
+  @doc "Generic open-window opportunity — WHO unresolved; never inherit prior person."
+  def generic_open_window?(raw) when is_binary(raw) do
+    Regex.match?(
+      ~r/\b(?:someone close|someone nearby|with someone|dinner with someone|open\s+—\s+dinner|still open)\b/i,
+      raw
+    ) and not Regex.match?(~r/\bwith\s+[A-Z][a-zA-Z']{1,30}\b/, raw)
+  end
+
+  def generic_open_window?(_), do: false
+
+  @doc "Birthday / celebration planning opportunity."
+  def birthday_intent?(raw) when is_binary(raw) do
+    Regex.match?(~r/\bbirthday\b/i, raw)
+  end
+
+  def birthday_intent?(_), do: false
+
+  @doc "Nudge tap already affirmed planning — skip second 'Want me to set this up?'."
+  def nudge_affirmed?(raw) when is_binary(raw) do
+    down = String.downcase(raw)
+
+    String.starts_with?(down, "yes") or
+      Regex.match?(~r/\bwant me to plan something\b/i, raw) or
+      Regex.match?(~r/\bplan something for .+birthday\b/i, raw)
+  end
+
+  def nudge_affirmed?(_), do: false
+
   @doc "True when patch only mutates listed slots (for PLAN_ID_STABLE proofs)."
   def slots_changed(prior, next) do
     prior = stringify(prior)
@@ -198,6 +315,14 @@ defmodule OpalCore.Center.PlanContextPatch do
 
   def slots_changed_by_patch(_), do: []
 
+  # Clear must win before generic who write (otherwise sanitize nil keeps prior WHO).
+  defp put_slot(acc, "who", "__clear__") do
+    acc
+    |> Map.delete("who")
+    |> Map.delete("primary_person")
+    |> Map.delete("participants")
+  end
+
   defp put_slot(acc, "who", value) do
     clean = PlanningContext.sanitize_who(value, acc["destination"])
 
@@ -222,6 +347,11 @@ defmodule OpalCore.Center.PlanContextPatch do
     |> Map.delete("who")
     |> Map.delete("primary_person")
     |> Map.delete("participants")
+  end
+
+  defp put_slot(acc, key, "__clear__")
+       when key in ~w(destination venue plan_id wants_restaurant when_time) do
+    Map.delete(acc, key)
   end
 
   defp put_slot(acc, "surprise", false) do

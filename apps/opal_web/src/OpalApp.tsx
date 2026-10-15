@@ -917,6 +917,8 @@ export function OpalApp() {
   /** Chats|Calls surface ownership — Chat must never leave Calls mode visible. */
   const [commSurface, setCommSurface] = useState<"chats" | "calls">("chats");
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
+  /** Repair #5 — bump to reset Center to root while already open (dock reselect). */
+  const [centerRootEpoch, setCenterRootEpoch] = useState(0);
   /** Figma 1075:644 Solo = same OpalAmbient, SELF ONLY participant context. */
   const [opalAmbientMode, setOpalAmbientMode] = useState<"global" | "solo">("solo");
   const [graphCreateOpen, setGraphCreateOpen] = useState(false);
@@ -7530,21 +7532,24 @@ export function OpalApp() {
               <button
                 type="button"
                 className={`dock-opal ${opalAmbientOpen ? "is-listening" : "is-rest"}`}
-                aria-label="Talk to Opal"
+                aria-label="Opal Center"
                 data-testid="member-tab-opal"
                 data-figma-dock="1114:2"
                 data-figma-center-opal="645:3"
                 data-opal-state={opalAmbientOpen ? "listening" : "rest"}
                 data-dock-active={opalAmbientOpen ? "true" : "false"}
                 onClick={() => {
-                  // Leave conversation → Global Opal location (Center Opal), not false Home active.
+                  // Leave conversation → Center root (never Talk to Opal from dock).
                   if (activeChatId) productRealtime.leaveConversation(activeChatId);
                   setActiveChatId(null);
                   setCallSurface(null);
                   setCallsGateNote(null);
                   setGraphCreateOpen(false);
                   setGraphCreateContext({});
-                  // Solo Opal 1075:644 is zero-network default; ?opal_global_opal=1 for 618:902.
+                  if (opalAmbientOpen) {
+                    setCenterRootEpoch((n) => n + 1);
+                    return;
+                  }
                   try {
                     const q = new URLSearchParams(window.location.search);
                     setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
@@ -11153,6 +11158,7 @@ export function OpalApp() {
             <OpalCenterLifeGraph
               bearer={session?.access_token}
               userId={session?.user_id || null}
+              centerRootEpoch={centerRootEpoch}
               onClose={() => setOpalAmbientOpen(false)}
               /* Context sheet owns primary tap; this prop is Manage permissions → YOU only. */
               onOpenSettings={() => {
@@ -11171,14 +11177,14 @@ export function OpalApp() {
                 );
               }}
               onPlanCreated={(plan) => {
+                // SUBJECT≠RECIPIENT / CENTER_SEND_STAYS_CENTER:
+                // Persist Graph surface + note; never leave Center or open Chats.
                 setCreatedPlanSurfaces((prev) => {
                   const next = [plan, ...prev.filter((p) => p.id !== plan.id)].slice(0, 24);
                   persistCreatedPlans(next);
                   return next;
                 });
                 setCallsGateNote(`${plan.title} is on your Graph.`);
-                setOpalAmbientOpen(false);
-                setTab("chats");
               }}
             />
           ) : (
@@ -11251,7 +11257,7 @@ export function OpalApp() {
           <button
             type="button"
             className={`dock-opal ${opalAmbientOpen ? "is-listening" : "is-rest"}`}
-            aria-label="Talk to Opal"
+            aria-label="Opal Center"
             data-testid="member-tab-opal"
             data-brand-role="emblem-only"
             data-opal-state={opalAmbientOpen ? "listening" : "rest"}
@@ -11259,17 +11265,20 @@ export function OpalApp() {
             data-figma-dock="1114:2"
             data-figma-center-opal="645:3"
             onClick={() => {
-              // Center Opal opens Solo by default (1075:644); toggle closed if already open.
-              setOpalAmbientOpen((v) => {
-                if (v) return false;
-                try {
-                  const q = new URLSearchParams(window.location.search);
-                  setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
-                } catch {
-                  setOpalAmbientMode("solo");
-                }
-                return true;
-              });
+              // Repair #5 dock reselect contract:
+              // other tab → Center root; already on Center root → no-op/scroll root;
+              // inside Talk to Opal → Center root. Never open Talk to Opal from dock.
+              if (opalAmbientOpen) {
+                setCenterRootEpoch((n) => n + 1);
+                return;
+              }
+              try {
+                const q = new URLSearchParams(window.location.search);
+                setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+              } catch {
+                setOpalAmbientMode("solo");
+              }
+              setOpalAmbientOpen(true);
             }}
           >
             <span

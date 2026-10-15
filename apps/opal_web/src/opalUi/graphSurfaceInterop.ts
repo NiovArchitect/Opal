@@ -156,15 +156,25 @@ export function findCreatedPlanForCard(
   );
 }
 
-export function createdPlanToChatRow(plan: CreatedPlanSurface): ChatsHomeRow {
-  const who = plan.who || "Friend";
-  const title = plan.title || `Plans with ${who}`;
+/**
+ * Repair #5 — SUBJECT≠RECIPIENT.
+ * Owner-private Center plans must NOT invent a human Direct row.
+ * Only project into Chats when a real conversation_id was shared.
+ */
+export function createdPlanToChatRow(plan: CreatedPlanSurface): ChatsHomeRow | null {
+  const cid = (plan.conversationId || "").trim();
+  // Reject synthetic seed-chat-* and empty — those caused duplicate Maya Directs + "Chat"/"C".
+  if (!cid || /^seed-chat-/i.test(cid) || /^local-plan-/i.test(cid)) {
+    return null;
+  }
+  const who = sanitizeConsumerLabel(plan.who) || "Friend";
+  const title = sanitizeConsumerLabel(plan.title) || `Plans with ${who}`;
   const when = plan.when || "";
   const label = [title.replace(/\s+with\s+.+$/i, "").trim() || title, when]
     .filter(Boolean)
     .join(" · ");
   return {
-    id: plan.conversationId || `seed-chat-${plan.id}`,
+    id: cid,
     name: who,
     kind: "direct",
     preview: "Opal set this up",
@@ -173,12 +183,32 @@ export function createdPlanToChatRow(plan: CreatedPlanSurface): ChatsHomeRow {
     planConsequence: {
       // Paste W5 — unconfirmed composer plans are forming/pending, never ready/locked.
       state: "forming",
-      label: label || title,
+      label: sanitizeConsumerLabel(label) || title,
       planId: plan.id,
       tone: inferPlanPillTone(label || title),
     },
     avatarTone: "#00E5FF",
   };
+}
+
+/** Drop byte-slice damage / vague nouns from consumer-visible plan chips. */
+export function sanitizeConsumerLabel(raw: string | null | undefined): string | null {
+  if (raw == null) return null;
+  const t = String(raw).trim();
+  if (!t) return null;
+  const down = t.toLowerCase();
+  if (
+    /^(omething|thing|ome|something|anything|everything|nothing|stuff|things)$/i.test(
+      down,
+    )
+  ) {
+    return null;
+  }
+  // "Omething · Friday" / "Got it: thing soon…" chips
+  if (/^omething\b/i.test(t) || /^thing\b/i.test(t)) {
+    return t.replace(/^(omething|thing)\b/i, "Plans").replace(/\s+/g, " ").trim();
+  }
+  return t;
 }
 
 export function travelLabelFor(state: TravelState, etaLabel?: string | null): string {
@@ -215,10 +245,32 @@ export function mergeChatRowsWithCreated(
   created: CreatedPlanSurface[],
 ): ChatsHomeRow[] {
   if (!created.length) return base;
-  const createdRows = created.map(createdPlanToChatRow);
-  const byName = new Set(createdRows.map((r) => r.name.toLowerCase()));
-  const rest = base.filter((r) => !byName.has(r.name.toLowerCase()));
-  return [...createdRows, ...rest];
+  // Private Center plans (no real conversationId) stay Graph-only — no invented Directs.
+  const createdRows = created
+    .map(createdPlanToChatRow)
+    .filter((r): r is ChatsHomeRow => r != null);
+  if (!createdRows.length) return base;
+  // Dedupe by conversation id (never two Maya Directs from two private plans).
+  const byId = new Map<string, ChatsHomeRow>();
+  for (const r of createdRows) {
+    if (!byId.has(r.id)) byId.set(r.id, r);
+  }
+  const uniqueCreated = [...byId.values()];
+  const createdIds = new Set(uniqueCreated.map((r) => r.id));
+  const rest = base.filter((r) => !createdIds.has(r.id));
+  // Overlay plan pill onto existing same-id row instead of inventing a second person row.
+  const overlaid = rest.map((r) => {
+    const fromCreated = uniqueCreated.find((c) => c.id === r.id);
+    if (!fromCreated?.planConsequence) return r;
+    return {
+      ...r,
+      planConsequence: fromCreated.planConsequence,
+      preview: r.preview || fromCreated.preview,
+    };
+  });
+  const restIds = new Set(overlaid.map((r) => r.id));
+  const novel = uniqueCreated.filter((c) => !restIds.has(c.id));
+  return [...novel, ...overlaid];
 }
 
 export function mergeFeedWithCreated(
@@ -246,6 +298,9 @@ export function resolveGraphSurfaceCard(
 /**
  * Parse Center reply metadata for a confirmed plan.
  * Backend shape: metadata.intent = { intent: "plan_confirm", entities: { plan_id, title, who, when, what, confirmed } }
+ *
+ * Repair #5: require real plan_confirm. Bare plan_id on plan_create / planning_context
+ * must NOT surface as CreatedPlan → Chats nav / Maya Direct row.
  */
 export function planFromOpalMetadata(
   metadata: Record<string, unknown> | null | undefined,
@@ -254,10 +309,12 @@ export function planFromOpalMetadata(
   const intent = (metadata.intent || metadata) as Record<string, unknown>;
   const intentName = String(intent.intent || intent["intent"] || "");
   const entities = (intent.entities || intent) as Record<string, unknown>;
-  const confirmed = entities.confirmed === true || intentName === "plan_confirm";
+  const confirmed =
+    entities.confirmed === true || intentName === "plan_confirm";
   const planId = (entities.plan_id || entities.planId || entities.id) as string | undefined;
-  if (!confirmed && !planId) return null;
-  if (intentName && intentName !== "plan_confirm" && !planId) return null;
+  // Only emit after explicit confirm — ignore durable planning plan_id on asks.
+  if (intentName !== "plan_confirm" || !confirmed) return null;
+  if (!planId || typeof planId !== "string") return null;
 
   const whoRaw = entities.who;
   const who = Array.isArray(whoRaw)
@@ -265,25 +322,28 @@ export function planFromOpalMetadata(
     : String(whoRaw || entities.person || "Friend");
   const whatRaw = entities.what ? String(entities.what) : "";
   // Paste W4 Phase 1 — echo user words; never invent "Dinner" / Movie titles.
-  const what = whatRaw.trim() || "plans";
-  const titleFromEntity = String(entities.title || "").trim();
+  // Repair #5 — never durable-paint "Omething" / "thing" from byte-slice damage.
+  const whatClean = sanitizeConsumerLabel(whatRaw.trim()) || "plans";
+  const titleFromEntity = sanitizeConsumerLabel(String(entities.title || "").trim()) || "";
   const title =
     titleFromEntity ||
-    `${planTitleWithFriend(what, who)}${entities.when ? ` ${entities.when}` : ""}`.trim();
+    `${planTitleWithFriend(whatClean, who)}${entities.when ? ` ${entities.when}` : ""}`.trim();
   const id =
     (typeof planId === "string" && planId) ||
     localPlanSurfaceId(who, title);
+  const conversationId = entities.conversation_id
+    ? String(entities.conversation_id)
+    : null;
 
   return {
     id,
     title,
     who,
     when: entities.when ? String(entities.when) : null,
-    what: what.toLowerCase(),
-    place: planTitleFromUserWords(what),
-    conversationId: entities.conversation_id
-      ? String(entities.conversation_id)
-      : null,
+    what: whatClean.toLowerCase(),
+    place: planTitleFromUserWords(whatClean),
+    // Null conversationId = owner-private Center plan (no human Direct projection).
+    conversationId,
     sharedPlanId: typeof planId === "string" ? planId : id,
     createdAt: new Date().toISOString(),
   };
@@ -303,14 +363,15 @@ export function planFromLocalConfirm(opts: {
   const possessiveWho = prior.match(
     /\b([A-Z][a-z]+)(?:'s)\s+(?:birthday|dinner|plans?)\b/,
   );
-  const who = withWho?.[1] || possessiveWho?.[1] || "Maya";
+  // Person-agnostic: never hardcode Maya. Unresolved who stays Friend.
+  const who = withWho?.[1] || possessiveWho?.[1] || "Friend";
   const whenMatch = prior.match(
     /\b(Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday|tonight|tomorrow|this weekend)\b/i,
   );
-  const when = whenMatch?.[1] || "Friday";
+  const when = whenMatch?.[1] || "soon";
   // Paste W4 Phase 1 — include beach + echo user words; never default to dinner.
   const whatMatch = prior.match(
-    /\b(dinner|brunch|lunch|hike|coffee|drinks|beach|walk|church|movie)\b/i,
+    /\b(dinner|brunch|lunch|hike|coffee|drinks|beach|walk|church|movie|birthday)\b/i,
   );
   const activity = (whatMatch?.[1] || "plans").toLowerCase();
   const title = planTitleWithFriend(activity, who);
@@ -322,6 +383,8 @@ export function planFromLocalConfirm(opts: {
     when,
     what: activity,
     place: planTitleFromUserWords(activity),
+    // Local founder confirm is Center-private until explicit share.
+    conversationId: null,
     sharedPlanId: id,
     createdAt: new Date().toISOString(),
   };

@@ -11,9 +11,6 @@ defmodule OpalCore.Center.ProviderAction do
   alias OpalCore.Events.Publisher
   alias OpalCore.SocialFlow
   alias OpalCore.SocialFlow.SharedPlan
-  alias OpalCore.Messages
-  alias OpalCore.Accounts.User
-  alias OpalCore.Relationships
 
   @doc """
   Enqueue a places search for an explicit destination. Returns {:ok, job}.
@@ -231,72 +228,9 @@ defmodule OpalCore.Center.ProviderAction do
   defp format_who_label([n | _]) when is_binary(n), do: n
   defp format_who_label(_), do: nil
 
-  defp maybe_project_peer_chat(user_id, planning, plan, venue_name) do
-    who = planning["who"] || planning["primary_person"]
-    name = format_who_label(who)
-
-    peer_id =
-      cond do
-        is_binary(name) ->
-          Relationships.contacts_with_types(user_id)
-          |> Enum.find_value(fn c ->
-            display = to_string(c[:display_name] || "")
-            uid = c[:contact_user_id]
-
-            if is_binary(uid) and String.contains?(String.downcase(display), String.downcase(name)) do
-              uid
-            else
-              nil
-            end
-          end) || lookup_user_by_name(name)
-
-        true ->
-          nil
-      end
-
-    if is_binary(peer_id) and peer_id != user_id do
-      case Messages.ensure_direct_conversation(user_id, peer_id) do
-        {:ok, direct} ->
-          cid = direct.conversation_id || direct[:conversation_id]
-          dest = planning["destination"] || "there"
-          when_s = planning["when"] || plan.time_label || "soon"
-
-          body =
-            "Planning note: #{venue_name} in #{dest} · #{when_s}. " <>
-              "I'll keep this on our shared plan."
-
-          _ =
-            Messages.accept_message(%{
-              conversation_id: cid,
-              sender_user_id: user_id,
-              client_message_id: "venue_attach:#{plan.id}:#{:erlang.phash2(venue_name)}",
-              body: body
-            })
-
-          true
-
-        _ ->
-          false
-      end
-    else
-      false
-    end
-  rescue
-    _ -> false
-  end
-
-  defp lookup_user_by_name(name) when is_binary(name) and name != "" do
-    like = "#{String.trim(name)}%"
-
-    from(u in User,
-      where: ilike(u.display_name, ^like) or ilike(u.handle, ^like),
-      select: u.id,
-      limit: 1
-    )
-    |> Repo.one()
-  end
-
-  defp lookup_user_by_name(_), do: nil
+  # SUBJECT_PERSON ≠ MESSAGE_RECIPIENT. Venue attach stays on Center/Graph.
+  # Shared-safe human projection is a separate explicit authority path.
+  defp maybe_project_peer_chat(_user_id, _planning, _plan, _venue_name), do: false
 
   defp paint_center_attach(user_id, plan, venue_name, dest) do
     alias OpalCore.OpalConversations

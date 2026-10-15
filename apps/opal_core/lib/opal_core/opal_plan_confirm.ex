@@ -1,11 +1,13 @@
 defmodule OpalCore.OpalPlanConfirm do
   @moduledoc """
-  Screenshot bug 4 — when the user affirms "Want me to set this up?", create a
-  real SharedPlan via Messages.ensure_direct + SocialFlow.create_tentative.
+  When the user affirms Center planning, create a durable SharedPlan.
+
+  SUBJECT_PERSON_ID ≠ MESSAGE_RECIPIENT_ID unless the user explicitly shares.
+  Default Center confirm uses `create_tentative_plan_from_center` (owner-private).
+  Never auto-opens a human direct conversation or paints Opal transcript there.
   """
 
   alias OpalCore.Accounts.User
-  alias OpalCore.Messages
   alias OpalCore.Relationships
   alias OpalCore.Repo
   alias OpalCore.SocialFlow
@@ -15,63 +17,102 @@ defmodule OpalCore.OpalPlanConfirm do
   Execute a `:plan_confirm` intent.
 
   Returns `{:ok, result_map}` with `:title`, `:what`, `:when`, `:who`, `:plan_id`,
-  `:conversation_id` on success, or `{:error, reason}`.
+  `:conversation_id` (nil for private Center plans) on success, or `{:error, reason}`.
   Never invents a meeting URL.
   """
   def execute(user_id, entities, context)
       when is_binary(user_id) and is_map(entities) and is_map(context) do
-    what = present(entities[:what] || entities["what"]) || "plans"
+    what = sanitize_what(entities[:what] || entities["what"]) || "plans"
     when_s = present(entities[:when] || entities["when"])
     who = normalize_who(entities[:who] || entities["who"])
     plan_type = normalize_plan_type(entities)
     meeting_link = resolve_meeting_link(user_id, entities, plan_type)
+    share? = explicit_share?(entities)
 
     title = build_title(what, when_s, who)
     time_label = when_s
-
     location = if plan_type == "virtual", do: "Online", else: what
 
-    case resolve_peer(user_id, who, context) do
-      {:ok, peer_id} ->
-        with {:ok, direct} <- Messages.ensure_direct_conversation(user_id, peer_id),
-             cid when is_binary(cid) <- direct.conversation_id || direct[:conversation_id],
-             {:ok, plan, _participants} <-
-               SocialFlow.create_tentative_plan_from_conversation(cid, user_id, %{
-                 "title" => title,
-                 "place" => location,
-                 "location" => location,
-                 "time_label" => time_label,
-                 "plan_type" => plan_type,
-                 "meeting_link" => meeting_link
-               }) do
-          _ = maybe_persist_usual_link(user_id, meeting_link, entities)
+    # Default: owner-private Center plan. Subject person stays subject only.
+    if share? do
+      case resolve_peer(user_id, who, context) do
+        {:ok, _peer_id} ->
+          # Explicit share still creates Center-owned plan first; human projection
+          # is a separate authority path (not auto message).
+          create_center_private(user_id, title, location, time_label, what, when_s, who, plan_type, meeting_link, entities)
 
-          {:ok,
-           %{
-             title: plan.title || title,
-             what: what,
-             when: when_s,
-             who: who,
-             plan_id: plan.id,
-             conversation_id: cid,
-             status: plan.status || "tentative",
-             plan_type: plan.plan_type || plan_type,
-             meeting_link: plan.meeting_link
-           }}
-        else
-          {:error, reason} -> {:error, reason}
-          _ -> {:error, :create_failed}
-        end
+        {:error, :no_peer} ->
+          {:error, :need_who}
 
-      {:error, :no_peer} ->
-        # No named peer — still create a durable plan on a self-note conversation
-        # is not supported (source requires conversation members). Ask who.
-        {:error, :need_who}
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      create_center_private(user_id, title, location, time_label, what, when_s, who, plan_type, meeting_link, entities)
+    end
+  end
+
+  defp create_center_private(user_id, title, location, time_label, what, when_s, who, plan_type, meeting_link, entities) do
+    case SocialFlow.create_tentative_plan_from_center(user_id, %{
+           "title" => title,
+           "place" => location,
+           "location" => location,
+           "time_label" => time_label || "Open window",
+           "plan_type" => plan_type,
+           "meeting_link" => meeting_link,
+           "subject_who" => who
+         }) do
+      {:ok, plan, _participants} ->
+        _ = maybe_persist_usual_link(user_id, meeting_link, entities)
+
+        {:ok,
+         %{
+           title: plan.title || title,
+           what: what,
+           when: when_s,
+           who: who,
+           plan_id: plan.id,
+           conversation_id: nil,
+           status: plan.status || "tentative",
+           plan_type: plan.plan_type || plan_type,
+           meeting_link: plan.meeting_link,
+           initial_planning_visibility: "owner_private"
+         }}
 
       {:error, reason} ->
         {:error, reason}
     end
   end
+
+  defp explicit_share?(entities) do
+    entities[:share_with_subject] == true or entities["share_with_subject"] == true or
+      entities[:reveal_to_subject] == true or entities["reveal_to_subject"] == true
+  end
+
+  defp sanitize_what(nil), do: nil
+
+  defp sanitize_what(w) when is_binary(w) do
+    t =
+      w
+      |> String.trim()
+      |> String.split(~r/[?—–]/u)
+      |> List.first()
+      |> to_string()
+      |> String.trim()
+
+    down = String.downcase(t)
+
+    cond do
+      t == "" -> nil
+      # Possessive/byte-slice damage: "omething" / "thing" from "something"
+      down in ~w(omething thing ome anything) -> nil
+      down in ~w(something anything everything nothing stuff things) -> nil
+      String.starts_with?(down, "something") -> nil
+      true -> present(t)
+    end
+  end
+
+  defp sanitize_what(_), do: nil
 
   def execute(_, _, _), do: {:error, :invalid}
 

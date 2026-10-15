@@ -57,6 +57,21 @@ defmodule OpalCore.Center.ActionOrchestrator do
     enriched =
       enriched
       |> Map.update(:who, nil, &PlanningContext.sanitize_who(&1, dest_hint))
+      |> then(fn e ->
+        if PlanContextPatch.nudge_affirmed?(raw_text) do
+          Map.put(e, :nudge_affirmed, true)
+        else
+          e
+        end
+      end)
+      |> then(fn e ->
+        # Generic open window: force who unset on this turn (do not re-inject prior).
+        if PlanContextPatch.generic_open_window?(raw_text) do
+          e |> Map.delete(:who) |> Map.delete("who") |> Map.put(:who_unresolved, true)
+        else
+          e
+        end
+      end)
       |> Map.reject(fn {_k, v} -> is_nil(v) or v == "" or v == [] end)
 
     # Compose patch + turn extract; patch wins on explicit corrections.

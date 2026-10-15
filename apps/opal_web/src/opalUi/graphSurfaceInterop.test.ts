@@ -34,10 +34,46 @@ describe("graphSurfaceInterop", () => {
     expect(card.detail).toBe("Friday · dinner");
     expect(card.startsAt).toBeUndefined();
     expect(card.meta).toMatch(/Forming|pending/i);
-    const row = createdPlanToChatRow(plan);
-    expect(row.planConsequence?.planId).toBe(id);
-    expect(row.planConsequence?.state).toBe("forming");
-    expect(row.name).toBe("Maya");
+    // Owner-private Center plan (no conversationId) must NOT invent a Direct row.
+    expect(createdPlanToChatRow(plan)).toBeNull();
+    const shared = createdPlanToChatRow({
+      ...plan,
+      conversationId: "conv-maya-real-uuid",
+    });
+    expect(shared?.planConsequence?.planId).toBe(id);
+    expect(shared?.planConsequence?.state).toBe("forming");
+    expect(shared?.name).toBe("Maya");
+    expect(shared?.id).toBe("conv-maya-real-uuid");
+  });
+
+  it("Repair #5: plan_create metadata with bare plan_id does not surface", () => {
+    expect(
+      planFromOpalMetadata({
+        intent: {
+          intent: "plan_create",
+          entities: { plan_id: "stale-plan", who: ["Maya"], what: "omething" },
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it("Repair #5: sanitizes Omething labels and skips private plan chat projection", () => {
+    const fromMeta = planFromOpalMetadata({
+      intent: {
+        intent: "plan_confirm",
+        entities: {
+          confirmed: true,
+          plan_id: "plan-omething",
+          title: "Omething",
+          who: ["Maya"],
+          when: "Friday",
+          what: "omething",
+        },
+      },
+    });
+    expect(fromMeta?.title).not.toMatch(/omething/i);
+    expect(fromMeta?.conversationId).toBeNull();
+    expect(createdPlanToChatRow(fromMeta!)).toBeNull();
   });
 
   it("Paste W5 — overlays idea cards as forming with people+when", () => {
@@ -100,18 +136,44 @@ describe("graphSurfaceInterop", () => {
   });
 
   it("merges created plans into chats and feed", () => {
-    const plan = {
+    const privatePlan = {
       id: "local-plan-maya-dinner-friday",
       title: "Dinner with Maya",
       who: "Maya",
       when: "Friday",
       createdAt: new Date().toISOString(),
     };
-    const chats = mergeChatRowsWithCreated(FOUNDER_CHATS_PLAN_PILL_ROWS, [plan]);
-    expect(chats[0]?.name).toBe("Maya");
-    expect(chats[0]?.planConsequence?.planId).toBe(plan.id);
-    const feed = mergeFeedWithCreated([], [plan]);
-    expect(feed[0]?.id).toBe(plan.id);
+    // Private Center plan: chats unchanged (no invented Maya Direct).
+    const chatsPrivate = mergeChatRowsWithCreated(FOUNDER_CHATS_PLAN_PILL_ROWS, [
+      privatePlan,
+    ]);
+    expect(chatsPrivate.filter((r) => r.name === "Maya").length).toBeLessThanOrEqual(
+      FOUNDER_CHATS_PLAN_PILL_ROWS.filter((r) => r.name === "Maya").length,
+    );
+    expect(chatsPrivate.some((r) => r.id === `seed-chat-${privatePlan.id}`)).toBe(
+      false,
+    );
+
+    const sharedPlan = {
+      ...privatePlan,
+      conversationId: "conv-shared-maya",
+    };
+    const chats = mergeChatRowsWithCreated(FOUNDER_CHATS_PLAN_PILL_ROWS, [sharedPlan]);
+    expect(chats.some((r) => r.id === "conv-shared-maya")).toBe(true);
+    // Two private plans with same who must not invent extra Maya Directs.
+    const baseSeedCount = FOUNDER_CHATS_PLAN_PILL_ROWS.filter((r) =>
+      /^seed-chat-/i.test(r.id),
+    ).length;
+    const dup = mergeChatRowsWithCreated(FOUNDER_CHATS_PLAN_PILL_ROWS, [
+      privatePlan,
+      { ...privatePlan, id: "local-plan-maya-omething", title: "Omething" },
+    ]);
+    const seedAfter = dup.filter((r) => /^seed-chat-/i.test(r.id)).length;
+    expect(seedAfter).toBe(baseSeedCount);
+    expect(dup.filter((r) => r.preview === "Opal set this up").length).toBe(0);
+
+    const feed = mergeFeedWithCreated([], [privatePlan]);
+    expect(feed[0]?.id).toBe(privatePlan.id);
     expect(feed[0]?.kind).toBe("graph");
   });
 });
