@@ -46,23 +46,13 @@ defmodule OpalCore.SocialFlow do
       candidate = output["candidate"]
 
       cond do
-        result_type == "no_plan" or is_nil(candidate) ->
+        result_type == "no_plan" ->
           {:ok, :no_proposal}
 
-        result_type == "commitment_candidate" ->
-          handle_commitment_candidate(
-            conversation_id,
-            requester_user_id,
-            candidate,
-            source_message_ids,
-            trace_id
-          )
-
-        result_type == "revision_candidate" ->
-          handle_revision_candidate(conversation_id, requester_user_id, candidate, trace_id)
-
-        # Repair #11 — chat-text confirmation ("I confirm") of a pending revision.
-        # Never a free-floating reply: always routes to confirm_pending_revision/1.
+        # Repair #11 (two-user harness): revision_confirmation carries its
+        # decision in output["decision"] and needs no candidate object. It must
+        # be evaluated before the is_nil(candidate) guard, or NL "I confirm"
+        # is unreachable whenever the classifier omits a candidate.
         result_type == "revision_confirmation" ->
           decision =
             case (candidate || %{})["decision"] || output["decision"] do
@@ -76,6 +66,21 @@ defmodule OpalCore.SocialFlow do
             decision: decision,
             trace_id: trace_id
           })
+
+        is_nil(candidate) ->
+          {:ok, :no_proposal}
+
+        result_type == "commitment_candidate" ->
+          handle_commitment_candidate(
+            conversation_id,
+            requester_user_id,
+            candidate,
+            source_message_ids,
+            trace_id
+          )
+
+        result_type == "revision_candidate" ->
+          handle_revision_candidate(conversation_id, requester_user_id, candidate, trace_id)
 
         result_type == "plan_candidate" ->
           insert_plan_proposal(%{

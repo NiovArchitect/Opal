@@ -1740,6 +1740,16 @@ defmodule OpalCoreWeb.ConversationChannel do
   defp social_flow_visible_to?(payload, user_id) do
     audience_ok? = payload["audience_user_id"] == user_id
 
+    # Repair #11 (two-user harness): a "shared"-visibility signal is visible to
+    # every member on the conversation topic (membership was verified at join).
+    # Without this, the channel dropped ALL shared proposal/revision signals —
+    # no client ever received social_flow:signal or social_flow:revision pushes.
+    signal_shared? =
+      case payload["signal"] do
+        %{"visibility" => "shared"} -> true
+        _ -> false
+      end
+
     private_owner_ok?(
       payload["insight"],
       "privacy_class",
@@ -1797,6 +1807,7 @@ defmodule OpalCoreWeb.ConversationChannel do
         user_id,
         false
       ) or
+      signal_shared? or
       not private_payload?(payload)
   end
 
