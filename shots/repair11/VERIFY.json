@@ -1,7 +1,7 @@
 {
   "branch": "muse/repair-11",
   "capability_loss": 0,
-  "commit": "64fc137f",
+  "commit": "0447e856",
   "date": "2026-10-15",
   "dead_actions": 0,
   "fake_success": 0,
@@ -33,5 +33,6 @@
     "provenance": "LIVE-SESSION (two distinct authenticated channel sessions, real backend; physical-phone pass NOT_CLAIMED)",
     "tests": 11
   },
-  "verification": "phase3-fix-test-fix-test + directive-S5-two-user-harness"
+  "verification": "phase3-fix-test-fix-test + directive-S5-two-user-harness",
+  "note": "commit field = code+evidence tip at verification time; pushed tip may be one docs-only commit ahead (see REPAIR11_REPORT.md). Test results unaffected (docs-only delta)."
 }
