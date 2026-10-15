@@ -20415,6 +20415,14 @@ button.alignment-choice:focus-visible,
   min-height: 36px;
   max-height: 100px; /* ~5 lines @ 20px + padding */
   height: auto;
+  /* Repair #11 (Task D) — CSS-native auto-grow: the textarea expands with
+     content up to max-height, then scrolls internally. The Repair #6 rule
+     anticipated JS autosize that was never wired (rows={1} with no resize
+     handler), so multiline text sat in a 1-line box. `field-sizing: content`
+     needs no JS; where unsupported it degrades to the previous 1-row +
+     internal-scroll behavior (no regression). Mic/send stay bottom-aligned
+     via the composer's align-items: flex-end. */
+  field-sizing: content;
   padding-top: 8px;
   padding-bottom: 8px;
   font-size: 16px; /* prevent iOS auto-zoom */
