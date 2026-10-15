@@ -441,6 +441,30 @@ function projectionFromInbox(event: InboxPlanEvent): ChatPreview["planProjection
   return clientPlanFields(event.projection, event.conversation_id);
 }
 
+/**
+ * Repair #11 (B3-web) — plan organizer/lead visibility.
+ * The backend plan projection currently carries NO organizer/lead field
+ * (see NEEDED FROM SOCIALFLOW AGENT in the repair report), so this reads
+ * defensively and returns null when absent. Never invents a lead.
+ */
+function planLeadFromProjection(plan: unknown): string | null {
+  if (!plan || typeof plan !== "object") return null;
+  const p = plan as Record<string, unknown>;
+  for (const key of [
+    "organizer_name",
+    "organizer",
+    "lead_name",
+    "lead",
+    "host_name",
+    "host",
+    "created_by_name",
+  ]) {
+    const v = p[key];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return null;
+}
+
 function DockUnread({ tabId, count }: { tabId: string; count: number }) {
   if (tabId !== "chats" || count < 1) return null;
   return (
@@ -5155,6 +5179,7 @@ export function OpalApp() {
                     : null,
               };
             })()}
+            leadName={planLeadFromProjection(activeChat.planProjection)}
           />
         ) : null}
 
@@ -9947,6 +9972,10 @@ export function OpalApp() {
         <GraphDetailSheet
           cardId={graphDetailCardId}
           reality={canonicalGraph}
+          leadName={planLeadFromProjection(
+            chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)
+              ?.planProjection,
+          )}
           entrySource={graphDetailEntrySource}
           onRepeat={openRepeatFromPast}
           onAddPeople={() => {

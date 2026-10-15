@@ -7,6 +7,12 @@
  */
 import React from "react";
 import { FOUNDER_HOME_FEED, happeningInLabel } from "./founderGraphSeed";
+import {
+  createdPlanGraphOverlay,
+  createdPlanToFeedCard,
+  findCreatedPlanForCard,
+  loadCreatedPlans,
+} from "./graphSurfaceInterop";
 import { GRAPH_AUTHORITY_CHROME, resolveGraphPlaceTitle } from "./graphAuthorityChrome";
 import {
   isPastCanonicalGraph,
@@ -20,6 +26,8 @@ import {
   activitySupportsTravelCtas,
   inferActivityCapabilities,
 } from "./activityCapabilities";
+import { GraphConvoyPanel } from "./GraphConvoyPanel";
+import type { TravelState } from "./journeyPresence";
 
 export type GraphSegment = {
   id: string;
@@ -70,19 +78,46 @@ type Props = {
    * REPEAT_MUTATES_OLD_GRAPH = 0 — must not edit the historical plan.
    */
   onRepeat?: (graph: CanonicalGraph) => void;
+  /** Paste W 3.3 — Add someone → existing add_members search. */
+  onAddPeople?: () => void;
+  /** Paste W 3.1 — Idea → planning flow prefilled. */
+  onStartPlanning?: (hint: { id: string; title: string; who?: string }) => void;
   /** Optional entry source for Back semantics proof */
-  entrySource?: "home" | "graphs";
+  entrySource?: "home" | "graphs" | "chats" | "opal";
   /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
   reality?: CanonicalGraph | null;
+  /**
+   * Repair #11 (B3-web) — plan organizer/lead display name. Rendered only when
+   * a real value is provided; never invented. Null today — the plan projection
+   * carries no organizer field (see repair report, NEEDED FROM SOCIALFLOW AGENT).
+   */
+  leadName?: string | null;
+  /** LiveExperience arrival broadcast (conversation channel). */
+  onBroadcastArrival?: (state: TravelState) => void | Promise<void>;
+  /** LiveExperience ETA share while en route. */
+  onBroadcastEta?: (payload: {
+    arrivalWindowLabel: string;
+    durationMinutes: number;
+  }) => void | Promise<void>;
+  conversationId?: string | null;
 };
 
-function parseWhenParts(detail?: string): { dayKicker: string; timeLabel: string } {
+function parseWhenParts(
+  detail?: string,
+  opts?: { inventDefaults?: boolean },
+): { dayKicker: string; timeLabel: string } {
   // e.g. "Juniper & Ivy · Saturday · 7:30 PM" or "Tonight · 7:30 PM · with Chanelle"
+  // Paste W5 — never invent day/time for forming/pending plans.
+  const invent = opts?.inventDefaults !== false;
   const parts = (detail || "").split("·").map((p) => p.trim()).filter(Boolean);
-  const timePart = parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || "7:30 PM";
+  const timePart =
+    parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || (invent ? "7:30 PM" : "");
   const dayPart =
-    parts.find((p) => /tonight|saturday|sunday|monday|tuesday|wednesday|thursday|friday/i.test(p)) ||
-    "Tonight";
+    parts.find((p) =>
+      /tonight|tomorrow|this weekend|next week|saturday|sunday|monday|tuesday|wednesday|thursday|friday/i.test(
+        p,
+      ),
+    ) || (invent ? "Tonight" : parts[0] || "Forming");
   return { dayKicker: dayPart, timeLabel: timePart };
 }
 
@@ -109,39 +144,75 @@ export function GraphDetailSheet({
   onSaveIdea,
   onEnterJourney,
   onRepeat,
+  onAddPeople,
+  onStartPlanning,
   entrySource = "home",
   reality = null,
+  leadName = null,
+  onBroadcastArrival,
+  onBroadcastEta,
 }: Props) {
-  const card = FOUNDER_HOME_FEED.find((c) => c.id === cardId);
+  // Paste W5 Phase 4 — created/composer plans win over stale seed idea chrome.
+  const createdPlan = findCreatedPlanForCard(cardId, loadCreatedPlans());
+  const createdOverlay = createdPlan ? createdPlanGraphOverlay(createdPlan) : null;
+  const card =
+    (createdPlan ? createdPlanToFeedCard(createdPlan) : undefined) ||
+    FOUNDER_HOME_FEED.find((c) => c.id === cardId);
   // FW founder-walk: never fall back unrelated Graphs to Juniper & Ivy.
-  const placeTitle = resolveGraphPlaceTitle(card ? { id: card.id, title: card.title, placeLine: card.placeLine } : { id: cardId });
+  const placeTitle = resolveGraphPlaceTitle(
+    card
+      ? { id: createdPlan?.sourceIdeaId || card.id, title: card.title, placeLine: card.placeLine }
+      : { id: cardId },
+  );
   const withWho = card?.person ? `with ${card.person}` : "";
   const whenLine = (() => {
-    if (card?.detail && /\d{1,2}:\d{2}\s*(AM|PM)/i.test(card.detail)) {
+    if (createdOverlay?.whenLine) return createdOverlay.whenLine;
+    if (card?.detail) {
       return withWho && !/with /i.test(card.detail) ? `${card.detail} · ${withWho}` : card.detail;
     }
-    return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
+    // Only invent Tonight · 7:30 for known ready fixture — never for forming/idea.
+    if (cardId === "seed-chanelle-juniper") {
+      return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
+    }
+    return withWho || "Forming";
   })();
-  const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
-  const countdown = happeningInLabel(card?.startsAt);
+  const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine, {
+    inventDefaults: !createdPlan && cardId === "seed-chanelle-juniper",
+  });
   const chrome = GRAPH_AUTHORITY_CHROME[cardId];
   /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =
-    cardId === "seed-chanelle-juniper" ||
-    card?.ctaAction === "open_graph" ||
-    (/juniper|ready/i.test(card?.title || "") && cardId === "seed-chanelle-juniper");
-  const statusLabel = isReadyFixture
-    ? "Ready"
-    : cardId === "seed-alex-graph-gallery"
-      ? "Aligned"
-      : cardId === "seed-near-rooftop"
-        ? "Idea"
-        : "Forming";
+    !createdPlan &&
+    (cardId === "seed-chanelle-juniper" ||
+      (/juniper|ready/i.test(card?.title || "") && cardId === "seed-chanelle-juniper"));
+  const statusLabel = createdPlan
+    ? "Forming"
+    : isReadyFixture
+      ? "Ready"
+      : cardId === "seed-alex-graph-gallery"
+        ? "Aligned"
+        : cardId === "seed-near-rooftop"
+          ? "Idea"
+          : "Forming";
+  const countdown = happeningInLabel(card?.startsAt, Date.now(), {
+    endsAt: card?.endsAt,
+    tripDateRange: card?.tripDateRange,
+    planState:
+      statusLabel === "Idea"
+        ? "idea"
+        : statusLabel === "Forming"
+          ? "forming"
+          : statusLabel === "Ready"
+            ? "locked"
+            : undefined,
+  });
   /** Alignment secondary from fixture  -  not provider-confirmed reservation. */
   const tableTruth =
     card?.alignmentSteps?.find((s) => /table|place|juniper/i.test(s.primary + s.secondary))
       ?.secondary ||
-    (isReadyFixture ? "table looks open" : chrome?.signalLine || "taking shape");
+    (isReadyFixture
+      ? "table looks open"
+      : createdOverlay?.signalLine || chrome?.signalLine || "Forming · pending");
   const leaveTruth =
     card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary ||
     (isReadyFixture ? "Leave ~6:55" : "");
@@ -149,7 +220,8 @@ export function GraphDetailSheet({
     card?.alignmentSteps?.find((s) => /min|drive|from you/i.test(s.secondary))?.secondary ||
     (isReadyFixture ? "18 min from you" : card?.detail || "");
   const leaveByDisplay = leaveTruth ? leaveTruth.replace(/^Leave\s*~?\s*/i, "") || "6:55 PM" : "";
-  const whenLineResolved = chrome?.whenLine || whenLine;
+  const whenLineResolved = createdOverlay?.whenLine || (!createdPlan ? chrome?.whenLine : null) || whenLine;
+  const stateLine = createdOverlay?.signalLine || (!createdPlan ? chrome?.signalLine : null);
 
   const [note, setNote] = React.useState<string | null>(null);
   void onJoinSegment;
@@ -269,12 +341,33 @@ export function GraphDetailSheet({
               {canonical.activity}
             </p>
           ) : null}
-          <p className="graph-exec-line" data-testid="graph-detail-place">
-            {[canonical.place.name, canonical.place.area].filter(Boolean).join(" · ")}
+          <p
+            className="graph-exec-line"
+            data-testid="graph-detail-place"
+            data-online={
+              canonical.place.name === "Online" || canonical.activity === "virtual" ? "1" : "0"
+            }
+          >
+            {canonical.place.name === "Online" ? (
+              <>
+                <span aria-hidden>📹</span> Online
+              </>
+            ) : (
+              [canonical.place.name, canonical.place.area].filter(Boolean).join(" · ")
+            )}
           </p>
           <p className="graph-exec-line" data-testid="graph-detail-who">
             {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}
           </p>
+          {leadName ? (
+            <p
+              className="graph-exec-line graph-detail-lead"
+              data-testid="graph-detail-lead"
+              data-lead={leadName}
+            >
+              Organized by {leadName}
+            </p>
+          ) : null}
           {!past && canonical.executionLabel ? (
             <p className="graph-exec-line" data-testid="graph-detail-execution">
               {canonical.executionLabel}
@@ -359,11 +452,16 @@ export function GraphDetailSheet({
           </>
         ) : null}
 
-        <p className="gsh-meta graph-back-law" data-testid="graph-detail-back-law">
-          {entrySource === "graphs"
-            ? "Back returns to Graphs."
-            : "Back returns to the prior Home scroll position."}
-        </p>
+        {onAddPeople ? (
+          <button
+            type="button"
+            className="btn ghost"
+            data-testid="graph-detail-add-people"
+            onClick={onAddPeople}
+          >
+            Add someone
+          </button>
+        ) : null}
 
         {note ? (
           <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">
@@ -468,51 +566,110 @@ export function GraphDetailSheet({
         </p>
       ) : null}
 
-      <div className="graph-ready-timeblock">
-        <p className="graph-ready-kicker">{dayKicker}</p>
-        <p className="graph-ready-time">{timeLabel}</p>
-      </div>
+      {dayKicker || timeLabel ? (
+        <div className="graph-ready-timeblock" data-testid="graph-detail-timeblock">
+          <p className="graph-ready-kicker">{dayKicker || "Forming"}</p>
+          {timeLabel ? <p className="graph-ready-time">{timeLabel}</p> : null}
+        </div>
+      ) : null}
 
-      <section className="graph-execution-card" data-testid="graph-execution-card">
-        <p className="graph-ready-kicker">Leave by</p>
-        <p className="graph-ready-time">{leaveByDisplay}</p>
-        <p className="gsh-meta">Dynamic from your current location</p>
-        {/* Honest travel slot  -  same geometry as Figma; never invent live traffic. */}
-        <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
-          {isReadyFixture
-            ? "18 min drive · traffic included"
-            : /min/i.test(travelTruth)
-              ? travelTruth
-              : `${travelTruth} · estimate`}
+      {stateLine ? (
+        <p className="graph-state-line" data-testid="graph-detail-state-line">
+          {stateLine}
         </p>
-        {/* Honest provider slot  -  same geometry; not Reserved unless confirmed. */}
-        <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
-          {isReadyFixture ? "Table ready" : /ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
-        </p>
-        <p className="graph-exec-line">
-          {card?.person ? `${card.person} is free` : "Chanelle is free"}
-        </p>
-      </section>
+      ) : null}
 
-      <p className="gsh-meta graph-leave-law">
-        Leave time updates when you open this Graph using location permission, traffic and your arrival buffer.
-      </p>
+      {isReadyFixture ||
+      (!createdPlan &&
+        (/juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper")) ? (
+        <>
+          <GraphConvoyPanel
+            graphId={cardId}
+            graphName={placeTitle || "Juniper & Ivy"}
+            ledBy={card?.person || "Chanelle"}
+            partySize={4}
+            reservationLabel={`${timeLabel} · Table for 4`}
+            onBroadcastArrival={onBroadcastArrival}
+            onBroadcastEta={onBroadcastEta}
+          />
+          <section className="graph-journey-block" data-testid="graph-execution-card">
+            <p className="graph-ready-kicker">Leave by</p>
+            <p className="graph-exec-line" data-testid="graph-leave-by">
+              {leaveByDisplay || "6:55 PM"}
+            </p>
+            <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+              {/min/i.test(travelTruth) ? travelTruth : "9 min away"}
+            </p>
+            <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
+              {/ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
+            </p>
+            <button
+              type="button"
+              className="graph-open-directions"
+              data-testid="graph-open-directions"
+              data-mode="active"
+              onClick={openDirections}
+            >
+              Open directions
+            </button>
+          </section>
+        </>
+      ) : statusLabel === "Forming" || statusLabel === "Idea" ? (
+        <section className="graph-journey-block" data-testid="graph-execution-card">
+          <p className="graph-ready-kicker">Plan</p>
+          <p className="graph-exec-line" data-testid="graph-forming-summary">
+            {createdOverlay?.whenLine || whenLineResolved}
+          </p>
+          <p className="gsh-meta">{stateLine || "Forming · pending"}</p>
+        </section>
+      ) : (
+        <section className="graph-journey-block" data-testid="graph-execution-card">
+          <p className="graph-ready-kicker">Leave by</p>
+          <p className="graph-exec-line" data-testid="graph-leave-by">
+            {leaveByDisplay || "6:55 PM"}
+          </p>
+          <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+            {/min/i.test(travelTruth) ? travelTruth : "9 min away"}
+          </p>
+          <button
+            type="button"
+            className="graph-open-directions"
+            data-testid="graph-open-directions"
+            data-mode="active"
+            onClick={openDirections}
+          >
+            Open directions
+          </button>
+        </section>
+      )}
 
-      <button
-        type="button"
-        className="graph-open-directions"
-        data-testid="graph-open-directions"
-        data-mode="active"
-        onClick={openDirections}
-      >
-        Open directions
-      </button>
+      {statusLabel === "Idea" && onStartPlanning ? (
+        <button
+          type="button"
+          className="btn primary"
+          data-testid="graph-detail-start-planning"
+          onClick={() =>
+            onStartPlanning({
+              id: cardId,
+              title: placeTitle || card?.title || "Plan",
+              who: card?.person,
+            })
+          }
+        >
+          Start planning
+        </button>
+      ) : null}
 
-      <p className="gsh-meta graph-back-law">
-        {entrySource === "graphs"
-          ? "Back returns to the Graph list at the same filter and scroll position."
-          : "Back returns to the prior Home scroll position. Home tab returns to Home root."}
-      </p>
+      {onAddPeople ? (
+        <button
+          type="button"
+          className="btn ghost"
+          data-testid="graph-detail-add-people"
+          onClick={onAddPeople}
+        >
+          Add someone
+        </button>
+      ) : null}
 
       {note ? (
         <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">
