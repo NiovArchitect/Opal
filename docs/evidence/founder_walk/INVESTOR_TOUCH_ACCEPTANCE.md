@@ -119,6 +119,11 @@ Choose Chanelle (or a real person).
 - [ ] Bubbles never stack compressed; timestamps read naturally
 - [ ] Chat becomes more valuable than a messenger because context accumulates with restraint (“Opal helped,” not “Opal is watching”)
 
+**Founder-scenario gates (F01–F07, `shots/repair11/ROOT_CAUSE_MAP.md`):**
+
+- [ ] F01 — Send a message in the Chanelle thread → leave the thread → re-enter → the message is still there, in the same position (no chronology shift, no vanishing messages)
+- [ ] F02 — When Opal intervenes in a thread (plan help, nudge) → leave → return → the intervention is still visible (persisted, not painted)
+
 ### 5. Call works
 
 - [ ] Start a call from a chat → call surface opens, other side rings
@@ -169,11 +174,50 @@ Ask: **“Help me plan something this weekend.”**
 
 **Ledger regression probes** (every `docs/evidence/failure_ledger/FAILURE_LEDGER.md` failure mode, reproduced by hand):
 
+Repair #7:
+
 - [ ] FL-R7-001 — After a successful Nighthawk result, ask “Arrange dinner at Nighthawk in Coronado.” → resolves the venue, never generic chat fluff
 - [ ] FL-R7-002 — Then ask “Find three Mediterranean restaurants in Coronado.” → fresh discovery; does not inherit Nighthawk / Friday / exact-entity scope
 - [ ] FL-R7-006 — “Let's arrange dinner Friday.” with no Home card → produces a usable planning flow
 - [ ] FL-R7-007 — Cuisine discovery → copy never invents “Friday”/“Saturday” when no day was given
 - [ ] FL-R7-008 — Plan copy never reads “dinner Friday Friday” (no duplicated day)
+
+Repair #8:
+
+- [ ] FL-R8-01 — Plan a birthday right after an exact-venue search → birthday turn does not inherit Coronado / Night Hawk / prior constraints
+- [ ] FL-R8-02 — “Henry, Sunday at 10 AM” → keeps 10 AM; never softened to 7:30
+- [ ] FL-R8-03 — “Why did you change the time?” → answers the challenge (explains), never launches a new venue lookup
+- [ ] FL-R8-04 — Send two Center messages in a row → both send; composer never locks after the first send
+- [ ] FL-R8-05 — Chanelle sends a message → navigate away and back → the message is still there
+- [ ] FL-R8-06 — Open the Chanelle thread → “Next Together” / plan strip is alive and tappable
+- [ ] FL-R8-07 — Open Graph detail from chat → detail paints above chat chrome, never under it
+- (FL-R8-08 was a harness/process fix — no phone gate; covered by automation hygiene, not this walk)
+
+Repair #9:
+
+- [ ] FL-R9-01 — In a restaurant-search thread, send a plain chat message (“Chanelle is great”) → stays a chat turn, never triggers a venue search
+- [ ] FL-R9-02 — “Find The Henry restaurant in Coronado” → exact-venue path, not generic discovery
+- [ ] FL-R9-03 — “Henry” as a person vs the venue vs Coronado → Opal keeps the three identities straight
+- [ ] FL-R9-04 — “Cancel the Henry search” mid-search → search actually cancels; no results paint afterwards
+- [ ] FL-R9-05 — Start a search → hit New Chat → late worker results never paint into the fresh thread
+- [ ] FL-R9-06 — While a provider search runs, scroll up to read history → the thread stays where you put it (no forced snap to bottom)
+- [ ] FL-R9-07 — A contaminated thread offers New Chat / Clear → fresh thread works, durable plans and messages preserved
+- [ ] FL-R9-08 — Ask about Maya → recall answers about Maya, never about Henry
+
+Repair #10:
+
+- [ ] FL-R10-01 — “Remind me what Opal can do” → capability answer (plans / Graph / places), never a Maya re-engagement
+- [ ] FL-R10-02 — Scroll up in Center → tap Jump-to-latest → lands at the latest message, scroll position settles (no snap to top)
+- [ ] FL-R10-03 — Read history, then send → the thread does not re-pin unexpectedly after your read
+- [ ] FL-R10-OPEN — “Find Henry” with no resolvable venue → honest empty (“couldn't pin it down”), never a fabricated venue
+
+**Founder-scenario gates — plan lifecycle + conversation (F03–F07):**
+
+- [ ] F04 — In a chat with a live plan, type “cancel” → the plan actually cancels (status, participants notified); a mere regex gate is a FAIL
+- [ ] F05 — Confirm a plan → confirm again → state advances each time; never a dead-end “awaiting confirmation” loop
+- [ ] F06 — In Center after a venue thread, say “Something new.” → Opal moves on; never loops “You mentioned X earlier — want to keep going on that, or something new?”
+- [ ] F07 — Ask “near me” in Center → honest location-gap copy (“I can look for nearby ideas once location access is available”); no fabricated nearby results, no silent failure
+- [ ] Correction semantics — “Saturday” → “no, Sunday” → the plan moves to Sunday; the correction sticks
 
 ### 8. Graphs feel meaningful — accumulated understanding
 
@@ -202,6 +246,7 @@ Preference in chat · recurring activity · relationship · shared plan · place
 
 - [ ] Composer never underlaps the dock; dock never covers send/input
 - [ ] No text overlapping icons, no clipped pills, no stacked compressed bubbles on 390×844 and 430×932
+- [ ] F03 — Reservation/confirm sheet: the Confirm button never overflows the right edge of the message area (check at large Dynamic Type too; screenshot any overflow)
 
 ### 12. Cold stranger test (final gate)
 
