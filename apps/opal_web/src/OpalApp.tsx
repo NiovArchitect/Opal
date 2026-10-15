@@ -7,14 +7,14 @@ import {
   type NeedItem,
 } from "./data";
 import { PRODUCT_COPY } from "./designTokens";
-import { OpalLockup, OpalMark } from "./brand/OpalLogo";
+import { OpalLockup, OpalWordmark } from "./brand/OpalLogo";
 import {
   BRAND_ASSETS,
   CREATE_DOCK_EXPOSED,
   FIRST_RUN_STORAGE_KEY,
   PRODUCT_PUBLIC_NAME,
 } from "./brand/brand";
-import { FirstRunExperience } from "./onboarding/FirstRunExperience";
+import { FirstRunExperience, type FirstRunStepId } from "./onboarding/FirstRunExperience";
 import {
   FirstRunPromisePage,
   CANONICAL_PROMISE_SHA,
@@ -32,6 +32,9 @@ function calendarPreview(date: string, time: string): string {
   return `${weekdays[utc.getUTCDay()]} · ${months[month - 1]} ${day} · ${hour12}:${minute} ${suffix}`;
 }
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
+import { MeetOpalConversation } from "./onboarding/MeetOpalConversation";
+import { PermissionBootstrapPage } from "./onboarding/PermissionBootstrapPage";
+import { readHolyShitEnabled } from "./onboarding/holyShitGate";
 import { FORCED_FIRST_RUN_KEY } from "./runtime/founderRuntimeCheckpoint";
 import { FindPeopleFlow } from "./people/FindPeopleFlow";
 import {
@@ -78,21 +81,37 @@ import {
   setConversationMuted,
   markConversationRead,
   resolveContactPhone,
+  listRelationships,
+  setRelationshipType,
+  type RelationshipBounds,
+  type RelationshipContact,
+  type RelationshipTypeValue,
   ensureFounderCommunicationSeed,
   ensureFounderGraphCommitmentSeed,
   listIncoming,
+  getLivesVisible,
   listMessages,
   listMyAvailabilityWindows,
   loadBrowserAccessToken,
   saveBrowserAccessToken,
   previewInviteShare,
+  isProductInviteCode,
+  storeProductInviteCode,
+  readStoredProductInviteCode,
+  clearStoredProductInviteCode,
+  validateProductInvite,
+  joinProductInvite,
   requestReservation,
   resumeInviteContinuation,
   saveSession,
+  loadProfile,
   setMemoryAccessToken,
   sendMessage,
+  sendVoiceMessage,
   shareAvailabilityWindows,
   signOut,
+  curateRecommendations,
+  createConversationPlan,
   type AvailabilityIntervention,
   type AvailabilityOverlap,
   type ProductSession,
@@ -120,6 +139,7 @@ import {
   selectHeaderPlan,
   type ParticipantMode,
 } from "./opalUi/nextPlan";
+import { formatPastPlanWhen, parsePlanInstant } from "./opalUi/historyTime";
 import {
   graphPendingStatusLabel,
   shouldShowReservationAuth,
@@ -158,6 +178,7 @@ import {
   semanticStateForSignal,
   visualShellProps,
 } from "./theme/technicolorProduction";
+import { contactEarGradient } from "./theme/contactAvatar";
 import { AvailabilitySheet } from "./availability/AvailabilitySheet";
 import { formatOverlapRange } from "./availability/formatRange";
 import {
@@ -173,6 +194,7 @@ import {
   formatLeaveAround,
 } from "./opalUi/socialReality";
 import {
+  candidatesFromProviderProjection,
   composePlaceOptions,
   defaultPlaceCandidates,
   type PlaceCandidate,
@@ -181,7 +203,40 @@ import { SocialMomentCard } from "./opalUi/SocialMomentCard";
 import { GraphSocialHome } from "./opalUi/GraphSocialHome";
 import { GraphDetailSheet } from "./opalUi/GraphDetailSheet";
 import { ChatsHome } from "./opalUi/ChatsHome";
+import {
+  FOUNDER_CHATS_PLAN_PILL_ROWS,
+  founderSeedDisplayNameForId,
+  founderSeedThreadMessages,
+  resolveFounderSeedThread,
+  resolveFounderPeerAvatarSrc,
+  inferPlanPillTone,
+  isFounderSeedChatId,
+  overlayFounderSeedNamesOnChats,
+  remapFounderChatRowsToLive,
+} from "./opalUi/founderChatsPlanPills";
+import {
+  interpretSeedThreadReply,
+  seedChatKeyFrom,
+} from "./opalUi/seedThreadIntelligence";
+import {
+  ALEX_MEXICO_TRIP_MEMORIES,
+  isAlexTripGraphTarget,
+} from "./opalUi/alexTripMemories";
+import {
+  applyTravelToChatRows,
+  loadCreatedPlans,
+  loadTravelOverrides,
+  localPlanSurfaceId,
+  mergeFeedWithCreated,
+  persistCreatedPlans,
+  persistTravelOverrides,
+  travelLabelFor,
+  type CreatedPlanSurface,
+  type TravelOverride,
+} from "./opalUi/graphSurfaceInterop";
+import { composeChatsList } from "./opalUi/chatsHydration";
 import { GraphsHome } from "./opalUi/GraphsHome";
+import { createVoiceNoteRecorder } from "./opalUi/voiceNoteRecorder";
 import { SearchDestination } from "./opalUi/SearchDestination";
 import { ActivityDestination } from "./opalUi/ActivityDestination";
 import { NewCallDestination, type NewCallPerson, type NewCallGroup } from "./opalUi/NewCallDestination";
@@ -190,7 +245,10 @@ import {
   defaultPersonRecent,
   defaultGroupRecent,
 } from "./opalUi/CallContinuityDestination";
-import type { CallsContinuityRow } from "./opalUi/callsContinuitySeed";
+import {
+  FOUNDER_CALLS_CONTINUITY_ROWS,
+  type CallsContinuityRow,
+} from "./opalUi/callsContinuitySeed";
 import {
   YouSettingsDestination,
   YOU_SETTING_FIGMA,
@@ -199,12 +257,10 @@ import {
 import { CallSurface, type CallKind } from "./opalUi/CallSurfaces";
 import { applyCallInbox, noteForCall, type CallNote } from "./opalUi/callLifecycle";
 import { ActiveCallOverlay } from "./opalUi/ActiveCallOverlay";
+import { IncomingCallFallback } from "./opalUi/IncomingCallFallback";
+import type { IncomingCallPresentation } from "./realtime/incomingCallHandler";
 import { MaterialMomentChip, type MaterialMoment } from "./opalUi/MaterialMomentChip";
 import { evaluateMaterialMoment } from "./time/materialTime";
-import {
-  DatedConversationContent,
-  toDatedMessages,
-} from "./opalUi/DatedConversationContent";
 import { OpalAmbient } from "./opalUi/OpalAmbient";
 import { OpalCenterLifeGraph } from "./opalUi/OpalCenterLifeGraph";
 import { GraphCreateFlow, type GraphCreateDraft } from "./opalUi/GraphCreateFlow";
@@ -212,13 +268,44 @@ import { NewChatPicker, type NewChatCandidate } from "./opalUi/NewChatPicker";
 import { GraphWhoPicker } from "./opalUi/GraphWhoPicker";
 import { GraphPeopleThreadHeader } from "./opalUi/GraphPeopleThread";
 import { GroupInfoDestination } from "./opalUi/GroupInfoDestination";
+import { PersonMemoryView } from "./opalUi/intelligence/PersonMemoryView";
 import { GraphJourneyCard } from "./opalUi/GraphJourneyCard";
 import { GraphProfilePage } from "./opalUi/GraphProfilePage";
+import { ContactProfileSheet } from "./opalUi/ContactProfileSheet";
+import {
+  PlanComposer,
+  type PlanComposerResult,
+  type PlanComposerSeed,
+} from "./opalUi/PlanComposer";
+import { TimelineAdjustSheet } from "./opalUi/TimelineAdjustSheet";
+import type { TimelineItem } from "./opalUi/GraphsTemporalTimeline";
+import {
+  ownerVisiblePhone,
+  readPersonContactMeta,
+  relationshipTypeLabel,
+  writePersonContactMeta,
+} from "./opalUi/relationshipTypes";
+import {
+  founderSeedConversationIdForName,
+  resolvePersonChatTarget,
+  type PersonChatTarget,
+} from "./opalUi/openPersonChat";
 import { GraphLivePanel } from "./opalUi/GraphLivePanel";
+import { LivesGoLivePanel } from "./opalUi/LivesGoLivePanel";
+import { liveRoomsToFeedCards } from "./opalUi/livesFeedCards";
 import { MemoryDetailSheet } from "./opalUi/MemoryDetailSheet";
 import { MemoryCommentsSheet } from "./opalUi/MemoryCommentsSheet";
+import { SaveToCollectionSheet } from "./opalUi/SaveToCollectionSheet";
+import {
+  addToCollection,
+  DEFAULT_COLLECTION_ID,
+  idsInCollection,
+  loadCollections,
+  removeFromAllCollections,
+} from "./opalUi/savedCollections";
 import { ForwardSharePicker } from "./opalUi/ForwardSharePicker";
 import { StoryViewer } from "./opalUi/StoryViewer";
+import { TripCanvasView } from "./opalUi/TripCanvasView";
 import { StoryCreateFlow } from "./opalUi/StoryCreateFlow";
 import { DiscoveryDetailSheet } from "./opalUi/DiscoveryDetailSheet";
 import { JourneySurface, type JourneyProjection } from "./opalUi/JourneySurface";
@@ -230,6 +317,7 @@ import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
   isFounderSeedEnabled,
+  persistFounderSeedFromUrl,
   type FounderFeedCard,
   type FounderStoryItem,
 } from "./opalUi/founderGraphSeed";
@@ -518,6 +606,16 @@ function readForceSplashFlag(): boolean {
   }
 }
 
+/** Founder QA / evidence: jump straight into Meet Opal (`?opal_force_meet_opal=1`). */
+function readForceMeetOpalFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return new URL(window.location.href).searchParams.get("opal_force_meet_opal") === "1";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * LOCAL DEV / founder QA: force cold first-run.
  * Query: ?opal_reset_first_run=1
@@ -530,10 +628,30 @@ function consumeResetFirstRunFlag(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const u = new URL(window.location.href);
+    let sessionReset = false;
+    try {
+      sessionReset = window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+    } catch {
+      sessionReset = false;
+    }
     const flag =
       u.searchParams.get("opal_reset_first_run") === "1" ||
-      u.searchParams.get("RESET_FIRST_RUN") === "1";
+      u.searchParams.get("RESET_FIRST_RUN") === "1" ||
+      sessionReset;
     if (!flag) return false;
+    // Re-persist seed from URL BEFORE any storage churn — reset must keep seed.
+    persistFounderSeedFromUrl(u.toString());
+    // Sticky Holy Shit / Meet Opal for this tab — reset must not drop the gate.
+    try {
+      if (
+        u.searchParams.get("opal_holy_shit") === "1" ||
+        u.searchParams.get("opal_founder_seed") === "1"
+      ) {
+        window.sessionStorage?.setItem("opal_holy_shit", "1");
+      }
+    } catch {
+      /* ignore */
+    }
     clearFirstRunDone();
     saveSession(null);
     setMemoryAccessToken(null);
@@ -542,20 +660,30 @@ function consumeResetFirstRunFlag(): boolean {
     try {
       // Keep legacy key for boot probe skip; do NOT remove until auth stage.
       window.sessionStorage?.setItem("opal_reset_first_run", "1");
+      window.sessionStorage?.setItem(FORCED_FIRST_RUN_KEY, "1");
     } catch {
       /* ignore */
     }
+    // Reset always wins over force_promise — splash → promise → onboarding.
     u.searchParams.delete("opal_reset_first_run");
     u.searchParams.delete("RESET_FIRST_RUN");
-    // Preserve `runtime=` and founder seed fingerprint  -  do not strip session identity.
+    u.searchParams.delete("opal_force_promise");
+    // Preserve `runtime=`, `opal_founder_seed=`, `opal_holy_shit=` — Meet Opal path.
     window.history.replaceState({}, "", u.pathname + u.search + u.hash);
+    // Persist again after replaceState so session+local still hold opt-in.
+    persistFounderSeedFromUrl(window.location.href);
     return true;
   } catch {
     return false;
   }
 }
 
-export type FirstRunStage = "splash" | "promise" | "auth";
+export type FirstRunStage =
+  | "splash"
+  | "promise"
+  | "auth"
+  | "permission_bootstrap"
+  | "meet_opal";
 
 /** Opal product shell: V2 Living Void  -  social field first, identity-forward. */
 export function OpalApp() {
@@ -570,6 +698,10 @@ export function OpalApp() {
     detail: string;
   } | null>(null);
   const [curateAccepted, setCurateAccepted] = useState(false);
+  /** Phase 1C — server-ranked shortlist for Curate panel (data only; no visual change). */
+  const [curateServerCandidates, setCurateServerCandidates] = useState<PlaceCandidate[] | null>(
+    null,
+  );
   const [draft, setDraft] = useState("");
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
   const threadsRef = useRef<Record<string, Message[]>>({});
@@ -580,6 +712,7 @@ export function OpalApp() {
     null,
   );
   const [peerReadSeq, setPeerReadSeq] = useState<Record<string, number>>({});
+  const [peerDeliveredSeq, setPeerDeliveredSeq] = useState<Record<string, number>>({});
   const [messageNotifications, setMessageNotifications] = useState(true);
   const [notificationNotice, setNotificationNotice] = useState<string | null>(null);
   const [readReceipts, setReadReceipts] = useState(true);
@@ -589,6 +722,14 @@ export function OpalApp() {
   const [needs, setNeeds] = useState<NeedItem[]>([]);
   const [forcePromise] = useState(() => readForcePromiseFlag());
   const [forceSplash] = useState(() => readForceSplashFlag());
+  const [forceMeetOpal] = useState(() => readForceMeetOpalFlag());
+  /** Holy Shit Moments 1–5 — gated; default seed walk unchanged. */
+  const [holyShitEnabled] = useState(() => readHolyShitEnabled() || readForceMeetOpalFlag());
+  /** After OTP, Meet Opal (Who's someone…) runs once before profile. */
+  const [meetOpalDone, setMeetOpalDone] = useState(false);
+  /** Resume FirstRunExperience at fr08 after Meet Opal. */
+  const [frResumeStep, setFrResumeStep] = useState<FirstRunStepId | null>(null);
+  const [frResumeSession, setFrResumeSession] = useState<ProductSession | null>(null);
   /** Sticky founder/test override: Splash → Promise even if storage says done / session exists. */
   const [forcedFirstRun, setForcedFirstRun] = useState(() => {
     const reset = consumeResetFirstRunFlag();
@@ -599,20 +740,31 @@ export function OpalApp() {
       readForcedFirstRun() ||
       __opalResetFirstRunConsumed ||
       readForceSplashFlag() ||
+      readForceMeetOpalFlag() ||
       !readFirstRunDone()
     );
   });
   /** Splash | Promise | Auth  -  both Splash and Promise are TOP-LEVEL (P0-05.9 / Promise lesson). */
   const [firstRunStage, setFirstRunStage] = useState<FirstRunStage>(() => {
-    if (readForcePromiseFlag()) return "promise";
+    let sessionReset = false;
+    try {
+      sessionReset = window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+    } catch {
+      sessionReset = false;
+    }
+    // Evidence / QA: Meet Opal surface without walking splash→OTP.
+    if (readForceMeetOpalFlag()) return "meet_opal";
+    // Reset / force splash always start at splash (override force_promise).
     if (
       readForceSplashFlag() ||
       readForcedFirstRun() ||
       __opalResetFirstRunConsumed ||
-      !readFirstRunDone()
+      sessionReset
     ) {
       return "splash";
     }
+    if (readForcePromiseFlag()) return "promise";
+    if (!readFirstRunDone()) return "splash";
     return "auth";
   });
   // Null until boot validates a bearer or cookie. A remembered profile is not a session.
@@ -623,12 +775,58 @@ export function OpalApp() {
   const [loadingLive, setLoadingLive] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>("offline");
   const [findPeopleOpen, setFindPeopleOpen] = useState(false);
+  /** Founder-seed / member-shell Lives entry — opens LivesGoLivePanel without ?opal_lives=1. */
+  const [livesGoLiveOpen, setLivesGoLiveOpen] = useState(false);
+  /** Paste K visible LiveRooms → Home live cards (other-user + mine). */
+  const [visibleLiveCards, setVisibleLiveCards] = useState<FounderFeedCard[]>([]);
+  const [livesRefreshToken, setLivesRefreshToken] = useState(0);
   const [findTimeOpen, setFindTimeOpen] = useState(false);
+  /** Simple Confirm {time} bottom sheet — not the full AvailabilitySheet. */
+  const [confirmTimeDraft, setConfirmTimeDraft] = useState<string | null>(null);
+  /** Per-chat locked confirm times — once set, CTA stays Confirmed ✓ and cannot re-trigger. */
+  const [confirmedTimesByChatId, setConfirmedTimesByChatId] = useState<Record<string, string>>({});
+  /** Composer + attachment sheet (photo / camera / location). */
+  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
+  /** Paste W 2.2 — thread avatar → compact contact surface. */
+  const [contactProfileOpen, setContactProfileOpen] = useState(false);
+  /** Paste W 3.6 — Graphs timeline Adjust sheet. */
+  const [timelineAdjustItem, setTimelineAdjustItem] = useState<TimelineItem | null>(null);
+  /* PASTE_W_ATTACH_OUTSIDE_DISMISS */
+  useEffect(() => {
+    if (!attachMenuOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t) return;
+      if (t.closest?.('[data-testid="composer-attach-menu"]')) return;
+      if (t.closest?.('[data-testid="composer-attach"]')) return;
+      setAttachMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAttachMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer, true);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer, true);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [attachMenuOpen]);
+
   const [findPlaceOpen, setFindPlaceOpen] = useState(false);
+  /** Phase 11A — inline status after "Plan this" from place sheet. */
+  const [planThisBusyId, setPlanThisBusyId] = useState<string | null>(null);
+  const [planThisNote, setPlanThisNote] = useState<string | null>(null);
+  const [planThisError, setPlanThisError] = useState<string | null>(null);
   /** Pass 20  -  reservation presentation only (synthetic execution proof). */
   const [reservationUx, setReservationUx] = useState<ExecutionUxState>(() => emptyExecutionUx());
   const [reservationAuth, setReservationAuth] = useState<Record<string, unknown> | null>(null);
   const reservationBusyRef = useRef(false);
+
+  // Persist founder-seed / holy-shit opt-in as soon as the shell mounts
+  // (splash alone never called isFounderSeedEnabled before).
+  useEffect(() => {
+    isFounderSeedEnabled();
+  }, []);
 
   // Escape collapses disclosure panels without side effects.
   useEffect(() => {
@@ -644,6 +842,7 @@ export function OpalApp() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [extendOpen, curateOpen, findPlaceOpen, findTimeOpen]);
+
   const [availabilityOverlap, setAvailabilityOverlap] =
     useState<AvailabilityOverlap | null>(null);
   const [showFindTimeHint, setShowFindTimeHint] = useState(false);
@@ -670,7 +869,22 @@ export function OpalApp() {
   /** EXT-01 Graph detail (145:150)  -  Open Graph destination · Figma 373:385 */
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
   const [canonicalGraph, setCanonicalGraph] = useState<CanonicalGraph | null>(null);
-  const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<"home" | "graphs">("home");
+  const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<
+    "home" | "graphs" | "chats" | "opal"
+  >("home");
+  /** When Graph Detail opened from a human Chat, restore that conversation on Back. */
+  const [graphDetailReturnChatId, setGraphDetailReturnChatId] = useState<string | null>(null);
+  /** Repair #7 P0-F — Journey Back returns to the originating surface. */
+  const [journeyEntrySource, setJourneyEntrySource] = useState<
+    "chats" | "graphs" | "home" | "opal" | "you"
+  >("graphs");
+  /** Center → Chats pill → Feed Graph → on_the_way interop surfaces. */
+  const [createdPlanSurfaces, setCreatedPlanSurfaces] = useState<CreatedPlanSurface[]>(
+    () => loadCreatedPlans(),
+  );
+  const [travelOverrides, setTravelOverrides] = useState<Record<string, TravelOverride>>(
+    () => loadTravelOverrides(),
+  );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInitialMode, setSearchInitialMode] = useState<"Top" | "People" | "Places" | "Experiences" | "Graphs">("Top");
   const [searchContext, setSearchContext] = useState<"default" | "people" | "add_members">("default");
@@ -704,8 +918,15 @@ export function OpalApp() {
     signalEyebrow?: string;
     signalLabel?: string;
     signalGraphId?: string;
+    /** ID-stable Continuity → Chat (primary over display name). */
+    conversationId?: string | null;
+    peerUserId?: string | null;
   }>(null);
+  /** Chats|Calls surface ownership — Chat must never leave Calls mode visible. */
+  const [commSurface, setCommSurface] = useState<"chats" | "calls">("chats");
   const [opalAmbientOpen, setOpalAmbientOpen] = useState(false);
+  /** Repair #5 — bump to reset Center to root while already open (dock reselect). */
+  const [centerRootEpoch, setCenterRootEpoch] = useState(0);
   /** Figma 1075:644 Solo = same OpalAmbient, SELF ONLY participant context. */
   const [opalAmbientMode, setOpalAmbientMode] = useState<"global" | "solo">("solo");
   const [graphCreateOpen, setGraphCreateOpen] = useState(false);
@@ -716,6 +937,10 @@ export function OpalApp() {
     /** Provenance for Repeat only — never the new plan / lineage id. */
     sourcePlanId?: string | null;
   }>({});
+  /** Paste W4 Phase 4 — Idea → PlanComposer (no camera). */
+  const [planComposerOpen, setPlanComposerOpen] = useState(false);
+  const [planComposerSeed, setPlanComposerSeed] = useState<PlanComposerSeed | null>(null);
+  const [tripCreateSignal, setTripCreateSignal] = useState(0);
   /** Repeat → Change who uses existing GraphWhoPicker; create stays the plan engine. */
   const [repeatWhoOpen, setRepeatWhoOpen] = useState(false);
   const [repeatWhoSelected, setRepeatWhoSelected] = useState<string[]>([]);
@@ -764,6 +989,8 @@ export function OpalApp() {
   const [activityNotice, setActivityNotice] = useState<string | null>(null);
   const [proposalNotice, setProposalNotice] = useState<string | null>(null);
   const [callsGateNote, setCallsGateNote] = useState<string | null>(null);
+  const [voiceRecording, setVoiceRecording] = useState(false);
+  const voiceRecorderRef = useRef(createVoiceNoteRecorder());
   const [callsGateCallId, setCallsGateCallId] = useState<string | null>(null);
   const callsGateRef = useRef<CallNote>(null);
   const [callSurface, setCallSurface] = useState<{
@@ -783,6 +1010,28 @@ export function OpalApp() {
     /** This device accepted. Other ringing devices must stand down. */
     locallyAccepted?: boolean;
   } | null>(null);
+
+  // Phase D-2 — Celebrations "Plan this" opens Center Opal after posting a message.
+  useEffect(() => {
+    const onOpen = () => {
+      if (activeChatId) productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+      setCallSurface(null);
+      setCallsGateNote(null);
+      setGraphCreateOpen(false);
+      setGraphCreateContext({});
+      try {
+        const q = new URLSearchParams(window.location.search);
+        setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+      } catch {
+        setOpalAmbientMode("solo");
+      }
+      setOpalAmbientOpen(true);
+    };
+    window.addEventListener("opal-open-center", onOpen as EventListener);
+    return () => window.removeEventListener("opal-open-center", onOpen as EventListener);
+  }, [activeChatId]);
+
   const placingCallRef = useRef(false);
   const [mediaRuntime, setMediaRuntime] = useState<MediaRuntime | null>(null);
   const acceptInFlight = useRef<string | null>(null);
@@ -807,6 +1056,10 @@ export function OpalApp() {
   const [forwardCardId, setForwardCardId] = useState<string | null>(null);
   const [discoveryCardId, setDiscoveryCardId] = useState<string | null>(null);
   const [storyView, setStoryView] = useState<FounderStoryItem | null>(null);
+  /** When set, StoryViewer uses this queue (Alex Trip Graph 14 memories). */
+  const [storyQueueOverride, setStoryQueueOverride] = useState<FounderStoryItem[] | null>(null);
+  /** Mexico City soft itinerary canvas (distinct from StoryViewer memories). */
+  const [tripCanvasOpen, setTripCanvasOpen] = useState(false);
   const [storyCreateOpen, setStoryCreateOpen] = useState(false);
   const [homeScrollToken, setHomeScrollToken] = useState(0);
   /** Persistent Home destination → root feed scroll-to-top (distinct from Back restore). */
@@ -815,6 +1068,13 @@ export function OpalApp() {
   const [followedPeople, setFollowedPeople] = useState<string[]>([]);
   const [repostedIds, setRepostedIds] = useState<string[]>([]);
   const [homeGateNote, setHomeGateNote] = useState<string | null>(null);
+  const [homeGateAction, setHomeGateAction] = useState<{
+    label: string;
+    run: () => void;
+  } | null>(null);
+  const [savedBrowseOpen, setSavedBrowseOpen] = useState(false);
+  const [saveCardId, setSaveCardId] = useState<string | null>(null);
+  const [savedBrowseCollectionId, setSavedBrowseCollectionId] = useState(DEFAULT_COLLECTION_ID);
   const [productionOwners, setProductionOwners] = useState<ProductionHomeOwners | null>(null);
   const [durableMemoryCards, setDurableMemoryCards] = useState<FounderFeedCard[]>([]);
   const [commentsCache, setCommentsCache] = useState<HomeComment[]>([]);
@@ -831,8 +1091,29 @@ export function OpalApp() {
   const [journeyAddPeopleOpen, setJourneyAddPeopleOpen] = useState(false);
   const [onMyWayActive, setOnMyWayActive] = useState(false);
   const [profilePerson, setProfilePerson] = useState<string | null>(null);
+  const [profileContactId, setProfileContactId] = useState<string | null>(null);
+  /** Direct conversation id when known — Message uses this, not fuzzy name. */
+  const [profileConversationId, setProfileConversationId] = useState<string | null>(
+    null,
+  );
+  const [profileHandle, setProfileHandle] = useState<string | null>(null);
+  const [profileRelationshipType, setProfileRelationshipType] = useState<
+    RelationshipTypeValue | string | null
+  >(null);
+  const [profilePhone, setProfilePhone] = useState<string | null>(null);
+  /** shared = relationship-authorized; owner_private = address-book / local only. */
+  const [profilePhoneProvenance, setProfilePhoneProvenance] = useState<
+    "shared" | "owner_private" | null
+  >(null);
+  const [profileBounds, setProfileBounds] = useState<RelationshipBounds>({});
+  const [profileMetaSaving, setProfileMetaSaving] = useState(false);
   /** Group Info 618:521  -  communication context; Chats stays active via activeChatId. */
   const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  /** F2 — PersonMemoryView from GroupInfo About affordance (no new header button). */
+  const [personMemoryTarget, setPersonMemoryTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [momentForkChooserOpen, setMomentForkChooserOpen] = useState(false);
   /** WHO-FAST-PATH-01: secondary sheet mode after More people / Groups */
   const [momentPeopleSheetMode, setMomentPeopleSheetMode] = useState<
@@ -854,6 +1135,37 @@ export function OpalApp() {
   sessionRef.current = session;
   const callSurfaceRef = useRef(callSurface);
   callSurfaceRef.current = callSurface;
+  const [incomingFallback, setIncomingFallback] = useState<IncomingCallPresentation | null>(null);
+
+  useEffect(() => {
+    const onUi = (event: Event) => {
+      const detail = (event as CustomEvent).detail as IncomingCallPresentation | undefined;
+      if (!detail?.payload?.call_id) return;
+      if (detail.mode === "native_callkit") return; // CallKit owns lock-screen UI
+      setIncomingFallback(detail);
+    };
+    const onAnswer = (event: Event) => {
+      const callId = (event as CustomEvent).detail?.call_id as string | undefined;
+      if (!callId) return;
+      setIncomingFallback(null);
+      void answerCall(callId, session?.access_token).catch(() => {});
+    };
+    const onEnd = (event: Event) => {
+      const callId = (event as CustomEvent).detail?.call_id as string | undefined;
+      if (!callId) return;
+      setIncomingFallback(null);
+      void declineCall(callId, session?.access_token).catch(() => {});
+    };
+    window.addEventListener("opal-incoming-call-ui", onUi as EventListener);
+    window.addEventListener("opal-callkit-answer", onAnswer as EventListener);
+    window.addEventListener("opal-callkit-end", onEnd as EventListener);
+    return () => {
+      window.removeEventListener("opal-incoming-call-ui", onUi as EventListener);
+      window.removeEventListener("opal-callkit-answer", onAnswer as EventListener);
+      window.removeEventListener("opal-callkit-end", onEnd as EventListener);
+    };
+  }, [session?.access_token]);
+
   callsGateRef.current =
     callsGateNote && callsGateCallId ? { callId: callsGateCallId, text: callsGateNote } : null;
   const chatsRef = useRef(chats);
@@ -946,11 +1258,13 @@ export function OpalApp() {
           return { id, name, area: o.area || o.tag || "" };
         });
       }
-      // Pass 16 SPA bridge: Moment-seeded provider candidates into existing composition
+      // Phase 1C: server-ranked Curate shortlist preferred; then Moment provider; else fixtures.
       const base =
-        momentProviderCandidates && momentProviderCandidates.length > 0
-          ? momentProviderCandidates
-          : defaultPlaceCandidates();
+        curateServerCandidates && curateServerCandidates.length > 0
+          ? curateServerCandidates
+          : momentProviderCandidates && momentProviderCandidates.length > 0
+            ? momentProviderCandidates
+            : defaultPlaceCandidates();
       const gapLbl =
         (convSignal?.shared_reality as { place_gap_label?: string } | undefined)?.place_gap_label ||
         "";
@@ -964,7 +1278,7 @@ export function OpalApp() {
       });
       return composed.ranked.length ? composed.ranked : base;
     },
-    [momentProviderCandidates, momentSeed],
+    [momentProviderCandidates, momentSeed, curateServerCandidates],
   );
 
   /** Pass 30R2 / WHO-FAST-PATH-01: desire CTA → high-signal WHO sheet. */
@@ -1432,6 +1746,10 @@ export function OpalApp() {
       }
       const next = [...list, ui].sort((a, b) => {
         if (a.serverSeq != null && b.serverSeq != null) return a.serverSeq - b.serverSeq;
+        const at = a.createdAt ? Date.parse(a.createdAt) : NaN;
+        const bt = b.createdAt ? Date.parse(b.createdAt) : NaN;
+        if (Number.isFinite(at) && Number.isFinite(bt) && at !== bt) return at - bt;
+        // Append-order fallback: keep relative insertion when timestamps absent.
         return 0;
       });
       return { ...prev, [raw.conversation_id]: next };
@@ -1472,6 +1790,71 @@ export function OpalApp() {
     [chats, activeChatId],
   );
   const messages = activeChatId ? threads[activeChatId] ?? [] : [];
+
+  /** Phase 1C — fetch server shortlist when Curate or place sheet opens; fixture fallback on failure. */
+  useEffect(() => {
+    if (!curateOpen && !findPlaceOpen) {
+      setCurateServerCandidates(null);
+      return;
+    }
+    const token = session?.access_token;
+    const selfId = session?.user_id;
+    if (!token || !selfId) return;
+
+    const peerIds = (activeChat?.peers || [])
+      .map((p) => p.id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+    const userIds = Array.from(new Set([selfId, ...peerIds]));
+    if (userIds.length < 1) return;
+
+    let cancelled = false;
+    const activity =
+      (momentSeed?.what && String(momentSeed.what).trim()) ||
+      (typeof activeChat?.signalLabel === "string" && /dinner|coffee|drinks/i.test(activeChat.signalLabel)
+        ? activeChat.signalLabel.split(/[·•|]/)[0]?.trim() || "dinner"
+        : "dinner");
+
+    void curateRecommendations(
+      {
+        user_ids: userIds,
+        activity,
+        relationship_context: "friends",
+        limit: 3,
+      },
+      token,
+    )
+      .then((res) => {
+        if (cancelled) return;
+        const ranked = candidatesFromProviderProjection(
+          (res.ranked || []).map((c) => ({
+            id: c.id,
+            name: c.display_name || c.name,
+            area_label: c.area_label,
+            quiet: c.quiet,
+            cuisine: c.cuisine,
+            social_score: c.score,
+            provider_place_id: c.id,
+          })),
+        );
+        if (ranked.length) setCurateServerCandidates(ranked);
+      })
+      .catch(() => {
+        if (!cancelled) setCurateServerCandidates(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    curateOpen,
+    findPlaceOpen,
+    session?.access_token,
+    session?.user_id,
+    activeChat?.peers,
+    activeChat?.id,
+    activeChat?.signalLabel,
+    momentSeed?.what,
+  ]);
   const threadItems = useMemo(
     () => interleavePlanHistory(messages, planHistory(alignment)),
     [messages, alignment],
@@ -1523,9 +1906,56 @@ export function OpalApp() {
   useEffect(() => {
     // Attention deep-link owns scroll when present — do not dump to bottom.
     if (attentionFocus?.conversationId && attentionFocus.conversationId === activeChatId) return;
-    const thread = document.querySelector('[data-testid="member-conversation"] .thread');
-    if (thread instanceof HTMLElement) thread.scrollTop = thread.scrollHeight;
+    // Open at latest: paint can lag setState, so pin bottom after layout (rAF ×2 + short settles).
+    let cancelled = false;
+    let raf2 = 0;
+    const pinLatest = () => {
+      if (cancelled) return;
+      const thread = document.querySelector('[data-testid="member-conversation"] .thread');
+      if (thread instanceof HTMLElement) {
+        thread.scrollTop = thread.scrollHeight;
+      }
+    };
+    pinLatest();
+    const raf1 = requestAnimationFrame(() => {
+      pinLatest();
+      raf2 = requestAnimationFrame(pinLatest);
+    });
+    const t1 = window.setTimeout(pinLatest, 50);
+    const t2 = window.setTimeout(pinLatest, 180);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [messages.length, activeChatId, alignment?.prompt, alignment?.completion, alignment?.next, attentionFocus]);
+
+  // Seed / filament already locked a time → mark confirmed so Confirm CTA cannot re-fire.
+  useEffect(() => {
+    if (!activeChatId) return;
+    if (confirmedTimesByChatId[activeChatId]) return;
+    const thread = threads[activeChatId] || messages || [];
+    const locked = thread.some((m) => {
+      const body = String((m as { body?: string })?.body || "");
+      return /Opal lined this up/i.test(body) && /(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i.test(body);
+    });
+    if (!locked) return;
+    let picked = "7:30 PM";
+    for (let i = thread.length - 1; i >= 0; i--) {
+      const body = String((thread[i] as { body?: string })?.body || "");
+      const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+      if (tm && /lined this up|can do|grab a table|confirmed/i.test(body)) {
+        picked = tm[1].replace(/\s+/g, " ").trim();
+        if (!/am|pm/i.test(picked)) picked = `${picked} PM`;
+        break;
+      }
+    }
+    setConfirmedTimesByChatId((prev) =>
+      prev[activeChatId] ? prev : { ...prev, [activeChatId]: picked },
+    );
+  }, [activeChatId, messages, threads, confirmedTimesByChatId]);
 
   // A6.1 — after Attention → Review, land on the exact proposal / auth action.
   useEffect(() => {
@@ -1670,7 +2100,10 @@ export function OpalApp() {
           })),
         };
       });
-      setChats((prev) => mergeConversationList(prev, mapped));
+      setChats((prev) => {
+        const merged = mergeConversationList(prev, mapped);
+        return seedOn ? overlayFounderSeedNamesOnChats(merged) : merged;
+      });
       setLiveSignals(data.signals || []);
       // Needs you: one awaken  -  compressed presentation, not full headline thrice.
       const peerKeyByConv = new Map(
@@ -1763,7 +2196,40 @@ export function OpalApp() {
         return;
       }
 
+      // Intentional unauthenticated first-run / reset: do not probe /session
+      // and do not apply native SecureStore session (that skipped Phone/Meet).
+      // Sticky forcedFirstRun survives until Meet Opal completes.
+      let resetFirstRun = __opalResetFirstRunConsumed || readForcedFirstRun();
+      try {
+        resetFirstRun =
+          resetFirstRun || window.sessionStorage?.getItem("opal_reset_first_run") === "1";
+      } catch {
+        /* ignore */
+      }
+      if (resetFirstRun) {
+        __opalResetFirstRunConsumed = false;
+        // Never clobber an in-flight OTP / Meet Opal session if the user already verified
+        // while this boot probe was still awaiting native/network work.
+        const alreadyLive = Boolean(
+          sessionRef.current?.user_id &&
+            (sessionRef.current?.access_token || sessionRef.current?.cookie_session),
+        );
+        if (!alreadyLive) {
+          saveSession(null);
+          setMemoryAccessToken(null);
+          if (!cancelled) {
+            setSession(null);
+            setNewChatOpen(false);
+            setNewChatError(null);
+            setActiveChatId(null);
+          }
+        }
+        if (!cancelled) setAuthReady(true);
+        return;
+      }
+
       // R1B native host: session injected via SecureStore → WebView bridge (never URL).
+      // Only after reset/forced path is cleared — never during cold first-run.
       try {
         const native = (window as unknown as { __OPAL_NATIVE_SESSION__?: {
           access_token?: string;
@@ -1775,11 +2241,26 @@ export function OpalApp() {
           window.sessionStorage?.getItem("opal_native_host") === "1";
         if (nativeHost && native?.access_token && native?.user_id) {
           setMemoryAccessToken(native.access_token);
-          const next: ProductSession = {
+          let next: ProductSession = {
             user_id: native.user_id,
             display_name: native.display_name || "Opal",
             access_token: native.access_token,
           };
+          // PROFILE_RELOAD_MATCH: SecureStore inject is a bootstrap hint — live session wins.
+          try {
+            const live = await withTimeout(fetchSession(native.access_token), BOOT_MS);
+            if (live?.user?.id) {
+              next = {
+                ...next,
+                user_id: live.user.id,
+                display_name: live.user.display_name || next.display_name,
+                handle: live.user.handle || next.handle,
+                access_token: native.access_token,
+              };
+            }
+          } catch {
+            /* keep inject identity if /session unreachable */
+          }
           setSession(next);
           saveSession(next);
           if (!cancelled) setAuthReady(true);
@@ -1792,28 +2273,6 @@ export function OpalApp() {
         }
       } catch {
         /* ignore native bridge errors */
-      }
-
-      // Intentional unauthenticated first-run / reset: do not probe /session.
-      // Sticky forcedFirstRun must survive until Promise CTA → auth (do not clear here).
-      let resetFirstRun = __opalResetFirstRunConsumed || readForcedFirstRun();
-      try {
-        resetFirstRun =
-          resetFirstRun || window.sessionStorage?.getItem("opal_reset_first_run") === "1";
-      } catch {
-        /* ignore */
-      }
-      if (resetFirstRun) {
-        __opalResetFirstRunConsumed = false;
-        saveSession(null);
-        if (!cancelled) {
-          setSession(null);
-          setNewChatOpen(false);
-          setNewChatError(null);
-          setActiveChatId(null);
-          setAuthReady(true);
-        }
-        return;
       }
 
       const dropSignedOut = () => {
@@ -1958,6 +2417,10 @@ export function OpalApp() {
         .then((feed) => setAttentionBadgeCount(feed.actionable_count || 0))
         .catch(() => undefined);
 
+      void import("./runtime/travelTimezoneIngest").then(({ ingestDeviceTimezone }) =>
+        ingestDeviceTimezone(current.access_token),
+      );
+
       const openId = activeChatIdRef.current;
       if (openId) {
         void fetchConversationAlignment(openId, current.access_token)
@@ -1979,7 +2442,9 @@ export function OpalApp() {
     };
   }, [authenticated, refreshLive]);
 
-  // Invitation deep link: mint server continuation (never keep raw token in localStorage).
+  // Invitation deep link:
+  // - Product codes (MAYA-X7K2) → persist for activation verify / authenticated join
+  // - Social share tokens → mint short-lived continuation_id (never keep raw token)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -1988,14 +2453,22 @@ export function OpalApp() {
     let cancelled = false;
     (async () => {
       try {
-        // Public preview mints short-lived continuation_id; drop raw token from URL.
-        const preview = await previewInviteShare(token);
-        if (cancelled) return;
-        if (preview.continuation_id) {
+        if (isProductInviteCode(token)) {
+          storeProductInviteCode(token);
           try {
-            sessionStorage.setItem("opal_invite_continuation", preview.continuation_id);
+            await validateProductInvite(token);
           } catch {
-            /* private mode */
+            /* invalid/expired — still keep code; verify/join will fail honestly */
+          }
+        } else {
+          const preview = await previewInviteShare(token);
+          if (cancelled) return;
+          if (preview.continuation_id) {
+            try {
+              sessionStorage.setItem("opal_invite_continuation", preview.continuation_id);
+            } catch {
+              /* private mode */
+            }
           }
         }
         const url = new URL(window.location.href);
@@ -2010,7 +2483,7 @@ export function OpalApp() {
     };
   }, []);
 
-  // After activation: resume invitation via continuation id (server authoritative).
+  // After activation: resume social invitation via continuation id (server authoritative).
   useEffect(() => {
     if (!authenticated || !session?.access_token) return;
     let cancelled = false;
@@ -2037,6 +2510,29 @@ export function OpalApp() {
         } catch {
           /* ignore */
         }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token]);
+
+  // After activation (or already signed-in): apply product invite code → friend relationship.
+  useEffect(() => {
+    if (!authenticated || !session?.access_token) return;
+    const code = readStoredProductInviteCode();
+    if (!code) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await joinProductInvite(code, session.access_token);
+        if (cancelled) return;
+        if (res.invite_joined) {
+          clearStoredProductInviteCode();
+        }
+      } catch {
+        // Own invite / already joined / expired — drop so we don't retry forever.
+        clearStoredProductInviteCode();
       }
     })();
     return () => {
@@ -2130,6 +2626,26 @@ export function OpalApp() {
         );
       }
     });
+    const offDelivered = productRealtime.onMessageDelivered((event) => {
+      setPeerDeliveredSeq((prev) => ({
+        ...prev,
+        [event.conversation_id]: Math.max(prev[event.conversation_id] || 0, event.server_seq),
+      }));
+      setThreads((prev) => {
+        const list = prev[event.conversation_id];
+        if (!list) return prev;
+        let changed = false;
+        const next = list.map((m) => {
+          if (m.id === event.message_id || m.serverSeq === event.server_seq) {
+            if (m.deliveryState === "delivered" || m.deliveryState === "read") return m;
+            changed = true;
+            return { ...m, deliveryState: "delivered" as const };
+          }
+          return m;
+        });
+        return changed ? { ...prev, [event.conversation_id]: next } : prev;
+      });
+    });
     const offPlan = productRealtime.onInboxPlan((event) => {
       if (event.visibility && event.visibility !== "participants") return;
       setChats((prev) =>
@@ -2219,6 +2735,7 @@ export function OpalApp() {
       offState();
       offInbox();
       offRead();
+      offDelivered();
       offPlan();
       offAttention();
       offAv();
@@ -2325,6 +2842,41 @@ export function OpalApp() {
     });
   }, [authenticated, liveSignals, chats]);
 
+  // Paste K — hydrate Home with visible LiveRooms (friends / close circle / mine).
+  useEffect(() => {
+    if (!authenticated || !session?.access_token) {
+      setVisibleLiveCards([]);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await getLivesVisible(session.access_token);
+        if (cancelled) return;
+        setVisibleLiveCards(
+          liveRoomsToFeedCards(res.lives || [], {
+            excludeMine: false,
+            selfUserId: session.user_id,
+          }),
+        );
+        if (!isFounderSeedEnabled()) {
+          setProductionOwners((prev) => ({
+            ...(prev || {}),
+            liveEligibility: liveRoomsToFeedCards(res.lives || [], {
+              excludeMine: true,
+              selfUserId: session.user_id,
+            }),
+          }));
+        }
+      } catch {
+        if (!cancelled) setVisibleLiveCards([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, session?.access_token, session?.user_id, livesRefreshToken]);
+
   // Load comments from BEAM (or fixture cache) when sheet opens.
   useEffect(() => {
     if (!commentsCardId) return;
@@ -2372,18 +2924,90 @@ export function OpalApp() {
     }
   };
 
-  /** Splash Tap to begin → top-level Promise. Same pointer event terminates here. */
+  /**
+   * Splash 1 primary CTA → Splash 2 (Promise / “what Opal is”).
+   * Keep forced/reset sticky through Promise → Phone → OTP → Permission → Meet.
+   * Never mark first-run done or clear forced here.
+   * NEW_USER_SKIP_SPLASH_2 = NO — no Skip intro on Splash 1.
+   */
   const advanceSplashToPromise = () => {
     setShowFirstRun(true);
     setFirstRunStage("promise");
   };
 
-  /** Promise CTA → real phone auth. Clears force only after leaving Promise. */
+  /** Splash 2 CTA → phone auth. Permission bootstrap + Meet Opal follow OTP. */
   const advancePromiseToAuth = () => {
-    markWalkthroughDone();
-    clearForcedFirstRun();
+    // Do NOT markWalkthroughDone / clearForcedFirstRun — that skipped Phone/Meet on remount.
     setFirstRunStage("auth");
-    setShowFirstRun(false);
+    setShowFirstRun(true);
+  };
+
+  /** Returning account from Splash 2 → phone auth. */
+  const advancePromiseAlreadyAccount = () => {
+    setShowFirstRun(true);
+    setFirstRunStage("auth");
+  };
+
+  /**
+   * After OTP: Permission Bootstrap (setup) → Meet Opal (payoff: name → first person).
+   * If Meet already finished (Skip before OTP), land social Home — HOME_SOCIAL_FIRST.
+   * Return true so FirstRunExperience pauses.
+   */
+  const handleAfterPhoneVerify = (s: ProductSession): boolean => {
+    setSession(s);
+    saveSession(s);
+    setFrResumeSession(s);
+    setAuthReady(true);
+    setLoadError(null);
+    if (meetOpalDone) {
+      // Meet already completed (e.g. Skip before auth). Social Home, not Center ambient.
+      completeFirstRun();
+      setOpalAmbientOpen(false);
+      setTab("home");
+      void refreshLive(s);
+      void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+        notifyNativeHostSession(s);
+      });
+      return true;
+    }
+    setFirstRunStage("permission_bootstrap");
+    setShowFirstRun(true);
+    return true;
+  };
+
+  /** Permission bootstrap complete → Meet Opal conversational payoff. */
+  const advancePermissionBootstrapToMeet = () => {
+    setFirstRunStage("meet_opal");
+    setShowFirstRun(true);
+  };
+
+  /**
+   * Founder staging walk correction — Meet Opal complete → social Home.
+   * HOME_SOCIAL_FIRST: post-onboarding lands on people/social feed, not Center ambient day shell.
+   * Center remains the dock OPAL owner ("Your day has room." / chat). Skips This is you / Assist / ActOnBehalf.
+   */
+  const advanceMeetOpalToAuth = () => {
+    setMeetOpalDone(true);
+    clearForcedFirstRun();
+    // Prefer live React session; fall back to tab storage (Playwright inject / reload).
+    const live = frResumeSession || session || loadProfile();
+    if (live) {
+      setSession(live);
+      saveSession(live);
+      setFrResumeSession(live);
+      setAuthReady(true);
+      setLoadError(null);
+    }
+    completeFirstRun();
+    // Social Home ownership — clear ambient Center so dock Home matches the visible surface.
+    setOpalAmbientOpen(false);
+    setTab("home");
+    if (live) {
+      void refreshLive(live);
+      void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+        notifyNativeHostSession(live);
+      });
+    }
   };
 
   const completeFirstRun = () => {
@@ -2409,6 +3033,7 @@ export function OpalApp() {
     setAvailabilityOverlap(null);
     setAvailabilityIntervention(null);
     setFindTimeOpen(false);
+    setConfirmTimeDraft(null);
     setFindPlaceOpen(false);
     setCurateOpen(false);
     setExtendOpen(false);
@@ -2421,6 +3046,259 @@ export function OpalApp() {
     }
     setInboxNotice((notice) => (notice?.conversationId === id ? null : notice));
     setDraft("");
+    // Founder-seed visual ids are not Channel members — hydrate locally, never join.
+    // Conversation chrome requires `activeChat` from `chats`, so upsert a preview row.
+    // Remapped live UUIDs that match a seed person also get the designed walk thread
+    // (one story: Chanelle / Juniper & Ivy · Sat 7:30 across list + thread + Graphs).
+    const liveForRemap = chats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      kind: (c.composition === "group" || (c.memberCount ?? 0) >= 3
+        ? "group"
+        : "direct") as "direct" | "group",
+      memberCount: c.memberCount,
+    }));
+    const remappedSeedRows = isFounderSeedEnabled()
+      ? remapFounderChatRowsToLive(FOUNDER_CHATS_PLAN_PILL_ROWS, liveForRemap)
+      : [];
+    const matchedSeedRow = remappedSeedRows.find((r) => r.id === id);
+    const seedDisplayName =
+      matchedSeedRow?.name ||
+      founderSeedDisplayNameForId(id, liveForRemap) ||
+      chats.find((c) => c.id === id)?.name ||
+      null;
+    const seedTurns = isFounderSeedEnabled()
+      ? resolveFounderSeedThread({
+          conversationId: matchedSeedRow
+            ? FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === matchedSeedRow.name)?.id || id
+            : id,
+          // Repair #11: id-key lookup only — never name-match.
+          displayName: null,
+        })
+      : [];
+    const mapSeedTurns = (turns: typeof seedTurns) =>
+      turns.map((m) => {
+        // Repair #11: seed-injected peer turns are simulated — never a real human.
+        const isSimulatedPeer =
+          m.from === "them" && !m.opalFilament && !m.opalSystemConsequence;
+        const rawName = (m.senderDisplayName || "").trim();
+        return {
+          id: m.id,
+          from: m.from,
+          body: m.body,
+          time: m.time,
+          humanSpeaker: isSimulatedPeer
+            ? false
+            : m.humanSpeaker !== false && !m.opalFilament && !m.opalSystemConsequence,
+          senderDisplayName:
+            isSimulatedPeer && rawName && !/simulated/i.test(rawName)
+              ? `${rawName} · simulated`
+              : m.senderDisplayName || null,
+          opalFilament: m.opalFilament || undefined,
+          opalSystemConsequence: m.opalSystemConsequence || undefined,
+          signal: m.signal
+            ? { kind: m.signal.kind as NonNullable<Message["signal"]>["kind"], label: m.signal.label }
+            : undefined,
+        };
+      });
+    if (isFounderSeedChatId(id)) {
+      const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id);
+      const resolved = seedTurns.length
+        ? seedTurns
+        : resolveFounderSeedThread({ conversationId: id });
+      const local = mapSeedTurns(resolved);
+      const threadLocal =
+        local.length > 0
+          ? local
+          : founderSeedThreadMessages(id).map((m) => ({
+              id: m.id,
+              from: m.from,
+              body: m.body,
+              time: m.time,
+              // Repair #11: fixture turns are simulated, never real human speech.
+              humanSpeaker: false as const,
+              senderDisplayName: null as string | null,
+            }));
+      // Preserve in-session human sends across reopen — seed fixture must not wipe them.
+      const extras = collectSeedLocalExtras(id, threadLocal, seedRow?.name || seedDisplayName);
+      setThreads((prev) => ({
+        ...prev,
+        [id]: extras.length ? [...threadLocal, ...extras] : threadLocal,
+      }));
+      setChats((prev) => {
+        const seedPlan = seedRow?.planConsequence;
+        const withSeedPlan = {
+          signalLabel: seedPlan?.label || undefined,
+          planProjection: seedPlan
+            ? {
+                place: seedPlan.label,
+                when_label: seedRow?.when || undefined,
+                lineage_id: seedPlan.planId || seedRow?.id,
+                temporal_state: seedPlan.state === "ready" ? "upcoming" : undefined,
+                upcoming_ready: seedPlan.state === "ready",
+              }
+            : undefined,
+        };
+        if (prev.some((c) => c.id === id)) {
+          return prev.map((c) =>
+            c.id === id
+              ? {
+                  ...c,
+                  unread: 0,
+                  name: seedRow?.name || c.name,
+                  ...withSeedPlan,
+                }
+              : c,
+          );
+        }
+        return [
+          ...prev,
+          {
+            id,
+            name: seedRow?.name || "Chat",
+            preview: seedRow?.preview || threadLocal.find((t) => t.humanSpeaker)?.body || "",
+            time: seedRow?.when || "now",
+            unread: 0,
+            composition: seedRow?.kind === "group" ? "group" : "dyad",
+            memberCount: seedRow?.memberCount,
+            peers: seedRow
+              ? [{ id: `seed-peer-${seedRow.id}`, display_name: seedRow.name }]
+              : undefined,
+            ...withSeedPlan,
+          },
+        ];
+      });
+      setActiveChatId(id);
+      setLoadError(null);
+      return;
+    }
+    // Founder seed + remapped live id: paint designed walk thread (skip Italian/lab junk).
+    if (isFounderSeedEnabled() && seedTurns.length > 0) {
+      const seedRow =
+        matchedSeedRow ||
+        FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+          (r) => r.name === seedDisplayName || r.id === id,
+        );
+      const local = mapSeedTurns(seedTurns);
+      const seedPlan = seedRow?.planConsequence;
+      const withSeedPlan = {
+        signalLabel: seedPlan?.label || undefined,
+        planProjection: seedPlan
+          ? {
+              place: seedPlan.label,
+              when_label: seedRow?.when || undefined,
+              lineage_id: seedPlan.planId || seedRow?.id,
+              temporal_state: seedPlan.state === "ready" ? "upcoming" : undefined,
+              upcoming_ready: seedPlan.state === "ready",
+            }
+          : undefined,
+      };
+      // Preserve in-session human sends; remapping must not erase them.
+      const extras = collectSeedLocalExtras(id, local, seedRow?.name || seedDisplayName);
+      setThreads((prev) => ({
+        ...prev,
+        [id]: extras.length ? [...local, ...extras] : local,
+      }));
+      setChats((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                unread: 0,
+                name: seedRow?.name || c.name,
+                peers:
+                  c.peers?.length
+                    ? c.peers
+                    : seedRow
+                      ? [{ id: `seed-peer-${seedRow.id}`, display_name: seedRow.name }]
+                      : c.peers,
+                ...withSeedPlan,
+              }
+            : c,
+        ),
+      );
+      setActiveChatId(id);
+      setLoadError(null);
+      // Seed thread is the walk surface — do not fetch/join live (avoids lab residue
+      // and duplicate "Juniper tonight?" rows overwriting or trailing the design).
+      return;
+    }
+    // Keep an already-painted seed walk thread if a second openChat races in
+    // (list refresh / remount) with a cold name resolve — never let live listMessages
+    // replace Chanelle's Juniper filament with an empty lab thread.
+    if (isFounderSeedEnabled()) {
+      const existing = threadsRef.current[id] || [];
+      const seedPainted = existing.some(
+        (m) =>
+          m.opalSystemConsequence ||
+          m.opalFilament ||
+          (typeof m.id === "string" && m.id.includes("seed-chat-")),
+      );
+      if (seedPainted || matchedSeedRow) {
+        if (matchedSeedRow && !seedPainted) {
+          const forced = resolveFounderSeedThread({
+            conversationId:
+              FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === matchedSeedRow.name)?.id || id,
+            // Repair #11: id-key lookup only — never name-match.
+            displayName: null,
+          });
+          if (forced.length) {
+            const mapped = mapSeedTurns(forced);
+            const extras = collectSeedLocalExtras(id, mapped, matchedSeedRow.name);
+            setThreads((prev) => ({
+              ...prev,
+              [id]: extras.length ? [...mapped, ...extras] : mapped,
+            }));
+          }
+        } else if (seedPainted) {
+          // Re-open with same paint — still merge any sessionStorage extras under this id.
+          const extras = collectSeedLocalExtras(
+            id,
+            existing,
+            matchedSeedRow?.name || seedDisplayName,
+          );
+          if (extras.length) {
+            const have = new Set(existing.map((m) => m.id));
+            const missing = extras.filter((m) => !have.has(m.id));
+            if (missing.length) {
+              setThreads((prev) => ({
+                ...prev,
+                [id]: [...(prev[id] || existing), ...missing],
+              }));
+            }
+          }
+        }
+        // Ensure Next Together / plan-strip chrome survives reopen.
+        const seedRowForPlan =
+          matchedSeedRow ||
+          FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+            (r) => r.name === seedDisplayName || r.id === id,
+          );
+        const seedPlan = seedRowForPlan?.planConsequence;
+        if (seedPlan) {
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === id
+                ? {
+                    ...c,
+                    signalLabel: seedPlan.label || c.signalLabel,
+                    planProjection: {
+                      place: seedPlan.label,
+                      when_label: seedRowForPlan?.when || undefined,
+                      lineage_id: seedPlan.planId || seedRowForPlan?.id,
+                      temporal_state: seedPlan.state === "ready" ? "upcoming" : undefined,
+                      upcoming_ready: seedPlan.state === "ready",
+                    },
+                  }
+                : c,
+            ),
+          );
+        }
+        setActiveChatId(id);
+        setLoadError(null);
+        return;
+      }
+    }
     if (session) {
       try {
         const data = await listMessages(id, session.access_token);
@@ -2455,6 +3333,10 @@ export function OpalApp() {
             id: m.id,
             from: m.sender_user_id === session.user_id ? "me" : "them",
             body: callInvite ? "Call" : m.body,
+            audioUrl: (m as { audio_url?: string }).audio_url ?? null,
+            durationMs: (m as { duration_ms?: number }).duration_ms ?? null,
+            transcriptionConfidence:
+              (m as { transcription_confidence?: number }).transcription_confidence ?? null,
             opalFilament: callInvite || undefined,
             humanSpeaker: !callInvite,
             messageType: m.message_type,
@@ -2617,7 +3499,22 @@ export function OpalApp() {
         });
 
         // Single paint: human + filaments together (avoids messages→filaments flash).
-        setThreads((prev) => ({ ...prev, [id]: interleaved.length ? interleaved : mapped }));
+        // Never let a late live fetch wipe a founder-seed walk thread already on screen.
+        setThreads((prev) => {
+          const existing = prev[id] || [];
+          if (
+            isFounderSeedEnabled() &&
+            existing.some(
+              (m) =>
+                m.opalSystemConsequence ||
+                m.opalFilament ||
+                (typeof m.id === "string" && m.id.includes("seed-chat-")),
+            )
+          ) {
+            return prev;
+          }
+          return { ...prev, [id]: interleaved.length ? interleaved : mapped };
+        });
         if (!hadCache) {
           setActiveChatId(id);
           setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)));
@@ -2675,12 +3572,271 @@ export function OpalApp() {
     }
   };
 
+  /** Persist in-session human sends for founder-seed chats across reopen / id remap. */
+  const seedLocalStorageKey = (name: string | null | undefined) => {
+    const n = (name || "").trim().toLowerCase();
+    return n ? `opal.seed.local_msgs.v1:${n}` : null;
+  };
+  const rememberSeedLocalMessage = (
+    chatId: string,
+    name: string | null | undefined,
+    msg: Message,
+  ) => {
+    if (!isFounderSeedEnabled()) return;
+    if (msg.from !== "me" || msg.humanSpeaker === false) return;
+    const mid = typeof msg.id === "string" ? msg.id : "";
+    if (!(mid.startsWith("local-") || mid.startsWith("failed-") || msg.from === "me")) return;
+    const key = seedLocalStorageKey(name);
+    if (!key) return;
+    try {
+      const prev = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
+      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
+      sessionStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      /* ignore quota */
+    }
+    // Mirror under chatId for same-session reopen before name resolve.
+    try {
+      const idKey = `opal.seed.local_msgs.id.v1:${chatId}`;
+      const prev = JSON.parse(sessionStorage.getItem(idKey) || "[]") as Message[];
+      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
+      sessionStorage.setItem(idKey, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  };
+  const collectSeedLocalExtras = (
+    chatId: string,
+    seedLocal: Message[],
+    name: string | null | undefined,
+  ): Message[] => {
+    const seedIds = new Set(seedLocal.map((m) => m.id));
+    const isExtra = (m: Message) => {
+      const mid = typeof m.id === "string" ? m.id : "";
+      if (seedIds.has(mid)) return false;
+      if (mid.startsWith("local-") || mid.startsWith("failed-")) return true;
+      return m.from === "me" && m.humanSpeaker !== false;
+    };
+    const fromState: Message[] = [];
+    const seen = new Set<string>();
+    const push = (m: Message) => {
+      if (!isExtra(m) || seen.has(m.id)) return;
+      seen.add(m.id);
+      fromState.push(m);
+    };
+    for (const m of threadsRef.current[chatId] || []) push(m);
+    // Repair #11: no cross-thread display-name scanning — the name-keyed
+    // sessionStorage store above already preserves sends across id remaps.
+    // Name-matching other live threads was the same trigger class as the
+    // seed-name hijack and must not pull content by display name.
+    try {
+      for (const key of [
+        seedLocalStorageKey(name),
+        `opal.seed.local_msgs.id.v1:${chatId}`,
+      ]) {
+        if (!key) continue;
+        const stored = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
+        for (const m of stored) push(m);
+      }
+    } catch {
+      /* ignore */
+    }
+    return fromState;
+  };
+
+  const applySeedThreadIntelligence = (chatId: string, userBody: string) => {
+    if (!isFounderSeedEnabled()) return;
+    const liveForName = chats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      kind: (c.composition === "group" || (c.memberCount ?? 0) >= 3
+        ? "group"
+        : "direct") as "direct" | "group",
+      memberCount: c.memberCount,
+    }));
+    const displayName =
+      founderSeedDisplayNameForId(chatId, liveForName) ||
+      chats.find((c) => c.id === chatId)?.name ||
+      (activeChatId === chatId ? activeChat?.name : undefined) ||
+      "";
+    const chatKey =
+      // Repair #11: id-only — a real conversation must never trigger the simulation.
+      seedChatKeyFrom({ conversationId: chatId });
+    if (!chatKey) return;
+    const threadNow = threadsRef.current[chatId] || [];
+    let recent = [
+      ...threadNow.map((m) => ({
+        from: m.from,
+        body: m.body,
+        opalFilament: m.opalFilament,
+        opalSystemConsequence: m.opalSystemConsequence,
+        senderDisplayName: m.senderDisplayName ?? undefined,
+      })),
+      // Include the just-sent user turn (setState may not have flushed into threadsRef yet).
+      {
+        from: "me" as const,
+        body: userBody,
+        opalFilament: undefined as boolean | undefined,
+        opalSystemConsequence: undefined as boolean | undefined,
+        senderDisplayName: undefined as string | undefined,
+      },
+    ];
+    // If the live thread ref is empty/stale, fall back to the designed seed turns
+    // so yes/no still locks against the last Opal proposal.
+    if (!recent.some((m) => m.opalFilament || m.opalSystemConsequence)) {
+      const seedTurns = resolveFounderSeedThread({
+        conversationId: chatKey,
+        // Repair #11: never name-match — chatKey is already a seed-chat-* id.
+        displayName: null,
+      });
+      if (seedTurns.length) {
+        recent = [
+          ...seedTurns.map((m) => ({
+            from: m.from,
+            body: m.body,
+            opalFilament: m.opalFilament,
+            opalSystemConsequence: m.opalSystemConsequence,
+            senderDisplayName: m.senderDisplayName ?? undefined,
+          })),
+          {
+            from: "me" as const,
+            body: userBody,
+            opalFilament: undefined as boolean | undefined,
+            opalSystemConsequence: undefined as boolean | undefined,
+            senderDisplayName: undefined as string | undefined,
+          },
+        ];
+      }
+    }
+    const intel = interpretSeedThreadReply({
+      chatKey,
+      displayName: displayName || chatKey.replace(/^seed-chat-/i, ""),
+      userBody,
+      recent,
+    });
+    if (!intel) return;
+    const paintIntel = () => {
+      const stamp = Date.now();
+      const extras: Message[] = [];
+      if (intel.peer) {
+        // Repair #11: seed peer replies are simulated — never painted as a real human.
+        const peerName = (intel.peer.senderDisplayName || "").trim();
+        extras.push({
+          id: `seed-peer-${stamp}`,
+          from: "them",
+          body: intel.peer.body,
+          time: "Now",
+          humanSpeaker: false,
+          senderDisplayName: peerName
+            ? `${peerName} · simulated`
+            : "Simulated",
+        });
+      }
+      if (intel.opal) {
+        extras.push({
+          id: `seed-opal-${stamp}`,
+          from: "them",
+          body: intel.opal.body,
+          time: "Now",
+          opalFilament: true,
+          opalSystemConsequence: true,
+          humanSpeaker: false,
+          signal: {
+            kind: "plan_forming",
+            label: intel.opal.signalLabel || intel.opal.body,
+          },
+        });
+      }
+      if (!extras.length) return;
+      setThreads((prev) => ({
+        ...prev,
+        [chatId]: [...(prev[chatId] ?? []), ...extras],
+      }));
+      if (intel.confirmTime) {
+        setConfirmedTimesByChatId((prev) => ({ ...prev, [chatId]: intel.confirmTime! }));
+      }
+      if (intel.planLabel || intel.opal?.signalLabel) {
+        const label = intel.planLabel || intel.opal?.signalLabel || "";
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === chatId
+              ? {
+                  ...c,
+                  preview: intel.peer?.body || intel.opal?.body || c.preview,
+                  time: "Now",
+                  signalLabel: label || c.signalLabel,
+                }
+              : c,
+          ),
+        );
+      }
+    };
+    // Small delay so the user bubble paints first; keep short for walk harnesses.
+    window.setTimeout(paintIntel, 280);
+  };
+
+  const openAlexTripMemories = () => {
+    const list = ALEX_MEXICO_TRIP_MEMORIES;
+    if (!list.length) return;
+    // Keep the thread mounted — StoryViewer overlays from both conversation
+    // and shell branches so Trip Graph works when opened from a filament.
+    setStoryQueueOverride(list);
+    setStoryView(list[0] || null);
+  };
+
+  /** Soft itinerary canvas — title/plan CTA. Memories stay on photo CTA. */
+  const openAlexTripCanvas = () => {
+    setTripCanvasOpen(true);
+  };
+
   const send = async () => {
     const body = draft.trim();
     if (!body || !activeChatId) return;
+    const chatIdForIntel = activeChatId;
     if (session) {
       try {
-        // Primary send path: HTTP. Channel receives broadcast for peers and self-reconcile.
+        // ━━━ DEMO SHIM — seed mode only (Repair #11) ━━━━━━━━━━━━━━━━━━━━━━
+        // Seed chats paint locally and run the simulation. This branch is
+        // DEMO ONLY: it never touches the network. The old best-effort live
+        // send was REMOVED here because, on remapped-live ids, the local paint
+        // carried no clientMessageId, so the broadcast dedupe failed and the
+        // message rendered twice — and demo text leaked into real peers.
+        // Seed mode is not the product; in seed mode we send nothing.
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if (
+          isFounderSeedEnabled() &&
+          (isFounderSeedChatId(activeChatId) ||
+            // Repair #11: id-only — no display-name matching.
+            seedChatKeyFrom({ conversationId: activeChatId }))
+        ) {
+          const msg: Message = {
+            id: `local-${Date.now()}`,
+            from: "me",
+            body,
+            time: "Now",
+            senderUserId: session.user_id,
+            humanSpeaker: true,
+            senderDisplayName: session.display_name || "You",
+          };
+          setThreads((prev) => ({
+            ...prev,
+            [activeChatId]: [...(prev[activeChatId] ?? []), msg],
+          }));
+          setChats((prev) =>
+            prev.map((c) =>
+              c.id === activeChatId ? { ...c, preview: body, time: "Now" } : c,
+            ),
+          );
+          rememberSeedLocalMessage(
+            activeChatId,
+            founderSeedDisplayNameForId(activeChatId) || activeChat?.name,
+            msg,
+          );
+          setDraft("");
+          applySeedThreadIntelligence(chatIdForIntel, body);
+          // ━━━ END DEMO SHIM — nothing below may send over the network. ━━━━━
+          return;
+        }
         const res = await sendMessage(activeChatId, body, session.access_token);
         const m = res.message;
         productRealtime.noteServerSeq(activeChatId, m.server_seq);
@@ -2702,6 +3858,7 @@ export function OpalApp() {
           senderUserId: session.user_id,
           humanSpeaker: true,
           senderDisplayName: session.display_name || "You",
+          deliveryState: "sent",
           // Opal moment is journey state, not part of the human bubble.
           signal: activeSignal
             ? {
@@ -2741,9 +3898,25 @@ export function OpalApp() {
           ),
         );
         setDraft("");
+        applySeedThreadIntelligence(chatIdForIntel, body);
         return;
       } catch (e) {
         setLoadError((e as Error).message || "Send failed");
+        const failed: Message = {
+          id: `failed-${Date.now()}`,
+          from: "me",
+          body,
+          time: "Now",
+          senderUserId: session.user_id,
+          humanSpeaker: true,
+          senderDisplayName: session.display_name || "You",
+          deliveryState: "failed",
+        };
+        setThreads((prev) => ({
+          ...prev,
+          [activeChatId]: [...(prev[activeChatId] ?? []), failed],
+        }));
+        setDraft("");
         return;
       }
     }
@@ -2766,6 +3939,7 @@ export function OpalApp() {
       ),
     );
     setDraft("");
+    applySeedThreadIntelligence(chatIdForIntel, body);
   };
 
   /**
@@ -2776,7 +3950,10 @@ export function OpalApp() {
    */
   useEffect(() => {
     if (!homeGateNote) return;
-    const t = window.setTimeout(() => setHomeGateNote(null), 2800);
+    const t = window.setTimeout(() => {
+      setHomeGateNote(null);
+      setHomeGateAction(null);
+    }, 4200);
     return () => window.clearTimeout(t);
   }, [homeGateNote]);
   useEffect(() => {
@@ -2785,13 +3962,170 @@ export function OpalApp() {
     return () => window.clearTimeout(t);
   }, [journeyNote]);
 
+  /** Proof / QA: open person profile by display name without fuzzy Message routing. */
+  useEffect(() => {
+    const w = window as Window & {
+      __opalOpenPersonProfile?: (name: string) => void;
+    };
+    w.__opalOpenPersonProfile = (name: string) => {
+      const n = (name || "").trim();
+      if (!n) return;
+      setProfilePerson(n);
+    };
+    return () => {
+      delete w.__opalOpenPersonProfile;
+    };
+  }, []);
+
+  /** Person profile — resolve RU-1 type + IDs + privacy-correct phone. */
+  useEffect(() => {
+    if (!profilePerson) {
+      setProfileContactId(null);
+      setProfileConversationId(null);
+      setProfileHandle(null);
+      setProfileRelationshipType(null);
+      setProfilePhone(null);
+      setProfilePhoneProvenance(null);
+      setProfileBounds({});
+      return;
+    }
+    const local = readPersonContactMeta(profilePerson);
+    setProfileRelationshipType(local.type || null);
+    const localPhone = ownerVisiblePhone(local);
+    setProfilePhone(localPhone.value);
+    setProfilePhoneProvenance(localPhone.provenance);
+    setProfileBounds({});
+    const peer =
+      listDirectPeopleFromChats(chats).find(
+        (p) => p.displayName.toLowerCase() === profilePerson.toLowerCase(),
+      ) || null;
+    const peerId = peer?.peerUserId || null;
+    setProfileContactId(peerId);
+    const fromChat =
+      (peer?.conversationId &&
+        chats.find((c) => c.id === peer.conversationId)) ||
+      chats.find(
+        (c) =>
+          (c.composition !== "group" && (c.memberCount ?? 0) < 3) &&
+          (c.name || "").toLowerCase() === profilePerson.toLowerCase(),
+      ) ||
+      null;
+    const seedConv =
+      isFounderSeedEnabled()
+        ? founderSeedConversationIdForName(profilePerson)
+        : null;
+    setProfileConversationId(fromChat?.id || peer?.conversationId || seedConv || null);
+    const peerHandle = fromChat?.peers?.[0]?.handle || null;
+    const seedHandle = seedConv
+      ? `@${profilePerson.trim().toLowerCase().replace(/\s+/g, "")}`
+      : null;
+    setProfileHandle(peerHandle ? (peerHandle.startsWith("@") ? peerHandle : `@${peerHandle}`) : seedHandle);
+    let cancelled = false;
+    void (async () => {
+      if (!session?.access_token && !session?.cookie_session) return;
+      try {
+        const res = await listRelationships(session?.access_token);
+        if (cancelled) return;
+        const contacts = Array.isArray(res.contacts) ? res.contacts : [];
+        const hit =
+          (peerId
+            ? contacts.find((c: RelationshipContact) => c.contact_user_id === peerId)
+            : undefined) ||
+          contacts.find(
+            (c: RelationshipContact) =>
+              (c.display_name || "").toLowerCase() === profilePerson.toLowerCase(),
+          );
+        if (hit) {
+          setProfileContactId(hit.contact_user_id);
+          if (hit.type) setProfileRelationshipType(hit.type);
+          const bounds = (hit.communication_bounds || {}) as RelationshipBounds;
+          setProfileBounds(bounds);
+          // Phone from relationship bounds only when explicitly present — shared authority.
+          // Never treat owner address-book fields as relationship-visible.
+          const sharedPhone =
+            typeof (bounds as { phone?: string }).phone === "string"
+              ? (bounds as { phone?: string }).phone!.trim()
+              : "";
+          if (sharedPhone) {
+            setProfilePhone(sharedPhone);
+            setProfilePhoneProvenance("shared");
+            writePersonContactMeta(profilePerson, { sharedPhone });
+            if (hit.contact_user_id) {
+              writePersonContactMeta(hit.contact_user_id, { sharedPhone });
+            }
+          }
+        }
+      } catch {
+        /* keep local */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profilePerson, chats, session?.access_token, session?.cookie_session]);
+
+  /**
+   * Founder Reality Repair #3 — Call/Profile → Chat must open that person's thread.
+   * Authority: conversationId / peerUserId first; never fuzzy name → Chats home.
+   */
+  const openChatForPerson = async (target: PersonChatTarget): Promise<boolean> => {
+    const resolved = resolvePersonChatTarget(target, chats, {
+      founderSeedEnabled: isFounderSeedEnabled(),
+    });
+
+    if (resolved.ok) {
+      setCommSurface("chats");
+      setTab("chats");
+      setNewChatOpen(false);
+      await openChat(resolved.conversationId);
+      return true;
+    }
+
+    if (resolved.reason === "empty") return false;
+
+    // Ensure permitted direct when we have peerUserId; else New Chat for that person.
+    let conversationId: string | null = null;
+    const peerId = resolved.peerUserId || target.peerUserId || null;
+    if (peerId && session?.access_token) {
+      try {
+        const ensured = await ensureDirectConversation(peerId, session.access_token);
+        if (
+          ensured.composition !== "group" &&
+          (ensured.member_count ?? 0) < 3 &&
+          ensured.direct !== false
+        ) {
+          conversationId = ensured.conversation_id;
+          await refreshLive(session);
+        }
+      } catch {
+        /* soft-fail → New Chat */
+      }
+    }
+    if (conversationId) {
+      setCommSurface("chats");
+      setTab("chats");
+      setNewChatOpen(false);
+      await openChat(conversationId);
+      return true;
+    }
+
+    setCommSurface("chats");
+    setTab("chats");
+    setNewChatOpen(true);
+    setCallsGateNote(`Open a chat with ${resolved.displayName} to continue.`);
+    return false;
+  };
+
+  /** @deprecated name-only entry — prefer openChatForPerson with IDs. */
+  const openChatForPersonName = async (personName: string): Promise<boolean> =>
+    openChatForPerson({ displayName: personName });
+
   /**
    * P0-05.5  -  Graph open must NOT auto-activate Journey.
    * 618:674 "Tap a Graph to open it." → 618:758 Graph Detail persists.
    * 618:3288 Journey requires existing SharedPlan/commit  -  not Graph Detail mount.
    * activateJourney remains only for refreshing an already-open Journey (location grant).
-   * Next Together and Your Graphs open that same detail. Back from a chat
-   * launch returns to Graphs, with Graphs active on the dock.
+   * Repair #7 P0-F: Back returns to the originating surface (Chat / Graphs / Home / Center).
    */
   const closeGraphDetail = () => {
     setGraphDetailCardId(null);
@@ -2799,13 +4133,20 @@ export function OpalApp() {
     clearGraphAddress();
   };
 
-  const openGraphDetail = (planId: string, entry: "home" | "graphs" = "graphs") => {
+  const openGraphDetail = (
+    planId: string,
+    entry: "home" | "graphs" | "chats" | "opal" = "graphs",
+  ) => {
     const chat = chats.find(
       (row) => row.planProjection?.lineage_id === planId || row.id === planId,
     );
     const graph = chat ? canonicalGraphFromChat(chat, session?.display_name || null) : null;
-    if (activeChatId) {
+    const returnChatId = entry === "chats" ? activeChatId : null;
+    if (activeChatId && entry !== "chats") {
       productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+    } else if (activeChatId && entry === "chats") {
+      // Keep membership; hide the chat pane under Graph Detail without losing origin.
       setActiveChatId(null);
     }
     setOpalAmbientOpen(false);
@@ -2813,8 +4154,10 @@ export function OpalApp() {
     setGraphCreateContext({});
     setRepeatWhoOpen(false);
     setPlanDetailOpen(false);
-    const resolvedEntry = graph && entry !== "home" ? "graphs" : entry;
+    // Do not coerce Chat/Center origins into Graphs — that caused Back → Graphs.
+    const resolvedEntry = entry;
     setGraphDetailEntrySource(resolvedEntry);
+    setGraphDetailReturnChatId(returnChatId);
     setCanonicalGraph((current) => {
       if (graph) return graph;
       if (current?.planId === planId) return current;
@@ -2822,6 +4165,9 @@ export function OpalApp() {
     });
     setGraphDetailCardId(graph?.planId || planId);
     if (resolvedEntry === "graphs") setTab("graphs");
+    else if (resolvedEntry === "home") setTab("home");
+    else if (resolvedEntry === "opal") setTab("opal");
+    else if (resolvedEntry === "chats") setTab("chats");
     if (graph) writeGraphAddress(graph.planId);
   };
 
@@ -2849,6 +4195,92 @@ export function OpalApp() {
     });
     setGraphCreateOpen(true);
     setTab("graphs");
+  };
+
+  /** Paste W4 Phase 4 — Idea / New plan opens PlanComposer (never GraphCreateFlow camera). */
+  const openPlanComposer = (seed?: PlanComposerSeed | null) => {
+    if (activeChatId) {
+      productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+    }
+    setGraphCreateOpen(false);
+    setContactProfileOpen(false);
+    setPlanComposerSeed(seed || null);
+    setPlanComposerOpen(true);
+    setTab("graphs");
+  };
+
+  const confirmPlanComposer = (plan: PlanComposerResult) => {
+    const whoLabel = plan.who.join(", ") || "Friends";
+    // Paste W5 Phase 4 — reuse idea id so GraphsHome / detail update that card (not a stale idea).
+    const surfaceId = plan.sourceIdeaId || localPlanSurfaceId(whoLabel, plan.title);
+    const surface: CreatedPlanSurface = {
+      id: surfaceId,
+      title: plan.title,
+      who: whoLabel,
+      when: plan.when,
+      what: plan.vibe,
+      place: plan.where,
+      conversationId: null,
+      sharedPlanId: null,
+      sourceIdeaId: plan.sourceIdeaId || null,
+      createdAt: new Date().toISOString(),
+    };
+    setCreatedPlanSurfaces((prev) => {
+      const next = [
+        surface,
+        ...prev.filter(
+          (p) =>
+            p.id !== surface.id &&
+            p.sourceIdeaId !== surface.id &&
+            (!surface.sourceIdeaId || p.id !== surface.sourceIdeaId),
+        ),
+      ].slice(0, 24);
+      persistCreatedPlans(next);
+      return next;
+    });
+    setPlanComposerOpen(false);
+    setPlanComposerSeed(null);
+
+    const matchName = plan.who[0]?.toLowerCase();
+    const chat =
+      (matchName &&
+        chats.find(
+          (c) =>
+            matchName &&
+            (c.name || "").toLowerCase().includes(matchName) &&
+            !(c.composition === "group" || (c.memberCount ?? 0) >= 3),
+        )) ||
+      null;
+
+    // Unconfirmed composer result stays plan_forming — never ready/locked/happening.
+    const filamentBody = `Here's the plan: ${plan.title} · ${plan.when} · ${plan.where}`;
+    if (chat) {
+      const msg: Message = {
+        id: `plan-composer-${surface.id}`,
+        from: "them",
+        body: filamentBody,
+        time: "Now",
+        opalFilament: true,
+        opalSystemConsequence: true,
+        humanSpeaker: false,
+        realitySeedId: surface.id,
+        signal: {
+          kind: "plan_forming",
+          label: filamentBody,
+        },
+      };
+      setThreads((prev) => ({
+        ...prev,
+        [chat.id]: [...(prev[chat.id] || []), msg],
+      }));
+      void openChat(chat.id);
+      openGraphDetail(surface.id, "graphs");
+      return;
+    }
+    setTab("graphs");
+    openGraphDetail(surface.id, "graphs");
+    setCallsGateNote(filamentBody);
   };
 
   useEffect(() => {
@@ -3061,8 +4493,23 @@ export function OpalApp() {
     // Upcoming: Next Together strip stays in-thread.
     // Past: PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0 — access via header overflow
     // ("Earlier together"), not a sticky banner between person and messages.
-    const headerPlan =
+    // Repair #3 — prefer alignment lines; fall back to chat planProjection / seed signal
+    // so relationship threads keep active-plan continuity without requiring full settlement.
+    const headerPlanFromAlignment =
       planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
+    const projectionSummary = [
+      activeChat.planProjection?.when_label,
+      activeChat.planProjection?.place,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const headerPlan =
+      headerPlanFromAlignment ||
+      (projectionSummary
+        ? { summary: projectionSummary, moreCount: 0 }
+        : activeChat.signalLabel
+          ? { summary: activeChat.signalLabel, moreCount: 0 }
+          : null);
     const pastHistorySummary =
       planSettled && temporalState === "past"
         ? selectHeaderPlan(alignment?.plan_lines)?.summary ||
@@ -3150,13 +4597,34 @@ export function OpalApp() {
         {/* Hide thread chrome while Group Info 618:521 owns the destination (866:4 overlay ownership). */}
         {!groupInfoOpen ? (
         <GraphPeopleThreadHeader
-          peerName={activeChat.name}
-          peerInitial={initials(activeChat.name)}
+          peerName={
+            (isFounderSeedEnabled()
+              ? founderSeedDisplayNameForId(
+                  activeChat.id,
+                  chats.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    kind: c.composition === "group" ? "group" : "direct",
+                    memberCount: c.memberCount,
+                  })),
+                )
+              : null) || activeChat.name
+          }
+          peerInitial={initials(
+            (isFounderSeedEnabled()
+              ? founderSeedDisplayNameForId(activeChat.id)
+              : null) || activeChat.name,
+          )}
           peerAvatarSrc={
-            /* Direct 618:351 Chanelle  -  exact Figma raster; not Home/feed substitutes */
-            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
-            /chanelle/i.test(activeChat.name)
-              ? "/figma-v2/direct/opal-direct-chanelle-618-351.png"
+            /* Paste W6 4c — same peer photo as Chats row when one exists. */
+            !(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3)
+              ? resolveFounderPeerAvatarSrc(
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name,
+                ) ||
+                (activeChat as { avatarSrc?: string }).avatarSrc ||
+                undefined
               : undefined
           }
           isGroup={
@@ -3165,11 +4633,36 @@ export function OpalApp() {
           connectionLabel={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? `${activeChat.memberCount || 4} people · Group`
-              : relationshipHeaderLabel(null) || ""
+              : (() => {
+                  if (isFounderSeedEnabled()) {
+                    const seedName =
+                      founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                    const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                      (r) =>
+                        r.name.toLowerCase() === seedName.toLowerCase() ||
+                        r.id === activeChat.id,
+                    );
+                    if (seedRow?.relationshipLabel) return seedRow.relationshipLabel;
+                  }
+                  const confirmed = relationshipHeaderLabel(null);
+                  if (confirmed) return confirmed;
+                  const localType = readPersonContactMeta(activeChat.name).type;
+                  const label = relationshipTypeLabel(localType);
+                  return label !== "Not set" ? label : "";
+                })()
           }
+          isLive={false}
           sharedGraphLine={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
               ? (() => {
+                  // Paste W 2.7 — Shared Graph header only when an active shared plan exists.
+                  if (isFounderSeedEnabled()) {
+                    const seedName =
+                      founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                    if (/juniper|crew/i.test(seedName)) {
+                      return "Juniper & Ivy · Sat 7:30 ✓ Locked";
+                    }
+                  }
                   const plan = activeChat.planProjection;
                   if (plan?.when_label || plan?.place) {
                     const committed = [plan.place, plan.when_label].filter(Boolean).join(" · ");
@@ -3180,9 +4673,35 @@ export function OpalApp() {
                     // One Reality: committed WHEN stays canonical; pending is labeled as proposed.
                     return pending ? `${committed} · ${pending}` : committed;
                   }
-                  return activeChat.signalLabel || activeChat.contextLine || null;
+                  return null;
                 })()
               : null
+          }
+          sharedGraphWaiting={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? isFounderSeedEnabled() &&
+                /juniper|crew/i.test(
+                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                )
+                ? "Waiting on Sam · 3 of 4"
+                : null
+              : null
+          }
+          onOpenSharedGraph={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? () => {
+                  const planId =
+                    (isFounderSeedEnabled() &&
+                    /juniper|crew/i.test(
+                      founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                    )
+                      ? "seed-chanelle-juniper"
+                      : null) ||
+                    activeChat.planProjection?.lineage_id ||
+                    activeChat.id;
+                  openGraphDetail(planId, "chats");
+                }
+              : undefined
           }
           onOpenGroupInfo={
             activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
@@ -3190,27 +4709,60 @@ export function OpalApp() {
               : undefined
           }
           showCallVideo={true}
-          callVideoCapable={false}
+          callVideoCapable={Boolean(session?.access_token || session?.cookie_session)}
           onCall={() => {
-            /* Track B capable path — unused while callVideoCapable=false */
+            if (!activeChatId || !(session?.access_token || session?.cookie_session)) {
+              setCallsGateNote("Sign in to place a call.");
+              return;
+            }
+            if (isFounderSeedChatId(activeChatId)) {
+              setCallsGateNote("Calls aren't available on this build yet.");
+              return;
+            }
+            setCallsGateNote(null);
+            void (async () => {
+              try {
+                const res = await createConversationCall(activeChatId, session?.access_token);
+                setCallSurface({
+                  kind: "audio",
+                  direction: "outgoing",
+                  peerName: activeChat?.name || "Call",
+                  liveCallId: res.call.id,
+                  liveCallStatus: res.call.status,
+                  liveCallerUserId: res.call.caller_user_id,
+                  liveCalleeUserId: res.call.callee_user_id,
+                });
+                void refreshCallLog();
+              } catch (err) {
+                const msg =
+                  err && typeof err === "object" && "message" in err
+                    ? String((err as { message?: string }).message || "")
+                    : "";
+                setCallsGateNote(
+                  /not available|not supported|unavailable|501|403/i.test(msg)
+                    ? "Calls aren't available on this build yet."
+                    : msg || "Couldn't start the call. Try again in a moment.",
+                );
+              }
+            })();
           }}
           onVideo={() => {
             setCallsGateCallId(null);
-            setCallsGateNote("Video calling isn't available on this build yet.");
+            setCallsGateNote("Calls aren't available on this build yet.");
           }}
           onCallVideoGate={(kind) => {
-            // WALK-FAIL-04: honest gate — Track B PLAIN_CALL_PHYSICAL=RED.
             setCallSurface(null);
             setCallsGateCallId(null);
             setCallsGateNote(
               kind === "video"
-                ? "Video calling isn't available on this build yet."
-                : "Calling isn't available on this build yet.",
+                ? "Calls aren't available on this build yet."
+                : "Sign in to place a call.",
             );
           }}
           onBack={() => {
             if (activeChatId) productRealtime.leaveConversation(activeChatId);
             setGroupInfoOpen(false);
+            setContactProfileOpen(false);
             setActiveChatId(null);
             setCallsGateNote(null);
             setCallSurface(null);
@@ -3228,11 +4780,18 @@ export function OpalApp() {
             pastHistorySummary ? `Earlier together · ${pastHistorySummary}` : null
           }
           onOpenEarlierTogether={
-            pastHistoryPlanId
-              ? () => openGraphDetail(pastHistoryPlanId, "graphs")
-              : pastHistorySummary
-                ? () => setTab("graphs")
-                : undefined
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? undefined
+              : () => {
+                  // Paste W5 Phase 2 — History must do something real (no dead header button).
+                  // Prefer this person's past plan; otherwise open the contact timeline sheet
+                  // (shared plans + memories) which is the relationship history surface.
+                  if (pastHistoryPlanId) {
+                    openGraphDetail(pastHistoryPlanId, "chats");
+                    return;
+                  }
+                  setContactProfileOpen(true);
+                }
           }
           onSetNotificationsMuted={(muted) => {
             const id = activeChat.id;
@@ -3247,8 +4806,13 @@ export function OpalApp() {
               setNotificationNotice("Couldn't update notifications. Try again.");
             });
           }}
+          onOpenContactProfile={
+            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3
+              ? undefined
+              : () => setContactProfileOpen(true)
+          }
           onPlan={() => {
-            // Speed to alignment: WHO = this peer. Never open WHO picker.
+            // L5: GraphCreateFlow stays reachable from Graphs +, not thread calendar icon.
             setMomentForkChooserOpen(false);
             setMomentPeopleOpen(false);
             setWhoTogether(true);
@@ -3262,7 +4826,156 @@ export function OpalApp() {
           }}
         />
         ) : null}
-        {groupInfoOpen ? (
+        {contactProfileOpen && activeChat ? (
+          <ContactProfileSheet
+            name={
+              (isFounderSeedEnabled()
+                ? founderSeedDisplayNameForId(activeChat.id)
+                : null) || activeChat.name
+            }
+            handle={(() => {
+              const peerHandle = activeChat.peers?.[0]?.handle;
+              if (peerHandle) {
+                return peerHandle.startsWith("@") ? peerHandle : `@${peerHandle}`;
+              }
+              const seedName =
+                (isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name;
+              if (isFounderSeedEnabled() && seedName) {
+                return `@${seedName.trim().toLowerCase().replace(/\s+/g, "")}`;
+              }
+              return null;
+            })()}
+            relationshipLabel={
+              (() => {
+                if (isFounderSeedEnabled()) {
+                  const seedName =
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                  const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                    (r) =>
+                      r.name.toLowerCase() === seedName.toLowerCase() ||
+                      r.id === activeChat.id,
+                  );
+                  if (seedRow?.relationshipLabel) return seedRow.relationshipLabel;
+                }
+                const localType = readPersonContactMeta(activeChat.name).type;
+                const label = relationshipTypeLabel(localType);
+                return label !== "Not set" ? label : null;
+              })()
+            }
+            phone={ownerVisiblePhone(readPersonContactMeta(activeChat.name)).value}
+            phoneProvenance={
+              ownerVisiblePhone(readPersonContactMeta(activeChat.name)).provenance
+            }
+            avatarSrc={
+              resolveFounderPeerAvatarSrc(
+                (isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name,
+              ) || undefined
+            }
+            sharedPlans={(() => {
+              const seedName =
+                (isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name;
+              const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                (r) =>
+                  r.name.toLowerCase() === seedName.toLowerCase() ||
+                  r.id === activeChat.id,
+              );
+              const fromSeed = seedRow?.planConsequence
+                ? [
+                    {
+                      id: seedRow.planConsequence.planId || seedRow.id,
+                      title: seedRow.planConsequence.label,
+                      whenLabel: seedRow.when,
+                      state: seedRow.planConsequence.state,
+                    },
+                  ]
+                : [];
+              const fromLive =
+                activeChat.planProjection?.place || activeChat.planProjection?.when_label
+                  ? [
+                      {
+                        id:
+                          activeChat.planProjection.lineage_id ||
+                          activeChat.id,
+                        title: [activeChat.planProjection.place, activeChat.planProjection.when_label]
+                          .filter(Boolean)
+                          .join(" · "),
+                        state: activeChat.planProjection.temporal_state || undefined,
+                      },
+                    ]
+                  : [];
+              return fromLive.length ? fromLive : fromSeed;
+            })()}
+            onClose={() => setContactProfileOpen(false)}
+            onMessage={() => setContactProfileOpen(false)}
+            onCall={() => {
+              setContactProfileOpen(false);
+              setCallsGateCallId(null);
+              setCallsGateNote(
+                session?.access_token || session?.cookie_session
+                  ? "Calls aren't available on this build yet."
+                  : "Sign in to place a call.",
+              );
+            }}
+            onVideo={() => {
+              setContactProfileOpen(false);
+              setCallSurface({
+                kind: "video",
+                direction: "outgoing",
+                peerName:
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name,
+              });
+            }}
+            onPlan={() => {
+              setContactProfileOpen(false);
+              setMomentForkChooserOpen(false);
+              setMomentPeopleOpen(false);
+              setWhoTogether(true);
+              setMomentSelectedPeople([activeChat.name]);
+              setGraphCreateContext({
+                who: activeChat.name,
+                where: null,
+                when: null,
+              });
+              setGraphCreateOpen(true);
+            }}
+            onOpenMemories={() => {
+              setContactProfileOpen(false);
+              setPersonMemoryTarget({
+                id: activeChat.id,
+                name:
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name,
+              });
+            }}
+            onOpenPlan={(planId) => {
+              setContactProfileOpen(false);
+              openGraphDetail(planId, "chats");
+            }}
+          />
+        ) : null}
+        {personMemoryTarget ? (
+          <PersonMemoryView
+            personId={personMemoryTarget.id}
+            displayName={personMemoryTarget.name}
+            bearer={session?.access_token}
+            onBack={() => setPersonMemoryTarget(null)}
+            onOpenConversation={(id) => {
+              setPersonMemoryTarget(null);
+              setGroupInfoOpen(false);
+              void openChat(id);
+            }}
+          />
+        ) : null}
+        {groupInfoOpen && !personMemoryTarget ? (
           <GroupInfoDestination
             groupName={activeChat.name}
             members={["You", "Chanelle", "Maya", "Jordan"]
@@ -3270,6 +4983,7 @@ export function OpalApp() {
               .map((name, i) => ({
                 id: `m-${i}`,
                 name,
+                personId: i === 0 ? undefined : `person-${name.toLowerCase()}`,
                 role: i === 0 ? "you" : undefined,
               }))}
             sharedGraphLabel={
@@ -3287,6 +5001,12 @@ export function OpalApp() {
               })()
             }
             onBack={() => setGroupInfoOpen(false)}
+            onOpenPersonMemory={(m) =>
+              setPersonMemoryTarget({
+                id: m.personId || m.id,
+                name: m.name,
+              })
+            }
             onAddPeople={() => {
               // 618:521 Add people → 618:2299 Search PEOPLE/add-members (not Journey)
               setGroupInfoOpen(false);
@@ -3296,12 +5016,36 @@ export function OpalApp() {
               setSearchContext("add_members");
               setSearchOpen(true);
             }}
-            onMute={() => setGroupInfoOpen(false)}
-            onLeave={() => {
+            onMute={() => {
+              const id = activeChat.id;
+              const nextMuted = !activeChat.muted;
+              setChats((prev) =>
+                prev.map((chat) => (chat.id === id ? { ...chat, muted: nextMuted } : chat)),
+              );
+              setNotificationNotice(nextMuted ? "Notifications muted" : "Notifications on");
               setGroupInfoOpen(false);
-              if (activeChatId) productRealtime.leaveConversation(activeChatId);
-              setActiveChatId(null);
-              setTab("chats");
+              const token = session?.access_token;
+              if (!token || isFounderSeedChatId(id)) return;
+              void setConversationMuted(id, nextMuted, token).catch(() => {
+                setChats((prev) =>
+                  prev.map((chat) => (chat.id === id ? { ...chat, muted: !nextMuted } : chat)),
+                );
+                setNotificationNotice("Couldn't update notifications. Try again.");
+              });
+            }}
+            leaveBlockedReason="Leave group needs a membership revoke API. Closing the chat does not remove you from the group."
+            onOpenSharedGraph={() => {
+              setGroupInfoOpen(false);
+              const planId =
+                (isFounderSeedEnabled() &&
+                /juniper|crew/i.test(
+                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                )
+                  ? "seed-chanelle-juniper"
+                  : null) ||
+                activeChat.planProjection?.lineage_id ||
+                activeChat.id;
+              openGraphDetail(planId, "chats");
             }}
           />
         ) : null}
@@ -3314,15 +5058,32 @@ export function OpalApp() {
         </div>
         <ConnectionHint state={connectionState} />
 
-        {/* Next / Last together  -  thin reality shortcut, not a second database. */}
-        {isFounderSeedEnabled() && activeChat.signalLabel ? (
+        {/* Next / Last together — opens authoritative plan (same as next-plan-strip). */}
+        {!headerPlan && activeChat.signalLabel ? (
           <button
             type="button"
             className="next-together-strip"
             data-testid="next-together"
+            data-destination="graph-detail"
             onClick={() => {
+              const planId =
+                chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+                alignment?.lineage_id ||
+                (activeChat as { planConsequence?: { planId?: string } }).planConsequence?.planId ||
+                (/juniper|crew/i.test(
+                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                )
+                  ? "seed-chanelle-juniper"
+                  : null);
+              if (planId) {
+                openGraphDetail(String(planId), "chats");
+                return;
+              }
+              // Fallback: scroll to in-thread plan filament when no lineage yet.
               document
-                .querySelector('[data-testid="opal-moment"], .opal-resolution, .thread')
+                .querySelector(
+                  '[data-testid="next-plan-strip"], [data-testid="opal-moment"], .opal-resolution, .thread',
+                )
                 ?.scrollIntoView({ behavior: "smooth", block: "center" });
             }}
           >
@@ -3405,78 +5166,152 @@ export function OpalApp() {
           />
         ) : null}
 
-        {/* Dated proof plate is founder-seed only. No-seed threads show server messages. */}
-        {isFounderSeedEnabled() ? (() => {
-          const isGroupChat =
-            activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3;
-          const datedMsgs = toDatedMessages(
-            messages.map((m) => ({
-              id: m.id,
-              body: m.body,
-              from: m.from,
-              senderUserId: m.senderUserId,
-              opalFilament: m.opalFilament,
-              opalSystemConsequence: m.opalSystemConsequence,
-            })),
-            new Map(
-              [...speakerPlanById.entries()].map(([id, meta]) => [
-                id,
-                meta.speaker?.displayName || "",
-              ]),
-            ),
-          );
-          if (isGroupChat) {
-            return (
-              <DatedConversationContent
-                mode="group"
-                messages={datedMsgs}
-                plate={{
-                  goingLine: activeChat.signalLabel || null,
-                  arrivalLine: null,
-                  provider: null,
-                }}
-              />
-            );
-          }
-          const convSig =
-            strongestPerConversation(
-              liveSignals.filter((s) => s.conversation_id === activeChatId),
-            )[0] || liveSignals.find((s) => s.conversation_id === activeChatId);
-          const sr = convSig?.shared_reality as
-            | {
-                what?: string;
-                when?: string;
-                where?: string;
-                leave_around?: string;
-                leave_by?: string;
-                travel_estimate?: string;
-                distance?: string;
-              }
-            | undefined;
-          return (
-            <DatedConversationContent
-              mode="direct"
-              peerName={activeChat.name}
-              messages={datedMsgs}
-              plate={{
-                title: sr?.where || sr?.what || activeChat.signalLabel || null,
-                when: sr?.when || null,
-                provider: null,
-                leave: sr?.leave_around || sr?.leave_by || null,
-                travel: sr?.travel_estimate || sr?.distance || null,
-                availability: null,
-              }}
-            />
-          );
-        })() : null}
-
+        {/* Live scrollable thread owns messages — Brand V4 bubbles; no absolute dated plate. */}
         <div
-          className={isFounderSeedEnabled() ? "thread thread-dated-hidden" : "thread"}
+          className="thread"
           role="log"
           aria-live="polite"
-          aria-hidden={isFounderSeedEnabled() ? true : undefined}
           data-plan-inline={planSettled && !proposalPending && !planDetailOpen ? "collapsed" : "open"}
         >
+          {/* Journey CTAs: first scroll child — never overlays header/messages.
+              PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
+          <div
+            className="journey-cta-row"
+            data-testid="journey-cta-row"
+            data-next-gap={reality.next_gap}
+            data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
+          >
+            {/* Place gap — structured-layout entry opens the same place sheet as classic chip. */}
+            {reality.next_gap === "place" && primary.kind !== "sheet" ? (
+              <button
+                type="button"
+                className="btn journey-cta"
+                data-testid="place-gap-cta"
+                data-gap="place"
+                aria-expanded={findPlaceOpen || curateOpen}
+                onClick={() => {
+                  setFindPlaceOpen(true);
+                  setCurateOpen(false);
+                  setExtendOpen(false);
+                  setExtendSelected(null);
+                  setFindTimeOpen(false);
+                }}
+              >
+                {PRODUCT_COPY.choosePlace}
+              </button>
+            ) : null}
+            {reality.next_gap === "activity" ? (
+              <button
+                type="button"
+                className="btn journey-cta"
+                data-testid="curate-cta"
+                data-gap="activity"
+                aria-expanded={curateOpen}
+                onClick={() => {
+                  setCurateOpen((open) => !open);
+                  setFindPlaceOpen(false);
+                  setExtendOpen(false);
+                  setFindTimeOpen(false);
+                }}
+              >
+                {PRODUCT_COPY.curateCta}
+              </button>
+            ) : null}
+            {/* Structured journey row owns the time CTA — show even when classic chip/sheet primary is active. */}
+            {reality.next_gap === "time" && !suppressFindATime ? (
+              (() => {
+                const confirmedLabel =
+                  (activeChatId && confirmedTimesByChatId[activeChatId]) || null;
+                const resolvePickedTime = (): string | null => {
+                  const whenBlob = [
+                    reality.when,
+                    (reality as { when_line?: string }).when_line,
+                    activeChat.planProjection?.canonical_start_at,
+                    ...(activeChat.preview ? [activeChat.preview] : []),
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+                  const m = String(whenBlob).match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                  if (m) return m[1].replace(/\s+/g, " ").trim();
+                  const thread = threads[activeChatId || ""] || [];
+                  for (let i = thread.length - 1; i >= 0; i--) {
+                    const body = String((thread[i] as { body?: string })?.body || "");
+                    const tm = body.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                    if (
+                      tm &&
+                      (/can do|works|free|make|sounds good|juniper|tonight|saturday|sunday/i.test(
+                        body,
+                      ) ||
+                        i >= thread.length - 3)
+                    ) {
+                      return tm[1].replace(/\s+/g, " ").trim();
+                    }
+                  }
+                  return null;
+                };
+                if (confirmedLabel) {
+                  return (
+                    <button
+                      type="button"
+                      className="btn journey-cta journey-cta-find-time journey-cta-confirmed"
+                      data-testid="find-time-cta"
+                      data-gap="time"
+                      data-confirmed="true"
+                      aria-disabled="true"
+                      disabled
+                    >
+                      {`Confirmed ${confirmedLabel} ✓`}
+                    </button>
+                  );
+                }
+                const pickedPreview = resolvePickedTime();
+                return (
+                  <button
+                    type="button"
+                    className="btn journey-cta journey-cta-find-time"
+                    data-testid="find-time-cta"
+                    data-gap="time"
+                    onClick={() => {
+                      const picked = resolvePickedTime();
+                      if (picked) {
+                        // Known time → simple confirm sheet (never the broken Availability modal).
+                        setConfirmTimeDraft(picked);
+                        setFindTimeOpen(false);
+                        return;
+                      }
+                      openGapSurface("time_sheet", "time");
+                    }}
+                  >
+                    {pickedPreview
+                      ? `Confirm ${pickedPreview}`
+                      : PRODUCT_COPY.findTime}
+                  </button>
+                );
+              })()
+            ) : null}
+            {(primary.kind === "set" ||
+              activeChat.signal === "set" ||
+              activeChat.signal === "ready") &&
+            reality.next_gap === "none" ? (
+              <button
+                type="button"
+                className="btn journey-cta ghost"
+                data-testid="extend-cta"
+                aria-expanded={extendOpen}
+                onClick={() => {
+                  setExtendOpen((open) => {
+                    if (open) setExtendSelected(null);
+                    return !open;
+                  });
+                  setCurateOpen(false);
+                  setFindPlaceOpen(false);
+                }}
+              >
+                {PRODUCT_COPY.extendCta}
+              </button>
+            ) : null}
+          </div>
+
           {headerPlan ? (
             <button
               type="button"
@@ -3494,8 +5329,27 @@ export function OpalApp() {
               onClick={() => {
                 const planId =
                   chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
-                  alignment?.lineage_id;
-                if (planId) openGraphDetail(planId, "graphs");
+                  alignment?.lineage_id ||
+                  (/juniper|crew/i.test(
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                  )
+                    ? "seed-chanelle-juniper"
+                    : null);
+                if (planId) {
+                  openGraphDetail(planId, "chats");
+                  return;
+                }
+                const label = activeChat.signalLabel || headerPlan?.summary || "";
+                if (isAlexTripGraphTarget(label) || isAlexTripGraphTarget(activeChatId)) {
+                  openAlexTripCanvas();
+                  return;
+                }
+                setCallsGateNote(
+                  label
+                    ? `Open Graphs to see more on: ${label}`
+                    : "Plan detail isn't linked yet — open Graphs to browse.",
+                );
+                setTab("graphs");
               }}
             >
               <span className="next-plan-kicker">
@@ -3522,42 +5376,161 @@ export function OpalApp() {
             ) : (
             (() => {
             const m = item.message;
-            return m.opalFilament ||
-            m.opalSystemConsequence ||
-            m.id.startsWith("opal-filament-") ||
-            m.id.startsWith("opal-exec-") ? (
-              <div
-                key={m.id}
-                data-testid={
-                  m.opalSystemConsequence
-                    ? "opal-system-consequence"
-                    : "opal-filament-wrap"
-                }
-                data-system-consequence={m.opalSystemConsequence ? "true" : undefined}
-                data-human-speaker="false"
-                data-reality-seed={m.realitySeedId}
-                data-execution-id={m.executionId}
-              >
-                {m.opalPrivate ? (
+            // Never paint empty human bubbles (time-only / blank body).
+            const isFilament =
+              m.opalFilament ||
+              m.opalSystemConsequence ||
+              m.id.startsWith("opal-filament-") ||
+              m.id.startsWith("opal-exec-");
+            if (!isFilament && !(m.body || "").trim()) return null;
+            return isFilament ? (
+              (() => {
+                const filamentLabel = humanCallLabel(m, callLog);
+                const tripMemories =
+                  isAlexTripGraphTarget(filamentLabel) ||
+                  isAlexTripGraphTarget(m.body) ||
+                  isAlexTripGraphTarget(m.signal?.label);
+                const seedPlanId = (() => {
+                  if (!isFounderSeedEnabled() || !activeChat) return null;
+                  const seedName =
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
+                  const row = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
+                    (r) =>
+                      r.id === activeChat.id ||
+                      r.name.toLowerCase() === seedName.toLowerCase(),
+                  );
+                  return row?.planConsequence?.planId || null;
+                })();
+                const filamentBlob = `${filamentLabel} ${m.body || ""} ${m.signal?.label || ""}`;
+                const planHitId =
+                  activeChat?.planProjection?.lineage_id ||
+                  seedPlanId ||
+                  (/juniper|lined this up/i.test(filamentBlob)
+                    ? "seed-chanelle-juniper"
+                    : /coast|farmers market/i.test(filamentBlob)
+                      ? "seed-maya-graph-coast"
+                      : /trip graph|mexico/i.test(filamentBlob)
+                        ? "seed-alex-graph-gallery"
+                        : null);
+                const filamentInner = m.opalPrivate ? (
                   <PrivateOpalPlate body={m.signal?.label || m.body} time={m.time} />
                 ) : (
                   <OpalFilament
                     mode={filamentModeFor(m.signal?.kind)}
-                    label={humanCallLabel(m, callLog)}
+                    label={filamentLabel}
                     callOutcome={
-                      humanCallLabel(m, callLog).startsWith("Missed call") ? "missed" : undefined
+                      filamentLabel.startsWith("Missed call") ? "missed" : undefined
                     }
                     time={m.time}
                     signalKind={m.signal?.kind}
                   />
-                )}
-              </div>
+                );
+                const filamentHitStyle: React.CSSProperties = {
+                  display: "block",
+                  width: "100%",
+                  padding: 0,
+                  margin: 0,
+                  border: 0,
+                  background: "transparent",
+                  textAlign: "inherit",
+                  cursor: "pointer",
+                  color: "inherit",
+                  font: "inherit",
+                };
+                return (
+                  <div
+                    key={m.id}
+                    data-testid={
+                      m.opalSystemConsequence
+                        ? "opal-system-consequence"
+                        : "opal-filament-wrap"
+                    }
+                    data-system-consequence={m.opalSystemConsequence ? "true" : undefined}
+                    data-human-speaker="false"
+                    data-reality-seed={m.realitySeedId}
+                    data-execution-id={m.executionId}
+                    data-trip-memories={tripMemories ? "true" : undefined}
+                    data-plan-state={
+                      (activeChatId && confirmedTimesByChatId[activeChatId]) ||
+                      /locked|confirmed|✓/i.test(filamentLabel)
+                        ? "locked"
+                        : /waiting|pending/i.test(filamentLabel)
+                          ? "pending"
+                          : /lined this up|forming|idea/i.test(filamentLabel)
+                            ? "forming"
+                            : undefined
+                    }
+                  >
+                    {tripMemories ? (
+                      <div
+                        className="trip-graph-dual-cta"
+                        data-testid="trip-graph-dual-cta"
+                        style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                      >
+                        <button
+                          type="button"
+                          className="opal-filament-hit"
+                          data-testid="trip-graph-canvas-cta"
+                          aria-label="Open Mexico City trip canvas"
+                          onClick={openAlexTripCanvas}
+                          style={filamentHitStyle}
+                        >
+                          {filamentInner}
+                        </button>
+                        <button
+                          type="button"
+                          className="opal-filament-hit trip-graph-memories-link"
+                          data-testid="trip-graph-memories-cta"
+                          aria-label="Open Trip Graph memories"
+                          onClick={openAlexTripMemories}
+                          style={{
+                            alignSelf: "flex-start",
+                            padding: "4px 2px",
+                            margin: 0,
+                            border: 0,
+                            background: "transparent",
+                            color: "rgba(196, 181, 253, 0.92)",
+                            font: "inherit",
+                            fontSize: "0.78rem",
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                            textUnderlineOffset: 2,
+                          }}
+                        >
+                          14 memories
+                        </button>
+                      </div>
+                    ) : planHitId ? (
+                      <button
+                        type="button"
+                        className="opal-filament-hit"
+                        data-testid="opal-plan-filament-hit"
+                        aria-label={`Open plan: ${filamentLabel}`}
+                        onClick={() => openGraphDetail(String(planHitId), "chats")}
+                        style={filamentHitStyle}
+                      >
+                        {filamentInner}
+                      </button>
+                    ) : (
+                      filamentInner
+                    )}
+                  </div>
+                );
+              })()
             ) : (
               (() => {
                 const meta = speakerPlanById.get(m.id);
                 const speaker = meta?.speaker;
-                const showHeader = meta?.showSpeakerHeader === true;
+                const seedName = (m.senderDisplayName || "").trim();
+                const displayName =
+                  speaker?.displayName || seedName || (m.from === "them" ? activeChat?.name : "") || "";
                 const isSelf = m.from === "me" || speaker?.isSelf === true;
+                const showHeader =
+                  meta?.showSpeakerHeader === true ||
+                  (!isSelf && !!displayName && meta?.continuesGroup !== true);
+                const initials =
+                  speaker?.initials ||
+                  (displayName ? displayName.slice(0, 1).toUpperCase() : "?");
                 return (
                   <div
                     key={m.id}
@@ -3567,13 +5540,11 @@ export function OpalApp() {
                     data-testid="human-message-row"
                     data-human-speaker="true"
                     data-sender-user-id={m.senderUserId || undefined}
-                    data-sender-name={speaker?.displayName || undefined}
+                    data-sender-name={isSelf ? "You" : displayName || undefined}
                     data-continues-group={meta?.continuesGroup ? "true" : "false"}
                     data-show-speaker-header={showHeader ? "true" : "false"}
                     aria-label={
-                      speaker
-                        ? `${speaker.isSelf ? "You" : speaker.displayName}: ${m.body}`
-                        : m.body
+                      isSelf ? `You: ${m.body}` : displayName ? `${displayName}: ${m.body}` : m.body
                     }
                   >
                     {!isSelf ? (
@@ -3582,9 +5553,14 @@ export function OpalApp() {
                           <span
                             className="bubble-avatar"
                             data-testid="message-sender-avatar"
-                            title={speaker?.displayName || "Unknown member"}
+                            title={displayName || "Unknown member"}
+                            style={{
+                              background: contactEarGradient(
+                                m.senderUserId || displayName || m.id,
+                              ),
+                            }}
                           >
-                            {speaker?.initials || "?"}
+                            {initials}
                           </span>
                         ) : (
                           <span className="bubble-avatar-spacer" />
@@ -3597,19 +5573,100 @@ export function OpalApp() {
                           className="bubble-sender-name"
                           data-testid="message-sender-name"
                         >
-                          {speaker?.displayName || "Unknown member"}
+                          {displayName || "Unknown member"}
                         </span>
                       ) : null}
-                      <div className={`bubble ${isSelf ? "out" : "in"}`}>
-                        <p>{m.body}</p>
+                      <div
+                        className={`bubble ${isSelf ? "out" : "in"}`}
+                        data-message-type={m.messageType || "text"}
+                      >
+                        {m.messageType === "voice_transcript" ? (
+                          <div className="voice-note" data-testid="voice-note-bubble">
+                            <div className="voice-note-wave" aria-hidden>
+                              ▁▃▅▇▅▃▁▃▅
+                            </div>
+                            {typeof m.durationMs === "number" ? (
+                              <span className="voice-note-duration">
+                                {Math.max(1, Math.round(m.durationMs / 1000))}s
+                              </span>
+                            ) : null}
+                            {m.audioUrl ? (
+                              <audio controls preload="none" src={m.audioUrl} />
+                            ) : null}
+                            {m.body ? (
+                              <p className="voice-note-transcript" data-testid="voice-note-transcript">
+                                {m.body}
+                              </p>
+                            ) : (
+                              <p className="voice-note-transcript muted">Transcribing…</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p>{m.body}</p>
+                        )}
                         <time>{m.time}</time>
                       </div>
                       {m.id === latestOutgoingId && isSelf ? (
-                        <span className="bubble-receipt" data-testid="message-receipt">
-                          {typeof m.serverSeq === "number" &&
-                          (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
-                            ? "Seen"
-                            : "Sent"}
+                        <span
+                          className="bubble-receipt"
+                          data-testid="message-receipt"
+                          data-delivery-state={
+                            m.deliveryState === "failed"
+                              ? "failed"
+                              : typeof m.serverSeq === "number" &&
+                                  (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
+                                ? "read"
+                                : typeof m.serverSeq === "number" &&
+                                    ((peerDeliveredSeq[activeChatId || ""] || 0) >=
+                                      m.serverSeq ||
+                                      m.deliveryState === "delivered")
+                                  ? "delivered"
+                                  : typeof m.serverSeq === "number"
+                                    ? "sent"
+                                    : m.deliveryState === "sending"
+                                      ? "sending"
+                                      : "sent"
+                          }
+                          role={m.deliveryState === "failed" ? "button" : undefined}
+                          tabIndex={m.deliveryState === "failed" ? 0 : undefined}
+                          onClick={
+                            m.deliveryState === "failed"
+                              ? () => {
+                                  const body = m.body;
+                                  setThreads((prev) => {
+                                    const list = (prev[activeChatId || ""] || []).filter(
+                                      (x) => x.id !== m.id,
+                                    );
+                                    return activeChatId
+                                      ? { ...prev, [activeChatId]: list }
+                                      : prev;
+                                  });
+                                  if (activeChatId && session?.access_token) {
+                                    void sendMessage(
+                                      activeChatId,
+                                      body,
+                                      session.access_token,
+                                    ).catch(() => undefined);
+                                  }
+                                }
+                              : undefined
+                          }
+                        >
+                          {m.deliveryState === "failed"
+                            ? "Failed · Retry"
+                            : typeof m.serverSeq === "number" &&
+                                (peerReadSeq[activeChatId || ""] || 0) >= m.serverSeq
+                              ? "Read"
+                              : typeof m.serverSeq === "number" &&
+                                  ((peerDeliveredSeq[activeChatId || ""] || 0) >=
+                                    m.serverSeq ||
+                                    m.deliveryState === "delivered")
+                                ? "Delivered"
+                                : typeof m.serverSeq === "number"
+                                  ? "Sent"
+                                  : m.deliveryState === "sending"
+                                    ? "Sending"
+                                    : "Sent"}
                         </span>
                       ) : null}
                       {m.signal &&
@@ -3642,6 +5699,56 @@ export function OpalApp() {
             })()
             )
           )}
+
+          {/* Live contact: Watch Live after latest messages — visible when thread opens at bottom. */}
+          {!(activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3) &&
+          FOUNDER_LIVE_FEED.some(
+            (c) =>
+              c.person.toLowerCase() ===
+                (
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name
+                ).toLowerCase() ||
+              (c.broadcaster || "").toLowerCase() ===
+                (
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name
+                ).toLowerCase(),
+          ) ? (
+            <div className="thread-watch-live-cta" data-testid="thread-watch-live-cta">
+              <button
+                type="button"
+                className="btn journey-cta thread-watch-live-btn"
+                data-testid="gpt-watch-live"
+                aria-label={`Watch ${
+                  (isFounderSeedEnabled()
+                    ? founderSeedDisplayNameForId(activeChat.id)
+                    : null) || activeChat.name
+                } live`}
+                onClick={() => {
+                  const peer =
+                    (isFounderSeedEnabled()
+                      ? founderSeedDisplayNameForId(activeChat.id)
+                      : null) || activeChat.name;
+                  const liveCard =
+                    FOUNDER_LIVE_FEED.find(
+                      (c) =>
+                        c.person.toLowerCase() === peer.toLowerCase() ||
+                        (c.broadcaster || "").toLowerCase() === peer.toLowerCase(),
+                    ) || FOUNDER_LIVE_FEED[0];
+                  if (activeChatId) productRealtime.leaveConversation(activeChatId);
+                  setActiveChatId(null);
+                  setLiveCardId(liveCard?.id || (isFounderSeedEnabled() ? "seed-live-sabrina" : null));
+                  setTab("graphs");
+                  setLiveSurfaceOpen(true);
+                }}
+              >
+                ● Watch live
+              </button>
+            </div>
+          ) : null}
 
           {/* Gap-driven chip: Find a time OR Choose a place  -  never stale time when place is next.
               PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
@@ -3813,7 +5920,7 @@ export function OpalApp() {
                         if (!activeChatId || !session?.access_token) return;
                         void acceptCommittedChange(
                           activeChatId,
-                          alignment.change_proposal?.proposal_id,
+                          (alignment.change_proposal as { proposal_id?: string } | undefined)?.proposal_id,
                           session.access_token,
                         )
                           .then((res) => {
@@ -4346,10 +6453,12 @@ export function OpalApp() {
           />
         ) : null}
 
-        {primary.kind === "sheet" &&
-        primary.sheetKind !== "place" &&
+        {/* Explicit Find a time only — never auto-mount the heavy Availability modal. */}
+        {findTimeOpen &&
+        !confirmTimeDraft &&
+        (primary as { sheetKind?: string }).sheetKind !== "place" &&
         activeChatId &&
-        !(findTimeOpen && momentSeed?.exactPlaceGrounded) ? (
+        !momentSeed?.exactPlaceGrounded ? (
           <AvailabilitySheet
             conversationId={activeChatId}
             conversationName={activeChat.name}
@@ -4369,6 +6478,86 @@ export function OpalApp() {
               }
             }}
           />
+        ) : null}
+
+        {confirmTimeDraft && activeChatId ? (
+          <div
+            className="confirm-time-sheet"
+            data-testid="confirm-time-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Confirm ${confirmTimeDraft}`}
+          >
+            <div className="confirm-time-sheet-card">
+              <p className="confirm-time-sheet-title">
+                Confirm {confirmTimeDraft} with{" "}
+                {(isFounderSeedEnabled()
+                  ? founderSeedDisplayNameForId(activeChat.id)
+                  : null) || activeChat.name}
+                {reality.where ? ` at ${reality.where}` : ""}?
+              </p>
+              <div className="confirm-time-sheet-actions">
+                <button
+                  type="button"
+                  className="btn primary"
+                  data-testid="confirm-time-yes"
+                  onClick={() => {
+                    const locked = confirmTimeDraft;
+                    setConfirmTimeDraft(null);
+                    setFindTimeOpen(false);
+                    if (activeChatId && locked) {
+                      setConfirmedTimesByChatId((prev) => ({
+                        ...prev,
+                        [activeChatId]: locked,
+                      }));
+                      // Paste W 2.6 — chat filament/row flips to confirmed (locked / electric teal).
+                      setThreads((prev) => {
+                        const list = prev[activeChatId] || [];
+                        return {
+                          ...prev,
+                          [activeChatId]: list.map((msg) => {
+                            const isPlanFilament =
+                              msg.opalFilament ||
+                              msg.opalSystemConsequence ||
+                              msg.id.startsWith("opal-filament-");
+                            if (!isPlanFilament) return msg;
+                            if (
+                              !/lined this up|juniper|coast|farmers market|plan/i.test(
+                                `${msg.body || ""} ${msg.signal?.label || ""}`,
+                              )
+                            ) {
+                              return msg;
+                            }
+                            const nextLabel = `Confirmed ${locked} ✓ · locked in`;
+                            return {
+                              ...msg,
+                              body: nextLabel,
+                              signal: {
+                                kind: "ready" as const,
+                                label: nextLabel,
+                              },
+                            };
+                          }),
+                        };
+                      });
+                    }
+                    // Soft-lock the chosen time into the composer as a clear next step.
+                    setDraft(`Confirmed ${locked} — locked in.`);
+                  }}
+                >
+                  Confirm
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  data-testid="confirm-time-cancel"
+                  onClick={() => setConfirmTimeDraft(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {/* Place sheet  -  FIRST-CLASS. Share place never serializes time-only payloads. */}
@@ -4393,9 +6582,23 @@ export function OpalApp() {
               {(convSignal?.shared_reality as { place_gap_label?: string } | undefined)
                 ?.place_gap_label || PRODUCT_COPY.placeSheetLead}
             </p>
-            <ul className="extend-options" data-testid="place-options">
+            <ul
+              className="extend-options"
+              data-testid="place-options"
+              data-place-source={
+                curateServerCandidates && curateServerCandidates.length ? "server" : "local"
+              }
+            >
               {(
                 (() => {
+                  // Phase 1C: prefer Curate endpoint shortlist when loaded.
+                  if (curateServerCandidates && curateServerCandidates.length > 0) {
+                    return curateServerCandidates.slice(0, 3).map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                      area: c.area || "",
+                    }));
+                  }
                   // Server collective_fit is authoritative when present  -  client does not re-rank.
                   const cf = (
                     convSignal as {
@@ -4431,9 +6634,6 @@ export function OpalApp() {
                     });
                   }
                   // Fallback: client composition only when server options absent (dyad thin path)
-                  const gapLbl =
-                    (convSignal?.shared_reality as { place_gap_label?: string } | undefined)
-                      ?.place_gap_label || "";
                   const threadBodies = (threads[activeChatId || ""] || [])
                     .filter((m) => !m.opalFilament)
                     .map((m) => m.body)
@@ -4445,7 +6645,7 @@ export function OpalApp() {
                   );
                 })()
               ).map((opt) => (
-                <li key={opt.id}>
+                <li key={opt.id} className="place-option-item">
                   <button
                     type="button"
                     className="extend-option"
@@ -4453,7 +6653,7 @@ export function OpalApp() {
                     data-share-kind="place"
                     onClick={() => {
                       // PRIVATE select  -  no auto peer message.
-                      // Explicit share drafts PLACE content only.
+                      // Explicit share drafts PLACE content only. ("Choose")
                       const draftPayload = buildPlaceShareDraft({
                         name: opt.name,
                         area: opt.area,
@@ -4467,15 +6667,79 @@ export function OpalApp() {
                       }
                       setDraft(draftPayload.text);
                       setFindPlaceOpen(false);
+                      setPlanThisNote(null);
+                      setPlanThisError(null);
                       document.getElementById("composer-input")?.focus();
                     }}
                   >
                     <span className="presence-title">{opt.name}</span>
-                    <span className="presence-detail">{opt.area}</span>
+                    {opt.area ? <span className="presence-detail">{opt.area}</span> : null}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost place-plan-this"
+                    data-testid={`place-plan-this-${opt.id}`}
+                    disabled={planThisBusyId === opt.id || !session?.access_token || !activeChatId}
+                    onClick={() => {
+                      if (!activeChatId || !session?.access_token || planThisBusyId) return;
+                      setPlanThisBusyId(opt.id);
+                      setPlanThisError(null);
+                      setPlanThisNote(null);
+                      void createConversationPlan(
+                        activeChatId,
+                        {
+                          title: opt.name,
+                          place: opt.name,
+                          location: opt.name,
+                          area: opt.area || undefined,
+                          time_label:
+                            reality.when && reality.when !== "open" ? reality.when : undefined,
+                        },
+                        session.access_token,
+                      )
+                        .then((res) => {
+                          setPlanThisNote(
+                            res.message || "Plan created — invite the group to confirm.",
+                          );
+                          setPlanThisBusyId(null);
+                          // Soft navigate: load journey projection when available (no force).
+                          if (res.plan?.id) {
+                            void getJourney(res.plan.id, session.access_token)
+                              .then((j) => {
+                                if (j.journey) {
+                                  setJourneyEntrySource("chats");
+                                  setActiveJourney(j.journey as JourneyProjection);
+                                  setFindPlaceOpen(false);
+                                }
+                              })
+                              .catch(() => {
+                                /* confirmation note is enough */
+                              });
+                          }
+                        })
+                        .catch((err) => {
+                          setPlanThisBusyId(null);
+                          setPlanThisError(
+                            err instanceof Error ? err.message : "Could not create plan",
+                          );
+                        });
+                    }}
+                  >
+                    {planThisBusyId === opt.id ? "Creating…" : "Plan this"}
                   </button>
                 </li>
               ))}
             </ul>
+            {planThisNote ? (
+              <p className="presence-detail" data-testid="place-plan-this-ok" role="status">
+                {planThisNote}
+              </p>
+            ) : null}
+            {planThisError ? (
+              <p className="presence-detail place-plan-this-error" data-testid="place-plan-this-error" role="alert">
+                {planThisError}
+              </p>
+            ) : null}
             {(
               convSignal as { collective_fit?: { abstain?: boolean; one_question?: { text?: string } | null; human_surface?: { label?: string } } } | null
             )?.collective_fit?.abstain ? (
@@ -4520,94 +6784,6 @@ export function OpalApp() {
             </div>
           </section>
         ) : null}
-
-        {/* Journey CTAs: ONE primary for next_gap. Chip already owns place/time when kind=chip.
-            PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
-        <div
-          className="journey-cta-row"
-          data-testid="journey-cta-row"
-          data-next-gap={reality.next_gap}
-          data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
-        >
-          {/* Place gap: chip is primary; journey row only if chip not already place CTA */}
-          {reality.next_gap === "place" &&
-          primary.kind !== "chip" &&
-          primary.kind !== "sheet" ? (
-            <button
-              type="button"
-              className="btn journey-cta"
-              data-testid="curate-cta"
-              data-gap="place"
-              aria-expanded={findPlaceOpen || curateOpen}
-              onClick={() => {
-                setFindPlaceOpen(true);
-                setCurateOpen(false);
-                setExtendOpen(false);
-                setExtendSelected(null);
-                setFindTimeOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.choosePlace}
-            </button>
-          ) : null}
-          {/*
-            ONE PRIMARY CTA law: when chip already owns place ("Choose a place"),
-            do not stack a second journey CTA ("Curate this"). Curate remains available
-            from the place sheet alternate ("Curate a place") after opening the primary.
-          */}
-          {reality.next_gap === "activity" ? (
-            <button
-              type="button"
-              className="btn journey-cta"
-              data-testid="curate-cta"
-              data-gap="activity"
-              aria-expanded={curateOpen}
-              onClick={() => {
-                setCurateOpen((open) => !open);
-                setFindPlaceOpen(false);
-                setExtendOpen(false);
-                setFindTimeOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.curateCta}
-            </button>
-          ) : null}
-          {reality.next_gap === "time" &&
-          !suppressFindATime &&
-          primary.kind !== "chip" &&
-          primary.kind !== "sheet" ? (
-            <button
-              type="button"
-              className="btn journey-cta journey-cta-find-time"
-              data-testid="find-time-cta"
-              data-gap="time"
-              onClick={() => openGapSurface("time_sheet", "time")}
-            >
-              {PRODUCT_COPY.findTime}
-            </button>
-          ) : null}
-          {(primary.kind === "set" ||
-            activeChat.signal === "set" ||
-            activeChat.signal === "ready") &&
-          reality.next_gap === "none" ? (
-            <button
-              type="button"
-              className="btn journey-cta ghost"
-              data-testid="extend-cta"
-              aria-expanded={extendOpen}
-              onClick={() => {
-                setExtendOpen((open) => {
-                  if (open) setExtendSelected(null);
-                  return !open;
-                });
-                setCurateOpen(false);
-                setFindPlaceOpen(false);
-              }}
-            >
-              {PRODUCT_COPY.extendCta}
-            </button>
-          ) : null}
-        </div>
 
         {/* Pass 20  -  execution as Reality consequence, not a booking dashboard.
             DEVELOPMENT / SYNTHETIC PROOF  -  live restaurant booking not claimed. */}
@@ -4965,6 +7141,17 @@ export function OpalApp() {
             data-testid="curate-panel"
             aria-label="Curated evening"
             data-node-ref="4:11"
+            data-curate-source={
+              curateServerCandidates && curateServerCandidates.length ? "server" : "fixture"
+            }
+            data-curate-ranked={
+              curateServerCandidates && curateServerCandidates.length
+                ? curateServerCandidates
+                    .slice(0, 3)
+                    .map((c) => c.name)
+                    .join("|")
+                : ""
+            }
           >
             <div className="curate-orbs" aria-hidden />
             <h2 className="curate-headline">
@@ -5004,9 +7191,11 @@ export function OpalApp() {
                     ?.place_gap_label || "";
                 const composed = composePlaceOptions({
                   candidates:
-                    momentProviderCandidates && momentProviderCandidates.length
-                      ? momentProviderCandidates
-                      : defaultPlaceCandidates(),
+                    curateServerCandidates && curateServerCandidates.length
+                      ? curateServerCandidates
+                      : momentProviderCandidates && momentProviderCandidates.length
+                        ? momentProviderCandidates
+                        : defaultPlaceCandidates(),
                   placeGapLabel: gapLbl,
                   category: momentSeed ? "italian" : null,
                   whereKnown: Boolean(reality.where),
@@ -5248,13 +7437,38 @@ export function OpalApp() {
           </section>
         ) : null}
 
+        {activeChat &&
+        ((activeChat as { relationshipLabel?: string }).relationshipLabel || "")
+          .toLowerCase()
+          .includes("not on opal") ? (
+          <div className="invite-opal-banner" data-testid="invite-to-opal-banner" role="status">
+            <p>Invite them to Opal to unlock plans, calls, and shared graphs.</p>
+            <button
+              type="button"
+              data-testid="invite-to-opal-banner-cta"
+              onClick={() => {
+                setTab("you");
+                try {
+                  sessionStorage.setItem("opal.you.focus", "invites");
+                } catch {
+                  /* ignore */
+                }
+              }}
+            >
+              Invite to Opal
+            </button>
+          </div>
+        ) : null}
+
         <form
-          className={`composer glass composer-618${
+          className={`composer glass composer-618 opal-composer-brand${
             composerHasOpal ? " has-opal-context" : ""
           }${primary.kind === "set" ? " has-opal-set" : ""}`}
           data-testid="composer"
+          data-composer-language="center-unified"
           onSubmit={(e) => {
             e.preventDefault();
+            setAttachMenuOpen(false);
             send();
           }}
         >
@@ -5263,9 +7477,71 @@ export function OpalApp() {
             className="composer-attach"
             data-testid="composer-attach"
             aria-label="Attach"
+            aria-expanded={attachMenuOpen}
+            onMouseDown={(e) => {
+              // Keep focus from jumping to the input (which would close the menu).
+              e.preventDefault();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setAttachMenuOpen((open) => !open);
+            }}
           >
             +
           </button>
+          {attachMenuOpen ? (
+            <div
+              className="composer-attach-menu"
+              data-testid="composer-attach-menu"
+              role="menu"
+              aria-label="Attachments"
+            >
+              {(
+                [
+                  { id: "photo", label: "Photo" },
+                  { id: "camera", label: "Camera" },
+                  { id: "location", label: "Location" },
+                  { id: "file", label: "File" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="menuitem"
+                  className="composer-attach-option"
+                  data-testid={`composer-attach-${opt.id}`}
+                  onClick={() => {
+                    setAttachMenuOpen(false);
+                    // Paste W 2.4 — no fake drafts; honest gates until chat attach is real.
+                    if (opt.id === "location") {
+                      setCallsGateNote(
+                        "Location sharing in chat isn’t available yet.",
+                      );
+                      return;
+                    }
+                    if (opt.id === "camera") {
+                      setCallsGateNote(
+                        "Camera attach needs the native Opal host — not wired into this chat yet.",
+                      );
+                      return;
+                    }
+                    if (opt.id === "photo") {
+                      setCallsGateNote(
+                        "Photo attach isn’t available in this chat yet. Use Center Opal to add media context.",
+                      );
+                      return;
+                    }
+                    setCallsGateNote(
+                      "File attach isn’t available in this chat yet.",
+                    );
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <label className="sr-only" htmlFor="composer-input">
             Message
           </label>
@@ -5280,14 +7556,75 @@ export function OpalApp() {
                 : PRODUCT_COPY.composerPlaceholder
             }
             autoComplete="off"
+            onFocus={() => setAttachMenuOpen(false)}
           />
           <button
             type="button"
             className="composer-voice"
             data-testid="composer-voice"
-            aria-label="Voice message"
+            data-recording={voiceRecording ? "true" : "false"}
+            aria-label={voiceRecording ? "Stop voice message" : "Voice message"}
+            aria-pressed={voiceRecording}
+            onClick={() => {
+              // Tap-to-start / tap-to-stop (see voiceNoteRecorder.ts). Live calls stay gated elsewhere.
+              if (!activeChatId || !(session?.access_token || session?.cookie_session)) {
+                setCallsGateNote("Sign in to send a voice message.");
+                return;
+              }
+              if (isFounderSeedChatId(activeChatId)) {
+                setCallsGateNote("Voice notes need a live conversation — open a real chat.");
+                return;
+              }
+              void (async () => {
+                const rec = voiceRecorderRef.current;
+                try {
+                  if (!rec.isRecording()) {
+                    await rec.start();
+                    setVoiceRecording(true);
+                    setCallsGateNote("Recording… tap again to send.");
+                    return;
+                  }
+                  setVoiceRecording(false);
+                  setCallsGateNote("Transcribing…");
+                  const note = await rec.stop();
+                  const res = await sendVoiceMessage(
+                    activeChatId,
+                    {
+                      audio_base64: note.base64,
+                      content_type: note.contentType,
+                      duration_ms: note.durationMs,
+                      client_message_id: `voice-${Date.now()}`,
+                    },
+                    session?.access_token,
+                  );
+                  const msg = res.message;
+                  // Optimistic append into local thread if hydrate helpers exist
+                  setCallsGateNote(
+                    res.transcription_uncertain
+                      ? "Got it — I wasn't sure I heard that right."
+                      : null,
+                  );
+                  if (msg?.body) {
+                    // Refresh thread from server truth
+                    try {
+                      await refreshLive?.(session);
+                    } catch {
+                      /* ignore */
+                    }
+                  }
+                } catch (err) {
+                  setVoiceRecording(false);
+                  rec.cancel();
+                  const m =
+                    err && typeof err === "object" && "message" in err
+                      ? String((err as { message?: string }).message || "")
+                      : "";
+                  setCallsGateNote(m || "Couldn't send the voice note.");
+                }
+              })();
+            }}
           >
-            〉
+            {voiceRecording ? "■" : "〉"}
           </button>
           <button
             type="submit"
@@ -5301,13 +7638,7 @@ export function OpalApp() {
             aria-label="Send message"
             disabled={!draft.trim()}
           >
-            {activeChat.composition === "group" || (activeChat.memberCount ?? 0) >= 3 ? (
-              <span className="send-glyph-group" aria-hidden>
-                ↑
-              </span>
-            ) : (
-              <SendIcon />
-            )}
+            <SendIcon />
           </button>
         </form>
 
@@ -5402,21 +7733,25 @@ export function OpalApp() {
               ))}
               <button
                 type="button"
-                className="dock-opal is-rest"
-                aria-label="Talk to Opal"
+                className={`dock-opal ${opalAmbientOpen ? "is-listening" : "is-rest"}`}
+                aria-label="Opal Center"
                 data-testid="member-tab-opal"
                 data-figma-dock="1114:2"
                 data-figma-center-opal="645:3"
-                data-dock-active="false"
+                data-opal-state={opalAmbientOpen ? "listening" : "rest"}
+                data-dock-active={opalAmbientOpen ? "true" : "false"}
                 onClick={() => {
-                  // Leave conversation → Global Opal location (Center Opal), not false Home active.
+                  // Leave conversation → Center root (never Talk to Opal from dock).
                   if (activeChatId) productRealtime.leaveConversation(activeChatId);
                   setActiveChatId(null);
                   setCallSurface(null);
                   setCallsGateNote(null);
                   setGraphCreateOpen(false);
                   setGraphCreateContext({});
-                  // Solo Opal 1075:644 is zero-network default; ?opal_global_opal=1 for 618:902.
+                  if (opalAmbientOpen) {
+                    setCenterRootEpoch((n) => n + 1);
+                    return;
+                  }
                   try {
                     const q = new URLSearchParams(window.location.search);
                     setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
@@ -5428,14 +7763,19 @@ export function OpalApp() {
               >
                 <span
                   className="dock-opal-mark"
-                  style={{
-                    WebkitMaskImage: "url(/figma-v2/dock/icon-opal.svg)",
-                    maskImage: "url(/figma-v2/dock/icon-opal.svg)",
-                  }}
                   aria-hidden
                   data-brand-role="dock-glyph"
-                  data-figma-center-opal="645:3"
-                />
+                  data-brand-source="opal-center-mark"
+                >
+                  <img
+                    className="dock-opal-center-mark"
+                    src="/brand/opal-center-mark.png"
+                    width={46}
+                    height={46}
+                    alt=""
+                    draggable={false}
+                  />
+                </span>
               </button>
               {TABS.slice(2).map((t) => (
                 <button
@@ -5446,6 +7786,8 @@ export function OpalApp() {
                   data-testid={`member-tab-${t.id}`}
                   data-dock-slot={t.id}
                   onClick={() => {
+                    /* Conversation tree returns before selectPrimaryTab is defined —
+                     * clear incompatible overlays inline (CROSS_SURFACE_BLEED = 0). */
                     if (activeChatId) productRealtime.leaveConversation(activeChatId);
                     setActiveChatId(null);
                     setCallSurface(null);
@@ -5453,6 +7795,15 @@ export function OpalApp() {
                     setGraphCreateOpen(false);
                     setGraphCreateContext({});
                     setOpalAmbientOpen(false);
+                    setNewChatOpen(false);
+                    setNewChatBusy(false);
+                    setNewChatError(null);
+                    setPlanComposerOpen(false);
+                    setPlanComposerSeed(null);
+                    setFindPeopleOpen(false);
+                    setSearchOpen(false);
+                    setActivityOpen(false);
+                    setNewCallOpen(false);
                     setTab(t.id);
                   }}
                 >
@@ -5502,6 +7853,21 @@ export function OpalApp() {
             onSpeaker={() => setCallSpeakerOn((v) => !v)}
           />
         ) : null}
+        {incomingFallback ? (
+          <IncomingCallFallback
+            payload={incomingFallback.payload}
+            onAccept={() => {
+              const id = incomingFallback.payload.call_id;
+              setIncomingFallback(null);
+              void answerCall(id, session?.access_token).catch(() => {});
+            }}
+            onDecline={() => {
+              const id = incomingFallback.payload.call_id;
+              setIncomingFallback(null);
+              void declineCall(id, session?.access_token).catch(() => {});
+            }}
+          />
+        ) : null}
         {callSurface?.liveCallId && productRealtime.getSocket() ? (
           <ActiveCallOverlay
             key={callSurface.liveCallId}
@@ -5526,6 +7892,82 @@ export function OpalApp() {
             onMedia={onLiveMedia}
           />
         ) : null}
+        {storyView ? (
+          <StoryViewer
+            story={storyView}
+            stories={
+              storyQueueOverride && storyQueueOverride.length > 0
+                ? storyQueueOverride
+                : resolveHomeStories({
+                    mode:
+                      (productionOwners?.memories?.length || 0) > 0
+                        ? "PRODUCTION_HYDRATION"
+                        : isFounderSeedEnabled()
+                          ? "FOUNDER_FIXTURE"
+                          : "EMPTY",
+                    productionStories: productionOwners?.stories,
+                  })
+            }
+            onClose={() => {
+              setStoryView(null);
+              setStoryQueueOverride(null);
+            }}
+            onReply={(s) => {
+              setStoryView(null);
+              setStoryQueueOverride(null);
+              const peer = (s.person || "").toLowerCase();
+              const chat = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === peer ||
+                  (c.name || "").toLowerCase().includes(peer) ||
+                  peer.includes((c.name || "").toLowerCase()),
+              );
+              if (chat) {
+                void openChat(chat.id);
+                return;
+              }
+              setCallsGateNote(
+                peer
+                  ? `No chat with ${s.person} yet. Open Chats to start one.`
+                  : "Open Chats to reply.",
+              );
+            }}
+          />
+        ) : null}
+        {tripCanvasOpen ? (
+          <TripCanvasView
+            bearer={session?.access_token}
+            tripId="seed-trip-mexico-city"
+            selfUserId={session?.user_id}
+            onClose={() => setTripCanvasOpen(false)}
+            onOpenMemories={() => {
+              setTripCanvasOpen(false);
+              openAlexTripMemories();
+            }}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
+  // Paste K — Lives go-live proof surface (bypasses first-run so honesty copy is reachable).
+  if (
+    typeof window !== "undefined" &&
+    new URL(window.location.href).searchParams.get("opal_lives") === "1"
+  ) {
+    return (
+      <div
+        className="app app-futura"
+        data-testid="lives-go-live-shell"
+        data-member-nav="false"
+        style={{
+          minHeight: "100vh",
+          background: "rgba(8,12,24,0.96)",
+          color: "#f8fafc",
+          padding: 24,
+        }}
+      >
+        <LivesGoLivePanel allowTestingFallback onLiveChanged={() => setLivesRefreshToken((t) => t + 1)} />
       </div>
     );
   }
@@ -5549,13 +7991,53 @@ export function OpalApp() {
       >
         <FirstRunSplashPage
           onTapBegin={advanceSplashToPromise}
-          onSkipIntro={advanceSplashToPromise}
           onAlreadyAccount={() => {
-            // Returning account → auth path (still after reset, no member shortcut)
+            // Returning account → Phone auth (keep forced sticky; never Home shortcut)
             setForcedFirstRun(true);
+            writeForcedFirstRun(true);
             setShowFirstRun(true);
             setFirstRunStage("auth");
           }}
+        />
+      </div>
+    );
+  }
+
+  // Post-OTP permission bootstrap — before Meet Opal payoff.
+  if (showFirstRun && firstRunStage === "permission_bootstrap" && !forceMeetOpal) {
+    return (
+      <div
+        className="app app-futura app-first-run-permission-bootstrap"
+        data-testid="first-run-permission-bootstrap-shell"
+        data-first-run-stage="permission_bootstrap"
+        data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
+      >
+        <PermissionBootstrapPage
+          userId={session?.user_id ?? null}
+          onContinue={advancePermissionBootstrapToMeet}
+        />
+      </div>
+    );
+  }
+
+  // Meet Opal payoff — name → first person (permissions already decided upstream).
+  // forceMeetOpal is QA-only; once first-run completes (showFirstRun false) fall through.
+  if (showFirstRun && (firstRunStage === "meet_opal" || forceMeetOpal)) {
+    return (
+      <div
+        className="app app-futura app-first-run-meet-opal"
+        data-testid="first-run-meet-opal-shell"
+        data-first-run-stage="meet_opal"
+        data-holy-shit="1"
+        data-force-meet-opal={forceMeetOpal ? "1" : undefined}
+        data-member-nav="false"
+        data-product-name={PRODUCT_PUBLIC_NAME}
+      >
+        <MeetOpalConversation
+          bearer={session?.access_token ?? null}
+          onComplete={() => advanceMeetOpalToAuth()}
+          onSkipToAuth={advanceMeetOpalToAuth}
         />
       </div>
     );
@@ -5575,7 +8057,8 @@ export function OpalApp() {
       >
         <FirstRunPromisePage
           onContinue={advancePromiseToAuth}
-          onAlreadyAccount={advancePromiseToAuth}
+          onAlreadyAccount={advancePromiseAlreadyAccount}
+          showHolyShitHook={holyShitEnabled}
         />
       </div>
     );
@@ -5632,8 +8115,9 @@ export function OpalApp() {
     // Auth only here  -  Splash is top-level above. Never remount nested fr00 Splash.
     const firstRunMode = "sign_in" as const;
     const visual = visualShellProps("activation");
-    // Under forced first-run, never pass existingSession  -  blocks authenticated Home shortcut.
-    const sessionForFr = forcedFirstRun ? null : authenticated ? session : null;
+    // Under forced / in-progress first-run, never pass existingSession — blocks Home shortcut.
+    const sessionForFr =
+      forcedFirstRun || showFirstRun ? null : authenticated ? session : null;
     return (
       <div
         className={`app app-futura app-premember ${visual.className}`.trim()}
@@ -5669,19 +8153,30 @@ export function OpalApp() {
             existingSession={sessionForFr}
             onAdvanceToPromise={advanceSplashToPromise}
             onWalkthroughComplete={markWalkthroughDone}
+            onAfterPhoneVerify={handleAfterPhoneVerify}
+            resumeStep={frResumeStep}
+            resumeSession={frResumeSession}
             onAuthenticated={(s) => {
+              // Always re-apply session — Meet Opal may have set authReady earlier;
+              // boot reset must not leave us in a blank "Preparing" shell.
+              // W8: every first-run completion lands on Opal Center ambient, never Home.
+              setSession(s);
+              saveSession(s);
+              setAuthReady(true);
+              setLoadError(null);
+              setMeetOpalDone(true);
               completeFirstRun();
-              if (!authenticated) {
-                setSession(s);
-                saveSession(s);
-                setAuthReady(true);
-                setLoadError(null);
-                void refreshLive(s);
-                // Native host: hand bearer to SecureStore via WebView postMessage.
-                void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
-                  notifyNativeHostSession(s);
-                });
+              try {
+                const q = new URLSearchParams(window.location.search);
+                setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+              } catch {
+                setOpalAmbientMode("solo");
               }
+              setOpalAmbientOpen(true);
+              void refreshLive(s);
+              void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+                notifyNativeHostSession(s);
+              });
             }}
           />
         )}
@@ -5697,6 +8192,8 @@ export function OpalApp() {
     memoryDetailId ||
     commentsCardId ||
     forwardCardId ||
+    saveCardId ||
+    savedBrowseOpen ||
     discoveryCardId ||
     storyView ||
     storyCreateOpen ||
@@ -5737,6 +8234,13 @@ export function OpalApp() {
     setLocationPermOpen(false);
     setJourneyAddPeopleOpen(false);
     setProfilePerson(null);
+    setProfileContactId(null);
+    setProfileConversationId(null);
+    setProfileHandle(null);
+    setProfileRelationshipType(null);
+    setProfilePhone(null);
+    setProfilePhoneProvenance(null);
+    setProfileBounds({});
     setGroupInfoOpen(false);
     setOpalAmbientOpen(false);
     setLiveSurfaceOpen(false);
@@ -5752,6 +8256,13 @@ export function OpalApp() {
     /* Global dock law: Create/overlays must not stale-restore after tab change */
     setGraphCreateOpen(false);
     setGraphCreateContext({});
+    /* CROSS_SURFACE_BLEED = 0 — Chats children must not survive into Graphs/YOU/Home */
+    setNewChatOpen(false);
+    setNewChatBusy(false);
+    setNewChatError(null);
+    setPlanComposerOpen(false);
+    setPlanComposerSeed(null);
+    setFindPeopleOpen(false);
   };
 
   /**
@@ -5786,7 +8297,7 @@ export function OpalApp() {
     setOpalAmbientOpen(false);
     setTab(id);
     // Deterministic Chats hydration: if list empty after auth, refresh via same production owner.
-    if ((id === "chats" || id === "home") && session) {
+    if ((id === "chats" || (id as string) === "home") && session) {
       void refreshLive(session, { silent: true });
     }
   };
@@ -5828,8 +8339,77 @@ export function OpalApp() {
       data-nav-person-profile={profilePerson ? "home" : "false"}
       data-nav-group-info={groupInfoOpen ? "chats" : "false"}
       data-home-child-open={homeChildOpen ? "true" : "false"}
+      data-opal-founder-seed={isFounderSeedEnabled() ? "1" : "0"}
     >
       <div className="app-ambient" aria-hidden />
+      {/* Repair #11 — unmistakable seed-mode banner. Whenever the founder-seed
+          simulation is active, the entire app carries this persistent strip so
+          seed output can never be mistaken for the product. */}
+      {isFounderSeedEnabled() ? (
+        <div
+          data-testid="opal-seed-simulated-banner"
+          role="alert"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 30,
+            zIndex: 100000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            pointerEvents: "none",
+            background:
+              "repeating-linear-gradient(45deg, #8f0f1f 0 14px, #141414 14px 28px)",
+          }}
+        >
+          <span
+            style={{
+              background: "#000",
+              color: "#ffdfe3",
+              border: "1px solid #ff4d5e",
+              borderRadius: 999,
+              padding: "3px 12px",
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Simulated — demo responses, not real
+          </span>
+        </div>
+      ) : null}
+      {isFounderSeedEnabled() &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("opal_dev") === "1" ? (
+        <div
+          data-testid="opal-seed-sha-chip"
+          aria-hidden
+          style={{
+            position: "fixed",
+            top: 6,
+            right: 8,
+            zIndex: 9999,
+            pointerEvents: "none",
+            fontSize: 10,
+            lineHeight: 1.2,
+            padding: "3px 7px",
+            borderRadius: 8,
+            background: "rgba(15,23,42,0.72)",
+            color: "#A7F3D0",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            letterSpacing: 0.2,
+          }}
+        >
+          seed ·{" "}
+          {typeof document !== "undefined"
+            ? document.documentElement.getAttribute("data-git-head") || "…"
+            : "…"}
+        </div>
+      ) : null}
       {inboxNotice && inboxNotice.conversationId !== activeChatId ? (
         <button
           type="button"
@@ -5859,6 +8439,39 @@ export function OpalApp() {
           })();
         }}
       />
+      {livesGoLiveOpen ? (
+        <div
+          className="lives-go-live-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lives-go-live-overlay-title"
+          data-testid="lives-go-live-overlay"
+        >
+          <div className="lives-go-live-overlay-card lumen-card">
+            <header className="lives-go-live-overlay-top">
+              <h2 id="lives-go-live-overlay-title">Go live</h2>
+              <button
+                type="button"
+                className="btn ghost"
+                data-testid="lives-go-live-overlay-close"
+                onClick={() => setLivesGoLiveOpen(false)}
+                aria-label="Close"
+              >
+                Close
+              </button>
+            </header>
+            <LivesGoLivePanel
+              allowTestingFallback={
+                typeof window !== "undefined" &&
+                (window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1" ||
+                  new URL(window.location.href).searchParams.get("opal_lives") === "1")
+              }
+              onLiveChanged={() => setLivesRefreshToken((t) => t + 1)}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* WHO-FAST-PATH-01 intelligence + FINAL WHO 201:6 presentation */}
       {momentForkChooserOpen ? (
@@ -6115,10 +8728,7 @@ export function OpalApp() {
       {tab !== "home" ? (
         <header className="topbar glass" data-brand-chrome="mark">
           <div className="topbar-brand" aria-label={PRODUCT_PUBLIC_NAME}>
-            <OpalMark size="sm" title="" />
-            <span className="topbar-brand-word">
-              Opal<span className="is-graph"> Graph</span>
-            </span>
+            <OpalWordmark height={22} title="" className="topbar-brand-wordmark" />
           </div>
           {connectionState === "reconnecting" ||
           connectionState === "failed" ||
@@ -6195,6 +8805,11 @@ export function OpalApp() {
             }}
             attentionBadgeCount={attentionBadgeCount}
             onOpenLive={() => {
+              // Pass 1H: Full Live implies presence reality — never default to founder seed.
+              if (!isFounderSeedEnabled()) {
+                setCallsGateNote("Live isn't available yet.");
+                return;
+              }
               setLiveCardId("seed-live-sabrina");
               setTab("graphs"); /* Figma 863:2 Graphs-active dock */
               setLiveSurfaceOpen(true);
@@ -6212,8 +8827,36 @@ export function OpalApp() {
             onComment={(cardId) => setCommentsCardId(cardId)}
             onForward={(cardId) => setForwardCardId(cardId)}
             onOpenDiscovery={(cardId) => setDiscoveryCardId(cardId)}
-            onOpenStory={(story) => setStoryView(story)}
+            onOpenStory={(story) => {
+              /* Accurate pulse routing: LIVE opens live viewer; MEMORY/GRAPH open story viewer */
+              if (story.pulseState === "LIVE") {
+                // Pass 1H: never invent seed-live-* when seed off.
+                if (!isFounderSeedEnabled()) {
+                  if (/^seed-/i.test(story.id)) {
+                    setCallsGateNote("Live isn't available yet.");
+                    return;
+                  }
+                  setLiveCardId(story.id);
+                  setTab("graphs");
+                  setLiveSurfaceOpen(true);
+                  return;
+                }
+                setLiveCardId(
+                  story.id.startsWith("seed-live-")
+                    ? story.id
+                    : `seed-live-${(story.person || "sabrina").toLowerCase()}`,
+                );
+                setTab("graphs");
+                setLiveSurfaceOpen(true);
+                return;
+              }
+              setStoryView(story);
+            }}
             onCreateStory={() => setStoryCreateOpen(true)}
+            onCreatePost={() => {
+              setGraphCreateContext({});
+              setGraphCreateOpen(true);
+            }}
             graphParticipationByCardId={graphParticipationByCardId}
             onImGoing={(card) => {
               const planId =
@@ -6255,6 +8898,7 @@ export function OpalApp() {
               // Navigation only  -  never mutate commitment / accept / fabricate
               void getJourney(planId, session.access_token)
                 .then((res) => {
+                  setJourneyEntrySource("home");
                   setActiveJourney(res.journey as JourneyProjection);
                   setGraphDetailCardId(null);
                 })
@@ -6306,7 +8950,11 @@ export function OpalApp() {
                 viewer: { userId: uid },
               }).then((res) => {
                 setEngagement(res.engagement);
-                if (res.error) setHomeGateNote(res.error);
+                if (res.error) {
+                  setHomeGateAction(null);
+                  setHomeGateNote(res.error);
+                  return;
+                }
                 setRepostedIds((prev) =>
                   res.reposted
                     ? prev.includes(cardId)
@@ -6314,7 +8962,30 @@ export function OpalApp() {
                       : [...prev, cardId]
                     : prev.filter((id) => id !== cardId),
                 );
-                setHomeGateNote(res.reposted ? "Reposted." : "Repost removed.");
+                if (res.reposted) {
+                  setHomeGateNote("Reposted to your feed");
+                  setHomeGateAction({
+                    label: "Undo",
+                    run: () => {
+                      void authoritativeRepost({
+                        contentId: cardId,
+                        reposted: true,
+                        bearer: session?.access_token,
+                        engagement: res.engagement,
+                        meta,
+                        viewer: { userId: uid },
+                      }).then((undo) => {
+                        setEngagement(undo.engagement);
+                        setRepostedIds((prev) => prev.filter((id) => id !== cardId));
+                        setHomeGateAction(null);
+                        setHomeGateNote("Removed from your feed");
+                      });
+                    },
+                  });
+                } else {
+                  setHomeGateAction(null);
+                  setHomeGateNote("Removed from your feed");
+                }
               });
             }}
             onSaveCard={(cardId) => {
@@ -6324,33 +8995,43 @@ export function OpalApp() {
                 durableMemoryCards,
               });
               if (!card) return;
-              const meta: ContentAuthMeta = {
-                id: card.id,
-                visibility: "eligible",
-                ownerName: card.person,
-              };
               const uid = session?.user_id || "local-self";
               const currently = isSaved(engagement, cardId, uid);
-              void authoritativeSave({
-                contentId: cardId,
-                saved: currently,
-                bearer: session?.access_token,
-                engagement,
-                meta,
-                viewer: { userId: uid },
-              }).then((res) => {
-                setEngagement(res.engagement);
-                setHomeGateNote(res.saved ? "Saved privately." : "Removed from saved.");
-              });
+              if (currently) {
+                const meta: ContentAuthMeta = {
+                  id: card.id,
+                  visibility: "eligible",
+                  ownerName: card.person,
+                };
+                void authoritativeSave({
+                  contentId: cardId,
+                  saved: true,
+                  bearer: session?.access_token,
+                  engagement,
+                  meta,
+                  viewer: { userId: uid },
+                }).then((res) => {
+                  setEngagement(res.engagement);
+                  removeFromAllCollections(cardId);
+                  setHomeGateAction(null);
+                  setHomeGateNote("Removed from Saved");
+                });
+                return;
+              }
+              setSaveCardId(cardId);
             }}
             productionOwners={productionOwners}
-            // Fixture extras: durable memories only under explicit founder seed.
+            // Fixture extras: durable memories under founder seed + real Paste K LiveRooms.
             // Never dump liveSignal consequence clones into FOUNDER_FIXTURE (86-card defect).
-            fixtureExtras={
-              isFounderSeedEnabled()
-                ? durableMemoryCards.filter((c) => c.kind !== "consequence")
-                : []
-            }
+            fixtureExtras={mergeFeedWithCreated(
+              [
+                ...(isFounderSeedEnabled()
+                  ? durableMemoryCards.filter((c) => c.kind !== "consequence")
+                  : []),
+                ...visibleLiveCards,
+              ],
+              createdPlanSurfaces,
+            )}
             durableMemoryCards={durableMemoryCards}
             bearer={session?.access_token}
             authenticated
@@ -6362,7 +9043,11 @@ export function OpalApp() {
         ) : null}
         {tab === "chats" ? (
           <ChatsHome
-            rows={chats.map((c) => {
+            surface={commSurface}
+            onSurfaceChange={setCommSurface}
+            rows={
+              (() => {
+                const liveRows = chats.map((c) => {
               const isGroup =
                 c.composition === "group" || (c.memberCount ?? 0) >= 3;
               // Group preview: prefer "Sender: body" when backend already prefixes.
@@ -6390,69 +9075,219 @@ export function OpalApp() {
                 memberCount: c.memberCount,
                 unread: c.unread,
                 muted: c.muted,
+                // Paste W6 4c — photo when peer has one (seed map or chat field).
+                avatarSrc:
+                  (!isGroup
+                    ? resolveFounderPeerAvatarSrc(c.name) ||
+                      (c as { avatarSrc?: string }).avatarSrc
+                    : undefined) || undefined,
                 planConsequence: c.planProjection
-                  ? {
-                      state: planSurfaceState({
+                  ? (() => {
+                      const state = planSurfaceState({
                         commitment: c.planProjection.execution_label
                           ? "execution_ready"
                           : "aligned",
                         pendingChange: c.planProjection.pending_change === true,
                         upcomingReady: c.planProjection.upcoming_ready,
                         temporalState: c.planProjection.temporal_state,
-                      }),
-                      label: planConsequenceLabel({
-                        state: planSurfaceState({
-                          commitment: c.planProjection.execution_label
-                            ? "execution_ready"
-                            : "aligned",
-                          pendingChange: c.planProjection.pending_change === true,
-                          upcomingReady: c.planProjection.upcoming_ready,
-                          temporalState: c.planProjection.temporal_state,
-                        }),
+                        canonicalStartAt: c.planProjection.canonical_start_at,
+                      });
+                      const label = planConsequenceLabel({
+                        state,
                         whenLabel: c.planProjection.when_label,
                         place: c.planProjection.place,
                         pendingProposalValue: c.planProjection.pending_proposal_value,
-                      }),
-                      planId: c.planProjection.lineage_id || c.id,
-                    }
+                        canonicalStartAt: c.planProjection.canonical_start_at,
+                      });
+                      return {
+                        state,
+                        label,
+                        planId: c.planProjection.lineage_id || c.id,
+                        tone: inferPlanPillTone(
+                          [label, c.planProjection.place, c.planProjection.when_label]
+                            .filter(Boolean)
+                            .join(" "),
+                        ),
+                      };
+                    })()
                   : undefined,
               };
-            })}
+            });
+                // Prefer-real / seed-off via composeChatsList (STATE OWNERSHIP LAW).
+                const seedOn = isFounderSeedEnabled();
+                if (seedOn) {
+                  const w = window as Window & {
+                    __opalSeedPipeline?: Record<string, unknown> & { _rowsLogged?: boolean };
+                  };
+                  if (!w.__opalSeedPipeline?._rowsLogged) {
+                    w.__opalSeedPipeline = {
+                      ...(w.__opalSeedPipeline || {}),
+                      _rowsLogged: true,
+                      rows: {
+                        length: FOUNDER_CHATS_PLAN_PILL_ROWS.length,
+                        names: FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => r.name),
+                      },
+                    };
+                    console.info("[opal-seed]", {
+                      step: "FOUNDER_CHATS_PLAN_PILL_ROWS",
+                      length: FOUNDER_CHATS_PLAN_PILL_ROWS.length,
+                      names: FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) => r.name),
+                    });
+                  }
+                }
+                const composed = composeChatsList({
+                  liveRows,
+                  createdPlans: createdPlanSurfaces,
+                  founderSeedEnabled: seedOn,
+                  liveChats: chats.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    kind: (c.composition === "group" || (c.memberCount ?? 0) >= 3
+                      ? "group"
+                      : "direct") as "direct" | "group",
+                    memberCount: c.memberCount,
+                    peers: c.peers,
+                    preview: c.preview,
+                    title: c.name,
+                  })),
+                });
+                // Physical path: composeChatsList already hard-falls back to fixtures.
+                // Evidence-only counters live on composed.diagnostics / __opalSeedPipeline.
+                if (seedOn && composed.diagnostics) {
+                  const w = window as Window & {
+                    __opalSeedPipeline?: Record<string, unknown>;
+                  };
+                  w.__opalSeedPipeline = {
+                    ...(w.__opalSeedPipeline || {}),
+                    paintedRows: composed.diagnostics.paintedRows,
+                    chatsCompose: composed.diagnostics,
+                  };
+                }
+                if (seedOn && composed.rows.length < 5) {
+                  console.warn("[opal-seed]", {
+                    step: "chats-list-hard-fallback",
+                    detail: "compose under-delivered founder world — painting FOUNDER_CHATS_PLAN_PILL_ROWS",
+                    composedLen: composed.rows.length,
+                    liveLen: liveRows.length,
+                    diagnostics: composed.diagnostics,
+                  });
+                  return applyTravelToChatRows(FOUNDER_CHATS_PLAN_PILL_ROWS, travelOverrides);
+                }
+                return applyTravelToChatRows(composed.rows, travelOverrides);
+              })()
+            }
             onOpenChat={(id) => {
               setChatReturnOrigin(null);
               void openChat(id);
             }}
-            callRows={
-              isFounderSeedEnabled()
-                ? undefined
-                : callLog
-                    .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
-                    .map((call) => {
-                    const line = callHistoryLine({
-                      historyLabel: call.history_label,
-                      createdAt: call.created_at,
-                      peerName: call.peer_name,
-                    });
-                    return {
-                      id: call.id,
-                      name: line.name,
-                      kind: "person" as const,
-                      metadata: line.metadata,
-                      missed: call.missed === true,
-                      peerName: line.name,
-                      callMedia: "audio" as const,
-                      conversationId: call.conversation_id || undefined,
-                      real: true,
-                    };
-                  })
-            }
+            onOpenPlan={(planId) => {
+              setHomeScrollToken((t) => t + 1);
+              if (/live/i.test(planId)) {
+                setLiveCardId(planId);
+                setTab("graphs");
+                setLiveSurfaceOpen(true);
+                return;
+              }
+              if (isAlexTripGraphTarget(planId)) {
+                openAlexTripCanvas();
+                return;
+              }
+              // Known seed graph fixtures open Graph Detail / trip canvas (REAL).
+              // seed-chat-* row ids and unknown seed-* plan ids are honest gates —
+              // never dump to an empty unrelated screen (Paste G D7).
+              const knownSeedGraph =
+                planId === "seed-chanelle-juniper" ||
+                planId === "seed-maya-graph-coast" ||
+                planId === "seed-alex-graph-gallery" ||
+                planId === "seed-live-sabrina";
+              if (!planId || /^seed-chat-/i.test(planId) || (/^seed-/i.test(planId) && !knownSeedGraph)) {
+                setCallsGateNote("Open the chat to see this plan.");
+                return;
+              }
+              openGraphDetail(planId, "home");
+            }}
+            callRows={(() => {
+              const liveRows: CallsContinuityRow[] = callLog
+                .filter((call, index, all) => all.findIndex((row) => row.id === call.id) === index)
+                .map((call) => {
+                  const line = callHistoryLine({
+                    historyLabel: call.history_label,
+                    createdAt: call.created_at,
+                    peerName: call.peer_name,
+                  });
+                  return {
+                    id: call.id,
+                    name: line.name,
+                    kind: "person" as const,
+                    metadata: line.metadata,
+                    missed: call.missed === true,
+                    peerName: line.name,
+                    callMedia: "audio" as const,
+                    conversationId: call.conversation_id || undefined,
+                    real: true,
+                  };
+                });
+              // Founder seed: merge live (real:true) ABOVE seed so a just-placed
+              // call appears without wiping continuity rows.
+              if (isFounderSeedEnabled()) {
+                const liveIds = new Set(liveRows.map((r) => r.id));
+                const seedRest = FOUNDER_CALLS_CONTINUITY_ROWS.filter(
+                  (r) => !liveIds.has(r.id),
+                );
+                return [...liveRows, ...seedRest];
+              }
+              // Non-seed: always pass mapped rows (even []) — never undefined → seed.
+              return liveRows;
+            })()}
             callsStatus={isFounderSeedEnabled() ? undefined : callLogStatus}
             onOpenCalls={() => refreshCallLog()}
-            onQuickCallRow={() => {
-              // WALK-FAIL-04 / Track B RED: honest gate — no createConversationCall spin.
-              setCallSurface(null);
-              setCallsGateCallId(null);
-              setCallsGateNote("Calling isn't available on this build yet.");
+            onQuickCallRow={(row) => {
+              const peer = (row.peerName || row.name || "").toLowerCase();
+              const matchedChat = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === peer ||
+                  (c.name || "").toLowerCase().includes(peer) ||
+                  peer.includes((c.name || "").toLowerCase()),
+              );
+              const conversationId = row.conversationId || matchedChat?.id;
+              if (!conversationId || !(session?.access_token || session?.cookie_session)) {
+                setCallsGateNote(
+                  !session?.access_token && !session?.cookie_session
+                    ? "Sign in to place a call."
+                    : "Open the chat to place this call.",
+                );
+                return;
+              }
+              if (isFounderSeedChatId(conversationId)) {
+                setCallsGateNote("Calls aren't available on this build yet.");
+                return;
+              }
+              setCallsGateNote(null);
+              void (async () => {
+                try {
+                  const res = await createConversationCall(
+                    conversationId,
+                    session?.access_token,
+                  );
+                  setCallSurface({
+                    kind: "audio",
+                    direction: "outgoing",
+                    peerName: row.peerName || row.name,
+                    peerAvatarSrc: row.avatarSrc,
+                    liveCallId: res.call.id,
+                    liveCallStatus: res.call.status,
+                    liveCallerUserId: res.call.caller_user_id,
+                    liveCalleeUserId: res.call.callee_user_id,
+                  });
+                  void refreshCallLog();
+                } catch (err) {
+                  const msg =
+                    err && typeof err === "object" && "message" in err
+                      ? String((err as { message?: string }).message || "")
+                      : "";
+                  setCallsGateNote(msg || "Couldn't start the call. Try again in a moment.");
+                }
+              })();
             }}
             onNewChat={() => {
               // Slice #1 — New Chat picker with message-by-phone (real peer addressability).
@@ -6462,6 +9297,27 @@ export function OpalApp() {
               setNewCallOpen(false);
               setSearchOpen(false);
               setNewChatOpen(true);
+            }}
+            onAddContact={() => {
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setNewChatOpen(false);
+              setCallContinuity(null);
+              setSearchInitialMode("People");
+              setSearchContext("people");
+              setSearchOpen(true);
+            }}
+            onInviteFriend={() => {
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setNewChatOpen(false);
+              setSearchOpen(false);
+              setTab("you");
+              try {
+                sessionStorage.setItem("opal.you.focus", "invites");
+              } catch {
+                /* ignore */
+              }
             }}
             /* P2.1 CURRENT 928:276 — Calls + → New Call (never global Search) */
             onNewCall={() => {
@@ -6473,14 +9329,55 @@ export function OpalApp() {
             }}
             onOpenCallGraph={(graphCardId) => openGraphDetail(graphCardId, "graphs")}
             onCallBack={(row) => {
+              /* Call-log tap / callback dial must POST /api/calls like quick dial */
+              const peer = (row.peerName || row.name || "").toLowerCase();
+              const matchedChat = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === peer ||
+                  (c.name || "").toLowerCase().includes(peer) ||
+                  peer.includes((c.name || "").toLowerCase()),
+              );
+              const conversationId = row.conversationId || matchedChat?.id;
+              if (!conversationId || !(session?.access_token || session?.cookie_session)) {
+                setCallsGateNote(
+                  !session?.access_token && !session?.cookie_session
+                    ? "Sign in to place a call."
+                    : "Open the chat to place this call.",
+                );
+                return;
+              }
+              if (isFounderSeedChatId(conversationId)) {
+                setCallsGateNote("Calls aren't available on this build yet.");
+                return;
+              }
               const isGroup = row.kind === "group" || row.callMedia === "group";
-              setCallSurface({
-                kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
-                direction: "outgoing",
-                peerName: row.peerName || row.name,
-                isGroup,
-                peerAvatarSrc: row.avatarSrc,
-              });
+              setCallsGateNote(null);
+              void (async () => {
+                try {
+                  const res = await createConversationCall(
+                    conversationId,
+                    session?.access_token,
+                  );
+                  setCallSurface({
+                    kind: isGroup ? "group" : row.callMedia === "video" ? "video" : "audio",
+                    direction: "outgoing",
+                    peerName: row.peerName || row.name,
+                    isGroup,
+                    peerAvatarSrc: row.avatarSrc,
+                    liveCallId: res.call.id,
+                    liveCallStatus: res.call.status,
+                    liveCallerUserId: res.call.caller_user_id,
+                    liveCalleeUserId: res.call.callee_user_id,
+                  });
+                  void refreshCallLog();
+                } catch (err) {
+                  const msg =
+                    err && typeof err === "object" && "message" in err
+                      ? String((err as { message?: string }).message || "")
+                      : "";
+                  setCallsGateNote(msg || "Couldn't start the call. Try again in a moment.");
+                }
+              })();
             }}
             onOpenStoryFromCalls={(row) => {
               const rail = resolveHomeStories({
@@ -6492,13 +9389,33 @@ export function OpalApp() {
                       : "EMPTY",
                 productionStories: productionOwners?.stories,
               });
+              const peer = (row.peerName || row.name || "").toLowerCase();
               const story = rail.find((s) =>
-                (s.person || "").toLowerCase().includes((row.peerName || row.name).toLowerCase()),
+                (s.person || "").toLowerCase().includes(peer),
               );
-              if (story) setStoryView(story);
+              if (story) {
+                setStoryView(story);
+                return;
+              }
+              if (/alex/i.test(peer)) {
+                openAlexTripMemories();
+                return;
+              }
+              setCallsGateNote(`No story available for ${row.peerName || row.name} yet.`);
             }}
             onOpenCallsContinuityRow={(row: CallsContinuityRow) => {
               const isGroup = row.kind === "group";
+              const seedConv =
+                row.conversationId ||
+                (!isGroup ? founderSeedConversationIdForName(row.name) : null);
+              const peer =
+                !isGroup
+                  ? listDirectPeopleFromChats(chats).find(
+                      (p) =>
+                        p.displayName.toLowerCase() ===
+                        (row.peerName || row.name).toLowerCase(),
+                    )
+                  : null;
               setCallContinuity({
                 kind: isGroup ? "group" : "person",
                 name: row.name,
@@ -6521,12 +9438,15 @@ export function OpalApp() {
                   row.signal && "graphCardId" in row.signal
                     ? row.signal.graphCardId
                     : undefined,
+                conversationId: seedConv || peer?.conversationId || null,
+                peerUserId: peer?.peerUserId || null,
               });
             }}
           />
         ) : null}
         {opalAmbientOpen ? null : tab === "graphs" ? (
           <GraphsHome
+            createdPlans={createdPlanSurfaces}
             liveGraphs={chats.flatMap((chat) => {
               const plan = chat.planProjection;
               if (!plan?.place && !plan?.when_label) return [];
@@ -6535,6 +9455,7 @@ export function OpalApp() {
                 pendingChange: plan.pending_change === true,
                 upcomingReady: plan.upcoming_ready,
                 temporalState: plan.temporal_state,
+                canonicalStartAt: plan.canonical_start_at,
               });
               const pendingLabel = graphPendingStatusLabel({
                 pendingChange: plan.pending_change === true,
@@ -6550,24 +9471,132 @@ export function OpalApp() {
                       : state === "ready"
                         ? "ready"
                         : "forming";
+              const whenLine =
+                state === "past"
+                  ? (() => {
+                      const instant = parsePlanInstant(plan.canonical_start_at);
+                      return instant
+                        ? formatPastPlanWhen(instant)
+                        : plan.when_label || "";
+                    })()
+                  : plan.when_label || "";
               return [
                 {
                   id: plan.lineage_id || chat.id,
                   title: plan.place || "Plan",
-                  whenLine: plan.when_label || "",
+                  whenLine,
                   signalLine:
                     state === "past"
                       ? chat.name || "Earlier together"
                       : pendingLabel || plan.execution_label || chat.name,
                   status,
+                  person: chat.name || "",
+                  startsAt: plan.canonical_start_at || null,
+                  who: chat.name ? [chat.name] : undefined,
                 },
               ];
             })}
             onOpenGraph={(cardId) => openGraphDetail(cardId, "graphs")}
-            onCreateGraph={() => {
-              setGraphCreateContext({});
-              setGraphCreateOpen(true);
+            onMessageTimelineItem={(item) => {
+              const who = item.who.map((w) => w.toLowerCase());
+              const chat =
+                chats.find((c) =>
+                  who.some(
+                    (w) =>
+                      w &&
+                      w !== "you" &&
+                      (c.name || "").toLowerCase().includes(w),
+                  ),
+                ) ||
+                (item.conversationId
+                  ? chats.find((c) => c.id === item.conversationId)
+                  : undefined);
+              if (chat) {
+                void openChat(chat.id);
+                return;
+              }
+              setTab("chats");
+              setCallsGateNote(
+                item.who.length
+                  ? `Find ${item.who.filter((w) => w !== "You").join(", ")} in Chats to message.`
+                  : "Open Chats to message the group.",
+              );
+            }}
+            onAdjustTimelineItem={(item) => setTimelineAdjustItem(item)}
+            onStartPlanning={(g) => {
+              openPlanComposer({
+                id: g.id,
+                title: g.title,
+                who: g.person || null,
+                whenLine: g.whenLine || null,
+                people: g.person ? [g.person] : [],
+              });
               setCallsGateNote(null);
+            }}
+            onCreatePlan={() => openPlanComposer(null)}
+            onCreateIdea={() =>
+              openPlanComposer({
+                title: "New idea",
+                vibe: "Idea",
+              })
+            }
+            onCreateTrip={() => setTripCreateSignal((n) => n + 1)}
+            tripCreateSignal={tripCreateSignal}
+            onCreateGraph={() => openPlanComposer(null)}
+          />
+        ) : null}
+        {timelineAdjustItem ? (
+          <TimelineAdjustSheet
+            item={timelineAdjustItem}
+            onClose={() => setTimelineAdjustItem(null)}
+            onSaveTime={(timeLabel) => {
+              setCallsGateNote(
+                timeLabel
+                  ? `Suggested time · ${timeLabel} (others still need to confirm).`
+                  : null,
+              );
+            }}
+            onSaveVenue={(venue) => {
+              setCallsGateNote(
+                venue
+                  ? `Suggested venue · ${venue} (others still need to confirm).`
+                  : null,
+              );
+            }}
+            onAddPeople={() => {
+              setTimelineAdjustItem(null);
+              setActivityOpen(false);
+              setNewCallOpen(false);
+              setSearchInitialMode("People");
+              setSearchContext("add_members");
+              setSearchOpen(true);
+            }}
+            onMessage={() => {
+              const item = timelineAdjustItem;
+              setTimelineAdjustItem(null);
+              const who = item.who.map((w) => w.toLowerCase());
+              const chat =
+                chats.find((c) =>
+                  who.some(
+                    (w) =>
+                      w &&
+                      w !== "you" &&
+                      (c.name || "").toLowerCase().includes(w),
+                  ),
+                ) ||
+                (item.conversationId
+                  ? chats.find((c) => c.id === item.conversationId)
+                  : undefined);
+              if (chat) {
+                void openChat(chat.id);
+                return;
+              }
+              setTab("chats");
+              setCallsGateNote(
+                item.who.length
+                  ? `Find ${item.who.filter((w) => w !== "You").join(", ")} in Chats to message.`
+                  : "Open Chats to message the group.",
+              );
             }}
           />
         ) : null}
@@ -6578,16 +9607,35 @@ export function OpalApp() {
             readReceipts={readReceipts}
             messageNotifications={messageNotifications}
             onMessagingPreference={(key, value) => {
+              const token = session?.access_token;
+              if (!token) {
+                // No FAKE_SUCCESS: do not flip UI when persistence is impossible.
+                return;
+              }
               if (key === "read_receipts_enabled") setReadReceipts(value);
               if (key === "message_notifications_enabled") setMessageNotifications(value);
-              const token = session?.access_token;
-              if (!token) return;
               void updateMessagingPreferences({ [key]: value }, token).catch(() => {
                 if (key === "read_receipts_enabled") setReadReceipts(!value);
                 if (key === "message_notifications_enabled") setMessageNotifications(!value);
               });
             }}
             onFindPeople={() => setFindPeopleOpen(true)}
+            onOpenLives={() => setLivesGoLiveOpen(true)}
+            onProfileSaved={(user) => {
+              setSession((prev) => {
+                if (!prev) return prev;
+                const next: ProductSession = {
+                  ...prev,
+                  display_name: user.display_name,
+                  handle: user.handle,
+                };
+                saveSession(next);
+                void import("./nativeHostBridge").then(({ notifyNativeHostSession }) => {
+                  notifyNativeHostSession(next);
+                });
+                return next;
+              });
+            }}
             onSignOut={async () => {
               productRealtime.stop();
               // Continuation is ephemeral; never survive sign-out (D-002 / Real People).
@@ -6625,6 +9673,18 @@ export function OpalApp() {
         Center create (＋) is deferred until Graph create (S5) so we never ship a dead control.
         Layout is ready: data-create-dock=deferred documents the final 5-slot model.
       */}
+      {planComposerOpen ? (
+        <PlanComposer
+          open={planComposerOpen}
+          seed={planComposerSeed}
+          onClose={() => {
+            setPlanComposerOpen(false);
+            setPlanComposerSeed(null);
+          }}
+          onConfirm={confirmPlanComposer}
+        />
+      ) : null}
+
       {graphCreateOpen ? (
         <GraphCreateFlow
           open={graphCreateOpen}
@@ -6873,7 +9933,12 @@ export function OpalApp() {
           }}
           onInviteFallback={() => {
             setNewChatOpen(false);
-            setFindPeopleOpen(true);
+            setTab("you");
+            try {
+              sessionStorage.setItem("opal.you.focus", "invites");
+            } catch {
+              /* ignore */
+            }
           }}
         />
       ) : null}
@@ -6884,11 +9949,98 @@ export function OpalApp() {
           reality={canonicalGraph}
           entrySource={graphDetailEntrySource}
           onRepeat={openRepeatFromPast}
+          onAddPeople={() => {
+            closeGraphDetail();
+            setActivityOpen(false);
+            setNewCallOpen(false);
+            setSearchInitialMode("People");
+            setSearchContext("add_members");
+            setSearchOpen(true);
+          }}
+          onStartPlanning={(hint) => {
+            closeGraphDetail();
+            openPlanComposer({
+              id: hint.id,
+              title: hint.title,
+              who: hint.who || null,
+              people: hint.who ? [hint.who] : [],
+            });
+          }}
+          onBroadcastArrival={async (state) => {
+            const graphId = graphDetailCardId;
+            if (graphId) {
+              const label = travelLabelFor(state);
+              if (label) {
+                setTravelOverrides((prev) => {
+                  const next = {
+                    ...prev,
+                    [graphId]: {
+                      graphId,
+                      travelState: state,
+                      label,
+                      updatedAt: new Date().toISOString(),
+                    },
+                  };
+                  persistTravelOverrides(next);
+                  return next;
+                });
+              }
+            }
+            const convId =
+              canonicalGraph?.conversationId ||
+              chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)?.id ||
+              activeChatId;
+            if (!convId) return;
+            await productRealtime.joinConversation(convId);
+            await productRealtime.pushExperienceArrival(convId, {
+              arrival_state: state,
+            });
+          }}
+          onBroadcastEta={async ({ arrivalWindowLabel }) => {
+            const graphId = graphDetailCardId;
+            if (graphId && arrivalWindowLabel) {
+              setTravelOverrides((prev) => {
+                const next = {
+                  ...prev,
+                  [graphId]: {
+                    graphId,
+                    travelState: "on_the_way" as const,
+                    label: arrivalWindowLabel.startsWith("On the way")
+                      ? arrivalWindowLabel
+                      : `On the way · ${arrivalWindowLabel}`,
+                    updatedAt: new Date().toISOString(),
+                  },
+                };
+                persistTravelOverrides(next);
+                return next;
+              });
+            }
+            const convId =
+              canonicalGraph?.conversationId ||
+              chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)?.id ||
+              activeChatId;
+            if (!convId) return;
+            await productRealtime.joinConversation(convId);
+            await productRealtime.pushExperienceEta(convId, {
+              arrival_window_label: arrivalWindowLabel,
+            });
+          }}
           onClose={() => {
             const entry = graphDetailEntrySource;
+            const returnChat = graphDetailReturnChatId;
             closeGraphDetail();
-            if (entry === "graphs") setTab("graphs");
-            setHomeScrollToken((t) => t + 1);
+            setGraphDetailReturnChatId(null);
+            if (entry === "chats") {
+              setTab("chats");
+              if (returnChat) void openChat(returnChat);
+            } else if (entry === "graphs") {
+              setTab("graphs");
+            } else if (entry === "opal") {
+              setTab("opal");
+            } else {
+              setTab("home");
+              setHomeScrollToken((t) => t + 1);
+            }
             // P2.2 — restore Search when Graph was opened from Search result
             if (searchReturnPending) {
               setSearchReturnPending(false);
@@ -6913,10 +10065,17 @@ export function OpalApp() {
           mediaSrc="/demo/moments/food.jpg"
           locationGranted={locationGranted}
           onBack={() => {
+            const entry = journeyEntrySource;
             setActiveJourney(null);
             setJourneyManageOpen(false);
             setCantMakeItOpen(false);
             setJourneyAddPeopleOpen(false);
+            // Restore originating surface (Chat → Chat, Graphs → Graphs, Center → Center).
+            if (entry === "chats") setTab("chats");
+            else if (entry === "graphs") setTab("graphs");
+            else if (entry === "opal") setTab("opal");
+            else if (entry === "you") setTab("you");
+            else setTab("home");
           }}
           onRequestLocation={() => setLocationPermOpen(true)}
           onManage={() => setJourneyManageOpen(true)}
@@ -6997,9 +10156,14 @@ export function OpalApp() {
           place={activeJourney.place}
           whenLabel={activeJourney.when_label}
           viewerIsLead={
-            activeJourney.viewer?.role === "lead" ||
+            (activeJourney.viewer as { role?: string; is_lead?: boolean } | undefined)?.role ===
+              "lead" ||
+            (activeJourney.viewer as { is_lead?: boolean } | undefined)?.is_lead === true ||
             activeJourney.participants?.some(
-              (p) => p.role === "lead" && p.user_id === session?.user_id,
+              (p) =>
+                (p.role === "lead" ||
+                  (p as { is_lead?: boolean }).is_lead === true) &&
+                p.user_id === session?.user_id,
             ) === true
           }
           onBack={() => setCantMakeItOpen(false)}
@@ -7148,23 +10312,29 @@ export function OpalApp() {
                 onComment={() => setCommentsCardId(card.id)}
                 onForward={() => setForwardCardId(card.id)}
                 onSave={() => {
-                  const meta: ContentAuthMeta = {
-                    id: card.id,
-                    visibility: "eligible",
-                    ownerName: card.person,
-                  };
                   const currently = isSaved(engagement, card.id, uid);
-                  void authoritativeSave({
-                    contentId: card.id,
-                    saved: currently,
-                    bearer: session?.access_token,
-                    engagement,
-                    meta,
-                    viewer: { userId: uid },
-                  }).then((res) => {
-                    setEngagement(res.engagement);
-                    setHomeGateNote(res.saved ? "Saved privately." : "Removed from saved.");
-                  });
+                  if (currently) {
+                    const meta: ContentAuthMeta = {
+                      id: card.id,
+                      visibility: "eligible",
+                      ownerName: card.person,
+                    };
+                    void authoritativeSave({
+                      contentId: card.id,
+                      saved: true,
+                      bearer: session?.access_token,
+                      engagement,
+                      meta,
+                      viewer: { userId: uid },
+                    }).then((res) => {
+                      setEngagement(res.engagement);
+                      removeFromAllCollections(card.id);
+                      setHomeGateAction(null);
+                      setHomeGateNote("Removed from Saved");
+                    });
+                    return;
+                  }
+                  setSaveCardId(card.id);
                 }}
                 onRepost={() => {
                   const meta: ContentAuthMeta = {
@@ -7182,8 +10352,34 @@ export function OpalApp() {
                     viewer: { userId: uid },
                   }).then((res) => {
                     setEngagement(res.engagement);
-                    if (res.error) setHomeGateNote(res.error);
-                    else setHomeGateNote(res.reposted ? "Reposted." : "Repost removed.");
+                    if (res.error) {
+                      setHomeGateAction(null);
+                      setHomeGateNote(res.error);
+                      return;
+                    }
+                    if (res.reposted) {
+                      setHomeGateNote("Reposted to your feed");
+                      setHomeGateAction({
+                        label: "Undo",
+                        run: () => {
+                          void authoritativeRepost({
+                            contentId: card.id,
+                            reposted: true,
+                            bearer: session?.access_token,
+                            engagement: res.engagement,
+                            meta,
+                            viewer: { userId: uid },
+                          }).then((undo) => {
+                            setEngagement(undo.engagement);
+                            setHomeGateAction(null);
+                            setHomeGateNote("Removed from your feed");
+                          });
+                        },
+                      });
+                    } else {
+                      setHomeGateAction(null);
+                      setHomeGateNote("Removed from your feed");
+                    }
                   });
                 }}
               />
@@ -7347,6 +10543,21 @@ export function OpalApp() {
                   );
                   setHomeGateNote(`Following ${card.person}.`);
                 }}
+                onSaveIdea={() => {
+                  setDiscoveryCardId(null);
+                  setSaveCardId(card.id);
+                }}
+                onGraphThis={() => {
+                  setDiscoveryCardId(null);
+                  openPlanComposer({
+                    id: card.id,
+                    title: card.title || "Nearby plan",
+                    place: card.placeLine || card.detail || card.title || null,
+                    who: card.person || null,
+                    people: card.person ? [card.person] : [],
+                    vibe: "Idea",
+                  });
+                }}
               />
             );
           })()
@@ -7355,18 +10566,57 @@ export function OpalApp() {
       {storyView ? (
         <StoryViewer
           story={storyView}
-          stories={resolveHomeStories({
-            mode:
-              (productionOwners?.memories?.length || 0) > 0
-                ? "PRODUCTION_HYDRATION"
-                : isFounderSeedEnabled()
-                  ? "FOUNDER_FIXTURE"
-                  : "EMPTY",
-            productionStories: productionOwners?.stories,
-          })}
+          stories={
+            storyQueueOverride && storyQueueOverride.length > 0
+              ? storyQueueOverride
+              : resolveHomeStories({
+                  mode:
+                    (productionOwners?.memories?.length || 0) > 0
+                      ? "PRODUCTION_HYDRATION"
+                      : isFounderSeedEnabled()
+                        ? "FOUNDER_FIXTURE"
+                        : "EMPTY",
+                  productionStories: productionOwners?.stories,
+                })
+          }
           onClose={() => {
             setStoryView(null);
+            setStoryQueueOverride(null);
             setHomeScrollToken((t) => t + 1);
+          }}
+          onReply={(s) => {
+            setStoryView(null);
+            setStoryQueueOverride(null);
+            const peer = (s.person || "").toLowerCase();
+            const chat = chats.find(
+              (c) =>
+                (c.name || "").toLowerCase() === peer ||
+                (c.name || "").toLowerCase().includes(peer) ||
+                peer.includes((c.name || "").toLowerCase()),
+            );
+            if (chat) {
+              void openChat(chat.id);
+              return;
+            }
+            setHomeGateNote(
+              peer
+                ? `No chat with ${s.person} yet. Open Chats to start one.`
+                : "Open Chats to reply.",
+            );
+            setTab("chats");
+          }}
+        />
+      ) : null}
+
+      {tripCanvasOpen ? (
+        <TripCanvasView
+          bearer={session?.access_token}
+          tripId="seed-trip-mexico-city"
+          selfUserId={session?.user_id}
+          onClose={() => setTripCanvasOpen(false)}
+          onOpenMemories={() => {
+            setTripCanvasOpen(false);
+            openAlexTripMemories();
           }}
         />
       ) : null}
@@ -7400,9 +10650,130 @@ export function OpalApp() {
       ) : null}
 
       {homeGateNote ? (
-        <p className="opal-ephemeral-note" role="status" data-testid="home-social-gate-note">
-          {homeGateNote}
-        </p>
+        <div className="opal-ephemeral-note is-actionable" role="status" data-testid="home-social-gate-note">
+          <span>{homeGateNote}</span>
+          {homeGateAction ? (
+            <button
+              type="button"
+              className="opal-ephemeral-note-action"
+              data-testid="home-social-gate-action"
+              onClick={() => homeGateAction.run()}
+            >
+              {homeGateAction.label}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {saveCardId
+        ? (() => {
+            const card = lookupHomeFeedCard({
+              cardId: saveCardId,
+              productionMemories: productionOwners?.memories,
+              durableMemoryCards,
+            });
+            if (!card) return null;
+            return (
+              <SaveToCollectionSheet
+                contentId={card.id}
+                title={card.caption || card.title}
+                onBack={() => setSaveCardId(null)}
+                onSaveTo={(collection) => {
+                  const meta: ContentAuthMeta = {
+                    id: card.id,
+                    visibility: "eligible",
+                    ownerName: card.person,
+                  };
+                  const uid = session?.user_id || "local-self";
+                  void authoritativeSave({
+                    contentId: card.id,
+                    saved: false,
+                    bearer: session?.access_token,
+                    engagement,
+                    meta,
+                    viewer: { userId: uid },
+                  }).then((res) => {
+                    setEngagement(res.engagement);
+                    addToCollection(collection.id, card.id);
+                    setSaveCardId(null);
+                    setHomeGateNote(`Saved to ${collection.name}`);
+                    setHomeGateAction({
+                      label: "View",
+                      run: () => {
+                        setHomeGateAction(null);
+                        setHomeGateNote(null);
+                        setSavedBrowseCollectionId(collection.id);
+                        setSavedBrowseOpen(true);
+                      },
+                    });
+                  });
+                }}
+              />
+            );
+          })()
+        : null}
+
+      {savedBrowseOpen ? (
+        <div
+          className="saved-browse-sheet"
+          data-testid="saved-browse-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Saved"
+        >
+          <header className="saved-browse-head">
+            <button
+              type="button"
+              className="saved-browse-back"
+              data-testid="saved-browse-back"
+              aria-label="Close saved"
+              onClick={() => setSavedBrowseOpen(false)}
+            >
+              ←
+            </button>
+            <h2 className="saved-browse-title">Saved</h2>
+          </header>
+          <div className="saved-browse-collections" data-testid="saved-browse-collections">
+            {loadCollections().map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`saved-browse-col-pill ${
+                  savedBrowseCollectionId === c.id ? "is-on" : ""
+                }`}
+                data-testid={`saved-browse-col-${c.id}`}
+                onClick={() => setSavedBrowseCollectionId(c.id)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+          <ul className="saved-browse-list" data-testid="saved-browse-list">
+            {(() => {
+              const ids = idsInCollection(savedBrowseCollectionId);
+              if (ids.length === 0) {
+                return (
+                  <li className="saved-browse-empty" data-testid="saved-browse-empty">
+                    Nothing in this collection yet. Tap the bookmark on a post to save here.
+                  </li>
+                );
+              }
+              return ids.map((id) => {
+                const card = lookupHomeFeedCard({
+                  cardId: id,
+                  productionMemories: productionOwners?.memories,
+                  durableMemoryCards,
+                });
+                return (
+                  <li key={id} className="saved-browse-item" data-testid={`saved-item-${id}`}>
+                    <strong>{card?.person || "Saved post"}</strong>
+                    <span>{card?.caption || card?.title || id}</span>
+                  </li>
+                );
+              });
+            })()}
+          </ul>
+        </div>
       ) : null}
 
       {liveSurfaceOpen && typeof document !== "undefined"
@@ -7412,8 +10783,9 @@ export function OpalApp() {
               data-testid="full-live-destination"
               data-figma-node="863:2"
               data-same-reality-home-live="618:211"
-              data-live-card={liveCardId || "seed-live-sabrina"}
+              data-live-card={liveCardId || ""}
               data-live-capability="gated"
+              data-founder-seed={isFounderSeedEnabled() ? "on" : "off"}
               data-nav-active="graphs"
               role="dialog"
               aria-modal="true"
@@ -7434,22 +10806,53 @@ export function OpalApp() {
                 ‹
               </button>
               {(() => {
+                const seedOn = isFounderSeedEnabled();
+                const cardId = liveCardId || (seedOn ? "seed-live-sabrina" : null);
+                if (!cardId || (!seedOn && /^seed-/i.test(cardId))) {
+                  return (
+                    <div className="full-live-empty" data-testid="full-live-empty">
+                      <p className="empty">Live isn&apos;t available yet.</p>
+                      <p className="empty-sub">When someone is live with you, it will show here.</p>
+                    </div>
+                  );
+                }
                 const liveCard =
-                  [...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find(
-                    (c) => c.id === (liveCardId || "seed-live-sabrina"),
-                  ) || FOUNDER_LIVE_FEED[0];
+                  [...visibleLiveCards, ...FOUNDER_LIVE_FEED, ...FOUNDER_HOME_FEED].find(
+                    (c) => c.id === cardId,
+                  ) ||
+                  (cardId.startsWith("live-room-")
+                    ? visibleLiveCards[0]
+                    : seedOn
+                      ? FOUNDER_LIVE_FEED[0]
+                      : undefined);
+                if (!liveCard) {
+                  return (
+                    <div className="full-live-empty" data-testid="full-live-empty">
+                      <p className="empty">Live isn&apos;t available yet.</p>
+                    </div>
+                  );
+                }
+                const pasteK = liveCard.id.startsWith("live-room-");
                 return (
                   <GraphLivePanel
                     place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
-                    area="Downtown"
+                    area={pasteK ? liveCard.placeLine || "Nearby" : "Downtown"}
                     host={liveCard?.host || "Jordan"}
                     broadcaster={liveCard?.broadcaster || "Sabrina"}
                     mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
-                    videoLive={liveCard?.videoLive !== false}
-                    hereLine="Sadeil + 3 are here"
-                    etaLine="Maya is on the way · 8 min"
-                    tableReadyLabel="Table ready · Great news"
-                    onOnMyWay={() => setOnMyWayActive((v) => !v)}
+                    videoLive={pasteK ? false : liveCard?.videoLive !== false}
+                    hereLine={
+                      pasteK
+                        ? `${liveCard.person} is Live · presence, not a stream`
+                        : seedOn
+                          ? "Sadeil + 3 are here"
+                          : "People here"
+                    }
+                    etaLine={pasteK ? "" : seedOn ? "Maya is on the way · 8 min" : ""}
+                    tableReadyLabel={
+                      pasteK ? undefined : seedOn ? "Table ready · Great news" : undefined
+                    }
+                    onOnMyWay={pasteK ? undefined : () => setOnMyWayActive((v) => !v)}
                     onMyWayActive={onMyWayActive}
                   />
                 );
@@ -7462,14 +10865,73 @@ export function OpalApp() {
       {profilePerson ? (
         <div className="profile-person-overlay" data-testid="profile-person-overlay">
           <GraphProfilePage
+            key={profilePerson}
             name={profilePerson}
-            connectionLabel="Direct connection"
+            handle={profileHandle}
+            connectionLabel={
+              profileRelationshipType
+                ? relationshipTypeLabel(profileRelationshipType)
+                : "Direct connection"
+            }
+            relationshipType={profileRelationshipType}
+            phoneNumber={profilePhone}
+            phoneProvenance={profilePhoneProvenance}
+            savingMeta={profileMetaSaving}
+            onSetRelationshipType={async (type) => {
+              setProfileMetaSaving(true);
+              try {
+                writePersonContactMeta(profilePerson, { type });
+                if (profileContactId) {
+                  writePersonContactMeta(profileContactId, { type });
+                }
+                setProfileRelationshipType(type);
+                if (profileContactId && (session?.access_token || session?.cookie_session)) {
+                  // Do not attach owner-private address-book phone to relationship bounds.
+                  const bounds = { ...profileBounds } as RelationshipBounds;
+                  const res = await setRelationshipType(
+                    profileContactId,
+                    type,
+                    bounds,
+                    session?.access_token,
+                  );
+                  setProfileBounds(
+                    (res.relationship?.communication_bounds || bounds) as RelationshipBounds,
+                  );
+                }
+              } finally {
+                setProfileMetaSaving(false);
+              }
+            }}
+            onSavePhone={async (phone) => {
+              setProfileMetaSaving(true);
+              try {
+                // Owner-private local save only — never promote into relationship template.
+                writePersonContactMeta(profilePerson, {
+                  ownerPrivatePhone: phone,
+                  phone,
+                });
+                if (profileContactId) {
+                  writePersonContactMeta(profileContactId, {
+                    ownerPrivatePhone: phone,
+                    phone,
+                  });
+                }
+                setProfilePhone(phone);
+                setProfilePhoneProvenance("owner_private");
+              } finally {
+                setProfileMetaSaving(false);
+              }
+            }}
             avatarSrc={
               /chanelle/i.test(profilePerson)
                 ? "/figma-v2/person/avatar-chanelle-618-1257.png"
                 : /maya/i.test(profilePerson)
                   ? "/figma-v2/home-201/avatar-maya.png"
-                  : undefined
+                  : /sabrina/i.test(profilePerson)
+                    ? "/figma-v2/stories/sabrina.png"
+                    : [...FOUNDER_HOME_FEED, ...FOUNDER_LIVE_FEED].find(
+                        (c) => c.person.toLowerCase() === profilePerson.toLowerCase(),
+                      )?.avatarSrc
             }
             graphs={FOUNDER_HOME_FEED.filter(
               (c) =>
@@ -7529,14 +10991,15 @@ export function OpalApp() {
               }
             }}
             onMessage={() => {
-              const chat = chats.find((c) =>
-                c.name.toLowerCase().includes(profilePerson.toLowerCase()),
-              );
+              const target: PersonChatTarget = {
+                conversationId: profileConversationId,
+                peerUserId: profileContactId,
+                displayName: profilePerson,
+              };
               setProfilePerson(null);
               setSearchReturnPending(false);
               setHomeScrollToken((t) => t + 1);
-              if (chat) void openChat(chat.id);
-              else setTab("chats");
+              void openChatForPerson(target);
             }}
             onPlan={() => {
               // WHO already known
@@ -7671,6 +11134,25 @@ export function OpalApp() {
             setHomeScrollToken((t) => t + 1);
           }}
           onOpenPerson={(name) => {
+            // Paste W4 5.4 — add_members: select → conversation with inviter as plan owner.
+            if (searchContext === "add_members") {
+              setSearchOpen(false);
+              setSearchReturnPending(false);
+              setSearchContext("default");
+              const existing = chats.find(
+                (c) =>
+                  (c.name || "").toLowerCase() === name.toLowerCase() ||
+                  (c.name || "").toLowerCase().includes(name.toLowerCase()),
+              );
+              if (existing) {
+                void openChat(existing.id);
+                setCallsGateNote(`You're the plan owner with ${name}.`);
+                return;
+              }
+              setNewChatOpen(true);
+              setCallsGateNote(`Add ${name} · you'll own the plan.`);
+              return;
+            }
             // Keep query/category/scroll; reopen Search on Profile Back
             setSearchOpen(false);
             setSearchReturnPending(true);
@@ -7740,19 +11222,17 @@ export function OpalApp() {
             setPlanDetailOpen(true);
             void openChat(conversationId);
           }}
-          onOpenPlan={() => {
+          onOpenPlan={(planId) => {
             setActivityOpen(false);
-            const card =
-              FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") ||
-              FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
-            if (card) setGraphDetailCardId(card.id);
+            if (planId) {
+              openGraphDetail(planId, "graphs");
+              return;
+            }
+            setCallsGateNote("Plan link unavailable");
           }}
           onOpenGraph={() => {
             setActivityOpen(false);
-            const card =
-              FOUNDER_HOME_FEED.find((c) => c.ctaAction === "open_graph") ||
-              FOUNDER_HOME_FEED.find((c) => c.kind === "graph");
-            if (card) setGraphDetailCardId(card.id);
+            setCallsGateNote("Plan link unavailable");
           }}
         />
       ) : null}
@@ -7812,6 +11292,10 @@ export function OpalApp() {
           }}
           onOpenPersonContinuity={(person: NewCallPerson) => {
             setNewCallOpen(false);
+            const seedConv = founderSeedConversationIdForName(person.name);
+            const peer = listDirectPeopleFromChats(chats).find(
+              (p) => p.displayName.toLowerCase() === person.name.toLowerCase(),
+            );
             setCallContinuity({
               kind: "person",
               name: person.name,
@@ -7826,6 +11310,8 @@ export function OpalApp() {
               signalGraphId: /chanelle/i.test(person.name)
                 ? "seed-chanelle-juniper"
                 : undefined,
+              conversationId: seedConv || peer?.conversationId || null,
+              peerUserId: peer?.peerUserId || null,
             });
           }}
           onOpenGroupContinuity={(group: NewCallGroup) => {
@@ -7838,6 +11324,7 @@ export function OpalApp() {
               signalEyebrow: "SHARED SIGNAL",
               signalLabel: "3 of 4 aligned · Saturday 7:30",
               signalGraphId: "seed-chanelle-juniper",
+              conversationId: founderSeedConversationIdForName(group.name),
             });
           }}
         />
@@ -7881,12 +11368,16 @@ export function OpalApp() {
             });
           }}
           onChat={() => {
-            const chat = chats.find((c) =>
-              c.name.toLowerCase().includes(callContinuity.name.toLowerCase()),
-            );
+            const target: PersonChatTarget = {
+              conversationId: callContinuity.conversationId,
+              peerUserId: callContinuity.peerUserId,
+              displayName: callContinuity.name,
+            };
             setCallContinuity(null);
-            if (chat) void openChat(chat.id);
-            else setTab("chats");
+            // Defer past Continuity unmount so openChat state is not raced away.
+            window.setTimeout(() => {
+              void openChatForPerson(target);
+            }, 0);
           }}
           onOpenGraph={(graphId) => {
             setCallContinuity(null);
@@ -7926,7 +11417,11 @@ export function OpalApp() {
         >
           {opalAmbientMode === "solo" ? (
             <OpalCenterLifeGraph
+              bearer={session?.access_token}
+              userId={session?.user_id || null}
+              centerRootEpoch={centerRootEpoch}
               onClose={() => setOpalAmbientOpen(false)}
+              /* Context sheet owns primary tap; this prop is Manage permissions → YOU only. */
               onOpenSettings={() => {
                 setOpalAmbientOpen(false);
                 setTab("you");
@@ -7941,6 +11436,16 @@ export function OpalApp() {
                 setCallsGateNote(
                   `Your graph changed: ${hint}. Confirm before any reservation.`,
                 );
+              }}
+              onPlanCreated={(plan) => {
+                // SUBJECT≠RECIPIENT / CENTER_SEND_STAYS_CENTER:
+                // Persist Graph surface + note; never leave Center or open Chats.
+                setCreatedPlanSurfaces((prev) => {
+                  const next = [plan, ...prev.filter((p) => p.id !== plan.id)].slice(0, 24);
+                  persistCreatedPlans(next);
+                  return next;
+                });
+                setCallsGateNote(`${plan.title} is on your Graph.`);
               }}
             />
           ) : (
@@ -8013,7 +11518,7 @@ export function OpalApp() {
           <button
             type="button"
             className={`dock-opal ${opalAmbientOpen ? "is-listening" : "is-rest"}`}
-            aria-label="Talk to Opal"
+            aria-label="Opal Center"
             data-testid="member-tab-opal"
             data-brand-role="emblem-only"
             data-opal-state={opalAmbientOpen ? "listening" : "rest"}
@@ -8021,30 +11526,37 @@ export function OpalApp() {
             data-figma-dock="1114:2"
             data-figma-center-opal="645:3"
             onClick={() => {
-              // Center Opal opens Solo by default (1075:644); toggle closed if already open.
-              setOpalAmbientOpen((v) => {
-                if (v) return false;
-                try {
-                  const q = new URLSearchParams(window.location.search);
-                  setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
-                } catch {
-                  setOpalAmbientMode("solo");
-                }
-                return true;
-              });
+              // Repair #5 dock reselect contract:
+              // other tab → Center root; already on Center root → no-op/scroll root;
+              // inside Talk to Opal → Center root. Never open Talk to Opal from dock.
+              if (opalAmbientOpen) {
+                setCenterRootEpoch((n) => n + 1);
+                return;
+              }
+              try {
+                const q = new URLSearchParams(window.location.search);
+                setOpalAmbientMode(q.get("opal_global_opal") === "1" ? "global" : "solo");
+              } catch {
+                setOpalAmbientMode("solo");
+              }
+              setOpalAmbientOpen(true);
             }}
           >
             <span
               className="dock-opal-mark"
-              style={{
-                WebkitMaskImage: "url(/figma-v2/dock/icon-opal.svg)",
-                maskImage: "url(/figma-v2/dock/icon-opal.svg)",
-              }}
               aria-hidden
               data-brand-role="dock-glyph"
-              data-figma-center-opal="645:3"
-              data-figma-dock="1114:2"
-            />
+              data-brand-source="opal-center-mark"
+            >
+              <img
+                className="dock-opal-center-mark"
+                src="/brand/opal-center-mark.png"
+                width={46}
+                height={46}
+                alt=""
+                draggable={false}
+              />
+            </span>
           </button>
           {TABS.slice(2).map((t) => (
             <button
@@ -8098,6 +11610,7 @@ function HomePane({
   onOpenDiscovery,
   onOpenStory,
   onCreateStory,
+  onCreatePost,
   followedPeople,
   repostedCardIds,
   restoreScrollToken,
@@ -8143,6 +11656,7 @@ function HomePane({
   onOpenDiscovery?: (cardId: string) => void;
   onOpenStory?: (story: FounderStoryItem) => void;
   onCreateStory?: () => void;
+  onCreatePost?: () => void;
   followedPeople?: string[];
   repostedCardIds?: string[];
   restoreScrollToken?: number;
@@ -8397,6 +11911,7 @@ function HomePane({
         onOpenDiscovery={(id) => onOpenDiscovery?.(id)}
         onOpenStory={(s) => onOpenStory?.(s)}
         onCreateStory={() => onCreateStory?.()}
+        onCreatePost={() => onCreatePost?.()}
         onWantThisMemory={() => onMomentDoWithPeople?.()}
         onOpenGraphDetail={(cardId) => onOpenGraphDetail?.(cardId)}
         onOpenLive={(cardId) => {
@@ -8444,7 +11959,7 @@ function HomePane({
       <section className="section presence-section" aria-label="With your people">
         {authenticated ? (
           presence.length === 0 && !awaken ? (
-            <p className="empty">{PRODUCT_COPY.emptyNeedsYou}</p>
+            <p className="empty">{PRODUCT_COPY.emptyPresence}</p>
           ) : (
             presence.map((s, i) => {
               const who =
@@ -8754,32 +12269,35 @@ function PlansPane({
   const whoLabel =
     primary?.shared_reality?.headline?.split(" ")[0] ||
     (primary ? presenceLines(primary).title.split(" ")[0] : null) ||
-    "Chanelle";
+    null;
+  const placeLabel = reality?.where || primary?.shared_reality?.where || null;
+  const whenLabel = reality?.when || primary?.shared_reality?.when || null;
+  // DEAD_ACTIONS=0 — never advertise Change time that only opens Chat.
+  // Material edits live on JourneySurface → JourneyManageSheet when lead.
 
   return (
     <div className="scroll" data-testid="plans-field" data-node-ref="201:9" data-figma-journey="201:9">
-      {authenticated ? (
+      {authenticated && (placeLabel || whenLabel || whoLabel) ? (
         <GraphJourneyCard
-          title={reality?.when ? `With ${whoLabel}` : `Saturday with ${whoLabel}`}
-          place={reality?.where || "Juniper & Ivy"}
-          when={reality?.when || "Saturday · 7:30 PM"}
-          leave="6:55 PM"
-          arrive="7:23 PM"
+          title={whoLabel ? `With ${whoLabel}` : "Your plan"}
+          place={placeLabel || "Place TBD"}
+          when={whenLabel || "When TBD"}
+          leave={undefined}
+          arrive={undefined}
           reserved={
             primary && isUsableReality(primary) ? "Table held · not provider-confirmed" : "Pending"
           }
-          reservationLabel={
-            primary && isUsableReality(primary) ? "Not requested" : "Not requested"
-          }
-          mediaSrc="/figma-v2/home-201/media-juniper.png"
-          peerName={whoLabel}
-          peerAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
+          reservationLabel="Not requested"
+          mediaSrc={undefined}
+          peerName={whoLabel || undefined}
+          peerAvatarSrc={undefined}
           onImIn={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
-          onChangeTime={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
-          onAddPeople={() => onOpenChat?.(primary?.conversation_id)}
-          /* Journey Manage / Can't Make It are owned by JourneySurface overlays  -  not chat dumps. */
+          onChangeTime={undefined}
+          onAddPeople={undefined}
           commitmentActive={!!primary && isUsableReality(primary)}
         />
+      ) : authenticated ? (
+        <p className="lede muted-lede">Plans you lead or join will show up here.</p>
       ) : (
         <p className="lede muted-lede">{PRODUCT_COPY.emptyPlans}</p>
       )}
@@ -8861,77 +12379,104 @@ function PlansPane({
 }
 
 /** Sparse semantic accents from actual Figma 618:1344 row paints (not rainbow-spray). */
-const YOU_HUB_ROWS: {
+type YouHubRow = {
   key: YouSettingKey;
   title: string;
   subtitle: string;
   semantic?: "aqua" | "magenta" | "violet" | "gold" | "coral";
-}[] = [
-  {
-    key: "privacy",
-    title: "Privacy",
-    subtitle: "Graph visibility, blocks, activity",
-  },
-  {
-    key: "feed-discovery",
-    title: "Feed & discovery",
-    subtitle: "Following, local, recommendations",
-  },
-  {
-    key: "location-travel",
-    title: "Location & travel",
-    subtitle: "Home, time zone, location services",
-    semantic: "aqua", // Figma #00F0D1
-  },
-  {
-    key: "engagement",
-    title: "Engagement",
-    subtitle: "Likes, reposts, comments, counters",
-    semantic: "magenta", // Figma #D946FF
-  },
-  {
-    key: "calls-assist",
-    title: "Calls & Opal Assist",
-    subtitle: "How AI helps on calls",
-    semantic: "violet", // Figma #8B5CF6
-  },
-  {
-    key: "notifications",
-    title: "Notifications",
-    subtitle: "Social, Graphs, critical only",
-    semantic: "magenta", // Figma #D946FF
-  },
-  {
-    key: "linked-devices",
-    title: "Linked devices",
-    subtitle: "QR and desktop access",
-    semantic: "aqua",
-  },
-  {
-    key: "safety",
-    title: "Safety",
-    subtitle: "Blocked, muted, reported",
-    semantic: "coral", // Figma #FF6B9D family
-  },
-];
+};
 
-/** 618:1344 "More settings below" - Spending & Fit + Account & Security (Delete nested). */
-const YOU_MORE_ROWS: {
-  key: YouSettingKey;
-  title: string;
-  subtitle: string;
-  semantic?: "aqua" | "magenta" | "violet" | "gold" | "coral";
+/**
+ * YOU hierarchy — person-centered control center (not iPhone Settings clone).
+ * Authority: docs/authority/YOU_PAGE_HIERARCHY.md
+ * Pass B: engagement + safety remain hub-hidden (all nested controls blocked).
+ * Fit: restored on hub (Founder Reality Repair #2) — lifestyle signal for rhythm /
+ * availability / Center understanding. Destination controls stay honest.
+ */
+const YOU_HUB_SECTIONS: {
+  id: string;
+  label: string;
+  rows: YouHubRow[];
 }[] = [
   {
-    key: "spending-fit",
-    title: "Spending & fit",
-    subtitle: "Suggestions without a budget form",
-    semantic: "gold", // Spending law Gold in nested screen; sparse hub accent OK
+    id: "world",
+    label: "Your World",
+    rows: [
+      {
+        key: "feed-discovery",
+        title: "Feed & discovery",
+        subtitle: "Your world and what could enrich it",
+      },
+      {
+        key: "location-travel",
+        title: "Location & travel",
+        subtitle: "How Opal handles travel timing",
+        semantic: "aqua",
+      },
+    ],
   },
   {
-    key: "account-security",
-    title: "Account & security",
-    subtitle: "Sign-in, sessions, delete",
+    id: "relationships",
+    label: "Your Relationships",
+    rows: [
+      {
+        key: "privacy",
+        title: "Privacy",
+        subtitle: "What Opal can understand and use",
+      },
+    ],
+  },
+  {
+    id: "opal",
+    label: "How Opal Helps",
+    rows: [
+      {
+        key: "calls-assist",
+        title: "Calls & Opal Assist",
+        subtitle: "How Opal can help during calls",
+        semantic: "violet",
+      },
+      {
+        key: "notifications",
+        title: "Notifications",
+        subtitle: "What deserves your attention",
+        semantic: "magenta",
+      },
+      {
+        key: "appearance",
+        title: "Appearance",
+        subtitle: "System, Dark, or Light",
+      },
+      {
+        key: "spending",
+        title: "Spending",
+        subtitle: "Budget comfort for suggestions",
+        semantic: "gold",
+      },
+      {
+        key: "fit",
+        title: "Fit",
+        subtitle: "Activity and self-care rhythm",
+        semantic: "coral",
+      },
+    ],
+  },
+  {
+    id: "account",
+    label: "Your Account",
+    rows: [
+      {
+        key: "linked-devices",
+        title: "Linked devices",
+        subtitle: "Where Opal can exist for you",
+        semantic: "aqua",
+      },
+      {
+        key: "account-security",
+        title: "Account & security",
+        subtitle: "Sign-in, sessions, delete",
+      },
+    ],
   },
 ];
 
@@ -8940,6 +12485,8 @@ function YouPane({
   session,
   onSignOut,
   onFindPeople,
+  onOpenLives,
+  onProfileSaved,
   readReceipts,
   messageNotifications,
   onMessagingPreference,
@@ -8948,6 +12495,9 @@ function YouPane({
   session: ProductSession | null;
   onSignOut: () => void | Promise<void>;
   onFindPeople?: () => void;
+  /** Founder-seed Lives affordance — opens LivesGoLivePanel without query flag. */
+  onOpenLives?: () => void;
+  onProfileSaved?: (user: { display_name: string; handle: string }) => void;
   readReceipts?: boolean;
   messageNotifications?: boolean;
   onMessagingPreference?: (
@@ -8966,8 +12516,8 @@ function YouPane({
       window.location.hostname === "127.0.0.1");
 
   /**
-   * YOU = 618:1344 identity / privacy / settings hub.
-   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan)  -  other people only.
+   * YOU = 618:1344 identity / world / relationship-with-Opal control center.
+   * PERSON PROFILE = 618:1257 (Message / Call / Video / Plan) — other people only.
    * Never embed person-profile action rails here.
    * Delete Account 618:2243 nests behind Account & Security 618:2180.
    */
@@ -8989,6 +12539,7 @@ function YouPane({
           readReceipts={readReceipts}
           messageNotifications={messageNotifications}
           onMessagingPreference={onMessagingPreference}
+          onProfileSaved={onProfileSaved}
           onOpenSetting={(key) => {
             setYouSettingStack((s) => [...s, youSetting]);
             setYouSetting(key);
@@ -9053,69 +12604,73 @@ function YouPane({
         </div>
       </header>
 
-      <section className="you-hub-rows" aria-label="Settings">
-        {YOU_HUB_ROWS.map((row) => (
-          <button
-            key={row.key}
-            type="button"
-            className="you-hub-row"
-            data-testid={`you-hub-row-${row.key}`}
-            data-semantic={row.semantic || undefined}
-            onClick={() => {
-              setYouSettingStack([]);
-              setYouSetting(row.key);
-            }}
-          >
-            <span className="you-hub-row-copy">
-              <strong>{row.title}</strong>
-              <span>{row.subtitle}</span>
-            </span>
-            <span className="you-hub-chevron" aria-hidden>
-              ›
-            </span>
-          </button>
-        ))}
-      </section>
+      {YOU_HUB_SECTIONS.map((section) => (
+        <section
+          key={section.id}
+          className={`you-hub-section${section.id === "account" ? " you-hub-more-rows" : ""}`}
+          aria-label={section.label}
+          data-testid={`you-hub-section-${section.id}`}
+        >
+          <h2 className="you-hub-section-label">{section.label}</h2>
+          <div className="you-hub-rows">
+            {section.id === "world" && session ? (
+              <button
+                type="button"
+                className="you-hub-row"
+                data-testid="profile-people"
+                onClick={onFindPeople}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>Grow Your Circle</strong>
+                  <span>Invite people you know — connect your world</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {section.id === "world" && session && onOpenLives ? (
+              <button
+                type="button"
+                className="you-hub-row"
+                data-testid="you-go-live"
+                onClick={onOpenLives}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>Go live</strong>
+                  <span>Confirm a venue and start a Live</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {section.rows.map((row) => (
+              <button
+                key={row.key}
+                type="button"
+                className="you-hub-row"
+                data-testid={`you-hub-row-${row.key}`}
+                data-semantic={row.semantic || undefined}
+                onClick={() => {
+                  setYouSettingStack([]);
+                  setYouSetting(row.key);
+                }}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>{row.title}</strong>
+                  <span>{row.subtitle}</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
 
-      <p className="you-hub-more-label">More settings below</p>
-
-      <section className="you-hub-rows you-hub-more-rows" aria-label="More settings">
-        {YOU_MORE_ROWS.map((row) => (
-          <button
-            key={row.key}
-            type="button"
-            className="you-hub-row"
-            data-testid={`you-hub-row-${row.key}`}
-            data-semantic={row.semantic || undefined}
-            onClick={() => {
-              setYouSettingStack([]);
-              setYouSetting(row.key);
-            }}
-          >
-            <span className="you-hub-row-copy">
-              <strong>{row.title}</strong>
-              <span>{row.subtitle}</span>
-            </span>
-            <span className="you-hub-chevron" aria-hidden>
-              ›
-            </span>
-          </button>
-        ))}
-      </section>
-
-      <section className="section you-hub-account" aria-label="Account">
-        <h3 className="section-label">Account</h3>
-        {session ? (
-          <button
-            type="button"
-            className="settings-row"
-            data-testid="profile-people"
-            onClick={onFindPeople}
-          >
-            <span>Find people</span>
-            <span className="muted">Invite</span>
-          </button>
-        ) : null}
+      <section className="section you-hub-account" aria-label="Session">
         {session ? (
           <button
             type="button"
@@ -9143,6 +12698,8 @@ function YouPane({
         ) : null}
       </section>
 
+      {/* Paste W Phase 5 / L8: What Opal can do / remembers / Invite friends
+          filed into Calls & Opal Assist / Privacy / Feed & discovery — not deleted. */}
       {session ? <PrivateCreatorImpact /> : null}
     </div>
   );
@@ -9163,21 +12720,10 @@ function BackIcon() {
 }
 
 function SendIcon() {
+  // Paper-plane send mark (filled) — standard messaging affordance.
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M22 2L11 13"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M22 2L15 22l-4-9-9-4 20-7z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M3.4 20.6 21.5 12 3.4 3.4l.1 6.6L15 12 3.5 14z" />
     </svg>
   );
 }
