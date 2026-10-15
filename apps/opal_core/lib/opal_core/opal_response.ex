@@ -1223,7 +1223,8 @@ defmodule OpalCore.OpalResponse do
 
   defp new_direction_this_turn?(_), do: false
 
-  defp capability_question?(lower) do    Regex.match?(
+  defp capability_question?(lower) do
+    Regex.match?(
       ~r/\bwhat\s+can\s+you\s+help\b|\bhow\s+can\s+you\s+help\b|\bwhat\s+(can|does)\s+(you|opal)\b|\bwhat\s+opal\s+can\s+do\b|\bremind\s+me\s+what\b.*\b(opal\s+)?(can|do)\b|\bcapabilities\b/i,
       lower
     )

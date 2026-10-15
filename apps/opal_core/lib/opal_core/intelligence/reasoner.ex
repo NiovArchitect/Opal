@@ -280,7 +280,10 @@ defmodule OpalCore.Intelligence.Reasoner do
   defp calendar_planning_note(_, _, _), do: nil
 
   defp maybe_llm_draft(event, extraction, context, action, payload, confidence, reason) do
-    if action in ["silent"] do
+    # Repair #11 — plan.confirm/plan.cancel render deterministic truthful outcomes
+    # from the authority result in the executor; an LLM draft must not rewrite
+    # them (or be mistaken for the outcome).
+    if action in ["silent", "plan.confirm", "plan.cancel"] do
       {action, payload, confidence, reason}
     else
       template =

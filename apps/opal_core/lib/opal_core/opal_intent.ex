@@ -552,7 +552,8 @@ defmodule OpalCore.OpalIntent do
        peruvian spanish portuguese caribbean)
   end
 
-  defp try_recommend(norm, names) do    hit? =
+  defp try_recommend(norm, names) do
+    hit? =
       match_phrase?(norm, ~r/\b(suggest|recommend)\b/i) or
         match_phrase?(norm, ~r/\bwhere\s+should\b/i) or
         match_phrase?(norm, ~r/\bwhat\s+should\b/i) or
