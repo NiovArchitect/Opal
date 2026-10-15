@@ -23746,6 +23746,63 @@ html.opal-native-host body:has(.opal-center-chat-composer:focus-within) .opal-am
   scroll-padding-bottom: 12px;
 }
 
+/* Repair #11 — Chat thread keyboard-open (KEYBOARD_SAFE).
+ *
+ * The chat composer (.composer-618) is position:absolute against the LAYOUT
+ * viewport, so the iOS keyboard (overlay in WKWebView, visual-viewport shrink
+ * in Safari) covers it — no keyboard-open rule existed (Center alone had one).
+ * On keyboard-open (:focus-within):
+ * - composer goes position:fixed + bottom:8px → tracks the VISUAL viewport,
+ *   riding above the keyboard (attach/voice/send stay composer-relative);
+ * - the dock hides (same law as Center) so it cannot cover the composer;
+ * - the thread keeps its independent scroll above the keyboard;
+ * - fixed positioning removes the composer from scroll flow, so focus cannot
+ *   yank the thread's scroll position.
+ * Scoped to phone (max-width:519px) + native host: desktop keeps the
+ * card-relative absolute composer (15643 law: rest state bottom:90px).
+ */
+@media (max-width: 519px) {
+  .app[data-testid="member-conversation"]:has(.composer-618:focus-within) .tabbar.tabbar-option-b {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(110%) !important;
+    transition: opacity 160ms ease, transform 160ms ease;
+  }
+  .app[data-testid="member-conversation"]:has(.composer-618:focus-within) > .composer-618 {
+    position: fixed !important;
+    left: 20px !important;
+    right: 20px !important;
+    top: auto !important;
+    bottom: 8px !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 60 !important;
+  }
+  /* Latest bubble stays reachable: thread keeps its own scroll above the composer. */
+  .app[data-testid="member-conversation"]:has(.composer-618:focus-within) > .thread {
+    scroll-padding-bottom: 12px;
+  }
+}
+html.opal-native-host body:has([data-testid="member-conversation"] .composer-618:focus-within) .tabbar.tabbar-option-b {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(110%) !important;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+html.opal-native-host body:has([data-testid="member-conversation"] .composer-618:focus-within) .composer-618 {
+  position: fixed !important;
+  left: 20px !important;
+  right: 20px !important;
+  top: auto !important;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  width: auto !important;
+  max-width: none !important;
+  z-index: 60 !important;
+}
+html.opal-native-host body:has([data-testid="member-conversation"] .composer-618:focus-within) .thread {
+  scroll-padding-bottom: 12px;
+}
+
 /* In-Center Context sheet — above Center chrome, not YOU */
 .opal-center-v2 .opal-center-context-sheet {
   position: absolute;
