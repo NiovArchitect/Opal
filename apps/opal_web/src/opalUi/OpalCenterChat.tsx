@@ -377,10 +377,13 @@ export function OpalCenterChat({
   useEffect(() => {
     const ta = inputRef.current;
     if (!ta) return;
-    ta.style.height = "auto";
+    // Grow with content up to MAX_LINES, then scroll internally (P0-C).
+    ta.style.height = "0px";
     const line = 20;
-    const max = line * MAX_LINES;
-    ta.style.height = `${Math.min(ta.scrollHeight, max)}px`;
+    const pad = 16;
+    const max = line * MAX_LINES + pad;
+    const next = Math.min(Math.max(ta.scrollHeight, 36), max);
+    ta.style.height = `${next}px`;
   }, [draft]);
 
   // Speak new Opal replies when voice mode is on. speaking state only while audio plays.

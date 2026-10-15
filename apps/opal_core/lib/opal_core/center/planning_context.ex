@@ -82,18 +82,32 @@ defmodule OpalCore.Center.PlanningContext do
   @doc "True when we have enough to start restaurant discovery without more questions."
   def ready_for_restaurant_search?(ctx) when is_map(ctx) do
     c = stringify(ctx)
-    dest = c["destination"]
+    dest = c["destination"] || c["requested_venue_locality"]
     when_s = c["when"] || c["when_resolved"]
     category = c["category"]
+    exact? = c["search_mode"] == "exact_entity" and is_binary(c["requested_venue_name"]) and
+               c["requested_venue_name"] != ""
 
     # Solo is first-class: who/participants are optional.
     restaurant? =
       category in ["restaurant", "dinner", "food"] or
         c["quality_intent"] in ["top", "best", "high", "strong"] or
-        c["wants_restaurant"] == true
+        c["wants_restaurant"] == true or
+        exact?
 
-    is_binary(dest) and dest != "" and restaurant? and
-      is_binary(when_s) and when_s != ""
+    # Exact named venue can start without a day if locality + name are present;
+    # still prefer when when available. Discovery still requires when.
+    cond do
+      exact? and is_binary(dest) and dest != "" and
+          (is_binary(when_s) and when_s != "" or restaurant?) ->
+        true
+
+      is_binary(dest) and dest != "" and restaurant? and is_binary(when_s) and when_s != "" ->
+        true
+
+      true ->
+        false
+    end
   end
 
   def ready_for_restaurant_search?(_), do: false

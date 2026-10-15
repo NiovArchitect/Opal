@@ -64,8 +64,13 @@ export function JourneyManageSheet({
 
       <section className="journey-manage-block" data-testid="journey-manage-roles">
         <h2 className="opal-query-label">Roles</h2>
-        <p className="gsh-meta">
-          Lead and co-lead can change time, place, and people. Material changes ask others to reconfirm.
+        <p className="gsh-meta" data-testid="journey-manage-lead">
+          {journey.viewer?.is_lead
+            ? "You are the lead for this plan."
+            : journey.lead_user_id
+              ? "Lead is assigned. Only lead/co-lead can change time, place, and people."
+              : "Lead and co-lead can change time, place, and people."}{" "}
+          Material changes ask others to reconfirm. Creator and current lead can differ after a handoff.
         </p>
         {can && onAssignCoLead && journey.participants?.[0] ? (
           <button

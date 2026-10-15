@@ -123,6 +123,18 @@ export function JourneySurface({
     setMapsNote("Opened Maps (deep link) - no in-app navigation.");
   };
 
+  const leadParticipant = journey.participants?.find((p) => p.role === "lead");
+  const leadLabel =
+    journey.viewer?.is_lead
+      ? "You"
+      : leadParticipant
+        ? peerName && leadParticipant.user_id
+          ? peerName
+          : "Lead"
+        : journey.lead_user_id
+          ? "Lead"
+          : null;
+
   return (
     <div
       className="journey-surface"
@@ -133,6 +145,8 @@ export function JourneySurface({
       data-figma-ref="201:9"
       data-plan-id={journey.plan_id}
       data-lineage-same="true"
+      data-can-manage={journey.viewer?.can_manage ? "1" : "0"}
+      data-lead-user-id={journey.lead_user_id || ""}
     >
       {onBack ? (
         <button type="button" className="opal-nav-chevron" data-testid="journey-back" aria-label="Back" onClick={onBack}>‹</button>
@@ -151,11 +165,12 @@ export function JourneySurface({
         arrive={undefined}
         reserved={reservedValue}
         reservationLabel={reservationLabel}
+        leadLabel={leadLabel}
         mediaSrc={mediaSrc}
         peerName={peerName}
         peerAvatarSrc={peerAvatarSrc}
         onImIn={onImIn}
-        // Material time/place change remains lead/co-lead only.
+        // Material time/place change remains lead/co-lead only — never a dead chat dump.
         onChangeTime={journey.viewer?.can_manage ? onChangeTime : undefined}
         // Add people / Manage destinations are visible for the Journey walk;
         // sheets enforce lead-only global mutations (P0-05.12A / 863:88 / 863:394).
@@ -167,6 +182,12 @@ export function JourneySurface({
           !!journey.participants?.some((p) => p.committed)
         }
       />
+      {!journey.viewer?.can_manage ? (
+        <p className="gsh-meta" data-testid="journey-change-time-blocked" role="status">
+          Only the lead can change the time for everyone. You can update your own participation
+          below.
+        </p>
+      ) : null}
 
       <div className="journey-extra" data-testid="journey-execution-truth">
         <p className="gsh-meta">

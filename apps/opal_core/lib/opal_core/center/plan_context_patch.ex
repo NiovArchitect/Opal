@@ -16,6 +16,8 @@ defmodule OpalCore.Center.PlanContextPatch do
     plan_id visibility_mode surprise
     dependencies next_dependency
     intent_scope initial_planning_visibility who_unresolved
+    search_mode requested_venue_name requested_venue_locality
+    opportunity_fingerprint
   )
 
   @doc """
@@ -109,8 +111,16 @@ defmodule OpalCore.Center.PlanContextPatch do
         Regex.match?(~r/\b(?:actually|make it|change (?:it|that) to)\s+friday\b/i, raw) ->
           Map.put(patch, "when", "Friday")
 
+        # Clock-time corrections: "change the time to 8 PM", "make it 8pm", "actually 7:30"
+        m =
+            Regex.run(
+              ~r/\b(?:actually|make it|change (?:the )?(?:time|it|that) to)\s+(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?))\b/i,
+              raw
+            ) ->
+          Map.put(patch, "when_time", normalize_clock(Enum.at(m, 1)))
+
         m = Regex.run(~r/\b(?:actually|make it)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b/i, raw) ->
-          Map.put(patch, "when_time", Enum.at(m, 1))
+          Map.put(patch, "when_time", normalize_clock(Enum.at(m, 1)))
 
         true ->
           patch
@@ -242,9 +252,47 @@ defmodule OpalCore.Center.PlanContextPatch do
       if is_nil(Map.get(patch, "when_time")) and is_binary(prior["when"]) and
            Regex.match?(~r/\baround\s+(\d{1,2})/i, raw) do
         case Regex.run(~r/\baround\s+(\d{1,2}(?::\d{2})?)/i, raw) do
-          [_, t] -> Map.put(patch, "when_time", t)
+          [_, t] -> Map.put(patch, "when_time", normalize_clock(t))
           _ -> patch
         end
+      else
+        patch
+      end
+
+    # Exact named venue: "Nighthawk in Coronado", "take us to Pujol in Mexico City"
+    patch =
+      case extract_exact_venue(raw) do
+        %{name: name, locality: locality} ->
+          Map.merge(patch, %{
+            "search_mode" => "exact_entity",
+            "requested_venue_name" => name,
+            "requested_venue_locality" => locality,
+            "venue" => name,
+            "destination" => locality,
+            "category" => Map.get(patch, "category") || "restaurant",
+            "wants_restaurant" => true
+          })
+
+        nil ->
+          patch
+      end
+
+    # Opportunity fingerprint for pending-plan resume (same intent → same plan).
+    patch =
+      if is_binary(Map.get(patch, "intent_scope")) or is_binary(Map.get(patch, "when")) or
+           is_binary(Map.get(patch, "requested_venue_name")) do
+        fp =
+          opportunity_fingerprint(%{
+            "intent_scope" => Map.get(patch, "intent_scope") || prior["intent_scope"],
+            "when" => Map.get(patch, "when") || prior["when"],
+            "destination" => Map.get(patch, "destination") || prior["destination"],
+            "who" => Map.get(patch, "who") || prior["who"],
+            "requested_venue_name" =>
+              Map.get(patch, "requested_venue_name") || prior["requested_venue_name"],
+            "search_mode" => Map.get(patch, "search_mode") || prior["search_mode"]
+          })
+
+        Map.put(patch, "opportunity_fingerprint", fp)
       else
         patch
       end
@@ -262,15 +310,139 @@ defmodule OpalCore.Center.PlanContextPatch do
 
   def solo_intent?(_), do: false
 
-  @doc "Generic open-window opportunity — WHO unresolved; never inherit prior person."
+  @doc """
+  Generic open-window opportunity — WHO unresolved; never inherit prior person.
+
+  Covers unspecified Friday/dinner/opportunity phrasing without a named person.
+  Explicit "with Maya" / "with River" is not generic.
+  """
   def generic_open_window?(raw) when is_binary(raw) do
-    Regex.match?(
-      ~r/\b(?:someone close|someone nearby|with someone|dinner with someone|open\s+—\s+dinner|still open)\b/i,
-      raw
-    ) and not Regex.match?(~r/\bwith\s+[A-Z][a-zA-Z']{1,30}\b/, raw)
+    named_person? = Regex.match?(~r/\bwith\s+[A-Z][a-zA-Z']{1,30}\b/, raw)
+
+    generic_cue? =
+      Regex.match?(
+        ~r/\b(?:someone close|someone nearby|with someone|dinner with someone|open\s+—\s+dinner|still open)\b/i,
+        raw
+      ) or
+        Regex.match?(
+          ~r/\b(?:friday|saturday|sunday|tonight|this weekend)\b.*\b(?:dinner|plans?|eat|restaurant)\b/i,
+          raw
+        ) or
+        Regex.match?(
+          ~r/\b(?:dinner|plans?|eat|restaurant)\b.*\b(?:friday|saturday|sunday|tonight|this weekend)\b/i,
+          raw
+        ) or
+        Regex.match?(~r/\b(?:open opportunity|friday opportunity|dinner opportunity)\b/i, raw)
+
+    # "Dinner Friday" without a named person is generic — WHO stays unspecified.
+    # Exclude exact named-venue requests (those carry their own WHO rules).
+    exact_venue? = match?(%{name: _}, extract_exact_venue(raw))
+
+    generic_cue? and not named_person? and not exact_venue? and not solo_intent?(raw)
   end
 
   def generic_open_window?(_), do: false
+
+  @doc """
+  Detect exact named-venue intent: proper-name venue + locality cue.
+
+  Person-agnostic — no hardcoded venue or city fixtures.
+  Examples: "Nighthawk in Coronado", "take us to Pujol in Mexico City".
+  """
+  def extract_exact_venue(raw) when is_binary(raw) do
+    # Discovery phrasing must not become exact entity.
+    discovery? =
+      Regex.match?(
+        ~r/\b(?:find|look for|search for|somewhere|options?|recommendations?|top restaurant|best restaurant|a restaurant|some restaurants)\b/i,
+        raw
+      )
+
+    # Patterns: "to/at/for NAME in LOCALITY" or "NAME in LOCALITY"
+    patterns = [
+      ~r/\b(?:take (?:us|me|her|him|them) to|go to|meet (?:at|us at)|dinner at|eat at|reservations? at)\s+([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,4})\s+(?:in|on|at)\s+([A-Z][\w]+(?:\s+[A-Z][\w]+){0,3})\b/,
+      ~r/\b([A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]*){0,4})\s+in\s+([A-Z][\w]+(?:\s+[A-Z][\w]+){0,3})\b/
+    ]
+
+    stop = MapSet.new(~w(
+      Friday Saturday Sunday Monday Tuesday Wednesday Thursday Tonight Tomorrow Weekend
+      Dinner Lunch Brunch Breakfast Restaurant Plans Something Somewhere Mexico City
+      San Diego The A An
+    ))
+
+    found =
+      Enum.find_value(patterns, fn re ->
+        case Regex.run(re, raw) do
+          [_, name, locality] ->
+            name = String.trim(name)
+            locality = String.trim(locality)
+
+            if MapSet.member?(stop, name) or MapSet.member?(stop, locality) or
+                 String.downcase(name) in ~w(friday saturday sunday monday tuesday wednesday thursday tonight tomorrow dinner lunch brunch) do
+              nil
+            else
+              %{name: name, locality: locality}
+            end
+
+          _ ->
+            nil
+        end
+      end)
+
+    cond do
+      discovery? and not Regex.match?(~r/\b(?:take|go to|meet|dinner at|eat at|reservations? at)\b/i, raw) ->
+        nil
+
+      match?(%{name: _}, found) ->
+        found
+
+      true ->
+        nil
+    end
+  end
+
+  def extract_exact_venue(_), do: nil
+
+  @doc "Stable fingerprint for pending-intent resume (same intent → same plan)."
+  def opportunity_fingerprint(ctx) when is_map(ctx) do
+    c = stringify(ctx)
+
+    parts =
+      [
+        c["intent_scope"] || "",
+        c["when"] || "",
+        c["destination"] || "",
+        c["requested_venue_name"] || "",
+        c["search_mode"] || "",
+        who_fp(c["who"])
+      ]
+      |> Enum.map(&String.downcase(String.trim(to_string(&1))))
+
+    :crypto.hash(:sha256, Enum.join(parts, "|"))
+    |> Base.encode16(case: :lower)
+    |> binary_part(0, 16)
+  end
+
+  def opportunity_fingerprint(_), do: nil
+
+  defp who_fp(nil), do: ""
+  defp who_fp("__clear__"), do: ""
+  defp who_fp(w) when is_binary(w), do: String.downcase(w)
+  defp who_fp([h | _]) when is_binary(h), do: String.downcase(h)
+  defp who_fp(_), do: ""
+
+  defp normalize_clock(raw) when is_binary(raw) do
+    t = String.trim(raw) |> String.replace(~r/\./, "") |> String.upcase()
+
+    cond do
+      Regex.match?(~r/^\d{1,2}:\d{2}\s*[AP]M$/i, t) -> t
+      Regex.match?(~r/^\d{1,2}\s*[AP]M$/i, t) -> String.replace(t, ~r/\s+/, " ")
+      Regex.match?(~r/^\d{1,2}:\d{2}$/, t) -> t
+      Regex.match?(~r/^\d{1,2}$/, t) -> t
+      true -> t
+    end
+  end
+
+  defp normalize_clock(other), do: other
 
   @doc "Birthday / celebration planning opportunity."
   def birthday_intent?(raw) when is_binary(raw) do

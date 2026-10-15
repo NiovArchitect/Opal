@@ -21,22 +21,57 @@ defmodule OpalCore.Center.ProviderAction do
     destination = attrs[:destination] || attrs["destination"]
     planning = attrs[:planning_snapshot] || attrs["planning_snapshot"] || %{}
     plan_id = attrs[:plan_id] || attrs["plan_id"] || planning["plan_id"]
+    search_mode =
+      attrs[:search_mode] || attrs["search_mode"] || planning["search_mode"] || "discovery"
+
+    requested_venue =
+      attrs[:requested_venue_name] || attrs["requested_venue_name"] ||
+        planning["requested_venue_name"] || planning["venue"]
+
+    requested_locality =
+      attrs[:requested_venue_locality] || attrs["requested_venue_locality"] ||
+        planning["requested_venue_locality"] || destination
+
+    exact? = search_mode in ["exact_entity", "exact"] and is_binary(requested_venue) and
+               String.trim(requested_venue) != ""
+
+    dest_ok? =
+      exact? or (is_binary(destination) and String.trim(destination) != "")
 
     with true <- is_binary(user_id),
-         true <- is_binary(destination) and String.trim(destination) != "" do
+         true <- dest_ok? do
+      geography =
+        cond do
+          exact? and is_binary(requested_locality) and String.trim(requested_locality) != "" ->
+            String.trim(requested_locality)
+
+          is_binary(destination) and String.trim(destination) != "" ->
+            String.trim(destination)
+
+          true ->
+            "search area"
+        end
+
       job_attrs = %{
         "user_id" => user_id,
         "conversation_id" => conversation_id,
         "plan_id" => plan_id,
         "kind" => "places_search",
         "status" => "queued",
-        "search_geography" => String.trim(destination),
+        "search_geography" => geography,
         "request" => %{
-          "destination_text" => String.trim(destination),
+          "destination_text" => geography,
           "categories" => attrs[:categories] || attrs["categories"] || "catering.restaurant",
           "limit" => attrs[:limit] || attrs["limit"] || 5,
           "radius_m" => attrs[:radius_m] || attrs["radius_m"] || 8_000,
-          "quality_intent" => attrs[:quality_intent] || attrs["quality_intent"]
+          "quality_intent" => attrs[:quality_intent] || attrs["quality_intent"],
+          "search_mode" => if(exact?, do: "exact_entity", else: "discovery"),
+          "requested_venue_name" => if(exact?, do: String.trim(requested_venue), else: nil),
+          "requested_venue_locality" =>
+            if(exact? and is_binary(requested_locality),
+              do: String.trim(requested_locality),
+              else: nil
+            )
         },
         "planning_snapshot" => stringify(planning)
       }
@@ -305,19 +340,38 @@ defmodule OpalCore.Center.ProviderAction do
 
   defp perform_places_search(%ProviderActionJob{} = job) do
     dest = job.search_geography || job.request["destination_text"]
+    mode = job.request["search_mode"] || "discovery"
+    requested = job.request["requested_venue_name"]
+    locality = job.request["requested_venue_locality"] || dest
 
-    case Gateway.search_places(%{
-           "destination_text" => dest,
-           "categories" => job.request["categories"] || "catering.restaurant",
-           "limit" => job.request["limit"] || 5,
-           "radius_m" => job.request["radius_m"] || 8_000
-         }) do
+    query =
+      if mode == "exact_entity" and is_binary(requested) and String.trim(requested) != "" do
+        %{
+          "search_mode" => "exact_entity",
+          "requested_venue_name" => String.trim(requested),
+          "requested_venue_locality" => locality,
+          "destination_text" => locality,
+          "limit" => 1
+        }
+      else
+        %{
+          "destination_text" => dest,
+          "categories" => job.request["categories"] || "catering.restaurant",
+          "limit" => job.request["limit"] || 5,
+          "radius_m" => job.request["radius_m"] || 8_000,
+          "search_mode" => "discovery"
+        }
+      end
+
+    case Gateway.search_places(query) do
       {:ok, result} ->
-        # Prefer named restaurants; take up to 3 for OptionSet.
         cands =
           (result["candidates"] || [])
           |> Enum.filter(fn c -> is_binary(c["name"]) and c["name"] != "" end)
-          |> Enum.take(3)
+          |> then(fn list ->
+            # Exact mode: never pad with unrelated alternatives.
+            if result["search_mode"] == "exact_entity", do: Enum.take(list, 1), else: Enum.take(list, 3)
+          end)
 
         finish_ready(job, Map.put(result, "candidates", cands))
 
@@ -396,18 +450,38 @@ defmodule OpalCore.Center.ProviderAction do
     alias OpalCore.OpalConversations
     alias OpalCore.OpalConversations.OpalMessage
 
-    cands = (job.result || %{})["candidates"] || []
+    result = job.result || %{}
+    cands = result["candidates"] || []
     geo = job.search_geography || "there"
+    requested = job.request["requested_venue_name"]
+    exact? = result["search_mode"] == "exact_entity" or job.request["search_mode"] == "exact_entity"
 
     body =
-      if cands == [] do
-        "I checked #{geo} but couldn't find named restaurant options I trust yet. Want me to retry?"
-      else
-        names = Enum.map_join(cands, ", ", & &1["name"])
+      cond do
+        exact? and cands == [] ->
+          name = requested || "that place"
+          loc = job.request["requested_venue_locality"] || geo
 
-        "I found a few strong options in #{geo}: #{names}. " <>
-          "Pick one and I'll attach it to the plan. " <>
-          ((job.result || %{})["attribution"] || "Powered by Geoapify")
+          "I couldn't verify #{name} in #{loc} from available sources yet. " <>
+            "Want to keep #{name} as the requested venue, or should I look for nearby alternatives?"
+
+        exact? and length(cands) == 1 ->
+          c = hd(cands)
+          addr = c["address"] || geo
+
+          "Found it — #{c["name"]}#{if addr, do: " · #{addr}", else: ""}. " <>
+            "I'll use this as the venue (not a reservation yet). " <>
+            (result["attribution"] || "Powered by Geoapify")
+
+        cands == [] ->
+          "I checked #{geo} but couldn't find named restaurant options I trust yet. Want me to retry?"
+
+        true ->
+          names = Enum.map_join(cands, ", ", & &1["name"])
+
+          "I found a few strong options in #{geo}: #{names}. " <>
+            "Pick one and I'll attach it to the plan. " <>
+            (result["attribution"] || "Powered by Geoapify")
       end
 
     case job.conversation_id && OpalConversations.get_or_create_conversation(job.user_id) do

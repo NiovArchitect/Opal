@@ -12008,32 +12008,35 @@ function PlansPane({
   const whoLabel =
     primary?.shared_reality?.headline?.split(" ")[0] ||
     (primary ? presenceLines(primary).title.split(" ")[0] : null) ||
-    "Chanelle";
+    null;
+  const placeLabel = reality?.where || primary?.shared_reality?.where || null;
+  const whenLabel = reality?.when || primary?.shared_reality?.when || null;
+  // DEAD_ACTIONS=0 — never advertise Change time that only opens Chat.
+  // Material edits live on JourneySurface → JourneyManageSheet when lead.
 
   return (
     <div className="scroll" data-testid="plans-field" data-node-ref="201:9" data-figma-journey="201:9">
-      {authenticated ? (
+      {authenticated && (placeLabel || whenLabel || whoLabel) ? (
         <GraphJourneyCard
-          title={reality?.when ? `With ${whoLabel}` : `Saturday with ${whoLabel}`}
-          place={reality?.where || "Juniper & Ivy"}
-          when={reality?.when || "Saturday · 7:30 PM"}
-          leave="6:55 PM"
-          arrive="7:23 PM"
+          title={whoLabel ? `With ${whoLabel}` : "Your plan"}
+          place={placeLabel || "Place TBD"}
+          when={whenLabel || "When TBD"}
+          leave={undefined}
+          arrive={undefined}
           reserved={
             primary && isUsableReality(primary) ? "Table held · not provider-confirmed" : "Pending"
           }
-          reservationLabel={
-            primary && isUsableReality(primary) ? "Not requested" : "Not requested"
-          }
-          mediaSrc="/figma-v2/home-201/media-juniper.png"
-          peerName={whoLabel}
-          peerAvatarSrc="/figma-v2/home-201/avatar-chanelle.png"
+          reservationLabel="Not requested"
+          mediaSrc={undefined}
+          peerName={whoLabel || undefined}
+          peerAvatarSrc={undefined}
           onImIn={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
-          onChangeTime={() => primary?.conversation_id && onOpenChat?.(primary.conversation_id)}
-          onAddPeople={() => onOpenChat?.(primary?.conversation_id)}
-          /* Journey Manage / Can't Make It are owned by JourneySurface overlays  -  not chat dumps. */
+          onChangeTime={undefined}
+          onAddPeople={undefined}
           commitmentActive={!!primary && isUsableReality(primary)}
         />
+      ) : authenticated ? (
+        <p className="lede muted-lede">Plans you lead or join will show up here.</p>
       ) : (
         <p className="lede muted-lede">{PRODUCT_COPY.emptyPlans}</p>
       )}

@@ -108,7 +108,8 @@ defmodule OpalCore.Center.ActionOrchestrator do
           patch["cancel_venue_keep_plan"] == true ->
             handle_cancel_venue(user_id, intent, planning)
 
-          Map.has_key?(patch, "when") and is_binary(planning["plan_id"]) and
+          (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
+              is_binary(planning["plan_id"]) and
               not Regex.match?(@select_option_re, raw_text) ->
             handle_when_correction(user_id, intent, planning, prior, patch)
 
@@ -334,45 +335,79 @@ defmodule OpalCore.Center.ActionOrchestrator do
   defp handle_when_correction(_user_id, intent, planning, prior, patch) do
     plan_id = planning["plan_id"]
     when_s = planning["when"]
+    when_time = planning["when_time"] || patch["when_time"]
     when_before = prior["when"]
+    time_before = prior["when_time"] || prior_time_from_label(prior["when"] || "")
     changed = PlanContextPatch.slots_changed_by_patch(patch)
 
+    time_label = compose_time_label(when_s, when_time, prior)
+
     changed =
-      if "when" in changed or (is_binary(when_s) and when_s != when_before) do
-        Enum.uniq(["when" | changed])
-      else
-        changed
+      cond do
+        "when_time" in changed or (is_binary(when_time) and when_time != time_before) ->
+          Enum.uniq(["when_time" | changed])
+
+        "when" in changed or (is_binary(when_s) and when_s != when_before) ->
+          Enum.uniq(["when" | changed])
+
+        true ->
+          changed
       end
 
     if is_binary(plan_id) do
       case Repo.get(SharedPlan, plan_id) do
         %SharedPlan{} = plan ->
+          # Authority: Center-owned draft / creator may patch; Journey lead path
+          # remains JourneyAuthority.material_change for shared journeys.
           title =
-            case planning["venue"] do
-              v when is_binary(v) and v != "" -> "#{v} · #{when_s}"
-              _ -> String.replace(plan.title || "Plans", ~r/\b(Saturday|Sunday|Friday)\b/i, when_s)
+            case planning["venue"] || planning["requested_venue_name"] do
+              v when is_binary(v) and v != "" -> "#{v} · #{time_label}"
+              _ ->
+                if is_binary(when_s) and when_s != "" do
+                  String.replace(plan.title || "Plans", ~r/\b(Saturday|Sunday|Friday)\b/i, when_s)
+                else
+                  plan.title || "Plans"
+                end
             end
+
+          alignment =
+            (plan.alignment || %{})
+            |> Map.put("when", when_s || plan.alignment["when"])
+            |> then(fn a ->
+              if is_binary(when_time), do: Map.put(a, "when_time", when_time), else: a
+            end)
 
           {:ok, _} =
             plan
             |> SharedPlan.changeset(%{
-              "time_label" => when_s,
+              "time_label" => time_label,
               "title" => title,
-              "alignment" => Map.put(plan.alignment || %{}, "when", when_s)
+              "alignment" => alignment
             })
             |> Repo.update()
 
           override =
-            "Updated — #{TemporalPhrase.when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
+            cond do
+              is_binary(when_time) and when_time != "" ->
+                "Updated — #{time_label}. Same plan, same people."
+
+              is_binary(when_s) ->
+                "Updated — #{TemporalPhrase.when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
+
+              true ->
+                "Updated the time on the same plan."
+            end
 
           meta = %{
             "action_state" => "plan_patched",
             "plan_id" => plan_id,
-            "planning_context" => planning,
+            "planning_context" => Map.put(planning, "when_time", when_time),
             "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
+            "PLAN_ID_STABLE" => true,
             "slots_changed" => changed,
             "before_context" => %{
               "when" => when_before,
+              "when_time" => time_before,
               "who" => prior["who"],
               "destination" => prior["destination"],
               "venue" => prior["venue"],
@@ -381,6 +416,8 @@ defmodule OpalCore.Center.ActionOrchestrator do
             "patch" => Map.take(stringify_map(patch), ["when", "when_time", "visibility_mode"]),
             "after_context" => %{
               "when" => when_s,
+              "when_time" => when_time,
+              "time_label" => time_label,
               "who" => planning["who"],
               "destination" => planning["destination"],
               "venue" => planning["venue"],
@@ -392,7 +429,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
           {put_entities(intent, string_to_atom_map(planning)), override, meta}
 
         _ ->
-          {intent, "Updated to #{when_s}.",
+          {intent, "Updated to #{time_label}.",
            %{
              "planning_context" => planning,
              "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
@@ -520,48 +557,73 @@ defmodule OpalCore.Center.ActionOrchestrator do
   end
 
   defp maybe_start_search(user_id, intent, planning) do
+    geography =
+      planning["requested_venue_locality"] || planning["destination"]
+
     cond do
       PlanningContext.ready_for_restaurant_search?(planning) and
-          not already_running?(user_id, planning["destination"]) ->
+          not already_running?(user_id, geography, planning) ->
         conversation_id =
           case OpalConversations.get_or_create_conversation(user_id) do
             {:ok, c} -> c.id
             _ -> nil
           end
 
+        # Resume pending plan by fingerprint when same intent (PENDING_PLAN_DUPLICATION=0).
+        planning = maybe_resume_pending_plan(user_id, planning)
+
         # Stable plan id before the provider job (PLAN_ID_STABLE).
         {planning, plan_id} =
           case ProviderAction.ensure_plan(user_id, planning) do
             {:ok, pid, p2} ->
-              _ = PlanningContext.merge(user_id, %{"plan_id" => pid}, %{})
-              {p2, pid}
+              extras = %{"plan_id" => pid}
+
+              extras =
+                if is_binary(planning["opportunity_fingerprint"]),
+                  do: Map.put(extras, "opportunity_fingerprint", planning["opportunity_fingerprint"]),
+                  else: extras
+
+              _ = PlanningContext.merge(user_id, extras, %{})
+              {Map.merge(p2, extras), pid}
 
             _ ->
               {planning, planning["plan_id"]}
           end
 
-        case ProviderAction.start_places_search(%{
-               user_id: user_id,
-               conversation_id: conversation_id,
-               destination: planning["destination"],
-               planning_snapshot: planning,
-               plan_id: plan_id,
-               quality_intent: planning["quality_intent"]
-             }) do
+        search_attrs = %{
+          user_id: user_id,
+          conversation_id: conversation_id,
+          destination: geography || planning["destination"],
+          planning_snapshot: planning,
+          plan_id: plan_id,
+          quality_intent: planning["quality_intent"],
+          search_mode: planning["search_mode"] || "discovery",
+          requested_venue_name: planning["requested_venue_name"],
+          requested_venue_locality: planning["requested_venue_locality"] || geography
+        }
+
+        case ProviderAction.start_places_search(search_attrs) do
           {:ok, job} ->
             who = format_who(planning["who"] || planning["primary_person"])
             when_s = planning["when"] || "Saturday"
-            dest = planning["destination"]
+            dest = geography || planning["destination"]
+            exact? = planning["search_mode"] == "exact_entity"
 
-            # Honest working copy — consumer language; no invented ranking claim.
             override =
-              "Got it — #{TemporalPhrase.when_phrase(when_s)} in #{dest}#{who}. " <>
-                "Checking #{dest}…"
+              cond do
+                exact? and is_binary(planning["requested_venue_name"]) ->
+                  "Looking up #{planning["requested_venue_name"]} in #{dest}…"
+
+                true ->
+                  "Got it — #{TemporalPhrase.when_phrase(when_s)} in #{dest}#{who}. " <>
+                    "Checking #{dest}…"
+              end
 
             meta = %{
               "action_job_id" => job.id,
               "action_state" => "queued",
               "search_geography" => job.search_geography,
+              "search_mode" => planning["search_mode"] || "discovery",
               "provider" => "geoapify",
               "plan_id" => plan_id,
               "planning_context" => Map.put(planning, "plan_id", plan_id),
@@ -579,24 +641,105 @@ defmodule OpalCore.Center.ActionOrchestrator do
     end
   end
 
-  defp already_running?(user_id, dest) when is_binary(dest) do
-    cutoff = DateTime.utc_now() |> DateTime.add(-30 * 60, :second)
+  defp maybe_resume_pending_plan(user_id, planning) when is_map(planning) do
+    fp = planning["opportunity_fingerprint"]
 
-    from(j in ProviderActionJob,
-      where:
-        j.user_id == ^user_id and j.search_geography == ^dest and
-          j.status in ^["queued", "running", "results_ready"] and
-          j.inserted_at > ^cutoff,
-      select: j.id,
-      limit: 1
-    )
-    |> Repo.one()
-    |> is_binary()
+    cond do
+      is_binary(planning["plan_id"]) and planning["plan_id"] != "" ->
+        planning
+
+      is_binary(fp) and fp != "" ->
+        prior = PlanningContext.get_for_user(user_id)
+
+        if prior["opportunity_fingerprint"] == fp and is_binary(prior["plan_id"]) and
+             match?(%SharedPlan{}, Repo.get(SharedPlan, prior["plan_id"])) do
+          Map.put(planning, "plan_id", prior["plan_id"])
+        else
+          planning
+        end
+
+      true ->
+        planning
+    end
+  end
+
+  defp already_running?(user_id, dest, planning) when is_binary(dest) and is_map(planning) do
+    cutoff = DateTime.utc_now() |> DateTime.add(-30 * 60, :second)
+    venue = planning["requested_venue_name"]
+
+    base =
+      from(j in ProviderActionJob,
+        where:
+          j.user_id == ^user_id and j.search_geography == ^dest and
+            j.status in ^["queued", "running", "results_ready"] and
+            j.inserted_at > ^cutoff,
+        select: j,
+        limit: 5
+      )
+      |> Repo.all()
+
+    cond do
+      base == [] ->
+        false
+
+      is_binary(venue) and venue != "" ->
+        Enum.any?(base, fn j ->
+          req = j.request || %{}
+          req["requested_venue_name"] == venue
+        end)
+
+      true ->
+        # Discovery: any recent job for this geography counts as running.
+        true
+    end
   rescue
     _ -> false
   end
 
-  defp already_running?(_, _), do: false
+  defp already_running?(_, _, _), do: false
+
+  defp compose_time_label(when_s, when_time, prior) do
+    day =
+      cond do
+        is_binary(when_s) and when_s != "" -> when_s
+        is_binary(prior["when"]) and prior["when"] != "" -> prior["when"]
+        true -> nil
+      end
+
+    clock =
+      cond do
+        is_binary(when_time) and when_time != "" -> normalize_ampm(when_time)
+        true -> nil
+      end
+
+    cond do
+      is_binary(day) and is_binary(clock) -> "#{day} · #{clock}"
+      is_binary(clock) and is_binary(prior["when"]) -> "#{prior["when"]} · #{clock}"
+      is_binary(clock) -> clock
+      is_binary(day) -> day
+      is_binary(prior["when"]) -> prior["when"]
+      true -> "Updated time"
+    end
+  end
+
+  defp prior_time_from_label(label) when is_binary(label) do
+    case Regex.run(~r/(\d{1,2}(?::\d{2})?\s*[AaPp]\.?[Mm\.]?)/, label) do
+      [_, t] -> String.trim(t)
+      _ -> nil
+    end
+  end
+
+  defp prior_time_from_label(_), do: nil
+
+  defp normalize_ampm(t) when is_binary(t) do
+    t
+    |> String.trim()
+    |> String.replace(~r/\./, "")
+    |> String.upcase()
+    |> String.replace(~r/\s+/, " ")
+  end
+
+  defp normalize_ampm(t), do: t
 
   defp enrich_entities(_raw, entities, _ctx, from_text) do
     base = atomize(entities)

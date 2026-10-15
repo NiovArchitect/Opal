@@ -55,24 +55,25 @@ defmodule OpalCore.Places.Gateway do
   def resolve_destination(query) do
     case primary_module() do
       nil -> {:error, :no_provider}
-      mod -> mod.resolve_destination(query)
+      mod when is_atom(mod) -> apply(mod, :resolve_destination, [query])
     end
   end
 
   @doc """
   Search places for an explicit destination-aware query.
 
-  Required: destination_text or lat/lng. Never applies a home-city bias.
+  Required: destination_text or lat/lng (discovery), OR requested_venue_name
+  (exact_entity). Never applies a home-city bias. Exact mode never fabricates
+  unrelated category alternatives.
   """
   def search_places(query) when is_map(query) do
     case primary_module() do
       nil ->
         {:error, :no_provider}
 
-      mod ->
-        case mod.search_places(query) do
-          {:ok, result} = ok ->
-            _ = ok
+      mod when is_atom(mod) ->
+        case apply(mod, :search_places, [query]) do
+          {:ok, result} ->
             {:ok, Map.put(result, "gateway_primary", primary_id())}
 
           err ->
@@ -82,6 +83,36 @@ defmodule OpalCore.Places.Gateway do
   end
 
   def search_places(_), do: {:error, :invalid}
+
+  @doc "Exact named-venue resolve when the provider supports it."
+  def resolve_exact_entity(query) when is_map(query) do
+    case primary_module() do
+      nil ->
+        {:error, :no_provider}
+
+      mod when is_atom(mod) ->
+        if function_exported?(mod, :resolve_exact_entity, 1) do
+          case apply(mod, :resolve_exact_entity, [query]) do
+            {:ok, result} ->
+              {:ok, Map.put(result, "gateway_primary", primary_id())}
+
+            err ->
+              err
+          end
+        else
+          search_places(Map.put(stringify(query), "search_mode", "exact_entity"))
+        end
+    end
+  end
+
+  def resolve_exact_entity(_), do: {:error, :invalid}
+
+  defp stringify(map) when is_map(map) do
+    Map.new(map, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {to_string(k), v}
+    end)
+  end
 
   defp google_key_present? do
     Application.get_env(:opal_core, :google_places_api_key) not in [nil, ""] or

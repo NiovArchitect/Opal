@@ -16,6 +16,8 @@ type Props = {
   reserved?: string;
   /** Canonical reservation kicker - never fake "Reserved" without proof. */
   reservationLabel?: string;
+  /** Current organizer/lead — distinct from plan creator when handed off. */
+  leadLabel?: string | null;
   mediaSrc?: string;
   peerName?: string;
   peerAvatarSrc?: string;
@@ -36,6 +38,7 @@ export function GraphJourneyCard({
   arrive,
   reserved,
   reservationLabel,
+  leadLabel,
   mediaSrc,
   peerName,
   peerAvatarSrc,
@@ -57,6 +60,7 @@ export function GraphJourneyCard({
       data-figma-journey="201:9"
       data-commitment={commitmentActive ? "committed" : "open"}
       data-reservation={reserveKicker || "none"}
+      data-lead={leadLabel || "unset"}
     >
       <header className="gjourney-brand">
         <OpalMark size="sm" title="" />
@@ -81,6 +85,11 @@ export function GraphJourneyCard({
         ) : null}
         <h2 className="gjourney-place">{place}</h2>
         <p className="gjourney-when">{when}</p>
+        {leadLabel ? (
+          <p className="gjourney-lead" data-testid="gjourney-lead">
+            Lead · {leadLabel}
+          </p>
+        ) : null}
 
         <div className="gjourney-timeline" aria-label="Timing">
           {leave ? (

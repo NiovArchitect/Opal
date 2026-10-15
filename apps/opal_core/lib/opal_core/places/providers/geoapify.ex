@@ -79,6 +79,9 @@ defmodule OpalCore.Places.Providers.Geoapify do
       api_key() in [nil, ""] ->
         {:error, :missing_credential}
 
+      exact_entity_mode?(q) ->
+        resolve_exact_entity(q)
+
       true ->
         with {:ok, dest} <- ensure_destination(q),
              {:ok, candidates} <- do_places_search(q, dest) do
@@ -89,6 +92,7 @@ defmodule OpalCore.Places.Providers.Geoapify do
              "real" => true,
              "synthetic" => false,
              "live" => true,
+             "search_mode" => "discovery",
              "search_geography" => dest["label"] || dest["name"],
              "destination" => dest,
              "attribution" => "Powered by Geoapify",
@@ -99,6 +103,83 @@ defmodule OpalCore.Places.Providers.Geoapify do
   end
 
   def search_places(_), do: {:error, :invalid}
+
+  @doc """
+  Exact named-venue resolve via geocode text search.
+
+  Preserves requested name + locality as immutable constraints.
+  Returns at most one verified candidate. Never substitutes unrelated
+  category discoveries when the named venue cannot be verified.
+  """
+  def resolve_exact_entity(query) when is_map(query) do
+    q = stringify(query)
+    name = trim_bin(q["requested_venue_name"] || q["venue_name"] || q["name"] || q["text"])
+    locality = trim_bin(q["requested_venue_locality"] || q["destination_text"] || q["destination"] || q["locality"] || q["city"])
+
+    cond do
+      name == "" ->
+        {:error, :venue_name_required}
+
+      api_key() in [nil, ""] ->
+        {:error, :missing_credential}
+
+      true ->
+        variants = name_variants(name)
+
+        queries =
+          for v <- variants, loc <- locality_queries(locality) do
+            if loc == "", do: v, else: "#{v}, #{loc}"
+          end
+          |> Enum.uniq()
+          |> Enum.take(6)
+
+        case find_exact_match(queries, name, locality) do
+          {:ok, candidate} ->
+            {:ok,
+             %{
+               "candidates" => [candidate],
+               "provider" => id(),
+               "real" => true,
+               "synthetic" => false,
+               "live" => true,
+               "search_mode" => "exact_entity",
+               "requested_venue_name" => name,
+               "requested_venue_locality" => locality,
+               "search_geography" => locality,
+               "exact_resolved" => true,
+               "unrequested_alternatives" => 0,
+               "venue_substitution" => 0,
+               "attribution" => "Powered by Geoapify",
+               "provider_is_not_authority" => true
+             }}
+
+          {:error, :not_found} ->
+            {:ok,
+             %{
+               "candidates" => [],
+               "provider" => id(),
+               "real" => true,
+               "synthetic" => false,
+               "live" => true,
+               "search_mode" => "exact_entity",
+               "requested_venue_name" => name,
+               "requested_venue_locality" => locality,
+               "search_geography" => locality,
+               "exact_resolved" => false,
+               "exact_unresolved" => true,
+               "unrequested_alternatives" => 0,
+               "venue_substitution" => 0,
+               "attribution" => "Powered by Geoapify",
+               "provider_is_not_authority" => true
+             }}
+
+          {:error, _} = err ->
+            err
+        end
+    end
+  end
+
+  def resolve_exact_entity(_), do: {:error, :invalid}
 
   @impl true
   def get_place(place_id) when is_binary(place_id) and place_id != "" do
@@ -188,6 +269,227 @@ defmodule OpalCore.Places.Providers.Geoapify do
         {:error, {:unexpected, other}}
     end
   end
+
+  defp exact_entity_mode?(q) do
+    mode = q["search_mode"] || q["mode"]
+    mode in ["exact_entity", "exact", :exact_entity] or
+      (is_binary(q["requested_venue_name"]) and String.trim(q["requested_venue_name"]) != "")
+  end
+
+  defp find_exact_match([], _name, _locality), do: {:error, :not_found}
+
+  defp find_exact_match([query | rest], name, locality) do
+    case geocode_amenity_candidates(query) do
+      {:ok, feats} ->
+        case Enum.find_value(feats, &match_exact_feature(&1, name, locality)) do
+          nil -> find_exact_match(rest, name, locality)
+          candidate -> {:ok, candidate}
+        end
+
+      {:error, :not_found} ->
+        find_exact_match(rest, name, locality)
+
+      {:error, _} = err ->
+        # Soft-fail individual query variants; only hard-fail credential/http after all.
+        case find_exact_match(rest, name, locality) do
+          {:ok, _} = ok -> ok
+          {:error, :not_found} -> err
+          other -> other
+        end
+    end
+  end
+
+  # Amenity/POI geocode — do NOT force type=city (that collapses venues to cities).
+  defp geocode_amenity_candidates(text) when is_binary(text) and text != "" do
+    params = [
+      {"text", text},
+      {"limit", "8"},
+      {"apiKey", api_key()}
+    ]
+
+    case http_get(@geocode_url, params) do
+      {:ok, %{"features" => feats}} when is_list(feats) and feats != [] ->
+        {:ok, feats}
+
+      {:ok, %{"features" => []}} ->
+        {:error, :not_found}
+
+      {:ok, %{"message" => msg}} when is_binary(msg) ->
+        {:error, {:provider, msg}}
+
+      {:error, _} = err ->
+        err
+
+      other ->
+        {:error, {:unexpected, other}}
+    end
+  end
+
+  defp geocode_amenity_candidates(_), do: {:error, :not_found}
+
+  defp match_exact_feature(feat, requested_name, locality) when is_map(feat) do
+    props = feat["properties"] || %{}
+    result_name = props["name"] || props["address_line1"] || ""
+    city = props["city"] || props["suburb"] || props["county"] || ""
+    formatted = props["formatted"] || ""
+    result_type = props["result_type"]
+
+    name_ok? = name_matches?(requested_name, result_name)
+    locality_ok? = locality == "" or locality_matches?(locality, city, formatted)
+    # Prefer amenity/POI; allow unknown types when name+locality both match strongly.
+    type_ok? =
+      result_type in [nil, "amenity", "building", "street"] or
+        (name_ok? and locality_ok? and result_type not in ["city", "state", "country", "postcode"])
+
+    if name_ok? and locality_ok? and type_ok? and result_type != "city" do
+      {lat, lon} = coords(feat, props)
+
+      %{
+        "id" => to_string(props["place_id"] || props["osm_id"] || :erlang.phash2(props)),
+        "provider" => id(),
+        "provider_place_id" => props["place_id"],
+        "name" => result_name,
+        "address" => formatted,
+        "lat" => lat,
+        "lon" => lon,
+        "city" => city,
+        "categories" => List.wrap(props["categories"] || props["category"]),
+        "cuisine" => get_in(props, ["catering", "cuisine"]) || props["cuisine"],
+        "website" => props["website"],
+        "phone" => get_in(props, ["contact", "phone"]) || props["phone"],
+        "opening_hours" => props["opening_hours"],
+        "search_geography" => locality,
+        "search_mode" => "exact_entity",
+        "requested_venue_name" => requested_name,
+        "requested_venue_locality" => locality,
+        "exact_match" => true,
+        "real" => true,
+        "synthetic" => false,
+        "fixture" => false,
+        "live" => true,
+        "rating" => nil,
+        "rating_available" => false,
+        "reservation_support" => false,
+        "booking_capability" => false,
+        "provider_is_not_authority" => true,
+        "raw_provenance" => %{
+          "datasource" => props["datasource"],
+          "place_id" => props["place_id"],
+          "result_type" => result_type,
+          "formatted" => formatted
+        }
+      }
+    else
+      nil
+    end
+  end
+
+  defp match_exact_feature(_, _, _), do: nil
+
+  defp name_matches?(requested, actual) when is_binary(requested) and is_binary(actual) do
+    a = normalize_name(requested)
+    b = normalize_name(actual)
+
+    cond do
+      a == "" or b == "" -> false
+      a == b -> true
+      String.contains?(b, a) or String.contains?(a, b) -> true
+      # Compact form: "nighthawk" vs "night hawk"
+      String.replace(a, " ", "") == String.replace(b, " ", "") -> true
+      true -> false
+    end
+  end
+
+  defp name_matches?(_, _), do: false
+
+  defp locality_matches?(locality, city, formatted)
+       when is_binary(locality) and is_binary(city) and is_binary(formatted) do
+    loc = normalize_name(locality)
+
+    cond do
+      loc == "" -> true
+      String.contains?(normalize_name(city), loc) -> true
+      String.contains?(normalize_name(formatted), loc) -> true
+      true -> false
+    end
+  end
+
+  defp locality_matches?(_, _, _), do: false
+
+  defp normalize_name(s) when is_binary(s) do
+    s
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9\s]/, " ")
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
+  end
+
+  defp normalize_name(_), do: ""
+
+  # Person-agnostic spelling variants — no venue hardcodes.
+  defp name_variants(name) when is_binary(name) do
+    base = String.trim(name)
+    compact = String.replace(base, ~r/\s+/, "")
+    # Insert spaces before internal capitals: NightHawk → Night Hawk
+    spaced_caps =
+      Regex.replace(~r/([a-z])([A-Z])/, base, "\\1 \\2")
+      |> String.trim()
+
+    # Split glued lowercase tokens of length >= 8 into likely two words mid-point heuristic
+    # only when no spaces present (e.g. nighthawk → night hawk via common prefix split).
+    soft_split =
+      if String.contains?(base, " ") do
+        nil
+      else
+        soft_space_split(base)
+      end
+
+    [base, compact, spaced_caps, soft_split]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+  end
+
+  defp name_variants(_), do: []
+
+  defp soft_space_split(word) when is_binary(word) do
+    down = String.downcase(word)
+    # Common English venue-word prefixes — generic, not venue-specific.
+    prefixes = ~w(night day blue red old new grand little big casa la el the)
+
+    Enum.find_value(prefixes, fn p ->
+      if String.starts_with?(down, p) and String.length(down) > String.length(p) + 2 do
+        {prefix, rest} = String.split_at(word, String.length(p))
+        "#{prefix} #{rest}"
+      else
+        nil
+      end
+    end)
+  end
+
+  defp soft_space_split(_), do: nil
+
+  defp locality_queries(""), do: [""]
+  defp locality_queries(nil), do: [""]
+
+  defp locality_queries(locality) when is_binary(locality) do
+    loc = String.trim(locality)
+    # Prefer locality alone; also try with CA/USA when US-looking single token.
+    extras =
+      if Regex.match?(~r/^[A-Za-z][A-Za-z\s']{1,40}$/, loc) and not String.contains?(loc, ",") do
+        ["#{loc}, CA", "#{loc}, California"]
+      else
+        []
+      end
+
+    [loc | extras] |> Enum.uniq()
+  end
+
+  defp locality_queries(_), do: [""]
+
+  defp trim_bin(s) when is_binary(s), do: String.trim(s)
+  defp trim_bin(_), do: ""
 
   defp do_places_search(q, dest) do
     # Fetch a wider pool then quality-filter to named venues. City place: filters
