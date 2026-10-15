@@ -55,3 +55,22 @@ BEFORE_CAPABILITY → AFTER_CAPABILITY → REGRESSION_TEST → RESULT
 ```
 
 A tranche is not PROVEN if any previously working founder path turns RED.
+
+## Evidence hierarchy (added 2026-10-15 — absolute)
+
+The process failure that produced the Repair #5→#10 cycle was AI repeatedly claiming readiness because automation passed while the physical phone experience was broken. Claims are therefore ranked, highest authority first:
+
+```text
+founder phone reality
+  > runtime evidence (traces, request/response, DB state)
+  > automation (unit / API / browser suites)
+  > comments / docs / source-code assertions
+```
+
+Rules:
+
+- A green automated test **does not overrule** a founder-observed physical failure. If the test says the splash logo is correct and the iPhone shows two collaged assets, the test is incomplete.
+- Machine `PASS` without `FOUNDER_PHONE_PASS` is a machine result, never a product claim. Label every gate separately: `UNIT_PASS`, `API_PASS`, `BROWSER_PASS`, `LIVE_PROVIDER_PASS`, `CROSS_SESSION_PASS`, `FOUNDER_PHONE_PASS`.
+- A successful HTTP request does not prove the requested task succeeded. A valid provider response does not prove the correct entity was presented. A passing isolated turn does not prove the conversation remains coherent.
+- Do not falsely declare `PASS` from screenshots alone or browser automation alone.
+- When a failure is observed on the phone, do not troubleshoot around it during the walk — capture: where I was → what I did → what I expected → what actually happened. Note whether a hard refresh or second tap was required: a feature that works only after the workaround is known is not founder-accepted.

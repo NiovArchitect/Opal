@@ -93,6 +93,149 @@ Proof levels: `UNIT` · `API` · `BROWSER` · `FOUNDER_PHONE`
 - Non-organizer protection: PASS (preserve)
 - Graph background isolation: PASS (preserve)
 
+## FL-R8-01 — Birthday inherited Coronado / Night Hawk (Repair #8)
+
+- **Scenario:** Birthday planning turn after exact-venue search.
+- **Root cause:** Prior exact-venue slots + sticky `explicit_constraints` / `conversation_act` survived scope change.
+- **Fix:** Birthday + scope-change clears venue/dest/constraints/act; exact-venue clears inherited WHEN unless explicit in utterance.
+- **Regression:** Mixed-intent birthday turns.
+- **Last verified:** Repair #8 · 10 BROWSER_PASS + 5 API_PASS (ship `b67a7b70`, tip `0d6d9a8d`, product `3944906f`)
+- **Status:** FIXED (machine)
+
+## FL-R8-02 — Henry Sunday 10 AM softened to 7:30 (Repair #8)
+
+- **Root cause:** Soft-assume / inherited clock outranked explicit time.
+- **Fix:** `when_time_explicit` + `explicit_constraints`; soft assumption blocked when explicit.
+- **Last verified:** Repair #8 · API_PASS
+- **Status:** FIXED (machine)
+
+## FL-R8-03 — "Why did you change the time?" triggered venue lookup (Repair #8)
+
+- **Root cause:** Challenge classified as new plan.
+- **Fix:** `conversation_act=challenge_prior_action` → `handle_conversation_challenge`, `no_provider_restart`.
+- **Last verified:** Repair #8 · API_PASS
+- **Status:** FIXED (machine)
+
+## FL-R8-04 — Multi-turn Center blocked after first send (Repair #8)
+
+- **Root cause:** Global `sending` boolean locked composer until POST completed.
+- **Fix:** Per-conversation ordered send queue; composer stays enabled; causal flush. (Founder decision: queue follow-ups, not unrestricted concurrent sends.)
+- **Last verified:** Repair #8 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R8-05 — Chanelle message disappeared after navigation (Repair #8)
+
+- **Root cause:** Seed `openChat` wiped local `me` rows with fixture.
+- **Fix:** Preserve local-/failed- extras; sessionStorage keyed by name + id.
+- **Note (superseded):** Contemporary review flagged sessionStorage as NOT production-grade durable messaging. Repair #11 `STATE_AUTHORITY.md` requires durable per-participant delivery; do not build on the sessionStorage approach.
+- **Last verified:** Repair #8 · BROWSER_PASS
+- **Status:** GUARDED (machine fix; durable solution pending Repair #11)
+
+## FL-R8-06 — Next Together / plan strip dead for remapped Chanelle (Repair #8)
+
+- **Root cause:** Remapped Chanelle lacked `planProjection`; strip click missing seed fallback.
+- **Fix:** `withSeedPlan` on remapped open; Juniper → `seed-chanelle-juniper` fallback.
+- **Last verified:** Repair #8 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R8-07 — Graph detail painted under chat chrome (Repair #8)
+
+- **Root cause:** `z-index: 56 !important` beat spectral 68.
+- **Fix:** Raised to `z-index: 68 !important`.
+- **Last verified:** Repair #8 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R8-08 — Harness false confidence (Repair #8)
+
+- **Root cause:** API jobs polluted Center thread; `fill()` skipped React controlled-input `draft` sync.
+- **Fix:** Clear fixture conversation before browser runs; `pressSequentially` / native value setter for real typing.
+- **Last verified:** Repair #8 · harness
+- **Status:** FIXED (process)
+
+## FL-R9-01 — Stuck Henry capture; Chanelle message triggered venue search (Repair #9)
+
+- **Root cause:** Sticky `ready_for_restaurant_search?` + QuestionEconomy/`maybe_start_search` monopolized non-venue turns; LLM polish rewrote greetings using restaurant entities.
+- **Fix:** `skip_provider_search_this_turn?` + `handle_conversational_turn`; strip search entities; template-only chat when `conversation_owns_routing`.
+- **Last verified:** Repair #9 · API_PASS (product `7eb3e48b`, stamp `f8b94294`)
+- **Status:** FIXED (machine)
+
+## FL-R9-02 — "Find The Henry restaurant in Coronado" routed to discovery (Repair #9)
+
+- **Root cause:** `extract_exact_venue` treated `\bfind\b` as cuisine discovery; case-insensitive name capture matched "somewhere Mediterranean".
+- **Fix:** Named-find case-sensitive patterns; cuisine-token reject; "The Henry restaurant in LOCALITY" → `exact_entity`.
+- **Last verified:** Repair #9 · API_PASS
+- **Status:** FIXED (machine)
+
+## FL-R9-03 — Henry person vs venue vs Coronado conflated (Repair #9)
+
+- **Root cause:** Place/region stop words split incorrectly; discovery wiped venue name.
+- **Fix:** Multi-word `place_confused_as_venue?`; preserve requested identity on unresolved Geoapify.
+- **Last verified:** Repair #9 · API_PASS
+- **Status:** FIXED (machine)
+
+## FL-R9-04 — "Cancel Henry search" ignored (Repair #9)
+
+- **Root cause:** `classify_conversation_act` missed "cancel … search"; cancel-restaurant regex required "restaurant|venue".
+- **Fix:** `cancel_search` act + inflight job cancel + clear search slots.
+- **Last verified:** Repair #9 · API_PASS
+- **Status:** FIXED (machine)
+
+## FL-R9-05 — Stale Geoapify paint after New Chat (Repair #9)
+
+- **Root cause:** Worker finished after cancel; `finish_ready` overwrote cancelled status then painted.
+- **Fix:** Stale rejection in `finish_ready`/`fail`; `stale_provider_paint?` vs `cleared_at` / cancelled.
+- **Last verified:** Repair #9 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R9-06 — Center scroll forced to bottom (Repair #9)
+
+- **Root cause:** Unconditional `scrollToEnd` on every `messages`/`sending` change; 1.8s provider poll.
+- **Fix:** Stick/near-bottom gate; Jump-to-latest affordance; user-send force pin.
+- **Last verified:** Repair #9 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R9-07 — No escape from contaminated thread (Repair #9)
+
+- **Root cause:** One conversation/user with no New Chat / Clear affordance.
+- **Fix:** `POST /opal/conversation/new` + `/clear`; header menu; clears messages + transient planning only (durable plans/messages preserved).
+- **Last verified:** Repair #9 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R9-08 — Maya recall answered with Henry (Repair #9)
+
+- **Root cause:** `recall_prior_copy` preferred sticky venue over question topic.
+- **Fix:** Question-aware recall (Maya/birthday outranks venue).
+- **Last verified:** Repair #9 · API_PASS
+- **Status:** FIXED (machine)
+
+## FL-R10-01 — "Remind me what Opal can do" triggered Maya re-engagement (Repair #10)
+
+- **Root cause:** `render_chat` preferred `recent_who` before capability/help questions.
+- **Fix:** `capability_question?/1` checked before sticky who; capability copy with plan / Graph / places.
+- **Last verified:** Repair #10 · 28/28 mixed-intent API_PASS (product `5e7a7b4a`, stamp `c474d95f`)
+- **Status:** FIXED (machine)
+
+## FL-R10-02 — Jump-to-latest click mis-settled (Repair #10)
+
+- **Root cause:** `setShowJump(false)` + focus restoration snapped `scrollTop` to 0; pin timers from prior send fought history-read.
+- **Fix:** Focus-safe Jump (`preventDefault` on pointerdown); hide Jump after pin measures near; cancelable pin timer gen; `overflow-anchor: none` on Center thread.
+- **Last verified:** Repair #10 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R10-03 — Scroll-stick false fail after Jump harden (Repair #10)
+
+- **Root cause:** Late `scrollToEnd(true)` timeouts from send re-pinned after `scrollToTop`.
+- **Fix:** `clearScrollPinTimers` + `scrollPinGenRef` invalidated on history-read and new pin.
+- **Last verified:** Repair #10 · BROWSER_PASS
+- **Status:** FIXED (machine)
+
+## FL-R10-OPEN — Deferred / honest gaps (Repair #10, not product fails)
+
+- The Henry exact Geoapify unresolved — honest empty, no fabricated venue.
+- Mediterranean discovery names not clearly Mediterranean — provider order; cuisine filter quality deferred.
+- Near-me coordinates not wired in Center — honest location-gap copy; browser permission path not Center-wired. (Confirmed still true at Repair #11 baseline.)
+- Physical iPhone acceptance — checklist in `shots/repair10/FOUNDER_PHONE_WALK_R10.md`; never claimed.
+
 ## Open / founder-only / limitations
 
 - **FOUNDER_PHONE_PASS:** NOT claimed. Physical iPhone keyboard geometry, OS permissions, and Expo shell remain founder-only.

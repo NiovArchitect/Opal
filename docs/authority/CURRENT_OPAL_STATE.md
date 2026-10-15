@@ -1,5 +1,26 @@
 # CURRENT OPAL STATE
 
+## Addendum 2026-10-15 (Repair #11 working baseline)
+
+The checkpoint body below is dated 2026-10-13 and predates Repairs #5–#10. This addendum records what changed since; the body is preserved as the HOLD-period checkpoint, not rewritten.
+
+**Repair lineage since 2026-10-13** (all on `muse/packet-b-batch-2`, no merges):
+- Repair #5 (founder screenshot evidence): ship `4dfa8d35` — Center keyboard geometry, duplicate Maya rows, "Omething" corruption (byte/grapheme `capture_after`), Center→Chats nav leak (`onPlanCreated → setTab("chats")`), WHO isolation.
+- Founder Reality Repair (12-phase): ship `bf674242` — global dock `position:fixed` + 100dvh clip, splash single lockup, permission granted-glow states, Meet identity-commit-before-friend, surface-bleed clearing, profile persistence via `notifyNativeHostSession`. **`KEYBOARD_SAFE = PARTIAL`** (viewport-shrink proof only; device keyboard HOLD).
+- Repair #6 (exact intent, plan authority): `6c744119` — exact named-venue resolution, intent isolation, composer geometry, plan edit authority.
+- Repair #7 (runtime truth): product `281718f7`, stamp `f5183725` — Center journeys, chat order, Back, composer.
+- Repair #8 (conversational truth): product `3944906f`, ship `b67a7b70`, tip `0d6d9a8d` — per-conversation send queue (founder chose queue-follow-ups), task isolation, Center controls. Rejected on physical phone walk (stuck Henry capture, scroll force, task switching).
+- Repair #9 (conversation owns routing): product `7eb3e48b`, stamp `f8b94294` — task isolation, `cancel_search` act, New Chat / Clear conversation, scroll stickiness.
+- Repair #10 (behavioral reliability): product `5e7a7b4a`, stamp `c474d95f` — 28/28 mixed-intent turns, Center near-me honest gap. **Founder live testing after Repair #10 exposed cross-application state-authority failures (F01–F07)** — see `shots/repair11/ROOT_CAUSE_MAP.md`. Repair #10's green suite measured Center only; the failures lived in direct chat, plan state, and the seed simulation layer.
+- **Current working tip:** `c474d95f` (branch `muse/repair-11` cut from it for Repair #11).
+
+**New/changed since the checkpoint body:**
+- Evidence hierarchy codified: founder phone reality > runtime evidence > automation > comments/docs (`docs/authority/OPAL_NON_REGRESSION_PRESERVE_EXTEND_COMPOUND.md`).
+- Central failure ledger consolidated through Repair #10 (`docs/evidence/failure_ledger/FAILURE_LEDGER.md`).
+- Investor-touch acceptance checklist exists: `docs/evidence/founder_walk/INVESTOR_TOUCH_ACCEPTANCE.md` (checklist tip `eedf3c69` — update tip on each push).
+- History reconciliation: `shots/repair11/HISTORY_RECONCILIATION.md`.
+- Release authority unchanged: `FOUNDER_ACCEPTED = NO` · `FREEZE = HOLD` · `PASS2 = NO` · `FOUNDER_PHONE_PASS = NOT_CLAIMED`.
+
 **Status:** LIVE STEWARD AUTHORITY — read this first after git recon  
 **Updated:** 2026-10-13 (HOLD PERIOD — preservation + production readiness)  
 **Branch:** `muse/packet-b-batch-2` (implementation) · `build/v2-coded-experience-closure` (frozen reference)  
