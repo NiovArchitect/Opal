@@ -1,6 +1,6 @@
 {
   "repair": 9,
-  "sha": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+  "sha": "7eb3e48b517e65b35375c2460d89f517f759e97f",
   "public_url": "https://throbbing-strainer-almanac.ngrok-free.dev",
   "FOUNDER_ACCEPTED": "NO",
   "FREEZE": "HOLD",
@@ -20,7 +20,7 @@
       "id": "R9-API-T1",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Hi Opal, how are you? → I'm here and paying attention. What can I help with?",
+      "detail": "Hi Opal, how are you? \u2192 I'm here and paying attention. What can I help with?",
       "evidence": {
         "intent": "chat",
         "parked": true,
@@ -33,7 +33,7 @@
       "id": "R9-API-T2",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What can you help me with? → Tell me more — I can help you plan or check what's coming up.",
+      "detail": "What can you help me with? \u2192 Tell me more \u2014 I can help you plan or check what's coming up.",
       "evidence": {
         "intent": "chat",
         "parked": true,
@@ -46,7 +46,7 @@
       "id": "R9-API-T3",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Plan something for Maya's birthday. → Got it — I'll start planning privately with Maya.",
+      "detail": "Plan something for Maya's birthday. \u2192 Got it \u2014 I'll start planning privately with Maya.",
       "evidence": {
         "intent": "plan_create",
         "parked": true,
@@ -59,7 +59,7 @@
       "id": "R9-API-T4",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Actually, let's talk about something else. → Of course — what's on your mind?",
+      "detail": "Actually, let's talk about something else. \u2192 Of course \u2014 what's on your mind?",
       "evidence": {
         "intent": "chat",
         "parked": true,
@@ -72,7 +72,7 @@
       "id": "R9-API-T5",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Find The Henry restaurant in Coronado. → Looking up The Henry in Coronado…",
+      "detail": "Find The Henry restaurant in Coronado. \u2192 Looking up The Henry in Coronado\u2026",
       "evidence": {
         "intent": "chat",
         "action_state": "queued",
@@ -86,7 +86,7 @@
       "id": "R9-API-T6",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Sunday at 10 AM. → Updated — Sunday · 10 AM. Same plan, same people.",
+      "detail": "Sunday at 10 AM. \u2192 Updated \u2014 Sunday \u00b7 10 AM. Same plan, same people.",
       "evidence": {
         "intent": "chat",
         "action_state": "plan_patched",
@@ -99,7 +99,7 @@
       "id": "R9-API-T7",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Why did you change my time? → Keeping 10 AM as you specified. Same plan, same place.",
+      "detail": "Why did you change my time? \u2192 Keeping 10 AM as you specified. Same plan, same place.",
       "evidence": {
         "intent": "plan_modify",
         "no_restart": true,
@@ -112,7 +112,7 @@
       "id": "R9-API-T8",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Message Chanelle that I love her. → I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "detail": "Message Chanelle that I love her. \u2192 I can't reach Chanelle directly yet \u2014 but I've drafted the message. Want to send it yourself?",
       "evidence": {
         "intent": "coordinate",
         "parked": true,
@@ -126,7 +126,7 @@
       "id": "R9-API-T9",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What were we discussing about Maya? → We were working on Maya's birthday plan.",
+      "detail": "What were we discussing about Maya? \u2192 We were working on Maya's birthday plan.",
       "evidence": {
         "intent": "recall",
         "parked": true,
@@ -140,7 +140,7 @@
       "id": "R9-API-T10",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Cancel the restaurant lookup. → Okay — I cancelled the restaurant search and kept your other plan.",
+      "detail": "Cancel the restaurant lookup. \u2192 Okay \u2014 I cancelled the restaurant search and kept your other plan.",
       "evidence": {
         "intent": "plan_modify",
         "action_state": "cancelled",
@@ -153,7 +153,7 @@
       "id": "R9-API-PENDING-ISOLATION",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "henryJob=true chanelle=I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "detail": "henryJob=true chanelle=I can't reach Chanelle directly yet \u2014 but I've drafted the message. Want to send it yourself?",
       "evidence": {},
       "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
       "at": "2026-10-15T06:40:07.324Z"
@@ -171,7 +171,7 @@
       "id": "R9-BROWSER-TASK-SWITCH",
       "layer": "BROWSER_PASS",
       "status": "PASS",
-      "detail": "Hi Opal, how are you?\n\nI'm here and paying attention. What can I help with?\n\nPlan something for Maya's birthday.\n\nGot it — I'll start planning privately with Maya.\n\nFind The Henry restaurant in Coronado.\n\nLooking up The Henry in Coronado…\n\nChecking Coronado…\n\nMessage Chanelle tha",
+      "detail": "Hi Opal, how are you?\n\nI'm here and paying attention. What can I help with?\n\nPlan something for Maya's birthday.\n\nGot it \u2014 I'll start planning privately with Maya.\n\nFind The Henry restaurant in Coronado.\n\nLooking up The Henry in Coronado\u2026\n\nChecking Coronado\u2026\n\nMessage Chanelle tha",
       "evidence": {},
       "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
       "at": "2026-10-15T06:40:25.596Z"
@@ -207,7 +207,7 @@
       "id": "R9-BROWSER-NEAR-ME",
       "layer": "BROWSER_PASS",
       "status": "PASS",
-      "detail": "What are three things to do near me?\n\nI can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+      "detail": "What are three things to do near me?\n\nI can look for nearby ideas once location access is available \u2014 food, outdoors, or nightlife?",
       "evidence": {},
       "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
       "at": "2026-10-15T06:40:33.771Z"
