@@ -870,7 +870,14 @@ defmodule OpalCore.Center.PlanContextPatch do
             raw
           ) or
           Regex.match?(~r/\bchange\s+(?:of\s+)?(?:subject|topic)\b/i, raw) or
-          Regex.match?(~r/\bnever\s+mind\s+(?:the\s+)?(?:restaurant|search|venue)\b/i, raw) ->
+          Regex.match?(~r/\bnever\s+mind\s+(?:the\s+)?(?:restaurant|search|venue)\b/i, raw) or
+          # Repair #11 — explicit new-direction phrasing: the sticky
+          # re-engagement must not override a fresh turn.
+          Regex.match?(~r/\bsomething\s+new\b/i, raw) or
+          Regex.match?(~r/\bnew\s+search\b/i, raw) or
+          Regex.match?(~r/\bstart\s+over\b/i, raw) or
+          Regex.match?(~r/\bforget\s+it\b/i, raw) or
+          Regex.match?(~r/\bnever\s+mind\s+that\b/i, raw) ->
         "switch_topic"
 
       Regex.match?(~r/\bwhat\s+(?:were|are)\s+we\s+discussing\b/i, raw) or
