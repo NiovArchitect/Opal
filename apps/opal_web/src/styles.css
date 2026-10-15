@@ -20188,6 +20188,7 @@ button.alignment-choice:focus-visible,
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overflow-anchor: none;
   display: flex;
   flex-direction: column;
   gap: 8px;

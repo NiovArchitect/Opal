@@ -1,0 +1,47 @@
+{
+  "layers": {
+    "credential": {
+      "geoapify_key_configured": true
+    },
+    "geoapify_health": {
+      "available": true,
+      "billing_ready": true,
+      "configured": true,
+      "provider": "geoapify"
+    }
+  },
+  "henry": {
+    "candidate_count": 0,
+    "exact_resolved": false,
+    "exact_unresolved": true,
+    "geography": "Coronado",
+    "live": true,
+    "names": [],
+    "ok": true,
+    "provider": "geoapify",
+    "search_mode": "exact_entity",
+    "synthetic": false
+  },
+  "mediterranean": {
+    "candidate_count": 3,
+    "exact_resolved": null,
+    "exact_unresolved": null,
+    "geography": "Coronado, CA, United States of America",
+    "live": true,
+    "names": [
+      "Night Hawk",
+      "Crown Bistro",
+      "The Night & Day Cafe"
+    ],
+    "ok": true,
+    "provider": "geoapify",
+    "search_mode": "discovery",
+    "synthetic": false
+  },
+  "near_me_center": {
+    "body": "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+    "action_state": null,
+    "job": false,
+    "honest_location_gap": true
+  }
+}

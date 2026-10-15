@@ -1,0 +1,595 @@
+{
+  "repair": 10,
+  "baseline_r9": "7eb3e48b",
+  "sha": "f8b942948f7038a868525615b4cb2613abf23c62",
+  "public_url": "https://throbbing-strainer-almanac.ngrok-free.dev",
+  "FOUNDER_ACCEPTED": "NO",
+  "FREEZE": "HOLD",
+  "PASS2_UNLOCKED": "NO",
+  "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
+  "mixed_pass": 28,
+  "mixed_total": 28,
+  "findings": [
+    {
+      "id": "R10-API-M01",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Hi Opal, how are you? → I'm here and paying attention. What can I help with?",
+      "evidence": {
+        "intent": "chat",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:05.849Z"
+    },
+    {
+      "id": "R10-API-M02",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What can you help me with? → I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you w",
+      "evidence": {
+        "intent": "chat",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:06.110Z"
+    },
+    {
+      "id": "R10-API-M03",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Plan something for Maya's birthday. → Got it — I'll start planning privately with Maya.",
+      "evidence": {
+        "intent": "plan_create",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:06.365Z"
+    },
+    {
+      "id": "R10-API-M04",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Actually, let's talk about something else. → Of course — what's on your mind?",
+      "evidence": {
+        "intent": "chat",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:06.658Z"
+    },
+    {
+      "id": "R10-API-M05",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Find The Henry restaurant in Coronado. → Looking up The Henry in Coronado…",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "queued",
+        "search_mode": "exact_entity",
+        "job": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:06.951Z"
+    },
+    {
+      "id": "R10-API-M06",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Message Chanelle that I love her. → I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "evidence": {
+        "intent": "coordinate",
+        "search_mode": "exact_entity",
+        "job": false,
+        "parked": true,
+        "no_restart": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:07.248Z"
+    },
+    {
+      "id": "R10-API-M07",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Hi again — forget about the restaurant for now. How's my Friday looking? → Of course — what's on your mind?",
+      "evidence": {
+        "intent": "check_status",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:07.554Z"
+    },
+    {
+      "id": "R10-API-M08",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What were we discussing about Maya? → We were working on Maya's birthday plan.",
+      "evidence": {
+        "intent": "recall",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:07.807Z"
+    },
+    {
+      "id": "R10-API-M09",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Cancel the Henry search, but keep Maya's birthday plan. → Okay — I cancelled the restaurant search.",
+      "evidence": {
+        "intent": "plan_create",
+        "action_state": "cancelled",
+        "job": false,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:08.077Z"
+    },
+    {
+      "id": "R10-API-M10",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What's 2+2? → 2+2 is 4. And whenever you're ready, Maya's birthday is in 4 days — want me to set up that Dinner Saturday rematch?",
+      "evidence": {
+        "intent": "check_status",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:09.268Z"
+    },
+    {
+      "id": "R10-API-M11",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Find three Mediterranean restaurants in Coronado. → Looking for Mediterranean restaurants in Coronado…",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "queued",
+        "search_mode": "discovery",
+        "job": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:09.549Z"
+    },
+    {
+      "id": "R10-API-M12",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Never mind — change of subject. → Of course — what's on your mind?",
+      "evidence": {
+        "intent": "plan_modify",
+        "search_mode": "discovery",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:09.808Z"
+    },
+    {
+      "id": "R10-API-M13",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Remind me what Opal can do. → I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you w",
+      "evidence": {
+        "intent": "chat",
+        "search_mode": "discovery",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:10.072Z"
+    },
+    {
+      "id": "R10-API-M14",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Take us to Night Hawk in Coronado Friday. → Looking up Night Hawk in Coronado… I'll aim for around 7:30 unless you want later.",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "queued",
+        "search_mode": "exact_entity",
+        "job": true,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:10.360Z"
+    },
+    {
+      "id": "R10-API-M15",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Why did you change my time? → I may have drifted from what you said. Tell me the exact day and time you want and I'll lock those in.",
+      "evidence": {
+        "intent": "plan_modify",
+        "search_mode": "exact_entity",
+        "job": false,
+        "no_restart": true,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:10.614Z"
+    },
+    {
+      "id": "R10-API-M16",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Message Chanelle: running five minutes late. → I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "evidence": {
+        "intent": "coordinate",
+        "search_mode": "exact_entity",
+        "job": false,
+        "parked": true,
+        "no_restart": true,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:10.872Z"
+    },
+    {
+      "id": "R10-API-M17",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Show me the previous messages. → You can scroll up through our earlier messages anytime. Tap Jump to latest when you want the newest.",
+      "evidence": {
+        "intent": "chat",
+        "search_mode": "exact_entity",
+        "job": false,
+        "parked": true,
+        "no_restart": true,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:11.129Z"
+    },
+    {
+      "id": "R10-API-M18",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What are three things to do near me? → I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+      "evidence": {
+        "intent": "chat",
+        "search_mode": "exact_entity",
+        "job": false,
+        "parked": true,
+        "no_restart": true,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:11.386Z"
+    },
+    {
+      "id": "R10-API-M19",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Plan a quiet dinner just for me in San Diego tonight. → Updated — tonight · 19:30. Same plan, same people.",
+      "evidence": {
+        "intent": "plan_create",
+        "action_state": "plan_patched",
+        "search_mode": "exact_entity",
+        "job": false,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:11.671Z"
+    },
+    {
+      "id": "R10-API-M20",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Actually Sunday at 10 AM. → Updated — Sunday · 10 AM. Same plan, same people.",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "plan_patched",
+        "search_mode": "exact_entity",
+        "job": false,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:11.929Z"
+    },
+    {
+      "id": "R10-API-M21",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Who is Henry? → Tell me more — I can help you plan or check what's coming up.",
+      "evidence": {
+        "intent": "chat",
+        "search_mode": "exact_entity",
+        "job": false,
+        "parked": true,
+        "no_restart": true,
+        "venue": "Night Hawk"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:12.204Z"
+    },
+    {
+      "id": "R10-API-M22",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Coronado in San Diego — is that a restaurant? → Checking San Diego…",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "queued",
+        "search_mode": "discovery",
+        "job": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:13.457Z"
+    },
+    {
+      "id": "R10-API-M23",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Find The Henry restaurant in Coronado. → Looking up The Henry in Coronado…",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "queued",
+        "search_mode": "exact_entity",
+        "job": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:14.099Z"
+    },
+    {
+      "id": "R10-API-M24",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Stop. New topic: what's the weather metaphorically for my week? → Metaphorically? A bright, busy front with a chance of birthday cake — Maya's is in four days. Sunday 10 AM still looks like your one real an",
+      "evidence": {
+        "intent": "check_status",
+        "search_mode": "exact_entity",
+        "job": false,
+        "parked": true,
+        "no_restart": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:15.943Z"
+    },
+    {
+      "id": "R10-API-M25",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Go back to the birthday plan. → Got it: a birthday celebration soon. Want me to set this up?",
+      "evidence": {
+        "intent": "plan_create",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:16.244Z"
+    },
+    {
+      "id": "R10-API-M26",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Cancel the restaurant lookup. → Okay — I cancelled the restaurant search.",
+      "evidence": {
+        "intent": "plan_modify",
+        "action_state": "cancelled",
+        "job": false,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:16.547Z"
+    },
+    {
+      "id": "R10-API-M27",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Thanks Opal. → Anytime. I'm here when you need me.",
+      "evidence": {
+        "intent": "chat",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:16.812Z"
+    },
+    {
+      "id": "R10-API-M28",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What were we discussing before? → We were mid-conversation — tell me what you want to pick back up.",
+      "evidence": {
+        "intent": "recall",
+        "job": false,
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:17.065Z"
+    },
+    {
+      "id": "R10-API-MIXED-SUMMARY",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "28/28 mixed turns",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:17.185Z"
+    },
+    {
+      "id": "R10-API-PENDING-ISOLATION",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "job=true chanelle=I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:17.899Z"
+    },
+    {
+      "id": "R10-API-NEWCHAT-MEMORY",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "before=4 after=0 fresh=I'm here and paying attention. What can I help with?",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:18.710Z"
+    },
+    {
+      "id": "R10-API-DURABLE-PRESERVE-CONTRACT",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "New Chat clears visible Center messages + transient planning only; SharedPlans/Graph not deleted by this API",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:18.710Z"
+    },
+    {
+      "id": "R10-LOC-GEOAPIFY-HENRY",
+      "layer": "LIVE_PROVIDER_PASS",
+      "status": "PASS",
+      "detail": "resolved=false unresolved=true names=[]",
+      "evidence": {
+        "candidate_count": 0,
+        "exact_resolved": false,
+        "exact_unresolved": true,
+        "geography": "Coronado",
+        "live": true,
+        "names": [],
+        "ok": true,
+        "provider": "geoapify",
+        "search_mode": "exact_entity",
+        "synthetic": false
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:37.217Z"
+    },
+    {
+      "id": "R10-LOC-GEOAPIFY-MED",
+      "layer": "LIVE_PROVIDER_PASS",
+      "status": "PASS",
+      "detail": "count=3 names=[\"Night Hawk\",\"Crown Bistro\",\"The Night & Day Cafe\"]",
+      "evidence": {
+        "candidate_count": 3,
+        "exact_resolved": null,
+        "exact_unresolved": null,
+        "geography": "Coronado, CA, United States of America",
+        "live": true,
+        "names": [
+          "Night Hawk",
+          "Crown Bistro",
+          "The Night & Day Cafe"
+        ],
+        "ok": true,
+        "provider": "geoapify",
+        "search_mode": "discovery",
+        "synthetic": false
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:37.218Z"
+    },
+    {
+      "id": "R10-LOC-NEAR-ME-CENTER",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+      "evidence": {
+        "body": "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+        "action_state": null,
+        "job": false,
+        "honest_location_gap": true
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:37.218Z"
+    },
+    {
+      "id": "R10-LOC-LAYER-MAP",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "browser_permission=NOT_WIRED_IN_CENTER; device_coords=NOT_PASSED; backend_near_me=honest_gap; geoapify_exact=probed; geoapify_discovery=probed; ranking=provider_order",
+      "evidence": {
+        "credential": {
+          "geoapify_key_configured": true
+        },
+        "geoapify_health": {
+          "available": true,
+          "billing_ready": true,
+          "configured": true,
+          "provider": "geoapify"
+        }
+      },
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:37.218Z"
+    },
+    {
+      "id": "R10-BROWSER-MEMBER",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "member shell",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:39.622Z"
+    },
+    {
+      "id": "R10-BROWSER-INDEPENDENCE",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "Hi Opal, how are you?\n\nI'm here and paying attention. What can I help with?\n\nFind The Henry restaurant in Coronado.\n\nLooking up The Henry in Coronado…\n\nChecking Coronado…\n\nMessage Chanelle that I love her.\n\nI can't reach Chanelle directly yet — but I've drafted the message. Want ",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:51.945Z"
+    },
+    {
+      "id": "R10-BROWSER-SCROLL-STICK",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "before=0 after=0 jump=true scrolled={\"top\":0,\"max\":806,\"dist\":806,\"stick\":false}",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:57.805Z"
+    },
+    {
+      "id": "R10-BROWSER-JUMP",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "dist=0 top=806 max=806 jumpGone=true fired=1792068537955 prePin={\"before\":0,\"max\":806,\"afterAssign\":806,\"afterBy\":806,\"display\":\"flex\"}",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:48:59.775Z"
+    },
+    {
+      "id": "R10-BROWSER-NEW-CHAT",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "Say hello to Opal\n\nPlan something\nWhat's coming up?",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:49:00.726Z"
+    },
+    {
+      "id": "R10-HTTPS",
+      "layer": "LIVE_PROVIDER_PASS",
+      "status": "PASS",
+      "detail": "https://throbbing-strainer-almanac.ngrok-free.dev status=200",
+      "evidence": {},
+      "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
+      "at": "2026-10-15T12:49:01.191Z"
+    }
+  ],
+  "fail_count": 0,
+  "critical_demo_fails": 0
+}

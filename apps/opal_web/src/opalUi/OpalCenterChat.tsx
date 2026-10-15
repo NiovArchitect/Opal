@@ -269,10 +269,13 @@ export function OpalCenterChat({
   // Scroll ownership: auto-follow only while the user is near the bottom.
   const stickToBottomRef = useRef(true);
   const programmaticScrollRef = useRef(false);
+  const jumpLockUntilRef = useRef(0);
+  const scrollPinTimersRef = useRef<number[]>([]);
+  const scrollPinGenRef = useRef(0);
   const [showJump, setShowJump] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
-  const NEAR_BOTTOM_PX = 80;
+  const NEAR_BOTTOM_PX = 96;
 
   // Holistic loop: when founder-seed thread shows plan-ask → Yes, surface a plan
   // even if the backend replied with generic chat (no plan_confirm metadata).
@@ -305,41 +308,91 @@ export function OpalCenterChat({
 
   const isNearBottom = (el: HTMLElement) => distanceFromBottom(el) <= NEAR_BOTTOM_PX;
 
+  const clearScrollPinTimers = useCallback(() => {
+    for (const id of scrollPinTimersRef.current) window.clearTimeout(id);
+    scrollPinTimersRef.current = [];
+  }, []);
+
   const scrollToEnd = useCallback((force = false) => {
     const el = threadRef.current;
     if (!el) return;
     if (!force && !stickToBottomRef.current) return;
+    clearScrollPinTimers();
+    const gen = ++scrollPinGenRef.current;
     programmaticScrollRef.current = true;
     stickToBottomRef.current = true;
-    setShowJump(false);
+    // Hold stick through layout settle + provider paint. Hide Jump only after
+    // the pin measures near-bottom — unmounting Jump mid-click can restore
+    // focus and snap the thread back to scrollTop 0 in headless WebKit.
+    if (force) jumpLockUntilRef.current = Date.now() + 1600;
     const pin = () => {
+      if (gen !== scrollPinGenRef.current) return;
       const node = threadRef.current;
       if (!node) return;
       // Only scroll the thread itself — scrollIntoView can move a parent and leave
       // thread.scrollTop unchanged (breaks Jump-to-latest).
-      node.scrollTop = node.scrollHeight;
+      const max = Math.max(0, node.scrollHeight - node.clientHeight);
+      node.scrollTop = max;
+      if (node.scrollTop < max - 2 && typeof node.scrollBy === "function") {
+        node.scrollBy(0, max - node.scrollTop);
+      }
     };
     pin();
-    requestAnimationFrame(() => {
-      pin();
-      window.setTimeout(() => {
+    const delays = force ? [0, 16, 50, 120, 250, 500, 900, 1300] : [0, 50, 280];
+    for (const ms of delays) {
+      const id = window.setTimeout(() => {
+        if (gen !== scrollPinGenRef.current) return;
         pin();
-        // Keep follow engaged after an explicit Jump / user send.
+        if (ms !== delays[delays.length - 1]) return;
         stickToBottomRef.current = true;
-        setShowJump(false);
         programmaticScrollRef.current = false;
-      }, 280);
-    });
-  }, []);
+        const node = threadRef.current;
+        if (!node) return;
+        const near = distanceFromBottom(node) <= NEAR_BOTTOM_PX;
+        stickToBottomRef.current = near || force;
+        setShowJump(!(near || (force && distanceFromBottom(node) < 160)));
+      }, ms);
+      scrollPinTimersRef.current.push(id);
+    }
+  }, [clearScrollPinTimers]);
 
   const onThreadScroll = useCallback(() => {
     if (programmaticScrollRef.current) return;
+    if (Date.now() < jumpLockUntilRef.current) return;
     const el = threadRef.current;
     if (!el) return;
     const near = isNearBottom(el);
     stickToBottomRef.current = near;
     setShowJump(!near);
   }, []);
+
+  // Test / harness hook: force history-read position without fighting stick lock.
+  useEffect(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    const api = {
+      scrollToTop: () => {
+        clearScrollPinTimers();
+        scrollPinGenRef.current += 1;
+        programmaticScrollRef.current = false;
+        jumpLockUntilRef.current = 0;
+        stickToBottomRef.current = false;
+        el.scrollTop = 0;
+        if (typeof el.scrollTo === "function") el.scrollTo({ top: 0, behavior: "auto" });
+        setShowJump(distanceFromBottom(el) > NEAR_BOTTOM_PX);
+      },
+      metrics: () => ({
+        top: el.scrollTop,
+        max: Math.max(0, el.scrollHeight - el.clientHeight),
+        dist: distanceFromBottom(el),
+        stick: stickToBottomRef.current,
+      }),
+    };
+    (el as HTMLElement & { __opalCenterScroll?: typeof api }).__opalCenterScroll = api;
+    return () => {
+      delete (el as HTMLElement & { __opalCenterScroll?: typeof api }).__opalCenterScroll;
+    };
+  }, [clearScrollPinTimers]);
 
   const load = useCallback(async () => {
     const gen = ++loadGen.current;
@@ -1041,12 +1094,23 @@ export function OpalCenterChat({
           type="button"
           className="opal-center-chat-jump-latest"
           data-testid="opal-center-chat-jump-latest"
-          onClick={() => {
-            stickToBottomRef.current = true;
-            programmaticScrollRef.current = true;
-            setShowJump(false);
+          // preventDefault on pointerdown keeps focus from moving when Jump
+          // unmounts — focus restoration was snapping scrollTop back to 0.
+          onPointerDown={(e) => {
+            e.preventDefault();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const node = threadRef.current;
-            if (node) node.scrollTop = node.scrollHeight;
+            if (node) {
+              node.dataset.jumpFired = String(Date.now());
+              stickToBottomRef.current = true;
+              programmaticScrollRef.current = true;
+              jumpLockUntilRef.current = Date.now() + 1600;
+              const max = Math.max(0, node.scrollHeight - node.clientHeight);
+              node.scrollTop = max;
+            }
             scrollToEnd(true);
           }}
         >

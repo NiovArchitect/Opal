@@ -1,0 +1,174 @@
+{
+  "pass": 28,
+  "total": 28,
+  "rows": [
+    {
+      "id": "M01",
+      "ok": true,
+      "body": "Hi Opal, how are you?",
+      "reply": "I'm here and paying attention. What can I help with?"
+    },
+    {
+      "id": "M02",
+      "ok": true,
+      "body": "What can you help me with?",
+      "reply": "I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you want to do?"
+    },
+    {
+      "id": "M03",
+      "ok": true,
+      "body": "Plan something for Maya's birthday.",
+      "reply": "Got it — I'll start planning privately with Maya."
+    },
+    {
+      "id": "M04",
+      "ok": true,
+      "body": "Actually, let's talk about something else.",
+      "reply": "Of course — what's on your mind?"
+    },
+    {
+      "id": "M05",
+      "ok": true,
+      "body": "Find The Henry restaurant in Coronado.",
+      "reply": "Looking up The Henry in Coronado…"
+    },
+    {
+      "id": "M06",
+      "ok": true,
+      "body": "Message Chanelle that I love her.",
+      "reply": "I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?"
+    },
+    {
+      "id": "M07",
+      "ok": true,
+      "body": "Hi again — forget about the restaurant for now. How's my Friday looking?",
+      "reply": "Of course — what's on your mind?"
+    },
+    {
+      "id": "M08",
+      "ok": true,
+      "body": "What were we discussing about Maya?",
+      "reply": "We were working on Maya's birthday plan."
+    },
+    {
+      "id": "M09",
+      "ok": true,
+      "body": "Cancel the Henry search, but keep Maya's birthday plan.",
+      "reply": "Okay — I cancelled the restaurant search."
+    },
+    {
+      "id": "M10",
+      "ok": true,
+      "body": "What's 2+2?",
+      "reply": "2+2 is 4. And whenever you're ready, Maya's birthday is in 4 days — want me to set up that Dinner Saturday rematch?"
+    },
+    {
+      "id": "M11",
+      "ok": true,
+      "body": "Find three Mediterranean restaurants in Coronado.",
+      "reply": "Looking for Mediterranean restaurants in Coronado…"
+    },
+    {
+      "id": "M12",
+      "ok": true,
+      "body": "Never mind — change of subject.",
+      "reply": "Of course — what's on your mind?"
+    },
+    {
+      "id": "M13",
+      "ok": true,
+      "body": "Remind me what Opal can do.",
+      "reply": "I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you want to do?"
+    },
+    {
+      "id": "M14",
+      "ok": true,
+      "body": "Take us to Night Hawk in Coronado Friday.",
+      "reply": "Looking up Night Hawk in Coronado… I'll aim for around 7:30 unless you want later."
+    },
+    {
+      "id": "M15",
+      "ok": true,
+      "body": "Why did you change my time?",
+      "reply": "I may have drifted from what you said. Tell me the exact day and time you want and I'll lock those in."
+    },
+    {
+      "id": "M16",
+      "ok": true,
+      "body": "Message Chanelle: running five minutes late.",
+      "reply": "I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?"
+    },
+    {
+      "id": "M17",
+      "ok": true,
+      "body": "Show me the previous messages.",
+      "reply": "You can scroll up through our earlier messages anytime. Tap Jump to latest when you want the newest."
+    },
+    {
+      "id": "M18",
+      "ok": true,
+      "body": "What are three things to do near me?",
+      "reply": "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?"
+    },
+    {
+      "id": "M19",
+      "ok": true,
+      "body": "Plan a quiet dinner just for me in San Diego tonight.",
+      "reply": "Updated — tonight · 19:30. Same plan, same people."
+    },
+    {
+      "id": "M20",
+      "ok": true,
+      "body": "Actually Sunday at 10 AM.",
+      "reply": "Updated — Sunday · 10 AM. Same plan, same people."
+    },
+    {
+      "id": "M21",
+      "ok": true,
+      "body": "Who is Henry?",
+      "reply": "Tell me more — I can help you plan or check what's coming up."
+    },
+    {
+      "id": "M22",
+      "ok": true,
+      "body": "Coronado in San Diego — is that a restaurant?",
+      "reply": "Checking San Diego…"
+    },
+    {
+      "id": "M23",
+      "ok": true,
+      "body": "Find The Henry restaurant in Coronado.",
+      "reply": "Looking up The Henry in Coronado…"
+    },
+    {
+      "id": "M24",
+      "ok": true,
+      "body": "Stop. New topic: what's the weather metaphorically for my week?",
+      "reply": "Metaphorically? A bright, busy front with a chance of birthday cake — Maya's is in four days. Sunday 10 AM still looks like your one real anchor."
+    },
+    {
+      "id": "M25",
+      "ok": true,
+      "body": "Go back to the birthday plan.",
+      "reply": "Got it: a birthday celebration soon. Want me to set this up?"
+    },
+    {
+      "id": "M26",
+      "ok": true,
+      "body": "Cancel the restaurant lookup.",
+      "reply": "Okay — I cancelled the restaurant search."
+    },
+    {
+      "id": "M27",
+      "ok": true,
+      "body": "Thanks Opal.",
+      "reply": "Anytime. I'm here when you need me."
+    },
+    {
+      "id": "M28",
+      "ok": true,
+      "body": "What were we discussing before?",
+      "reply": "We were mid-conversation — tell me what you want to pick back up."
+    }
+  ]
+}

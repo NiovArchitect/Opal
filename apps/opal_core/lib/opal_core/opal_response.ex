@@ -1152,6 +1152,10 @@ defmodule OpalCore.OpalResponse do
       thanks?(lower) ->
         "Anytime. I'm here when you need me."
 
+      # Capability / help questions win over sticky recent_who re-engagement.
+      capability_question?(lower) ->
+        "I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you want to do?"
+
       is_binary(recent_who) and recent_who != "" ->
         "You mentioned #{recent_who} earlier — want to keep going on that, or something new?"
 
@@ -1177,6 +1181,13 @@ defmodule OpalCore.OpalResponse do
 
   defp thanks?(lower) do
     Regex.match?(~r/^\s*(thanks|thank\s+you|thx|ty)\b/i, lower)
+  end
+
+  defp capability_question?(lower) do
+    Regex.match?(
+      ~r/\bwhat\s+can\s+you\s+help\b|\bhow\s+can\s+you\s+help\b|\bwhat\s+(can|does)\s+(you|opal)\b|\bwhat\s+opal\s+can\s+do\b|\bremind\s+me\s+what\b.*\b(opal\s+)?(can|do)\b|\bcapabilities\b/i,
+      lower
+    )
   end
 
   defp recent_mentioned_name(context) do
