@@ -14,7 +14,7 @@ defmodule OpalCore.Intelligence.Extractor do
   alias OpalCore.Repo
   alias OpalCore.Trips.VibeProfiles
 
-  @confirm ~r/\b(yes|yeah|yep|yup|sure|sounds good|i'?m in\b|im in\b|locked in|perfect|works for me|^down$)\b/i
+  @confirm ~r/\b(yes|yeah|yep|yup|sure|sounds good|i'?m in\b|im in\b|locked in|perfect|works for me|i confirm|^confirm$|^down$)\b/i
   @cancel ~r/\b(can'?t make it|cannot make it|cancel|rain check|i'?m out|sitting out)\b/i
   @counter ~r/\b(after\s+\d{1,2}|before\s+\d{1,2}|works better|feels better|rather|instead|later|earlier|move (it|to))\b/i
   @question ~r/\b(what time|where|when|which|who'?s|how about)\b|\?/i

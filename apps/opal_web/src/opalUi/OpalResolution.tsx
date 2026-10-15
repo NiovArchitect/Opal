@@ -24,9 +24,15 @@ type Props = {
   detail?: string | null;
   reality?: SharedRealityDetail | null;
   onSettled?: () => void;
+  /**
+   * Repair #11 (B3-web) — plan organizer/lead display name. Rendered only when
+   * a real value is provided by the caller; never invented. Null today because
+   * the plan projection carries no organizer field (see repair report).
+   */
+  leadName?: string | null;
 };
 
-export function OpalResolution({ detail, reality, onSettled }: Props) {
+export function OpalResolution({ detail, reality, onSettled, leadName = null }: Props) {
   const [phase, setPhase] = useState<"enter" | "hold" | "calm">("enter");
 
   const composed = composeHumanReality({
@@ -59,16 +65,27 @@ export function OpalResolution({ detail, reality, onSettled }: Props) {
   }, [onSettled, headline]);
 
   return (
-    <SharedRealityPlate
-      headline={headline}
-      kicker={composed.kicker}
-      whenWhere={composed.primary}
-      area={null}
-      distance={null}
-      leaveAround={null}
-      // Secondary holds area/distance/leave without restating time
-      secondary={composed.secondary}
-      phase={phase}
-    />
+    <>
+      <SharedRealityPlate
+        headline={headline}
+        kicker={composed.kicker}
+        whenWhere={composed.primary}
+        area={null}
+        distance={null}
+        leaveAround={null}
+        // Secondary holds area/distance/leave without restating time
+        secondary={composed.secondary}
+        phase={phase}
+      />
+      {leadName ? (
+        <p
+          className="graph-exec-line opal-resolution-lead"
+          data-testid="plan-lead-line"
+          data-lead={leadName}
+        >
+          Organized by {leadName}
+        </p>
+      ) : null}
+    </>
   );
 }

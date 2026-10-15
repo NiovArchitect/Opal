@@ -9,6 +9,7 @@ defmodule OpalCore.OpalResponse do
 
   require Logger
 
+  alias OpalCore.Center.PlanContextPatch
   alias OpalCore.Intelligence.LlmAdapter
   alias OpalCore.Intelligence.LlmRespond
   alias OpalCore.Memory
@@ -74,6 +75,7 @@ defmodule OpalCore.OpalResponse do
               :plan_modify -> render_plan_modify(entities, context_map)
               :remember -> render_remember(entities, context_map)
               :recall -> render_recall(entities, context_map)
+              :named_venue -> render_named_venue(entities, context_map)
               :recommend -> render_recommend(entities, context_map)
               :coordinate -> render_coordinate(entities, context_map)
               :check_status -> render_check_status(entities, context_map)
@@ -90,7 +92,7 @@ defmodule OpalCore.OpalResponse do
               entities["conversation_owns_routing"] == true
 
           case intent do
-            i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate] ->
+            i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate, :named_venue] ->
               put_draft_meta(template_meta())
               template
 
@@ -596,6 +598,25 @@ defmodule OpalCore.OpalResponse do
   ]
 
   @ask_budget "I don't know your budget preferences yet — want to set them so my suggestions fit?"
+
+  # Repair #11 — named-venue fallback render, reached only when no provider
+  # override fired this turn. Never invents a venue or claims a lookup that
+  # did not start; asks for the missing locality instead of substituting.
+  defp render_named_venue(entities, _context) do
+    name = entity(entities, :venue_name)
+    loc = entity(entities, :locality)
+
+    cond do
+      is_binary(name) and name != "" and is_binary(loc) and loc != "" ->
+        "Looking into #{name} in #{loc}. I'll share what I can verify."
+
+      is_binary(name) and name != "" ->
+        "Which city is #{name} in?"
+
+      true ->
+        "Tell me the place name and I'll look it up."
+    end
+  end
 
   defp render_recommend(entities, context) do
     for_who = entity(entities, :for_who)
@@ -1133,7 +1154,15 @@ defmodule OpalCore.OpalResponse do
 
     lower = String.downcase(raw)
     name = get_in_ctx(context, [:user, :display_name])
-    recent_who = recent_mentioned_name(context)
+
+    # Repair #11 — an explicit new direction this turn (new search, switch_topic,
+    # new chat) clears the sticky re-engagement so it cannot override the turn.
+    recent_who =
+      if new_direction_this_turn?(raw) do
+        nil
+      else
+        recent_mentioned_name(context)
+      end
 
     cond do
       how_are_you?(lower) ->
@@ -1182,6 +1211,17 @@ defmodule OpalCore.OpalResponse do
   defp thanks?(lower) do
     Regex.match?(~r/^\s*(thanks|thank\s+you|thx|ty)\b/i, lower)
   end
+
+  # Repair #11 — explicit new-direction phrasing this turn: a fresh search, a
+  # topic switch, or a new chat. The sticky recent_who re-engagement must not
+  # override it.
+  defp new_direction_this_turn?(raw) when is_binary(raw) do
+    PlanContextPatch.classify_conversation_act(raw) == "switch_topic" or
+      Regex.match?(~r/\bnew\s+chat\b|\bstart\s+(?:a\s+)?new\s+chat\b|\bstart\s+fresh\b/i, raw) or
+      not is_nil(PlanContextPatch.extract_exact_venue(raw))
+  end
+
+  defp new_direction_this_turn?(_), do: false
 
   defp capability_question?(lower) do
     Regex.match?(

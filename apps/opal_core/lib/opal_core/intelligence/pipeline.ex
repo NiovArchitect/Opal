@@ -17,8 +17,39 @@ defmodule OpalCore.Intelligence.Pipeline do
 
   alias OpalCore.SocialMemory
 
+  # The dedicated Opal/bot sender. Only this id may carry Opal-authored text;
+  # anything else is a human sender and must flow through extraction.
+  @bot_sender_env "OPAL_INTELLIGENCE_SENDER_USER_ID"
+
   @doc "Full chain for a message.sent event attrs or Message struct."
   def on_message_created(message, context \\ %{}) do
+    if bot_authored?(message) do
+      # Repair #11 — self-trigger guard: Opal's own posts must never re-enter
+      # extraction, or LLM output becomes de-facto state (and loops).
+      Logger.info("intelligence.pipeline.skipped_bot_authored")
+      {:ok, %{skipped: true, reason: :bot_authored}}
+    else
+      run_message_pipeline(message, context)
+    end
+  end
+
+  @doc """
+  True when a message was authored by Opal/the bot rather than a human:
+  sender id is the configured Opal intelligence sender, or message_type is
+  "system". Public so tests and other pipeline entry points can share it.
+  """
+  def bot_authored?(message) when is_map(message) do
+    sender = Map.get(message, :sender_user_id) || Map.get(message, "sender_user_id")
+    bot_id = System.get_env(@bot_sender_env)
+    type = Map.get(message, :message_type) || Map.get(message, "message_type")
+
+    (is_binary(sender) and is_binary(bot_id) and bot_id != "" and sender == bot_id) or
+      type == "system"
+  end
+
+  def bot_authored?(_), do: false
+
+  defp run_message_pipeline(message, context) do
     with {:ok, event} <- EventIngestor.ingest_message_sent(message),
          {:ok, extraction} <- Extractor.extract(event),
          :ok <- memory_ingest_fanout(message, event, extraction, context),

@@ -20,7 +20,10 @@ import {
   resolveDirectConversationForPerson,
   type PresenceChat,
 } from "./momentNamedPresence";
-import { seedChatKeyFrom } from "./seedThreadIntelligence";
+// Repair #11: seedChatKeyFrom is id-only now (quarantine). Seed-mode-only
+// person routing keeps its explicit name→fixture map via
+// seedChatIdForPersonName — same return values, no trigger on real chats.
+import { seedChatIdForPersonName } from "./seedThreadIntelligence";
 
 export type PersonChatTarget = {
   /** Primary when known — Call Continuity / profile / live row. */
@@ -152,7 +155,7 @@ export function resolvePersonChatTarget(
 
   // 3) Founder seed key from exact/prefix display name (seed on only).
   if (opts?.founderSeedEnabled && displayName) {
-    const seedKey = seedChatKeyFrom({ displayName });
+    const seedKey = seedChatIdForPersonName(displayName);
     if (seedKey) {
       const live = chats.map(
         (c): LiveChatMatchInput => ({
@@ -173,7 +176,7 @@ export function resolvePersonChatTarget(
         (r) =>
           r.id === seedKey ||
           normExact(r.name) === normExact(displayName) ||
-          seedChatKeyFrom({ displayName: r.name }) === seedKey,
+          seedChatIdForPersonName(r.name) === seedKey,
       );
       if (hit?.id) {
         return {
@@ -217,5 +220,5 @@ export function resolvePersonChatTarget(
 export function founderSeedConversationIdForName(
   name: string | null | undefined,
 ): string | null {
-  return seedChatKeyFrom({ displayName: name });
+  return seedChatIdForPersonName(name);
 }

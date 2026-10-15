@@ -455,6 +455,54 @@ defmodule OpalCoreWeb.ConversationChannel do
     end
   end
 
+  def handle_in("social_flow:change_plan_time", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-change-time"
+
+    case SocialFlow.change_plan_time(%{
+           plan_id: payload["plan_id"],
+           user_id: user_id,
+           new_time_label: payload["new_time_label"],
+           trace_id: trace_id
+         }) do
+      {:ok, %{plan: plan}} ->
+        {:reply,
+         {:ok,
+          %{
+            "status" => "changed",
+            "plan" => OpalCore.SocialFlow.SharedPlan.to_contract(plan)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("plan_time_change_failed", inspect(reason), trace_id)},
+         socket}
+    end
+  end
+
+  def handle_in("social_flow:change_plan_date", payload, socket) do
+    user_id = socket.assigns.user_id
+    trace_id = payload["trace_id"] || "trace-sf-change-date"
+
+    case SocialFlow.change_plan_date(%{
+           plan_id: payload["plan_id"],
+           user_id: user_id,
+           new_date_label: payload["new_date_label"],
+           trace_id: trace_id
+         }) do
+      {:ok, %{plan: plan}} ->
+        {:reply,
+         {:ok,
+          %{
+            "status" => "changed",
+            "plan" => OpalCore.SocialFlow.SharedPlan.to_contract(plan)
+          }}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, error_envelope("plan_date_change_failed", inspect(reason), trace_id)},
+         socket}
+    end
+  end
+
   def handle_in("social_flow:sync", _payload, socket) do
     user_id = socket.assigns.user_id
     conversation_id = socket.assigns.conversation_id

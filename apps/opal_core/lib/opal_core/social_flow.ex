@@ -61,6 +61,22 @@ defmodule OpalCore.SocialFlow do
         result_type == "revision_candidate" ->
           handle_revision_candidate(conversation_id, requester_user_id, candidate, trace_id)
 
+        # Repair #11 — chat-text confirmation ("I confirm") of a pending revision.
+        # Never a free-floating reply: always routes to confirm_pending_revision/1.
+        result_type == "revision_confirmation" ->
+          decision =
+            case (candidate || %{})["decision"] || output["decision"] do
+              d when d in ["accept", "reject"] -> d
+              _ -> "accept"
+            end
+
+          confirm_pending_revision(%{
+            conversation_id: conversation_id,
+            user_id: requester_user_id,
+            decision: decision,
+            trace_id: trace_id
+          })
+
         result_type == "plan_candidate" ->
           insert_plan_proposal(%{
             conversation_id: conversation_id,
@@ -160,21 +176,23 @@ defmodule OpalCore.SocialFlow do
         ctx.trace_id
       )
 
-      broadcast(
-        ctx.conversation_id,
-        "social_flow:signal",
-        %{
-          "signal" => Signal.to_contract(signal),
-          "proposal" => Proposal.to_contract(proposal),
-          "options" => Enum.map(options, &PlanOption.to_contract/1)
-        },
-        ctx.trace_id
-      )
-
       {proposal, signal, options}
     end)
     |> case do
       {:ok, {proposal, signal, options}} ->
+        # Repair #11: broadcast only after the transaction commits, so a
+        # rollback can never leave a ghost proposal signal on the wire.
+        broadcast(
+          ctx.conversation_id,
+          "social_flow:signal",
+          %{
+            "signal" => Signal.to_contract(signal),
+            "proposal" => Proposal.to_contract(proposal),
+            "options" => Enum.map(options, &PlanOption.to_contract/1)
+          },
+          ctx.trace_id
+        )
+
         {:ok, %{proposal: proposal, signal: signal, options: options}}
 
       {:error, reason} ->
@@ -199,59 +217,68 @@ defmodule OpalCore.SocialFlow do
           get_in(candidate, ["possible_commitments", Access.at(0), "description"]) ||
             "Commitment"
 
-        {:ok, commitment} =
-          %PlanCommitment{}
-          |> PlanCommitment.changeset(%{
-            plan_id: plan.id,
-            owner_user_id: user_id,
-            description: desc,
-            visibility: "private",
-            status: "proposed",
-            source_message_ids: source_message_ids
-          })
-          |> Repo.insert()
+        # Repair #11: writes in one transaction, broadcast only after commit.
+        case Repo.transaction(fn ->
+               {:ok, commitment} =
+                 %PlanCommitment{}
+                 |> PlanCommitment.changeset(%{
+                   plan_id: plan.id,
+                   owner_user_id: user_id,
+                   description: desc,
+                   visibility: "private",
+                   status: "proposed",
+                   source_message_ids: source_message_ids
+                 })
+                 |> Repo.insert()
 
-        signal =
-          insert_signal!(%{
-            conversation_id: conversation_id,
-            plan_id: plan.id,
-            commitment_id: commitment.id,
-            kind: "commitment",
-            status: "visible",
-            copy: candidate["recommended_signal_copy"] || "You offered to make the reservation.",
-            visibility: "private",
-            audience_user_id: user_id,
-            actions: %{
-              "items" => [
-                %{"id" => "confirm_commitment", "label" => "Add as my commitment"},
-                %{"id" => "not_a_commitment", "label" => "Not a commitment"}
-              ]
-            }
-          })
+               signal =
+                 insert_signal!(%{
+                   conversation_id: conversation_id,
+                   plan_id: plan.id,
+                   commitment_id: commitment.id,
+                   kind: "commitment",
+                   status: "visible",
+                   copy: candidate["recommended_signal_copy"] || "You offered to make the reservation.",
+                   visibility: "private",
+                   audience_user_id: user_id,
+                   actions: %{
+                     "items" => [
+                       %{"id" => "confirm_commitment", "label" => "Add as my commitment"},
+                       %{"id" => "not_a_commitment", "label" => "Not a commitment"}
+                     ]
+                   }
+                 })
 
-        audit!(
-          conversation_id,
-          plan.id,
-          user_id,
-          "commitment.proposed",
-          %{
-            "commitment_id" => commitment.id
-          },
-          trace_id
-        )
+               audit!(
+                 conversation_id,
+                 plan.id,
+                 user_id,
+                 "commitment.proposed",
+                 %{
+                   "commitment_id" => commitment.id
+                 },
+                 trace_id
+               )
 
-        # Private signal: only push to audience via user topic + conversation (filtered on read)
-        broadcast(
-          conversation_id,
-          "social_flow:signal",
-          %{
-            "signal" => Signal.to_contract(signal),
-            "commitment" => PlanCommitment.to_contract(commitment)
-          },
-          trace_id
-        )
+               {commitment, signal}
+             end) do
+          {:ok, {commitment, signal}} ->
+            # Private signal: only push to audience via user topic + conversation (filtered on read)
+            broadcast(
+              conversation_id,
+              "social_flow:signal",
+              %{
+                "signal" => Signal.to_contract(signal),
+                "commitment" => PlanCommitment.to_contract(commitment)
+              },
+              trace_id
+            )
 
-        {:ok, %{commitment: commitment, signal: signal}}
+            {:ok, %{commitment: commitment, signal: signal}}
+
+          {:error, reason} ->
+            {:error, reason}
+        end
       end
     end
   end
@@ -283,115 +310,148 @@ defmodule OpalCore.SocialFlow do
         user_id: user_id,
         trace_id: trace_id
       }) do
-    with %Proposal{} = proposal <- Repo.get(Proposal, proposal_id),
-         :ok <- ensure_member(proposal.conversation_id, user_id),
-         true <- proposal.status in ~w(proposed visible) do
-      {:ok, proposal} =
-        proposal
-        |> Proposal.changeset(%{status: "approved_for_coordination"})
-        |> Repo.update()
+    trace = trace_id || @trace_default
 
-      options =
-        from(o in PlanOption, where: o.proposal_id == ^proposal.id, order_by: [asc: o.sort_order])
-        |> Repo.all()
+    # Repair #11: state change + signal/audit inserts in one transaction,
+    # proposal row locked FOR UPDATE, lazy expiry enforced, broadcast after commit.
+    with_expired_persisted(proposal_id, fn ->
+      case Repo.transaction(fn ->
+             proposal =
+               from(p in Proposal, where: p.id == ^proposal_id, lock: "FOR UPDATE")
+               |> Repo.one()
 
-      # Ensure default options if AI sent none
-      options =
-        if options == [] do
-          [
-            %PlanOption{}
-            |> PlanOption.changeset(%{
-              proposal_id: proposal.id,
-              label: "Thursday at 7:00 PM",
-              status: "open",
-              sort_order: 0
-            })
-            |> Repo.insert!()
-          ]
-        else
-          options
-        end
+             with %Proposal{} = proposal <- proposal,
+                  :ok <- ensure_member(proposal.conversation_id, user_id),
+                  :ok <- ensure_not_expired_tx(proposal),
+                  true <- proposal.status in ~w(proposed visible) do
+               {:ok, proposal} =
+                 proposal
+                 |> Proposal.changeset(%{status: "approved_for_coordination"})
+                 |> Repo.update()
 
-      signal =
-        insert_signal!(%{
-          conversation_id: proposal.conversation_id,
-          proposal_id: proposal.id,
-          kind: "missing_detail",
-          status: "visible",
-          copy: "What time works?",
-          visibility: "shared",
-          actions: %{
-            "items" =>
-              Enum.map(options, fn o ->
-                %{"id" => "accept_option:#{o.id}", "label" => o.label}
-              end)
-          }
-        })
+               options =
+                 from(o in PlanOption,
+                   where: o.proposal_id == ^proposal.id,
+                   order_by: [asc: o.sort_order]
+                 )
+                 |> Repo.all()
 
-      audit!(
-        proposal.conversation_id,
-        nil,
-        user_id,
-        "proposal.approved_for_coordination",
-        %{
-          "proposal_id" => proposal.id
-        },
-        trace_id || @trace_default
-      )
+               # Ensure default options if AI sent none
+               options =
+                 if options == [] do
+                   [
+                     %PlanOption{}
+                     |> PlanOption.changeset(%{
+                       proposal_id: proposal.id,
+                       label: "Thursday at 7:00 PM",
+                       status: "open",
+                       sort_order: 0
+                     })
+                     |> Repo.insert!()
+                   ]
+                 else
+                   options
+                 end
 
-      broadcast(
-        proposal.conversation_id,
-        "social_flow:proposal_updated",
-        %{
-          "proposal" => Proposal.to_contract(proposal),
-          "options" => Enum.map(options, &PlanOption.to_contract/1),
-          "signal" => Signal.to_contract(signal)
-        },
-        trace_id || @trace_default
-      )
+               signal =
+                 insert_signal!(%{
+                   conversation_id: proposal.conversation_id,
+                   proposal_id: proposal.id,
+                   kind: "missing_detail",
+                   status: "visible",
+                   copy: "What time works?",
+                   visibility: "shared",
+                   actions: %{
+                     "items" =>
+                       Enum.map(options, fn o ->
+                         %{"id" => "accept_option:#{o.id}", "label" => o.label}
+                       end)
+                   }
+                 })
 
-      {:ok, %{proposal: proposal, options: options, signal: signal}}
-    else
-      nil -> {:error, :not_found}
-      false -> {:error, :invalid_status}
-      {:error, _} = err -> err
-    end
+               audit!(
+                 proposal.conversation_id,
+                 nil,
+                 user_id,
+                 "proposal.approved_for_coordination",
+                 %{
+                   "proposal_id" => proposal.id
+                 },
+                 trace
+               )
+
+               {proposal, options, signal}
+             else
+               nil -> Repo.rollback(:not_found)
+               false -> Repo.rollback(:invalid_status)
+               {:error, reason} -> Repo.rollback(reason)
+             end
+           end) do
+        {:ok, {proposal, options, signal}} ->
+          broadcast(
+            proposal.conversation_id,
+            "social_flow:proposal_updated",
+            %{
+              "proposal" => Proposal.to_contract(proposal),
+              "options" => Enum.map(options, &PlanOption.to_contract/1),
+              "signal" => Signal.to_contract(signal)
+            },
+            trace
+          )
+
+          {:ok, %{proposal: proposal, options: options, signal: signal}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end)
   end
 
   def dismiss_proposal(%{proposal_id: proposal_id, user_id: user_id, trace_id: trace_id}) do
+    trace = trace_id || @trace_default
+
     with %Proposal{} = proposal <- Repo.get(Proposal, proposal_id),
          :ok <- ensure_member(proposal.conversation_id, user_id) do
-      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      # Repair #11: writes in one transaction, broadcast only after commit.
+      case Repo.transaction(fn ->
+             now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-      {:ok, proposal} =
-        proposal
-        |> Proposal.changeset(%{status: "dismissed", dismissed_at: now})
-        |> Repo.update()
+             {:ok, proposal} =
+               proposal
+               |> Proposal.changeset(%{status: "dismissed", dismissed_at: now})
+               |> Repo.update()
 
-      from(s in Signal, where: s.proposal_id == ^proposal.id and s.status == "visible")
-      |> Repo.update_all(set: [status: "dismissed", updated_at: now])
+             from(s in Signal, where: s.proposal_id == ^proposal.id and s.status == "visible")
+             |> Repo.update_all(set: [status: "dismissed", updated_at: now])
 
-      audit!(
-        proposal.conversation_id,
-        nil,
-        user_id,
-        "proposal.dismissed",
-        %{
-          "proposal_id" => proposal.id
-        },
-        trace_id || @trace_default
-      )
+             audit!(
+               proposal.conversation_id,
+               nil,
+               user_id,
+               "proposal.dismissed",
+               %{
+                 "proposal_id" => proposal.id
+               },
+               trace
+             )
 
-      broadcast(
-        proposal.conversation_id,
-        "social_flow:proposal_updated",
-        %{
-          "proposal" => Proposal.to_contract(proposal)
-        },
-        trace_id || @trace_default
-      )
+             proposal
+           end) do
+        {:ok, proposal} ->
+          broadcast(
+            proposal.conversation_id,
+            "social_flow:proposal_updated",
+            %{
+              "proposal" => Proposal.to_contract(proposal)
+            },
+            trace
+          )
 
-      {:ok, proposal}
+          {:ok, proposal}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
     else
       nil -> {:error, :not_found}
       {:error, _} = err -> err
@@ -405,52 +465,101 @@ defmodule OpalCore.SocialFlow do
         trace_id: trace_id
       })
       when response in ~w(accept decline tentative) do
-    with %PlanOption{} = option <- Repo.get(PlanOption, option_id) |> Repo.preload(:proposal),
-         %Proposal{} = proposal <- option.proposal || Repo.get(Proposal, option.proposal_id),
-         :ok <- ensure_member(proposal.conversation_id, user_id),
-         true <- proposal.status in ~w(approved_for_coordination visible proposed) do
-      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    trace = trace_id || @trace_default
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-      {:ok, _} =
-        %PlanOptionResponse{}
-        |> PlanOptionResponse.changeset(%{
-          option_id: option.id,
-          user_id: user_id,
-          response: response,
-          responded_at: now
-        })
-        |> Repo.insert(
-          on_conflict: [set: [response: response, responded_at: now]],
-          conflict_target: [:option_id, :user_id]
-        )
-
-      if response == "accept" do
-        maybe_create_shared_plan_from_option(
-          proposal,
-          option,
-          user_id,
-          trace_id || @trace_default
-        )
-      else
-        audit!(
-          proposal.conversation_id,
-          nil,
-          user_id,
-          "option.responded",
-          %{
-            "option_id" => option.id,
-            "response" => response
-          },
-          trace_id || @trace_default
-        )
-
-        {:ok, :recorded}
+    # Proposal id up front so the lazy-expiry mark can persist after a rollback.
+    proposal_id =
+      case Repo.get(PlanOption, option_id) do
+        %PlanOption{proposal_id: pid} -> pid
+        nil -> nil
       end
-    else
-      nil -> {:error, :not_found}
-      false -> {:error, :invalid_status}
-      {:error, _} = err -> err
+
+    # Repair #11: idempotent retry after conversion. A repeat accept on an
+    # already-converted proposal resumes the winner's plan instead of
+    # erroring — the conversion guard below only fires for live races.
+    case proposal_id && Repo.get(Proposal, proposal_id) do
+      %Proposal{status: "converted"} = converted ->
+        with :ok <- ensure_member(converted.conversation_id, user_id) do
+          recover_raced_plan(converted)
+        end
+
+      _ ->
+        do_respond_to_option(option_id, proposal_id, user_id, response, trace, now)
     end
+  end
+
+  defp do_respond_to_option(option_id, proposal_id, user_id, response, trace, now) do
+    # Repair #11: response insert + expiry check inside one transaction with the
+    # proposal row locked FOR UPDATE. The plan-creation fan-out below runs only
+    # after this transaction commits.
+    with_expired_persisted(proposal_id, fn ->
+      case Repo.transaction(fn ->
+             option =
+               from(o in PlanOption, where: o.id == ^option_id, lock: "FOR UPDATE")
+               |> Repo.one()
+
+             proposal =
+               case option do
+                 %PlanOption{} = o ->
+                   from(p in Proposal, where: p.id == ^o.proposal_id, lock: "FOR UPDATE")
+                   |> Repo.one()
+
+                 nil ->
+                   nil
+               end
+
+             with %PlanOption{} = option <- option,
+                  %Proposal{} = proposal <- proposal,
+                  :ok <- ensure_member(proposal.conversation_id, user_id),
+                  :ok <- ensure_not_expired_tx(proposal),
+                  true <- proposal.status in ~w(approved_for_coordination visible proposed) do
+               {:ok, _} =
+                 %PlanOptionResponse{}
+                 |> PlanOptionResponse.changeset(%{
+                   option_id: option.id,
+                   user_id: user_id,
+                   response: response,
+                   responded_at: now
+                 })
+                 |> Repo.insert(
+                   on_conflict: [set: [response: response, responded_at: now]],
+                   conflict_target: [:option_id, :user_id]
+                 )
+
+               if response == "accept" do
+                 {:accept, proposal, option}
+               else
+                 audit!(
+                   proposal.conversation_id,
+                   nil,
+                   user_id,
+                   "option.responded",
+                   %{
+                     "option_id" => option.id,
+                     "response" => response
+                   },
+                   trace
+                 )
+
+                 {:recorded, proposal, option}
+               end
+             else
+               nil -> Repo.rollback(:not_found)
+               false -> Repo.rollback(:invalid_status)
+               {:error, reason} -> Repo.rollback(reason)
+             end
+           end) do
+        {:ok, {:accept, proposal, option}} ->
+          maybe_create_shared_plan_from_option(proposal, option, user_id, trace)
+
+        {:ok, {:recorded, _proposal, _option}} ->
+          {:ok, :recorded}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end)
   end
 
   defp maybe_create_shared_plan_from_option(proposal, option, user_id, trace_id) do
@@ -466,13 +575,25 @@ defmodule OpalCore.SocialFlow do
 
     # Both members must accept the same option for SF-1 agreement
     if Enum.all?(member_ids, &MapSet.member?(accepts, &1)) do
-      create_shared_plan(%{
-        proposal: proposal,
-        option: option,
-        created_by_user_id: user_id,
-        member_ids: member_ids,
-        trace_id: trace_id
-      })
+      case create_shared_plan(%{
+             proposal: proposal,
+             option: option,
+             created_by_user_id: user_id,
+             member_ids: member_ids,
+             trace_id: trace_id
+           }) do
+        {:ok, _} = ok ->
+          ok
+
+        # Lost a conversion race: the winner's transaction already committed
+        # the plan. Resume the existing plan instead of erroring (C-reinforce:
+        # idempotent opportunity taps).
+        {:error, :already_converting} ->
+          recover_raced_plan(proposal)
+
+        {:error, _} = err ->
+          err
+      end
     else
       broadcast(
         proposal.conversation_id,
@@ -489,6 +610,31 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  defp recover_raced_plan(%Proposal{} = proposal) do
+    case Repo.get_by(SharedPlan, created_from_proposal_id: proposal.id) do
+      %SharedPlan{} = plan ->
+        signal =
+          from(s in Signal,
+            where: s.plan_id == ^plan.id and s.kind == "agreement",
+            order_by: [desc: s.inserted_at],
+            limit: 1
+          )
+          |> Repo.one()
+
+        # The winner always writes the agreement signal in the same
+        # transaction; a missing signal means something else went wrong —
+        # report honestly rather than crashing the caller's to_contract.
+        if is_nil(signal) do
+          {:error, :already_converting}
+        else
+          {:ok, %{plan: plan, signal: signal}}
+        end
+
+      nil ->
+        {:error, :already_converting}
+    end
+  end
+
   defp create_shared_plan(%{
          proposal: proposal,
          option: option,
@@ -500,137 +646,170 @@ defmodule OpalCore.SocialFlow do
     title = proposal.activity_label || "Plan"
     time_label = option.label
 
-    Repo.transaction(fn ->
-      {:ok, plan} =
-        %SharedPlan{}
-        |> SharedPlan.changeset(%{
-          conversation_id: proposal.conversation_id,
-          title: String.capitalize("#{title}"),
-          status: "agreed",
-          time_label: time_label,
-          timezone: "UTC",
-          created_from_proposal_id: proposal.id,
-          created_by_user_id: created_by
-        })
-        |> Repo.insert()
+    # Repair #11 task 6: the proposal row is locked FOR UPDATE and the
+    # conversion proceeds only while its status is still
+    # "approved_for_coordination" — one proposal can birth exactly one plan.
+    # Task 5: the PubSub broadcast fires only after the transaction commits;
+    # a rollback can never unsend it. Audit + outbox record stay inside.
+    case Repo.transaction(fn ->
+           locked_proposal =
+             from(p in Proposal, where: p.id == ^proposal.id, lock: "FOR UPDATE")
+             |> Repo.one()
 
-      for uid <- member_ids do
-        %PlanParticipant{}
-        |> PlanParticipant.changeset(%{
-          plan_id: plan.id,
-          user_id: uid,
-          role: "participant",
-          response_state: "accepted",
-          responded_at: now,
-          authority_source: "user_action"
-        })
-        |> Repo.insert!()
-      end
+           if is_nil(locked_proposal) or
+                locked_proposal.status != "approved_for_coordination" do
+             Repo.rollback(:already_converting)
+           end
 
-      proposal
-      |> Proposal.changeset(%{status: "converted", converted_at: now})
-      |> Repo.update!()
+           {:ok, plan} =
+             %SharedPlan{}
+             |> SharedPlan.changeset(%{
+               conversation_id: locked_proposal.conversation_id,
+               title: String.capitalize("#{title}"),
+               status: "agreed",
+               time_label: time_label,
+               timezone: "UTC",
+               created_from_proposal_id: locked_proposal.id,
+               created_by_user_id: created_by
+             })
+             |> Repo.insert()
 
-      option
-      |> PlanOption.changeset(%{status: "selected", plan_id: plan.id})
-      |> Repo.update!()
+           # B1 — single lead/organizer authority on the chat path: the creator
+           # is the lead, matching JourneyAuthority's "lead"/"co_lead" vocabulary.
+           for uid <- member_ids do
+             %PlanParticipant{}
+             |> PlanParticipant.changeset(%{
+               plan_id: plan.id,
+               user_id: uid,
+               role: if(uid == created_by, do: "lead", else: "participant"),
+               response_state: "accepted",
+               responded_at: now,
+               authority_source: "user_action"
+             })
+             |> Repo.insert!()
+           end
 
-      signal =
-        insert_signal!(%{
-          conversation_id: proposal.conversation_id,
-          proposal_id: proposal.id,
-          plan_id: plan.id,
-          kind: "agreement",
-          status: "visible",
-          copy: "#{time_label} works for both of you.",
-          visibility: "shared",
-          actions: %{"items" => []}
-        })
+           locked_proposal
+           |> Proposal.changeset(%{status: "converted", converted_at: now})
+           |> Repo.update!()
 
-      audit!(
-        proposal.conversation_id,
-        plan.id,
-        created_by,
-        "plan.agreed",
-        %{
-          "plan_id" => plan.id,
-          "option_id" => option.id,
-          "time_label" => time_label
-        },
-        trace_id
-      )
+           option
+           |> PlanOption.changeset(%{status: "selected", plan_id: plan.id})
+           |> Repo.update!()
 
-      broadcast(
-        proposal.conversation_id,
-        "social_flow:plan",
-        %{
-          "plan" => SharedPlan.to_contract(plan),
-          "signal" => Signal.to_contract(signal)
-        },
-        trace_id
-      )
+           signal =
+             insert_signal!(%{
+               conversation_id: locked_proposal.conversation_id,
+               proposal_id: locked_proposal.id,
+               plan_id: plan.id,
+               kind: "agreement",
+               status: "visible",
+               copy: "#{time_label} works for both of you.",
+               visibility: "shared",
+               actions: %{"items" => []}
+             })
 
-      # Native Opal Calendar: project Set into durable commitments (no external calendar required)
-      _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+           audit!(
+             locked_proposal.conversation_id,
+             plan.id,
+             created_by,
+             "plan.agreed",
+             %{
+               "plan_id" => plan.id,
+               "option_id" => option.id,
+               "time_label" => time_label
+             },
+             trace_id
+           )
 
-      # Phase 5A — lawful taste candidates via MemoryIntelligence.consider/1
-      _ = PlanAgreementTasteBridge.after_agreed(plan)
+           # Native Opal Calendar: project Set into durable commitments (no external calendar required)
+           _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
 
-      case Publisher.record(%{
-             event_type: "plan.agreed",
-             event_id: "plan_agreed:#{plan.id}",
-             aggregate_type: "shared_plan",
-             aggregate_id: plan.id,
-             partition_key: created_by,
-             privacy_class: "shared_authorized",
-             purpose: "plan_agree",
-             actor_user_id: created_by,
-             conversation_id: proposal.conversation_id,
-             plan_id: plan.id,
-             payload: %{"plan_id" => plan.id, "status" => "agreed"}
-           }) do
-        {:ok, _} -> :ok
-        {:error, reason} -> Repo.rollback(reason)
-      end
+           # Phase 5A — lawful taste candidates via MemoryIntelligence.consider/1
+           _ = PlanAgreementTasteBridge.after_agreed(plan)
 
-      %{plan: plan, signal: signal}
-    end)
+           case Publisher.record(%{
+                  event_type: "plan.agreed",
+                  event_id: "plan_agreed:#{plan.id}",
+                  aggregate_type: "shared_plan",
+                  aggregate_id: plan.id,
+                  partition_key: created_by,
+                  privacy_class: "shared_authorized",
+                  purpose: "plan_agree",
+                  actor_user_id: created_by,
+                  conversation_id: locked_proposal.conversation_id,
+                  plan_id: plan.id,
+                  payload: %{"plan_id" => plan.id, "status" => "agreed"}
+                }) do
+             {:ok, _} -> :ok
+             {:error, reason} -> Repo.rollback(reason)
+           end
+
+           {plan, signal}
+         end) do
+      {:ok, {plan, signal}} ->
+        broadcast(
+          proposal.conversation_id,
+          "social_flow:plan",
+          %{
+            "plan" => plan_payload(plan),
+            "signal" => Signal.to_contract(signal)
+          },
+          trace_id
+        )
+
+        {:ok, %{plan: plan, signal: signal}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def confirm_commitment(%{commitment_id: id, user_id: user_id, trace_id: trace_id}) do
+    trace = trace_id || @trace_default
+
     with %PlanCommitment{} = c <- Repo.get(PlanCommitment, id),
          true <- c.owner_user_id == user_id,
          %SharedPlan{} = plan <- Repo.get(SharedPlan, c.plan_id),
          :ok <- ensure_member(plan.conversation_id, user_id) do
-      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      # Repair #11: writes in one transaction, broadcast only after commit.
+      case Repo.transaction(fn ->
+             now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-      {:ok, c} =
-        c
-        |> PlanCommitment.changeset(%{status: "confirmed", confirmed_at: now})
-        |> Repo.update()
+             {:ok, c} =
+               c
+               |> PlanCommitment.changeset(%{status: "confirmed", confirmed_at: now})
+               |> Repo.update()
 
-      audit!(
-        plan.conversation_id,
-        plan.id,
-        user_id,
-        "commitment.confirmed",
-        %{
-          "commitment_id" => c.id
-        },
-        trace_id || @trace_default
-      )
+             audit!(
+               plan.conversation_id,
+               plan.id,
+               user_id,
+               "commitment.confirmed",
+               %{
+                 "commitment_id" => c.id
+               },
+               trace
+             )
 
-      # Shared visibility of commitment existence is still private for SF-1 private commitments
-      broadcast(
-        plan.conversation_id,
-        "social_flow:commitment",
-        %{
-          "commitment" => PlanCommitment.to_contract(c)
-        },
-        trace_id || @trace_default
-      )
+             {plan, c}
+           end) do
+        {:ok, {plan, c}} ->
+          # Shared visibility of commitment existence is still private for SF-1 private commitments
+          broadcast(
+            plan.conversation_id,
+            "social_flow:commitment",
+            %{
+              "commitment" => PlanCommitment.to_contract(c)
+            },
+            trace
+          )
 
-      {:ok, c}
+          {:ok, c}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
     else
       nil -> {:error, :not_found}
       false -> {:error, :forbidden}
@@ -647,57 +826,66 @@ defmodule OpalCore.SocialFlow do
 
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
          :ok <- ensure_member(plan.conversation_id, user_id) do
-      {:ok, reminder} =
-        %PlanReminder{}
-        |> PlanReminder.changeset(%{
-          plan_id: plan.id,
-          commitment_id: commitment_id,
-          owner_user_id: user_id,
-          visibility: "private",
-          status: "active",
-          delivery_policy: "in_app",
-          content_summary: summary,
-          source_lineage: %{"origin" => "user_private_prep"}
-        })
-        |> Repo.insert()
+      # Repair #11: writes in one transaction, broadcast only after commit.
+      case Repo.transaction(fn ->
+             {:ok, reminder} =
+               %PlanReminder{}
+               |> PlanReminder.changeset(%{
+                 plan_id: plan.id,
+                 commitment_id: commitment_id,
+                 owner_user_id: user_id,
+                 visibility: "private",
+                 status: "active",
+                 delivery_policy: "in_app",
+                 content_summary: summary,
+                 source_lineage: %{"origin" => "user_private_prep"}
+               })
+               |> Repo.insert()
 
-      signal =
-        insert_signal!(%{
-          conversation_id: plan.conversation_id,
-          plan_id: plan.id,
-          reminder_id: reminder.id,
-          kind: "private_reminder",
-          status: "visible",
-          copy: "Private — only you can see this. #{summary}",
-          visibility: "private",
-          audience_user_id: user_id,
-          actions: %{"items" => [%{"id" => "dismiss_reminder", "label" => "Dismiss"}]}
-        })
+             signal =
+               insert_signal!(%{
+                 conversation_id: plan.conversation_id,
+                 plan_id: plan.id,
+                 reminder_id: reminder.id,
+                 kind: "private_reminder",
+                 status: "visible",
+                 copy: "Private — only you can see this. #{summary}",
+                 visibility: "private",
+                 audience_user_id: user_id,
+                 actions: %{"items" => [%{"id" => "dismiss_reminder", "label" => "Dismiss"}]}
+               })
 
-      audit!(
-        plan.conversation_id,
-        plan.id,
-        user_id,
-        "reminder.private_created",
-        %{
-          "reminder_id" => reminder.id
-        },
-        trace_id
-      )
+             audit!(
+               plan.conversation_id,
+               plan.id,
+               user_id,
+               "reminder.private_created",
+               %{
+                 "reminder_id" => reminder.id
+               },
+               trace_id
+             )
 
-      # Broadcast filtered: event includes audience; clients/sync strip for non-owners
-      broadcast(
-        plan.conversation_id,
-        "social_flow:reminder",
-        %{
-          "reminder" => PlanReminder.to_contract(reminder),
-          "signal" => Signal.to_contract(signal),
-          "audience_user_id" => user_id
-        },
-        trace_id
-      )
+             {plan, reminder, signal}
+           end) do
+        {:ok, {plan, reminder, signal}} ->
+          # Broadcast filtered: event includes audience; clients/sync strip for non-owners
+          broadcast(
+            plan.conversation_id,
+            "social_flow:reminder",
+            %{
+              "reminder" => PlanReminder.to_contract(reminder),
+              "signal" => Signal.to_contract(signal),
+              "audience_user_id" => user_id
+            },
+            trace_id
+          )
 
-      {:ok, %{reminder: reminder, signal: signal}}
+          {:ok, %{reminder: reminder, signal: signal}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
     else
       nil -> {:error, :not_found}
       {:error, _} = err -> err
@@ -714,12 +902,48 @@ defmodule OpalCore.SocialFlow do
          :ok <- ensure_member(plan.conversation_id, user_id) do
       members = member_user_ids(plan.conversation_id)
       required = Enum.reject(members, &(&1 == user_id))
+      label = changes["time_label"] || "new time"
 
+      case insert_revision_tx(
+             plan,
+             user_id,
+             changes,
+             required,
+             trace_id,
+             "Proposed changing dinner to #{label}."
+           ) do
+        {:ok, {revision, signal}} ->
+          # Broadcast only after commit.
+          broadcast(
+            plan.conversation_id,
+            "social_flow:revision",
+            %{
+              "revision" => PlanRevision.to_contract(revision),
+              "signal" => Signal.to_contract(signal)
+            },
+            trace_id
+          )
+
+          {:ok, %{revision: revision, signal: signal}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      nil -> {:error, :not_found}
+      {:error, _} = err -> err
+    end
+  end
+
+  # Shared propose → signal → audit write path, always inside one transaction.
+  # Broadcast stays with the caller, after commit (repair #11 task 5).
+  defp insert_revision_tx(%SharedPlan{} = plan, proposer_id, changes, required, trace_id, copy) do
+    Repo.transaction(fn ->
       {:ok, revision} =
         %PlanRevision{}
         |> PlanRevision.changeset(%{
           plan_id: plan.id,
-          proposed_by_user_id: user_id,
+          proposed_by_user_id: proposer_id,
           prior_revision_id: plan.current_revision_id,
           proposed_changes: changes,
           status: "proposed",
@@ -728,8 +952,6 @@ defmodule OpalCore.SocialFlow do
         })
         |> Repo.insert()
 
-      label = changes["time_label"] || "new time"
-
       signal =
         insert_signal!(%{
           conversation_id: plan.conversation_id,
@@ -737,7 +959,7 @@ defmodule OpalCore.SocialFlow do
           revision_id: revision.id,
           kind: "revision",
           status: "visible",
-          copy: "Proposed changing dinner to #{label}.",
+          copy: copy,
           visibility: "shared",
           actions: %{
             "items" => [
@@ -751,7 +973,7 @@ defmodule OpalCore.SocialFlow do
       audit!(
         plan.conversation_id,
         plan.id,
-        user_id,
+        proposer_id,
         "revision.proposed",
         %{
           "revision_id" => revision.id,
@@ -760,20 +982,71 @@ defmodule OpalCore.SocialFlow do
         trace_id
       )
 
-      broadcast(
-        plan.conversation_id,
-        "social_flow:revision",
-        %{
-          "revision" => PlanRevision.to_contract(revision),
-          "signal" => Signal.to_contract(signal)
-        },
-        trace_id
-      )
+      {revision, signal}
+    end)
+  end
 
-      {:ok, %{revision: revision, signal: signal}}
+  @doc """
+  Propose cancelling a shared plan as a revision with
+  proposed_changes %{"kind" => "cancel"} (no schema migration).
+
+  Follows the normal propose → approve → apply lifecycle; when the revision is
+  accepted, apply_locked_revision/6 flips the plan row to "cancelled".
+
+  required_approvals choice (documented): the plan's lead/organizer when the
+  plan has one — cancellation dissolves other members' commitments, so the
+  lead must sign off — otherwise all current conversation members.
+  """
+  def propose_cancel_revision(%{plan_id: plan_id, user_id: user_id, trace_id: trace_id}) do
+    trace = trace_id || @trace_default
+
+    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+         :ok <- ensure_plan_access(plan, user_id),
+         true <- plan.status != "cancelled" do
+      required = cancel_required_approvals(plan, user_id)
+
+      case insert_revision_tx(
+             plan,
+             user_id,
+             %{"kind" => "cancel"},
+             required,
+             trace,
+             "Proposed cancelling #{plan.title}."
+           ) do
+        {:ok, {revision, signal}} ->
+          broadcast(
+            plan.conversation_id,
+            "social_flow:revision",
+            %{
+              "revision" => PlanRevision.to_contract(revision),
+              "signal" => Signal.to_contract(signal)
+            },
+            trace
+          )
+
+          {:ok, %{revision: revision, signal: signal}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
     else
       nil -> {:error, :not_found}
+      false -> {:error, :invalid_status}
       {:error, _} = err -> err
+    end
+  end
+
+  defp cancel_required_approvals(%SharedPlan{} = plan, proposer_id) do
+    case lead_user_ids(plan.id) -- [proposer_id] do
+      [] ->
+        if is_binary(plan.conversation_id) do
+          member_user_ids(plan.conversation_id) -- [proposer_id]
+        else
+          []
+        end
+
+      leads ->
+        leads
     end
   end
 
@@ -784,129 +1057,497 @@ defmodule OpalCore.SocialFlow do
         trace_id: trace_id
       })
       when decision in ~w(accept reject) do
-    with %PlanRevision{} = rev <- Repo.get(PlanRevision, revision_id),
-         %SharedPlan{} = plan <- Repo.get(SharedPlan, rev.plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id),
-         true <- rev.status == "proposed",
-         true <- user_id in (rev.required_approvals || []) do
-      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-      approvals = Map.put(rev.approvals || %{}, user_id, decision)
+    trace = trace_id || @trace_default
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    # Repair #11 task 4: the revision row is locked FOR UPDATE inside the
+    # transaction BEFORE the approvals check, and the plan row is locked too
+    # because the apply path mutates it. The approvals check and the apply
+    # happen on the locked rows, so two concurrent responses serialize.
+    # Task 5: broadcast only after the transaction commits.
+    case Repo.transaction(fn ->
+           revision =
+             from(r in PlanRevision, where: r.id == ^revision_id, lock: "FOR UPDATE")
+             |> Repo.one()
+
+           plan =
+             case revision do
+               %PlanRevision{} = rev ->
+                 from(p in SharedPlan, where: p.id == ^rev.plan_id, lock: "FOR UPDATE")
+                 |> Repo.one()
+
+               nil ->
+                 nil
+             end
+
+           with %PlanRevision{} = revision <- revision,
+                %SharedPlan{} = plan <- plan,
+                :ok <- ensure_member(plan.conversation_id, user_id),
+                true <- revision.status == "proposed",
+                true <- user_id in (revision.required_approvals || []) do
+             approvals = Map.put(revision.approvals || %{}, user_id, decision)
+
+             cond do
+               decision == "reject" ->
+                 {:ok, revision} =
+                   revision
+                   |> PlanRevision.changeset(%{
+                     status: "rejected",
+                     rejected_at: now,
+                     approvals: approvals
+                   })
+                   |> Repo.update()
+
+                 audit!(
+                   plan.conversation_id,
+                   plan.id,
+                   user_id,
+                   "revision.rejected",
+                   %{
+                     "revision_id" => revision.id
+                   },
+                   trace
+                 )
+
+                 {:broadcast_revision, revision, plan}
+
+               Enum.all?(revision.required_approvals || [], fn uid ->
+                 approvals[uid] == "accept"
+               end) ->
+                 {plan, revision, signal} =
+                   apply_locked_revision(plan, revision, approvals, now, user_id, trace)
+
+                 {:broadcast_plan, plan, revision, signal}
+
+               true ->
+                 {:ok, revision} =
+                   revision
+                   |> PlanRevision.changeset(%{approvals: approvals})
+                   |> Repo.update()
+
+                 {:silent, revision}
+             end
+           else
+             nil -> Repo.rollback(:not_found)
+             false -> Repo.rollback(:forbidden)
+             {:error, reason} -> Repo.rollback(reason)
+           end
+         end) do
+      {:ok, {:broadcast_revision, revision, plan}} ->
+        broadcast(
+          plan.conversation_id,
+          "social_flow:revision",
+          %{
+            "revision" => PlanRevision.to_contract(revision)
+          },
+          trace
+        )
+
+        {:ok, revision}
+
+      {:ok, {:broadcast_plan, plan, revision, signal}} ->
+        broadcast(
+          plan.conversation_id,
+          "social_flow:plan",
+          %{
+            "plan" => plan_payload(plan),
+            "revision" => PlanRevision.to_contract(revision),
+            "signal" => Signal.to_contract(signal)
+          },
+          trace
+        )
+
+        {:ok, %{plan: plan, revision: revision, signal: signal}}
+
+      {:ok, {:silent, revision}} ->
+        {:ok, revision}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  # Applies an accepted revision to the already-locked plan + revision rows.
+  # Runs inside the caller's transaction; broadcast stays with the caller.
+  # A revision with proposed_changes["kind"] == "cancel" flips the plan to
+  # "cancelled" instead of editing its time (repair #11 task 8, no migration).
+  defp apply_locked_revision(
+         %SharedPlan{} = plan,
+         %PlanRevision{} = rev,
+         approvals,
+         now,
+         actor,
+         trace
+       ) do
+    changes = rev.proposed_changes || %{}
+
+    {plan_attrs, signal_copy} =
+      if changes["kind"] == "cancel" do
+        {%{status: "cancelled", cancelled_at: now, current_revision_id: rev.id},
+         "#{plan.title} was cancelled."}
+      else
+        time_label = changes["time_label"] || plan.time_label
+
+        {%{status: "changed", time_label: time_label, current_revision_id: rev.id},
+         "Dinner moved to #{time_label}."}
+      end
+
+    {:ok, rev} =
+      rev
+      |> PlanRevision.changeset(%{
+        status: "accepted",
+        accepted_at: now,
+        approvals: approvals
+      })
+      |> Repo.update()
+
+    {:ok, plan} =
+      plan
+      |> SharedPlan.changeset(plan_attrs)
+      |> Repo.update()
+
+    signal =
+      insert_signal!(%{
+        conversation_id: plan.conversation_id,
+        plan_id: plan.id,
+        revision_id: rev.id,
+        kind: "agreement",
+        status: "visible",
+        copy: signal_copy,
+        visibility: "shared",
+        actions: %{"items" => []}
+      })
+
+    audit!(
+      plan.conversation_id,
+      plan.id,
+      actor,
+      "revision.accepted",
+      %{
+        "revision_id" => rev.id
+      },
+      trace
+    )
+
+    # Supersede prior calendar versions and project new active commitments —
+    # never for a cancelled plan.
+    unless plan.status == "cancelled" do
+      _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
+    end
+
+    {plan, rev, signal}
+  end
+
+  @doc """
+  Confirm (accept/reject) the conversation's pending plan revision — the
+  server-side target of chat text like "I confirm" (AI result type
+  "revision_confirmation") and of the mobile "Accept change" button.
+
+  Plan resolution: the latest active plan for the conversation via latest_plan/1
+  — the same ordering sync_for_user/2 renders first, so this acts on the plan
+  the client is showing. Delegates to respond_to_revision/1 for the locked
+  apply; never a free-floating reply.
+  """
+  def confirm_pending_revision(%{
+        conversation_id: conversation_id,
+        user_id: user_id,
+        decision: decision,
+        trace_id: trace_id
+      })
+      when decision in ~w(accept reject) do
+    with :ok <- ensure_member(conversation_id, user_id),
+         %SharedPlan{} = plan <-
+           latest_plan(conversation_id) || {:error, :no_pending_revision},
+         %PlanRevision{} = revision <-
+           latest_proposed_revision(plan.id) || {:error, :no_pending_revision} do
+      approvals = revision.approvals || %{}
 
       cond do
-        decision == "reject" ->
-          {:ok, rev} =
-            rev
-            |> PlanRevision.changeset(%{
-              status: "rejected",
-              rejected_at: now,
-              approvals: approvals
-            })
-            |> Repo.update()
+        Map.has_key?(approvals, user_id) ->
+          {:error, :already_decided}
 
-          audit!(
-            plan.conversation_id,
-            plan.id,
-            user_id,
-            "revision.rejected",
-            %{
-              "revision_id" => rev.id
-            },
-            trace_id || @trace_default
-          )
-
-          broadcast(
-            plan.conversation_id,
-            "social_flow:revision",
-            %{
-              "revision" => PlanRevision.to_contract(rev)
-            },
-            trace_id || @trace_default
-          )
-
-          {:ok, rev}
-
-        Enum.all?(rev.required_approvals || [], fn uid -> approvals[uid] == "accept" end) ->
-          apply_revision(plan, rev, approvals, now, user_id, trace_id || @trace_default)
+        user_id not in (revision.required_approvals || []) ->
+          {:error, :not_authorized}
 
         true ->
-          {:ok, rev} =
-            rev
-            |> PlanRevision.changeset(%{approvals: approvals})
-            |> Repo.update()
+          case respond_to_revision(%{
+                 revision_id: revision.id,
+                 user_id: user_id,
+                 decision: decision,
+                 trace_id: trace_id
+               }) do
+            {:ok, %{revision: applied}} ->
+              {:ok, %{revision_id: applied.id, status: applied.status}}
 
-          {:ok, rev}
+            {:ok, %PlanRevision{} = applied} ->
+              {:ok, %{revision_id: applied.id, status: applied.status}}
+
+            {:error, _} = err ->
+              err
+          end
       end
     else
-      nil -> {:error, :not_found}
-      false -> {:error, :forbidden}
       {:error, _} = err -> err
     end
   end
 
-  defp apply_revision(plan, rev, approvals, now, actor, trace_id) do
-    changes = rev.proposed_changes || %{}
-    time_label = changes["time_label"] || plan.time_label
+  def confirm_pending_revision(_), do: {:error, :invalid}
 
-    Repo.transaction(fn ->
-      {:ok, rev} =
-        rev
-        |> PlanRevision.changeset(%{
-          status: "accepted",
-          accepted_at: now,
-          approvals: approvals
-        })
-        |> Repo.update()
+  @doc """
+  Lead/organizer-only immediate cancellation of a shared plan.
 
-      {:ok, plan} =
-        plan
-        |> SharedPlan.changeset(%{
-          status: "changed",
-          time_label: time_label,
-          current_revision_id: rev.id
-        })
-        |> Repo.update()
+  Authority: PlanParticipant role in ["lead", "co_lead"]; for chat-created
+  plans with no lead row, falls back to created_by_user_id (documented,
+  mirrors JourneyAuthority.require_lead/2). Sets status "cancelled" inside a
+  transaction and broadcasts after commit. Never posts chat messages — returns
+  notify_user_ids so the caller (routing agent) can do durable notification.
+  """
+  def cancel_plan(%{plan_id: plan_id, user_id: user_id, trace_id: trace_id}) do
+    trace = trace_id || @trace_default
 
-      signal =
-        insert_signal!(%{
-          conversation_id: plan.conversation_id,
-          plan_id: plan.id,
-          revision_id: rev.id,
-          kind: "agreement",
-          status: "visible",
-          copy: "Dinner moved to #{time_label}.",
-          visibility: "shared",
-          actions: %{"items" => []}
-        })
+    case Repo.transaction(fn ->
+           plan =
+             from(p in SharedPlan, where: p.id == ^plan_id, lock: "FOR UPDATE")
+             |> Repo.one()
 
-      audit!(
-        plan.conversation_id,
-        plan.id,
-        actor,
-        "revision.accepted",
-        %{
-          "revision_id" => rev.id,
-          "time_label" => time_label
-        },
-        trace_id
-      )
+           with %SharedPlan{} = plan <- plan,
+                :ok <- ensure_plan_access(plan, user_id) do
+             cond do
+               not plan_lead?(plan, user_id) ->
+                 Repo.rollback(:not_authorized)
 
-      broadcast(
-        plan.conversation_id,
-        "social_flow:plan",
-        %{
-          "plan" => SharedPlan.to_contract(plan),
-          "revision" => PlanRevision.to_contract(rev),
-          "signal" => Signal.to_contract(signal)
-        },
-        trace_id
-      )
+               plan.status == "cancelled" ->
+                 Repo.rollback(:already_cancelled)
 
-      # Supersede prior calendar versions and project new active commitments
-      _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
+               true ->
+                 now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-      %{plan: plan, revision: rev, signal: signal}
-    end)
+                 {:ok, plan} =
+                   plan
+                   |> SharedPlan.changeset(%{status: "cancelled", cancelled_at: now})
+                   |> Repo.update()
+
+                 audit!(
+                   plan.conversation_id,
+                   plan.id,
+                   user_id,
+                   "plan.cancelled",
+                   %{"plan_id" => plan.id},
+                   trace
+                 )
+
+                 case Publisher.record(%{
+                        event_type: "plan.cancelled",
+                        event_id: "plan_cancelled:#{plan.id}",
+                        aggregate_type: "shared_plan",
+                        aggregate_id: plan.id,
+                        partition_key: user_id,
+                        privacy_class: "shared_authorized",
+                        purpose: "plan_cancel",
+                        actor_user_id: user_id,
+                        conversation_id: plan.conversation_id,
+                        plan_id: plan.id,
+                        payload: %{"plan_id" => plan.id, "status" => "cancelled"}
+                      }) do
+                   {:ok, _} -> :ok
+                   {:error, reason} -> Repo.rollback(reason)
+                 end
+
+                 {plan, cancel_notify_user_ids(plan)}
+             end
+           else
+             nil -> Repo.rollback(:not_found)
+             {:error, reason} -> Repo.rollback(reason)
+           end
+         end) do
+      {:ok, {plan, notify_user_ids}} ->
+        # Center plans have no conversation topic; the caller notifies.
+        if is_binary(plan.conversation_id) do
+          broadcast(
+            plan.conversation_id,
+            "social_flow:plan",
+            %{"plan" => plan_payload(plan), "cancelled" => true},
+            trace
+          )
+        end
+
+        {:ok, %{plan: plan, notify_user_ids: notify_user_ids}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
+
+  defp cancel_notify_user_ids(%SharedPlan{} = plan) do
+    participant_ids =
+      from(pp in PlanParticipant, where: pp.plan_id == ^plan.id, select: pp.user_id)
+      |> Repo.all()
+
+    ids =
+      if participant_ids == [] and is_binary(plan.conversation_id) do
+        member_user_ids(plan.conversation_id)
+      else
+        participant_ids
+      end
+
+    Enum.uniq(ids)
+  end
+
+  @doc """
+  Lead/organizer-only direct time edit. Patches the SAME plan row (no new
+  plan, no revision-proposal round-trip). Non-lead callers get :not_authorized;
+  the routing agent offers them propose_revision/1 as the change-request path.
+  """
+  def change_plan_time(%{
+        plan_id: plan_id,
+        user_id: user_id,
+        new_time_label: label,
+        trace_id: trace_id
+      }) do
+    change_plan_schedule(%{
+      plan_id: plan_id,
+      user_id: user_id,
+      field: "time_label",
+      new_value: label,
+      trace_id: trace_id
+    })
+  end
+
+  @doc """
+  Lead/organizer-only direct date edit. Same contract as change_plan_time/1.
+  """
+  def change_plan_date(%{
+        plan_id: plan_id,
+        user_id: user_id,
+        new_date_label: label,
+        trace_id: trace_id
+      }) do
+    change_plan_schedule(%{
+      plan_id: plan_id,
+      user_id: user_id,
+      field: "date_label",
+      new_value: label,
+      trace_id: trace_id
+    })
+  end
+
+  # Version marker choice (documented): a PlanRevision row with
+  # proposed_changes["kind"] == "schedule_change", status "accepted", and
+  # approvals %{lead => "accept"}, linked via plan.current_revision_id — the
+  # revision chain is the version log (no migration). Time patches
+  # plan.time_label; date has no dedicated column (no migration in repair #11),
+  # so the date label lives in alignment display metadata plus the revision
+  # history. Transaction + broadcast-after-commit, payload carries the change.
+  defp change_plan_schedule(%{
+         plan_id: plan_id,
+         user_id: user_id,
+         field: field,
+         new_value: value,
+         trace_id: trace_id
+       })
+       when field in ~w(time_label date_label) do
+    trace = trace_id || @trace_default
+
+    with :ok <- validate_schedule_label(value) do
+      case Repo.transaction(fn ->
+             plan =
+               from(p in SharedPlan, where: p.id == ^plan_id, lock: "FOR UPDATE")
+               |> Repo.one()
+
+             with %SharedPlan{} = plan <- plan,
+                  :ok <- ensure_plan_access(plan, user_id) do
+               cond do
+                 not plan_lead?(plan, user_id) ->
+                   Repo.rollback(:not_authorized)
+
+                 plan.status == "cancelled" ->
+                   Repo.rollback(:invalid_status)
+
+                 true ->
+                   now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+                   plan_attrs =
+                     case field do
+                       "time_label" ->
+                         %{time_label: value}
+
+                       "date_label" ->
+                         %{alignment: Map.put(plan.alignment || %{}, "date_label", value)}
+                     end
+
+                   {:ok, revision} =
+                     %PlanRevision{}
+                     |> PlanRevision.changeset(%{
+                       plan_id: plan.id,
+                       proposed_by_user_id: user_id,
+                       prior_revision_id: plan.current_revision_id,
+                       proposed_changes: %{
+                         "kind" => "schedule_change",
+                         "field" => field,
+                         "new_value" => value
+                       },
+                       status: "accepted",
+                       accepted_at: now,
+                       required_approvals: [user_id],
+                       approvals: %{user_id => "accept"}
+                     })
+                     |> Repo.insert()
+
+                   {:ok, plan} =
+                     plan
+                     |> SharedPlan.changeset(
+                       Map.merge(plan_attrs, %{current_revision_id: revision.id})
+                     )
+                     |> Repo.update()
+
+                   audit!(
+                     plan.conversation_id,
+                     plan.id,
+                     user_id,
+                     "plan.schedule_changed",
+                     %{
+                       "field" => field,
+                       "new_value" => value,
+                       "revision_id" => revision.id
+                     },
+                     trace
+                   )
+
+                   {plan, revision}
+               end
+             else
+               nil -> Repo.rollback(:not_found)
+               {:error, reason} -> Repo.rollback(reason)
+             end
+           end) do
+        {:ok, {plan, revision}} ->
+          broadcast(
+            plan.conversation_id,
+            "social_flow:plan",
+            %{
+              "plan" => plan_payload(plan),
+              "schedule_change" => %{
+                "field" => field,
+                "new_value" => value,
+                "revision_id" => revision.id
+              }
+            },
+            trace
+          )
+
+          {:ok, %{plan: plan}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+  end
+
+  defp validate_schedule_label(value) when is_binary(value) do
+    if String.trim(value) == "", do: {:error, :invalid_label}, else: :ok
+  end
+
+  defp validate_schedule_label(_), do: {:error, :invalid_label}
 
   # --- Visibility-aware sync ---
 
@@ -928,7 +1569,8 @@ defmodule OpalCore.SocialFlow do
           limit: 20
         )
         |> Repo.all()
-        |> Enum.map(&SharedPlan.to_contract/1)
+        # Repair #11 (B3): carry the lead/organizer identity in sync payloads.
+        |> Enum.map(&plan_payload/1)
 
       plan_ids = Enum.map(plans, & &1["id"])
 
@@ -1076,6 +1718,138 @@ defmodule OpalCore.SocialFlow do
       where:
         p.conversation_id == ^conversation_id and p.status in ^["agreed", "changed", "tentative"],
       order_by: [desc: p.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  # --- Repair #11: single lead/organizer authority (B1) ---
+  #
+  # Role vocabulary matches JourneyAuthority exactly: "lead"/"co_lead" hold
+  # authority, everyone else is "participant". The chat path's create_shared_plan
+  # now stamps the creator as "lead" (JourneyAuthority.role_for/2 does the same
+  # for journey plans). plan_lead?/2 mirrors JourneyAuthority.require_lead/2's
+  # fallback: with no lead participant row (plans created before repair #11),
+  # the plan creator (created_by_user_id) decides.
+  @lead_roles ~w(lead co_lead)
+
+  defp plan_participant(plan_id, user_id) do
+    Repo.get_by(PlanParticipant, plan_id: plan_id, user_id: user_id)
+  end
+
+  defp plan_lead?(%SharedPlan{} = plan, user_id) do
+    case plan_participant(plan.id, user_id) do
+      %PlanParticipant{role: role} when role in @lead_roles -> true
+      %PlanParticipant{} -> false
+      nil -> plan.created_by_user_id == user_id
+    end
+  end
+
+  defp lead_user_ids(plan_id) do
+    from(pp in PlanParticipant,
+      where: pp.plan_id == ^plan_id and pp.role in ^@lead_roles,
+      select: pp.user_id
+    )
+    |> Repo.all()
+  end
+
+  defp lead_user_id(%SharedPlan{} = plan) do
+    case Repo.get_by(PlanParticipant, plan_id: plan.id, role: "lead") ||
+           Repo.get_by(PlanParticipant, plan_id: plan.id, role: "co_lead") do
+      %PlanParticipant{user_id: uid} -> uid
+      nil -> plan.created_by_user_id
+    end
+  end
+
+  # Plan contract enriched with lead identity for surfaces (B3).
+  # Uses JourneyAuthority's existing "lead_user_id" projection key.
+  defp plan_payload(%SharedPlan{} = plan) do
+    plan
+    |> SharedPlan.to_contract()
+    |> Map.put("lead_user_id", lead_user_id(plan))
+    |> Map.put("organizer_name", organizer_name(plan))
+  end
+
+  # Display name of the plan's lead/organizer for surfaces (B3-web).
+  # Returns nil when unresolvable — surfaces must render nothing, never invent.
+  defp organizer_name(%SharedPlan{} = plan) do
+    case lead_user_id(plan) do
+      nil ->
+        nil
+
+      uid ->
+        case Repo.get(OpalCore.Accounts.User, uid) do
+          %OpalCore.Accounts.User{display_name: name}
+          when is_binary(name) and name != "" ->
+            name
+
+          %OpalCore.Accounts.User{handle: handle}
+          when is_binary(handle) and handle != "" ->
+            handle
+
+          _ ->
+            nil
+        end
+    end
+  end
+
+  # Lazy proposal expiry (no sweeper): enforced at interaction time inside the
+  # caller's transaction. Marks the proposal "expired" and rolls back.
+  defp ensure_not_expired_tx(%Proposal{expires_at: nil}), do: :ok
+
+  defp ensure_not_expired_tx(%Proposal{} = proposal) do
+    if DateTime.compare(proposal.expires_at, DateTime.utc_now()) == :lt do
+      Repo.rollback(:expired)
+    else
+      :ok
+    end
+  end
+
+  # The in-transaction expiry mark is rolled back with the transaction, so the
+  # "expired" status is persisted here in its own write afterwards. Guarded to
+  # pre-conversion statuses so a concurrently converted proposal is never
+  # clobbered.
+  defp persist_expired_mark(proposal_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    from(p in Proposal,
+      where:
+        p.id == ^proposal_id and
+          p.status in ^["proposed", "visible", "approved_for_coordination"]
+    )
+    |> Repo.update_all(set: [status: "expired", updated_at: now])
+
+    :ok
+  end
+
+  defp with_expired_persisted(proposal_id, fun) do
+    case fun.() do
+      {:error, :expired} = err ->
+        persist_expired_mark(proposal_id)
+        err
+
+      other ->
+        other
+    end
+  end
+
+  # Plan access for both chat plans (conversation members) and center plans
+  # (conversation_id nil: creator or participant).
+  defp ensure_plan_access(%SharedPlan{conversation_id: nil} = plan, user_id) do
+    cond do
+      plan.created_by_user_id == user_id -> :ok
+      not is_nil(plan_participant(plan.id, user_id)) -> :ok
+      true -> {:error, :not_a_member}
+    end
+  end
+
+  defp ensure_plan_access(%SharedPlan{conversation_id: conversation_id}, user_id),
+    do: ensure_member(conversation_id, user_id)
+
+  defp latest_proposed_revision(plan_id) do
+    from(r in PlanRevision,
+      where: r.plan_id == ^plan_id and r.status == "proposed",
+      order_by: [desc: r.inserted_at],
       limit: 1
     )
     |> Repo.one()
@@ -1312,62 +2086,90 @@ defmodule OpalCore.SocialFlow do
     if is_nil(title) do
       {:error, :invalid_title}
     else
-      alignment =
-        %{}
-        |> put_alignment("area", area)
-        |> put_alignment("scope", "solo")
-        |> put_alignment("decision_id", decision_id)
-        |> Map.put("center_v2", true)
+      # C-reinforce — idempotent opportunity taps: a second "Go with this" for
+      # the same center opportunity resumes the pending plan instead of
+      # inserting a duplicate. Opportunity identity = the center decision_id
+      # carried in alignment; without one there is nothing to dedupe on.
+      case find_pending_center_plan(user_id, decision_id) do
+        %SharedPlan{} = existing ->
+          participants =
+            from(pp in PlanParticipant, where: pp.plan_id == ^existing.id)
+            |> Repo.all()
 
-      plan_attrs = %{
-        "conversation_id" => nil,
-        "title" => title,
-        "location" => location || title,
-        "time_label" => time_label,
-        "timezone" => present_string(params["timezone"]) || "UTC",
-        "status" => "tentative",
-        "created_by_user_id" => user_id,
-        "source" => "center",
-        "alignment" => alignment
-      }
+          {:ok, existing, participants}
 
-      Repo.transaction(fn ->
-        plan =
-          case %SharedPlan{}
-               |> SharedPlan.changeset(plan_attrs)
-               |> Repo.insert() do
-            {:ok, p} -> p
-            {:error, cs} -> Repo.rollback(cs)
+        nil ->
+          alignment =
+            %{}
+            |> put_alignment("area", area)
+            |> put_alignment("scope", "solo")
+            |> put_alignment("decision_id", decision_id)
+            |> Map.put("center_v2", true)
+
+          plan_attrs = %{
+            "conversation_id" => nil,
+            "title" => title,
+            "location" => location || title,
+            "time_label" => time_label,
+            "timezone" => present_string(params["timezone"]) || "UTC",
+            "status" => "tentative",
+            "created_by_user_id" => user_id,
+            "source" => "center",
+            "alignment" => alignment
+          }
+
+          Repo.transaction(fn ->
+            plan =
+              case %SharedPlan{}
+                   |> SharedPlan.changeset(plan_attrs)
+                   |> Repo.insert() do
+                {:ok, p} -> p
+                {:error, cs} -> Repo.rollback(cs)
+              end
+
+            now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+            participant =
+              case %PlanParticipant{}
+                   |> PlanParticipant.changeset(%{
+                     "plan_id" => plan.id,
+                     "user_id" => user_id,
+                     "role" => "lead",
+                     "response_state" => "accepted",
+                     "responded_at" => now,
+                     "authority_source" => "user_action"
+                   })
+                   |> Repo.insert() do
+                {:ok, p} -> p
+                {:error, cs} -> Repo.rollback(cs)
+              end
+
+            {plan, [participant]}
+          end)
+          |> case do
+            {:ok, {plan, participants}} -> {:ok, plan, participants}
+            {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
+            {:error, reason} -> {:error, reason}
           end
-
-        now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-
-        participant =
-          case %PlanParticipant{}
-               |> PlanParticipant.changeset(%{
-                 "plan_id" => plan.id,
-                 "user_id" => user_id,
-                 "role" => "lead",
-                 "response_state" => "accepted",
-                 "responded_at" => now,
-                 "authority_source" => "user_action"
-               })
-               |> Repo.insert() do
-            {:ok, p} -> p
-            {:error, cs} -> Repo.rollback(cs)
-          end
-
-        {plan, [participant]}
-      end)
-      |> case do
-        {:ok, {plan, participants}} -> {:ok, plan, participants}
-        {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
-        {:error, reason} -> {:error, reason}
       end
     end
   end
 
   def create_tentative_plan_from_center(_, _), do: {:error, :invalid}
+
+  defp find_pending_center_plan(_user_id, nil), do: nil
+
+  defp find_pending_center_plan(user_id, decision_id) do
+    from(p in SharedPlan,
+      where:
+        p.created_by_user_id == ^user_id and p.source == "center" and
+          p.status == "tentative" and
+          fragment("? ->> 'decision_id' = ?", p.alignment, ^decision_id),
+      order_by: [desc: p.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
 
   defp put_alignment(map, _key, nil), do: map
   defp put_alignment(map, _key, ""), do: map

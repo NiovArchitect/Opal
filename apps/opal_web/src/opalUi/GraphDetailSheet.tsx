@@ -86,6 +86,12 @@ type Props = {
   entrySource?: "home" | "graphs" | "chats" | "opal";
   /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
   reality?: CanonicalGraph | null;
+  /**
+   * Repair #11 (B3-web) — plan organizer/lead display name. Rendered only when
+   * a real value is provided; never invented. Null today — the plan projection
+   * carries no organizer field (see repair report, NEEDED FROM SOCIALFLOW AGENT).
+   */
+  leadName?: string | null;
   /** LiveExperience arrival broadcast (conversation channel). */
   onBroadcastArrival?: (state: TravelState) => void | Promise<void>;
   /** LiveExperience ETA share while en route. */
@@ -142,6 +148,7 @@ export function GraphDetailSheet({
   onStartPlanning,
   entrySource = "home",
   reality = null,
+  leadName = null,
   onBroadcastArrival,
   onBroadcastEta,
 }: Props) {
@@ -352,6 +359,15 @@ export function GraphDetailSheet({
           <p className="graph-exec-line" data-testid="graph-detail-who">
             {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}
           </p>
+          {leadName ? (
+            <p
+              className="graph-exec-line graph-detail-lead"
+              data-testid="graph-detail-lead"
+              data-lead={leadName}
+            >
+              Organized by {leadName}
+            </p>
+          ) : null}
           {!past && canonical.executionLabel ? (
             <p className="graph-exec-line" data-testid="graph-detail-execution">
               {canonical.executionLabel}

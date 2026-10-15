@@ -10,11 +10,23 @@ defmodule OpalCore.Intelligence.Executor do
 
   require Logger
 
+  import Ecto.Query
+
+  alias OpalCore.Accounts.User
   alias OpalCore.Intelligence.{ActionLog, Decision}
   alias OpalCore.Messages
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.{JourneyAuthority, PlanParticipant, SharedPlan}
 
   @opal_sender_env "OPAL_INTELLIGENCE_SENDER_USER_ID"
+
+  # Repair #11 — cancel phrasing disambiguation. Withdrawal is first-person
+  # ("I can't make it"); proposals address the group ("we should cancel");
+  # organizer cancel names the whole plan ("cancel the whole plan").
+  @withdrawal_re ~r/\bi\s+(can'?t|cannot|won'?t\s+be\s+able\s+to)\s+(make\s+it|come|be\s+there)\b|\bi\s+need\s+to\s+drop\s+out\b|\bi'?m\s+out\b|\bsitting\s+(this\s+one\s+)?out\b|\brain\s+check\b/i
+  @proposal_cancel_re ~r/\bwe\s+should\s+cancel\b|\blet'?s\s+cancel\b|\bshould\s+we\s+cancel\b/i
+  @whole_plan_cancel_re ~r/\bcancel\s+the\s+whole\s+plan\b|\bcancel\s+everything\b|\bkill\s+the\s+plan\b|\bscratch\s+the\s+plan\b|\bcancel\s+the\s+plan\s+(entirely|for\s+everyone)\b/i
+  @reject_re ~r/^\s*no\b|\bnot\s+(this\s+one|now)\b|\bdon'?t\s+(confirm|lock\s+it\s+in)\b|\breject\b/i
 
   def execute(%Decision{} = decision) do
     key = "decision:#{decision.id}"
@@ -101,17 +113,13 @@ defmodule OpalCore.Intelligence.Executor do
   end
 
   defp do_execute(%Decision{action: action} = d)
-       when action in ["respond.thread", "plan.confirm", "plan.update", "plan.cancel", "plan.create"] do
+       when action in ["respond.thread", "plan.update", "plan.create"] do
     conversation_id = d.context_snapshot["conversation_id"]
     message = d.payload["message"]
 
     cond do
       action == "respond.thread" and is_binary(conversation_id) and is_binary(message) and message != "" ->
         post_opal_message(conversation_id, message, d.id)
-
-      action == "plan.confirm" and is_binary(conversation_id) ->
-        msg = message || "Locked in!"
-        post_opal_message(conversation_id, msg, d.id)
 
       true ->
         {:ok,
@@ -124,40 +132,325 @@ defmodule OpalCore.Intelligence.Executor do
     end
   end
 
-  defp do_execute(%Decision{action: action}), do: {:error, {:unknown_action, action}}
+  # Repair #11 — NL confirm routes through the revision authority.
+  # The old free-floating "Locked in!" post is removed: never claim a
+  # confirmation the state machine did not record.
+  defp do_execute(%Decision{action: "plan.confirm"} = d) do
+    conversation_id = d.context_snapshot["conversation_id"]
+    user_id = d.context_snapshot["account_id"]
+    body = d.payload["body"] || ""
+    decision = if reject_phrasing?(body), do: "reject", else: "accept"
+    base = %{"action" => "plan.confirm", "decision" => decision}
 
-  defp post_opal_message(conversation_id, body, decision_id) do
-    sender_id = System.get_env(@opal_sender_env)
+    if not is_binary(conversation_id) or not is_binary(user_id) do
+      {:ok, Map.put(base, "note", "missing conversation/user context; no state changed")}
+    else
+      case OpalCore.SocialFlow.confirm_pending_revision(%{
+             conversation_id: conversation_id,
+             user_id: user_id,
+             decision: decision,
+             trace_id: d.id
+           }) do
+        {:ok, _result} ->
+          msg =
+            if decision == "reject",
+              do: "Noted. I won't lock that in.",
+              else: "Confirmed."
 
-    if is_binary(sender_id) and sender_id != "" do
-      attrs = %{
-        conversation_id: conversation_id,
-        sender_user_id: sender_id,
-        client_message_id: "intel-#{decision_id}",
-        message_type: "text",
-        body: body
-      }
+          notify(conversation_id, d.id, msg, Map.put(base, "confirmed", true))
 
-      case Messages.accept_message(attrs) do
-        {:ok, message, _} ->
-          {:ok, %{"message_id" => message.id, "delivered" => true}}
+        {:error, :no_pending_revision} ->
+          notify(conversation_id, d.id, "There's nothing pending to confirm.", base)
 
         {:error, reason} ->
-          {:error, reason}
+          notify(
+            conversation_id,
+            d.id,
+            "I couldn't confirm that just now (#{human_reason(reason)}). Nothing was changed.",
+            Map.put(base, "error", inspect(reason))
+          )
       end
-    else
-      # No dedicated Opal sender configured — log as filament-ready payload (honest).
-      Logger.info(
-        "intelligence.respond_thread_queued decision=#{decision_id} conversation=#{conversation_id} body=#{String.slice(body, 0, 80)}"
-      )
+    end
+  end
 
-      {:ok,
-       %{
-         "queued_filament" => true,
-         "body" => body,
-         "conversation_id" => conversation_id,
-         "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user"
-       }}
+  # Repair #11 — NL cancel routes through real authorities, disambiguated:
+  # first-person withdrawal → JourneyAuthority.cant_make_it (self only);
+  # group proposal → SocialFlow.propose_cancel_revision;
+  # organizer "cancel the whole plan" → SocialFlow.cancel_plan.
+  # The old free-floating "Got it — I'll release this one." post is removed.
+  defp do_execute(%Decision{action: "plan.cancel"} = d) do
+    conversation_id = d.context_snapshot["conversation_id"]
+    user_id = d.context_snapshot["account_id"]
+    body = d.payload["body"] || ""
+    base = %{"action" => "plan.cancel"}
+
+    cond do
+      not is_binary(conversation_id) or not is_binary(user_id) ->
+        {:ok, Map.put(base, "note", "missing conversation/user context; no state changed")}
+
+      true ->
+        case active_plan(conversation_id) do
+          nil ->
+            notify(
+              conversation_id,
+              d.id,
+              "There's no active plan in this conversation to cancel.",
+              Map.put(base, "no_active_plan", true)
+            )
+
+          plan ->
+            route_plan_cancel(d, plan, user_id, body, conversation_id, base)
+        end
+    end
+  end
+
+  defp do_execute(%Decision{action: action}), do: {:error, {:unknown_action, action}}
+
+  # Repair #11 — cancel disambiguation against the conversation's active plan.
+  defp route_plan_cancel(d, plan, user_id, body, conversation_id, base) do
+    speaker = display_name(user_id)
+    title = plan.title || "the plan"
+
+    cond do
+      withdrawal_phrasing?(body) and not whole_plan_phrasing?(body) ->
+        case JourneyAuthority.cant_make_it(plan.id, user_id, %{}) do
+          {:ok, _} ->
+            notify(
+              conversation_id,
+              d.id,
+              "#{speaker} can't make it. Noted for \"#{title}\". The plan itself is unchanged.",
+              Map.merge(base, %{"kind" => "withdrawal", "plan_id" => plan.id})
+            )
+
+          {:error, reason} ->
+            notify(
+              conversation_id,
+              d.id,
+              "I couldn't record that just now (#{human_reason(reason)}). Nothing was changed.",
+              Map.merge(base, %{"kind" => "withdrawal", "error" => inspect(reason)})
+            )
+        end
+
+      proposal_phrasing?(body) or (whole_plan_phrasing?(body) and not organizer?(plan, user_id)) ->
+        lead_in =
+          if whole_plan_phrasing?(body),
+            do: "Only the organizer can cancel the whole plan outright. ",
+            else: ""
+
+        case OpalCore.SocialFlow.propose_cancel_revision(%{
+               plan_id: plan.id,
+               user_id: user_id,
+               trace_id: d.id
+             }) do
+          {:ok, _} ->
+            notify(
+              conversation_id,
+              d.id,
+              "#{lead_in}I've proposed cancelling \"#{title}\". The group needs to weigh in before anything changes.",
+              Map.merge(base, %{"kind" => "propose_cancel", "plan_id" => plan.id})
+            )
+
+          {:error, reason} ->
+            notify(
+              conversation_id,
+              d.id,
+              "I couldn't propose that cancellation (#{human_reason(reason)}). Nothing was changed.",
+              Map.merge(base, %{"kind" => "propose_cancel", "error" => inspect(reason)})
+            )
+        end
+
+      whole_plan_phrasing?(body) ->
+        # Speaker is the organizer (non-organizers took the proposal branch above).
+        case OpalCore.SocialFlow.cancel_plan(%{
+               plan_id: plan.id,
+               user_id: user_id,
+               trace_id: d.id
+             }) do
+          {:ok, %{notify_user_ids: ids}} ->
+            others =
+              ids
+              |> List.wrap()
+              |> Enum.reject(&(&1 == user_id))
+              |> Enum.map(&display_name/1)
+              |> Enum.reject(&(&1 == "" or &1 == "You"))
+
+            notified =
+              case others do
+                [] -> "Everyone involved has been notified."
+                [_one] -> "The other participant was notified."
+                many -> "#{length(many)} other participants were notified."
+              end
+
+            notify(
+              conversation_id,
+              d.id,
+              "Plan cancelled by #{speaker}. #{notified}",
+              Map.merge(base, %{"kind" => "organizer_cancel", "plan_id" => plan.id})
+            )
+
+          {:ok, _} ->
+            notify(
+              conversation_id,
+              d.id,
+              "Plan cancelled by #{speaker}.",
+              Map.merge(base, %{"kind" => "organizer_cancel", "plan_id" => plan.id})
+            )
+
+          {:error, reason} ->
+            notify(
+              conversation_id,
+              d.id,
+              "I couldn't cancel the plan (#{human_reason(reason)}). Nothing was changed.",
+              Map.merge(base, %{"kind" => "organizer_cancel", "error" => inspect(reason)})
+            )
+        end
+
+      true ->
+        # Bare "cancel" — ambiguous scope. Ask one question; change nothing.
+        notify(
+          conversation_id,
+          d.id,
+          "Just to be clear: do you want to cancel just for yourself, or cancel the whole plan for everyone?",
+          Map.merge(base, %{"kind" => "clarify", "no_state_change" => true})
+        )
+    end
+  end
+
+  # The conversation's active plan (mirrors SocialFlow.latest_plan/1, which is private).
+  defp active_plan(conversation_id) when is_binary(conversation_id) do
+    from(p in SharedPlan,
+      where: p.conversation_id == ^conversation_id and p.status in ^["agreed", "changed", "tentative"],
+      order_by: [desc: p.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  defp active_plan(_), do: nil
+
+  # Organizer = lead/co_lead participant, falling back to the plan creator
+  # (chat-created plans may predate role assignment).
+  defp organizer?(%SharedPlan{} = plan, user_id) when is_binary(user_id) do
+    role =
+      from(pp in PlanParticipant,
+        where: pp.plan_id == ^plan.id and pp.user_id == ^user_id,
+        select: pp.role,
+        limit: 1
+      )
+      |> Repo.one()
+
+    role in ["lead", "co_lead"] or plan.created_by_user_id == user_id
+  end
+
+  defp organizer?(_, _), do: false
+
+  defp display_name(user_id) when is_binary(user_id) do
+    case Repo.get(User, user_id) do
+      %User{display_name: name} when is_binary(name) and name != "" -> name
+      _ -> "You"
+    end
+  end
+
+  defp display_name(_), do: "You"
+
+  defp withdrawal_phrasing?(body) when is_binary(body), do: Regex.match?(@withdrawal_re, body)
+  defp withdrawal_phrasing?(_), do: false
+
+  defp proposal_phrasing?(body) when is_binary(body), do: Regex.match?(@proposal_cancel_re, body)
+  defp proposal_phrasing?(_), do: false
+
+  defp whole_plan_phrasing?(body) when is_binary(body), do: Regex.match?(@whole_plan_cancel_re, body)
+  defp whole_plan_phrasing?(_), do: false
+
+  defp reject_phrasing?(body) when is_binary(body), do: Regex.match?(@reject_re, body)
+  defp reject_phrasing?(_), do: false
+
+  defp human_reason(:not_authorized), do: "you don't have the authority for that"
+  defp human_reason(:not_found), do: "I couldn't find it"
+  defp human_reason(:no_pending_revision), do: "there's nothing pending"
+  defp human_reason(:already_decided), do: "it was already decided"
+  defp human_reason(other), do: inspect(other)
+
+  @doc """
+  Resolve the dedicated Opal/bot sender id from OPAL_INTELLIGENCE_SENDER_USER_ID.
+
+  No default in code: unset/empty → {:error, :opal_sender_not_configured} and the
+  intelligence layer logs instead of posting. Never impersonates a human.
+  """
+  def resolve_opal_sender_id do
+    case System.get_env(@opal_sender_env) do
+      id when is_binary(id) and id != "" -> {:ok, id}
+      _ -> {:error, :opal_sender_not_configured}
+    end
+  end
+
+  @doc """
+  Guard: the intelligence layer may only post as the configured Opal sender id.
+  Any other sender id → {:error, :unsafe_sender}. Never render LLM text as a human.
+  """
+  def ensure_safe_sender(sender_id) when is_binary(sender_id) do
+    # Fail closed: an unconfigured sender env is indistinguishable from a
+    # wrong sender id — both refuse with :unsafe_sender. Callers only handle
+    # one refusal shape; the :opal_sender_not_configured detail stays inside
+    # resolve_opal_sender_id/0.
+    case resolve_opal_sender_id() do
+      {:ok, bot_id} when sender_id == bot_id -> :ok
+      _ -> {:error, :unsafe_sender}
+    end
+  end
+
+  def ensure_safe_sender(_), do: {:error, :unsafe_sender}
+
+  # Post one durable Opal notification. A failed post never rewrites a
+  # successful state change into a failure — it is reported honestly.
+  defp notify(conversation_id, decision_id, body, meta) when is_binary(body) do
+    case post_opal_message(conversation_id, body, decision_id) do
+      {:ok, posted} ->
+        {:ok, Map.merge(meta, posted)}
+
+      {:error, reason} ->
+        Logger.warning("intelligence.notify_failed decision=#{decision_id} reason=#{inspect(reason)}")
+
+        {:ok,
+         Map.merge(meta, %{
+           "notification" => "failed",
+           "notification_error" => inspect(reason)
+         })}
+    end
+  end
+
+  defp post_opal_message(conversation_id, body, decision_id) do
+    case resolve_opal_sender_id() do
+      {:error, _} ->
+        # No dedicated Opal sender configured — log as filament-ready payload (honest).
+        Logger.info(
+          "intelligence.respond_thread_queued decision=#{decision_id} conversation=#{conversation_id} body=#{String.slice(body, 0, 80)}"
+        )
+
+        {:ok,
+         %{
+           "queued_filament" => true,
+           "body" => body,
+           "conversation_id" => conversation_id,
+           "note" => "Set OPAL_INTELLIGENCE_SENDER_USER_ID to post as Opal user"
+         }}
+
+      {:ok, sender_id} ->
+        attrs = %{
+          conversation_id: conversation_id,
+          sender_user_id: sender_id,
+          client_message_id: "intel-#{decision_id}",
+          message_type: "text",
+          body: body
+        }
+
+        case Messages.accept_message(attrs) do
+          {:ok, message, _} ->
+            {:ok, %{"message_id" => message.id, "delivered" => true}}
+
+          {:error, reason} ->
+            {:error, reason}
+        end
     end
   end
 

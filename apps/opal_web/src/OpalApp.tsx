@@ -216,7 +216,10 @@ import {
 } from "./opalUi/founderChatsPlanPills";
 import {
   interpretSeedThreadReply,
+  isSeedDemoChatTarget,
   seedChatKeyFrom,
+  seedPeerAttribution,
+  SeedSimulatedBanner,
 } from "./opalUi/seedThreadIntelligence";
 import {
   ALEX_MEXICO_TRIP_MEMORIES,
@@ -439,6 +442,30 @@ const TABS: { id: Tab; label: string }[] = [
 
 function projectionFromInbox(event: InboxPlanEvent): ChatPreview["planProjection"] {
   return clientPlanFields(event.projection, event.conversation_id);
+}
+
+/**
+ * Repair #11 (B3-web) — plan organizer/lead visibility.
+ * The backend plan projection currently carries NO organizer/lead field
+ * (see NEEDED FROM SOCIALFLOW AGENT in the repair report), so this reads
+ * defensively and returns null when absent. Never invents a lead.
+ */
+function planLeadFromProjection(plan: unknown): string | null {
+  if (!plan || typeof plan !== "object") return null;
+  const p = plan as Record<string, unknown>;
+  for (const key of [
+    "organizer_name",
+    "organizer",
+    "lead_name",
+    "lead",
+    "host_name",
+    "host",
+    "created_by_name",
+  ]) {
+    const v = p[key];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return null;
 }
 
 function DockUnread({ tabId, count }: { tabId: string; count: number }) {
@@ -3072,23 +3099,31 @@ export function OpalApp() {
           conversationId: matchedSeedRow
             ? FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === matchedSeedRow.name)?.id || id
             : id,
-          displayName: seedDisplayName,
+          // Repair #11: id-key lookup only — never name-match.
+          displayName: null,
         })
       : [];
     const mapSeedTurns = (turns: typeof seedTurns) =>
-      turns.map((m) => ({
-        id: m.id,
-        from: m.from,
-        body: m.body,
-        time: m.time,
-        humanSpeaker: m.humanSpeaker !== false && !m.opalFilament && !m.opalSystemConsequence,
-        senderDisplayName: m.senderDisplayName || null,
-        opalFilament: m.opalFilament || undefined,
-        opalSystemConsequence: m.opalSystemConsequence || undefined,
-        signal: m.signal
-          ? { kind: m.signal.kind as NonNullable<Message["signal"]>["kind"], label: m.signal.label }
-          : undefined,
-      }));
+      turns.map((m) => {
+        // Repair #11: seed-injected peer turns are simulated — never a real
+        // human. Attribution contract lives in seedPeerAttribution (tested).
+        const sim = seedPeerAttribution(m);
+        return {
+          id: m.id,
+          from: m.from,
+          body: m.body,
+          time: m.time,
+          humanSpeaker: sim
+            ? false
+            : m.humanSpeaker !== false && !m.opalFilament && !m.opalSystemConsequence,
+          senderDisplayName: sim ? sim.senderDisplayName : m.senderDisplayName || null,
+          opalFilament: m.opalFilament || undefined,
+          opalSystemConsequence: m.opalSystemConsequence || undefined,
+          signal: m.signal
+            ? { kind: m.signal.kind as NonNullable<Message["signal"]>["kind"], label: m.signal.label }
+            : undefined,
+        };
+      });
     if (isFounderSeedChatId(id)) {
       const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.id === id);
       const resolved = seedTurns.length
@@ -3103,11 +3138,12 @@ export function OpalApp() {
               from: m.from,
               body: m.body,
               time: m.time,
-              humanSpeaker: true as const,
+              // Repair #11: fixture turns are simulated, never real human speech.
+              humanSpeaker: false as const,
               senderDisplayName: null as string | null,
             }));
       // Preserve in-session human sends across reopen — seed fixture must not wipe them.
-      const extras = collectSeedLocalExtras(id, threadLocal, seedRow?.name || seedDisplayName);
+      const extras = collectSeedLocalExtras(id, threadLocal);
       setThreads((prev) => ({
         ...prev,
         [id]: extras.length ? [...threadLocal, ...extras] : threadLocal,
@@ -3181,7 +3217,7 @@ export function OpalApp() {
           : undefined,
       };
       // Preserve in-session human sends; remapping must not erase them.
-      const extras = collectSeedLocalExtras(id, local, seedRow?.name || seedDisplayName);
+      const extras = collectSeedLocalExtras(id, local);
       setThreads((prev) => ({
         ...prev,
         [id]: extras.length ? [...local, ...extras] : local,
@@ -3226,23 +3262,20 @@ export function OpalApp() {
           const forced = resolveFounderSeedThread({
             conversationId:
               FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === matchedSeedRow.name)?.id || id,
-            displayName: matchedSeedRow.name,
+            // Repair #11: id-key lookup only — never name-match.
+            displayName: null,
           });
           if (forced.length) {
             const mapped = mapSeedTurns(forced);
-            const extras = collectSeedLocalExtras(id, mapped, matchedSeedRow.name);
+            const extras = collectSeedLocalExtras(id, mapped);
             setThreads((prev) => ({
               ...prev,
               [id]: extras.length ? [...mapped, ...extras] : mapped,
             }));
           }
         } else if (seedPainted) {
-          // Re-open with same paint — still merge any sessionStorage extras under this id.
-          const extras = collectSeedLocalExtras(
-            id,
-            existing,
-            matchedSeedRow?.name || seedDisplayName,
-          );
+          // Re-open with same paint — still merge any in-session extras under this id.
+          const extras = collectSeedLocalExtras(id, existing);
           if (extras.length) {
             const have = new Set(existing.map((m) => m.id));
             const missing = extras.filter((m) => !have.has(m.id));
@@ -3558,44 +3591,18 @@ export function OpalApp() {
     }
   };
 
-  /** Persist in-session human sends for founder-seed chats across reopen / id remap. */
-  const seedLocalStorageKey = (name: string | null | undefined) => {
-    const n = (name || "").trim().toLowerCase();
-    return n ? `opal.seed.local_msgs.v1:${n}` : null;
-  };
-  const rememberSeedLocalMessage = (
-    chatId: string,
-    name: string | null | undefined,
-    msg: Message,
-  ) => {
-    if (!isFounderSeedEnabled()) return;
-    if (msg.from !== "me" || msg.humanSpeaker === false) return;
-    const mid = typeof msg.id === "string" ? msg.id : "";
-    if (!(mid.startsWith("local-") || mid.startsWith("failed-") || msg.from === "me")) return;
-    const key = seedLocalStorageKey(name);
-    if (!key) return;
-    try {
-      const prev = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
-      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
-      sessionStorage.setItem(key, JSON.stringify(next));
-    } catch {
-      /* ignore quota */
-    }
-    // Mirror under chatId for same-session reopen before name resolve.
-    try {
-      const idKey = `opal.seed.local_msgs.id.v1:${chatId}`;
-      const prev = JSON.parse(sessionStorage.getItem(idKey) || "[]") as Message[];
-      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
-      sessionStorage.setItem(idKey, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
-  };
-  const collectSeedLocalExtras = (
-    chatId: string,
-    seedLocal: Message[],
-    name: string | null | undefined,
-  ): Message[] => {
+  /**
+   * Repair #11 — preserve in-session human sends across seed-chat reopen
+   * (in-memory only). The seed fixture must not wipe the founder's typed
+   * turns when a seed thread is rebuilt.
+   *
+   * NOTE: this is DEMO-ONLY scratch, not message persistence. Repair #8's
+   * sessionStorage approach was officially superseded (see
+   * shots/repair11/HISTORY_RECONCILIATION.md §2); durable delivery is
+   * Messages.accept_message (server DB), owned by the routing track.
+   * Do not build any new behavior on this helper.
+   */
+  const collectSeedLocalExtras = (chatId: string, seedLocal: Message[]): Message[] => {
     const seedIds = new Set(seedLocal.map((m) => m.id));
     const isExtra = (m: Message) => {
       const mid = typeof m.id === "string" ? m.id : "";
@@ -3605,34 +3612,10 @@ export function OpalApp() {
     };
     const fromState: Message[] = [];
     const seen = new Set<string>();
-    const push = (m: Message) => {
-      if (!isExtra(m) || seen.has(m.id)) return;
+    for (const m of threadsRef.current[chatId] || []) {
+      if (!isExtra(m) || seen.has(m.id)) continue;
       seen.add(m.id);
       fromState.push(m);
-    };
-    for (const m of threadsRef.current[chatId] || []) push(m);
-    // Cross-id: same person may have been opened under a prior remapped UUID.
-    const want = (name || "").trim().toLowerCase();
-    if (want) {
-      for (const [tid, list] of Object.entries(threadsRef.current)) {
-        if (tid === chatId) continue;
-        const chatName = (chats.find((c) => c.id === tid)?.name || "").trim().toLowerCase();
-        if (chatName === want || tid.toLowerCase().includes(want)) {
-          for (const m of list || []) push(m);
-        }
-      }
-    }
-    try {
-      for (const key of [
-        seedLocalStorageKey(name),
-        `opal.seed.local_msgs.id.v1:${chatId}`,
-      ]) {
-        if (!key) continue;
-        const stored = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
-        for (const m of stored) push(m);
-      }
-    } catch {
-      /* ignore */
     }
     return fromState;
   };
@@ -3653,8 +3636,8 @@ export function OpalApp() {
       (activeChatId === chatId ? activeChat?.name : undefined) ||
       "";
     const chatKey =
-      seedChatKeyFrom({ conversationId: chatId, displayName }) ||
-      seedChatKeyFrom({ displayName });
+      // Repair #11: id-only — a real conversation must never trigger the simulation.
+      seedChatKeyFrom({ conversationId: chatId });
     if (!chatKey) return;
     const threadNow = threadsRef.current[chatId] || [];
     let recent = [
@@ -3679,7 +3662,8 @@ export function OpalApp() {
     if (!recent.some((m) => m.opalFilament || m.opalSystemConsequence)) {
       const seedTurns = resolveFounderSeedThread({
         conversationId: chatKey,
-        displayName,
+        // Repair #11: never name-match — chatKey is already a seed-chat-* id.
+        displayName: null,
       });
       if (seedTurns.length) {
         recent = [
@@ -3711,13 +3695,19 @@ export function OpalApp() {
       const stamp = Date.now();
       const extras: Message[] = [];
       if (intel.peer) {
+        // Repair #11: seed peer replies are simulated — never painted as a
+        // real human. Attribution contract lives in seedPeerAttribution.
+        const sim = seedPeerAttribution({
+          from: "them",
+          senderDisplayName: intel.peer.senderDisplayName,
+        });
         extras.push({
           id: `seed-peer-${stamp}`,
           from: "them",
           body: intel.peer.body,
           time: "Now",
-          humanSpeaker: true,
-          senderDisplayName: intel.peer.senderDisplayName,
+          humanSpeaker: false,
+          senderDisplayName: sim?.senderDisplayName || "Simulated",
         });
       }
       if (intel.opal) {
@@ -3783,27 +3773,17 @@ export function OpalApp() {
     const chatIdForIntel = activeChatId;
     if (session) {
       try {
-        // Primary send path: HTTP. Channel receives broadcast for peers and self-reconcile.
-        // Seed chats: still paint locally + run seed intelligence (API may 404 seed ids).
-        if (
-          isFounderSeedEnabled() &&
-          (isFounderSeedChatId(activeChatId) ||
-            seedChatKeyFrom({
-              conversationId: activeChatId,
-              displayName:
-                founderSeedDisplayNameForId(
-                  activeChatId,
-                  chats.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                    kind: c.composition === "group" ? "group" : "direct",
-                    memberCount: c.memberCount,
-                  })),
-                ) ||
-                activeChat?.name ||
-                undefined,
-            }))
-        ) {
+        // ━━━ DEMO SHIM — seed mode only (Repair #11) ━━━━━━━━━━━━━━━━━━━━━━
+        // Seed chats paint locally and run the simulation. This branch is
+        // DEMO ONLY: it never touches the network. The old best-effort live
+        // send was REMOVED here because, on remapped-live ids, the local paint
+        // carried no clientMessageId, so the broadcast dedupe failed and the
+        // message rendered twice — and demo text leaked into real peers.
+        // Seed mode is not the product; in seed mode we send nothing.
+        // The gate is isSeedDemoChatTarget (unit-tested): seed-chat-* ids
+        // only, and only when seed mode is on. Real ids never enter.
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if (isSeedDemoChatTarget(activeChatId, isFounderSeedEnabled())) {
           const msg: Message = {
             id: `local-${Date.now()}`,
             from: "me",
@@ -3822,19 +3802,13 @@ export function OpalApp() {
               c.id === activeChatId ? { ...c, preview: body, time: "Now" } : c,
             ),
           );
-          rememberSeedLocalMessage(
-            activeChatId,
-            founderSeedDisplayNameForId(activeChatId) || activeChat?.name,
-            msg,
-          );
+          // Repair #11: no sessionStorage persistence (superseded — see
+          // shots/repair11/HISTORY_RECONCILIATION.md §2). The in-memory
+          // threads state above is the only demo scratch; reopen merges it
+          // via collectSeedLocalExtras.
           setDraft("");
           applySeedThreadIntelligence(chatIdForIntel, body);
-          // Best-effort live send when remapped to a real conversation id.
-          if (!isFounderSeedChatId(activeChatId)) {
-            void sendMessage(activeChatId, body, session.access_token).catch(() => {
-              /* seed intelligence already painted */
-            });
-          }
+          // ━━━ END DEMO SHIM — nothing below may send over the network. ━━━━━
           return;
         }
         const res = await sendMessage(activeChatId, body, session.access_token);
@@ -5155,6 +5129,7 @@ export function OpalApp() {
                     : null,
               };
             })()}
+            leadName={planLeadFromProjection(activeChat.planProjection)}
           />
         ) : null}
 
@@ -8342,6 +8317,10 @@ export function OpalApp() {
       data-opal-founder-seed={isFounderSeedEnabled() ? "1" : "0"}
     >
       <div className="app-ambient" aria-hidden />
+      {/* Repair #11 — unmistakable seed-mode banner (SeedSimulatedBanner,
+          unit-tested): persistent whenever seed mode is active so seed output
+          can never be mistaken for the product. */}
+      <SeedSimulatedBanner />
       {isFounderSeedEnabled() &&
       typeof window !== "undefined" &&
       new URLSearchParams(window.location.search).get("opal_dev") === "1" ? (
@@ -9907,6 +9886,10 @@ export function OpalApp() {
         <GraphDetailSheet
           cardId={graphDetailCardId}
           reality={canonicalGraph}
+          leadName={planLeadFromProjection(
+            chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)
+              ?.planProjection,
+          )}
           entrySource={graphDetailEntrySource}
           onRepeat={openRepeatFromPast}
           onAddPeople={() => {

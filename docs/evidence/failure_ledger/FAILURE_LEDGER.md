@@ -244,3 +244,17 @@ Proof levels: `UNIT` · `API` · `BROWSER` · `FOUNDER_PHONE`
 - **Call ingestion semantic:** Not re-proven in Repair #7; mark unproven.
 - **Geoapify locality:** Mediterranean results may include San Diego addresses near Coronado (provider geography); names are cuisine-tagged. Not hardcoded.
 - **Harness false-path:** Clicking Chanelle name can open Contact Profile; tests must enter Message / wait for `human-message-row` before asserting chat order or Back.
+
+## Repair #11 — Phase 3 fix-test-fix-test (2026-10-15)
+
+**Scope:** Merged 4 repair tracks (routing/seed/socialflow/verify) + integration + 5 test loops to green.  
+**Result:** 79/79 Repair #11 tests pass. Full suite 2319 tests, 26 failures — all 26 verified pre-existing on HEAD+compile-fix baseline. Zero regressions.
+
+- **Root cause (compile):** Routing track shipped `~r/...*{0,3}/` in `named_find_no_locality` — `Regex.CompileError`, whole `opal_core` app did not compile. No test had ever executed on the merged tree.
+- **Root cause (intent):** Named-venue verb regex was lowercase-only; "Find Nighthawk" never classified. Fixed with `(?i:...)` verb group.
+- **Root cause (errors):** 5× `Repo.rollback({:error, reason})` double-wrapped to `{:error, {:error, reason}}`. Unwrap before rollback.
+- **Root cause (idempotency):** `respond_to_option` rejected repeat accepts on converted proposals before the conversion guard; added `converted` → `recover_raced_plan/1` short-circuit (founder addendum C).
+- **Root cause (sender safety):** `ensure_safe_sender/1` leaked `:opal_sender_not_configured`; now fails closed with `:unsafe_sender`.
+- **Root cause (NL confirm):** Extractor `@confirm` lacked any `confirm` alternative; "I confirm" unreachable end-to-end. Added `i confirm` / `^confirm$`.
+- **Test hygiene:** Non-UUID ids (`bot-repair11`, `d-*-1`) vs `:binary_id`; unpersisted Decision/Event vs FK. Fixed fixtures, no weakened assertions.
+- **Status:** FIXED (machine-verified). Loop log: 15 → 9 → 8 → 1 → 0 failures.
