@@ -54,8 +54,7 @@
   .opal-composer-brand,
   .composer-618.opal-composer-brand,
   html.opal-native-host .opal-composer,
-  html.opal-native-host .composer-618,
-  .opal-center-chat-composer.opal-composer {
+  html.opal-native-host .composer-618 {
     height: var(--opal-composer-height) !important;
     min-height: var(--opal-composer-height) !important;
     border-radius: var(--opal-composer-radius) !important;
@@ -69,6 +68,26 @@
     box-sizing: border-box;
     display: flex;
     align-items: center;
+  }
+
+  /* Center chat composer must grow with multiline textarea (Repair #7 P0-D).
+     Must beat html.opal-native-host .opal-composer { height: 54px !important }. */
+  html.opal-native-host .opal-center-chat-composer.opal-composer,
+  .opal-center-chat-composer.opal-composer {
+    height: auto !important;
+    min-height: var(--opal-composer-height) !important;
+    max-height: none !important;
+    align-items: flex-end !important;
+    border-radius: var(--opal-composer-radius) !important;
+    border: var(--opal-composer-border-width) solid transparent !important;
+    background: linear-gradient(var(--opal-composer-fill), var(--opal-composer-fill))
+        padding-box,
+      var(--opal-composer-gradient) border-box !important;
+    box-shadow: var(--opal-composer-glow);
+    gap: var(--opal-composer-gap);
+    padding: var(--opal-composer-pad-y) var(--opal-composer-pad-x);
+    box-sizing: border-box;
+    display: flex;
   }
 
   .opal-composer-brand .opal-query,

@@ -12,12 +12,12 @@ defmodule OpalCore.Center.PlanContextPatch do
   @slot_keys ~w(
     who primary_person participants
     destination venue when when_resolved when_time what
-    category quality_intent wants_restaurant solo
+    category cuisine quality_intent wants_restaurant solo
     plan_id visibility_mode surprise
     dependencies next_dependency
     intent_scope initial_planning_visibility who_unresolved
     search_mode requested_venue_name requested_venue_locality
-    opportunity_fingerprint
+    opportunity_fingerprint discovery_request
   )
 
   @doc """
@@ -162,13 +162,41 @@ defmodule OpalCore.Center.PlanContextPatch do
     # Intent-scope isolation: generic "someone close" must NOT inherit prior WHO.
     patch =
       if generic_open_window?(raw) do
-        Map.merge(patch, %{
+        when_s =
+          cond do
+            Regex.match?(~r/\bfriday\b/i, raw) -> "Friday"
+            Regex.match?(~r/\bsaturday\b/i, raw) -> "Saturday"
+            Regex.match?(~r/\bsunday\b/i, raw) -> "Sunday"
+            Regex.match?(~r/\btonight\b/i, raw) -> "tonight"
+            Regex.match?(~r/\bthis weekend\b/i, raw) -> "this weekend"
+            true -> Map.get(patch, "when")
+          end
+
+        base = %{
           "intent_scope" => "generic_open_window",
           "who" => "__clear__",
           "primary_person" => "__clear__",
           "participants" => "__clear__",
-          "solo" => false
-        })
+          "solo" => false,
+          "category" => Map.get(patch, "category") || "restaurant",
+          "wants_restaurant" => true,
+          # New open-window opportunity — do not ride a prior exact venue/plan/city.
+          "requested_venue_name" => "__clear__",
+          "requested_venue_locality" => "__clear__",
+          "venue" => "__clear__",
+          "destination" => "__clear__",
+          "cuisine" => "__clear__",
+          "discovery_request" => "__clear__",
+          "search_mode" => "__clear__",
+          "plan_id" => "__clear__"
+        }
+
+        base =
+          if is_binary(when_s) and when_s != "",
+            do: Map.put(base, "when", when_s),
+            else: base
+
+        Map.merge(patch, base)
       else
         patch
       end
@@ -270,8 +298,63 @@ defmodule OpalCore.Center.PlanContextPatch do
             "venue" => name,
             "destination" => locality,
             "category" => Map.get(patch, "category") || "restaurant",
-            "wants_restaurant" => true
+            "wants_restaurant" => true,
+            "intent_scope" => "exact_venue",
+            # Exact lookup must not inherit prior cuisine / open-window / person.
+            "cuisine" => "__clear__",
+            "discovery_request" => "__clear__",
+            "who" => "__clear__",
+            "primary_person" => "__clear__",
+            "participants" => "__clear__",
+            "plan_id" => "__clear__"
           })
+
+        nil ->
+          patch
+      end
+
+    # Cuisine / category discovery: "Find three Mediterranean restaurants in Coronado."
+    # Isolates from prior exact_entity / person / plan continuity.
+    patch =
+      case extract_discovery_request(raw) do
+        %{cuisine: cuisine, destination: dest} = disc ->
+          base = %{
+            "search_mode" => "discovery",
+            "discovery_request" => true,
+            "intent_scope" => "cuisine_discovery",
+            "category" => "restaurant",
+            "wants_restaurant" => true,
+            "cuisine" => cuisine,
+            "requested_venue_name" => "__clear__",
+            "requested_venue_locality" => dest || "__clear__",
+            "venue" => "__clear__",
+            "plan_id" => "__clear__",
+            "who" => "__clear__",
+            "primary_person" => "__clear__",
+            "participants" => "__clear__"
+          }
+
+          base =
+            if is_binary(dest) and dest != "",
+              do: Map.put(base, "destination", dest),
+              else: base
+
+          # Only keep WHEN when this utterance supplies it — do not inherit Friday
+          # from a prior open-window into a fresh cuisine discovery ask.
+          # Clear when_resolved / when_time too — reply copy reads those fallbacks.
+          base =
+            case Map.get(disc, :when) do
+              w when is_binary(w) and w != "" ->
+                Map.put(base, "when", w)
+
+              _ ->
+                base
+                |> Map.put("when", "__clear__")
+                |> Map.put("when_resolved", "__clear__")
+                |> Map.put("when_time", "__clear__")
+            end
+
+          Map.merge(patch, base)
 
         nil ->
           patch
@@ -280,7 +363,8 @@ defmodule OpalCore.Center.PlanContextPatch do
     # Opportunity fingerprint for pending-plan resume (same intent → same plan).
     patch =
       if is_binary(Map.get(patch, "intent_scope")) or is_binary(Map.get(patch, "when")) or
-           is_binary(Map.get(patch, "requested_venue_name")) do
+           is_binary(Map.get(patch, "requested_venue_name")) or
+           Map.get(patch, "discovery_request") == true do
         fp =
           opportunity_fingerprint(%{
             "intent_scope" => Map.get(patch, "intent_scope") || prior["intent_scope"],
@@ -289,7 +373,8 @@ defmodule OpalCore.Center.PlanContextPatch do
             "who" => Map.get(patch, "who") || prior["who"],
             "requested_venue_name" =>
               Map.get(patch, "requested_venue_name") || prior["requested_venue_name"],
-            "search_mode" => Map.get(patch, "search_mode") || prior["search_mode"]
+            "search_mode" => Map.get(patch, "search_mode") || prior["search_mode"],
+            "cuisine" => Map.get(patch, "cuisine") || prior["cuisine"]
           })
 
         Map.put(patch, "opportunity_fingerprint", fp)
@@ -402,6 +487,94 @@ defmodule OpalCore.Center.PlanContextPatch do
 
   def extract_exact_venue(_), do: nil
 
+  @doc """
+  Cuisine / category restaurant discovery (not exact entity).
+
+  Person-agnostic. Examples:
+  - "Find three Mediterranean restaurants in Coronado."
+  - "Look for Italian places in San Diego Saturday."
+  """
+  def extract_discovery_request(raw) when is_binary(raw) do
+    discovery_cue? =
+      Regex.match?(
+        ~r/\b(?:find|look for|search for|show me|recommend|suggest|options? for)\b/i,
+        raw
+      ) or
+        Regex.match?(~r/\b(?:restaurants?|places|spots)\b/i, raw)
+
+    cuisine = extract_cuisine(raw)
+
+    dest =
+      case Regex.run(
+             ~r/\b(?:in|near|around)\s+([A-Z][\w]+(?:\s+[A-Z][\w]+){0,3})\b/,
+             raw
+           ) do
+        [_, d] -> String.trim(d)
+        _ -> nil
+      end
+
+    when_s =
+      cond do
+        Regex.match?(~r/\bfriday\b/i, raw) -> "Friday"
+        Regex.match?(~r/\bsaturday\b/i, raw) -> "Saturday"
+        Regex.match?(~r/\bsunday\b/i, raw) -> "Sunday"
+        Regex.match?(~r/\btonight\b/i, raw) -> "tonight"
+        Regex.match?(~r/\btomorrow\b/i, raw) -> "tomorrow"
+        true -> nil
+      end
+
+    restaurant? =
+      Regex.match?(
+        ~r/\b(?:restaurants?|dinner|brunch|lunch|food|eat|dining|places?|spots?|somewhere)\b/i,
+        raw
+      )
+
+    # Exact named venue wins over discovery.
+    exact? = match?(%{name: _}, extract_exact_venue(raw))
+
+    cond do
+      exact? ->
+        nil
+
+      # Cuisine + place (or find-somewhere) is enough for discovery without a day.
+      discovery_cue? and is_binary(cuisine) and (restaurant? or is_binary(dest)) ->
+        %{
+          cuisine: cuisine,
+          destination: dest,
+          when: when_s
+        }
+
+      discovery_cue? and restaurant? and is_binary(dest) ->
+        %{
+          cuisine: cuisine,
+          destination: dest,
+          when: when_s
+        }
+
+      true ->
+        nil
+    end
+  end
+
+  def extract_discovery_request(_), do: nil
+
+  @doc "Normalize a cuisine word from free text when present."
+  def extract_cuisine(raw) when is_binary(raw) do
+    cuisines = ~w(
+      mediterranean italian mexican japanese sushi thai chinese indian korean
+      french greek lebanese turkish vietnamese american seafood steak pizza
+      vegan vegetarian ethiopian peruvian spanish portuguese caribbean
+    )
+
+    down = String.downcase(raw)
+
+    Enum.find(cuisines, fn c ->
+      Regex.match?(Regex.compile!("\\b#{Regex.escape(c)}\\b", "i"), down)
+    end)
+  end
+
+  def extract_cuisine(_), do: nil
+
   @doc "Stable fingerprint for pending-intent resume (same intent → same plan)."
   def opportunity_fingerprint(ctx) when is_map(ctx) do
     c = stringify(ctx)
@@ -413,6 +586,7 @@ defmodule OpalCore.Center.PlanContextPatch do
         c["destination"] || "",
         c["requested_venue_name"] || "",
         c["search_mode"] || "",
+        c["cuisine"] || "",
         who_fp(c["who"])
       ]
       |> Enum.map(&String.downcase(String.trim(to_string(&1))))

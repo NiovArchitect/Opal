@@ -496,8 +496,9 @@ defmodule OpalCore.Places.Providers.Geoapify do
     # often return unnamed street POIs; circle + larger limit yields named restaurants.
     want = min(to_i(q["limit"] || q["max_candidates"] || 5), 8)
     fetch = min(max(want * 4, 20), 50)
-    categories = q["categories"] || "catering.restaurant"
+    categories = q["categories"] || cuisine_categories(q["cuisine"]) || "catering.restaurant"
     radius = min(to_i(q["radius_m"] || 8_000), 25_000)
+    cuisine = trim_bin(q["cuisine"])
 
     # Destination-scoped circle (no home-location bias). Bias keeps nearer first.
     filter = "circle:#{dest["lon"]},#{dest["lat"]},#{radius}"
@@ -517,13 +518,26 @@ defmodule OpalCore.Places.Providers.Geoapify do
           feats
           |> Enum.map(&normalize_feature(&1, dest))
           |> quality_filter()
+          |> prefer_cuisine(cuisine)
           |> Enum.take(want)
 
-        if length(cands) < max(div(want, 2), 1) do
-          # Widen radius once if the first pass was thin.
-          retry_radius(q, dest, want, categories, min(radius * 2, 20_000))
-        else
-          {:ok, cands}
+        cond do
+          length(cands) >= max(div(want, 2), 1) ->
+            {:ok, cands}
+
+          cuisine != "" and categories != "catering.restaurant" ->
+            # Cuisine category thin — widen then fall back to general restaurants
+            # filtered by cuisine evidence rather than inventing matches.
+            case retry_radius(q, dest, want, categories, min(radius * 2, 20_000)) do
+              {:ok, widened} when length(widened) >= 1 ->
+                {:ok, prefer_cuisine(widened, cuisine) |> Enum.take(want)}
+
+              _ ->
+                fallback_cuisine_filter(q, dest, want, cuisine, radius)
+            end
+
+          true ->
+            retry_radius(q, dest, want, categories, min(radius * 2, 20_000))
         end
 
       {:ok, %{"message" => msg}} when is_binary(msg) ->
@@ -534,6 +548,68 @@ defmodule OpalCore.Places.Providers.Geoapify do
 
       other ->
         {:error, {:unexpected, other}}
+    end
+  end
+
+  defp cuisine_categories(cuisine) when is_binary(cuisine) and cuisine != "" do
+    slug =
+      cuisine
+      |> String.trim()
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9]+/, "_")
+      |> String.trim("_")
+
+    if slug == "", do: nil, else: "catering.restaurant.#{slug}"
+  end
+
+  defp cuisine_categories(_), do: nil
+
+  defp prefer_cuisine(cands, "") when is_list(cands), do: cands
+
+  defp prefer_cuisine(cands, cuisine) when is_list(cands) and is_binary(cuisine) do
+    needle = String.downcase(cuisine)
+
+    {matched, rest} =
+      Enum.split_with(cands, fn c ->
+        cuisine_match?(c, needle)
+      end)
+
+    matched ++ rest
+  end
+
+  defp prefer_cuisine(cands, _), do: cands
+
+  defp cuisine_match?(c, needle) when is_map(c) and is_binary(needle) do
+    hay =
+      [
+        c["cuisine"],
+        Enum.join(List.wrap(c["categories"]), " ")
+      ]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(" ")
+      |> String.downcase()
+
+    String.contains?(hay, needle)
+  end
+
+  defp cuisine_match?(_, _), do: false
+
+  defp fallback_cuisine_filter(q, dest, want, cuisine, radius) do
+    case retry_radius(
+           Map.put(q, "categories", "catering.restaurant"),
+           dest,
+           max(want * 3, 12),
+           "catering.restaurant",
+           radius
+         ) do
+      {:ok, cands} ->
+        matched = Enum.filter(cands, &cuisine_match?(&1, String.downcase(cuisine)))
+
+        # Honest: only return cuisine-evidenced matches; never pad with unrelated.
+        {:ok, Enum.take(matched, want)}
+
+      other ->
+        other
     end
   end
 
@@ -632,7 +708,9 @@ defmodule OpalCore.Places.Providers.Geoapify do
     end
   end
 
-  defp http_get(url, params) do
+  defp http_get(url, params), do: http_get(url, params, 0)
+
+  defp http_get(url, params, attempt) do
     case Req.get(url,
            params: params,
            headers: [{"accept", "application/json"}],
@@ -644,6 +722,11 @@ defmodule OpalCore.Places.Providers.Geoapify do
 
       {:ok, %{status: status, body: body}} ->
         {:error, {:http, status, body}}
+
+      {:error, %Req.TransportError{reason: reason}} = err
+      when reason in [:closed, :timeout, :econnrefused, :nxdomain] and attempt < 1 ->
+        Process.sleep(250)
+        http_get(url, params, attempt + 1)
 
       {:error, reason} ->
         {:error, reason}

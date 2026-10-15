@@ -83,7 +83,7 @@ type Props = {
   /** Paste W 3.1 — Idea → planning flow prefilled. */
   onStartPlanning?: (hint: { id: string; title: string; who?: string }) => void;
   /** Optional entry source for Back semantics proof */
-  entrySource?: "home" | "graphs";
+  entrySource?: "home" | "graphs" | "chats" | "opal";
   /** Real SharedPlan detail. Fixture cards ignore this unless the id matches. */
   reality?: CanonicalGraph | null;
   /** LiveExperience arrival broadcast (conversation channel). */

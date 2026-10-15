@@ -84,18 +84,65 @@ defmodule OpalCore.Center.PlanContextPatchTest do
       )
 
     refute patch["search_mode"] == "exact_entity"
-    refute Map.has_key?(patch, "requested_venue_name")
+    assert patch["search_mode"] == "discovery"
+    assert patch["cuisine"] == "mediterranean"
+    assert patch["destination"] =~ ~r/San Diego/i
+    assert patch["discovery_request"] == true
+    assert patch["requested_venue_name"] == "__clear__"
+  end
+
+  test "find three mediterranean restaurants isolates from prior exact entity" do
+    prior = %{
+      "who" => "Quinn",
+      "search_mode" => "exact_entity",
+      "requested_venue_name" => "Nighthawk",
+      "destination" => "Coronado",
+      "plan_id" => "old-plan",
+      "when" => "Friday",
+      "when_resolved" => "2026-10-16",
+      "when_time" => "19:30"
+    }
+
+    patch =
+      PlanContextPatch.extract_from_text(
+        "Find three Mediterranean restaurants in Coronado.",
+        prior
+      )
+
+    assert patch["search_mode"] == "discovery"
+    assert patch["cuisine"] == "mediterranean"
+    assert patch["destination"] == "Coronado"
+    assert patch["discovery_request"] == true
+    assert patch["requested_venue_name"] == "__clear__"
+    assert patch["who"] == "__clear__"
+    assert patch["plan_id"] == "__clear__"
+    assert patch["when"] == "__clear__"
+    assert patch["when_resolved"] == "__clear__"
+    assert patch["when_time"] == "__clear__"
+
+    next = PlanContextPatch.apply(prior, patch)
+    assert next["search_mode"] == "discovery"
+    assert next["cuisine"] == "mediterranean"
+    refute Map.get(next, "requested_venue_name")
+    refute Map.get(next, "who")
+    refute Map.get(next, "plan_id")
+    refute Map.get(next, "when")
+    refute Map.get(next, "when_resolved")
+    refute Map.get(next, "when_time")
   end
 
   test "generic Friday dinner clears who inheritance cues" do
     assert PlanContextPatch.generic_open_window?("Friday dinner — still open")
     assert PlanContextPatch.generic_open_window?("Dinner Friday")
+    assert PlanContextPatch.generic_open_window?("Let's arrange dinner Friday.")
     refute PlanContextPatch.generic_open_window?("Friday dinner with Maya")
 
     prior = %{"who" => "Maya", "destination" => "Mexico City", "plan_id" => "old"}
-    patch = PlanContextPatch.extract_from_text("Friday dinner — still open", prior)
+    patch = PlanContextPatch.extract_from_text("Let's arrange dinner Friday.", prior)
     assert patch["who"] == "__clear__"
     assert patch["intent_scope"] == "generic_open_window"
+    assert patch["when"] == "Friday"
+    assert patch["wants_restaurant"] == true
   end
 
   test "change time to 8 PM extracts when_time" do

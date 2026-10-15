@@ -869,7 +869,15 @@ export function OpalApp() {
   /** EXT-01 Graph detail (145:150)  -  Open Graph destination · Figma 373:385 */
   const [graphDetailCardId, setGraphDetailCardId] = useState<string | null>(null);
   const [canonicalGraph, setCanonicalGraph] = useState<CanonicalGraph | null>(null);
-  const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<"home" | "graphs">("home");
+  const [graphDetailEntrySource, setGraphDetailEntrySource] = useState<
+    "home" | "graphs" | "chats" | "opal"
+  >("home");
+  /** When Graph Detail opened from a human Chat, restore that conversation on Back. */
+  const [graphDetailReturnChatId, setGraphDetailReturnChatId] = useState<string | null>(null);
+  /** Repair #7 P0-F — Journey Back returns to the originating surface. */
+  const [journeyEntrySource, setJourneyEntrySource] = useState<
+    "chats" | "graphs" | "home" | "opal" | "you"
+  >("graphs");
   /** Center → Chats pill → Feed Graph → on_the_way interop surfaces. */
   const [createdPlanSurfaces, setCreatedPlanSurfaces] = useState<CreatedPlanSurface[]>(
     () => loadCreatedPlans(),
@@ -1738,6 +1746,10 @@ export function OpalApp() {
       }
       const next = [...list, ui].sort((a, b) => {
         if (a.serverSeq != null && b.serverSeq != null) return a.serverSeq - b.serverSeq;
+        const at = a.createdAt ? Date.parse(a.createdAt) : NaN;
+        const bt = b.createdAt ? Date.parse(b.createdAt) : NaN;
+        if (Number.isFinite(at) && Number.isFinite(bt) && at !== bt) return at - bt;
+        // Append-order fallback: keep relative insertion when timestamps absent.
         return 0;
       });
       return { ...prev, [raw.conversation_id]: next };
@@ -3957,8 +3969,7 @@ export function OpalApp() {
    * 618:674 "Tap a Graph to open it." → 618:758 Graph Detail persists.
    * 618:3288 Journey requires existing SharedPlan/commit  -  not Graph Detail mount.
    * activateJourney remains only for refreshing an already-open Journey (location grant).
-   * Next Together and Your Graphs open that same detail. Back from a chat
-   * launch returns to Graphs, with Graphs active on the dock.
+   * Repair #7 P0-F: Back returns to the originating surface (Chat / Graphs / Home / Center).
    */
   const closeGraphDetail = () => {
     setGraphDetailCardId(null);
@@ -3966,13 +3977,20 @@ export function OpalApp() {
     clearGraphAddress();
   };
 
-  const openGraphDetail = (planId: string, entry: "home" | "graphs" = "graphs") => {
+  const openGraphDetail = (
+    planId: string,
+    entry: "home" | "graphs" | "chats" | "opal" = "graphs",
+  ) => {
     const chat = chats.find(
       (row) => row.planProjection?.lineage_id === planId || row.id === planId,
     );
     const graph = chat ? canonicalGraphFromChat(chat, session?.display_name || null) : null;
-    if (activeChatId) {
+    const returnChatId = entry === "chats" ? activeChatId : null;
+    if (activeChatId && entry !== "chats") {
       productRealtime.leaveConversation(activeChatId);
+      setActiveChatId(null);
+    } else if (activeChatId && entry === "chats") {
+      // Keep membership; hide the chat pane under Graph Detail without losing origin.
       setActiveChatId(null);
     }
     setOpalAmbientOpen(false);
@@ -3980,8 +3998,10 @@ export function OpalApp() {
     setGraphCreateContext({});
     setRepeatWhoOpen(false);
     setPlanDetailOpen(false);
-    const resolvedEntry = graph && entry !== "home" ? "graphs" : entry;
+    // Do not coerce Chat/Center origins into Graphs — that caused Back → Graphs.
+    const resolvedEntry = entry;
     setGraphDetailEntrySource(resolvedEntry);
+    setGraphDetailReturnChatId(returnChatId);
     setCanonicalGraph((current) => {
       if (graph) return graph;
       if (current?.planId === planId) return current;
@@ -3989,6 +4009,9 @@ export function OpalApp() {
     });
     setGraphDetailCardId(graph?.planId || planId);
     if (resolvedEntry === "graphs") setTab("graphs");
+    else if (resolvedEntry === "home") setTab("home");
+    else if (resolvedEntry === "opal") setTab("opal");
+    else if (resolvedEntry === "chats") setTab("chats");
     if (graph) writeGraphAddress(graph.planId);
   };
 
@@ -4520,7 +4543,7 @@ export function OpalApp() {
                       : null) ||
                     activeChat.planProjection?.lineage_id ||
                     activeChat.id;
-                  openGraphDetail(planId, "graphs");
+                  openGraphDetail(planId, "chats");
                 }
               : undefined
           }
@@ -4608,7 +4631,7 @@ export function OpalApp() {
                   // Prefer this person's past plan; otherwise open the contact timeline sheet
                   // (shared plans + memories) which is the relationship history surface.
                   if (pastHistoryPlanId) {
-                    openGraphDetail(pastHistoryPlanId, "graphs");
+                    openGraphDetail(pastHistoryPlanId, "chats");
                     return;
                   }
                   setContactProfileOpen(true);
@@ -4779,7 +4802,7 @@ export function OpalApp() {
             }}
             onOpenPlan={(planId) => {
               setContactProfileOpen(false);
-              openGraphDetail(planId, "graphs");
+              openGraphDetail(planId, "chats");
             }}
           />
         ) : null}
@@ -4866,7 +4889,7 @@ export function OpalApp() {
                   : null) ||
                 activeChat.planProjection?.lineage_id ||
                 activeChat.id;
-              openGraphDetail(planId, "graphs");
+              openGraphDetail(planId, "chats");
             }}
           />
         ) : null}
@@ -5135,7 +5158,7 @@ export function OpalApp() {
                   chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
                   alignment?.lineage_id;
                 if (planId) {
-                  openGraphDetail(planId, "graphs");
+                  openGraphDetail(planId, "chats");
                   return;
                 }
                 const label = activeChat.signalLabel || headerPlan?.summary || "";
@@ -5305,7 +5328,7 @@ export function OpalApp() {
                         className="opal-filament-hit"
                         data-testid="opal-plan-filament-hit"
                         aria-label={`Open plan: ${filamentLabel}`}
-                        onClick={() => openGraphDetail(String(planHitId))}
+                        onClick={() => openGraphDetail(String(planHitId), "chats")}
                         style={filamentHitStyle}
                       >
                         {filamentInner}
@@ -6506,6 +6529,7 @@ export function OpalApp() {
                             void getJourney(res.plan.id, session.access_token)
                               .then((j) => {
                                 if (j.journey) {
+                                  setJourneyEntrySource("chats");
                                   setActiveJourney(j.journey as JourneyProjection);
                                   setFindPlaceOpen(false);
                                 }
@@ -8656,6 +8680,7 @@ export function OpalApp() {
               // Navigation only  -  never mutate commitment / accept / fabricate
               void getJourney(planId, session.access_token)
                 .then((res) => {
+                  setJourneyEntrySource("home");
                   setActiveJourney(res.journey as JourneyProjection);
                   setGraphDetailCardId(null);
                 })
@@ -9784,9 +9809,20 @@ export function OpalApp() {
           }}
           onClose={() => {
             const entry = graphDetailEntrySource;
+            const returnChat = graphDetailReturnChatId;
             closeGraphDetail();
-            if (entry === "graphs") setTab("graphs");
-            setHomeScrollToken((t) => t + 1);
+            setGraphDetailReturnChatId(null);
+            if (entry === "chats") {
+              setTab("chats");
+              if (returnChat) void openChat(returnChat);
+            } else if (entry === "graphs") {
+              setTab("graphs");
+            } else if (entry === "opal") {
+              setTab("opal");
+            } else {
+              setTab("home");
+              setHomeScrollToken((t) => t + 1);
+            }
             // P2.2 — restore Search when Graph was opened from Search result
             if (searchReturnPending) {
               setSearchReturnPending(false);
@@ -9811,10 +9847,17 @@ export function OpalApp() {
           mediaSrc="/demo/moments/food.jpg"
           locationGranted={locationGranted}
           onBack={() => {
+            const entry = journeyEntrySource;
             setActiveJourney(null);
             setJourneyManageOpen(false);
             setCantMakeItOpen(false);
             setJourneyAddPeopleOpen(false);
+            // Restore originating surface (Chat → Chat, Graphs → Graphs, Center → Center).
+            if (entry === "chats") setTab("chats");
+            else if (entry === "graphs") setTab("graphs");
+            else if (entry === "opal") setTab("opal");
+            else if (entry === "you") setTab("you");
+            else setTab("home");
           }}
           onRequestLocation={() => setLocationPermOpen(true)}
           onManage={() => setJourneyManageOpen(true)}

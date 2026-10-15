@@ -1,0 +1,729 @@
+{
+  "build": {
+    "branch_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+    "vite": "http://127.0.0.1:5173",
+    "api": "http://127.0.0.1:4000",
+    "userId": "47aa5856-8c56-4b18-a4d4-6a9b456516a8"
+  },
+  "findings": [
+    {
+      "id": "API_NIGHTHAWK_QUEUED",
+      "status": "API_PASS",
+      "detail": "status=201 body=Looking up Nighthawk in Coronado… job=0b09b0a6-f7a2-43de-ba5d-343fc88021c1",
+      "evidence": {
+        "body": "Looking up Nighthawk in Coronado…",
+        "job": "0b09b0a6-f7a2-43de-ba5d-343fc88021c1"
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:08.065Z"
+    },
+    {
+      "id": "API_NIGHTHAWK_RESOLVED",
+      "status": "API_PASS",
+      "detail": "state=results_ready body=Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powere opts=Night Hawk",
+      "evidence": {
+        "options": [
+          {
+            "address": "Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America",
+            "categories": [
+              "catering.restaurant"
+            ],
+            "cuisine": null,
+            "id": "51be8b529d694b5dc059b91f4b7a73574040f00102f9018b606f5a00000000c0020192030a4e69676874204861776b",
+            "lat": 32.6832116,
+            "lon": -117.1783212,
+            "name": "Night Hawk",
+            "provider": "geoapify",
+            "rating_available": false,
+            "reservation_support": false,
+            "search_geography": "Coronado"
+          }
+        ],
+        "body": "Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify"
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:16.407Z"
+    },
+    {
+      "id": "API_MED_QUEUED_DISCOVERY",
+      "status": "API_PASS",
+      "detail": "job=53822bef-56d7-4a39-ba72-74a556f282e5 mode=discovery when=undefined body=Looking for Mediterranean restaurants in Coronado…",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "cuisine": "mediterranean",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "resolved",
+            "lodging": "not_applicable",
+            "people": "not_applicable",
+            "reservation": "not_applicable",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "pending",
+            "when": "pending",
+            "work_conflict": "pending"
+          },
+          "destination": "Coronado",
+          "discovery_request": true,
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "cuisine_discovery",
+          "next_dependency": "when",
+          "opportunity_fingerprint": "df531a558662c012",
+          "plan_id": "a45e02a5-4202-46f2-b3ab-f168fb0319a2",
+          "requested_venue_locality": "Coronado",
+          "search_mode": "discovery",
+          "solo": false,
+          "updated_at": "2026-10-15T03:47:16.552830Z",
+          "visibility_mode": "normal",
+          "wants_restaurant": true,
+          "what": "dinner"
+        },
+        "body": "Looking for Mediterranean restaurants in Coronado…"
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:16.585Z"
+    },
+    {
+      "id": "API_MED_RESULTS",
+      "status": "API_PASS",
+      "detail": "state=results_ready n=3 body=I found 3 mediterranean options in Coronado, CA, United States of America: Night Hawk, Mimosa, Callie. Pick one and I'll attach it to the plan. Powered by Geoapify names=Night Hawk|Mimosa|Callie",
+      "evidence": {
+        "options": [
+          {
+            "address": "Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America",
+            "categories": [
+              "building",
+              "building.catering",
+              "catering",
+              "catering.restaurant",
+              "catering.restaurant.greek",
+              "catering.restaurant.mediterranean"
+            ],
+            "cuisine": "greek;mediterranean",
+            "id": "515e201f9d694b5dc059a93e4a7a73574040f00102f9018b606f5a0000000092030a4e69676874204861776b",
+            "lat": 32.683211599590614,
+            "lon": -117.17832115211192,
+            "name": "Night Hawk",
+            "provider": "geoapify",
+            "rating_available": false,
+            "reservation_support": false,
+            "search_geography": "Coronado, CA, United States of America"
+          },
+          {
+            "address": "Mimosa, 409 F Street, San Diego, CA 92101, United States of America",
+            "categories": [
+              "catering",
+              "catering.restaurant",
+              "catering.restaurant.mediterranean"
+            ],
+            "cuisine": "mediterranean",
+            "id": "518c3cff2c4c4a5dc05921b998f4525b4040f00103f901f79e91e3020000009203064d696d6f7361",
+            "lat": 32.713469099590164,
+            "lon": -117.1608994,
+            "name": "Mimosa",
+            "provider": "geoapify",
+            "rating_available": false,
+            "reservation_support": false,
+            "search_geography": "Coronado, CA, United States of America"
+          },
+          {
+            "address": "Callie, 1195 Island Avenue, San Diego, CA 92101, United States of America",
+            "categories": [
+              "catering",
+              "catering.restaurant",
+              "catering.restaurant.mediterranean"
+            ],
+            "cuisine": "mediterranean",
+            "id": "51137937bbda495dc059da3e14b5ea5a4040f00103f901cfb8a9180300000092030643616c6c6965",
+            "lat": 32.71028769959021,
+            "lon": -117.1539753,
+            "name": "Callie",
+            "provider": "geoapify",
+            "rating_available": false,
+            "reservation_support": false,
+            "search_geography": "Coronado, CA, United States of America"
+          }
+        ],
+        "body": "I found 3 mediterranean options in Coronado, CA, United States of America: Night Hawk, Mimosa, Callie. Pick one and I'll attach it to the plan. Powered by Geoapify"
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:21.611Z"
+    },
+    {
+      "id": "API_FRIDAY_GENERIC",
+      "status": "API_PASS",
+      "detail": "scope=generic_open_window when=Friday who=undefined body=I'll aim for around 7:30 unless you want later.",
+      "evidence": {
+        "planning": {
+          "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+          "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+          "category": "restaurant",
+          "dependencies": {
+            "availability": "not_applicable",
+            "destination": "pending",
+            "lodging": "not_applicable",
+            "people": "pending",
+            "reservation": "not_applicable",
+            "reveal_invite": "not_applicable",
+            "travel": "not_applicable",
+            "venue": "pending",
+            "when": "resolved",
+            "work_conflict": "pending"
+          },
+          "initial_planning_visibility": "owner_private",
+          "intent_scope": "generic_open_window",
+          "next_dependency": "people",
+          "opportunity_fingerprint": "693f92222330309c",
+          "solo": false,
+          "updated_at": "2026-10-15T03:47:21.758550Z",
+          "visibility_mode": "normal",
+          "what": "dinner Friday",
+          "when": "Friday",
+          "when_resolved": "2026-10-16",
+          "when_time": "19:30"
+        },
+        "intent": {
+          "confidence": "high",
+          "entities": {
+            "category": "restaurant",
+            "plan_type": "in_person",
+            "wants_restaurant": true,
+            "what": "dinner Friday",
+            "when": "Friday",
+            "when_resolved": "2026-10-16",
+            "who_unresolved": true
+          },
+          "intent": "plan_create",
+          "raw_text": "Let's arrange dinner Friday."
+        },
+        "body": "I'll aim for around 7:30 unless you want later."
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:21.775Z"
+    },
+    {
+      "id": "BROWSER_MEMBER_SHELL",
+      "status": "BROWSER_PASS",
+      "detail": "member=true",
+      "evidence": {},
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:26.560Z"
+    },
+    {
+      "id": "BROWSER_CENTER_COMPOSER",
+      "status": "BROWSER_PASS",
+      "detail": "inputVisible=true",
+      "evidence": {},
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:29.700Z"
+    },
+    {
+      "id": "BROWSER_COMPOSER_LINES_1",
+      "status": "BROWSER_PASS",
+      "detail": "{\"scrollHeight\":36,\"clientHeight\":36,\"height\":\"36px\",\"overflowY\":\"auto\",\"inputBottom\":813,\"shellBottom\":820,\"shellHeight\":54,\"overflowsShell\":false}",
+      "evidence": {
+        "scrollHeight": 36,
+        "clientHeight": 36,
+        "height": "36px",
+        "overflowY": "auto",
+        "inputBottom": 813,
+        "shellBottom": 820,
+        "shellHeight": 54,
+        "overflowsShell": false
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:30.201Z"
+    },
+    {
+      "id": "BROWSER_COMPOSER_LINES_3",
+      "status": "BROWSER_PASS",
+      "detail": "{\"scrollHeight\":76,\"clientHeight\":76,\"height\":\"76px\",\"overflowY\":\"auto\",\"inputBottom\":813,\"shellBottom\":820,\"shellHeight\":90,\"overflowsShell\":false}",
+      "evidence": {
+        "scrollHeight": 76,
+        "clientHeight": 76,
+        "height": "76px",
+        "overflowY": "auto",
+        "inputBottom": 813,
+        "shellBottom": 820,
+        "shellHeight": 90,
+        "overflowsShell": false
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:30.670Z"
+    },
+    {
+      "id": "BROWSER_COMPOSER_LINES_5",
+      "status": "BROWSER_PASS",
+      "detail": "{\"scrollHeight\":116,\"clientHeight\":100,\"height\":\"100px\",\"overflowY\":\"auto\",\"inputBottom\":813,\"shellBottom\":820,\"shellHeight\":114,\"overflowsShell\":false}",
+      "evidence": {
+        "scrollHeight": 116,
+        "clientHeight": 100,
+        "height": "100px",
+        "overflowY": "auto",
+        "inputBottom": 813,
+        "shellBottom": 820,
+        "shellHeight": 114,
+        "overflowsShell": false
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:31.227Z"
+    },
+    {
+      "id": "BROWSER_COMPOSER_LINES_10",
+      "status": "BROWSER_PASS",
+      "detail": "{\"scrollHeight\":416,\"clientHeight\":100,\"height\":\"100px\",\"overflowY\":\"auto\",\"inputBottom\":813,\"shellBottom\":820,\"shellHeight\":114,\"overflowsShell\":false}",
+      "evidence": {
+        "scrollHeight": 416,
+        "clientHeight": 100,
+        "height": "100px",
+        "overflowY": "auto",
+        "inputBottom": 813,
+        "shellBottom": 820,
+        "shellHeight": 114,
+        "overflowsShell": false
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:31.729Z"
+    },
+    {
+      "id": "BROWSER_NIGHTHAWK",
+      "status": "BROWSER_PASS",
+      "detail": "netPosts=1 hasNighthawk=true snippet=cking Coronado…\n\nFound it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify\n\nNight Hawk\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\n\nPowered by Geoapify",
+      "evidence": {
+        "net": [
+          {
+            "url": "http://127.0.0.1:5173/api/v1/product/opal/conversation/messages",
+            "post": "{\"body\":\"Arrange dinner at Nighthawk in Coronado.\"}"
+          },
+          {
+            "url": "http://127.0.0.1:5173/api/v1/product/opal/conversation/messages",
+            "post": "{\"body\":\"Find three Mediterranean restaurants in Coronado.\"}"
+          },
+          {
+            "url": "http://127.0.0.1:5173/api/v1/product/opal/conversation/messages",
+            "post": "{\"body\":\"Let's arrange dinner Friday.\"}"
+          }
+        ],
+        "snippet": " States of America\n\nPowered by Geoapify\n\nLet's arrange dinner Friday.\n\nI'll aim for around 7:30 unless you want later.\n\nArrange dinner at Nighthawk in Coronado.\n\nLooking up Nighthawk in Coronado…\n\nChecking Coronado…\n\nFound it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify\n\nNight Hawk\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\n\nPowered by Geoapify"
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:41.211Z"
+    },
+    {
+      "id": "BROWSER_MEDITERRANEAN",
+      "status": "BROWSER_PASS",
+      "detail": "snippet= it to the plan. Powered by Geoapify\n\nNight Hawk\nGreek;Mediterranean\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify",
+      "evidence": {
+        "snippet": "…\n\nChecking Coronado…\n\nI found 3 mediterranean options in Coronado, CA, United States of America: Night Hawk, Mimosa, Callie. Pick one and I'll attach it to the plan. Powered by Geoapify\n\nNight Hawk\nGreek;Mediterranean\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify"
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:52.792Z"
+    },
+    {
+      "id": "BROWSER_FRIDAY",
+      "status": "BROWSER_PASS",
+      "detail": "snippet=tates of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify\n\nLet's arrange dinner Friday.\n\nI'll aim for around 7:30 unless you want later.",
+      "evidence": {
+        "snippet": "eoapify\n\nNight Hawk\nGreek;Mediterranean\nNight Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America\nMimosa\nMediterranean\nMimosa, 409 F Street, San Diego, CA 92101, United States of America\nCallie\nMediterranean\nCallie, 1195 Island Avenue, San Diego, CA 92101, United States of America\n\nPowered by Geoapify\n\nLet's arrange dinner Friday.\n\nI'll aim for around 7:30 unless you want later."
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:47:58.283Z"
+    },
+    {
+      "id": "BROWSER_CHAT_ORDER_LAYOUT",
+      "status": "BROWSER_PASS",
+      "detail": "[{\"top\":141,\"text\":\"C\\nChanelle\\n\\nDinner might work Saturday. Juniper?\\n\\n8:05 PM\"},{\"top\":254,\"text\":\"Juniper tonight?\\n\\n8:12 PM\"},{\"top\":356.25,\"text\":\"C\\nChanelle\\n\\nI can do 7:30.\\n\\n8:14 PM\"},{\"top\":447.5,\"text\":\"Perfect. I'll grab a table.\\n\\n8:15 PM\\nSent\"}]",
+      "evidence": {
+        "order": [
+          {
+            "top": 141,
+            "text": "C\nChanelle\n\nDinner might work Saturday. Juniper?\n\n8:05 PM"
+          },
+          {
+            "top": 254,
+            "text": "Juniper tonight?\n\n8:12 PM"
+          },
+          {
+            "top": 356.25,
+            "text": "C\nChanelle\n\nI can do 7:30.\n\n8:14 PM"
+          },
+          {
+            "top": 447.5,
+            "text": "Perfect. I'll grab a table.\n\n8:15 PM\nSent"
+          }
+        ]
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:48:02.405Z"
+    },
+    {
+      "id": "BROWSER_CHAT_NEW_BELOW",
+      "status": "BROWSER_PASS",
+      "detail": "before=4 probeIdx=4 after=[{\"top\":49.25,\"text\":\"C\\nChanelle\\n\\nI can do 7:30.\\n\\n8:14 PM\"},{\"top\":140.5,\"text\":\"Perfect. I'll grab a table.\\n\\n8:15 PM\"},{\"top\":328.4375,\"text\":\"R7 order probe 1792036082409\\n\\nNow\\nSent\"},{\"top\":473.4375,\"text\":\"C\\nChanelle\\n\\nJust tell me if anything shifts.\\n\\nNow\"}]",
+      "evidence": {
+        "after": [
+          {
+            "top": -166,
+            "text": "C\nChanelle\n\nDinner might work Saturday. Juniper?\n\n8:05 PM"
+          },
+          {
+            "top": -53,
+            "text": "Juniper tonight?\n\n8:12 PM"
+          },
+          {
+            "top": 49.25,
+            "text": "C\nChanelle\n\nI can do 7:30.\n\n8:14 PM"
+          },
+          {
+            "top": 140.5,
+            "text": "Perfect. I'll grab a table.\n\n8:15 PM"
+          },
+          {
+            "top": 328.4375,
+            "text": "R7 order probe 1792036082409\n\nNow\nSent"
+          },
+          {
+            "top": 473.4375,
+            "text": "C\nChanelle\n\nJust tell me if anything shifts.\n\nNow"
+          }
+        ],
+        "probeIdx": 4
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:48:03.944Z"
+    },
+    {
+      "id": "BROWSER_BACK_TO_CHAT",
+      "status": "BROWSER_PASS",
+      "detail": "threadRows=4 graphsTab=false",
+      "evidence": {},
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:48:06.422Z"
+    },
+    {
+      "id": "API_FOUNDER_LED_TIME_PATCH",
+      "status": "API_PASS",
+      "detail": "planBefore=62110290-7bd1-4af4-b23c-a139fc3840e3 planAfter=62110290-7bd1-4af4-b23c-a139fc3840e3 state=plan_patched slots=[\"when_time\"] body=Updated — Friday · 9:15 PM. Same plan, same people.",
+      "evidence": {
+        "planId": "62110290-7bd1-4af4-b23c-a139fc3840e3",
+        "corrPlan": "62110290-7bd1-4af4-b23c-a139fc3840e3",
+        "corrMd": {
+          "PLAN_ID_STABLE": true,
+          "PLAN_ID_STABLE_AFTER_CORRECTION": true,
+          "action_state": "plan_patched",
+          "after_context": {
+            "destination": "Coronado",
+            "time_label": "Friday · 9:15 PM",
+            "venue": "Nighthawk",
+            "visibility_mode": "normal",
+            "when": "Friday",
+            "when_time": "9:15 PM",
+            "who": null
+          },
+          "before_context": {
+            "destination": "Coronado",
+            "venue": "Nighthawk",
+            "visibility_mode": "normal",
+            "when": "Friday",
+            "when_time": "19:30",
+            "who": null
+          },
+          "context_snapshot": {
+            "conversation_history": [
+              {
+                "body": "Looking up Nighthawk in Coronado…",
+                "intent": {
+                  "confidence": "high",
+                  "entities": {
+                    "category": "restaurant",
+                    "destination": "Coronado",
+                    "plan_type": "in_person",
+                    "venue": "Nighthawk",
+                    "wants_restaurant": true,
+                    "what": "dinner",
+                    "when": "Friday",
+                    "when_resolved": "2026-10-16",
+                    "who": [
+                      "Coronado"
+                    ]
+                  },
+                  "intent": "plan_create",
+                  "raw_text": "Arrange dinner at Nighthawk in Coronado."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify",
+                "role": "opal"
+              },
+              {
+                "body": "Find three Mediterranean restaurants in Coronado.",
+                "role": "user"
+              },
+              {
+                "body": "Looking for Mediterranean restaurants in Coronado…",
+                "intent": {
+                  "confidence": "high",
+                  "entities": {
+                    "category": "restaurant",
+                    "destination": "Coronado",
+                    "wants_restaurant": true,
+                    "what": "dinner"
+                  },
+                  "intent": "chat",
+                  "raw_text": "Find three Mediterranean restaurants in Coronado."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "I found 3 mediterranean options in Coronado, CA, United States of America: Night Hawk, Mimosa, Callie. Pick one and I'll attach it to the plan. Powered by Geoapify",
+                "role": "opal"
+              },
+              {
+                "body": "Let's arrange dinner Friday.",
+                "role": "user"
+              },
+              {
+                "body": "I'll aim for around 7:30 unless you want later.",
+                "intent": {
+                  "confidence": "high",
+                  "entities": {
+                    "category": "restaurant",
+                    "plan_type": "in_person",
+                    "wants_restaurant": true,
+                    "what": "dinner Friday",
+                    "when": "Friday",
+                    "when_resolved": "2026-10-16",
+                    "who_unresolved": true
+                  },
+                  "intent": "plan_create",
+                  "raw_text": "Let's arrange dinner Friday."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "Arrange dinner at Nighthawk in Coronado on Friday.",
+                "role": "user"
+              },
+              {
+                "body": "Looking up Nighthawk in Coronado…",
+                "intent": {
+                  "confidence": "high",
+                  "entities": {
+                    "category": "restaurant",
+                    "destination": "Coronado",
+                    "plan_type": "in_person",
+                    "venue": "Nighthawk",
+                    "wants_restaurant": true,
+                    "what": "dinner",
+                    "when": "Friday",
+                    "when_resolved": "2026-10-16",
+                    "who": [
+                      "Coronado"
+                    ]
+                  },
+                  "intent": "plan_create",
+                  "raw_text": "Arrange dinner at Nighthawk in Coronado on Friday."
+                },
+                "role": "opal"
+              },
+              {
+                "body": "Found it — Night Hawk · Night Hawk, 1315 Orange Avenue, Coronado, CA 92118, United States of America. I'll use this as the venue (not a reservation yet). Powered by Geoapify",
+                "role": "opal"
+              }
+            ],
+            "financial": null,
+            "fit": null,
+            "group_tastes": [],
+            "message": {
+              "length": 24,
+              "sent_at": "2026-10-15T03:48:13.570936Z",
+              "text": "Make it 9:15 PM instead."
+            },
+            "preferences": {
+              "timezone": "America/Denver",
+              "usual_meeting_link": null
+            },
+            "relationships": {
+              "657f9c05-e106-453d-b1ec-c8bd557fc30a": "friend",
+              "a530b927-81df-4816-be69-a7eb08c21f68": "friend",
+              "b599fcd7-7a97-4736-8221-86e0a6d8dc7a": "close_friend"
+            },
+            "social": {
+              "frequent_contacts": [
+                {
+                  "display_name": "Founder",
+                  "user_id": "f69f941c-2288-432e-a46d-c0f143eaa8b8"
+                },
+                {
+                  "display_name": "Walk B",
+                  "user_id": "b599fcd7-7a97-4736-8221-86e0a6d8dc7a"
+                },
+                {
+                  "display_name": "Maya",
+                  "user_id": "a4444444-4444-4444-8444-444444444444"
+                },
+                {
+                  "display_name": "Sabrina",
+                  "user_id": "f0c4a4e1-1111-4111-8111-c4a4e1100004"
+                },
+                {
+                  "display_name": "Nina",
+                  "user_id": "f0c4a4e1-1111-4111-8111-c4a4e1100005"
+                }
+              ],
+              "group_patterns": []
+            },
+            "taste": {
+              "cuisines": [
+                "quiet restaurants codeword W9ISO_PRIVATE_d627448c"
+              ],
+              "price_comfort": null,
+              "vibes": []
+            },
+            "temporal": {
+              "active_conversation_count": 1,
+              "recent_plans": [
+                {
+                  "date": "2026-10-15T03:48:06.666480Z",
+                  "id": "62110290-7bd1-4af4-b23c-a139fc3840e3",
+                  "status": "tentative",
+                  "title": "Dinner Friday"
+                },
+                {
+                  "date": "2026-10-15T03:47:41.524047Z",
+                  "id": "189406dc-94c0-40bd-85c2-f56894e0fffa",
+                  "status": "tentative",
+                  "title": "Dinner soon"
+                },
+                {
+                  "date": "2026-10-15T03:44:21.272910Z",
+                  "id": "0aea6ee5-b479-4d72-8c72-408cc24bc406",
+                  "status": "tentative",
+                  "title": "Nighthawk · Friday · 9:15 PM"
+                },
+                {
+                  "date": "2026-10-15T03:41:47.023130Z",
+                  "id": "48bde20e-29cf-4451-86be-3ab7c56cce65",
+                  "status": "tentative",
+                  "title": "Nighthawk · Friday · 8 PM"
+                }
+              ],
+              "upcoming_celebrations": [
+                {
+                  "days_until": 4,
+                  "id": "720294c4-b037-42bd-98f8-5304a280efe7",
+                  "kind": "birthday",
+                  "name": "Maya",
+                  "top_idea": "A rematch of Dinner Saturday with Maya"
+                },
+                {
+                  "days_until": 150,
+                  "id": "24a2c147-8cbe-4c63-b39b-cd8d1d86dc0d",
+                  "kind": "birthday",
+                  "name": "Secret Aunt W9ISO_PRIVATE_d627448c",
+                  "top_idea": "Spa day"
+                }
+              ]
+            },
+            "trust_tier": "trusted",
+            "user": {
+              "display_name": "Walk1835",
+              "handle": "realitygate",
+              "id": "47aa5856-8c56-4b18-a4d4-6a9b456516a8",
+              "timezone": "America/Denver"
+            }
+          },
+          "generated_at": "2026-10-15T03:48:13.589891Z",
+          "graph_projection": true,
+          "intent": {
+            "confidence": "high",
+            "entities": {
+              "category": "restaurant",
+              "destination": "Coronado",
+              "plan_id": "62110290-7bd1-4af4-b23c-a139fc3840e3",
+              "venue": "Nighthawk",
+              "wants_restaurant": true,
+              "what": "dinner",
+              "when": "Friday",
+              "when_resolved": "2026-10-16"
+            },
+            "intent": "chat",
+            "raw_text": "Make it 9:15 PM instead."
+          },
+          "patch": {
+            "when_time": "9:15 PM"
+          },
+          "plan_id": "62110290-7bd1-4af4-b23c-a139fc3840e3",
+          "planning_context": {
+            "OTHER_PARTY_EVENT_TITLES_EXPOSED": false,
+            "RELATIONSHIP_TYPE_AUTO_GRANTS_CALENDAR": false,
+            "category": "restaurant",
+            "dependencies": {
+              "availability": "not_applicable",
+              "destination": "resolved",
+              "lodging": "not_applicable",
+              "people": "not_applicable",
+              "reservation": "pending",
+              "reveal_invite": "not_applicable",
+              "travel": "not_applicable",
+              "venue": "resolved",
+              "when": "resolved",
+              "work_conflict": "pending"
+            },
+            "destination": "Coronado",
+            "initial_planning_visibility": "owner_private",
+            "intent_scope": "exact_venue",
+            "next_dependency": "people",
+            "opportunity_fingerprint": "25c4e03f2d0d484b",
+            "plan_id": "62110290-7bd1-4af4-b23c-a139fc3840e3",
+            "requested_venue_locality": "Coronado",
+            "requested_venue_name": "Nighthawk",
+            "search_mode": "exact_entity",
+            "solo": false,
+            "updated_at": "2026-10-15T03:48:13.579854Z",
+            "venue": "Nighthawk",
+            "visibility_mode": "normal",
+            "wants_restaurant": true,
+            "what": "dinner",
+            "when": "Friday",
+            "when_resolved": "2026-10-16",
+            "when_time": "9:15 PM"
+          },
+          "slots_changed": [
+            "when_time"
+          ]
+        },
+        "body": "Updated — Friday · 9:15 PM. Same plan, same people."
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:48:13.596Z"
+    },
+    {
+      "id": "BROWSER_CHANELLE_PROPOSAL_NOT_AMENDMENT",
+      "status": "BROWSER_PASS",
+      "detail": "proposalVisible=true illicitPatch=false priorPlan=62110290-7bd1-4af4-b23c-a139fc3840e3",
+      "evidence": {
+        "rows": [
+          "C\nChanelle\n\nI can do 7:30.\n\n8:14 PM",
+          "Perfect. I'll grab a table.\n\n8:15 PM",
+          "Let's do 8 PM instead (R7 proposal 1792036095187)\n\nNow\nSent",
+          "C\nChanelle\n\nJust tell me if anything shifts.\n\nNow"
+        ],
+        "illicitPatch": false
+      },
+      "sha_hint": "6c74411943adcf779efd098bbd917b7e3baaac0e",
+      "at": "2026-10-15T03:48:17.559Z"
+    }
+  ],
+  "counts": {
+    "API_PASS": 6,
+    "BROWSER_PASS": 13
+  },
+  "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
+  "PASS2_UNLOCKED": "NO",
+  "FREEZE": "HOLD"
+}

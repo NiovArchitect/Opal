@@ -87,19 +87,26 @@ defmodule OpalCore.Center.PlanningContext do
     category = c["category"]
     exact? = c["search_mode"] == "exact_entity" and is_binary(c["requested_venue_name"]) and
                c["requested_venue_name"] != ""
+    discovery_request? = c["discovery_request"] == true or c["search_mode"] == "discovery"
 
     # Solo is first-class: who/participants are optional.
     restaurant? =
       category in ["restaurant", "dinner", "food"] or
         c["quality_intent"] in ["top", "best", "high", "strong"] or
         c["wants_restaurant"] == true or
-        exact?
+        exact? or
+        (discovery_request? and is_binary(c["cuisine"]) and c["cuisine"] != "")
 
-    # Exact named venue can start without a day if locality + name are present;
-    # still prefer when when available. Discovery still requires when.
+    # Exact named venue can start without a day if locality + name are present.
+    # Explicit cuisine/category discovery ("find Mediterranean restaurants in X")
+    # can start without a day — the ask is options, not a timed commitment yet.
+    # Soft planning discovery still prefers a when when available.
     cond do
       exact? and is_binary(dest) and dest != "" and
           (is_binary(when_s) and when_s != "" or restaurant?) ->
+        true
+
+      discovery_request? and is_binary(dest) and dest != "" and restaurant? ->
         true
 
       is_binary(dest) and dest != "" and restaurant? and is_binary(when_s) and when_s != "" ->

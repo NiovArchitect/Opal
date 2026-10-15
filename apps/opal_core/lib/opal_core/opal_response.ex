@@ -257,7 +257,18 @@ defmodule OpalCore.OpalResponse do
       group_hint = plan_create_group_hint(who, context)
       taste_hint = if group_hint, do: nil, else: plan_create_taste_hint(context)
 
-      lead = "Got it: #{what} #{when_s}#{with_who}."
+      # Avoid "dinner Friday Friday" when what already carries the day.
+      what_s = to_string(what || "")
+      when_part = to_string(when_s || "")
+      lead_core =
+        cond do
+          when_part == "" -> what_s
+          what_s == "" -> when_part
+          String.ends_with?(String.downcase(what_s), String.downcase(when_part)) -> what_s
+          true -> "#{what_s} #{when_part}"
+        end
+
+      lead = "Got it: #{lead_core}#{with_who}."
 
       parts =
         if affirmed? do

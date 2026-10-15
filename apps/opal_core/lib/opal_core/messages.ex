@@ -274,19 +274,26 @@ defmodule OpalCore.Messages do
 
   @doc """
   Message history for a conversation member, ascending by server_seq.
+
+  Fetches the newest `limit` rows then reverses so the client always receives
+  chronological oldest→newest reading order (Repair #7 P0-E).
   """
   def list_messages(conversation_id, user_id, opts \\ []) do
     with :ok <- ensure_member(conversation_id, user_id),
          :ok <- ensure_not_blocked_in_conversation(conversation_id, user_id) do
       limit = Keyword.get(opts, :limit, 100)
 
-      messages =
+      newest =
         from(m in Message,
           where: m.conversation_id == ^conversation_id,
-          order_by: [asc: m.server_seq],
+          order_by: [desc: m.server_seq, desc: m.inserted_at],
           limit: ^limit
         )
         |> Repo.all()
+
+      messages =
+        newest
+        |> Enum.reverse()
         # Defense in depth: hide engineering smoke residue from product clients.
         # Cleanup task removes rows; filter protects preview accounts between cleanups.
         |> Enum.reject(fn message ->

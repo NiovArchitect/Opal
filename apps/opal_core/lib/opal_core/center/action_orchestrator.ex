@@ -590,6 +590,11 @@ defmodule OpalCore.Center.ActionOrchestrator do
               {planning, planning["plan_id"]}
           end
 
+        categories =
+          cuisine_categories(planning["cuisine"]) ||
+            planning["categories"] ||
+            "catering.restaurant"
+
         search_attrs = %{
           user_id: user_id,
           conversation_id: conversation_id,
@@ -599,24 +604,42 @@ defmodule OpalCore.Center.ActionOrchestrator do
           quality_intent: planning["quality_intent"],
           search_mode: planning["search_mode"] || "discovery",
           requested_venue_name: planning["requested_venue_name"],
-          requested_venue_locality: planning["requested_venue_locality"] || geography
+          requested_venue_locality: planning["requested_venue_locality"] || geography,
+          cuisine: planning["cuisine"],
+          categories: categories
         }
 
         case ProviderAction.start_places_search(search_attrs) do
           {:ok, job} ->
             who = format_who(planning["who"] || planning["primary_person"])
-            when_s = planning["when"] || "Saturday"
+            when_s = planning["when"]
             dest = geography || planning["destination"]
             exact? = planning["search_mode"] == "exact_entity"
+            cuisine = planning["cuisine"]
 
             override =
               cond do
                 exact? and is_binary(planning["requested_venue_name"]) ->
                   "Looking up #{planning["requested_venue_name"]} in #{dest}…"
 
-                true ->
+                is_binary(cuisine) and cuisine != "" and is_binary(dest) ->
+                  # Cuisine discovery without inherited WHEN — do not invent Saturday/Friday.
+                  label = String.capitalize(cuisine)
+
+                  case when_s do
+                    w when is_binary(w) and w != "" ->
+                      "Got it — #{label} for #{TemporalPhrase.when_phrase(w)} in #{dest}#{who}. Checking #{dest}…"
+
+                    _ ->
+                      "Looking for #{label} restaurants in #{dest}#{who}…"
+                  end
+
+                is_binary(when_s) and when_s != "" ->
                   "Got it — #{TemporalPhrase.when_phrase(when_s)} in #{dest}#{who}. " <>
                     "Checking #{dest}…"
+
+                true ->
+                  "Checking #{dest}#{who}…"
               end
 
             meta = %{
@@ -666,15 +689,19 @@ defmodule OpalCore.Center.ActionOrchestrator do
   defp already_running?(user_id, dest, planning) when is_binary(dest) and is_map(planning) do
     cutoff = DateTime.utc_now() |> DateTime.add(-30 * 60, :second)
     venue = planning["requested_venue_name"]
+    mode = planning["search_mode"] || "discovery"
+    cuisine = planning["cuisine"]
 
+    # Only in-flight jobs suppress a new search. Completed results_ready must not
+    # silence a fresh user ask into generic chat (Repair #7 / founder phone FAIL).
     base =
       from(j in ProviderActionJob,
         where:
           j.user_id == ^user_id and j.search_geography == ^dest and
-            j.status in ^["queued", "running", "results_ready"] and
+            j.status in ^["queued", "running"] and
             j.inserted_at > ^cutoff,
         select: j,
-        limit: 5
+        limit: 8
       )
       |> Repo.all()
 
@@ -682,21 +709,41 @@ defmodule OpalCore.Center.ActionOrchestrator do
       base == [] ->
         false
 
-      is_binary(venue) and venue != "" ->
+      mode == "exact_entity" and is_binary(venue) and venue != "" ->
         Enum.any?(base, fn j ->
           req = j.request || %{}
-          req["requested_venue_name"] == venue
+          req["search_mode"] == "exact_entity" and req["requested_venue_name"] == venue
         end)
 
       true ->
-        # Discovery: any recent job for this geography counts as running.
-        true
+        # Discovery: only block identical in-flight cuisine/category searches.
+        Enum.any?(base, fn j ->
+          req = j.request || %{}
+          req_mode = req["search_mode"] || "discovery"
+          req_cuisine = req["cuisine"]
+
+          req_mode != "exact_entity" and
+            (is_nil(cuisine) or cuisine == "" or req_cuisine == cuisine)
+        end)
     end
   rescue
     _ -> false
   end
 
   defp already_running?(_, _, _), do: false
+
+  defp cuisine_categories(cuisine) when is_binary(cuisine) and cuisine != "" do
+    slug =
+      cuisine
+      |> String.trim()
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9]+/, "_")
+      |> String.trim("_")
+
+    if slug == "", do: nil, else: "catering.restaurant.#{slug}"
+  end
+
+  defp cuisine_categories(_), do: nil
 
   defp compose_time_label(when_s, when_time, prior) do
     day =

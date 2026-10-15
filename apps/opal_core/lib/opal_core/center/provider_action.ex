@@ -52,6 +52,13 @@ defmodule OpalCore.Center.ProviderAction do
             "search area"
         end
 
+      cuisine =
+        attrs[:cuisine] || attrs["cuisine"] || planning["cuisine"]
+
+      categories =
+        attrs[:categories] || attrs["categories"] ||
+          cuisine_to_categories(cuisine) || "catering.restaurant"
+
       job_attrs = %{
         "user_id" => user_id,
         "conversation_id" => conversation_id,
@@ -61,7 +68,8 @@ defmodule OpalCore.Center.ProviderAction do
         "search_geography" => geography,
         "request" => %{
           "destination_text" => geography,
-          "categories" => attrs[:categories] || attrs["categories"] || "catering.restaurant",
+          "categories" => categories,
+          "cuisine" => if(is_binary(cuisine) and cuisine != "", do: cuisine, else: nil),
           "limit" => attrs[:limit] || attrs["limit"] || 5,
           "radius_m" => attrs[:radius_m] || attrs["radius_m"] || 8_000,
           "quality_intent" => attrs[:quality_intent] || attrs["quality_intent"],
@@ -357,6 +365,7 @@ defmodule OpalCore.Center.ProviderAction do
         %{
           "destination_text" => dest,
           "categories" => job.request["categories"] || "catering.restaurant",
+          "cuisine" => job.request["cuisine"],
           "limit" => job.request["limit"] || 5,
           "radius_m" => job.request["radius_m"] || 8_000,
           "search_mode" => "discovery"
@@ -474,13 +483,27 @@ defmodule OpalCore.Center.ProviderAction do
             (result["attribution"] || "Powered by Geoapify")
 
         cands == [] ->
-          "I checked #{geo} but couldn't find named restaurant options I trust yet. Want me to retry?"
+          cuisine = job.request["cuisine"]
+
+          if is_binary(cuisine) and cuisine != "" do
+            "I checked #{geo} for #{cuisine} restaurants but couldn't verify enough matches yet. " <>
+              "Want me to widen the search, or try a different cuisine?"
+          else
+            "I checked #{geo} but couldn't find named restaurant options I trust yet. Want me to retry?"
+          end
 
         true ->
           names = Enum.map_join(cands, ", ", & &1["name"])
+          cuisine = job.request["cuisine"]
 
-          "I found a few strong options in #{geo}: #{names}. " <>
-            "Pick one and I'll attach it to the plan. " <>
+          lead =
+            if is_binary(cuisine) and cuisine != "" do
+              "I found #{length(cands)} #{cuisine} option#{if length(cands) == 1, do: "", else: "s"} in #{geo}"
+            else
+              "I found a few strong options in #{geo}"
+            end
+
+          "#{lead}: #{names}. Pick one and I'll attach it to the plan. " <>
             (result["attribution"] || "Powered by Geoapify")
       end
 
@@ -562,6 +585,19 @@ defmodule OpalCore.Center.ProviderAction do
   end
 
   defp public_opt(_), do: %{}
+
+  defp cuisine_to_categories(cuisine) when is_binary(cuisine) and cuisine != "" do
+    slug =
+      cuisine
+      |> String.trim()
+      |> String.downcase()
+      |> String.replace(~r/[^a-z0-9]+/, "_")
+      |> String.trim("_")
+
+    if slug == "", do: nil, else: "catering.restaurant.#{slug}"
+  end
+
+  defp cuisine_to_categories(_), do: nil
 
   defp format_err({:http, status, _}), do: "http_#{status}"
   defp format_err({:provider, msg}) when is_binary(msg), do: msg
