@@ -2,6 +2,7 @@
 
 **Branch:** `muse/packet-b-batch-2`  
 **Baseline (Repair #9 stamp):** `f8b94294`  
+**Product commit:** `5e7a7b4a`  
 **FOUNDER_ACCEPTED = NO** · **FREEZE = HOLD** · **PASS2_UNLOCKED = NO**  
 **FOUNDER_PHONE_PASS = NOT_CLAIMED**
 

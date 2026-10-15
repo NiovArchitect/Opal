@@ -1,7 +1,7 @@
 {
   "repair": 10,
   "baseline_r9": "7eb3e48b",
-  "sha": "f8b942948f7038a868525615b4cb2613abf23c62",
+  "sha": "5e7a7b4a892d79378eedfd42953162941e25ffc4",
   "public_url": "https://throbbing-strainer-almanac.ngrok-free.dev",
   "FOUNDER_ACCEPTED": "NO",
   "FREEZE": "HOLD",
@@ -14,7 +14,7 @@
       "id": "R10-API-M01",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Hi Opal, how are you? → I'm here and paying attention. What can I help with?",
+      "detail": "Hi Opal, how are you? \u2192 I'm here and paying attention. What can I help with?",
       "evidence": {
         "intent": "chat",
         "job": false,
@@ -28,7 +28,7 @@
       "id": "R10-API-M02",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What can you help me with? → I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you w",
+      "detail": "What can you help me with? \u2192 I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you w",
       "evidence": {
         "intent": "chat",
         "job": false,
@@ -42,7 +42,7 @@
       "id": "R10-API-M03",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Plan something for Maya's birthday. → Got it — I'll start planning privately with Maya.",
+      "detail": "Plan something for Maya's birthday. \u2192 Got it \u2014 I'll start planning privately with Maya.",
       "evidence": {
         "intent": "plan_create",
         "job": false,
@@ -56,7 +56,7 @@
       "id": "R10-API-M04",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Actually, let's talk about something else. → Of course — what's on your mind?",
+      "detail": "Actually, let's talk about something else. \u2192 Of course \u2014 what's on your mind?",
       "evidence": {
         "intent": "chat",
         "job": false,
@@ -70,7 +70,7 @@
       "id": "R10-API-M05",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Find The Henry restaurant in Coronado. → Looking up The Henry in Coronado…",
+      "detail": "Find The Henry restaurant in Coronado. \u2192 Looking up The Henry in Coronado\u2026",
       "evidence": {
         "intent": "chat",
         "action_state": "queued",
@@ -85,7 +85,7 @@
       "id": "R10-API-M06",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Message Chanelle that I love her. → I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "detail": "Message Chanelle that I love her. \u2192 I can't reach Chanelle directly yet \u2014 but I've drafted the message. Want to send it yourself?",
       "evidence": {
         "intent": "coordinate",
         "search_mode": "exact_entity",
@@ -101,7 +101,7 @@
       "id": "R10-API-M07",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Hi again — forget about the restaurant for now. How's my Friday looking? → Of course — what's on your mind?",
+      "detail": "Hi again \u2014 forget about the restaurant for now. How's my Friday looking? \u2192 Of course \u2014 what's on your mind?",
       "evidence": {
         "intent": "check_status",
         "job": false,
@@ -115,7 +115,7 @@
       "id": "R10-API-M08",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What were we discussing about Maya? → We were working on Maya's birthday plan.",
+      "detail": "What were we discussing about Maya? \u2192 We were working on Maya's birthday plan.",
       "evidence": {
         "intent": "recall",
         "job": false,
@@ -129,7 +129,7 @@
       "id": "R10-API-M09",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Cancel the Henry search, but keep Maya's birthday plan. → Okay — I cancelled the restaurant search.",
+      "detail": "Cancel the Henry search, but keep Maya's birthday plan. \u2192 Okay \u2014 I cancelled the restaurant search.",
       "evidence": {
         "intent": "plan_create",
         "action_state": "cancelled",
@@ -143,7 +143,7 @@
       "id": "R10-API-M10",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What's 2+2? → 2+2 is 4. And whenever you're ready, Maya's birthday is in 4 days — want me to set up that Dinner Saturday rematch?",
+      "detail": "What's 2+2? \u2192 2+2 is 4. And whenever you're ready, Maya's birthday is in 4 days \u2014 want me to set up that Dinner Saturday rematch?",
       "evidence": {
         "intent": "check_status",
         "job": false,
@@ -157,7 +157,7 @@
       "id": "R10-API-M11",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Find three Mediterranean restaurants in Coronado. → Looking for Mediterranean restaurants in Coronado…",
+      "detail": "Find three Mediterranean restaurants in Coronado. \u2192 Looking for Mediterranean restaurants in Coronado\u2026",
       "evidence": {
         "intent": "chat",
         "action_state": "queued",
@@ -171,7 +171,7 @@
       "id": "R10-API-M12",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Never mind — change of subject. → Of course — what's on your mind?",
+      "detail": "Never mind \u2014 change of subject. \u2192 Of course \u2014 what's on your mind?",
       "evidence": {
         "intent": "plan_modify",
         "search_mode": "discovery",
@@ -186,7 +186,7 @@
       "id": "R10-API-M13",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Remind me what Opal can do. → I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you w",
+      "detail": "Remind me what Opal can do. \u2192 I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you w",
       "evidence": {
         "intent": "chat",
         "search_mode": "discovery",
@@ -201,7 +201,7 @@
       "id": "R10-API-M14",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Take us to Night Hawk in Coronado Friday. → Looking up Night Hawk in Coronado… I'll aim for around 7:30 unless you want later.",
+      "detail": "Take us to Night Hawk in Coronado Friday. \u2192 Looking up Night Hawk in Coronado\u2026 I'll aim for around 7:30 unless you want later.",
       "evidence": {
         "intent": "chat",
         "action_state": "queued",
@@ -216,7 +216,7 @@
       "id": "R10-API-M15",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Why did you change my time? → I may have drifted from what you said. Tell me the exact day and time you want and I'll lock those in.",
+      "detail": "Why did you change my time? \u2192 I may have drifted from what you said. Tell me the exact day and time you want and I'll lock those in.",
       "evidence": {
         "intent": "plan_modify",
         "search_mode": "exact_entity",
@@ -231,7 +231,7 @@
       "id": "R10-API-M16",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Message Chanelle: running five minutes late. → I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "detail": "Message Chanelle: running five minutes late. \u2192 I can't reach Chanelle directly yet \u2014 but I've drafted the message. Want to send it yourself?",
       "evidence": {
         "intent": "coordinate",
         "search_mode": "exact_entity",
@@ -247,7 +247,7 @@
       "id": "R10-API-M17",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Show me the previous messages. → You can scroll up through our earlier messages anytime. Tap Jump to latest when you want the newest.",
+      "detail": "Show me the previous messages. \u2192 You can scroll up through our earlier messages anytime. Tap Jump to latest when you want the newest.",
       "evidence": {
         "intent": "chat",
         "search_mode": "exact_entity",
@@ -263,7 +263,7 @@
       "id": "R10-API-M18",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What are three things to do near me? → I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+      "detail": "What are three things to do near me? \u2192 I can look for nearby ideas once location access is available \u2014 food, outdoors, or nightlife?",
       "evidence": {
         "intent": "chat",
         "search_mode": "exact_entity",
@@ -279,7 +279,7 @@
       "id": "R10-API-M19",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Plan a quiet dinner just for me in San Diego tonight. → Updated — tonight · 19:30. Same plan, same people.",
+      "detail": "Plan a quiet dinner just for me in San Diego tonight. \u2192 Updated \u2014 tonight \u00b7 19:30. Same plan, same people.",
       "evidence": {
         "intent": "plan_create",
         "action_state": "plan_patched",
@@ -294,7 +294,7 @@
       "id": "R10-API-M20",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Actually Sunday at 10 AM. → Updated — Sunday · 10 AM. Same plan, same people.",
+      "detail": "Actually Sunday at 10 AM. \u2192 Updated \u2014 Sunday \u00b7 10 AM. Same plan, same people.",
       "evidence": {
         "intent": "chat",
         "action_state": "plan_patched",
@@ -309,7 +309,7 @@
       "id": "R10-API-M21",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Who is Henry? → Tell me more — I can help you plan or check what's coming up.",
+      "detail": "Who is Henry? \u2192 Tell me more \u2014 I can help you plan or check what's coming up.",
       "evidence": {
         "intent": "chat",
         "search_mode": "exact_entity",
@@ -325,7 +325,7 @@
       "id": "R10-API-M22",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Coronado in San Diego — is that a restaurant? → Checking San Diego…",
+      "detail": "Coronado in San Diego \u2014 is that a restaurant? \u2192 Checking San Diego\u2026",
       "evidence": {
         "intent": "chat",
         "action_state": "queued",
@@ -339,7 +339,7 @@
       "id": "R10-API-M23",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Find The Henry restaurant in Coronado. → Looking up The Henry in Coronado…",
+      "detail": "Find The Henry restaurant in Coronado. \u2192 Looking up The Henry in Coronado\u2026",
       "evidence": {
         "intent": "chat",
         "action_state": "queued",
@@ -354,7 +354,7 @@
       "id": "R10-API-M24",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Stop. New topic: what's the weather metaphorically for my week? → Metaphorically? A bright, busy front with a chance of birthday cake — Maya's is in four days. Sunday 10 AM still looks like your one real an",
+      "detail": "Stop. New topic: what's the weather metaphorically for my week? \u2192 Metaphorically? A bright, busy front with a chance of birthday cake \u2014 Maya's is in four days. Sunday 10 AM still looks like your one real an",
       "evidence": {
         "intent": "check_status",
         "search_mode": "exact_entity",
@@ -370,7 +370,7 @@
       "id": "R10-API-M25",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Go back to the birthday plan. → Got it: a birthday celebration soon. Want me to set this up?",
+      "detail": "Go back to the birthday plan. \u2192 Got it: a birthday celebration soon. Want me to set this up?",
       "evidence": {
         "intent": "plan_create",
         "job": false,
@@ -384,7 +384,7 @@
       "id": "R10-API-M26",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Cancel the restaurant lookup. → Okay — I cancelled the restaurant search.",
+      "detail": "Cancel the restaurant lookup. \u2192 Okay \u2014 I cancelled the restaurant search.",
       "evidence": {
         "intent": "plan_modify",
         "action_state": "cancelled",
@@ -398,7 +398,7 @@
       "id": "R10-API-M27",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "Thanks Opal. → Anytime. I'm here when you need me.",
+      "detail": "Thanks Opal. \u2192 Anytime. I'm here when you need me.",
       "evidence": {
         "intent": "chat",
         "job": false,
@@ -412,7 +412,7 @@
       "id": "R10-API-M28",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "What were we discussing before? → We were mid-conversation — tell me what you want to pick back up.",
+      "detail": "What were we discussing before? \u2192 We were mid-conversation \u2014 tell me what you want to pick back up.",
       "evidence": {
         "intent": "recall",
         "job": false,
@@ -435,7 +435,7 @@
       "id": "R10-API-PENDING-ISOLATION",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "job=true chanelle=I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "detail": "job=true chanelle=I can't reach Chanelle directly yet \u2014 but I've drafted the message. Want to send it yourself?",
       "evidence": {},
       "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
       "at": "2026-10-15T12:48:17.899Z"
@@ -506,9 +506,9 @@
       "id": "R10-LOC-NEAR-ME-CENTER",
       "layer": "API_PASS",
       "status": "PASS",
-      "detail": "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+      "detail": "I can look for nearby ideas once location access is available \u2014 food, outdoors, or nightlife?",
       "evidence": {
-        "body": "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+        "body": "I can look for nearby ideas once location access is available \u2014 food, outdoors, or nightlife?",
         "action_state": null,
         "job": false,
         "honest_location_gap": true
@@ -548,7 +548,7 @@
       "id": "R10-BROWSER-INDEPENDENCE",
       "layer": "BROWSER_PASS",
       "status": "PASS",
-      "detail": "Hi Opal, how are you?\n\nI'm here and paying attention. What can I help with?\n\nFind The Henry restaurant in Coronado.\n\nLooking up The Henry in Coronado…\n\nChecking Coronado…\n\nMessage Chanelle that I love her.\n\nI can't reach Chanelle directly yet — but I've drafted the message. Want ",
+      "detail": "Hi Opal, how are you?\n\nI'm here and paying attention. What can I help with?\n\nFind The Henry restaurant in Coronado.\n\nLooking up The Henry in Coronado\u2026\n\nChecking Coronado\u2026\n\nMessage Chanelle that I love her.\n\nI can't reach Chanelle directly yet \u2014 but I've drafted the message. Want ",
       "evidence": {},
       "sha_hint": "f8b942948f7038a868525615b4cb2613abf23c62",
       "at": "2026-10-15T12:48:51.945Z"
@@ -591,5 +591,6 @@
     }
   ],
   "fail_count": 0,
-  "critical_demo_fails": 0
+  "critical_demo_fails": 0,
+  "ship_note": "Repair #10 product commit; FOUNDER_PHONE_PASS not claimed"
 }
