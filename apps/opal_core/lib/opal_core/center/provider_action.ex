@@ -129,6 +129,30 @@ defmodule OpalCore.Center.ProviderAction do
   end
 
   @doc """
+  Cancel queued/running provider jobs for this user so a new conversational
+  turn cannot be monopolized by a stale venue lookup.
+  """
+  def cancel_inflight_for_user(user_id) when is_binary(user_id) do
+    now = DateTime.utc_now()
+
+    {count, _} =
+      from(j in ProviderActionJob,
+        where: j.user_id == ^user_id and j.status in ^["queued", "running"]
+      )
+      |> Repo.update_all(
+        set: [
+          status: "cancelled",
+          finished_at: now,
+          updated_at: now
+        ]
+      )
+
+    {:ok, count}
+  end
+
+  def cancel_inflight_for_user(_), do: {:ok, 0}
+
+  @doc """
   Ensure a durable SharedPlan id exists for this planning draft.
   Reuses planning_context.plan_id when present (PLAN_ID_STABLE).
   """
@@ -392,70 +416,102 @@ defmodule OpalCore.Center.ProviderAction do
   defp finish_ready(job, result) do
     now = DateTime.utc_now(:microsecond)
 
-    {:ok, job} =
-      job
-      |> ProviderActionJob.changeset(%{
-        "status" => "results_ready",
-        "result" => result,
-        "provider" => result["provider"] || job.provider,
-        "search_geography" => result["search_geography"] || job.search_geography,
-        "finished_at" => now,
-        "error" => nil
-      })
-      |> Repo.update()
+    # Stale-response rejection: a cancel/New Chat while the worker ran must win.
+    case Repo.get(ProviderActionJob, job.id) do
+      %ProviderActionJob{status: status} when status in ["cancelled", "superseded"] ->
+        {:ok, job}
 
-    _ =
-      Publisher.record(%{
-        event_type: "action.provider_job.results_ready",
-        event_id: "provider_job_ready:#{job.id}",
-        aggregate_type: "provider_action_job",
-        aggregate_id: job.id,
-        partition_key: job.user_id,
-        actor_user_id: job.user_id,
-        privacy_class: "private_authorized",
-        purpose: "center_provider_action",
-        payload: %{
-          "status" => "results_ready",
-          "provider" => job.provider,
-          "search_geography" => job.search_geography,
-          "option_count" => length((job.result || %{})["candidates"] || [])
-        }
-      })
+      %ProviderActionJob{status: status} = fresh when status in ["queued", "running"] ->
+        {:ok, job} =
+          fresh
+          |> ProviderActionJob.changeset(%{
+            "status" => "results_ready",
+            "result" => result,
+            "provider" => result["provider"] || fresh.provider,
+            "search_geography" => result["search_geography"] || fresh.search_geography,
+            "finished_at" => now,
+            "error" => nil
+          })
+          |> Repo.update()
 
-    _ = maybe_paint_center_results(job)
-    {:ok, job}
+        _ =
+          Publisher.record(%{
+            event_type: "action.provider_job.results_ready",
+            event_id: "provider_job_ready:#{job.id}",
+            aggregate_type: "provider_action_job",
+            aggregate_id: job.id,
+            partition_key: job.user_id,
+            actor_user_id: job.user_id,
+            privacy_class: "private_authorized",
+            purpose: "center_provider_action",
+            payload: %{
+              "status" => "results_ready",
+              "provider" => job.provider,
+              "search_geography" => job.search_geography,
+              "option_count" => length((job.result || %{})["candidates"] || [])
+            }
+          })
+
+        _ = maybe_paint_center_results(job)
+        {:ok, job}
+
+      _ ->
+        {:ok, job}
+    end
   end
 
   defp fail(job, error) when is_binary(error) do
     now = DateTime.utc_now(:microsecond)
 
-    {:ok, job} =
-      job
-      |> ProviderActionJob.changeset(%{
-        "status" => "failed",
-        "error" => String.slice(error, 0, 500),
-        "finished_at" => now
-      })
-      |> Repo.update()
+    case Repo.get(ProviderActionJob, job.id) do
+      %ProviderActionJob{status: status} when status in ["cancelled", "superseded"] ->
+        {:ok, job}
 
-    _ =
-      Publisher.record(%{
-        event_type: "action.provider_job.failed",
-        event_id: "provider_job_failed:#{job.id}",
-        aggregate_type: "provider_action_job",
-        aggregate_id: job.id,
-        partition_key: job.user_id,
-        actor_user_id: job.user_id,
-        privacy_class: "private_authorized",
-        purpose: "center_provider_action",
-        payload: %{"status" => "failed", "error" => job.error}
-      })
+      %ProviderActionJob{status: status} = fresh when status in ["queued", "running"] ->
+        {:ok, job} =
+          fresh
+          |> ProviderActionJob.changeset(%{
+            "status" => "failed",
+            "error" => String.slice(error, 0, 500),
+            "finished_at" => now
+          })
+          |> Repo.update()
 
-    _ = maybe_paint_center_failure(job)
-    {:ok, job}
+        _ =
+          Publisher.record(%{
+            event_type: "action.provider_job.failed",
+            event_id: "provider_job_failed:#{job.id}",
+            aggregate_type: "provider_action_job",
+            aggregate_id: job.id,
+            partition_key: job.user_id,
+            actor_user_id: job.user_id,
+            privacy_class: "private_authorized",
+            purpose: "center_provider_action",
+            payload: %{"status" => "failed", "error" => job.error}
+          })
+
+        _ = maybe_paint_center_failure(job)
+        {:ok, job}
+
+      _ ->
+        {:ok, job}
+    end
   end
 
   defp maybe_paint_center_results(%ProviderActionJob{} = job) do
+    alias OpalCore.OpalConversations
+    alias OpalCore.OpalConversations.OpalMessage
+
+    if stale_provider_paint?(job) do
+      :ok
+    else
+      do_paint_center_results(job)
+    end
+  rescue
+    _ -> :ok
+  end
+
+  defp do_paint_center_results(%ProviderActionJob{} = job) do
     alias OpalCore.OpalConversations
     alias OpalCore.OpalConversations.OpalMessage
 
@@ -541,32 +597,63 @@ defmodule OpalCore.Center.ProviderAction do
     alias OpalCore.OpalConversations
     alias OpalCore.OpalConversations.OpalMessage
 
-    geo = job.search_geography || "that area"
-    body = "I couldn't reach live restaurant data for #{geo}. Want me to retry?"
+    if stale_provider_paint?(job) do
+      :ok
+    else
+      geo = job.search_geography || "that area"
+      body = "I couldn't reach live restaurant data for #{geo}. Want me to retry?"
 
-    case OpalConversations.get_or_create_conversation(job.user_id) do
-      {:ok, conversation} ->
-        %OpalMessage{}
-        |> OpalMessage.changeset(%{
-          "conversation_id" => conversation.id,
-          "role" => "opal",
-          "body" => body,
-          "metadata" => %{
-            "source" => "provider_action",
-            "action_job_id" => job.id,
-            "action_state" => "failed",
-            "planning_snapshot" => job.planning_snapshot,
-            "plan_id" => job.plan_id
-          }
-        })
-        |> Repo.insert()
+      case OpalConversations.get_or_create_conversation(job.user_id) do
+        {:ok, conversation} ->
+          %OpalMessage{}
+          |> OpalMessage.changeset(%{
+            "conversation_id" => conversation.id,
+            "role" => "opal",
+            "body" => body,
+            "metadata" => %{
+              "source" => "provider_action",
+              "action_job_id" => job.id,
+              "action_state" => "failed",
+              "planning_snapshot" => job.planning_snapshot,
+              "plan_id" => job.plan_id
+            }
+          })
+          |> Repo.insert()
 
-      _ ->
-        :ok
+        _ ->
+          :ok
+      end
     end
   rescue
     _ -> :ok
   end
+
+  # Reject paints after cancel / New Chat so stale Geoapify responses cannot
+  # monopolize a newer conversational turn. Jobs started AFTER clear still paint.
+  defp stale_provider_paint?(%ProviderActionJob{} = job) do
+    fresh = Repo.get(ProviderActionJob, job.id)
+    planning = PlanningContext.get_for_user(job.user_id)
+
+    cleared_after_job? =
+      case planning["cleared_at"] do
+        ts when is_binary(ts) ->
+          case DateTime.from_iso8601(ts) do
+            {:ok, cleared, _} when not is_nil(job.inserted_at) ->
+              DateTime.compare(cleared, job.inserted_at) != :lt
+
+            _ ->
+              true
+          end
+
+        _ ->
+          false
+      end
+
+    match?(%ProviderActionJob{status: status} when status in ["cancelled", "superseded"], fresh) or
+      cleared_after_job?
+  end
+
+  defp stale_provider_paint?(_), do: true
 
   defp public_opt(c) when is_map(c) do
     Map.take(c, [

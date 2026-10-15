@@ -3739,6 +3739,34 @@ export async function postOpalMessage(
   );
 }
 
+/** New Chat — clear visible Center history + transient planning (plans preserved). */
+export async function startOpalNewChat(bearer?: string) {
+  return request<{
+    ok: boolean;
+    cleared: boolean;
+    deleted_messages?: number;
+    conversation: OpalChatConversation;
+  }>("/api/v1/product/opal/conversation/new", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({}),
+  });
+}
+
+/** Clear Conversation — same retention rules as New Chat. */
+export async function clearOpalConversation(bearer?: string) {
+  return request<{
+    ok: boolean;
+    cleared: boolean;
+    deleted_messages?: number;
+    conversation: OpalChatConversation;
+  }>("/api/v1/product/opal/conversation/clear", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({}),
+  });
+}
+
 /** Paste J Phase 1 — durable solo SharedPlan from Center "Go with this". */
 export async function createCenterPlan(
   attrs: {

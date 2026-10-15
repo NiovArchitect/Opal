@@ -77,6 +77,34 @@ defmodule OpalCore.Center.PlanContextPatchTest do
     assert patch["wants_restaurant"] == true
   end
 
+  test "Find The Henry restaurant in Coronado is exact entity not discovery" do
+    patch = PlanContextPatch.extract_from_text("Find The Henry restaurant in Coronado.")
+    assert patch["search_mode"] == "exact_entity"
+    assert patch["requested_venue_name"] == "The Henry"
+    assert patch["requested_venue_locality"] =~ ~r/Coronado/i
+    refute patch["discovery_request"] == true
+    refute patch["requested_venue_name"] == "__clear__"
+  end
+
+  test "Coronado in San Diego is not a restaurant named Coronado" do
+    assert PlanContextPatch.extract_exact_venue("Coronado in San Diego") == nil
+  end
+
+  test "conversation acts: switch topic, cancel search, message isolation cues" do
+    assert PlanContextPatch.classify_conversation_act("Actually, let's talk about something else.") ==
+             "switch_topic"
+
+    assert PlanContextPatch.classify_conversation_act(
+             "Cancel the Henry search, but keep Maya's birthday plan."
+           ) == "cancel_search"
+
+    assert PlanContextPatch.classify_conversation_act("What were we discussing before?") ==
+             "recall_prior_task"
+
+    assert PlanContextPatch.classify_conversation_act("Show me the previous messages.") ==
+             "show_history"
+  end
+
   test "discovery phrasing is not exact entity" do
     patch =
       PlanContextPatch.extract_from_text(

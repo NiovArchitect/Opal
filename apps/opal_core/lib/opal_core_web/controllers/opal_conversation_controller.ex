@@ -51,6 +51,47 @@ defmodule OpalCoreWeb.OpalConversationController do
     end
   end
 
+  @doc """
+  New Chat — clear visible Center history + transient planning.
+  SharedPlans / Graph / human chats are preserved.
+  """
+  def new_chat(conn, _params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalConversations.start_new_chat(user_id) do
+      {:ok, %{conversation: c, deleted_messages: n}} ->
+        json(conn, %{
+          "ok" => true,
+          "cleared" => true,
+          "deleted_messages" => n,
+          "conversation" => OpalConversations.to_conversation_contract(c, [])
+        })
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  @doc """
+  Clear Conversation — same durable retention rules as New Chat.
+  """
+  def clear_conversation(conn, _params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalConversations.clear_visible_conversation(user_id) do
+      {:ok, %{conversation: c, deleted_messages: n}} ->
+        json(conn, %{
+          "ok" => true,
+          "cleared" => true,
+          "deleted_messages" => n,
+          "conversation" => OpalConversations.to_conversation_contract(c, [])
+        })
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
   defp do_create_message(conn, user_id, body, client_context) when is_binary(body) do
     opts =
       if is_map(client_context) do

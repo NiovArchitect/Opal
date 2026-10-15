@@ -79,6 +79,19 @@ defmodule OpalCore.Center.PlanningContext do
     end
   end
 
+  @doc """
+  Clear transient Center planning (venue search, sticky provider flags) without
+  deleting SharedPlans, Graph records, or human messages.
+  """
+  def clear_transient(user_id) when is_binary(user_id) do
+    put(user_id, %{
+      "provider_parked" => true,
+      "cleared_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+    })
+  end
+
+  def clear_transient(_), do: {:error, :invalid}
+
   @doc "True when we have enough to start restaurant discovery without more questions."
   def ready_for_restaurant_search?(ctx) when is_map(ctx) do
     c = stringify(ctx)

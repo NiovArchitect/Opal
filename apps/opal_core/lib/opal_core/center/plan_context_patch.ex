@@ -327,6 +327,27 @@ defmodule OpalCore.Center.PlanContextPatch do
             "cancel_venue_keep_plan" => true
           })
 
+        # "Cancel the Henry search, but keep Maya's birthday plan."
+        patch["conversation_act"] in ["cancel_search", "cancel_venue_keep_plan"] ->
+          Map.merge(patch, %{
+            "venue" => "__clear__",
+            "requested_venue_name" => "__clear__",
+            "requested_venue_locality" => "__clear__",
+            "search_mode" => "__clear__",
+            "wants_restaurant" => "__clear__",
+            "discovery_request" => "__clear__",
+            "cuisine" => "__clear__",
+            "cancel_venue_keep_plan" => true,
+            "provider_parked" => true
+          })
+
+        patch["conversation_act"] == "switch_topic" ->
+          Map.merge(patch, %{
+            "provider_parked" => true,
+            "wants_restaurant" => "__clear__",
+            "discovery_request" => "__clear__"
+          })
+
         true ->
           patch
       end
@@ -517,7 +538,88 @@ defmodule OpalCore.Center.PlanContextPatch do
   Examples: "Nighthawk in Coronado", "take us to Pujol in Mexico City".
   """
   def extract_exact_venue(raw) when is_binary(raw) do
-    # Discovery phrasing must not become exact entity — except "look up NAME".
+    # "Find The Henry restaurant in Coronado" is an exact named venue — not cuisine discovery.
+    case extract_named_find_venue(raw) do
+      %{name: _} = named ->
+        named
+
+      nil ->
+        extract_exact_venue_legacy(raw)
+    end
+  end
+
+  def extract_exact_venue(_), do: nil
+
+  # Find/look up/search for a specific proper-named venue (optionally + "restaurant") in a locality.
+  # Case-sensitive name capture — /i would let "find somewhere … in X" become exact_entity.
+  defp extract_named_find_venue(raw) when is_binary(raw) do
+    locality = ~S"((?:Mexico\s+City|San\s+Diego|La\s+Jolla|Del\s+Mar|[A-Z][\w]+))"
+
+    patterns = [
+      Regex.compile!(
+        "\\b(?:[Ff]ind|[Ll]ook\\s+[Uu]p|[Ss]earch\\s+[Ff]or)\\s+((?:The\\s+)?[A-Z][\\w'&.]*(?:\\s+[A-Z][\\w'&.]*){0,4})\\s+[Rr]estaurants?\\s+(?:in|near|at|on)\\s+#{locality}\\b"
+      ),
+      Regex.compile!(
+        "\\b(?:[Ff]ind|[Ll]ook\\s+[Uu]p|[Ss]earch\\s+[Ff]or)\\s+((?:The\\s+)?[A-Z][\\w'&.]*(?:\\s+[A-Z][\\w'&.]*){0,4})\\s+(?:in|near|at|on)\\s+#{locality}\\b"
+      )
+    ]
+
+    stop = exact_venue_stop_words()
+
+    Enum.find_value(patterns, fn re ->
+      case Regex.run(re, raw) do
+        [_, name, loc] ->
+          name =
+            name
+            |> String.trim()
+            |> strip_venue_lead_verbs()
+            |> String.replace(~r/\s+restaurants?$/i, "")
+            |> String.trim()
+
+          loc = loc |> String.trim() |> sanitize_locality()
+
+          cond do
+            name == "" or loc == "" ->
+              nil
+
+            MapSet.member?(stop, name) or MapSet.member?(stop, loc) ->
+              nil
+
+            day_word?(name) or day_word?(loc) ->
+              nil
+
+            cuisine_word?(name) or name_has_cuisine_token?(name) ->
+              nil
+
+            # Quantity / generic discovery leads — not a venue identity.
+            Regex.match?(~r/^(?:A|An|Some|Somewhere|Options?|Recommendations?|\d+)/i, name) ->
+              nil
+
+            place_confused_as_venue?(name, loc) ->
+              nil
+
+            true ->
+              %{name: name, locality: loc}
+          end
+
+        _ ->
+          nil
+      end
+    end)
+  end
+
+  defp extract_named_find_venue(_), do: nil
+
+  defp name_has_cuisine_token?(name) when is_binary(name) do
+    name
+    |> String.split(~r/\s+/)
+    |> Enum.any?(&cuisine_word?/1)
+  end
+
+  defp name_has_cuisine_token?(_), do: false
+
+  defp extract_exact_venue_legacy(raw) when is_binary(raw) do
+    # Discovery phrasing must not become exact entity — except "look up NAME" / named find.
     discovery? =
       Regex.match?(
         ~r/\b(?:find|look for|search for|somewhere|options?|recommendations?|top restaurant|best restaurant|a restaurant|some restaurants)\b/i,
@@ -541,22 +643,25 @@ defmodule OpalCore.Center.PlanContextPatch do
       )
     ]
 
-    stop = MapSet.new(~w(
-      Friday Saturday Sunday Monday Tuesday Wednesday Thursday Tonight Tomorrow Weekend
-      Dinner Lunch Brunch Breakfast Restaurant Plans Something Somewhere Mexico City
-      San Diego The A An Plan Arrange Look Make
-    ))
+    stop = exact_venue_stop_words()
 
     found =
       Enum.find_value(patterns, fn re ->
         case Regex.run(re, raw) do
           [_, name, locality] ->
-            name = name |> String.trim() |> strip_venue_lead_verbs()
+            name =
+              name
+              |> String.trim()
+              |> strip_venue_lead_verbs()
+              |> String.replace(~r/\s+restaurants?$/i, "")
+              |> String.trim()
+
             locality = locality |> String.trim() |> sanitize_locality()
 
             if MapSet.member?(stop, name) or MapSet.member?(stop, locality) or
                  day_word?(name) or day_word?(locality) or
                  String.downcase(name) in ~w(dinner lunch brunch plan arrange) or
+                 cuisine_word?(name) or
                  place_confused_as_venue?(name, locality) do
               nil
             else
@@ -584,17 +689,57 @@ defmodule OpalCore.Center.PlanContextPatch do
     end
   end
 
-  def extract_exact_venue(_), do: nil
+  defp exact_venue_stop_words do
+    MapSet.new(~w(
+      Friday Saturday Sunday Monday Tuesday Wednesday Thursday Tonight Tomorrow Weekend
+      Dinner Lunch Brunch Breakfast Restaurant Plans Something Somewhere Mexico City
+      San Diego The A An Plan Arrange Look Make
+    ))
+  end
+
+  defp cuisine_word?(name) when is_binary(name) do
+    n = String.downcase(String.trim(name))
+
+    n in ~w(
+      mediterranean italian mexican japanese sushi thai chinese indian korean
+      french greek lebanese turkish vietnamese american seafood steak pizza
+      vegan vegetarian ethiopian peruvian spanish portuguese caribbean
+    )
+  end
+
+  defp cuisine_word?(_), do: false
 
   # "Coronado in San Diego" is geography, not a restaurant named Coronado.
   defp place_confused_as_venue?(name, locality) when is_binary(name) and is_binary(locality) do
-    n = String.downcase(name)
-    l = String.downcase(locality)
+    n = String.downcase(String.trim(name))
+    l = String.downcase(String.trim(locality))
 
-    place_words = ~w(coronado la jolla del mar pacific beach mission beach ocean beach downtown)
-    region_words = ~w(san diego california ca usa united states)
+    place_words =
+      MapSet.new([
+        "coronado",
+        "la jolla",
+        "del mar",
+        "pacific beach",
+        "mission beach",
+        "ocean beach",
+        "downtown",
+        "gaslamp",
+        "north park",
+        "south park"
+      ])
 
-    n in place_words and l in region_words
+    region_words =
+      MapSet.new([
+        "san diego",
+        "california",
+        "ca",
+        "usa",
+        "united states",
+        "mexico",
+        "baja"
+      ])
+
+    MapSet.member?(place_words, n) and MapSet.member?(region_words, l)
   end
 
   defp place_confused_as_venue?(_, _), do: false
@@ -703,8 +848,37 @@ defmodule OpalCore.Center.PlanContextPatch do
       Regex.match?(~r/\bgo\s+back\s+to\s+(?:the\s+)?birthday\b/i, raw) ->
         "switch_task_birthday"
 
+      # Cancel a pending/active venue lookup; keep non-venue plan state.
+      Regex.match?(
+        ~r/\b(?:cancel|stop|drop|abort)\s+(?:the\s+)?(?:\w+\s+){0,3}(?:search|lookup|look[- ]?up)\b/i,
+        raw
+      ) or
+          (Regex.match?(~r/\b(?:cancel|stop|drop)\b/i, raw) and
+             Regex.match?(~r/\b(?:henry|restaurant|venue)\b/i, raw) and
+             Regex.match?(~r/\bkeep\b/i, raw)) ->
+        "cancel_search"
+
       Regex.match?(~r/\bforget\s+that\s+venue\b/i, raw) ->
         "cancel_venue_keep_plan"
+
+      Regex.match?(
+        ~r/\b(?:let'?s\s+)?(?:talk|chat)\s+about\s+something\s+else\b/i,
+        raw
+      ) or
+          Regex.match?(
+            ~r/\bforget\s+about\s+(?:the\s+)?(?:restaurant|venue|search|that|it)\b/i,
+            raw
+          ) or
+          Regex.match?(~r/\bchange\s+(?:of\s+)?(?:subject|topic)\b/i, raw) or
+          Regex.match?(~r/\bnever\s+mind\s+(?:the\s+)?(?:restaurant|search|venue)\b/i, raw) ->
+        "switch_topic"
+
+      Regex.match?(~r/\bwhat\s+(?:were|are)\s+we\s+discussing\b/i, raw) or
+          Regex.match?(~r/\bwhat\s+happened\s+to\b/i, raw) ->
+        "recall_prior_task"
+
+      Regex.match?(~r/\bshow\s+me\s+the\s+previous\s+messages\b/i, raw) ->
+        "show_history"
 
       Regex.match?(~r/\bshow\s+me\s+the\s+other\b/i, raw) ->
         "show_other_options"

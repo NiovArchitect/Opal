@@ -4,8 +4,10 @@
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  clearOpalConversation,
   getOpalConversation,
   postOpalMessage,
+  startOpalNewChat,
   type OpalChatMessage,
 } from "../api/productClient";
 import {
@@ -264,6 +266,13 @@ export function OpalCenterChat({
   const flushingRef = useRef(false);
   const lastEnqueuedBodyRef = useRef<string | null>(null);
   const lastEnqueueAtRef = useRef(0);
+  // Scroll ownership: auto-follow only while the user is near the bottom.
+  const stickToBottomRef = useRef(true);
+  const programmaticScrollRef = useRef(false);
+  const [showJump, setShowJump] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [clearConfirm, setClearConfirm] = useState(false);
+  const NEAR_BOTTOM_PX = 80;
 
   // Holistic loop: when founder-seed thread shows plan-ask → Yes, surface a plan
   // even if the backend replied with generic chat (no plan_confirm metadata).
@@ -291,9 +300,45 @@ export function OpalCenterChat({
     onPlanCreatedRef.current(local);
   }, [messages]);
 
-  const scrollToEnd = useCallback(() => {
+  const distanceFromBottom = (el: HTMLElement) =>
+    el.scrollHeight - el.scrollTop - el.clientHeight;
+
+  const isNearBottom = (el: HTMLElement) => distanceFromBottom(el) <= NEAR_BOTTOM_PX;
+
+  const scrollToEnd = useCallback((force = false) => {
     const el = threadRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    if (!force && !stickToBottomRef.current) return;
+    programmaticScrollRef.current = true;
+    stickToBottomRef.current = true;
+    setShowJump(false);
+    const pin = () => {
+      const node = threadRef.current;
+      if (!node) return;
+      // Only scroll the thread itself — scrollIntoView can move a parent and leave
+      // thread.scrollTop unchanged (breaks Jump-to-latest).
+      node.scrollTop = node.scrollHeight;
+    };
+    pin();
+    requestAnimationFrame(() => {
+      pin();
+      window.setTimeout(() => {
+        pin();
+        // Keep follow engaged after an explicit Jump / user send.
+        stickToBottomRef.current = true;
+        setShowJump(false);
+        programmaticScrollRef.current = false;
+      }, 280);
+    });
+  }, []);
+
+  const onThreadScroll = useCallback(() => {
+    if (programmaticScrollRef.current) return;
+    const el = threadRef.current;
+    if (!el) return;
+    const near = isNearBottom(el);
+    stickToBottomRef.current = near;
+    setShowJump(!near);
   }, []);
 
   const load = useCallback(async () => {
@@ -377,7 +422,7 @@ export function OpalCenterChat({
   }, []);
 
   useEffect(() => {
-    scrollToEnd();
+    scrollToEnd(false);
   }, [messages, sending, scrollToEnd]);
 
   useEffect(() => {
@@ -546,11 +591,15 @@ export function OpalCenterChat({
 
       const optimisticKey = retryKey || `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       if (!retryKey) {
+        // User-initiated send re-pins bottom-follow.
+        stickToBottomRef.current = true;
+        setShowJump(false);
         setDraft("");
         setMessages((prev) => [
           ...prev,
           { key: optimisticKey, role: "user", body, status: "pending" },
         ]);
+        requestAnimationFrame(() => scrollToEnd(true));
       } else {
         setMessages((prev) =>
           prev.map((m) => (m.key === retryKey ? { ...m, status: "pending" } : m)),
@@ -572,8 +621,47 @@ export function OpalCenterChat({
       setQueuedCount(Math.max(0, sendQueueRef.current.length - (flushingRef.current ? 1 : 0)));
       void flushSendQueue();
     },
-    [flushSendQueue],
+    [flushSendQueue, scrollToEnd],
   );
+
+  const resetLocalChatState = useCallback(() => {
+    sendQueueRef.current = [];
+    flushingRef.current = false;
+    setQueuedCount(0);
+    setSending(false);
+    setMessages([]);
+    setDraft("");
+    stickToBottomRef.current = true;
+    setShowJump(false);
+    setMenuOpen(false);
+    setClearConfirm(false);
+    spokenIds.current = new Set();
+    surfacedPlanIds.current.clear();
+    lastUserPlanAsk.current = null;
+  }, []);
+
+  const onNewChat = useCallback(async () => {
+    setMenuOpen(false);
+    try {
+      await startOpalNewChat(bearer);
+      resetLocalChatState();
+    } catch {
+      /* keep prior messages on failure */
+    }
+  }, [bearer, resetLocalChatState]);
+
+  const onClearConversation = useCallback(async () => {
+    if (!clearConfirm) {
+      setClearConfirm(true);
+      return;
+    }
+    try {
+      await clearOpalConversation(bearer);
+      resetLocalChatState();
+    } catch {
+      setClearConfirm(false);
+    }
+  }, [bearer, clearConfirm, resetLocalChatState]);
 
   // One intelligence path: rest composer / chips hand utterance here once hydrated.
   useEffect(() => {
@@ -723,23 +811,60 @@ export function OpalCenterChat({
             }}
           />
         </div>
-        <button
-          type="button"
-          className={`opal-center-chat-voice-toggle${voiceMode ? " is-on" : ""}`}
-          data-testid="opal-center-chat-voice-toggle"
-          aria-label={voiceMode ? "Voice replies on" : "Voice replies off"}
-          aria-pressed={voiceMode}
-          title={voiceMode ? "Voice replies on" : "Voice replies off"}
-          onClick={toggleVoiceMode}
-        >
-          <SpeakerIcon on={voiceMode} />
-        </button>
+        <div className="opal-center-chat-header-actions">
+          <button
+            type="button"
+            className="opal-center-chat-menu-toggle"
+            data-testid="opal-center-chat-menu"
+            aria-label="Conversation menu"
+            aria-expanded={menuOpen}
+            onClick={() => {
+              setMenuOpen((v) => !v);
+              setClearConfirm(false);
+            }}
+          >
+            ···
+          </button>
+          <button
+            type="button"
+            className={`opal-center-chat-voice-toggle${voiceMode ? " is-on" : ""}`}
+            data-testid="opal-center-chat-voice-toggle"
+            aria-label={voiceMode ? "Voice replies on" : "Voice replies off"}
+            aria-pressed={voiceMode}
+            title={voiceMode ? "Voice replies on" : "Voice replies off"}
+            onClick={toggleVoiceMode}
+          >
+            <SpeakerIcon on={voiceMode} />
+          </button>
+        </div>
       </header>
+
+      {menuOpen ? (
+        <div className="opal-center-chat-menu" data-testid="opal-center-chat-menu-panel" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="opal-center-chat-new"
+            onClick={() => void onNewChat()}
+          >
+            New Chat
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="opal-center-chat-clear"
+            onClick={() => void onClearConversation()}
+          >
+            {clearConfirm ? "Confirm clear visible history" : "Clear Conversation"}
+          </button>
+        </div>
+      ) : null}
 
       <div
         className="opal-center-chat-thread"
         data-testid="opal-center-chat-thread"
         ref={threadRef}
+        onScroll={onThreadScroll}
       >
         {loading && messages.length === 0 ? (
           <div className="opal-center-chat-skeleton" data-testid="opal-center-chat-skeleton">
@@ -910,6 +1035,24 @@ export function OpalCenterChat({
           </div>
         ) : null}
       </div>
+
+      {showJump ? (
+        <button
+          type="button"
+          className="opal-center-chat-jump-latest"
+          data-testid="opal-center-chat-jump-latest"
+          onClick={() => {
+            stickToBottomRef.current = true;
+            programmaticScrollRef.current = true;
+            setShowJump(false);
+            const node = threadRef.current;
+            if (node) node.scrollTop = node.scrollHeight;
+            scrollToEnd(true);
+          }}
+        >
+          Jump to latest
+        </button>
+      ) : null}
 
       {voiceHint ? (
         <p className="opal-center-chat-voice-hint" data-testid="opal-center-chat-voice-hint" role="status">

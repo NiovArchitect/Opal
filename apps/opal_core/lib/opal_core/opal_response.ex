@@ -85,8 +85,18 @@ defmodule OpalCore.OpalResponse do
           # LLM must not rewrite "Want me to set this up?" / "Done… Graph"
           # or invent mutations, outbound send, or booking success.
           # DeepSeek may still polish chat / recommend / status phrasing.
+          owns_routing? =
+            entities[:conversation_owns_routing] == true or
+              entities["conversation_owns_routing"] == true
+
           case intent do
             i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate] ->
+              put_draft_meta(template_meta())
+              template
+
+            # Greetings / parked conversation turns stay on the template floor so a
+            # sticky restaurant draft cannot rewrite "how are you?" into another lookup.
+            :chat when owns_routing? ->
               put_draft_meta(template_meta())
               template
 
@@ -142,8 +152,19 @@ defmodule OpalCore.OpalResponse do
       ents[:surprise] == true or ents["surprise"] == true or
         ents[:visibility_mode] == "surprise" or ents["visibility_mode"] == "surprise"
 
+    owns_routing? =
+      ents[:conversation_owns_routing] == true or ents["conversation_owns_routing"] == true or
+        ents[:provider_parked] == true or ents["provider_parked"] == true
+
     instruction =
       cond do
+        owns_routing? ->
+          "Keep facts from the template floor. Warm Center voice. Max 3 short sentences. " <>
+            "Answer ONLY the current user message. " <>
+            "Do NOT resume, continue, or mention a prior restaurant search, venue lookup, or pending provider job " <>
+            "unless the user explicitly asks about it. " <>
+            "Do NOT invent that a message was delivered or a reservation was booked."
+
         solo? ->
           "Keep facts from the template floor. Warm Center voice. Max 3 short sentences. " <>
             "This is a SOLO request — participant_set is the current user only. " <>

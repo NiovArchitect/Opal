@@ -1,0 +1,227 @@
+{
+  "repair": 9,
+  "sha": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+  "public_url": "https://throbbing-strainer-almanac.ngrok-free.dev",
+  "FOUNDER_ACCEPTED": "NO",
+  "FREEZE": "HOLD",
+  "PASS2_UNLOCKED": "NO",
+  "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
+  "findings": [
+    {
+      "id": "R9-API-CLEAR",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "clear status=200 deleted=2",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:03.438Z"
+    },
+    {
+      "id": "R9-API-T1",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Hi Opal, how are you? → I'm here and paying attention. What can I help with?",
+      "evidence": {
+        "intent": "chat",
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:03.588Z"
+    },
+    {
+      "id": "R9-API-T2",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What can you help me with? → Tell me more — I can help you plan or check what's coming up.",
+      "evidence": {
+        "intent": "chat",
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:03.929Z"
+    },
+    {
+      "id": "R9-API-T3",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Plan something for Maya's birthday. → Got it — I'll start planning privately with Maya.",
+      "evidence": {
+        "intent": "plan_create",
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:04.261Z"
+    },
+    {
+      "id": "R9-API-T4",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Actually, let's talk about something else. → Of course — what's on your mind?",
+      "evidence": {
+        "intent": "chat",
+        "parked": true,
+        "no_restart": true
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:04.590Z"
+    },
+    {
+      "id": "R9-API-T5",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Find The Henry restaurant in Coronado. → Looking up The Henry in Coronado…",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "queued",
+        "search_mode": "exact_entity",
+        "venue": "The Henry"
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:05.025Z"
+    },
+    {
+      "id": "R9-API-T6",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Sunday at 10 AM. → Updated — Sunday · 10 AM. Same plan, same people.",
+      "evidence": {
+        "intent": "chat",
+        "action_state": "plan_patched",
+        "venue": "The Henry"
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:05.389Z"
+    },
+    {
+      "id": "R9-API-T7",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Why did you change my time? → Keeping 10 AM as you specified. Same plan, same place.",
+      "evidence": {
+        "intent": "plan_modify",
+        "no_restart": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:05.730Z"
+    },
+    {
+      "id": "R9-API-T8",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Message Chanelle that I love her. → I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "evidence": {
+        "intent": "coordinate",
+        "parked": true,
+        "no_restart": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:06.068Z"
+    },
+    {
+      "id": "R9-API-T9",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "What were we discussing about Maya? → We were working on Maya's birthday plan.",
+      "evidence": {
+        "intent": "recall",
+        "parked": true,
+        "no_restart": true,
+        "venue": "The Henry"
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:06.403Z"
+    },
+    {
+      "id": "R9-API-T10",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "Cancel the restaurant lookup. → Okay — I cancelled the restaurant search and kept your other plan.",
+      "evidence": {
+        "intent": "plan_modify",
+        "action_state": "cancelled",
+        "no_restart": true
+      },
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:06.742Z"
+    },
+    {
+      "id": "R9-API-PENDING-ISOLATION",
+      "layer": "API_PASS",
+      "status": "PASS",
+      "detail": "henryJob=true chanelle=I can't reach Chanelle directly yet — but I've drafted the message. Want to send it yourself?",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:07.324Z"
+    },
+    {
+      "id": "R9-BROWSER-MEMBER",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "member shell",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:09.619Z"
+    },
+    {
+      "id": "R9-BROWSER-TASK-SWITCH",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "Hi Opal, how are you?\n\nI'm here and paying attention. What can I help with?\n\nPlan something for Maya's birthday.\n\nGot it — I'll start planning privately with Maya.\n\nFind The Henry restaurant in Coronado.\n\nLooking up The Henry in Coronado…\n\nChecking Coronado…\n\nMessage Chanelle tha",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:25.596Z"
+    },
+    {
+      "id": "R9-BROWSER-SCROLL",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "scrollTop before=0 after=0 jump=true",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:30.288Z"
+    },
+    {
+      "id": "R9-BROWSER-JUMP",
+      "layer": "BROWSER_PASS",
+      "status": "FAIL",
+      "detail": "nearBottom=false jumpGone=false",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:31.017Z"
+    },
+    {
+      "id": "R9-BROWSER-NEW-CHAT",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "Say hello to Opal\n\nPlan something\nWhat's coming up?",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:32.162Z"
+    },
+    {
+      "id": "R9-BROWSER-NEAR-ME",
+      "layer": "BROWSER_PASS",
+      "status": "PASS",
+      "detail": "What are three things to do near me?\n\nI can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:33.771Z"
+    },
+    {
+      "id": "R9-HTTPS",
+      "layer": "LIVE_PROVIDER_PASS",
+      "status": "PASS",
+      "detail": "https://throbbing-strainer-almanac.ngrok-free.dev status=200",
+      "evidence": {},
+      "sha_hint": "0d6d9a8dc422799e987d0c50a3d2caf27844ba1e",
+      "at": "2026-10-15T06:40:34.302Z"
+    }
+  ],
+  "fail_count": 1,
+  "critical_demo_fails": 0
+}

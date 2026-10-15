@@ -106,7 +106,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
             handle_still_need(user_id, intent, planning)
 
           patch["cancel_venue_keep_plan"] == true or
-              patch["conversation_act"] == "cancel_venue_keep_plan" ->
+              patch["conversation_act"] in ["cancel_venue_keep_plan", "cancel_search"] ->
             handle_cancel_venue(user_id, intent, planning)
 
           # Challenge / meta questions must never restart venue lookup.
@@ -119,11 +119,25 @@ defmodule OpalCore.Center.ActionOrchestrator do
               ] ->
             handle_conversation_challenge(user_id, intent, planning, prior, patch, raw_text)
 
+          is_binary(patch["conversation_act"]) and
+              patch["conversation_act"] in [
+                "switch_topic",
+                "recall_prior_task",
+                "show_history",
+                "switch_task_birthday"
+              ] ->
+            handle_conversational_turn(user_id, intent, planning, prior, patch, raw_text)
+
           (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
               is_binary(planning["plan_id"]) and
               not Regex.match?(@select_option_re, raw_text) and
               patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"] ->
             handle_when_correction(user_id, intent, planning, prior, patch)
+
+          # Conversation owns routing: coordinate/chat/status must not be hijacked by a
+          # sticky ready restaurant draft or an in-flight provider job.
+          skip_provider_search_this_turn?(intent, patch, raw_text) ->
+            handle_conversational_turn(user_id, intent, planning, prior, patch, raw_text)
 
           true ->
             case maybe_attach_selection(user_id, raw_text, intent, planning) do
@@ -286,7 +300,27 @@ defmodule OpalCore.Center.ActionOrchestrator do
   end
 
   defp handle_cancel_venue(user_id, intent, planning) do
+    _ = ProviderAction.cancel_inflight_for_user(user_id)
     plan_id = planning["plan_id"]
+
+    planning2 =
+      PlanContextPatch.apply(planning, %{
+        "venue" => "__clear__",
+        "requested_venue_name" => "__clear__",
+        "requested_venue_locality" => "__clear__",
+        "search_mode" => "__clear__",
+        "wants_restaurant" => "__clear__",
+        "discovery_request" => "__clear__",
+        "cuisine" => "__clear__",
+        "destination" =>
+          if(is_binary(planning["plan_id"]), do: planning["destination"] || "__clear__", else: "__clear__"),
+        "provider_parked" => true
+      })
+      |> Map.put("venue_cancelled", true)
+      |> Map.put("provider_parked", true)
+      |> then(fn p ->
+        if is_binary(plan_id), do: Map.put(p, "plan_id", plan_id), else: p
+      end)
 
     if is_binary(plan_id) do
       case Repo.get(SharedPlan, plan_id) do
@@ -305,44 +339,229 @@ defmodule OpalCore.Center.ActionOrchestrator do
             })
             |> Repo.update()
 
-          planning2 =
-            PlanContextPatch.apply(planning, %{
-              "venue" => "__clear__",
-              "plan_id" => plan_id
-            })
-            |> Map.put("venue_cancelled", true)
-            |> Map.put("plan_id", plan_id)
-
           {:ok, planning2} = PlanningContext.put(user_id, planning2)
 
           override =
-            "Okay — I dropped the restaurant and kept the #{planning["destination"] || "trip"} plan."
+            "Okay — I cancelled the restaurant search and kept your other plan."
 
           meta = %{
-            "action_state" => "venue_cancelled",
+            "action_state" => "cancelled",
             "plan_id" => plan_id,
             "planning_context" => planning2,
             "PLAN_ID_STABLE" => true,
-            "trip_kept" => true
+            "trip_kept" => true,
+            "no_provider_restart" => true,
+            "conversation_owns_routing" => true
           }
 
-          {put_entities(intent, string_to_atom_map(planning2)), override, meta}
+          {intent_without_search(intent), override, meta}
 
         _ ->
-          {intent, "Okay — restaurant cleared from the draft.",
-           %{"planning_context" => planning}}
+          {:ok, planning2} = PlanningContext.put(user_id, planning2)
+
+          {intent_without_search(intent), "Okay — restaurant search cancelled.",
+           %{
+             "planning_context" => planning2,
+             "action_state" => "cancelled",
+             "no_provider_restart" => true,
+             "conversation_owns_routing" => true
+           }}
       end
     else
-      planning2 =
-        PlanContextPatch.apply(planning, %{"venue" => "__clear__"})
-        |> Map.put("venue_cancelled", true)
-
       {:ok, planning2} = PlanningContext.put(user_id, planning2)
 
-      {intent, "Okay — I cleared the restaurant pick.",
-       %{"planning_context" => planning2}}
+      {intent_without_search(intent), "Okay — I cancelled the restaurant search.",
+       %{
+         "planning_context" => planning2,
+         "action_state" => "cancelled",
+         "no_provider_restart" => true,
+         "conversation_owns_routing" => true
+       }}
     end
   end
+
+  defp skip_provider_search_this_turn?(intent, patch, raw_text)
+       when is_map(intent) and is_map(patch) and is_binary(raw_text) do
+    atom = intent[:intent] || intent["intent"]
+
+    restaurant_this_turn? =
+      (is_binary(patch["requested_venue_name"]) and patch["requested_venue_name"] not in ["", "__clear__"]) or
+        patch["discovery_request"] == true or
+        match?(%{name: _}, PlanContextPatch.extract_exact_venue(raw_text)) or
+        match?(%{destination: _}, PlanContextPatch.extract_discovery_request(raw_text)) or
+        (Regex.match?(~r/\b(?:restaurant|dinner|brunch|lunch|venue|reservation)\b/i, raw_text) and
+           Regex.match?(~r/\b(?:find|look|search|plan|book|arrange)\b/i, raw_text))
+
+    select? = Regex.match?(@select_option_re, raw_text)
+
+    cond do
+      select? ->
+        false
+
+      restaurant_this_turn? ->
+        false
+
+      atom in [:coordinate, :chat, :remember, :recall, :check_status] ->
+        true
+
+      # Birthday / plan create without restaurant cues must not restart a sticky venue job.
+      atom in [:plan_create, :plan_modify, :recommend] ->
+        true
+
+      true ->
+        false
+    end
+  end
+
+  defp skip_provider_search_this_turn?(_, _, _), do: false
+
+  defp handle_conversational_turn(user_id, intent, planning, _prior, patch, raw_text) do
+    act = patch["conversation_act"]
+    raw_text = if is_binary(raw_text), do: raw_text, else: ""
+
+    {planning2, override, extra} =
+      case act do
+        "switch_topic" ->
+          p =
+            planning
+            |> Map.put("provider_parked", true)
+            |> Map.drop(["wants_restaurant", "discovery_request"])
+
+          {:ok, p} = PlanningContext.put(user_id, p)
+
+          {p, "Of course — what's on your mind?", %{"provider_parked" => true}}
+
+        "switch_task_birthday" ->
+          p =
+            PlanContextPatch.apply(planning, %{
+              "venue" => "__clear__",
+              "requested_venue_name" => "__clear__",
+              "search_mode" => "__clear__",
+              "wants_restaurant" => "__clear__",
+              "discovery_request" => "__clear__",
+              "provider_parked" => true
+            })
+
+          {:ok, p} = PlanningContext.put(user_id, p)
+          {p, nil, %{"provider_parked" => true}}
+
+        "recall_prior_task" ->
+          {planning, recall_prior_copy(planning, raw_text), %{"provider_parked" => true}}
+
+        "show_history" ->
+          {planning,
+           "You can scroll up through our earlier messages anytime. Tap Jump to latest when you want the newest.",
+           %{"provider_parked" => true}}
+
+        _ ->
+          # coordinate / chat / plan_create without restaurant this turn —
+          # park provider monopolization; leave durable plan slots intact.
+          near_me? =
+            Regex.match?(~r/\bnear\s+me\b/i, raw_text) or
+              Regex.match?(~r/\baround\s+(?:here|me)\b/i, raw_text)
+
+          override =
+            if near_me? do
+              "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?"
+            else
+              nil
+            end
+
+          {Map.put(planning, "provider_parked", true), override,
+           %{"provider_parked" => true, "conversation_owns_routing" => true}}
+      end
+
+    meta =
+      Map.merge(
+        %{
+          "planning_context" => planning2,
+          "no_provider_restart" => true,
+          "conversation_owns_routing" => true
+        },
+        extra
+      )
+
+    {intent_without_search(intent), override, meta}
+  end
+
+  defp intent_without_search(intent) when is_map(intent) do
+    ents = Map.get(intent, :entities) || Map.get(intent, "entities") || %{}
+
+    cleaned =
+      ents
+      |> Enum.reject(fn {k, _} ->
+        k in [
+          :category,
+          :wants_restaurant,
+          :destination,
+          :search_mode,
+          :requested_venue_name,
+          :requested_venue_locality,
+          :cuisine,
+          :discovery_request,
+          :venue,
+          "category",
+          "wants_restaurant",
+          "destination",
+          "search_mode",
+          "requested_venue_name",
+          "requested_venue_locality",
+          "cuisine",
+          "discovery_request",
+          "venue"
+        ]
+      end)
+      |> Map.new()
+      |> Map.put(:conversation_owns_routing, true)
+      |> Map.put("conversation_owns_routing", true)
+
+    Map.put(intent, :entities, cleaned)
+  end
+
+  defp intent_without_search(intent), do: intent
+
+  defp recall_prior_copy(planning) when is_map(planning), do: recall_prior_copy(planning, "")
+
+  defp recall_prior_copy(planning, raw) when is_map(planning) do
+    raw_l = String.downcase(to_string(raw || ""))
+    who = planning["who"] || planning["primary_person"]
+    who_s = who |> List.wrap() |> Enum.map(&to_string/1) |> Enum.filter(&(&1 != "")) |> Enum.join(" ")
+    who_l = String.downcase(who_s)
+
+    mentions_who? =
+      who_l != "" and String.contains?(raw_l, who_l)
+
+    cond do
+      # Question names the person/topic — never answer with a sticky venue instead.
+      Regex.match?(~r/\bmaya\b/i, raw_l) or
+          (String.contains?(raw_l, "birthday") and (mentions_who? or who_l != "")) ->
+        label = if who_s != "", do: who_s, else: "Maya"
+        "We were working on #{label}'s birthday plan."
+
+      mentions_who? ->
+        "We were working on plans with #{who_s}."
+
+      is_binary(planning["who"]) and planning["who"] != "" and
+          (planning["category"] == "celebration" or
+             String.contains?(String.downcase(to_string(planning["intent_scope"] || "")), "birth")) ->
+        "We were working on plans with #{planning["who"]}."
+
+      is_binary(planning["requested_venue_name"]) and planning["requested_venue_name"] != "" ->
+        dest = planning["destination"] || planning["requested_venue_locality"] || "that area"
+        "We were looking up #{planning["requested_venue_name"]} in #{dest}."
+
+      is_binary(planning["destination"]) and planning["destination"] != "" ->
+        "We were looking at restaurants in #{planning["destination"]}."
+
+      who_s != "" ->
+        "We were planning something with #{who_s}."
+
+      true ->
+        "We were mid-conversation — tell me what you want to pick back up."
+    end
+  end
+
+  defp recall_prior_copy(_, _), do: "Tell me what you'd like to pick back up."
 
   defp handle_when_correction(_user_id, intent, planning, prior, patch) do
     plan_id = planning["plan_id"]

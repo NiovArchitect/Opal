@@ -20089,6 +20089,70 @@ button.alignment-choice:focus-visible,
   width: 38px;
   height: 38px;
 }
+.opal-center-chat-header-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.opal-center-chat-menu-toggle {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 19px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(148, 161, 184, 0.12);
+  color: #94a1b8;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.opal-center-chat-menu {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 12px 8px;
+  padding: 6px;
+  border-radius: 12px;
+  background: rgba(12, 18, 36, 0.92);
+  border: 1px solid rgba(148, 161, 184, 0.22);
+  z-index: 6;
+}
+.opal-center-chat-menu button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  background: transparent;
+  color: #f8faff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.opal-center-chat-menu button:hover,
+.opal-center-chat-menu button:focus-visible {
+  background: rgba(0, 229, 255, 0.12);
+}
+.opal-center-chat-jump-latest {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  z-index: 8;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #051018;
+  background: #00e5ff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
 .opal-center-chat-voice-toggle {
   flex: 0 0 38px;
   width: 38px;

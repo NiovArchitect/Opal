@@ -215,6 +215,47 @@ defmodule OpalCore.OpalConversations do
 
   def message_limit, do: @message_limit
 
+  @doc """
+  Clear visible Center messages + transient planning for this user.
+
+  Does not delete SharedPlans, Graph records, human-to-human chats, or
+  relationship data. Cancels in-flight provider jobs so sticky searches
+  cannot monopolize the next turn.
+  """
+  def clear_visible_conversation(user_id) when is_binary(user_id) do
+    with {:ok, conversation} <- get_or_create_conversation(user_id) do
+      {deleted, _} =
+        from(m in OpalMessage, where: m.conversation_id == ^conversation.id)
+        |> Repo.delete_all()
+
+      _ = OpalCore.Center.ProviderAction.cancel_inflight_for_user(user_id)
+      _ = OpalCore.Center.PlanningContext.clear_transient(user_id)
+
+      conversation =
+        conversation
+        |> Ecto.Changeset.change(%{
+          title: nil,
+          updated_at: DateTime.utc_now(:microsecond)
+        })
+        |> Repo.update!()
+
+      {:ok, %{conversation: conversation, deleted_messages: deleted}}
+    end
+  end
+
+  def clear_visible_conversation(_), do: {:error, :invalid}
+
+  @doc """
+  Start a fresh Center turn surface: clear visible history + transient planning.
+  Same durable conversation row (one Opal conversation per user) with empty
+  visible log — New Chat for the consumer.
+  """
+  def start_new_chat(user_id) when is_binary(user_id) do
+    clear_visible_conversation(user_id)
+  end
+
+  def start_new_chat(_), do: {:error, :invalid}
+
   defp assemble_classify_generate(user_id, trimmed, client_context) do
     case OpalContext.assemble(user_id, trimmed, client_context) do
       {:ok, ctx} ->
