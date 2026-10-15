@@ -98,12 +98,13 @@ defmodule OpalCore.Intelligence.Reasoner do
         {"silent", %{}, 0.95, "Chitchat — no Opal action needed."}
 
       "plan.confirm" ->
+        # Repair #11 — no free-floating "Locked in!" claim. The executor routes
+        # through SocialFlow.confirm_pending_revision and posts the truthful outcome.
         {"plan.confirm",
          %{
-           "message" => "Locked in!",
            "body" => body
          }, 0.92,
-         "User confirmed (plan.confirm). Locking the current proposal and acknowledging in-thread."}
+         "User confirmed (plan.confirm). Routing to the revision authority; no claim without a recorded decision."}
 
       "plan.counter" ->
         adjusted = adjust_from_counter(time, context)
@@ -115,8 +116,11 @@ defmodule OpalCore.Intelligence.Reasoner do
          }, adjusted.confidence, adjusted.reason}
 
       "plan.cancel" ->
-        {"plan.cancel", %{"message" => "Got it — I'll release this one."}, 0.85,
-         "User cancelled (plan.cancel). Releasing plan commitment."}
+        # Repair #11 — no free-floating "Got it — I'll release this one." claim.
+        # The executor disambiguates withdrawal / proposal / organizer cancel via
+        # the real authorities and posts the truthful outcome.
+        {"plan.cancel", %{"body" => body}, 0.85,
+         "User cancel phrasing (plan.cancel). Executor disambiguates via authorities; no claim without a recorded decision."}
 
       "plan.propose" ->
         {"respond.thread",
