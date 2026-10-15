@@ -12,7 +12,7 @@ defmodule OpalCore.Intelligence.CallTranscription do
   require Logger
 
   alias OpalCore.Calls.AssistConsent
-  alias OpalCore.Intelligence.{DeepgramClient, EventIngestor, Extractor, Pipeline}
+  alias OpalCore.Intelligence.{DeepgramClient, EventIngestor, Executor, Extractor, Pipeline}
   alias OpalCore.Messages
   alias OpalCore.Repo
   alias OpalCore.Accounts.User
@@ -180,20 +180,38 @@ defmodule OpalCore.Intelligence.CallTranscription do
               "#{who} talked through plans on the call — I can hold the next step."
           end
 
-        case Messages.accept_message(%{
-               conversation_id: conversation_id,
-               sender_user_id: actor,
-               client_message_id: "call-moment-#{System.unique_integer([:positive])}",
-               message_type: "text",
-               body: body
-             }) do
-          {:ok, msg, _} ->
-            _ = Pipeline.on_message_created(msg, %{conversation_id: conversation_id})
-            {:ok, %{intent: intent, message_id: msg.id, body: body}}
+        # Repair #11 — attribution honesty: Opal-voice text must never be posted
+        # as a real human participant. Resolve the dedicated bot sender; refuse
+        # to surface when it is not configured (no human fallback). The "[Opal] "
+        # prefix is the explicit AI-authorship marker — Message has no metadata
+        # field, and message_type "system" is rejected by its changeset, so the
+        # marker rides in the body alongside the bot sender id.
+        case Executor.resolve_opal_sender_id() do
+          {:error, reason} ->
+            Logger.warning(
+              "call_transcription.no_bot_sender reason=#{inspect(reason)} — skipping key-moment surface"
+            )
 
-          err ->
-            Logger.warning("call_transcription.surface_failed #{inspect(err)}")
             {:ok, nil}
+
+          {:ok, bot_id} ->
+            :ok = Executor.ensure_safe_sender(bot_id)
+
+            case Messages.accept_message(%{
+                   conversation_id: conversation_id,
+                   sender_user_id: bot_id,
+                   client_message_id: "call-moment-#{System.unique_integer([:positive])}",
+                   message_type: "text",
+                   body: "[Opal] " <> body
+                 }) do
+              {:ok, msg, _} ->
+                _ = Pipeline.on_message_created(msg, %{conversation_id: conversation_id})
+                {:ok, %{intent: intent, message_id: msg.id, body: body}}
+
+              err ->
+                Logger.warning("call_transcription.surface_failed #{inspect(err)}")
+                {:ok, nil}
+            end
         end
       else
         {:ok, nil}
