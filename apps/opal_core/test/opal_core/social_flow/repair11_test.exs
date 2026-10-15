@@ -15,6 +15,7 @@ defmodule OpalCore.SocialFlow.Repair11Test do
   alias OpalCore.{Contracts, Fixtures, FixturesHelper, Repo, SocialFlow}
   alias OpalCore.Messaging.Message
   alias OpalCore.SocialFlow.{PlanOption, PlanParticipant, PlanRevision, Proposal, SharedPlan}
+  alias OpalCore.SocialFlow.{AuditEvent, PlanCommitment, PlanOptionResponse}
 
   setup do
     FixturesHelper.seed!()
@@ -601,5 +602,405 @@ defmodule OpalCore.SocialFlow.Repair11Test do
              SocialFlow.create_tentative_plan_from_center(alex(), %{title: "Solo dinner"})
 
     assert plan1.id != plan2.id
+  end
+
+  # --- Phase 3 attack list: sinister-user gates ---
+
+  describe "adversarial gates" do
+    test "confirming someone else's proposal is rejected (non-member)" do
+      {proposal, option} = insert_proposal!(conv(), alex())
+
+      assert {:error, :not_a_member} =
+               SocialFlow.approve_coordination(%{
+                 proposal_id: proposal.id,
+                 user_id: Fixtures.user_taylor_id(),
+                 trace_id: "trace-r11-adv"
+               })
+
+      assert {:error, :not_a_member} =
+               SocialFlow.respond_to_option(%{
+                 option_id: option.id,
+                 user_id: Fixtures.user_taylor_id(),
+                 response: "accept",
+                 trace_id: "trace-r11-adv"
+               })
+
+      # Nobody's state moved.
+      assert %Proposal{status: "visible"} = Repo.get!(Proposal, proposal.id)
+    end
+
+    test "confirming your own proposal is rejected, including via the AI path" do
+      {_proposal, _option, plan} = drive_to_plan!(conv(), alex(), jordan())
+
+      assert {:ok, %{revision: rev}} =
+               SocialFlow.propose_revision(%{
+                 plan_id: plan.id,
+                 proposed_by_user_id: alex(),
+                 changes: %{"time_label" => "Friday at 8:00 PM"},
+                 trace_id: "trace-r11-adv"
+               })
+
+      # Direct call: the proposer is not in required_approvals.
+      assert {:error, :not_authorized} =
+               SocialFlow.confirm_pending_revision(%{
+                 conversation_id: conv(),
+                 user_id: alex(),
+                 decision: "accept",
+                 trace_id: "trace-r11-adv"
+               })
+
+      # AI-routed chat text ("I confirm") from the proposer: same rejection,
+      # never a free-floating self-approval.
+      assert {:error, :not_authorized} =
+               SocialFlow.create_proposal_from_ai_result(%{
+                 conversation_id: conv(),
+                 requester_user_id: alex(),
+                 output: %{
+                   "result_type" => "revision_confirmation",
+                   "candidate" => %{"decision" => "accept"}
+                 },
+                 trace_id: "trace-r11-adv-ai"
+               })
+
+      assert %PlanRevision{status: "proposed"} = Repo.get!(PlanRevision, rev.id)
+    end
+
+    test "confirming an already-consumed revision is rejected: exactly-once" do
+      {_proposal, _option, plan} = drive_to_plan!(conv(), alex(), jordan())
+
+      assert {:ok, %{revision: rev}} =
+               SocialFlow.propose_revision(%{
+                 plan_id: plan.id,
+                 proposed_by_user_id: alex(),
+                 changes: %{"time_label" => "Friday at 8:00 PM"},
+                 trace_id: "trace-r11-adv"
+               })
+
+      assert {:ok, %{status: "accepted"}} =
+               SocialFlow.confirm_pending_revision(%{
+                 conversation_id: conv(),
+                 user_id: jordan(),
+                 decision: "accept",
+                 trace_id: "trace-r11-adv-1"
+               })
+
+      # Second confirmation finds no pending revision: exactly-once.
+      assert {:error, :no_pending_revision} =
+               SocialFlow.confirm_pending_revision(%{
+                 conversation_id: conv(),
+                 user_id: jordan(),
+                 decision: "accept",
+                 trace_id: "trace-r11-adv-2"
+               })
+
+      # Direct re-response to the settled row is also refused.
+      assert {:error, :forbidden} =
+               SocialFlow.respond_to_revision(%{
+                 revision_id: rev.id,
+                 user_id: jordan(),
+                 decision: "accept",
+                 trace_id: "trace-r11-adv-3"
+               })
+
+      accepted_count =
+        from(r in PlanRevision,
+          where: r.plan_id == ^plan.id and r.status == "accepted",
+          select: count(r.id)
+        )
+        |> Repo.one()
+
+      assert accepted_count == 1
+      assert Repo.get!(SharedPlan, plan.id).current_revision_id == rev.id
+    end
+
+    test "confirming against an expired proposal is rejected and the mark persists" do
+      past = DateTime.add(DateTime.utc_now(), -3600, :second) |> DateTime.truncate(:microsecond)
+      {proposal, option} = insert_proposal!(conv(), alex(), %{expires_at: past})
+
+      assert {:error, :expired} =
+               SocialFlow.respond_to_option(%{
+                 option_id: option.id,
+                 user_id: alex(),
+                 response: "accept",
+                 trace_id: "trace-r11-adv"
+               })
+
+      # Lazy expiry persisted (not rolled back away).
+      assert %Proposal{status: "expired"} = Repo.get!(Proposal, proposal.id)
+
+      # A converted proposal can never be re-driven either.
+      {p2, o2} = insert_proposal!(conv(), alex())
+      assert {:ok, _} = SocialFlow.approve_coordination(%{proposal_id: p2.id, user_id: alex(), trace_id: "t"})
+      assert {:ok, :awaiting_others} = SocialFlow.respond_to_option(%{option_id: o2.id, user_id: alex(), response: "accept", trace_id: "t"})
+      assert {:ok, %{plan: _}} = SocialFlow.respond_to_option(%{option_id: o2.id, user_id: jordan(), response: "accept", trace_id: "t"})
+
+      assert {:error, :invalid_status} =
+               SocialFlow.approve_coordination(%{proposal_id: p2.id, user_id: alex(), trace_id: "t"})
+
+      assert {:error, :invalid_status} =
+               SocialFlow.respond_to_option(%{option_id: o2.id, user_id: alex(), response: "accept", trace_id: "t"})
+    end
+
+    test "canceling someone else's plan is rejected; non-participant cancel is rejected" do
+      {_proposal, _option, plan} = drive_to_plan!(conv(), alex(), jordan())
+
+      # Member but not lead.
+      assert {:error, :not_authorized} =
+               SocialFlow.cancel_plan(%{plan_id: plan.id, user_id: alex(), trace_id: "trace-r11-adv"})
+
+      # Not a member at all: fails closed.
+      assert {:error, :not_a_member} =
+               SocialFlow.cancel_plan(%{
+                 plan_id: plan.id,
+                 user_id: Fixtures.user_taylor_id(),
+                 trace_id: "trace-r11-adv"
+               })
+
+      assert {:error, :not_a_member} =
+               SocialFlow.propose_cancel_revision(%{
+                 plan_id: plan.id,
+                 user_id: Fixtures.user_taylor_id(),
+                 trace_id: "trace-r11-adv"
+               })
+
+      assert %SharedPlan{status: "agreed"} = Repo.get!(SharedPlan, plan.id)
+    end
+
+    test "rapid double-submit on confirm applies exactly once" do
+      members = [alex(), jordan(), Fixtures.user_maya_id(), Fixtures.user_chris_id()]
+      {proposal, option} = insert_proposal!(group_conv(), alex())
+      assert {:ok, _} = SocialFlow.approve_coordination(%{proposal_id: proposal.id, user_id: alex(), trace_id: "t"})
+      for uid <- members do
+        SocialFlow.respond_to_option(%{option_id: option.id, user_id: uid, response: "accept", trace_id: "t-#{uid}"})
+      end
+
+      {:ok, %{"plans" => plans}} = SocialFlow.sync_for_user(group_conv(), alex())
+      plan_id = hd(plans)["id"]
+
+      assert {:ok, %{revision: rev}} =
+               SocialFlow.propose_revision(%{
+                 plan_id: plan_id,
+                 proposed_by_user_id: alex(),
+                 changes: %{"time_label" => "Saturday at 6:00 PM"},
+                 trace_id: "t"
+               })
+
+      # Two rapid confirms from the same approver: one records, one is refused.
+      assert {:ok, %{status: "proposed"}} =
+               SocialFlow.confirm_pending_revision(%{
+                 conversation_id: group_conv(), user_id: jordan(), decision: "accept", trace_id: "t1"
+               })
+
+      assert {:error, :already_decided} =
+               SocialFlow.confirm_pending_revision(%{
+                 conversation_id: group_conv(), user_id: jordan(), decision: "accept", trace_id: "t2"
+               })
+
+      reloaded = Repo.get!(PlanRevision, rev.id)
+      assert reloaded.status == "proposed"
+      assert reloaded.approvals == %{jordan() => "accept"}
+    end
+
+    test "double option accept is idempotent at the response row" do
+      {_proposal, option, plan} = drive_to_plan!(conv(), alex(), jordan())
+
+      assert {:ok, %{plan: same}} =
+               SocialFlow.respond_to_option(%{
+                 option_id: option.id, user_id: jordan(), response: "accept", trace_id: "t-dup"
+               })
+
+      assert same.id == plan.id
+
+      response_count =
+        from(r in PlanOptionResponse,
+          where: r.option_id == ^option.id and r.user_id == ^jordan(),
+          select: count(r.id)
+        )
+        |> Repo.one()
+
+      assert response_count == 1
+    end
+
+    test "double cancel submits exactly one cancellation" do
+      {_proposal, _option, plan} = drive_to_plan!(conv(), alex(), jordan())
+
+      assert {:ok, _} = SocialFlow.cancel_plan(%{plan_id: plan.id, user_id: jordan(), trace_id: "t1"})
+      assert {:error, :already_cancelled} = SocialFlow.cancel_plan(%{plan_id: plan.id, user_id: jordan(), trace_id: "t2"})
+
+      cancel_events =
+        from(a in AuditEvent,
+          where: a.plan_id == ^plan.id and a.event_type == "plan.cancelled",
+          select: count(a.id)
+        )
+        |> Repo.one()
+
+      assert cancel_events == 1
+    end
+
+    test "concurrent accepts leave no duplicate plans and no stuck proposal" do
+      {proposal, option} = insert_proposal!(conv(), alex())
+      assert {:ok, _} = SocialFlow.approve_coordination(%{proposal_id: proposal.id, user_id: alex(), trace_id: "t"})
+
+      # Two sessions accept "at once": the second accept goes through the
+      # conversion guard and resumes the winner's plan.
+      assert {:ok, :awaiting_others} =
+               SocialFlow.respond_to_option(%{option_id: option.id, user_id: alex(), response: "accept", trace_id: "t1"})
+
+      assert {:ok, %{plan: plan}} =
+               SocialFlow.respond_to_option(%{option_id: option.id, user_id: jordan(), response: "accept", trace_id: "t2"})
+
+      assert {:ok, %{plan: resumed}} =
+               SocialFlow.respond_to_option(%{option_id: option.id, user_id: alex(), response: "accept", trace_id: "t3"})
+
+      assert resumed.id == plan.id
+
+      plan_count =
+        from(p in SharedPlan, where: p.created_from_proposal_id == ^proposal.id, select: count(p.id))
+        |> Repo.one()
+
+      assert plan_count == 1
+      assert %Proposal{status: "converted"} = Repo.get!(Proposal, proposal.id)
+      assert %PlanOption{status: "selected"} = Repo.get!(PlanOption, option.id)
+
+      # Nothing stuck mid-flow.
+      stuck =
+        from(p in Proposal,
+          where: p.conversation_id == ^conv() and p.status == "approved_for_coordination",
+          select: count(p.id)
+        )
+        |> Repo.one()
+
+      assert stuck == 0
+    end
+
+    test "cross-thread contamination is impossible" do
+      conv_b = Fixtures.conv_alex_taylor_id()
+      {_p_a, _o_a, plan_a} = drive_to_plan!(conv(), alex(), jordan())
+      {_p_b, _o_b, plan_b} = drive_to_plan!(conv_b, alex(), Fixtures.user_taylor_id())
+
+      # Confirm scoped to conversation B (which has its own plan): must not
+      # touch A's plan. Use B with no pending revision -> :no_pending_revision.
+      # First consume B's revision-less state, then verify A untouched.
+      assert {:error, :no_pending_revision} =
+               SocialFlow.confirm_pending_revision(%{
+                 conversation_id: conv_b, user_id: alex(), decision: "accept", trace_id: "t"
+               })
+
+      assert %SharedPlan{time_label: t_a} = Repo.get!(SharedPlan, plan_a.id)
+      assert t_a == plan_a.time_label
+
+      revs_on_a =
+        from(r in PlanRevision, where: r.plan_id == ^plan_a.id, select: count(r.id)) |> Repo.one()
+
+      assert revs_on_a == 0
+
+      # Cancel scoped by plan: cancelling A's plan leaves B's plan agreed.
+      assert {:ok, _} = SocialFlow.cancel_plan(%{plan_id: plan_a.id, user_id: jordan(), trace_id: "t"})
+      assert %SharedPlan{status: "cancelled"} = Repo.get!(SharedPlan, plan_a.id)
+      assert %SharedPlan{status: "agreed"} = Repo.get!(SharedPlan, plan_b.id)
+
+      # Schedule change scoped by plan: B untouched.
+      assert {:ok, _} =
+               SocialFlow.change_plan_time(%{
+                 plan_id: plan_b.id,
+                 user_id: Fixtures.user_taylor_id(),
+                 new_time_label: "Sunday brunch",
+                 trace_id: "t"
+               })
+
+      assert Repo.get!(SharedPlan, plan_b.id).time_label == "Sunday brunch"
+      assert Repo.get!(SharedPlan, plan_a.id).time_label == t_a
+    end
+
+    test "stale superseded or dismissed proposals reject with a clear state" do
+      {proposal, option} = insert_proposal!(conv(), alex())
+
+      proposal |> Proposal.changeset(%{status: "superseded"}) |> Repo.update!()
+
+      assert {:error, :invalid_status} =
+               SocialFlow.approve_coordination(%{proposal_id: proposal.id, user_id: alex(), trace_id: "t"})
+
+      assert {:error, :invalid_status} =
+               SocialFlow.respond_to_option(%{option_id: option.id, user_id: alex(), response: "accept", trace_id: "t"})
+
+      {p2, _} = insert_proposal!(conv(), alex())
+      assert {:ok, _} = SocialFlow.dismiss_proposal(%{proposal_id: p2.id, user_id: alex(), trace_id: "t"})
+
+      assert {:error, :invalid_status} =
+               SocialFlow.approve_coordination(%{proposal_id: p2.id, user_id: alex(), trace_id: "t"})
+    end
+
+    test "change_plan_time with multiple plans mutates only the addressed plan" do
+      {_p1, _o1, plan1} = drive_to_plan!(conv(), alex(), jordan())
+
+      # A second, independent plan in the same conversation.
+      {proposal2, option2} = insert_proposal!(conv(), alex())
+      assert {:ok, _} = SocialFlow.approve_coordination(%{proposal_id: proposal2.id, user_id: alex(), trace_id: "t"})
+      assert {:ok, :awaiting_others} = SocialFlow.respond_to_option(%{option_id: option2.id, user_id: alex(), response: "accept", trace_id: "t1"})
+      assert {:ok, %{plan: plan2}} = SocialFlow.respond_to_option(%{option_id: option2.id, user_id: jordan(), response: "accept", trace_id: "t2"})
+      assert plan2.id != plan1.id
+
+      # Disambiguation is by explicit plan_id (the routing layer resolves which
+      # plan "it" means); the function never guesses.
+      assert {:ok, _} =
+               SocialFlow.change_plan_time(%{
+                 plan_id: plan2.id, user_id: jordan(), new_time_label: "Friday late", trace_id: "t"
+               })
+
+      assert Repo.get!(SharedPlan, plan2.id).time_label == "Friday late"
+      assert Repo.get!(SharedPlan, plan1.id).time_label == plan1.time_label
+
+      assert {:error, :not_found} =
+               SocialFlow.change_plan_time(%{
+                 plan_id: Ecto.UUID.generate(), user_id: jordan(), new_time_label: "x", trace_id: "t"
+               })
+    end
+
+    test "permission boundaries fail closed everywhere, never silently" do
+      taylor = Fixtures.user_taylor_id()
+      {proposal, option} = insert_proposal!(conv(), alex())
+      {_p, _o, plan} = drive_to_plan!(conv(), alex(), jordan())
+
+      assert {:ok, %{revision: rev}} =
+               SocialFlow.propose_revision(%{
+                 plan_id: plan.id, proposed_by_user_id: alex(),
+                 changes: %{"time_label" => "Friday at 8:00 PM"}, trace_id: "t"
+               })
+
+      {:ok, commitment} =
+        %PlanCommitment{}
+        |> PlanCommitment.changeset(%{
+          plan_id: plan.id, owner_user_id: alex(), description: "Book the table",
+          visibility: "private", status: "proposed"
+        })
+        |> Repo.insert()
+
+      attempts = [
+        fn -> SocialFlow.approve_coordination(%{proposal_id: proposal.id, user_id: taylor, trace_id: "t"}) end,
+        fn -> SocialFlow.respond_to_option(%{option_id: option.id, user_id: taylor, response: "accept", trace_id: "t"}) end,
+        fn -> SocialFlow.propose_revision(%{plan_id: plan.id, proposed_by_user_id: taylor, changes: %{"time_label" => "x"}, trace_id: "t"}) end,
+        fn -> SocialFlow.dismiss_proposal(%{proposal_id: proposal.id, user_id: taylor, trace_id: "t"}) end,
+        fn -> SocialFlow.respond_to_revision(%{revision_id: rev.id, user_id: taylor, decision: "accept", trace_id: "t"}) end,
+        fn -> SocialFlow.confirm_commitment(%{commitment_id: commitment.id, user_id: jordan(), trace_id: "t"}) end,
+        fn -> SocialFlow.create_private_reminder(%{plan_id: plan.id, user_id: taylor, content_summary: "x", trace_id: "t"}) end,
+        fn -> SocialFlow.propose_cancel_revision(%{plan_id: plan.id, user_id: taylor, trace_id: "t"}) end,
+        fn -> SocialFlow.cancel_plan(%{plan_id: plan.id, user_id: taylor, trace_id: "t"}) end,
+        fn -> SocialFlow.cancel_plan(%{plan_id: plan.id, user_id: alex(), trace_id: "t"}) end,
+        fn -> SocialFlow.change_plan_time(%{plan_id: plan.id, user_id: taylor, new_time_label: "x", trace_id: "t"}) end,
+        fn -> SocialFlow.change_plan_time(%{plan_id: plan.id, user_id: alex(), new_time_label: "x", trace_id: "t"}) end,
+        fn -> SocialFlow.change_plan_date(%{plan_id: plan.id, user_id: alex(), new_date_label: "x", trace_id: "t"}) end,
+        fn -> SocialFlow.confirm_pending_revision(%{conversation_id: conv(), user_id: taylor, decision: "accept", trace_id: "t"}) end
+      ]
+
+      for attempt <- attempts do
+        assert match?({:error, _}, attempt.()),
+               "unauthorized attempt must fail closed, got: #{inspect(attempt.())}"
+      end
+
+      # And the plan is exactly as it was: nothing moved.
+      assert %SharedPlan{status: "agreed", time_label: t} = Repo.get!(SharedPlan, plan.id)
+      assert t == plan.time_label
+      assert %PlanRevision{status: "proposed"} = Repo.get!(PlanRevision, rev.id)
+    end
   end
 end
