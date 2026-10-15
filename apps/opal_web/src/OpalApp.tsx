@@ -3144,7 +3144,7 @@ export function OpalApp() {
               senderDisplayName: null as string | null,
             }));
       // Preserve in-session human sends across reopen — seed fixture must not wipe them.
-      const extras = collectSeedLocalExtras(id, threadLocal, seedRow?.name || seedDisplayName);
+      const extras = collectSeedLocalExtras(id, threadLocal);
       setThreads((prev) => ({
         ...prev,
         [id]: extras.length ? [...threadLocal, ...extras] : threadLocal,
@@ -3218,7 +3218,7 @@ export function OpalApp() {
           : undefined,
       };
       // Preserve in-session human sends; remapping must not erase them.
-      const extras = collectSeedLocalExtras(id, local, seedRow?.name || seedDisplayName);
+      const extras = collectSeedLocalExtras(id, local);
       setThreads((prev) => ({
         ...prev,
         [id]: extras.length ? [...local, ...extras] : local,
@@ -3268,19 +3268,15 @@ export function OpalApp() {
           });
           if (forced.length) {
             const mapped = mapSeedTurns(forced);
-            const extras = collectSeedLocalExtras(id, mapped, matchedSeedRow.name);
+            const extras = collectSeedLocalExtras(id, mapped);
             setThreads((prev) => ({
               ...prev,
               [id]: extras.length ? [...mapped, ...extras] : mapped,
             }));
           }
         } else if (seedPainted) {
-          // Re-open with same paint — still merge any sessionStorage extras under this id.
-          const extras = collectSeedLocalExtras(
-            id,
-            existing,
-            matchedSeedRow?.name || seedDisplayName,
-          );
+          // Re-open with same paint — still merge any in-session extras under this id.
+          const extras = collectSeedLocalExtras(id, existing);
           if (extras.length) {
             const have = new Set(existing.map((m) => m.id));
             const missing = extras.filter((m) => !have.has(m.id));
@@ -3596,44 +3592,18 @@ export function OpalApp() {
     }
   };
 
-  /** Persist in-session human sends for founder-seed chats across reopen / id remap. */
-  const seedLocalStorageKey = (name: string | null | undefined) => {
-    const n = (name || "").trim().toLowerCase();
-    return n ? `opal.seed.local_msgs.v1:${n}` : null;
-  };
-  const rememberSeedLocalMessage = (
-    chatId: string,
-    name: string | null | undefined,
-    msg: Message,
-  ) => {
-    if (!isFounderSeedEnabled()) return;
-    if (msg.from !== "me" || msg.humanSpeaker === false) return;
-    const mid = typeof msg.id === "string" ? msg.id : "";
-    if (!(mid.startsWith("local-") || mid.startsWith("failed-") || msg.from === "me")) return;
-    const key = seedLocalStorageKey(name);
-    if (!key) return;
-    try {
-      const prev = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
-      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
-      sessionStorage.setItem(key, JSON.stringify(next));
-    } catch {
-      /* ignore quota */
-    }
-    // Mirror under chatId for same-session reopen before name resolve.
-    try {
-      const idKey = `opal.seed.local_msgs.id.v1:${chatId}`;
-      const prev = JSON.parse(sessionStorage.getItem(idKey) || "[]") as Message[];
-      const next = [...prev.filter((m) => m.id !== msg.id), msg].slice(-30);
-      sessionStorage.setItem(idKey, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
-  };
-  const collectSeedLocalExtras = (
-    chatId: string,
-    seedLocal: Message[],
-    name: string | null | undefined,
-  ): Message[] => {
+  /**
+   * Repair #11 — preserve in-session human sends across seed-chat reopen
+   * (in-memory only). The seed fixture must not wipe the founder's typed
+   * turns when a seed thread is rebuilt.
+   *
+   * NOTE: this is DEMO-ONLY scratch, not message persistence. Repair #8's
+   * sessionStorage approach was officially superseded (see
+   * shots/repair11/HISTORY_RECONCILIATION.md §2); durable delivery is
+   * Messages.accept_message (server DB), owned by the routing track.
+   * Do not build any new behavior on this helper.
+   */
+  const collectSeedLocalExtras = (chatId: string, seedLocal: Message[]): Message[] => {
     const seedIds = new Set(seedLocal.map((m) => m.id));
     const isExtra = (m: Message) => {
       const mid = typeof m.id === "string" ? m.id : "";
@@ -3643,27 +3613,10 @@ export function OpalApp() {
     };
     const fromState: Message[] = [];
     const seen = new Set<string>();
-    const push = (m: Message) => {
-      if (!isExtra(m) || seen.has(m.id)) return;
+    for (const m of threadsRef.current[chatId] || []) {
+      if (!isExtra(m) || seen.has(m.id)) continue;
       seen.add(m.id);
       fromState.push(m);
-    };
-    for (const m of threadsRef.current[chatId] || []) push(m);
-    // Repair #11: no cross-thread display-name scanning — the name-keyed
-    // sessionStorage store above already preserves sends across id remaps.
-    // Name-matching other live threads was the same trigger class as the
-    // seed-name hijack and must not pull content by display name.
-    try {
-      for (const key of [
-        seedLocalStorageKey(name),
-        `opal.seed.local_msgs.id.v1:${chatId}`,
-      ]) {
-        if (!key) continue;
-        const stored = JSON.parse(sessionStorage.getItem(key) || "[]") as Message[];
-        for (const m of stored) push(m);
-      }
-    } catch {
-      /* ignore */
     }
     return fromState;
   };
@@ -3851,11 +3804,10 @@ export function OpalApp() {
               c.id === activeChatId ? { ...c, preview: body, time: "Now" } : c,
             ),
           );
-          rememberSeedLocalMessage(
-            activeChatId,
-            founderSeedDisplayNameForId(activeChatId) || activeChat?.name,
-            msg,
-          );
+          // Repair #11: no sessionStorage persistence (superseded — see
+          // shots/repair11/HISTORY_RECONCILIATION.md §2). The in-memory
+          // threads state above is the only demo scratch; reopen merges it
+          // via collectSeedLocalExtras.
           setDraft("");
           applySeedThreadIntelligence(chatIdForIntel, body);
           // ━━━ END DEMO SHIM — nothing below may send over the network. ━━━━━
