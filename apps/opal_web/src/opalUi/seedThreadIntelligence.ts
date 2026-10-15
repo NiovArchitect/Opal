@@ -2,6 +2,8 @@
  * Local seed-aware thread intelligence — parse founder replies in seed chats
  * and return contextual Opal (and optional peer) responses. No UI chrome.
  */
+import React from "react";
+import { isFounderSeedEnabled } from "./founderGraphSeed";
 
 export type SeedIntelMessage = {
   from: "me" | "them" | string;
@@ -93,6 +95,115 @@ export function seedChatKeyFrom(input: {
   const id = (input.conversationId || "").trim();
   if (/^seed-chat-/i.test(id)) return id;
   return null;
+}
+
+/**
+ * Repair #11 — seed-demo person routing (NOT a trigger).
+ * Maps a seed person/crew display name → its seed-chat-* fixture id, for
+ * seed-mode-only navigation (openPersonChat, gated on founderSeedEnabled).
+ * This must NEVER be used to match real conversations — the render/send
+ * paths use seedChatKeyFrom (id-only) for that. Kept explicit so the
+ * quarantine cannot silently reintroduce name matching via this helper.
+ */
+export function seedChatIdForPersonName(name: string | null | undefined): string | null {
+  const n = (name || "").trim().toLowerCase();
+  if (!n) return null;
+  if (n === "chanelle" || n.startsWith("chanelle ")) return "seed-chat-chanelle";
+  if (n === "maya" || n.startsWith("maya ")) return "seed-chat-maya";
+  if (n === "juniper crew" || n === "saturday crew" || n.includes("juniper crew")) {
+    return "seed-chat-juniper-crew";
+  }
+  if (n === "sabrina" || n.startsWith("sabrina ")) return "seed-chat-sabrina";
+  if (n === "alex" || n.startsWith("alex ")) return "seed-chat-alex";
+  return null;
+}
+
+/**
+ * Repair #11 — the exact send() seed-branch condition, extracted for testing.
+ * The demo shim may engage ONLY for seed-chat-* ids AND only when seed mode
+ * is on. Real conversation ids never enter the seed branch, so the
+ * production send path can never paint seed messages or run seed
+ * intelligence.
+ */
+export function isSeedDemoChatTarget(
+  conversationId: string | null | undefined,
+  seedEnabled: boolean,
+): boolean {
+  if (!seedEnabled) return false;
+  const id = (conversationId || "").trim();
+  return /^seed-chat-/i.test(id);
+}
+
+/**
+ * Repair #11 — seed peer attribution contract, extracted for testing.
+ * Every seed-injected peer message: humanSpeaker false, display name
+ * suffixed " · simulated". Returns null for non-peer turns (Opal
+ * filaments, system consequences, own messages) — those are not peers.
+ * No generated text may be attributable to a real person.
+ */
+export function seedPeerAttribution(input: {
+  from: string;
+  senderDisplayName?: string | null;
+  opalFilament?: boolean;
+  opalSystemConsequence?: boolean;
+}): { humanSpeaker: false; senderDisplayName: string | null } | null {
+  const isSimulatedPeer =
+    input.from === "them" && !input.opalFilament && !input.opalSystemConsequence;
+  if (!isSimulatedPeer) return null;
+  const raw = (input.senderDisplayName || "").trim();
+  return {
+    humanSpeaker: false,
+    senderDisplayName:
+      raw && !/simulated/i.test(raw) ? `${raw} · simulated` : raw || null,
+  };
+}
+
+/**
+ * Repair #11 — unmistakable persistent banner while seed mode is active.
+ * Rendered at the app root whenever isFounderSeedEnabled() is true so seed
+ * output can never be mistaken for the product. Returns null otherwise.
+ */
+export function SeedSimulatedBanner(): React.ReactElement | null {
+  if (!isFounderSeedEnabled()) return null;
+  return React.createElement(
+    "div",
+    {
+      "data-testid": "opal-seed-simulated-banner",
+      role: "alert",
+      style: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 30,
+        zIndex: 100000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        pointerEvents: "none",
+        background:
+          "repeating-linear-gradient(45deg, #8f0f1f 0 14px, #141414 14px 28px)",
+      },
+    },
+    React.createElement(
+      "span",
+      {
+        style: {
+          background: "#000",
+          color: "#ffdfe3",
+          border: "1px solid #ff4d5e",
+          borderRadius: 999,
+          padding: "3px 12px",
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+        },
+      },
+      "Simulated — demo responses, not real",
+    ),
+  );
 }
 
 /**

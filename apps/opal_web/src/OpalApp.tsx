@@ -216,7 +216,10 @@ import {
 } from "./opalUi/founderChatsPlanPills";
 import {
   interpretSeedThreadReply,
+  isSeedDemoChatTarget,
   seedChatKeyFrom,
+  seedPeerAttribution,
+  SeedSimulatedBanner,
 } from "./opalUi/seedThreadIntelligence";
 import {
   ALEX_MEXICO_TRIP_MEMORIES,
@@ -3102,22 +3105,18 @@ export function OpalApp() {
       : [];
     const mapSeedTurns = (turns: typeof seedTurns) =>
       turns.map((m) => {
-        // Repair #11: seed-injected peer turns are simulated — never a real human.
-        const isSimulatedPeer =
-          m.from === "them" && !m.opalFilament && !m.opalSystemConsequence;
-        const rawName = (m.senderDisplayName || "").trim();
+        // Repair #11: seed-injected peer turns are simulated — never a real
+        // human. Attribution contract lives in seedPeerAttribution (tested).
+        const sim = seedPeerAttribution(m);
         return {
           id: m.id,
           from: m.from,
           body: m.body,
           time: m.time,
-          humanSpeaker: isSimulatedPeer
+          humanSpeaker: sim
             ? false
             : m.humanSpeaker !== false && !m.opalFilament && !m.opalSystemConsequence,
-          senderDisplayName:
-            isSimulatedPeer && rawName && !/simulated/i.test(rawName)
-              ? `${rawName} · simulated`
-              : m.senderDisplayName || null,
+          senderDisplayName: sim ? sim.senderDisplayName : m.senderDisplayName || null,
           opalFilament: m.opalFilament || undefined,
           opalSystemConsequence: m.opalSystemConsequence || undefined,
           signal: m.signal
@@ -3696,17 +3695,19 @@ export function OpalApp() {
       const stamp = Date.now();
       const extras: Message[] = [];
       if (intel.peer) {
-        // Repair #11: seed peer replies are simulated — never painted as a real human.
-        const peerName = (intel.peer.senderDisplayName || "").trim();
+        // Repair #11: seed peer replies are simulated — never painted as a
+        // real human. Attribution contract lives in seedPeerAttribution.
+        const sim = seedPeerAttribution({
+          from: "them",
+          senderDisplayName: intel.peer.senderDisplayName,
+        });
         extras.push({
           id: `seed-peer-${stamp}`,
           from: "them",
           body: intel.peer.body,
           time: "Now",
           humanSpeaker: false,
-          senderDisplayName: peerName
-            ? `${peerName} · simulated`
-            : "Simulated",
+          senderDisplayName: sim?.senderDisplayName || "Simulated",
         });
       }
       if (intel.opal) {
@@ -3779,13 +3780,10 @@ export function OpalApp() {
         // carried no clientMessageId, so the broadcast dedupe failed and the
         // message rendered twice — and demo text leaked into real peers.
         // Seed mode is not the product; in seed mode we send nothing.
+        // The gate is isSeedDemoChatTarget (unit-tested): seed-chat-* ids
+        // only, and only when seed mode is on. Real ids never enter.
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        if (
-          isFounderSeedEnabled() &&
-          (isFounderSeedChatId(activeChatId) ||
-            // Repair #11: id-only — no display-name matching.
-            seedChatKeyFrom({ conversationId: activeChatId }))
-        ) {
+        if (isSeedDemoChatTarget(activeChatId, isFounderSeedEnabled())) {
           const msg: Message = {
             id: `local-${Date.now()}`,
             from: "me",
@@ -8319,46 +8317,10 @@ export function OpalApp() {
       data-opal-founder-seed={isFounderSeedEnabled() ? "1" : "0"}
     >
       <div className="app-ambient" aria-hidden />
-      {/* Repair #11 — unmistakable seed-mode banner. Whenever the founder-seed
-          simulation is active, the entire app carries this persistent strip so
-          seed output can never be mistaken for the product. */}
-      {isFounderSeedEnabled() ? (
-        <div
-          data-testid="opal-seed-simulated-banner"
-          role="alert"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 30,
-            zIndex: 100000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-            background:
-              "repeating-linear-gradient(45deg, #8f0f1f 0 14px, #141414 14px 28px)",
-          }}
-        >
-          <span
-            style={{
-              background: "#000",
-              color: "#ffdfe3",
-              border: "1px solid #ff4d5e",
-              borderRadius: 999,
-              padding: "3px 12px",
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Simulated — demo responses, not real
-          </span>
-        </div>
-      ) : null}
+      {/* Repair #11 — unmistakable seed-mode banner (SeedSimulatedBanner,
+          unit-tested): persistent whenever seed mode is active so seed output
+          can never be mistaken for the product. */}
+      <SeedSimulatedBanner />
       {isFounderSeedEnabled() &&
       typeof window !== "undefined" &&
       new URLSearchParams(window.location.search).get("opal_dev") === "1" ? (
