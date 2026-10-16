@@ -3,6 +3,8 @@
  * Now + next two only. Sample day is never presented as the user's real calendar.
  */
 
+import { formatClockAmPm } from "./composeHumanReality";
+
 export type DayStripEvent = {
   id: string;
   title: string;
@@ -55,13 +57,9 @@ export function sampleDayEventsFor(now: Date = new Date()): DayStripEvent[] {
   });
 }
 
-/** Format strip time like the shell ("3:30", "7:30") — local, no AM/PM noise. */
+/** Format strip time through the canonical clock — always carries AM/PM (F12-10). */
 export function formatStripTime(ms: number): string {
-  const d = new Date(ms);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const hour12 = h % 12 === 0 ? 12 : h % 12;
-  return m === 0 ? `${hour12}:00` : `${hour12}:${String(m).padStart(2, "0")}`;
+  return formatClockAmPm(new Date(ms));
 }
 
 /**

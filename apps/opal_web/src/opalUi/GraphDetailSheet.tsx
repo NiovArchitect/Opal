@@ -174,7 +174,10 @@ export function GraphDetailSheet({
     if (cardId === "seed-chanelle-juniper") {
       return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
     }
-    return withWho || "Forming";
+    // F12-01/F12-45: a when-line is a time — never a person's name, never blank.
+    // createdPlan.when is the user-entered time; without it the honest label applies.
+    if (createdPlan?.when) return createdPlan.when;
+    return "Time to be set";
   })();
   const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine, {
     inventDefaults: !createdPlan && cardId === "seed-chanelle-juniper",

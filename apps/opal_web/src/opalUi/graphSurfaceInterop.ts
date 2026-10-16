@@ -131,13 +131,14 @@ export function createdPlanGraphOverlay(plan: CreatedPlanSurface): {
   const people = plan.who
     ? plan.who.split(/,|&/).map((p) => p.trim()).filter(Boolean)
     : [];
-  const whenLine = [plan.when, people.length ? people.join(", ") : null]
-    .filter(Boolean)
-    .join(" · ");
+  // F12-45: whenLine is a time — never a person's name. People live in `who`/`person`.
+  const whenLine = plan.when
+    ? [plan.when, people.length ? people.join(", ") : null].filter(Boolean).join(" · ")
+    : "Time to be set";
   return {
     id: plan.sourceIdeaId || plan.id,
     title: plan.title || "Plan",
-    whenLine: whenLine || "Forming",
+    whenLine,
     signalLine: "Forming · pending",
     status: "forming",
     person: people[0] || plan.who || "",

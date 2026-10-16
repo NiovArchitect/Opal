@@ -422,7 +422,7 @@ import {
   strongestPerHomePresence,
   surfaceLabel,
 } from "./sharedReality";
-import { isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
+import { formatClockAmPm, isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
 import {
   composeHomeAttentionField,
   homeEditorialLines,
@@ -1350,7 +1350,7 @@ export function OpalApp() {
         id: `opal-filament-moment-seed-${Date.now()}`,
         from: "them",
         body: privateSeedFilamentBody(seed),
-        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        time: formatClockAmPm(new Date()),
         opalFilament: true,
         opalPrivate: true,
         signal: {
@@ -1411,7 +1411,7 @@ export function OpalApp() {
         id: `opal-filament-when-${Date.now()}`,
         from: "them",
         body,
-        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        time: formatClockAmPm(new Date()),
         opalFilament: true,
         opalPrivate: true,
         realitySeedId: next.realitySeedId,
@@ -1467,7 +1467,7 @@ export function OpalApp() {
           id: `opal-exec-${applied.lineage.executionId || "x"}-${applied.seed.executionStatus}`,
           from: "them",
           body: applied.humanConsequence,
-          time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+          time: formatClockAmPm(new Date()),
           opalFilament: true,
           opalPrivate: isSolo,
           opalSystemConsequence: true,
@@ -1745,10 +1745,7 @@ export function OpalApp() {
       from: me && raw.sender_user_id === me ? "me" : "them",
       body: isCallInvite ? "Call" : raw.body,
       time: raw.created_at
-        ? new Date(raw.created_at).toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-          })
+        ? formatClockAmPm(new Date(raw.created_at))
         : "Now",
       createdAt: raw.created_at,
       serverSeq: raw.server_seq,
@@ -3360,10 +3357,7 @@ export function OpalApp() {
             humanSpeaker: !callInvite,
             messageType: m.message_type,
             liveCallId: callId,
-            time: new Date(m.created_at).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            }),
+            time: formatClockAmPm(new Date(m.created_at)),
             createdAt: m.created_at,
             serverSeq: m.server_seq,
             clientMessageId: m.client_message_id,
@@ -4467,23 +4461,41 @@ export function OpalApp() {
     // Upcoming: Next Together strip stays in-thread.
     // Past: PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0 — access via header overflow
     // ("Earlier together"), not a sticky banner between person and messages.
-    // Repair #3 — prefer alignment lines; fall back to chat planProjection / seed signal
-    // so relationship threads keep active-plan continuity without requiring full settlement.
-    const headerPlanFromAlignment =
-      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
+    // F12-08: the strip reads the single source of truth — chats[].planProjection —
+    // refreshed on every social_flow:plan event. The alignment snapshot is fallback only.
     const projectionSummary = [
       activeChat.planProjection?.when_label,
       activeChat.planProjection?.place,
     ]
       .filter(Boolean)
       .join(" · ");
+    const headerPlanFromAlignment =
+      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
     const headerPlan =
-      headerPlanFromAlignment ||
-      (projectionSummary
+      projectionSummary
         ? { summary: projectionSummary, moreCount: 0 }
-        : activeChat.signalLabel
-          ? { summary: activeChat.signalLabel, moreCount: 0 }
-          : null);
+        : headerPlanFromAlignment ||
+          (activeChat.signalLabel
+            ? { summary: activeChat.signalLabel, moreCount: 0 }
+            : null);
+    // F12-32: one render per plan generation — key the strip by plan+revision so
+    // React reconciles a single element across refreshes (no stacked generations).
+    const stripPlanKey = (() => {
+      const lineage =
+        activeChat.planProjection?.lineage_id || alignment?.lineage_id || null;
+      if (!lineage) return null;
+      return `${lineage}:${activeChat.planProjection?.revision_id || "base"}`;
+    })();
+    // F12-32: the in-thread "Plan set" marker duplicates the strip when both
+    // describe the same generation (token-set match, order-insensitive).
+    const stripCoversPlanSet = (() => {
+      if (!projectionSummary) return false;
+      const frozen = planHistory(alignment)?.summary;
+      if (!frozen) return false;
+      const tokens = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).sort().join(" ");
+      return tokens(frozen) === tokens(projectionSummary);
+    })();
     const pastHistorySummary =
       planSettled && temporalState === "past"
         ? selectHeaderPlan(alignment?.plan_lines)?.summary ||
@@ -5290,6 +5302,7 @@ export function OpalApp() {
           {headerPlan ? (
             <button
               type="button"
+              key={stripPlanKey || activeChatId || "next-plan-strip"}
               className="next-plan-strip"
               data-testid="next-plan-strip"
               data-participant-mode={planMode}
@@ -5343,7 +5356,8 @@ export function OpalApp() {
             </button>
           ) : null}
           {threadItems.map((item) =>
-            item.kind === "plan-set" ? (
+            // F12-32: the strip already renders this generation — one render per plan.
+            item.kind === "plan-set" && stripCoversPlanSet ? null : item.kind === "plan-set" ? (
               <div key="plan-set-event" className="plan-set-event" data-testid="plan-set-event">
                 <p>Plan set ✓</p>
                 <p>{item.summary}</p>
@@ -7237,10 +7251,7 @@ export function OpalApp() {
                       id: `opal-filament-private-curate-${Date.now()}`,
                       from: "them",
                       body: "Evening composition is ready when you want to lead.",
-                      time: new Date().toLocaleTimeString([], {
-                        hour: "numeric",
-                        minute: "2-digit",
-                      }),
+                      time: formatClockAmPm(new Date()),
                       opalFilament: true,
                       opalPrivate: true,
                       signal: {
@@ -9416,9 +9427,13 @@ export function OpalApp() {
                       const instant = parsePlanInstant(plan.canonical_start_at);
                       return instant
                         ? formatPastPlanWhen(instant)
-                        : plan.when_label || "";
+                        : plan.when_label || "Time to be set";
                     })()
-                  : plan.when_label || "";
+                  // F12-01: empty when_label falls back to canonical_start_at; never blank.
+                  : plan.when_label ||
+                    (plan.canonical_start_at
+                      ? formatHumanTime(plan.canonical_start_at)
+                      : "Time to be set");
               return [
                 {
                   id: plan.lineage_id || chat.id,

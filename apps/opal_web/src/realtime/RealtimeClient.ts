@@ -576,6 +576,14 @@ export class RealtimeClient {
       this.alignmentHandlers.forEach((handler) => handler(id));
     });
 
+    // F12-08: every plan mutation broadcasts here (change_time, confirm, cancel…).
+    // Refresh chats[].planProjection — the strip's single source of truth.
+    channel.on("social_flow:plan", (payload: unknown) => {
+      const ev = normalizeSocialFlowPlan(payload, conversationId);
+      if (!ev) return;
+      this.inboxPlanHandlers.forEach((handler) => handler(ev));
+    });
+
     channel.on("availability:shared", (payload: unknown) => {
       this.availabilityHandlers.forEach((h) => h("shared", payload));
     });
@@ -959,6 +967,50 @@ export function normalizeInboxPlan(payload: unknown): InboxPlanEvent | null {
     conversation_id: row.conversation_id,
     visibility: typeof row.visibility === "string" ? row.visibility : undefined,
     projection,
+  };
+}
+
+/**
+ * F12-08: normalize a `social_flow:plan` broadcast (conversation channel) into the
+ * same InboxPlanEvent shape as `inbox:plan`, so planProjection — the single source
+ * of truth for the NEXT TOGETHER strip — refreshes on every plan event.
+ * The channel pushes the Contracts event envelope; the plan contract carries
+ * time_label/location/start_at (not when_label/place/canonical_start_at).
+ */
+export function normalizeSocialFlowPlan(
+  payload: unknown,
+  conversationId: string,
+): InboxPlanEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const env = payload as Record<string, unknown>;
+  const inner =
+    env.payload && typeof env.payload === "object"
+      ? (env.payload as Record<string, unknown>)
+      : env;
+  const plan =
+    inner.plan && typeof inner.plan === "object"
+      ? (inner.plan as Record<string, unknown>)
+      : null;
+  if (!plan) return null;
+  const text = (v: unknown): string | null =>
+    typeof v === "string" && v.trim() ? v : null;
+  const cid = text(plan.conversation_id) || conversationId;
+  if (!cid) return null;
+  return {
+    conversation_id: cid,
+    projection: {
+      lineage_id: text(plan.lineage_id) || text(plan.id),
+      conversation_id: cid,
+      when_label: text(plan.time_label),
+      place: text(plan.location),
+      canonical_start_at: text(plan.start_at),
+      revision_id: text(plan.current_revision_id),
+      plan_type: text(plan.plan_type),
+      online: plan.online === true,
+      timezone: text(plan.timezone),
+      status: text(plan.status),
+      organizer_name: text(plan.organizer_name),
+    },
   };
 }
 

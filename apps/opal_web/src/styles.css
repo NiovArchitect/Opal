@@ -19051,8 +19051,10 @@ html.opal-native-host .story-create-flow {
   margin: 0 12px 8px;
   padding: 7px 10px 7px 12px;
   border: 1px solid transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  background: rgba(8, 16, 28, 0.94);
+  /* F12-08: fully opaque — messages must never ghost behind the sticky strip. */
+  background: rgb(8, 16, 28);
   color: #f4f7fa;
   text-align: left;
   cursor: pointer;
