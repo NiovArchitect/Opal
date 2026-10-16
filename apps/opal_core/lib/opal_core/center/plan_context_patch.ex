@@ -604,14 +604,14 @@ defmodule OpalCore.Center.PlanContextPatch do
   The immediate provider override and the no-provider fallback render MUST
   produce the same line for the same fixture — never two divergent wordings.
   """
-  def venue_lookup_copy(name, dest) when is_binary(name) and is_binary(dest) do
+  def venue_lookup_copy(name, dest) when is_binary(name) do
     name = String.trim(name)
-    dest = String.trim(dest)
+    dest = if is_binary(dest), do: String.trim(dest), else: ""
 
-    if name != "" and dest != "" do
-      "Looking up #{name} in #{dest}…"
-    else
-      nil
+    cond do
+      name != "" and dest != "" -> "Looking up #{name} in #{dest}…"
+      name != "" -> "Looking up #{name}…"
+      true -> nil
     end
   end
 
