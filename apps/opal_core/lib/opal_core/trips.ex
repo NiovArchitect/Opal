@@ -15,6 +15,7 @@ defmodule OpalCore.Trips do
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.PlanAgreementTasteBridge
   alias OpalCore.SocialFlow.PlanParticipant
+  alias OpalCore.SocialFlow.PlanTransition
   alias OpalCore.SocialFlow.SharedPlan
   alias OpalCore.Trips.Trip
   alias OpalCore.Trips.TripActivity
@@ -270,6 +271,11 @@ defmodule OpalCore.Trips do
           plan.status == "agreed" ->
             {:ok, :already_agreed, plan}
 
+          # Gyroscope (R13): a changed plan is already past agreement —
+          # re-agreeing is a no-op, never a status flip back to "agreed".
+          plan.status == "changed" ->
+            {:ok, :already_agreed, plan}
+
           true ->
             do_agree_trip_leg_plan(plan)
         end
@@ -323,6 +329,9 @@ defmodule OpalCore.Trips do
 
     case plan
          |> SharedPlan.changeset(%{"status" => "agreed", "alignment" => alignment})
+         # Gyroscope (R13): the trip-leg agreement passes the gate — a
+         # cancelled leg plan can never be agreed back to life.
+         |> PlanTransition.guard_changeset(:plan, :agree)
          |> Repo.update() do
       {:ok, agreed} ->
         agreed = Repo.preload(agreed, :participants)
@@ -395,7 +404,12 @@ defmodule OpalCore.Trips do
     }
 
     Multi.new()
-    |> Multi.insert(:plan, SharedPlan.changeset(%SharedPlan{}, plan_attrs))
+    |> Multi.insert(
+      :plan,
+      SharedPlan.changeset(%SharedPlan{}, plan_attrs)
+      # Gyroscope (R13): trip-leg plans are born tentative, via the gate.
+      |> PlanTransition.guard_changeset(:plan, :create)
+    )
     |> Multi.run(:participants, fn repo, %{plan: plan} ->
       insert_plan_participants(repo, plan.id, participant_user_ids)
     end)
