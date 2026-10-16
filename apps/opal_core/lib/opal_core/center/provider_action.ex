@@ -32,6 +32,17 @@ defmodule OpalCore.Center.ProviderAction do
       attrs[:requested_venue_locality] || attrs["requested_venue_locality"] ||
         planning["requested_venue_locality"] || destination
 
+    # Repair #12 (F12-11): origin threading — device-anchored searches carry
+    # coarse lat/lon so the provider centers on the device, not on a
+    # destination-text geocode. origin_source ∈ device/manual/named_destination.
+    origin_source =
+      attrs[:origin_source] || attrs["origin_source"] || planning["origin_source"]
+
+    origin_lat = attrs[:origin_lat] || attrs["origin_lat"] || planning["origin_lat"]
+    origin_lon = attrs[:origin_lon] || attrs["origin_lon"] || planning["origin_lon"]
+
+    device_origin? = is_number(origin_lat) and is_number(origin_lon)
+
     exact? = search_mode in ["exact_entity", "exact"] and is_binary(requested_venue) and
                String.trim(requested_venue) != ""
 
@@ -79,7 +90,11 @@ defmodule OpalCore.Center.ProviderAction do
             if(exact? and is_binary(requested_locality),
               do: String.trim(requested_locality),
               else: nil
-            )
+            ),
+          # Repair #12 (F12-11): origin threading for device-anchored search.
+          "origin_source" => origin_source,
+          "origin_lat" => if(device_origin?, do: origin_lat, else: nil),
+          "origin_lon" => if(device_origin?, do: origin_lon, else: nil)
         },
         "planning_snapshot" => stringify(planning)
       }
@@ -390,30 +405,40 @@ defmodule OpalCore.Center.ProviderAction do
     # discovery substitutes for it is forbidden.
     exact_query? = mode == "exact_entity" and is_binary(requested) and String.trim(requested) != ""
 
-    query =
+    result =
       if exact_query? do
-        %{
+        query = %{
           "search_mode" => "exact_entity",
           "requested_venue_name" => String.trim(requested),
           "requested_venue_locality" => locality,
           "destination_text" => locality,
           "limit" => 1
         }
-      else
-        %{
-          "destination_text" => dest,
-          "categories" => job.request["categories"] || "catering.restaurant",
-          "cuisine" => job.request["cuisine"],
-          "limit" => job.request["limit"] || 5,
-          "radius_m" => job.request["radius_m"] || 8_000,
-          "search_mode" => "discovery"
-        }
-      end
 
-    result =
-      if exact_query? do
         Gateway.resolve_exact_entity(query)
       else
+        query =
+          %{
+            "destination_text" => dest,
+            "categories" => job.request["categories"] || "catering.restaurant",
+            "cuisine" => job.request["cuisine"],
+            "limit" => job.request["limit"] || 5,
+            "radius_m" => job.request["radius_m"] || 8_000,
+            "search_mode" => "discovery"
+          }
+          # Repair #12 (F12-11): device-anchored discovery centers the
+          # provider circle on the device coords — no destination-text geocode.
+          |> then(fn q ->
+            lat = job.request["origin_lat"]
+            lon = job.request["origin_lon"]
+
+            if is_number(lat) and is_number(lon) do
+              q |> Map.put("lat", lat) |> Map.put("lon", lon)
+            else
+              q
+            end
+          end)
+
         Gateway.search_places(query)
       end
 
@@ -565,8 +590,10 @@ defmodule OpalCore.Center.ProviderAction do
           end
 
         true ->
-          names = Enum.map_join(cands, ", ", & &1["name"])
           cuisine = job.request["cuisine"]
+          # Repair #12 (F12-11e): real haversine distances for device-anchored
+          # searches — computed from the same origin the provider used.
+          names = Enum.map_join(cands, ", ", &candidate_label(&1, job.request))
 
           lead =
             if is_binary(cuisine) and cuisine != "" do
@@ -656,6 +683,26 @@ defmodule OpalCore.Center.ProviderAction do
   end
 
   defp existing_venue_name(_), do: nil
+
+  # Repair #12 (F12-11e): candidate label with a real haversine distance when
+  # the search was device-anchored. Non-device origins show the plain name —
+  # never a fabricated distance.
+  defp candidate_label(candidate, request) when is_map(candidate) and is_map(request) do
+    name = candidate["name"] || "a spot"
+    lat = request["origin_lat"]
+    lon = request["origin_lon"]
+
+    dist =
+      if request["origin_source"] == "device" and is_number(lat) and is_number(lon) do
+        OpalCore.Center.DeviceLocation.distance_label(lat, lon, candidate["lat"], candidate["lon"])
+      else
+        nil
+      end
+
+    if is_binary(dist), do: "#{name} (#{dist})", else: name
+  end
+
+  defp candidate_label(candidate, _), do: (is_map(candidate) && candidate["name"]) || "a spot"
 
   defp maybe_paint_center_failure(%ProviderActionJob{} = job) do
     alias OpalCore.OpalConversations

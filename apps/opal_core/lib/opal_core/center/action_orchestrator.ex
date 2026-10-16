@@ -11,6 +11,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
     ProviderAction,
     ProviderActionJob,
     PlanContextPatch,
+    DeviceLocation,
     SurprisePlanning,
     QuestionEconomy,
     DependencyPlanner,
@@ -156,43 +157,52 @@ defmodule OpalCore.Center.ActionOrchestrator do
                 {intent2, override, meta}
 
               :no_selection ->
-                case QuestionEconomy.decide(planning) do
-                  {:soft_assume, soft, soft_copy} ->
-                    {:ok, soft} = PlanningContext.merge(user_id, %{}, soft)
+                # Repair #12 (F12-11d): "find restaurants near me" carries
+                # restaurant cues so it skips the conversational intercept —
+                # open the device-anchored search here instead of asking "where?".
+                case maybe_near_me_device_search(user_id, raw_text, intent, planning) do
+                  {:near_me, result} ->
+                    result
 
-                    case maybe_start_search(user_id, intent, soft) do
-                      {intent2, nil, meta} ->
-                        {intent2, soft_copy, Map.put(meta, "soft_assumption", true)}
+                  :not_near_me ->
+                    case QuestionEconomy.decide(planning) do
+                      {:soft_assume, soft, soft_copy} ->
+                        {:ok, soft} = PlanningContext.merge(user_id, %{}, soft)
 
-                      {intent2, override, meta} when is_binary(override) ->
-                        # Soft assumption may annotate working copy, but never add a second question.
-                        annotated =
-                          if is_binary(soft_copy) and String.contains?(soft_copy, "?") do
-                            override
-                          else
-                            override <> " " <> soft_copy
-                          end
+                        case maybe_start_search(user_id, intent, soft) do
+                          {intent2, nil, meta} ->
+                            {intent2, soft_copy, Map.put(meta, "soft_assumption", true)}
 
-                        {intent2, annotated, Map.put(meta, "soft_assumption", true)}
+                          {intent2, override, meta} when is_binary(override) ->
+                            # Soft assumption may annotate working copy, but never add a second question.
+                            annotated =
+                              if is_binary(soft_copy) and String.contains?(soft_copy, "?") do
+                                override
+                              else
+                                override <> " " <> soft_copy
+                              end
 
-                      other ->
-                        other
+                            {intent2, annotated, Map.put(meta, "soft_assumption", true)}
+
+                          other ->
+                            other
+                        end
+
+                      {:ask, asked_planning, question} ->
+                        {intent, question,
+                         %{
+                           "planning_context" => asked_planning,
+                           "question_economy" => true,
+                           "assumption_class" => "ask"
+                         }}
+
+                      {:proceed, proceeded} ->
+                        maybe_start_search(user_id, intent, proceeded)
+
+                      {:block, blocked, reason} ->
+                        {intent, consequential_copy(reason),
+                         %{"planning_context" => blocked, "blocked" => true}}
                     end
-
-                  {:ask, asked_planning, question} ->
-                    {intent, question,
-                     %{
-                       "planning_context" => asked_planning,
-                       "question_economy" => true,
-                       "assumption_class" => "ask"
-                     }}
-
-                  {:proceed, proceeded} ->
-                    maybe_start_search(user_id, intent, proceeded)
-
-                  {:block, blocked, reason} ->
-                    {intent, consequential_copy(reason),
-                     %{"planning_context" => blocked, "blocked" => true}}
                 end
             end
         end
@@ -471,6 +481,112 @@ defmodule OpalCore.Center.ActionOrchestrator do
     act = patch["conversation_act"]
     raw_text = if is_binary(raw_text), do: raw_text, else: ""
 
+    # Repair #12 (F12-11d): the near-me intercept OPENS when device coords
+    # exist — a real nearby search starts and owns the turn (bypasses the
+    # parked path below). Without coords it stays an honest gate.
+    if near_me_phrasing?(raw_text) and
+         act not in ["switch_topic", "recall_prior_task", "show_history", "switch_task_birthday"] do
+      case DeviceLocation.get_for_user(user_id) do
+        {:ok, coords} ->
+          start_near_me_search(user_id, intent, planning, coords)
+
+        :none ->
+          parked = Map.put(planning, "provider_parked", true)
+
+          {intent_without_search(intent),
+           "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
+           %{
+             "planning_context" => parked,
+             "no_provider_restart" => true,
+             "conversation_owns_routing" => true,
+             "provider_parked" => true
+           }}
+      end
+    else
+      do_handle_conversational_turn(user_id, intent, planning, patch, raw_text, act)
+    end
+  end
+
+  defp near_me_phrasing?(raw_text) when is_binary(raw_text) do
+    Regex.match?(~r/\bnear\s+me\b/i, raw_text) or
+      Regex.match?(~r/\baround\s+(?:here|me)\b/i, raw_text)
+  end
+
+  defp near_me_phrasing?(_), do: false
+
+  # Repair #12 (F12-11d): nearby search from device coords. Mirrors
+  # maybe_start_search but device-anchored: destination "near you",
+  # origin_source "device", lat/lon threaded to the provider for the circle
+  # center (no destination-text geocode).
+  defp start_near_me_search(user_id, intent, planning, coords) do
+    lat = coords["lat"]
+    lon = coords["lon"]
+
+    planning =
+      planning
+      |> Map.put("destination", "near you")
+      |> Map.put("search_mode", "discovery")
+      |> Map.put("origin_source", "device")
+      |> Map.put("origin_lat", lat)
+      |> Map.put("origin_lon", lon)
+      |> Map.put("category", "restaurant")
+      |> Map.put("wants_restaurant", true)
+
+    conversation_id =
+      case OpalConversations.get_or_create_conversation(user_id) do
+        {:ok, c} -> c.id
+        _ -> nil
+      end
+
+    {planning, plan_id} =
+      case ProviderAction.ensure_plan(user_id, planning) do
+        {:ok, pid, p2} ->
+          _ = PlanningContext.merge(user_id, %{"plan_id" => pid}, %{})
+          {Map.merge(p2, %{"plan_id" => pid}), pid}
+
+        _ ->
+          {planning, planning["plan_id"]}
+      end
+
+    search_attrs = %{
+      user_id: user_id,
+      conversation_id: conversation_id,
+      destination: "near you",
+      planning_snapshot: planning,
+      plan_id: plan_id,
+      search_mode: "discovery",
+      origin_source: "device",
+      origin_lat: lat,
+      origin_lon: lon,
+      categories: "catering.restaurant"
+    }
+
+    case ProviderAction.start_places_search(search_attrs) do
+      {:ok, job} ->
+        override = "Looking for restaurants near you…"
+
+        meta = %{
+          "action_job_id" => job.id,
+          "action_state" => "queued",
+          "search_geography" => job.search_geography,
+          "search_mode" => "discovery",
+          "origin_source" => "device",
+          "provider" => "geoapify",
+          "plan_id" => plan_id,
+          "planning_context" => Map.put(planning, "plan_id", plan_id),
+          "promise_guard" => true
+        }
+
+        {intent, override, meta}
+
+      {:error, _} ->
+        {intent_without_search(intent),
+         "I couldn't start a nearby search just now. Want to try again?",
+         %{"planning_context" => planning, "plan_id" => plan_id}}
+    end
+  end
+
+  defp do_handle_conversational_turn(user_id, intent, planning, patch, raw_text, act) do
     {planning2, override, extra} =
       case act do
         "switch_topic" ->
@@ -508,18 +624,9 @@ defmodule OpalCore.Center.ActionOrchestrator do
         _ ->
           # coordinate / chat / plan_create without restaurant this turn —
           # park provider monopolization; leave durable plan slots intact.
-          near_me? =
-            Regex.match?(~r/\bnear\s+me\b/i, raw_text) or
-              Regex.match?(~r/\baround\s+(?:here|me)\b/i, raw_text)
-
-          override =
-            if near_me? do
-              "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?"
-            else
-              nil
-            end
-
-          {Map.put(planning, "provider_parked", true), override,
+          # (Near-me phrasing is handled above: it opens a real search when
+          # device coords exist, so it never reaches this parked branch.)
+          {Map.put(planning, "provider_parked", true), nil,
            %{"provider_parked" => true, "conversation_owns_routing" => true}}
       end
 
@@ -857,6 +964,23 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
   defp consequential_copy(_), do: "I need a bit more authority before I can do that."
 
+  # Repair #12 (F12-11d): the "find restaurants near me" variant — near-me
+  # phrasing with restaurant cues, no typed destination. Opens the
+  # device-anchored search when coords exist; otherwise falls through to the
+  # normal QuestionEconomy path (which asks "where?").
+  defp maybe_near_me_device_search(user_id, raw_text, intent, planning) do
+    dest = planning["requested_venue_locality"] || planning["destination"]
+
+    if near_me_phrasing?(raw_text) and not is_binary(dest) do
+      case DeviceLocation.get_for_user(user_id) do
+        {:ok, coords} -> {:near_me, start_near_me_search(user_id, intent, planning, coords)}
+        :none -> :not_near_me
+      end
+    else
+      :not_near_me
+    end
+  end
+
   defp maybe_attach_selection(user_id, raw_text, intent, planning) do
     case Regex.run(@select_option_re, raw_text) do
       [_, raw_name] ->
@@ -1014,7 +1138,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
             override =
               cond do
                 exact? and is_binary(planning["requested_venue_name"]) ->
-                  "Looking up #{planning["requested_venue_name"]} in #{dest}…"
+                  # Repair #12 (F12-42): single copy source with the
+                  # no-provider fallback render.
+                  PlanContextPatch.venue_lookup_copy(planning["requested_venue_name"], dest) ||
+                    "Looking up #{planning["requested_venue_name"]} in #{dest}…"
 
                 is_binary(cuisine) and cuisine != "" and is_binary(dest) ->
                   # Cuisine discovery without inherited WHEN — do not invent Saturday/Friday.
@@ -1041,6 +1168,9 @@ defmodule OpalCore.Center.ActionOrchestrator do
               "action_state" => "queued",
               "search_geography" => job.search_geography,
               "search_mode" => planning["search_mode"] || "discovery",
+              # Repair #12 (F12-11f): origin indicator — device coords,
+              # user-typed destination, or named-venue resolution.
+              "origin_source" => origin_source_for_search(planning),
               "provider" => "geoapify",
               "plan_id" => plan_id,
               "planning_context" => Map.put(planning, "plan_id", plan_id),
@@ -1057,6 +1187,19 @@ defmodule OpalCore.Center.ActionOrchestrator do
         {intent, nil, %{"planning_context" => planning}}
     end
   end
+
+  # Repair #12 (F12-11f): origin_source for a started search — device when the
+  # turn was device-anchored, named_destination for exact-entity venue
+  # resolution, manual for a user-typed destination.
+  defp origin_source_for_search(planning) when is_map(planning) do
+    cond do
+      planning["origin_source"] in DeviceLocation.origin_sources() -> planning["origin_source"]
+      planning["search_mode"] == "exact_entity" -> "named_destination"
+      true -> "manual"
+    end
+  end
+
+  defp origin_source_for_search(_), do: "manual"
 
   defp maybe_resume_pending_plan(user_id, planning) when is_map(planning) do
     fp = planning["opportunity_fingerprint"]
@@ -1104,9 +1247,13 @@ defmodule OpalCore.Center.ActionOrchestrator do
         false
 
       mode == "exact_entity" and is_binary(venue) and venue != "" ->
+        # Repair #12 (F12-43): exact-job dedupe is case/whitespace-insensitive —
+        # "Find Nighthawk" then "find nighthawk" is one in-flight job, not two.
         Enum.any?(base, fn j ->
           req = j.request || %{}
-          req["search_mode"] == "exact_entity" and req["requested_venue_name"] == venue
+
+          req["search_mode"] == "exact_entity" and
+            normalize_venue_key(req["requested_venue_name"]) == normalize_venue_key(venue)
         end)
 
       true ->
@@ -1125,6 +1272,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
   end
 
   defp already_running?(_, _, _), do: false
+
+  # Repair #12 (F12-43): normalize venue names for dedupe comparison.
+  defp normalize_venue_key(v) when is_binary(v), do: v |> String.trim() |> String.downcase()
+  defp normalize_venue_key(_), do: ""
 
   defp cuisine_categories(cuisine) when is_binary(cuisine) and cuisine != "" do
     slug =
