@@ -477,7 +477,7 @@ defmodule OpalCore.OpalIntent do
   # exact-entity request, never category discovery. Reuses the Center's exact
   # venue extraction so the classifier and the exact-entity routing agree on
   # what counts as named-venue vs discovery.
-  defp try_named_venue(norm, _names) do
+  defp try_named_venue(norm, names) do
     original = norm.original
 
     case OpalCore.Center.PlanContextPatch.extract_exact_venue(original) do
@@ -487,10 +487,46 @@ defmodule OpalCore.OpalIntent do
       nil ->
         case named_find_no_locality(original) do
           %{name: name} -> named_venue_hit(name, nil)
-          nil -> nil
+          # Repair #12 (F12-04a) — a venue-location question ("do you know where
+          # Nighthawk is") is an exact-entity venue turn, never :chat. Without a
+          # locality the Center asks for the city; the sticky recent_who
+          # re-engagement must not fire for it.
+          nil -> try_venue_question(original, names)
         end
     end
   end
+
+  defp try_venue_question(original, known_names) do
+    case OpalCore.Center.PlanContextPatch.extract_venue_question(original) do
+      %{name: name} ->
+        if venue_question_is_person?(name, known_names) do
+          nil
+        else
+          %{
+            intent: :named_venue,
+            confidence: :medium,
+            entities: %{
+              venue_name: name,
+              search_mode: "exact_entity",
+              venue_question: true
+            }
+          }
+        end
+
+      nil ->
+        nil
+    end
+  end
+
+  # "Where is Maya" asks about a person, not a venue — leave it for chat.
+  defp venue_question_is_person?(name, known_names) when is_binary(name) and is_list(known_names) do
+    bare =
+      name |> String.replace(~r/^(?:the\s+)/i, "") |> String.trim() |> String.downcase()
+
+    Enum.any?(known_names, fn n -> is_binary(n) and String.downcase(n) == bare end)
+  end
+
+  defp venue_question_is_person?(_, _), do: false
 
   defp named_venue_hit(name, locality) do
     entities = %{venue_name: name, search_mode: "exact_entity"}
@@ -754,15 +790,54 @@ defmodule OpalCore.OpalIntent do
     from_contacts = names_from_contacts(original, known_names)
     from_caps = capitalized_names(original, known_names)
 
+    # Repair #12 (F12-30): never echo resolved venue / locality / clock tokens
+    # as people. "The Henry in Coronado on Sunday at 10 AM" resolves The Henry
+    # + Coronado to the venue entity and 10 AM to the time — Henry, Coronado
+    # and AM must not become who-candidates. An explicit "with <Name>" keeps
+    # its person even when the name overlaps the venue ("dinner with Henry at
+    # The Henry" still invites Henry).
+    venue_tokens = venue_entity_tokens(original)
+    with_names = with_phrase_names(original)
+
     names =
       (from_contacts ++ from_caps)
       |> Enum.uniq_by(&String.downcase/1)
+      |> Enum.reject(fn tok ->
+        down = String.downcase(tok)
+        MapSet.member?(venue_tokens, down) and not MapSet.member?(with_names, down)
+      end)
 
     case names do
       [] -> nil
       list -> list
     end
   end
+
+  # Tokens belonging to the turn's resolved venue entity (name + locality),
+  # lowercased for comparison. Empty set when the turn names no venue.
+  defp venue_entity_tokens(original) when is_binary(original) do
+    venue = OpalCore.Center.PlanContextPatch.extract_exact_venue(original) || %{}
+    name = venue[:name] || venue["name"] || ""
+    loc = venue[:locality] || venue["locality"] || ""
+
+    [name, loc]
+    |> Enum.flat_map(&String.split(&1, ~r/\s+/))
+    |> Enum.map(&String.downcase/1)
+    |> Enum.reject(&(&1 == ""))
+    |> MapSet.new()
+  end
+
+  defp venue_entity_tokens(_), do: MapSet.new()
+
+  # People named explicitly via "with <Name>" — the reliable person signal.
+  defp with_phrase_names(original) when is_binary(original) do
+    Regex.scan(~r/\bwith\s+([A-Z][a-zA-Z']+(?:\s+and\s+[A-Z][a-zA-Z']+)*)/, original)
+    |> Enum.flat_map(fn [_, names] -> String.split(names, ~r/\s+and\s+/i) end)
+    |> Enum.map(&String.downcase/1)
+    |> MapSet.new()
+  end
+
+  defp with_phrase_names(_), do: MapSet.new()
 
   defp names_from_contacts(text, known_names) do
     Enum.filter(known_names, fn name ->
@@ -783,8 +858,10 @@ defmodule OpalCore.OpalIntent do
       capital? = first == String.upcase(first) and first != String.downcase(first)
       known? = MapSet.member?(known_lower, String.downcase(tok))
       stop? = String.downcase(tok) in stop_words()
+      # Repair #12 (F12-30): bare meridiem tokens are clock parts, never names.
+      meridiem? = Regex.match?(~r/^(AM|PM)$/, tok)
 
-      capital? and not stop? and (idx > 0 or known?)
+      capital? and not stop? and not meridiem? and (idx > 0 or known?)
     end)
     |> Enum.map(fn {tok, _} -> tok end)
   end

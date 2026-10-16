@@ -190,9 +190,18 @@ defmodule OpalCore.Center.ProviderAction do
 
   @doc """
   Attach a selected venue to the same plan id. Projects Center + peer chat + graph event.
+
+  Options:
+  - `paint: false` — perform the plan write without painting the "Perfect — I
+    added …" chat message. Used by the exact-resolve path (Repair #12 F12-03),
+    which paints a single "Found it — … I've set it as the venue" message
+    describing the performed write instead of two messages.
   """
-  def attach_selected_venue(user_id, venue, planning)
-      when is_binary(user_id) and is_map(venue) and is_map(planning) do
+  def attach_selected_venue(user_id, venue, planning, opts \\ [])
+
+  def attach_selected_venue(user_id, venue, planning, opts)
+      when is_binary(user_id) and is_map(venue) and is_map(planning) and is_list(opts) do
+    paint? = Keyword.get(opts, :paint, true)
     name = venue["name"] || venue[:name]
 
     with true <- is_binary(name) and String.trim(name) != "",
@@ -248,7 +257,7 @@ defmodule OpalCore.Center.ProviderAction do
         })
 
       chat_proj = maybe_project_peer_chat(user_id, planning2, updated, name)
-      center_proj = paint_center_attach(user_id, updated, name, dest)
+      center_proj = if paint?, do: paint_center_attach(user_id, updated, name, dest), else: false
 
       planning3 =
         planning2
@@ -288,7 +297,7 @@ defmodule OpalCore.Center.ProviderAction do
     end
   end
 
-  def attach_selected_venue(_, _, _), do: {:error, :invalid}
+  def attach_selected_venue(_, _, _, _), do: {:error, :invalid}
 
   defp format_who_label(nil), do: nil
   defp format_who_label(who) when is_binary(who), do: who
@@ -543,12 +552,7 @@ defmodule OpalCore.Center.ProviderAction do
             "Want to keep #{name} as the requested venue, or should I look for nearby alternatives?"
 
         exact? and length(cands) == 1 ->
-          c = hd(cands)
-          addr = c["address"] || geo
-
-          "Found it — #{c["name"]}#{if addr, do: " · #{addr}", else: ""}. " <>
-            "I'll use this as the venue (not a reservation yet). " <>
-            (result["attribution"] || "Powered by Geoapify")
+          exact_resolve_copy(job, hd(cands), geo, result)
 
         cands == [] ->
           cuisine = job.request["cuisine"]
@@ -586,7 +590,10 @@ defmodule OpalCore.Center.ProviderAction do
           "provider" => job.provider,
           "plan_id" => job.plan_id,
           "planning_snapshot" => job.planning_snapshot,
-          "attribution" => (job.result || %{})["attribution"]
+          "attribution" => (job.result || %{})["attribution"],
+          # Repair #12 (F12-11f): origin indicator rides the message metadata
+          # so every surface reads the same value (device/manual/named_destination).
+          "origin_source" => job.request["origin_source"] || "manual"
         }
 
         %OpalMessage{}
@@ -605,6 +612,51 @@ defmodule OpalCore.Center.ProviderAction do
     _ -> :ok
   end
 
+  # Repair #12 (F12-03 / F12-13): the exact paint claimed "I'll use this as the
+  # venue" but never wrote it — the address lived only in chat. On a single
+  # exact-entity candidate the venue is attached to the plan FIRST (single
+  # source of truth: plan.alignment["venue"] carries name+address+coords) and
+  # the painted copy describes the performed write. Never clobbers an
+  # explicit user selection with an automated resolve.
+  defp exact_resolve_copy(job, candidate, geo, result) do
+    name = candidate["name"] || job.request["requested_venue_name"] || "that place"
+    addr = candidate["address"] || geo
+    attribution = result["attribution"] || "Powered by Geoapify"
+    venue_bit = "#{name} · #{addr}"
+    planning = job.planning_snapshot || %{}
+
+    case existing_venue_name(job.plan_id) do
+      existing when is_binary(existing) and existing != "" ->
+        if String.downcase(String.trim(existing)) == String.downcase(String.trim(name)) do
+          "Found it — #{venue_bit}. That's already set as the venue. #{attribution}"
+        else
+          "Found it — #{venue_bit}. The plan already has #{existing} as the venue. " <>
+            "Say the word if you want to switch. #{attribution}"
+        end
+
+      _ ->
+        case attach_selected_venue(job.user_id, candidate, planning, paint: false) do
+          {:ok, _} ->
+            "Found it — #{venue_bit}. I've set it as the venue (not a reservation yet). #{attribution}"
+
+          _ ->
+            "Found it — #{venue_bit}. I couldn't attach it to the plan just now. " <>
+              "Want me to retry? #{attribution}"
+        end
+    end
+  end
+
+  defp existing_venue_name(nil), do: nil
+
+  defp existing_venue_name(plan_id) when is_binary(plan_id) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{alignment: alignment} -> get_in(alignment || %{}, ["venue", "name"])
+      _ -> nil
+    end
+  end
+
+  defp existing_venue_name(_), do: nil
+
   defp maybe_paint_center_failure(%ProviderActionJob{} = job) do
     alias OpalCore.OpalConversations
     alias OpalCore.OpalConversations.OpalMessage
@@ -613,7 +665,21 @@ defmodule OpalCore.Center.ProviderAction do
       :ok
     else
       geo = job.search_geography || "that area"
-      body = "I couldn't reach live restaurant data for #{geo}. Want me to retry?"
+      requested = job.request["requested_venue_name"]
+      origin_source = job.request["origin_source"]
+
+      # Repair #12 (F12-03 residual 2): a hard provider failure must name the
+      # venue that was attempted, not paint a generic "couldn't reach" line.
+      body =
+        if job.request["search_mode"] == "exact_entity" and is_binary(requested) and
+             String.trim(requested) != "" do
+          name = String.trim(requested)
+
+          "I couldn't reach live data to verify #{name} in #{geo} just now. " <>
+            "I've kept #{name} as the requested venue. Want me to retry?"
+        else
+          "I couldn't reach live restaurant data for #{geo}. Want me to retry?"
+        end
 
       case OpalConversations.get_or_create_conversation(job.user_id) do
         {:ok, conversation} ->
@@ -627,7 +693,9 @@ defmodule OpalCore.Center.ProviderAction do
               "action_job_id" => job.id,
               "action_state" => "failed",
               "planning_snapshot" => job.planning_snapshot,
-              "plan_id" => job.plan_id
+              "plan_id" => job.plan_id,
+              "origin_source" => origin_source,
+              "search_geography" => geo
             }
           })
           |> Repo.insert()

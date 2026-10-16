@@ -114,6 +114,13 @@ defmodule OpalCoreWeb.ConversationChannel do
                  body: payload["body"] || "",
                  source_language: payload["source_language"]
                }) do
+          # Repair #12 (F12-11b): optional coarse device coords ride the send
+          # payload (client-granted only). Validated + coarsened server-side,
+          # stored per user for Center venue ranking / near-me. Invalid coords
+          # never fail the message — they are ignored. This is NOT the travel
+          # pipeline: travel_controller keeps its deliberate 422 on GPS keys.
+          _ = maybe_store_device_coords(user_id, payload["coords"], trace_id)
+
           contract = Message.to_contract(message)
 
           push(socket, "message:accepted", %{
@@ -1959,6 +1966,34 @@ defmodule OpalCoreWeb.ConversationChannel do
   end
 
   defp validate_uuid(_), do: {:error, :invalid_uuid}
+
+  # Repair #12 (F12-11b): best-effort ingest of client-granted coarse coords.
+  # Never raises, never fails the send; invalid blobs are ignored (logged).
+  defp maybe_store_device_coords(_user_id, nil, _trace_id), do: :ok
+  defp maybe_store_device_coords(_user_id, coords, _trace_id) when not is_map(coords), do: :ok
+
+  defp maybe_store_device_coords(user_id, coords, trace_id) when is_binary(user_id) do
+    case OpalCore.Center.DeviceLocation.validate_coords(coords) do
+      {:ok, coarse} ->
+        case OpalCore.Center.DeviceLocation.put_for_user(user_id, coarse) do
+          :ok -> :ok
+          {:error, reason} -> log_coords_skip(trace_id, reason)
+        end
+
+      {:error, reason} ->
+        log_coords_skip(trace_id, reason)
+    end
+  rescue
+    _ -> :ok
+  end
+
+  defp maybe_store_device_coords(_, _, _), do: :ok
+
+  defp log_coords_skip(trace_id, reason) do
+    require Logger
+    Logger.info("center.coords_skipped trace=#{trace_id} reason=#{inspect(reason)}")
+    :ok
+  end
 
   defp normalize_seq(n) when is_integer(n) and n >= 0, do: n
   defp normalize_seq(n) when is_binary(n), do: String.to_integer(n)

@@ -298,7 +298,11 @@ defmodule OpalCore.OpalResponse do
           # Nudge tap already affirmed — do not ask "Want me to set this up?" again.
           start =
             if birthday? do
-              "Got it — I'll start planning privately#{with_who}."
+              # Repair #12 (F12-31): no private-planning thread exists — do not
+              # claim one. What is real: the birthday is planned in the owner's
+              # Center thread (owner_private visibility) and the honoree is
+              # never looped in without the owner's say-so.
+              "Got it — I'll plan the birthday#{with_who} here with you. It stays between us. I won't loop anyone in unless you say so."
             else
               "Got it — I'll start planning #{what}#{with_who}."
             end
@@ -602,13 +606,15 @@ defmodule OpalCore.OpalResponse do
   # Repair #11 — named-venue fallback render, reached only when no provider
   # override fired this turn. Never invents a venue or claims a lookup that
   # did not start; asks for the missing locality instead of substituting.
+  # Repair #12 (F12-42): the in-flight line is the single copy source
+  # PlanContextPatch.venue_lookup_copy/2 — identical to the provider override.
   defp render_named_venue(entities, _context) do
     name = entity(entities, :venue_name)
     loc = entity(entities, :locality)
 
     cond do
       is_binary(name) and name != "" and is_binary(loc) and loc != "" ->
-        "Looking into #{name} in #{loc}. I'll share what I can verify."
+        PlanContextPatch.venue_lookup_copy(name, loc) || "Looking up #{name} in #{loc}…"
 
       is_binary(name) and name != "" ->
         "Which city is #{name} in?"
@@ -1215,10 +1221,13 @@ defmodule OpalCore.OpalResponse do
   # Repair #11 — explicit new-direction phrasing this turn: a fresh search, a
   # topic switch, or a new chat. The sticky recent_who re-engagement must not
   # override it.
+  # Repair #12 (F12-04a): a venue/location question is actionable content — the
+  # sticky branch must not fire for it even if classification missed the turn.
   defp new_direction_this_turn?(raw) when is_binary(raw) do
     PlanContextPatch.classify_conversation_act(raw) == "switch_topic" or
       Regex.match?(~r/\bnew\s+chat\b|\bstart\s+(?:a\s+)?new\s+chat\b|\bstart\s+fresh\b/i, raw) or
-      not is_nil(PlanContextPatch.extract_exact_venue(raw))
+      not is_nil(PlanContextPatch.extract_exact_venue(raw)) or
+      not is_nil(PlanContextPatch.extract_venue_question(raw))
   end
 
   defp new_direction_this_turn?(_), do: false

@@ -393,6 +393,10 @@ defmodule OpalCoreWeb.Router do
     # Paste J Phase 1 — Center "Go with this" → durable solo SharedPlan
     post("/opal/plans", OpalConversationController, :create_plan)
 
+    # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
+    # venue ranking / near-me. Separate from the travel-mode 422 privacy law.
+    post("/opal/location", CenterLocationController, :update)
+
 
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)

@@ -204,6 +204,88 @@ defmodule OpalCore.Intelligence.Executor do
     end
   end
 
+  # Repair #12 (F12-02) — NL time/date changes route through the SocialFlow
+  # schedule authority (lead/organizer-only direct edit of the SAME plan row),
+  # never a free-floating thread claim.
+  #
+  # Contract (defined NL-side; R1 owns the SocialFlow handler):
+  #   SocialFlow.change_plan_time(%{plan_id:, user_id:, new_time_label:, trace_id:})
+  #     → {:ok, %{plan: plan}} | {:error, reason}
+  #   SocialFlow.change_plan_date(%{plan_id:, user_id:, new_date_label:, trace_id:})
+  #     → {:ok, %{plan: plan}} | {:error, reason}
+  # Reasons: :invalid_label | :not_found | :not_authorized | :invalid_status.
+  defp do_execute(%Decision{action: "plan.change_time"} = d) do
+    execute_schedule_change(d, "time", d.payload["new_time"], fn args ->
+      OpalCore.SocialFlow.change_plan_time(%{
+        plan_id: args.plan_id,
+        user_id: args.user_id,
+        new_time_label: args.new_value,
+        trace_id: args.trace_id
+      })
+    end)
+  end
+
+  defp do_execute(%Decision{action: "plan.change_date"} = d) do
+    execute_schedule_change(d, "date", d.payload["new_date"], fn args ->
+      OpalCore.SocialFlow.change_plan_date(%{
+        plan_id: args.plan_id,
+        user_id: args.user_id,
+        new_date_label: args.new_value,
+        trace_id: args.trace_id
+      })
+    end)
+  end
+
+  defp execute_schedule_change(d, kind, new_value, change_fn)
+       when kind in ["time", "date"] and is_function(change_fn, 1) do
+    conversation_id = d.context_snapshot["conversation_id"]
+    user_id = d.context_snapshot["account_id"]
+    base = %{"action" => d.action, "kind" => "schedule_change", "field" => kind}
+
+    cond do
+      not is_binary(conversation_id) or not is_binary(user_id) ->
+        {:ok, Map.put(base, "note", "missing conversation/user context; no state changed")}
+
+      not is_binary(new_value) or String.trim(new_value) == "" ->
+        {:ok, Map.put(base, "note", "no new #{kind} extracted; no state changed")}
+
+      true ->
+        case active_plan(conversation_id) do
+          nil ->
+            notify(
+              conversation_id,
+              d.id,
+              "There's no active plan in this conversation to change.",
+              Map.put(base, "no_active_plan", true)
+            )
+
+          plan ->
+            case change_fn.(%{
+                   plan_id: plan.id,
+                   user_id: user_id,
+                   new_value: new_value,
+                   trace_id: d.id
+                 }) do
+              {:ok, %{plan: _updated}} ->
+                notify(
+                  conversation_id,
+                  d.id,
+                  "Done — moved to #{new_value}.",
+                  Map.merge(base, %{"plan_id" => plan.id, "changed" => true, "new_value" => new_value})
+                )
+
+              {:error, reason} ->
+                notify(
+                  conversation_id,
+                  d.id,
+                  "I couldn't change the #{kind} (#{human_reason(reason)}). Nothing was changed.",
+                  Map.merge(base, %{"plan_id" => plan.id, "error" => inspect(reason)})
+                )
+            end
+        end
+    end
+  end
+
   defp do_execute(%Decision{action: action}), do: {:error, {:unknown_action, action}}
 
   # Repair #11 — cancel disambiguation against the conversation's active plan.

@@ -19,7 +19,7 @@ defmodule OpalCore.Intelligence.LlmExtract do
   You are Opal's understanding layer. Extract structured meaning from social messages.
   Return ONLY valid JSON with this exact shape:
   {
-    "intent": "plan.propose | plan.confirm | plan.counter | plan.cancel | plan.question | info.share | chitchat | clarify | booking_request | set_reminder | life_event",
+    "intent": "plan.propose | plan.confirm | plan.counter | plan.change_time | plan.change_date | plan.cancel | plan.question | info.share | chitchat | clarify | booking_request | set_reminder | life_event",
     "entities": {
       "people": [],
       "places": [],
@@ -48,6 +48,15 @@ defmodule OpalCore.Intelligence.LlmExtract do
     entities.task and time phrases in entities.times (e.g. "Thursday", "in 2 hours").
   - Use intent "life_event" for user-told milestones ("Maya just got engaged"). Set
     entities.life_event_type (engagement|married|new_child|new_job|moved) and people.
+  - Use intent "plan.change_time" when the user moves an existing plan to a concrete
+    new clock time ("let's do 8pm", "move it to 8:30", "actually, let's do 8:00 PM").
+    Put the new time in entities.times. The time must carry a meridiem (am/pm);
+    bare hours ("move it to 8") are ambiguous — use "plan.counter" instead.
+  - Use intent "plan.change_date" when the user moves an existing plan to a concrete
+    new day ("move it to Saturday", "let's do Sunday instead"). Put the new day in
+    entities.times.
+  - "plan.counter" is for soft constraints without a concrete new value
+    ("after 10 works better", "earlier would be better").
   - confidence is 0.0–1.0 reflecting extraction certainty.
   - Use the 'What you know' context to resolve ambiguous references ('him' = the person discussed,
     'Saturday' = check against known plans for conflicts). If the message conflicts with a known plan,
@@ -200,6 +209,10 @@ defmodule OpalCore.Intelligence.LlmExtract do
       "plan_confirm" -> "plan.confirm"
       "plan.counter" -> "plan.counter"
       "plan_counter" -> "plan.counter"
+      "plan.change_time" -> "plan.change_time"
+      "plan.change.time" -> "plan.change_time"
+      "plan.change_date" -> "plan.change_date"
+      "plan.change.date" -> "plan.change_date"
       "plan.cancel" -> "plan.cancel"
       "plan_cancel" -> "plan.cancel"
       "plan.question" -> "plan.question"
