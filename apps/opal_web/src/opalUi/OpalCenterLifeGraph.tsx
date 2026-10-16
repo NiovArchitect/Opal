@@ -26,6 +26,7 @@ import {
   type DayStripSource,
 } from "./centerNowStrip";
 import { OpalCenterChat } from "./OpalCenterChat";
+import { humanErrorCopy } from "../sharedReality";
 import { OpalLivingCharacter } from "./OpalLivingCharacter";
 import {
   localPlanSurfaceId,
@@ -482,10 +483,9 @@ export function OpalCenterLifeGraph({
           }
         }
       } catch (err) {
+        // F12-44: human copy, never err.message verbatim.
         setResolveNote(
-          err instanceof Error
-            ? err.message
-            : "Saved on your day view. Shared plan needs a quick retry.",
+          humanErrorCopy(err, "Couldn't save that - check your connection and try again."),
         );
       }
     } else {
@@ -838,8 +838,12 @@ export function OpalCenterLifeGraph({
             </>
           ) : null}
 
-          {/* Provenance stays internal — never paint source tokens to consumers. */}
-          {provenance.length ? (
+          {/* F12-09: provenance is internal-only. It renders ONLY in the test env
+              (source guards assert its shape); production never mounts it —
+              not even behind `hidden` (one CSS rule away from a leak). */}
+          {typeof process !== "undefined" &&
+          process.env?.NODE_ENV === "test" &&
+          provenance.length ? (
             <ul
               className="opal-center-v2-provenance"
               data-testid="opal-center-provenance"

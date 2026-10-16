@@ -11,6 +11,69 @@ defmodule OpalCore.Center.PlanningContext do
   import Ecto.Changeset
   alias OpalCore.Repo
   alias OpalCore.OpalConversations.OpalConversation
+  alias OpalCore.SocialFlow.SharedPlan
+
+  # F12-13/F12-53 — a sticky plan_id is only actionable while fresh and the
+  # plan is still active. Without expiry, a days-old plan_id hijacks unrelated
+  # utterances (F12-05's mechanism: a fresh "schedule date night" was parsed
+  # as a time correction to a stale plan).
+  @plan_id_ttl_seconds 15 * 60
+
+  @doc """
+  True when the durable planning context carries an actionable plan_id: set
+  recently (within the TTL) and pointing at a still-active plan. Legacy
+  contexts (plan_id with no set_at stamp) are never actionable.
+  """
+  def plan_id_active?(ctx) when is_map(ctx) do
+    c = stringify(ctx)
+    plan_id = c["plan_id"]
+    set_at = c["plan_id_set_at"]
+
+    is_binary(plan_id) and plan_id != "" and plan_id != "__clear__" and
+      plan_id_fresh?(set_at) and plan_row_active?(plan_id)
+  end
+
+  def plan_id_active?(_), do: false
+
+  @doc "How long a sticky plan_id stays actionable (seconds)."
+  def plan_id_ttl_seconds, do: @plan_id_ttl_seconds
+
+  defp plan_id_fresh?(set_at) when is_binary(set_at) do
+    case DateTime.from_iso8601(set_at) do
+      {:ok, stamped, _} ->
+        DateTime.diff(DateTime.utc_now(), stamped, :second) < @plan_id_ttl_seconds
+
+      _ ->
+        false
+    end
+  end
+
+  defp plan_id_fresh?(_), do: false
+
+  defp plan_row_active?(plan_id) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{status: status} -> status not in ["cancelled", "completed"]
+      _ -> false
+    end
+  end
+
+  # Stamp plan_id_set_at whenever a plan_id enters (or re-enters) the context;
+  # drop the stamp when the slot is cleared.
+  defp maybe_stamp_plan_id(prev, next) when is_map(prev) and is_map(next) do
+    prev_id = stringify(prev)["plan_id"]
+    next_id = next["plan_id"]
+
+    cond do
+      not is_binary(next_id) or next_id == "" or next_id == "__clear__" ->
+        Map.delete(next, "plan_id_set_at")
+
+      next_id != prev_id or not is_binary(next["plan_id_set_at"]) ->
+        Map.put(next, "plan_id_set_at", DateTime.utc_now() |> DateTime.to_iso8601())
+
+      true ->
+        next
+    end
+  end
 
   # Tokens that are places/time/intent — never people.
   @place_stop MapSet.new(~w(
@@ -43,6 +106,7 @@ defmodule OpalCore.Center.PlanningContext do
       %OpalConversation{} = c ->
         prev = get(c)
         next = merge_maps(prev, entities_to_ctx(entities), stringify(extras))
+        next = maybe_stamp_plan_id(prev, next)
 
         c
         |> change(%{planning_context: next})
@@ -61,10 +125,13 @@ defmodule OpalCore.Center.PlanningContext do
   def put(user_id, ctx) when is_binary(user_id) and is_map(ctx) do
     case Repo.get_by(OpalConversation, user_id: user_id) do
       %OpalConversation{} = c ->
+        prev = get(c)
+
         next =
           ctx
           |> stringify()
           |> Map.put("updated_at", DateTime.utc_now() |> DateTime.to_iso8601())
+          |> then(&maybe_stamp_plan_id(prev, &1))
 
         c
         |> change(%{planning_context: next})

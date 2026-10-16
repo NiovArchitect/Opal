@@ -13,6 +13,7 @@ import {
   resolveDecisionTradeoff,
   type DecisionResolvePayload,
 } from "../api/productClient";
+import { humanErrorCopy } from "../sharedReality";
 
 type Props = {
   onClose?: () => void;
@@ -272,9 +273,9 @@ export function OpalAmbient({
       });
       applyLiveDecision(payload);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Resolve failed";
+      // F12-44: human copy, never err.message verbatim.
       setLiveDecision(null);
-      setNote(msg);
+      setNote(humanErrorCopy(err, "Couldn't resolve that - check your connection and try again."));
     } finally {
       setResolving(false);
     }
@@ -331,7 +332,7 @@ export function OpalAmbient({
       const next = await answerDecisionQuestion(liveDecision.result_id, choiceId);
       applyLiveDecision(next);
     } catch (err) {
-      setNote(err instanceof Error ? err.message : "Could not apply answer");
+      setNote(humanErrorCopy(err, "Couldn't apply that answer - try again."));
     } finally {
       setResolving(false);
     }
@@ -348,7 +349,7 @@ export function OpalAmbient({
       const next = await resolveDecisionTradeoff(liveDecision.result_id, selectedId);
       applyLiveDecision(next);
     } catch (err) {
-      setNote(err instanceof Error ? err.message : "Could not apply tradeoff");
+      setNote(humanErrorCopy(err, "Couldn't apply that tradeoff - try again."));
     } finally {
       setResolving(false);
     }
