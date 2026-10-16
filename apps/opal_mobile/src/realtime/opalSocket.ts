@@ -39,7 +39,7 @@ export function connectSocket(_params: {
   appState?: string;
   clientVersion?: string;
 }): Socket {
-  throw new Error("connectSocket(user_id) removed — use connectSocketWithSession");
+  throw new Error("connectSocket(user_id) removed - use connectSocketWithSession");
 }
 
 export function joinConversation(socket: Socket, conversationId: string): Channel {

@@ -84,9 +84,9 @@ export function LivesGoLivePanel({
           skip_allowed: false,
           default: null,
           trade:
-            "Confirmed venues get discovered on the heat map — that's how your people (and new fans) find you.",
+            "Confirmed venues get discovered on the heat map - that's how your people (and new fans) find you.",
           consequence_template: "Anyone can see you're at [venue].",
-          reject_free_text: "we couldn't find that venue — try searching",
+          reject_free_text: "we couldn't find that venue - try searching",
           residential_reject: "lives happen at venues",
         });
       }
@@ -114,7 +114,7 @@ export function LivesGoLivePanel({
         setManualOpen(true);
       }
       if (blocked && !testingSurface) {
-        setError(res.message || "we couldn't find that venue — try searching");
+        setError(res.message || "we couldn't find that venue - try searching");
       }
     } catch (e) {
       setCandidates([]);
@@ -344,7 +344,7 @@ export function LivesGoLivePanel({
                 }}
               >
                 {c.name}
-                {c.formatted_address ? ` — ${c.formatted_address}` : ""}
+                {c.formatted_address ? ` - ${c.formatted_address}` : ""}
               </button>
             </li>
           ))}
@@ -456,7 +456,7 @@ export function LivesGoLivePanel({
       ) : null}
 
       <p className="lives-go-live-note" data-testid="lives-no-skip">
-        Venue confirmation is required — there is no skip.
+        Venue confirmation is required - there is no skip.
       </p>
 
       {error ? (

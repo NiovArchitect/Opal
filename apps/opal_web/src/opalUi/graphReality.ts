@@ -244,6 +244,7 @@ export function clientPlanFields(
     public: false,
     temporal_state: text(raw.temporal_state),
     canonical_start_at: text(raw.canonical_start_at),
+    revision_id: text(raw.revision_id),
     next_together_eligible:
       typeof raw.next_together_eligible === "boolean" ? raw.next_together_eligible : undefined,
     upcoming_ready: typeof raw.upcoming_ready === "boolean" ? raw.upcoming_ready : undefined,

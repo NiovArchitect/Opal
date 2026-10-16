@@ -404,7 +404,7 @@ export async function authoritativeForward(opts: {
     return {
       ok: local.result.ok,
       detail: local.result.ok
-        ? `Forwarded (${opts.mode}) — fixture cache`
+        ? `Forwarded (${opts.mode}) - fixture cache`
         : local.result.detail,
       engagement: local.state,
     };

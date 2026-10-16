@@ -201,7 +201,7 @@ export function SeedSimulatedBanner(): React.ReactElement | null {
           whiteSpace: "nowrap",
         },
       },
-      "Simulated — demo responses, not real",
+      "Simulated - demo responses, not real",
     ),
   );
 }

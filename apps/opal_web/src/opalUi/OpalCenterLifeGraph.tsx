@@ -26,6 +26,7 @@ import {
   type DayStripSource,
 } from "./centerNowStrip";
 import { OpalCenterChat } from "./OpalCenterChat";
+import { humanErrorCopy } from "../sharedReality";
 import { OpalLivingCharacter } from "./OpalLivingCharacter";
 import {
   localPlanSurfaceId,
@@ -83,18 +84,6 @@ function humanResolveNote(payload: DecisionResolvePayload | null, fallback?: str
   return "Here are the best matches for this window.";
 }
 
-const WEEK_FRIDAY = [
-  { time: "8:00", label: "Work" },
-  { time: "5:30", label: "Open window" },
-  { time: "9:00", label: "Evening plan" },
-];
-
-const FAMILY_SAT = [
-  { time: "10:00", label: "Breakfast" },
-  { time: "1:00", label: "Museum" },
-  { time: "5:30", label: "Tacos + sunset" },
-];
-
 function todayLabel() {
   try {
     return new Intl.DateTimeFormat("en-US", {
@@ -114,12 +103,12 @@ const NUDGE_STORAGE = "opal.center.nudges.dismissed.v1";
 const CENTER_SAMPLE_PROMPTS = [
   {
     id: "maya-birthday-3d",
-    body: "Maya's birthday in 3 days — want me to plan something?",
+    body: "Maya's birthday in 3 days - want me to plan something?",
     tone: "gold" as const,
   },
   {
     id: "open-friday-window",
-    body: "Friday evening is still open — dinner with someone close?",
+    body: "Friday evening is still open - dinner with someone close?",
     tone: "cyan" as const,
   },
 ] as const;
@@ -139,7 +128,7 @@ function seedFromNudge(n: { id: string; body: string }): string {
   const body = n.body.trim();
   if (/birthday/i.test(body) && /want me to plan/i.test(body)) {
     // Tap is the affirmative; keep person/context, mark as plan something.
-    return body.replace(/\?\s*$/, "") + " — yes, plan something.";
+    return body.replace(/\?\s*$/, "") + " - yes, plan something.";
   }
   // Generic open window: WHO unresolved — send body as-is (BE clears stale who).
   return body;
@@ -191,7 +180,22 @@ export function OpalCenterLifeGraph({
   const [stripSource, setStripSource] = useState<DayStripSource>(initialStrip.source);
   const [stripAttribution, setStripAttribution] = useState(initialStrip.attribution);
   const [acceptedTitle, setAcceptedTitle] = useState("Juniper & Ivy");
-  const [weekDay, setWeekDay] = useState<"Thu" | "Fri" | "Sat" | "Sun">("Fri");
+  // F12-12: week chips are the real current 7-day window, not hardcoded Thu-Sun.
+  const weekDays = useMemo(() => {
+    const days: { key: string; short: string; full: string; date: Date }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const short = d.toLocaleDateString("en-US", { weekday: "short" });
+      const full = d.toLocaleDateString("en-US", { weekday: "long" });
+      days.push({ key: d.toISOString().slice(0, 10), short, full, date: d });
+    }
+    return days;
+  }, []);
+  const [weekDay, setWeekDay] = useState<string>(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+  });
   const [resolving, setResolving] = useState(false);
   const [decision, setDecision] = useState<DecisionResolvePayload | null>(null);
   const [speakQueue, setSpeakQueue] = useState<string | null>(null);
@@ -385,7 +389,7 @@ export function OpalCenterLifeGraph({
           source: payload.answer?.area ? "decision_intelligence" : "unavailable",
         },
         {
-          claim: payload.provisional ? "Provisional — confirm before commit" : "Resolved",
+          claim: payload.provisional ? "Provisional - confirm before commit" : "Resolved",
           source: "decision_intelligence",
           detail: payload.confidence_class || payload.mode,
         },
@@ -482,10 +486,9 @@ export function OpalCenterLifeGraph({
           }
         }
       } catch (err) {
+        // F12-44: human copy, never err.message verbatim.
         setResolveNote(
-          err instanceof Error
-            ? err.message
-            : "Saved on your day view. Shared plan needs a quick retry.",
+          humanErrorCopy(err, "Couldn't save that - check your connection and try again."),
         );
       }
     } else {
@@ -610,9 +613,9 @@ export function OpalCenterLifeGraph({
           >
             {stripSource === "calendar"
               ? dayNodes.some((n) => n.kind === "now" && n.label === "Open")
-                ? "Right now looks open — ask and I'll shape one answer."
+                ? "Right now looks open - ask and I'll shape one answer."
                 : "Here's what's next on your linked calendar."
-              : "Sample day below — ask when you want a real answer."}
+              : "Sample day below - ask when you want a real answer."}
           </p>
 
           <LifeGraphStrip nodes={dayNodes} source={stripSource} />
@@ -748,7 +751,7 @@ export function OpalCenterLifeGraph({
                   ? "Looking nearby…"
                   : decision?.answer?.name
                     ? `${decision.answer.name} fits this window.`
-                    : "One answer first — then you confirm."}
+                    : "One answer first - then you confirm."}
               </p>
               <p className="opal-center-v2-signal-secondary">
                 {decision?.provisional
@@ -838,8 +841,12 @@ export function OpalCenterLifeGraph({
             </>
           ) : null}
 
-          {/* Provenance stays internal — never paint source tokens to consumers. */}
-          {provenance.length ? (
+          {/* F12-09: provenance is internal-only. It renders ONLY in the test env
+              (source guards assert its shape); production never mounts it —
+              not even behind `hidden` (one CSS rule away from a leak). */}
+          {typeof process !== "undefined" &&
+          process.env?.NODE_ENV === "test" &&
+          provenance.length ? (
             <ul
               className="opal-center-v2-provenance"
               data-testid="opal-center-provenance"
@@ -910,42 +917,33 @@ export function OpalCenterLifeGraph({
           <p className="opal-center-v2-lede">Only meaningful events and openings.</p>
 
           <div className="opal-center-v2-week-days" role="tablist" aria-label="Week days">
-            {(["Thu", "Fri", "Sat", "Sun"] as const).map((d) => (
+            {weekDays.map((d) => (
               <button
-                key={d}
+                key={d.key}
                 type="button"
                 role="tab"
-                aria-selected={weekDay === d}
-                className={`opal-center-v2-chip ${weekDay === d ? "is-active" : ""}`}
-                onClick={() => setWeekDay(d)}
+                aria-selected={weekDay === d.key}
+                aria-label={d.full}
+                className={`opal-center-v2-chip ${weekDay === d.key ? "is-active" : ""}`}
+                onClick={() => setWeekDay(d.key)}
               >
-                {d}
+                {d.short}
               </button>
             ))}
           </div>
 
-          <h2 className="opal-center-v2-day-name">{weekDay === "Fri" ? "Friday" : weekDay}</h2>
+          <h2 className="opal-center-v2-day-name">
+            {weekDays.find((d) => d.key === weekDay)?.full || "Today"}
+          </h2>
           <p className="opal-center-v2-lede">
-            {weekDay === "Fri"
-              ? "Friday shape. Live week openings connect when your calendar is linked."
-              : `${weekDay} openings load from your live week when available.`}
+            Openings load from your live week when available.
           </p>
 
-          {weekDay === "Fri" ? (
-            <ol className="opal-center-v2-vertical" data-testid="opal-center-week-sample">
-              {WEEK_FRIDAY.map((n) => (
-                <li key={n.time}>
-                  <span className="opal-center-v2-dot" aria-hidden />
-                  <span className="opal-center-v2-vtime">{n.time}</span>
-                  <span className="opal-center-v2-vlabel">{n.label}</span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="opal-center-v2-footnote" data-testid="opal-center-week-empty" role="status">
-              No live openings painted for {weekDay} yet. Ask Opal or link your calendar.
-            </p>
-          )}
+          <p className="opal-center-v2-footnote" data-testid="opal-center-week-empty" role="status">
+            No live openings painted for{" "}
+            {weekDays.find((d) => d.key === weekDay)?.full || "this day"} yet. Ask Opal or link
+            your calendar.
+          </p>
 
           <div className="opal-center-v2-signal">
             <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
@@ -956,9 +954,7 @@ export function OpalCenterLifeGraph({
                 className="opal-center-v2-primary"
                 onClick={() =>
                   openChatWith(
-                    weekDay === "Fri"
-                      ? "Shape Friday open window"
-                      : `Shape ${weekDay} open window`,
+                    `Shape ${weekDays.find((d) => d.key === weekDay)?.full || "today"} open window`,
                   )
                 }
               >
@@ -977,18 +973,8 @@ export function OpalCenterLifeGraph({
             Same graph. Shared result. Private constraints stay private.
           </p>
 
-          <ol className="opal-center-v2-vertical" data-testid="opal-center-family-sample">
-            {FAMILY_SAT.map((n) => (
-              <li key={n.time}>
-                <span className="opal-center-v2-dot is-shared" aria-hidden />
-                <span className="opal-center-v2-vtime">{n.time}</span>
-                <span className="opal-center-v2-vlabel">{n.label}</span>
-              </li>
-            ))}
-          </ol>
-
-          <p className="opal-center-v2-footnote">
-            Shared day. Live family plans appear when people are invited.
+          <p className="opal-center-v2-footnote" data-testid="opal-center-family-empty" role="status">
+            No shared plans yet. Live family plans appear here when people are invited.
           </p>
           <button type="button" className="opal-center-v2-chip" onClick={() => setPhase("rest")}>
             Back to today
@@ -1194,7 +1180,7 @@ export function OpalCenterLifeGraph({
               </button>
             </header>
             <p className="opal-inline-sheet-body">
-              Why this suggestion — people, places, and vibe in play right now.
+              Why this suggestion - people, places, and vibe in play right now.
               {"\n\n"}
               Privacy boundaries stay on: Opal only uses what you allow for this moment.
             </p>

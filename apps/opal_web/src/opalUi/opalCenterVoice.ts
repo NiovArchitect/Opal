@@ -19,7 +19,7 @@ export const VOICE_OFFLINE_COPY = "Voice needs internet";
 export const STT_FAIL_COPY = "I didn't catch that. Try again or type instead.";
 /** Honest pre-tap copy when no STT path exists (WKWebView without native speech, etc.). */
 export const VOICE_UNAVAILABLE_COPY =
-  "Voice isn’t set up on this build — type instead.";
+  "Voice isn’t set up on this build - type instead.";
 export const LISTENING_COPY = "Listening…";
 export const MAX_TTS_MS = 30_000;
 export const SILENCE_MS = 3_000;

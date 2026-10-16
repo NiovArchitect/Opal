@@ -38,7 +38,7 @@ export function LocationPermissionSheet({ onContinue, onNotNow }: Props) {
       <button type="button" className="btn ghost" data-testid="location-permission-not-now" onClick={onNotNow}>
         Not now
       </button>
-      <p className="gsh-meta">Journey still works if you decline — leave timing stays unavailable.</p>
+      <p className="gsh-meta">Journey still works if you decline - leave timing stays unavailable.</p>
     </div>
   );
 }

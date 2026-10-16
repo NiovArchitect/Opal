@@ -73,9 +73,9 @@ describe("assertOpalTalksToUser", () => {
   });
 
   it("rejects banned dashes", () => {
-    expect(assertOpalTalksToUser("Got it — locked in.").length).toBeGreaterThan(0);
     expect(assertOpalTalksToUser("Got it - locked in.").length).toBeGreaterThan(0);
-    expect(scrubUserVisibleDashes("Got it — locked in.")).toBe("Got it. locked in.");
+    expect(assertOpalTalksToUser("Got it - locked in.").length).toBeGreaterThan(0);
+    expect(scrubUserVisibleDashes("Got it - locked in.")).toBe("Got it. locked in.");
   });
 
   it("throws when throwOnViolation is set", () => {

@@ -128,7 +128,7 @@ describe("native media bridge (web)", () => {
 });
 
 describe("tranche #1 web callers", () => {
-  it("Story / Graph / Center use acquireMedia — not HTML capture inputs as primary path", () => {
+  it("Story / Graph / Center use acquireMedia - not HTML capture inputs as primary path", () => {
     const story = readFileSync(resolve(root, "src/opalUi/StoryCreateFlow.tsx"), "utf8");
     const graph = readFileSync(resolve(root, "src/opalUi/GraphCreateFlow.tsx"), "utf8");
     const center = readFileSync(resolve(root, "src/opalUi/OpalCenterLifeGraph.tsx"), "utf8");

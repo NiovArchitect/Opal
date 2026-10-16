@@ -13,7 +13,7 @@ function src(rel: string) {
   return readFileSync(resolve(root, rel), "utf8");
 }
 
-describe("Figma alignment reset — exact authorities", () => {
+describe("Figma alignment reset - exact authorities", () => {
   it("brand assets include 160:2 symbol master and 161:2 / 161:3 lockups", () => {
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
     expect(BRAND.figma.symbolDefective168).toBe("168:2");

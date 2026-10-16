@@ -76,7 +76,7 @@ describe("graphSurfaceInterop", () => {
     expect(createdPlanToChatRow(fromMeta!)).toBeNull();
   });
 
-  it("Paste W5 — overlays idea cards as forming with people+when", () => {
+  it("Paste W5 - overlays idea cards as forming with people+when", () => {
     const plan = {
       id: "seed-near-rooftop",
       title: "Rooftop Jazz",

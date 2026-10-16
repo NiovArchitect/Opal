@@ -11,7 +11,7 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("P2 Calls Continuity 928:3", () => {
-  it("calls_chats_mode_switch — Chats|Calls mode exists without Messages tab", () => {
+  it("calls_chats_mode_switch - Chats|Calls mode exists without Messages tab", () => {
     const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
     expect(chats).toMatch(/comm-mode-chats/);
     expect(chats).toMatch(/comm-mode-calls/);
@@ -19,14 +19,14 @@ describe("P2 Calls Continuity 928:3", () => {
     expect(chats).not.toMatch(/>\s*Messages\s*</);
   });
 
-  it("calls_row_metadata_without_fake_consequence — Maya has zero signal", () => {
+  it("calls_row_metadata_without_fake_consequence - Maya has zero signal", () => {
     const maya = FOUNDER_CALLS_CONTINUITY_ROWS.find((r) => r.id === "call-cont-maya");
     expect(maya).toBeTruthy();
     expect(maya?.signal).toBeUndefined();
     expect(maya?.metadata).toMatch(/Video · 36m/);
   });
 
-  it("calls_row_earned_consequence_open_graph — Chanelle Ready → same Graph id", () => {
+  it("calls_row_earned_consequence_open_graph - Chanelle Ready → same Graph id", () => {
     const chanelle = FOUNDER_CALLS_CONTINUITY_ROWS.find((r) => r.id === "call-cont-chanelle");
     expect(chanelle?.signal?.kind).toBe("ready");
     expect(chanelle?.signal && "graphCardId" in chanelle.signal && chanelle.signal.graphCardId).toBe(
@@ -48,7 +48,7 @@ describe("P2 Calls Continuity 928:3", () => {
     expect(without.length).toBeGreaterThan(0);
   });
 
-  it("calls_provider_opal_not_user_call_row — no Handled-by-Opal fake call rows", () => {
+  it("calls_provider_opal_not_user_call_row - no Handled-by-Opal fake call rows", () => {
     const ids = new Set(FOUNDER_CALLS_CONTINUITY_ROWS.map((r) => r.id));
     for (const bad of FORBIDDEN_PROVIDER_CALL_ROW_IDS) {
       expect(ids.has(bad)).toBe(false);
@@ -60,7 +60,7 @@ describe("P2 Calls Continuity 928:3", () => {
     expect(blob).not.toMatch(/Reservation confirmed/i);
   });
 
-  it("subtitle law — All uses founder-safe Calls copy", () => {
+  it("subtitle law - All uses founder-safe Calls copy", () => {
     const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
     expect(chats).toMatch(/The people you've been calling\./);
     expect(chats).not.toMatch(/The people you actually spoke with/);

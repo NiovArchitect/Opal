@@ -196,7 +196,7 @@ export async function acquireMedia(
       code: "unavailable",
       message:
         opts.source === "camera"
-          ? "Camera isn’t available here — try Photo library, or open Opal on iPhone."
+          ? "Camera isn’t available here - try Photo library, or open Opal on iPhone."
           : "Couldn’t open the file picker. Try again.",
     };
   }

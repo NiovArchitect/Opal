@@ -69,7 +69,7 @@ export function ReminderCard({
     const body = planSomethingPrefill(reminder);
     try {
       await postOpalMessage(body, bearer);
-      setNote("Asked Opal — check Center.");
+      setNote("Asked Opal - check Center.");
       onPlanned?.(reminder);
       try {
         window.dispatchEvent(

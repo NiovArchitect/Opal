@@ -393,7 +393,7 @@ describe("GraphsTripsSection", () => {
     await flush();
 
     expect(container.querySelector('[data-testid="graphs-trips-empty"]')).toBeTruthy();
-    expect(container.textContent).toContain("No trips yet — plan one together.");
+    expect(container.textContent).toContain("No trips yet - plan one together.");
     expect(container.querySelector('[data-testid="trip-empty-new"]')).toBeTruthy();
   });
 
@@ -467,7 +467,7 @@ describe("GraphsTripsSection", () => {
     await flush();
 
     expect(container.querySelector('[data-testid="trip-leg-plan-error-leg-a"]')?.textContent).toBe(
-      "Couldn't create plan — retry",
+      "Couldn't create plan - retry",
     );
     expect(container.querySelector('[data-testid="trip-detail"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="trip-leg-make-plan-leg-a"]')).toBeTruthy();

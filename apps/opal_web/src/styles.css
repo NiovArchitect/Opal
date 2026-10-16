@@ -2790,15 +2790,15 @@ button.plan-card-btn:focus-visible {
   min-width: 0;
   overflow: hidden;
   box-sizing: border-box;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .bubble p {
   margin: 0;
   max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .bubble time {
@@ -3806,6 +3806,15 @@ button.plan-card-btn:focus-visible {
   background: rgba(232, 90, 90, 0.08);
 }
 
+/* F12-12: the sign-in-again pill is a real button — reset native button chrome. */
+button.session-pill {
+  font: inherit;
+  cursor: pointer;
+}
+button.session-pill-warn:hover {
+  background: rgba(232, 90, 90, 0.16);
+}
+
 /* Figma CHAT filament (3:11): inset ~35, 2–4px left bar, not AI card / not peer bubble */
 .opal-moment.filament {
   display: flex;
@@ -4229,8 +4238,8 @@ button.plan-card-btn:focus-visible {
   line-height: 1.45;
   overflow: visible;
   box-sizing: border-box;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
   height: auto;
   min-height: 0;
 }
@@ -7824,8 +7833,8 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   font-size: 1.2rem;
   font-weight: 650;
   line-height: 1.2;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   max-width: 100%;
 }
 
@@ -8473,8 +8482,8 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   margin: 6px 0 0;
   font-size: 0.92rem;
   line-height: 1.35;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   max-width: 100%;
 }
 .gsh-card,
@@ -14210,7 +14219,7 @@ button.you-settings-row {
   font-size: 12px;
   color: rgba(226, 232, 240, 0.66);
   line-height: 1.4;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 /* Trail / toggle: left edge @ screen x=314 → body@20 ⇒ right: 8px inside 350px body */
 .you-settings-row-trail {
@@ -18061,7 +18070,7 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   font-size: 13px;
   line-height: 1.4;
   color: #f4f7fa;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .opal-center-nudge-dismiss {
   position: absolute;
@@ -19051,8 +19060,10 @@ html.opal-native-host .story-create-flow {
   margin: 0 12px 8px;
   padding: 7px 10px 7px 12px;
   border: 1px solid transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  background: rgba(8, 16, 28, 0.94);
+  /* F12-08: fully opaque — messages must never ghost behind the sticky strip. */
+  background: rgb(8, 16, 28);
   color: #f4f7fa;
   text-align: left;
   cursor: pointer;
@@ -20427,8 +20438,8 @@ button.alignment-choice:focus-visible,
   padding-bottom: 8px;
   font-size: 16px; /* prevent iOS auto-zoom */
   white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
   box-sizing: border-box;
 }
 .opal-center-chat-skeleton {
@@ -20500,7 +20511,7 @@ html.opal-native-host .opal-center-chat-input {
   text-align: left;
   flex: 1 1 100%;
   margin: 0 0 2px;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .you-settings-row > .you-settings-blocked {
   order: 3;

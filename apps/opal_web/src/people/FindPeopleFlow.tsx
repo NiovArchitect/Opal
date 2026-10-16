@@ -123,7 +123,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     };
     if (!nav.contacts?.select) {
       setMode("manual");
-      setStatus("Contact access is not available here. Type a name instead — never a phone number.");
+      setStatus("Contact access is not available here. Type a name instead - never a phone number.");
       if (!contactDeniedOnce) {
         setContactDeniedOnce(true);
         setContactDenied(true);
@@ -318,7 +318,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
                 setStatus(
                   phone
                     ? null
-                    : `${person.name} has no phone number — add one to invite.`,
+                    : `${person.name} has no phone number - add one to invite.`,
                 );
               }}
               onDeniedOnce={(msg) => {

@@ -43,7 +43,7 @@ export function MediationCard({
     setNote(null);
     try {
       await handoffMediationDraftToCenter(item, draft, bearer);
-      setNote("Opened in Center — you send to the group.");
+      setNote("Opened in Center - you send to the group.");
       onSent?.(item.id);
     } catch (e) {
       setNote(e instanceof Error ? e.message : "Could not open draft");
@@ -72,7 +72,7 @@ export function MediationCard({
     setNote(null);
     try {
       await lockInConsensusPlan(item, bearer);
-      setNote("Asked Opal to create the plan — check Center.");
+      setNote("Asked Opal to create the plan - check Center.");
       onPlanCreated?.(item.id);
     } catch (e) {
       setNote(e instanceof Error ? e.message : "Could not create plan");
@@ -112,7 +112,7 @@ export function MediationCard({
               <span className="activity-row-detail">
                 {p.proposal}
                 {p.supporters.length
-                  ? ` — ${p.supporters.join(", ")}`
+                  ? ` - ${p.supporters.join(", ")}`
                   : ""}
               </span>
             </li>

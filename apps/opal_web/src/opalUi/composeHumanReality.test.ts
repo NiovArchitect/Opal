@@ -6,7 +6,7 @@ import {
   isRedundantFilamentLabel,
 } from "./composeHumanReality";
 
-describe("composeHumanReality — one fact one presentation", () => {
+describe("composeHumanReality - one fact one presentation", () => {
   it("formats AM/PM for ISO clocks", () => {
     const t = formatClockAmPm("2026-08-13T18:30:00.000Z");
     // Locale-dependent absolute hour, but must include AM or PM

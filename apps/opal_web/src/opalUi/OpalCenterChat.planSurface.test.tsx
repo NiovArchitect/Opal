@@ -26,7 +26,7 @@ vi.mock("../api/productClient", () => ({
         role: "opal",
         body:
           body.toLowerCase() === "yes"
-            ? "Anytime — what's on your mind?"
+            ? "Anytime - what's on your mind?"
             : "I can help with dinner plans. Want me to set this up?",
         metadata: { intent: { intent: "chat", entities: {} } },
         inserted_at: new Date().toISOString(),

@@ -32,7 +32,7 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(app).toMatch(/firstRunMode = "sign_in"/);
   });
 
-  it("production Splash uses character identity — no side-by-side collage / OPAL GRAPH text", () => {
+  it("production Splash uses character identity - no side-by-side collage / OPAL GRAPH text", () => {
     const splash = src("onboarding/FirstRunSplashPage.tsx");
     expect(splash).toMatch(/BRAND_ASSETS\.opalCharacter|opalCharacter/);
     expect(splash).toMatch(/data-brand-role="character-lockup"/);

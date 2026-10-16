@@ -29,7 +29,7 @@ describe("history time ages", () => {
 });
 
 describe("M-03 past plan when", () => {
-  it("reads as past — Last weekday / N days ago — never bare upcoming Tuesday", () => {
+  it("reads as past - Last weekday / N days ago - never bare upcoming Tuesday", () => {
     expect(formatPastPlanWhen(new Date(2026, 8, 27, 20, 0), now)).toMatch(/^Yesterday · /);
     expect(formatPastPlanWhen(new Date(2026, 8, 24, 20, 0), now)).toMatch(/^Last Thursday · /);
     expect(formatPastPlanWhen(new Date(2026, 8, 20, 20, 0), now)).toMatch(/^8 days ago · /);

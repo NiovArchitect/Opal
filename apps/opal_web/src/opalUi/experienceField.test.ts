@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { clampFieldCards, fieldIsFeed, originLabel, presentField } from "./experienceField";
 
 describe("experienceField presentation Pass 29", () => {
-  it("clamps density — not a feed", () => {
+  it("clamps density - not a feed", () => {
     const many = Array.from({ length: 40 }, (_, i) => ({ moment_id: `m${i}` }));
     expect(clampFieldCards(many, 3)).toHaveLength(3);
     expect(fieldIsFeed(many)).toBe(true);

@@ -23,7 +23,7 @@ describe("liveSocialMomentLoop Pass 16/31 continuity", () => {
     expect(momentHasExactPlace(DEMO_SOCIAL_MOMENT)).toBe(true);
   });
 
-  it("P0-31-01 Solo: Juniper exact place survives — WHERE not reopened", () => {
+  it("P0-31-01 Solo: Juniper exact place survives - WHERE not reopened", () => {
     const { seed, error } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], "founder", {
       solo: true,
     });
@@ -177,7 +177,7 @@ describe("liveSocialMomentLoop Pass 16/31 continuity", () => {
     expect(after.nextGap).not.toBe("when");
   });
 
-  it("P0-31-02 empty label cannot apply — no silent fake when", () => {
+  it("P0-31-02 empty label cannot apply - no silent fake when", () => {
     const { seed: before } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], "f", {
       solo: true,
     });

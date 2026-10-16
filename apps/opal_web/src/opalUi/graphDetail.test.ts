@@ -200,7 +200,7 @@ describe("Pass 1 Repeat experience", () => {
     "utf8",
   );
 
-  it("REPEAT_MUTATES_OLD_GRAPH = 0 — Repeat does not reuse old plan id", () => {
+  it("REPEAT_MUTATES_OLD_GRAPH = 0 - Repeat does not reuse old plan id", () => {
     expect(REPEAT_MUTATES_OLD_GRAPH).toBe(0);
     expect(invariants).toMatch(/REPEAT_MUTATES_OLD_GRAPH\s*=\s*0/);
     expect(invariants).toMatch(/PAST_HISTORY_PERMANENT_THREAD_BLOCKER\s*=\s*0/);

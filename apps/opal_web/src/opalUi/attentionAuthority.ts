@@ -743,7 +743,7 @@ export function notificationCopyPreview(kind: "silent" | "ambient" | "actionable
     case "silent":
       return null;
     case "ambient":
-      return "Dinner with Jordan is still forming — no action needed yet.";
+      return "Dinner with Jordan is still forming - no action needed yet.";
     case "actionable":
       return "Leave around 6:20 for dinner with Jordan.";
     case "superseded":

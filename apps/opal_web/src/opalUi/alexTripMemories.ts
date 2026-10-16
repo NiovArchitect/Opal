@@ -10,7 +10,7 @@ const ASSET = "/figma-v2/home";
 const AVATAR = "/figma-v2/stories/alex.png";
 
 const FRAMES: Array<{ caption: string; media: string }> = [
-  { caption: "Rooftop at dusk — the one that still hits", media: `${DEMO}/portrait.jpg` },
+  { caption: "Rooftop at dusk - the one that still hits", media: `${DEMO}/portrait.jpg` },
   { caption: "Gallery night, second room", media: `${DEMO}/restaurant.jpg` },
   { caption: "Street corn after the show", media: `${DEMO}/food.jpg` },
   { caption: "Blue hour from the terrace", media: `${ASSET}/media-travel-carousel-1728.png` },
@@ -21,7 +21,7 @@ const FRAMES: Array<{ caption: string; media: string }> = [
   { caption: "Market flowers on the walk back", media: `${ASSET}/media-travel-carousel-1728.png` },
   { caption: "Friends table, too many plates", media: `${DEMO}/restaurant.jpg` },
   { caption: "Night bus reflections", media: `${DEMO}/portrait.jpg` },
-  { caption: "Bookstore find — still unread", media: `${ASSET}/media-maya.png` },
+  { caption: "Bookstore find - still unread", media: `${ASSET}/media-maya.png` },
   { caption: "Sunrise from the cheap seats", media: `${DEMO}/food.jpg` },
   { caption: "Last look before the flight", media: `${ASSET}/media-travel-carousel-1728.png` },
 ];

@@ -118,7 +118,7 @@ const T = {
   // After user shares the private conclusion (not data-entry narration)
   m6: {
     from: "me" as const,
-    body: "Thursday after 6:30 works for me — does that work for you?",
+    body: "Thursday after 6:30 works for me - does that work for you?",
   },
   m7: { from: "them" as const, body: "Yeah Thursday works. Let’s do it." },
   m8: { from: "me" as const, body: "Perfect 😊 looking forward to it" },
@@ -252,7 +252,7 @@ const VARIANTS: Fixture[] = [
     messages: [
       { from: "them", body: "Are we still doing Saturday?" },
       { from: "me", body: "I’m down after 5" },
-      { from: "them", body: "Same — 6ish works" },
+      { from: "them", body: "Same - 6ish works" },
     ],
     peerName: "Saturday dinner",
     peerSub: "4 people",
@@ -262,7 +262,7 @@ const VARIANTS: Fixture[] = [
 const FIXTURES: Fixture[] = [...PRIMARY, ...VARIANTS];
 
 const HARNESS_GATE =
-  "Review harness only — this control does not change product state.";
+  "Review harness only - this control does not change product state.";
 
 function PhoneSurface({
   primary,

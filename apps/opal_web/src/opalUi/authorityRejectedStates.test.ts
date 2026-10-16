@@ -105,7 +105,7 @@ describe("P0-05 rejected-state regressions", () => {
     expect(css).toMatch(/\[data-chat-kind="direct"\][^\n]*\.send-btn/);
   });
 
-  it("Center Opal 1114:2 wrapper geometry (86×64 @ 142,0) — not obsolete Trio 66@146,-4", () => {
+  it("Center Opal 1114:2 wrapper geometry (86×64 @ 142,0) - not obsolete Trio 66@146,-4", () => {
     const css = src("styles.css");
     expect(css).toMatch(/tabbar-option-b/);
     expect(css).toMatch(/\.tabbar-option-b \.dock-opal\s*\{[^}]*left:\s*142px/s);
@@ -128,7 +128,7 @@ describe("P0-05 rejected-state regressions", () => {
     expect(app).toMatch(/activeChatId \|\| groupInfoOpen\) return "chats"/);
   });
 
-  it("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION — Leave never opens Journey", () => {
+  it("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION - Leave never opens Journey", () => {
     const dated = src("opalUi/DatedConversationContent.tsx");
     const app = src("OpalApp.tsx");
     const css = src("styles.css");
@@ -145,7 +145,7 @@ describe("P0-05 rejected-state regressions", () => {
     expect(detail).not.toMatch(/Enter Journey/);
   });
 
-  it("GRAPH_OPEN_DOES_NOT_ACTIVATE_JOURNEY — Graph Detail persists after open", () => {
+  it("GRAPH_OPEN_DOES_NOT_ACTIVATE_JOURNEY - Graph Detail persists after open", () => {
     const app = src("OpalApp.tsx");
     const detail = src("opalUi/GraphDetailSheet.tsx");
     // No mount/open effect that activates Journey from Graph Detail

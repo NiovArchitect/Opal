@@ -364,7 +364,7 @@ export function buildTimeShareDraft(label: string): {
 } {
   return {
     share_kind: "time",
-    text: `${label} works for me — does that work for you?`,
+    text: `${label} works for me - does that work for you?`,
   };
 }
 

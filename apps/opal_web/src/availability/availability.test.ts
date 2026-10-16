@@ -6,7 +6,7 @@ import { semanticStateForSignal } from "../theme/technicolorProduction";
 
 const root = resolve(__dirname, "..");
 
-describe("availability UI — age-12 + color truth", () => {
+describe("availability UI - age-12 + color truth", () => {
   it("formats real backend ranges without inventing times", () => {
     const s = formatOverlapRange(
       "2026-08-14T01:30:00.000Z",

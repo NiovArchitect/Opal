@@ -17,7 +17,7 @@ const dir = buildSpeakerDirectory({
 });
 
 describe("P0-31-04 message speaker identity", () => {
-  it("resolves peers by sender id — not bubble side", () => {
+  it("resolves peers by sender id - not bubble side", () => {
     const m = resolveSpeaker("maya", "founder", dir);
     expect(m?.displayName).toBe("Maya");
     expect(m?.isSelf).toBe(false);
