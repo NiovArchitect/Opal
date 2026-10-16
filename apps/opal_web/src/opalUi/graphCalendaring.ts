@@ -226,7 +226,7 @@ function bucketFromLive(g: LiveGraphLike, nowMs: number): TimelineBucket {
   if (/next week/i.test(g.whenLine)) return "next_week";
   if (/month/i.test(g.whenLine)) return "next_month";
   const start = g.startsAt ? Date.parse(g.startsAt) : NaN;
-  // F12-47: a dateless plan is "someday" — never imply next week.
+  // F12-47: a dateless plan is "someday" - never imply next week.
   if (!Number.isFinite(start)) return "someday";
   const delta = start - nowMs;
   if (delta < 18 * 3600_000) return "tonight";
