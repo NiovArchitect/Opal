@@ -459,19 +459,23 @@ defmodule OpalCore.OpalResponse do
         String.contains?(String.downcase(title), String.downcase(plan_ref))
       end)
 
-    # Suggest → Prepare only. Chat does not mutate SharedPlan yet (no fake Done).
+    # Repair #13 (F13-04) — point at the REAL path. Chat updates ARE live
+    # (Repair #11/#12: the executor routes move/change/cancel through the
+    # SocialFlow authorities), and there is no Graph confirm/cancel action —
+    # the old "Open it on your Graph to confirm / chat updates aren't live
+    # yet" copy described a fictional destination and a stale limitation.
     cond do
       found? and is_binary(new_when) and new_when != "" and action in ["move", "reschedule", "change"] ->
-        "I can help move #{plan_ref} to #{new_when}. Open it on your Graph to confirm — chat updates aren't live yet."
+        "To move #{plan_ref} to #{new_when}, open the plan's chat and say 'move it to #{new_when}'."
 
       found? and action == "cancel" ->
-        "I can help cancel #{plan_ref}. Open it on your Graph to confirm — chat cancels aren't live yet."
+        "I can't cancel #{plan_ref} from here. Open the plan's chat and say 'cancel everything' (plan leads cancel for everyone) or 'I can't make it' (just you)."
 
       found? and is_binary(new_when) and new_when != "" ->
-        "I can help update #{plan_ref} to #{new_when}. Open it on your Graph to confirm."
+        "To update #{plan_ref} to #{new_when}, open the plan's chat and say so."
 
       found? ->
-        "I found #{plan_ref}. Open it on your Graph to change it — chat updates aren't live yet."
+        "I found #{plan_ref}. Open the plan's chat to change it."
 
       true ->
         "I don't see #{plan_ref} on your calendar. Want to create it?"

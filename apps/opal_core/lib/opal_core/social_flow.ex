@@ -897,6 +897,11 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  # Repair #13 (F13-01) — a proposal against a terminal plan is refused.
+  # Creating a "proposed" revision on a cancelled/completed plan would be a
+  # fake success: it can never be applied (respond_to_revision refuses
+  # terminal plans, F12-62), so it would linger as a dead live proposal.
+  # Terminal set matches respond_to_revision's F12-62 guard.
   def propose_revision(attrs) do
     plan_id = fetch!(attrs, :plan_id)
     user_id = fetch!(attrs, :proposed_by_user_id)
@@ -904,7 +909,8 @@ defmodule OpalCore.SocialFlow do
     trace_id = Map.get(attrs, :trace_id) || @trace_default
 
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id) do
+         :ok <- ensure_member(plan.conversation_id, user_id),
+         true <- plan.status not in ~w(cancelled completed) do
       members = member_user_ids(plan.conversation_id)
       required = Enum.reject(members, &(&1 == user_id))
       label = changes["time_label"] || "new time"
@@ -936,6 +942,7 @@ defmodule OpalCore.SocialFlow do
       end
     else
       nil -> {:error, :not_found}
+      false -> {:error, :invalid_status}
       {:error, _} = err -> err
     end
   end
@@ -1191,6 +1198,31 @@ defmodule OpalCore.SocialFlow do
          actor,
          trace
        ) do
+    # Repair #13 (F13-02) — accepting a revision retires every other live
+    # proposal for the same plan to "superseded" inside this transaction.
+    # Without this, an older "proposed" revision could be accepted afterwards
+    # and silently regress the plan (e.g. 9:00 PM back to 8:00 PM). The
+    # "superseded" status already exists in the schema; respond_to_revision
+    # only decides revisions with status == "proposed", so a later accept of
+    # a superseded revision is refused (:forbidden), never applied. Sibling
+    # signals are retired too, so no dead "Accept change" button lingers.
+    superseded_ids =
+      from(r in PlanRevision,
+        where: r.plan_id == ^plan.id and r.id != ^rev.id and r.status == "proposed",
+        select: r.id
+      )
+      |> Repo.all()
+
+    if superseded_ids != [] do
+      from(r in PlanRevision, where: r.id in ^superseded_ids)
+      |> Repo.update_all(set: [status: "superseded", updated_at: now])
+
+      from(s in Signal,
+        where: s.revision_id in ^superseded_ids and s.status == "visible"
+      )
+      |> Repo.update_all(set: [status: "superseded", updated_at: now])
+    end
+
     changes = rev.proposed_changes || %{}
 
     {plan_attrs, signal_copy} =
@@ -1999,10 +2031,18 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  # Repair #13 (F13-03) — access goes through ensure_plan_access/2 so
+  # conversation-less Center plans are readable by their creator/participants.
+  # The old member?/2 check compared conversation_id == nil and always missed,
+  # so a Center plan's own owner got :forbidden here. The public contract is
+  # unchanged: {:ok, plan} | {:error, :forbidden} | {:error, :not_found}.
   def get_plan_for_user(plan_id, user_id) do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
-        if member?(plan.conversation_id, user_id), do: {:ok, plan}, else: {:error, :forbidden}
+        case ensure_plan_access(plan, user_id) do
+          :ok -> {:ok, plan}
+          {:error, _} -> {:error, :forbidden}
+        end
 
       nil ->
         {:error, :not_found}

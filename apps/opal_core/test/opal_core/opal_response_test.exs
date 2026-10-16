@@ -164,10 +164,29 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "I can help move Oak to Saturday"
-    assert text =~ "Open it on your Graph"
-    assert text =~ "aren't live yet"
+    # Repair #13 (F13-04): copy points at the real path (the plan's chat),
+    # never a fictional Graph confirm action or a stale "not live" claim.
+    assert text =~ "To move Oak to Saturday"
+    assert text =~ "open the plan's chat" or text =~ "Open the plan's chat"
+    refute text =~ "Open it on your Graph"
+    refute text =~ "aren't live yet"
     refute text =~ "Done. Oak moved"
+  end
+
+  test "plan_modify cancel points at the real chat path, never a fictional Graph confirm (F13-04)" do
+    ctx = base_context()
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:plan_modify, %{action: "cancel", plan_ref: "Oak"}),
+               ctx
+             )
+
+    assert text =~ "I can't cancel Oak from here"
+    assert text =~ "Open the plan's chat"
+    assert text =~ "cancel everything"
+    refute text =~ "Open it on your Graph"
+    refute text =~ "aren't live yet"
   end
 
   test "plan_modify honest when plan not found" do

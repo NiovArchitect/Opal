@@ -58,8 +58,13 @@ defmodule OpalCore.OpalIntent do
 
               _ ->
                 [
-                  &try_plan_create/2,
+                  # Repair #13 (F13-05) — modify before create: a modify verb
+                  # (cancel/move/change/reschedule) wins over the create
+                  # trigger's bare "plans" match, so "cancel all plans" and
+                  # "change the dinner plan" route to :plan_modify instead of
+                  # being misread as a plan creation.
                   &try_plan_modify/2,
+                  &try_plan_create/2,
                   # Recall before remember so "what do you remember about X" is not stored.
                   &try_recall/2,
                   &try_remember/2,
