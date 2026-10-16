@@ -102,7 +102,8 @@ const EXPERIENCES: SearchExperienceResult[] = [
   {
     result_type: "experiences",
     name: "Rooftop Jazz",
-    meta: "9 min away · tonight",
+    // F12-12: fixture meta — no fabricated distance. Demo banner labels seed mode.
+    meta: "Sample experience",
     source_entity_id: "experience-rooftop-jazz",
     graph_id: "seed-near-rooftop",
     authority_status: "GREEN",
@@ -110,7 +111,7 @@ const EXPERIENCES: SearchExperienceResult[] = [
   {
     result_type: "experiences",
     name: "Oceanside Farmers Market",
-    meta: "Saturday · local",
+    meta: "Sample experience · Saturday",
     source_entity_id: "experience-oceanside-farmers",
     graph_id: "seed-jordan-market",
     authority_status: "GREEN",

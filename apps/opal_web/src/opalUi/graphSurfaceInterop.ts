@@ -33,8 +33,48 @@ export type TravelOverride = {
   updatedAt: string;
 };
 
-const STORAGE_PLANS = "opal.graph_surface.created_plans.v1";
-const STORAGE_TRAVEL = "opal.graph_surface.travel.v1";
+const STORAGE_PLANS_BASE = "opal.graph_surface.created_plans.v1";
+const STORAGE_TRAVEL_BASE = "opal.graph_surface.travel.v1";
+
+/**
+ * F12-51/52: storage keys are namespaced by user_id so one account never
+ * inherits another's plans. One-time migration moves legacy global keys into
+ * the current user's namespace.
+ */
+let storageUserId: string | null = null;
+
+export function setStorageUserId(userId: string | null | undefined) {
+  const next = userId || null;
+  if (next === storageUserId) return;
+  storageUserId = next;
+  // One-time migration: adopt legacy global keys into this user's namespace.
+  if (next) {
+    try {
+      const legacyPlans = sessionStorage.getItem(STORAGE_PLANS_BASE);
+      const legacyTravel = sessionStorage.getItem(STORAGE_TRAVEL_BASE);
+      if (legacyPlans && !sessionStorage.getItem(plansKey())) {
+        sessionStorage.setItem(plansKey(), legacyPlans);
+      }
+      if (legacyTravel && !sessionStorage.getItem(travelKey())) {
+        sessionStorage.setItem(travelKey(), legacyTravel);
+      }
+      sessionStorage.removeItem(STORAGE_PLANS_BASE);
+      sessionStorage.removeItem(STORAGE_TRAVEL_BASE);
+    } catch {
+      /* private / quota */
+    }
+  }
+}
+
+function namespaced(base: string): string {
+  return storageUserId ? `${base}.${storageUserId}` : base;
+}
+function plansKey(): string {
+  return namespaced(STORAGE_PLANS_BASE);
+}
+function travelKey(): string {
+  return namespaced(STORAGE_TRAVEL_BASE);
+}
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -55,21 +95,21 @@ function writeJson(key: string, value: unknown) {
 }
 
 export function loadCreatedPlans(): CreatedPlanSurface[] {
-  const list = readJson<CreatedPlanSurface[]>(STORAGE_PLANS, []);
+  const list = readJson<CreatedPlanSurface[]>(plansKey(), []);
   return Array.isArray(list) ? list : [];
 }
 
 export function persistCreatedPlans(plans: CreatedPlanSurface[]) {
-  writeJson(STORAGE_PLANS, plans.slice(0, 24));
+  writeJson(plansKey(), plans.slice(0, 24));
 }
 
 export function loadTravelOverrides(): Record<string, TravelOverride> {
-  const map = readJson<Record<string, TravelOverride>>(STORAGE_TRAVEL, {});
+  const map = readJson<Record<string, TravelOverride>>(travelKey(), {});
   return map && typeof map === "object" ? map : {};
 }
 
 export function persistTravelOverrides(map: Record<string, TravelOverride>) {
-  writeJson(STORAGE_TRAVEL, map);
+  writeJson(travelKey(), map);
 }
 
 /** Build a stable local surface id when backend plan_id is absent (founder seed). */

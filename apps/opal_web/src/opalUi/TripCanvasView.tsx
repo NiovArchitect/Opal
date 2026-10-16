@@ -324,7 +324,8 @@ export function TripCanvasView({
         {
           user_id: selfId,
           sharing: true,
-          place_label: "Roma Norte",
+          // F12-12: never hardcode a place label — use the trip destination or nothing.
+          place_label: trip.destination_label || trip.title || "Destination",
           has_coords: false,
           eta_note: "You · sharing",
         },
@@ -366,7 +367,8 @@ export function TripCanvasView({
             sharing: true,
             place_label: `On the way to ${label}`,
             has_coords: false,
-            eta_note: `You are on the way · ETA ~12 min`,
+            // F12-12: no invented ETA — honest sharing state only.
+            eta_note: `You are on the way`,
           },
           ...(prev?.members || []).filter((m) => m.user_id !== selfId),
         ],

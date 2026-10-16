@@ -84,18 +84,6 @@ function humanResolveNote(payload: DecisionResolvePayload | null, fallback?: str
   return "Here are the best matches for this window.";
 }
 
-const WEEK_FRIDAY = [
-  { time: "8:00", label: "Work" },
-  { time: "5:30", label: "Open window" },
-  { time: "9:00", label: "Evening plan" },
-];
-
-const FAMILY_SAT = [
-  { time: "10:00", label: "Breakfast" },
-  { time: "1:00", label: "Museum" },
-  { time: "5:30", label: "Tacos + sunset" },
-];
-
 function todayLabel() {
   try {
     return new Intl.DateTimeFormat("en-US", {
@@ -192,7 +180,22 @@ export function OpalCenterLifeGraph({
   const [stripSource, setStripSource] = useState<DayStripSource>(initialStrip.source);
   const [stripAttribution, setStripAttribution] = useState(initialStrip.attribution);
   const [acceptedTitle, setAcceptedTitle] = useState("Juniper & Ivy");
-  const [weekDay, setWeekDay] = useState<"Thu" | "Fri" | "Sat" | "Sun">("Fri");
+  // F12-12: week chips are the real current 7-day window, not hardcoded Thu-Sun.
+  const weekDays = useMemo(() => {
+    const days: { key: string; short: string; full: string; date: Date }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const short = d.toLocaleDateString("en-US", { weekday: "short" });
+      const full = d.toLocaleDateString("en-US", { weekday: "long" });
+      days.push({ key: d.toISOString().slice(0, 10), short, full, date: d });
+    }
+    return days;
+  }, []);
+  const [weekDay, setWeekDay] = useState<string>(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+  });
   const [resolving, setResolving] = useState(false);
   const [decision, setDecision] = useState<DecisionResolvePayload | null>(null);
   const [speakQueue, setSpeakQueue] = useState<string | null>(null);
@@ -914,42 +917,33 @@ export function OpalCenterLifeGraph({
           <p className="opal-center-v2-lede">Only meaningful events and openings.</p>
 
           <div className="opal-center-v2-week-days" role="tablist" aria-label="Week days">
-            {(["Thu", "Fri", "Sat", "Sun"] as const).map((d) => (
+            {weekDays.map((d) => (
               <button
-                key={d}
+                key={d.key}
                 type="button"
                 role="tab"
-                aria-selected={weekDay === d}
-                className={`opal-center-v2-chip ${weekDay === d ? "is-active" : ""}`}
-                onClick={() => setWeekDay(d)}
+                aria-selected={weekDay === d.key}
+                aria-label={d.full}
+                className={`opal-center-v2-chip ${weekDay === d.key ? "is-active" : ""}`}
+                onClick={() => setWeekDay(d.key)}
               >
-                {d}
+                {d.short}
               </button>
             ))}
           </div>
 
-          <h2 className="opal-center-v2-day-name">{weekDay === "Fri" ? "Friday" : weekDay}</h2>
+          <h2 className="opal-center-v2-day-name">
+            {weekDays.find((d) => d.key === weekDay)?.full || "Today"}
+          </h2>
           <p className="opal-center-v2-lede">
-            {weekDay === "Fri"
-              ? "Friday shape. Live week openings connect when your calendar is linked."
-              : `${weekDay} openings load from your live week when available.`}
+            Openings load from your live week when available.
           </p>
 
-          {weekDay === "Fri" ? (
-            <ol className="opal-center-v2-vertical" data-testid="opal-center-week-sample">
-              {WEEK_FRIDAY.map((n) => (
-                <li key={n.time}>
-                  <span className="opal-center-v2-dot" aria-hidden />
-                  <span className="opal-center-v2-vtime">{n.time}</span>
-                  <span className="opal-center-v2-vlabel">{n.label}</span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="opal-center-v2-footnote" data-testid="opal-center-week-empty" role="status">
-              No live openings painted for {weekDay} yet. Ask Opal or link your calendar.
-            </p>
-          )}
+          <p className="opal-center-v2-footnote" data-testid="opal-center-week-empty" role="status">
+            No live openings painted for{" "}
+            {weekDays.find((d) => d.key === weekDay)?.full || "this day"} yet. Ask Opal or link
+            your calendar.
+          </p>
 
           <div className="opal-center-v2-signal">
             <span className="opal-gradient-dot" aria-hidden data-testid="opal-gradient-dot" />
@@ -960,9 +954,7 @@ export function OpalCenterLifeGraph({
                 className="opal-center-v2-primary"
                 onClick={() =>
                   openChatWith(
-                    weekDay === "Fri"
-                      ? "Shape Friday open window"
-                      : `Shape ${weekDay} open window`,
+                    `Shape ${weekDays.find((d) => d.key === weekDay)?.full || "today"} open window`,
                   )
                 }
               >
@@ -981,18 +973,8 @@ export function OpalCenterLifeGraph({
             Same graph. Shared result. Private constraints stay private.
           </p>
 
-          <ol className="opal-center-v2-vertical" data-testid="opal-center-family-sample">
-            {FAMILY_SAT.map((n) => (
-              <li key={n.time}>
-                <span className="opal-center-v2-dot is-shared" aria-hidden />
-                <span className="opal-center-v2-vtime">{n.time}</span>
-                <span className="opal-center-v2-vlabel">{n.label}</span>
-              </li>
-            ))}
-          </ol>
-
-          <p className="opal-center-v2-footnote">
-            Shared day. Live family plans appear when people are invited.
+          <p className="opal-center-v2-footnote" data-testid="opal-center-family-empty" role="status">
+            No shared plans yet. Live family plans appear here when people are invited.
           </p>
           <button type="button" className="opal-center-v2-chip" onClick={() => setPhase("rest")}>
             Back to today

@@ -108,7 +108,9 @@ function parseWhenParts(
 ): { dayKicker: string; timeLabel: string } {
   // e.g. "Juniper & Ivy · Saturday · 7:30 PM" or "Tonight · 7:30 PM · with Chanelle"
   // Paste W5 — never invent day/time for forming/pending plans.
-  const invent = opts?.inventDefaults !== false;
+  // F12-49: inventDefaults is opt-IN (default false) — only the known ready
+  // fixture passes true explicitly.
+  const invent = opts?.inventDefaults === true;
   const parts = (detail || "").split("·").map((p) => p.trim()).filter(Boolean);
   const timePart =
     parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || (invent ? "7:30 PM" : "");
@@ -164,6 +166,8 @@ export function GraphDetailSheet({
       ? { id: createdPlan?.sourceIdeaId || card.id, title: card.title, placeLine: card.placeLine }
       : { id: cardId },
   );
+  // F12-46: a cardId with no backing card is a missing graph, not a hollow sheet.
+  const missingCard = !card && !createdPlan;
   const withWho = card?.person ? `with ${card.person}` : "";
   const whenLine = (() => {
     if (createdOverlay?.whenLine) return createdOverlay.whenLine;
@@ -216,12 +220,11 @@ export function GraphDetailSheet({
     (isReadyFixture
       ? "table looks open"
       : createdOverlay?.signalLine || chrome?.signalLine || "Forming · pending");
+  // F12-12: never invent leave/travel times — honest fallbacks render below.
   const leaveTruth =
-    card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary ||
-    (isReadyFixture ? "Leave ~6:55" : "");
+    card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary || "";
   const travelTruth =
-    card?.alignmentSteps?.find((s) => /min|drive|from you/i.test(s.secondary))?.secondary ||
-    (isReadyFixture ? "18 min from you" : card?.detail || "");
+    card?.alignmentSteps?.find((s) => /min|drive|from you/i.test(s.secondary))?.secondary || "";
   const leaveByDisplay = leaveTruth ? leaveTruth.replace(/^Leave\s*~?\s*/i, "") || "6:55 PM" : "";
   const whenLineResolved = createdOverlay?.whenLine || (!createdPlan ? chrome?.whenLine : null) || whenLine;
   const stateLine = createdOverlay?.signalLine || (!createdPlan ? chrome?.signalLine : null);
@@ -538,7 +541,7 @@ export function GraphDetailSheet({
       data-duplicate-projection="0"
       role="dialog"
       aria-modal="true"
-      aria-label={placeTitle}
+      aria-label={missingCard ? "Graph not found" : placeTitle}
     >
       <header className="social-dest-brand ogsn-graph-detail-head">
         <button
@@ -552,6 +555,15 @@ export function GraphDetailSheet({
         </button>
       </header>
 
+      {missingCard ? (
+        <div className="gsh-empty" data-testid="graph-detail-missing" data-empty="error" role="alert">
+          <p className="gsh-empty-title">This graph isn't available</p>
+          <p className="gsh-empty-body">
+            It may have been removed or the link is stale. Nothing was invented to fill it.
+          </p>
+        </div>
+      ) : (
+        <>
       <div className="graph-ready-title-row">
         <h1 className="social-dest-title" data-testid="graph-detail-title">
           {placeTitle || "Graph"}
@@ -679,6 +691,8 @@ export function GraphDetailSheet({
           {note}
         </p>
       ) : null}
+        </>
+      )}
     </div>
   );
 }

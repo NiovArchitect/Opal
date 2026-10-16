@@ -3806,6 +3806,15 @@ button.plan-card-btn:focus-visible {
   background: rgba(232, 90, 90, 0.08);
 }
 
+/* F12-12: the sign-in-again pill is a real button — reset native button chrome. */
+button.session-pill {
+  font: inherit;
+  cursor: pointer;
+}
+button.session-pill-warn:hover {
+  background: rgba(232, 90, 90, 0.16);
+}
+
 /* Figma CHAT filament (3:11): inset ~35, 2–4px left bar, not AI card / not peer bubble */
 .opal-moment.filament {
   display: flex;
