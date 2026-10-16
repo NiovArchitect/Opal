@@ -623,7 +623,7 @@ defmodule OpalCore.Center.PlanContextPatch do
   # ("Los Angeles", "New York", "Salt Lake City") — never a metro allowlist.
   # Account-agnostic: no city fixtures embedded in extraction.
   defp extract_named_find_venue(raw) when is_binary(raw) do
-    locality = ~S"(([A-Z][\w]+(?:\s+[A-Z][\w]+){0,2}))"
+    locality = ~S"([A-Z][\w]+(?:\s+[A-Z][\w]+){0,2})"
 
     patterns = [
       Regex.compile!(
@@ -700,7 +700,7 @@ defmodule OpalCore.Center.PlanContextPatch do
     # Locality is a general multi-word proper-noun phrase (Repair #12 F12-40) —
     # never a metro allowlist. Day names / clock tails are stripped by
     # sanitize_locality/1, not by restricting which cities exist.
-    locality = ~S"(([A-Z][\w]+(?:\s+[A-Z][\w]+){0,2}))"
+    locality = ~S"([A-Z][\w]+(?:\s+[A-Z][\w]+){0,2})"
 
     patterns = [
       Regex.compile!(
