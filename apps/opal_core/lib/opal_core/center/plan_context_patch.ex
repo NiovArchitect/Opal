@@ -550,10 +550,80 @@ defmodule OpalCore.Center.PlanContextPatch do
 
   def extract_exact_venue(_), do: nil
 
+  @doc """
+  Detect a venue-location *question* with no locality: "where is X",
+  "do you know where X is", "what's the address of X".
+
+  Person-agnostic — no hardcoded venue names. Returns `%{name: name}` or nil.
+
+  Repair #12 (F12-04a): gives the intent layer a venue_question shape so a
+  plain location question maps to `:named_venue` instead of falling through
+  to `:chat` and the sticky recent_who re-engagement. Question words match
+  case-insensitively; the venue name capture stays case-sensitive so
+  "where is dinner" never becomes a venue.
+  """
+  def extract_venue_question(raw) when is_binary(raw) do
+    name_re = ~S"((?:[Tt]he\s+)?[A-Z][\w'&.]*(?:\s+[A-Z][\w'&.]* ){0,3})"
+
+    patterns = [
+      "(?i:\\bdo\\s+you\\s+know\\s+where\\b)\\s+#{name_re}\\s+(?i:is|are)\\b",
+      "(?i:\\bwhere\\s+is\\b)\\s+#{name_re}\\b",
+      "(?i:\\bwhere's\\b)\\s+#{name_re}\\b",
+      "(?i:\\bwhat(?:'s|\\s+is)\\s+the\\s+address\\s+of\\b)\\s+#{name_re}\\b",
+      "(?i:\\bdo\\s+you\\s+know\\s+the\\s+address\\s+of\\b)\\s+#{name_re}\\b"
+    ]
+
+    stop = exact_venue_stop_words()
+
+    Enum.find_value(patterns, fn src ->
+      case Regex.run(Regex.compile!(src), raw) do
+        [_, name] ->
+          name = name |> String.trim() |> strip_venue_lead_verbs() |> String.trim()
+          bare = name |> String.replace(~r/^(?:the\s+)/i, "") |> String.trim()
+
+          cond do
+            bare == "" -> nil
+            MapSet.member?(stop, name) or MapSet.member?(stop, bare) -> nil
+            day_word?(bare) -> nil
+            cuisine_word?(bare) -> nil
+            String.downcase(bare) in ~w(dinner lunch brunch breakfast restaurant venue) -> nil
+            true -> %{name: name}
+          end
+
+        _ ->
+          nil
+      end
+    end)
+  end
+
+  def extract_venue_question(_), do: nil
+
+  @doc """
+  Single copy source for the named-venue in-flight line (Repair #12 F12-42).
+
+  The immediate provider override and the no-provider fallback render MUST
+  produce the same line for the same fixture — never two divergent wordings.
+  """
+  def venue_lookup_copy(name, dest) when is_binary(name) and is_binary(dest) do
+    name = String.trim(name)
+    dest = String.trim(dest)
+
+    if name != "" and dest != "" do
+      "Looking up #{name} in #{dest}…"
+    else
+      nil
+    end
+  end
+
+  def venue_lookup_copy(_, _), do: nil
+
   # Find/look up/search for a specific proper-named venue (optionally + "restaurant") in a locality.
   # Case-sensitive name capture — /i would let "find somewhere … in X" become exact_entity.
+  # Repair #12 (F12-40): locality is a general multi-word proper-noun phrase
+  # ("Los Angeles", "New York", "Salt Lake City") — never a metro allowlist.
+  # Account-agnostic: no city fixtures embedded in extraction.
   defp extract_named_find_venue(raw) when is_binary(raw) do
-    locality = ~S"((?:Mexico\s+City|San\s+Diego|La\s+Jolla|Del\s+Mar|[A-Z][\w]+))"
+    locality = ~S"(([A-Z][\w]+(?:\s+[A-Z][\w]+){0,2}))"
 
     patterns = [
       Regex.compile!(
@@ -627,8 +697,10 @@ defmodule OpalCore.Center.PlanContextPatch do
       ) and not Regex.match?(~r/\blook\s+up\b/i, raw)
 
     # Patterns: plan/look-up/to/at NAME in LOCALITY.
-    # Locality allows multi-word places (Mexico City) but not day names / clock tails.
-    locality = ~S"((?:Mexico\s+City|San\s+Diego|La\s+Jolla|Del\s+Mar|[A-Z][\w]+))"
+    # Locality is a general multi-word proper-noun phrase (Repair #12 F12-40) —
+    # never a metro allowlist. Day names / clock tails are stripped by
+    # sanitize_locality/1, not by restricting which cities exist.
+    locality = ~S"(([A-Z][\w]+(?:\s+[A-Z][\w]+){0,2}))"
 
     patterns = [
       Regex.compile!(
@@ -753,11 +825,14 @@ defmodule OpalCore.Center.PlanContextPatch do
   defp strip_venue_lead_verbs(other), do: other
 
   # Keep first locality; trailing "in San Diego" is regional context, not the venue.
+  # Repair #12 (F12-40): the multi-word locality capture can swallow a bare
+  # trailing day word ("San Diego Saturday") — strip day tails with or without
+  # a preposition so the locality stays a place, never a place+day.
   defp sanitize_locality(locality) when is_binary(locality) do
     locality
     |> String.replace(~r/\s+in\s+(?:San\s+Diego|California|CA)\b.*$/i, "")
     |> String.replace(
-      ~r/\s+(?:for|on|,)\s+(?:Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday)\b.*$/i,
+      ~r/\s+(?:(?:for|on|,)\s+)?(Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday)\b.*$/i,
       ""
     )
     |> String.replace(~r/\s+(?:at|,)\s*\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?\b.*$/i, "")

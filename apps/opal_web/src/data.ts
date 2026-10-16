@@ -54,6 +54,8 @@ export type ChatPreview = {
     public?: boolean;
     temporal_state?: string | null;
     canonical_start_at?: string | null;
+    /** Plan revision id — keys the NEXT TOGETHER strip to one render per generation (F12-32). */
+    revision_id?: string | null;
     next_together_eligible?: boolean;
     upcoming_ready?: boolean;
     future_execution_actionable?: boolean;

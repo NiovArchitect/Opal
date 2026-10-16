@@ -75,6 +75,9 @@ type Props = {
   callsStatus?: "idle" | "loading" | "ready" | "error";
   /** Refetch when the person opens Calls. */
   onOpenCalls?: () => void;
+  /** F12-12: chat list load failure — renders an honest error with retry. */
+  listError?: string | null;
+  onRetryList?: () => void;
 };
 
 /** Composition-only labels. Never invent Follow or Connection from chat existence. */
@@ -106,6 +109,8 @@ export function ChatsHome({
   onOpenStoryFromCalls,
   callsStatus,
   onOpenCalls,
+  listError,
+  onRetryList,
 }: Props) {
   const [q, setQ] = useState("");
   const [uncontrolledSurface, setUncontrolledSurface] =
@@ -430,18 +435,29 @@ export function ChatsHome({
                           ? `calls-open-graph-${r.id}`
                           : `calls-signal-${r.id}`
                       }
+                      // F12-12: only present as a link when it can actually navigate.
+                      // Without a graphCardId the signal is informational, not tappable.
                       role={
-                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                        (r.signal.kind === "ready" || r.signal.kind === "graph_updated") &&
+                        r.signal &&
+                        "graphCardId" in r.signal &&
+                        r.signal.graphCardId
                           ? "link"
                           : undefined
                       }
                       tabIndex={
-                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                        (r.signal.kind === "ready" || r.signal.kind === "graph_updated") &&
+                        r.signal &&
+                        "graphCardId" in r.signal &&
+                        r.signal.graphCardId
                           ? 0
                           : undefined
                       }
                       aria-label={
-                        r.signal.kind === "ready" || r.signal.kind === "graph_updated"
+                        (r.signal.kind === "ready" || r.signal.kind === "graph_updated") &&
+                        r.signal &&
+                        "graphCardId" in r.signal &&
+                        r.signal.graphCardId
                           ? `${r.signal.label}. Open Graph`
                           : r.signal.label
                       }
@@ -519,7 +535,24 @@ export function ChatsHome({
         </ul>
       ) : (
         <ul className="chats-home-list" data-testid="chats-home-list">
-          {filteredChats.map((r) => {
+          {listError ? (
+            <li className="gsh-empty" data-testid="chats-home-error" data-empty="error">
+              <span className="gsh-empty-title">Couldn't load conversations</span>
+              <span className="gsh-empty-body">{listError}</span>
+              {onRetryList ? (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  data-testid="chats-home-retry"
+                  onClick={onRetryList}
+                >
+                  Try again
+                </button>
+              ) : null}
+            </li>
+          ) : null}
+          {!listError &&
+            filteredChats.map((r) => {
             const pill = r.planConsequence;
             const pillTone = pill?.tone;
             const pillId = pill?.planId;
@@ -577,16 +610,18 @@ export function ChatsHome({
                           data-plan-tone={pillTone || "dinner"}
                           data-plan-id={pillId}
                           onClick={(e) => {
+                            // F12-12: never swallow the tap silently — without a plan
+                            // handler the row's own navigation takes the tap.
+                            if (!onOpenPlan) return;
                             e.preventDefault();
                             e.stopPropagation();
-                            if (!onOpenPlan) return;
                             onOpenPlan(pillId || pill?.label || r.id, r);
                           }}
                           onKeyDown={(e) => {
                             if (e.key !== "Enter" && e.key !== " ") return;
+                            if (!onOpenPlan) return;
                             e.preventDefault();
                             e.stopPropagation();
-                            if (!onOpenPlan) return;
                             onOpenPlan(pillId || pill?.label || r.id, r);
                           }}
                         >
@@ -614,7 +649,7 @@ export function ChatsHome({
               </li>
             );
           })}
-          {!filteredChats.length ? (
+          {!listError && !filteredChats.length ? (
             <li className="gsh-empty" data-testid="chats-home-empty" data-empty="ready-world">
               <span className="gsh-empty-title">{PRODUCT_COPY.emptyChats}</span>
               <span className="gsh-empty-body"> {PRODUCT_COPY.emptyChatsInvite}</span>

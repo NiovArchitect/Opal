@@ -139,8 +139,12 @@ defmodule OpalCore.Center.ActionOrchestrator do
               ] ->
             handle_conversational_turn(user_id, intent, planning, prior, patch, raw_text)
 
+          # F12-13/F12-53 — a when/when_time patch only corrects a plan when the
+          # durable context carries a FRESH, ACTIVE plan_id. A stale plan_id
+          # (expired, or pointing at a cancelled/missing plan) must not hijack
+          # an unrelated utterance into a phantom "correction".
           (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
-              is_binary(planning["plan_id"]) and
+              PlanningContext.plan_id_active?(planning) and
               not Regex.match?(@select_option_re, raw_text) and
               patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"] ->
             handle_when_correction(user_id, intent, planning, prior, patch)
@@ -615,7 +619,15 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
   defp recall_prior_copy(_, _), do: "Tell me what you'd like to pick back up."
 
-  defp handle_when_correction(_user_id, intent, planning, prior, patch) do
+  # F12-13/F12-53 — time corrections route through SocialFlow's schedule
+  # authority (change_plan_time/change_plan_date): FOR UPDATE lock, single
+  # transaction, revision row, audit, broadcast, calendar projection, lead +
+  # status authorization — all inside. The old direct Repo.update wrote with no
+  # lock/transaction/revision/audit/broadcast, no status check, no lead check,
+  # and fired on any stale durable plan_id. The trigger guard above admits
+  # only fresh+active plan_ids (PlanningContext.plan_id_active?/1); the
+  # authority re-validates inside its own transaction for races.
+  defp handle_when_correction(user_id, intent, planning, prior, patch) do
     plan_id = planning["plan_id"]
     when_s = planning["when"]
     when_time = planning["when_time"] || patch["when_time"]
@@ -637,99 +649,140 @@ defmodule OpalCore.Center.ActionOrchestrator do
           changed
       end
 
-    if is_binary(plan_id) do
-      case Repo.get(SharedPlan, plan_id) do
-        %SharedPlan{} = plan ->
-          # Authority: Center-owned draft / creator may patch; Journey lead path
-          # remains JourneyAuthority.material_change for shared journeys.
-          title =
-            case planning["venue"] || planning["requested_venue_name"] do
-              v when is_binary(v) and v != "" -> "#{v} · #{time_label}"
-              _ ->
-                if is_binary(when_s) and when_s != "" do
-                  String.replace(plan.title || "Plans", ~r/\b(Saturday|Sunday|Friday)\b/i, when_s)
-                else
-                  plan.title || "Plans"
-                end
-            end
+    base_meta = fn plan, extra ->
+      %{
+        "action_state" => "plan_patched",
+        "plan_id" => plan && plan.id,
+        "planning_context" => Map.put(planning, "when_time", when_time),
+        "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
+        "PLAN_ID_STABLE" => true,
+        "slots_changed" => changed,
+        "before_context" => %{
+          "when" => when_before,
+          "when_time" => time_before,
+          "who" => prior["who"],
+          "destination" => prior["destination"],
+          "venue" => prior["venue"],
+          "visibility_mode" => prior["visibility_mode"]
+        },
+        "patch" => Map.take(stringify_map(patch), ["when", "when_time", "visibility_mode"]),
+        "after_context" => %{
+          "when" => when_s,
+          "when_time" => when_time,
+          "time_label" => time_label,
+          "who" => planning["who"],
+          "destination" => planning["destination"],
+          "venue" => planning["venue"],
+          "visibility_mode" => planning["visibility_mode"]
+        },
+        "graph_projection" => true
+      }
+      |> Map.merge(extra)
+    end
 
-          alignment =
-            (plan.alignment || %{})
-            |> Map.put("when", when_s || plan.alignment["when"])
-            |> then(fn a ->
-              if is_binary(when_time), do: Map.put(a, "when_time", when_time), else: a
-            end)
+    # A clock correction edits the schedule; a day-only correction edits the
+    # date. Both go through the same authority.
+    result =
+      if is_binary(when_time) and when_time != "" do
+        OpalCore.SocialFlow.change_plan_time(%{
+          plan_id: plan_id,
+          user_id: user_id,
+          new_time_label: time_label,
+          trace_id: "trace-center-correction-1"
+        })
+      else
+        OpalCore.SocialFlow.change_plan_date(%{
+          plan_id: plan_id,
+          user_id: user_id,
+          new_date_label: when_s || time_label,
+          trace_id: "trace-center-correction-1"
+        })
+      end
 
-          {:ok, _} =
-            plan
-            |> SharedPlan.changeset(%{
-              "time_label" => time_label,
-              "title" => title,
-              "alignment" => alignment
-            })
-            |> Repo.update()
+    case result do
+      {:ok, %{plan: plan}} ->
+        # Cosmetic: keep the Center title in sync with venue/day (display
+        # metadata only — schedule authority stays in change_plan_schedule).
+        _ = maybe_retitle_center_plan(plan, planning, when_s, time_label)
 
-          override =
-            cond do
-              is_binary(when_time) and when_time != "" ->
-                "Updated — #{time_label}. Same plan, same people."
+        override =
+          cond do
+            is_binary(when_time) and when_time != "" ->
+              "Updated — #{time_label}. Same plan, same people."
 
-              is_binary(when_s) ->
-                "Updated — #{TemporalPhrase.when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
+            is_binary(when_s) ->
+              "Updated — #{TemporalPhrase.when_phrase(when_s)} in #{planning["destination"] || "the same place"}."
 
-              true ->
-                "Updated the time on the same plan."
-            end
+            true ->
+              "Updated the time on the same plan."
+          end
 
-          meta = %{
-            "action_state" => "plan_patched",
-            "plan_id" => plan_id,
-            "planning_context" => Map.put(planning, "when_time", when_time),
-            "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
-            "PLAN_ID_STABLE" => true,
-            "slots_changed" => changed,
-            "before_context" => %{
-              "when" => when_before,
-              "when_time" => time_before,
-              "who" => prior["who"],
-              "destination" => prior["destination"],
-              "venue" => prior["venue"],
-              "visibility_mode" => prior["visibility_mode"]
-            },
-            "patch" => Map.take(stringify_map(patch), ["when", "when_time", "visibility_mode"]),
-            "after_context" => %{
-              "when" => when_s,
-              "when_time" => when_time,
-              "time_label" => time_label,
-              "who" => planning["who"],
-              "destination" => planning["destination"],
-              "venue" => planning["venue"],
-              "visibility_mode" => planning["visibility_mode"]
-            },
-            "graph_projection" => true
-          }
+        meta =
+          base_meta.(plan, %{"notify_user_ids" => notify_user_ids_for_plan(plan, user_id)})
 
-          {put_entities(intent, string_to_atom_map(planning)), override, meta}
+        {put_entities(intent, string_to_atom_map(planning)), override, meta}
+
+      {:error, :not_authorized} ->
+        {intent, "I can prepare that, but I need your go-ahead before I take the action.",
+         base_meta.(nil, %{"blocked" => true, "correction_blocked" => "not_authorized"})}
+
+      {:error, :invalid_status} ->
+        {intent, "That plan isn't active anymore, so I left it alone.",
+         base_meta.(nil, %{
+           "planning_context" => Map.delete(planning, "plan_id"),
+           "correction_blocked" => "invalid_status"
+         })}
+
+      {:error, :not_found} ->
+        {intent, "I couldn't find that plan anymore, so I left it alone.",
+         base_meta.(nil, %{
+           "planning_context" => Map.delete(planning, "plan_id"),
+           "correction_blocked" => "not_found"
+         })}
+
+      {:error, :invalid_label} ->
+        {intent, "Say the day, the time, or both — I didn't catch a usable time there.",
+         base_meta.(nil, %{"correction_blocked" => "invalid_label"})}
+
+      {:error, _} ->
+        {intent, "I couldn't update the time on that plan.",
+         base_meta.(nil, %{"correction_blocked" => "error"})}
+    end
+  end
+
+  # Display-metadata title sync after a Center correction (never schedule state).
+  defp maybe_retitle_center_plan(%SharedPlan{} = plan, planning, when_s, time_label) do
+    title =
+      case planning["venue"] || planning["requested_venue_name"] do
+        v when is_binary(v) and v != "" ->
+          "#{v} · #{time_label}"
 
         _ ->
-          {intent, "Updated to #{time_label}.",
-           %{
-             "planning_context" => planning,
-             "PLAN_ID_STABLE_AFTER_CORRECTION" => true,
-             "slots_changed" => changed,
-             "before_context" => %{"when" => when_before},
-             "after_context" => %{"when" => when_s}
-           }}
+          if is_binary(when_s) and when_s != "" do
+            String.replace(plan.title || "Plans", ~r/\b(Saturday|Sunday|Friday)\b/i, when_s)
+          else
+            plan.title
+          end
       end
+
+    if is_binary(title) and title != plan.title do
+      plan |> SharedPlan.changeset(%{title: title}) |> Repo.update()
     else
-      {intent, "Updated to #{when_s}.",
-       %{
-         "planning_context" => planning,
-         "slots_changed" => changed,
-         "before_context" => %{"when" => when_before},
-         "after_context" => %{"when" => when_s}
-       }}
+      {:ok, plan}
     end
+  end
+
+  # Peer notification targets for a Center plan correction: the plan's other
+  # participants (never the actor). Mirrors SocialFlow's cancel_notify_user_ids.
+  defp notify_user_ids_for_plan(%SharedPlan{} = plan, user_id) do
+    ids =
+      from(pp in OpalCore.SocialFlow.PlanParticipant,
+        where: pp.plan_id == ^plan.id,
+        select: pp.user_id
+      )
+      |> Repo.all()
+
+    ids |> Enum.uniq() |> Enum.reject(&(&1 == user_id))
   end
 
   # Repair #8: "Why did you change the time…" / "That's not the place…"

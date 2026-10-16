@@ -233,6 +233,7 @@ import {
   mergeFeedWithCreated,
   persistCreatedPlans,
   persistTravelOverrides,
+  setStorageUserId,
   travelLabelFor,
   type CreatedPlanSurface,
   type TravelOverride,
@@ -413,6 +414,7 @@ import {
 } from "./opalUi/v2Primitives";
 import {
   formatHumanTime,
+  humanErrorCopy,
   isConsequentialNeed,
   isDurableForPlans,
   isUsableReality,
@@ -422,7 +424,7 @@ import {
   strongestPerHomePresence,
   surfaceLabel,
 } from "./sharedReality";
-import { isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
+import { formatClockAmPm, isRedundantFilamentLabel } from "./opalUi/composeHumanReality";
 import {
   composeHomeAttentionField,
   homeEditorialLines,
@@ -1350,7 +1352,7 @@ export function OpalApp() {
         id: `opal-filament-moment-seed-${Date.now()}`,
         from: "them",
         body: privateSeedFilamentBody(seed),
-        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        time: formatClockAmPm(new Date()),
         opalFilament: true,
         opalPrivate: true,
         signal: {
@@ -1411,7 +1413,7 @@ export function OpalApp() {
         id: `opal-filament-when-${Date.now()}`,
         from: "them",
         body,
-        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        time: formatClockAmPm(new Date()),
         opalFilament: true,
         opalPrivate: true,
         realitySeedId: next.realitySeedId,
@@ -1467,7 +1469,7 @@ export function OpalApp() {
           id: `opal-exec-${applied.lineage.executionId || "x"}-${applied.seed.executionStatus}`,
           from: "them",
           body: applied.humanConsequence,
-          time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+          time: formatClockAmPm(new Date()),
           opalFilament: true,
           opalPrivate: isSolo,
           opalSystemConsequence: true,
@@ -1499,7 +1501,12 @@ export function OpalApp() {
   );
 
   const handleMomentSolo = useCallback(() => {
-    const actor = session?.user_id || "founder";
+    // F12-51/52: namespace plan/travel storage by account; re-read on switch.
+  useEffect(() => {
+    setStorageUserId(session?.user_id || null);
+  }, [session?.user_id]);
+
+  const actor = session?.user_id || "founder";
     const { seed, error } = seedRealityFromMoment(DEMO_SOCIAL_MOMENT, [], actor, {
       solo: true,
     });
@@ -1739,16 +1746,13 @@ export function OpalApp() {
     ) {
       return;
     }
-    if (!isCallInvite && isSeedLeakMessage(raw.body) && !isFounderSeedEnabled()) return;
+    if (!isCallInvite && isSeedLeakMessage(raw.body, { senderUserId: raw.sender_user_id }) && !isFounderSeedEnabled()) return;
     const ui: Message = {
       id: raw.id,
       from: me && raw.sender_user_id === me ? "me" : "them",
       body: isCallInvite ? "Call" : raw.body,
       time: raw.created_at
-        ? new Date(raw.created_at).toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-          })
+        ? formatClockAmPm(new Date(raw.created_at))
         : "Now",
       createdAt: raw.created_at,
       serverSeq: raw.server_seq,
@@ -2182,7 +2186,8 @@ export function OpalApp() {
       );
     } catch (e) {
       if (!opts?.silent) {
-        setLoadError((e as Error).message || "Could not load conversations");
+        // F12-44: human copy, never err.message verbatim.
+        setLoadError(humanErrorCopy(e, "Couldn't load conversations - check your connection and try again."));
         setChats([]);
       }
     } finally {
@@ -3327,7 +3332,7 @@ export function OpalApp() {
           (callLog || []).map((c) => c.id).filter(Boolean),
         );
         const mapped: Message[] = data.messages
-          .filter((m) => isFounderSeedEnabled() || !isSeedLeakMessage(m.body))
+          .filter((m) => isFounderSeedEnabled() || !isSeedLeakMessage(m.body, { senderUserId: m.sender_user_id }))
           .filter((m) => {
             const callInvite =
               m.message_type === "call_invite" ||
@@ -3360,10 +3365,7 @@ export function OpalApp() {
             humanSpeaker: !callInvite,
             messageType: m.message_type,
             liveCallId: callId,
-            time: new Date(m.created_at).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            }),
+            time: formatClockAmPm(new Date(m.created_at)),
             createdAt: m.created_at,
             serverSeq: m.server_seq,
             clientMessageId: m.client_message_id,
@@ -4467,23 +4469,41 @@ export function OpalApp() {
     // Upcoming: Next Together strip stays in-thread.
     // Past: PAST_HISTORY_PERMANENT_THREAD_BLOCKER = 0 — access via header overflow
     // ("Earlier together"), not a sticky banner between person and messages.
-    // Repair #3 — prefer alignment lines; fall back to chat planProjection / seed signal
-    // so relationship threads keep active-plan continuity without requiring full settlement.
-    const headerPlanFromAlignment =
-      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
+    // F12-08: the strip reads the single source of truth — chats[].planProjection —
+    // refreshed on every social_flow:plan event. The alignment snapshot is fallback only.
     const projectionSummary = [
       activeChat.planProjection?.when_label,
       activeChat.planProjection?.place,
     ]
       .filter(Boolean)
       .join(" · ");
+    const headerPlanFromAlignment =
+      planSettled && togetherEligible ? selectHeaderPlan(alignment?.plan_lines) : null;
     const headerPlan =
-      headerPlanFromAlignment ||
-      (projectionSummary
+      projectionSummary
         ? { summary: projectionSummary, moreCount: 0 }
-        : activeChat.signalLabel
-          ? { summary: activeChat.signalLabel, moreCount: 0 }
-          : null);
+        : headerPlanFromAlignment ||
+          (activeChat.signalLabel
+            ? { summary: activeChat.signalLabel, moreCount: 0 }
+            : null);
+    // F12-32: one render per plan generation — key the strip by plan+revision so
+    // React reconciles a single element across refreshes (no stacked generations).
+    const stripPlanKey = (() => {
+      const lineage =
+        activeChat.planProjection?.lineage_id || alignment?.lineage_id || null;
+      if (!lineage) return null;
+      return `${lineage}:${activeChat.planProjection?.revision_id || "base"}`;
+    })();
+    // F12-32: the in-thread "Plan set" marker duplicates the strip when both
+    // describe the same generation (token-set match, order-insensitive).
+    const stripCoversPlanSet = (() => {
+      if (!projectionSummary) return false;
+      const frozen = planHistory(alignment)?.summary;
+      if (!frozen) return false;
+      const tokens = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).sort().join(" ");
+      return tokens(frozen) === tokens(projectionSummary);
+    })();
     const pastHistorySummary =
       planSettled && temporalState === "past"
         ? selectHeaderPlan(alignment?.plan_lines)?.summary ||
@@ -4634,7 +4654,14 @@ export function OpalApp() {
                     const seedName =
                       founderSeedDisplayNameForId(activeChat.id) || activeChat.name;
                     if (/juniper|crew/i.test(seedName)) {
-                      return "Juniper & Ivy · Sat 7:30 ✓ Locked";
+                      // F12-12: derive from the seed card — never hardcode the line.
+                      const seedCard = FOUNDER_HOME_FEED.find(
+                        (c) => c.id === "seed-chanelle-juniper",
+                      );
+                      const when = seedCard?.placeLine || seedCard?.detail || "";
+                      return when
+                        ? `Juniper & Ivy · ${when} · Locked`
+                        : "Juniper & Ivy · Locked";
                     }
                   }
                   const plan = activeChat.planProjection;
@@ -4657,7 +4684,16 @@ export function OpalApp() {
                 /juniper|crew/i.test(
                   founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
                 )
-                ? "Waiting on Sam · 3 of 4"
+                ? (() => {
+                    // F12-12: derive from the seed card counts — never hardcode names.
+                    const seedCard = FOUNDER_HOME_FEED.find(
+                      (c) => c.id === "seed-chanelle-juniper",
+                    );
+                    const going = seedCard?.goingCount ?? 0;
+                    const interested = seedCard?.interestedCount ?? 0;
+                    const total = going + interested;
+                    return total > 0 ? `${going} of ${total} going` : null;
+                  })()
                 : null
               : null
           }
@@ -4952,14 +4988,24 @@ export function OpalApp() {
         {groupInfoOpen && !personMemoryTarget ? (
           <GroupInfoDestination
             groupName={activeChat.name}
-            members={["You", "Chanelle", "Maya", "Jordan"]
-              .slice(0, Math.max(3, activeChat.memberCount || 4))
-              .map((name, i) => ({
-                id: `m-${i}`,
-                name,
-                personId: i === 0 ? undefined : `person-${name.toLowerCase()}`,
-                role: i === 0 ? "you" : undefined,
-              }))}
+            members={(() => {
+              // F12-12: members from the authoritative peer roster — never hardcoded names.
+              const peers = activeChat.peers || [];
+              const me = session?.user_id;
+              const list = [
+                { id: me || "you", name: "You", personId: undefined, role: "you" as const },
+                ...peers
+                  .filter((peer) => peer.id !== me)
+                  .map((peer, i) => ({
+                    id: peer.id || `m-${i}`,
+                    name: peer.display_name || peer.handle || "Member",
+                    personId: peer.id ? `person-${peer.id}` : undefined,
+                    role: undefined as undefined,
+                  })),
+              ];
+              const count = Math.max(1, activeChat.memberCount || list.length);
+              return list.slice(0, count);
+            })()}
             sharedGraphLabel={
               (() => {
                 const plan = activeChat.planProjection;
@@ -5290,6 +5336,7 @@ export function OpalApp() {
           {headerPlan ? (
             <button
               type="button"
+              key={stripPlanKey || activeChatId || "next-plan-strip"}
               className="next-plan-strip"
               data-testid="next-plan-strip"
               data-participant-mode={planMode}
@@ -5322,7 +5369,7 @@ export function OpalApp() {
                 setCallsGateNote(
                   label
                     ? `Open Graphs to see more on: ${label}`
-                    : "Plan detail isn't linked yet — open Graphs to browse.",
+                    : "Plan detail isn't linked yet - open Graphs to browse.",
                 );
                 setTab("graphs");
               }}
@@ -5343,7 +5390,8 @@ export function OpalApp() {
             </button>
           ) : null}
           {threadItems.map((item) =>
-            item.kind === "plan-set" ? (
+            // F12-32: the strip already renders this generation — one render per plan.
+            item.kind === "plan-set" && stripCoversPlanSet ? null : item.kind === "plan-set" ? (
               <div key="plan-set-event" className="plan-set-event" data-testid="plan-set-event">
                 <p>Plan set ✓</p>
                 <p>{item.summary}</p>
@@ -6517,7 +6565,7 @@ export function OpalApp() {
                       });
                     }
                     // Soft-lock the chosen time into the composer as a clear next step.
-                    setDraft(`Confirmed ${locked} — locked in.`);
+                    setDraft(`Confirmed ${locked} - locked in.`);
                   }}
                 >
                   Confirm
@@ -6674,7 +6722,7 @@ export function OpalApp() {
                       )
                         .then((res) => {
                           setPlanThisNote(
-                            res.message || "Plan created — invite the group to confirm.",
+                            res.message || "Plan created - invite the group to confirm.",
                           );
                           setPlanThisBusyId(null);
                           // Soft navigate: load journey projection when available (no force).
@@ -7237,10 +7285,7 @@ export function OpalApp() {
                       id: `opal-filament-private-curate-${Date.now()}`,
                       from: "them",
                       body: "Evening composition is ready when you want to lead.",
-                      time: new Date().toLocaleTimeString([], {
-                        hour: "numeric",
-                        minute: "2-digit",
-                      }),
+                      time: formatClockAmPm(new Date()),
                       opalFilament: true,
                       opalPrivate: true,
                       signal: {
@@ -7289,20 +7334,21 @@ export function OpalApp() {
               <ul className="extend-options" data-testid="extend-options">
                 {(
                   [
+                    // F12-12: sample ideas — never fabricated distances/times.
                     {
                       id: "jazz",
-                      title: "Live jazz",
-                      detail: "4 min away · starts in about 20 min",
+                      title: "Sample idea — Live jazz",
+                      detail: "Illustrative only",
                     },
                     {
                       id: "dessert",
-                      title: "Dessert",
-                      detail: "7 min walk · quiet · open late",
+                      title: "Sample idea — Dessert",
+                      detail: "Illustrative only",
                     },
                     {
                       id: "rooftop",
-                      title: "Rooftop",
-                      detail: "6 min away · more lively",
+                      title: "Sample idea — Rooftop",
+                      detail: "Illustrative only",
                     },
                   ] as const
                 ).map((opt) => (
@@ -7497,7 +7543,7 @@ export function OpalApp() {
                     }
                     if (opt.id === "camera") {
                       setCallsGateNote(
-                        "Camera attach needs the native Opal host — not wired into this chat yet.",
+                        "Camera attach needs the native Opal host - not wired into this chat yet.",
                       );
                       return;
                     }
@@ -7547,7 +7593,7 @@ export function OpalApp() {
                 return;
               }
               if (isFounderSeedChatId(activeChatId)) {
-                setCallsGateNote("Voice notes need a live conversation — open a real chat.");
+                setCallsGateNote("Voice notes need a live conversation - open a real chat.");
                 return;
               }
               void (async () => {
@@ -7576,7 +7622,7 @@ export function OpalApp() {
                   // Optimistic append into local thread if hydrate helpers exist
                   setCallsGateNote(
                     res.transcription_uncertain
-                      ? "Got it — I wasn't sure I heard that right."
+                      ? "Got it - I wasn't sure I heard that right."
                       : null,
                   );
                   if (msg?.body) {
@@ -7942,6 +7988,8 @@ export function OpalApp() {
           padding: 24,
         }}
       >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
         <LivesGoLivePanel allowTestingFallback onLiveChanged={() => setLivesRefreshToken((t) => t + 1)} />
       </div>
     );
@@ -7964,6 +8012,8 @@ export function OpalApp() {
         data-product-name={PRODUCT_PUBLIC_NAME}
         data-forced-first-run={forcedFirstRun || forceSplash ? "1" : "0"}
       >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
         <FirstRunSplashPage
           onTapBegin={advanceSplashToPromise}
           onAlreadyAccount={() => {
@@ -7988,6 +8038,8 @@ export function OpalApp() {
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
       >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
         <PermissionBootstrapPage
           userId={session?.user_id ?? null}
           onContinue={advancePermissionBootstrapToMeet}
@@ -8009,6 +8061,8 @@ export function OpalApp() {
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
       >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
         <MeetOpalConversation
           bearer={session?.access_token ?? null}
           onComplete={() => advanceMeetOpalToAuth()}
@@ -8030,6 +8084,8 @@ export function OpalApp() {
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
       >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
         <FirstRunPromisePage
           onContinue={advancePromiseToAuth}
           onAlreadyAccount={advancePromiseAlreadyAccount}
@@ -8053,6 +8109,8 @@ export function OpalApp() {
           data-technicolor={visual["data-technicolor"]}
           data-boot-state="preparing"
         >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
           <div className="app-ambient" aria-hidden />
           <header className="topbar glass">
             <OpalLockup size="md" showTagline={false} />
@@ -8106,6 +8164,8 @@ export function OpalApp() {
         data-first-run-stage="auth"
         data-forced-first-run={forcedFirstRun ? "1" : "0"}
       >
+        {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
+        <SeedSimulatedBanner />
         <div className="app-ambient" aria-hidden />
         {loadError ? (
           <p className="activation-error" role="alert" data-testid="boot-error">
@@ -8669,13 +8729,18 @@ export function OpalApp() {
           <div className="topbar-brand" aria-label={PRODUCT_PUBLIC_NAME}>
             <OpalWordmark height={22} title="" className="topbar-brand-wordmark" />
           </div>
-          {connectionState === "reconnecting" ||
-          connectionState === "failed" ||
-          connectionState === "session_expired" ? (
+          {connectionState === "session_expired" ? (
+            <button
+              type="button"
+              className="session-pill session-pill-warn"
+              data-testid="session-sign-in-again"
+              onClick={() => window.location.reload()}
+            >
+              Sign in again
+            </button>
+          ) : connectionState === "reconnecting" || connectionState === "failed" ? (
             <span className="session-pill session-pill-warn" role="status">
-              {connectionState === "session_expired"
-                ? "Sign in again"
-                : "Trying to reconnect…"}
+              Trying to reconnect…
             </span>
           ) : null}
         </header>
@@ -8683,11 +8748,20 @@ export function OpalApp() {
         connectionState === "failed" ||
         connectionState === "session_expired" ? (
         <header className="topbar glass topbar-status-only">
-          <span className="session-pill session-pill-warn" role="status">
-            {connectionState === "session_expired"
-              ? "Sign in again"
-              : "Trying to reconnect…"}
-          </span>
+          {connectionState === "session_expired" ? (
+            <button
+              type="button"
+              className="session-pill session-pill-warn"
+              data-testid="session-sign-in-again"
+              onClick={() => window.location.reload()}
+            >
+              Sign in again
+            </button>
+          ) : (
+            <span className="session-pill session-pill-warn" role="status">
+              Trying to reconnect…
+            </span>
+          )}
         </header>
       ) : null}
 
@@ -8975,6 +9049,11 @@ export function OpalApp() {
             bearer={session?.access_token}
             authenticated
             loading={loadingLive}
+            loadError={loadError}
+            onRetryLoad={() => {
+              const s = sessionRef.current;
+              if (s) void refreshLive(s);
+            }}
             signals={liveSignals}
             socialMoment={socialMoment}
             onMomentDoWithPeople={handleMomentWantThis}
@@ -8984,6 +9063,11 @@ export function OpalApp() {
           <ChatsHome
             surface={commSurface}
             onSurfaceChange={setCommSurface}
+            listError={loadError}
+            onRetryList={() => {
+              const s = sessionRef.current;
+              if (s) void refreshLive(s);
+            }}
             rows={
               (() => {
                 const liveRows = chats.map((c) => {
@@ -9105,7 +9189,7 @@ export function OpalApp() {
                 if (seedOn && composed.rows.length < 5) {
                   console.warn("[opal-seed]", {
                     step: "chats-list-hard-fallback",
-                    detail: "compose under-delivered founder world — painting FOUNDER_CHATS_PLAN_PILL_ROWS",
+                    detail: "compose under-delivered founder world - painting FOUNDER_CHATS_PLAN_PILL_ROWS",
                     composedLen: composed.rows.length,
                     liveLen: liveRows.length,
                     diagnostics: composed.diagnostics,
@@ -9386,6 +9470,11 @@ export function OpalApp() {
         {opalAmbientOpen ? null : tab === "graphs" ? (
           <GraphsHome
             createdPlans={createdPlanSurfaces}
+            listError={loadError}
+            onRetryList={() => {
+              const s = sessionRef.current;
+              if (s) void refreshLive(s);
+            }}
             liveGraphs={chats.flatMap((chat) => {
               const plan = chat.planProjection;
               if (!plan?.place && !plan?.when_label) return [];
@@ -9416,9 +9505,13 @@ export function OpalApp() {
                       const instant = parsePlanInstant(plan.canonical_start_at);
                       return instant
                         ? formatPastPlanWhen(instant)
-                        : plan.when_label || "";
+                        : plan.when_label || "Time to be set";
                     })()
-                  : plan.when_label || "";
+                  // F12-01: empty when_label falls back to canonical_start_at; never blank.
+                  : plan.when_label ||
+                    (plan.canonical_start_at
+                      ? formatHumanTime(plan.canonical_start_at)
+                      : "Time to be set");
               return [
                 {
                   id: plan.lineage_id || chat.id,
@@ -9764,7 +9857,7 @@ export function OpalApp() {
               if (!matched) {
                 setNewChatError(
                   outcome === "invite_ready"
-                    ? "That number isn’t on Opal yet — invite them first."
+                    ? "That number isn’t on Opal yet - invite them first."
                     : "Couldn’t find that person on Opal.",
                 );
                 setNewChatBusy(false);
@@ -11571,6 +11664,8 @@ function HomePane({
   bearer,
   authenticated,
   loading,
+  loadError,
+  onRetryLoad,
   signals,
   socialMoment,
   onMomentDoWithPeople,
@@ -11617,6 +11712,9 @@ function HomePane({
   bearer?: string;
   authenticated?: boolean;
   loading?: boolean;
+  /** F12-12: upstream load failure — Home renders an honest error with retry. */
+  loadError?: string | null;
+  onRetryLoad?: () => void;
   signals?: ProductSignal[];
   socialMoment?: string | null;
   onMomentDoWithPeople?: () => void;
@@ -11777,6 +11875,23 @@ function HomePane({
       ) : null;
 
     return (
+      <>
+        {loadError ? (
+          <div className="gsh-empty" data-testid="home-load-error" data-empty="error" role="alert">
+            <p className="gsh-empty-title">Couldn't load your home feed</p>
+            <p className="gsh-empty-body">{loadError}</p>
+            {onRetryLoad ? (
+              <button
+                type="button"
+                className="btn ghost"
+                data-testid="home-load-retry"
+                onClick={onRetryLoad}
+              >
+                Try again
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       <GraphSocialHome
         softInterestIds={softInterestIds}
         likedMemoryIds={likedMemoryIds}
@@ -11863,6 +11978,7 @@ function HomePane({
         }}
         continuation={continuation}
       />
+      </>
     );
   }
 
@@ -12565,7 +12681,7 @@ function YouPane({
               >
                 <span className="you-hub-row-copy">
                   <strong>Grow Your Circle</strong>
-                  <span>Invite people you know — connect your world</span>
+                  <span>Invite people you know - connect your world</span>
                 </span>
                 <span className="you-hub-chevron" aria-hidden>
                   ›

@@ -7,7 +7,8 @@ function startOfLocalDay(date: Date): number {
 }
 
 function clock(date: Date): string {
-  return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  // F12-10: pin hour12 so the clock always carries AM/PM.
+  return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
 /** Compact history. A weekday does not stay forever. */

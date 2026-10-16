@@ -62,7 +62,7 @@ describe("no-seed chat identity", () => {
     expect(
       isSeedLeakMessage("Forwarded Memory: Golden hour hike with the crew. [seed-nina-hike]"),
     ).toBe(true);
-    expect(isSeedLeakMessage("Hey — can you meet tomorrow?")).toBe(false);
+    expect(isSeedLeakMessage("Hey - can you meet tomorrow?")).toBe(false);
   });
 
   it("treats seed-only peer sets as fixture conversations", () => {

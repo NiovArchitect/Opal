@@ -14,6 +14,26 @@ import {
 } from "./opalUi/composeHumanReality";
 import { formatHistoryInstant } from "./opalUi/historyTime";
 
+/**
+ * F12-44: never render err.message verbatim. Map a caught error to human copy;
+ * network-shaped failures get the connection line, everything else the fallback.
+ */
+export function humanErrorCopy(err: unknown, fallback: string): string {
+  if (err instanceof Error) {
+    const msg = err.message || "";
+    if (/network|fetch|failed to fetch|load failed|timed out|timeout|abort|econn|socket/i.test(msg)) {
+      return "Couldn't reach Opal - check your connection and try again.";
+    }
+    if (/unauthor|forbidden|\b401\b|\b403\b|session/i.test(msg)) {
+      return "Your session needs a refresh - please sign in again.";
+    }
+    if (/not found|\b404\b/i.test(msg)) {
+      return "That wasn't found - it may have been removed.";
+    }
+  }
+  return fallback;
+}
+
 export type UiJob = "reveal" | "resolve" | "execute" | "recall";
 export type Sufficiency = "intention" | "converging" | "usable";
 

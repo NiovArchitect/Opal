@@ -15,7 +15,7 @@ function read(rel: string) {
 }
 
 describe("P0-05.7 Graph participation state machine", () => {
-  it("INTERESTED_NOT_GOING — soft interest phase without SharedPlan", () => {
+  it("INTERESTED_NOT_GOING - soft interest phase without SharedPlan", () => {
     expect(resolveGraphParticipation(null)).toBe("soft_interest");
     expect(resolveGraphParticipation({})).toBe("soft_interest");
     expect(participationFigmaNode("soft_interest")).toBe("618:149");
@@ -33,7 +33,7 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(participationFigmaNode("lock_in")).toBe("738:2");
   });
 
-  it("GOING_STATE_RENDERS — accepted without Journey stays Open Graph", () => {
+  it("GOING_STATE_RENDERS - accepted without Journey stays Open Graph", () => {
     expect(
       resolveGraphParticipation({
         sharedPlanId: "plan-1",
@@ -43,7 +43,7 @@ describe("P0-05.7 Graph participation state machine", () => {
     ).toBe("going");
   });
 
-  it("GOING_DOES_NOT_FAKE_JOURNEY — Open Journey only if available", () => {
+  it("GOING_DOES_NOT_FAKE_JOURNEY - Open Journey only if available", () => {
     expect(
       resolveGraphParticipation({
         sharedPlanId: "plan-1",
@@ -54,12 +54,12 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(participationFigmaNode("going_journey")).toBe("738:35");
   });
 
-  it("OPEN_JOURNEY_ONLY_IF_AVAILABLE — counts format matches Figma order", () => {
+  it("OPEN_JOURNEY_ONLY_IF_AVAILABLE - counts format matches Figma order", () => {
     expect(formatGraphParticipationCounts(2, 4)).toBe("2 going · 4 interested");
     expect(formatGraphParticipationCounts(3, 3)).toBe("3 going · 3 interested");
   });
 
-  it("INTERESTED_DOES_NOT_ACCEPT_PARTICIPANT — soft interest stays local", () => {
+  it("INTERESTED_DOES_NOT_ACCEPT_PARTICIPANT - soft interest stays local", () => {
     const app = read("OpalApp.tsx");
     const home = read("opalUi/GraphSocialHome.tsx");
     expect(home).toMatch(/data-participation-action="im_interested"/);
@@ -67,7 +67,7 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(app).not.toMatch(/onIdGoSoftInterest[\s\S]{0,300}acceptGoing/);
   });
 
-  it("IM_GOING_DOES_NOT_FORCE_NAV — acceptGoing updates phase only", () => {
+  it("IM_GOING_DOES_NOT_FORCE_NAV - acceptGoing updates phase only", () => {
     const app = read("OpalApp.tsx");
     expect(app).toMatch(/onImGoing/);
     expect(app).toMatch(/GOING_COMMIT_FORCES_NAVIGATION = false/);
@@ -77,7 +77,7 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(imGoingBlock).not.toMatch(/activateJourney/);
   });
 
-  it("IM_GOING_DOES_NOT_ACCEPT_ALL — uses acceptGoing not respond_option", () => {
+  it("IM_GOING_DOES_NOT_ACCEPT_ALL - uses acceptGoing not respond_option", () => {
     const app = read("OpalApp.tsx");
     const client = read("api/productClient.ts");
     expect(client).toMatch(/accept-going/);
@@ -113,7 +113,7 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(dated).not.toMatch(/onOpenJourney/);
   });
 
-  it("brand semantics — violet interested / gold going / green Open Graph outline", () => {
+  it("brand semantics - violet interested / gold going / green Open Graph outline", () => {
     const css = readFileSync(resolve(webSrc, "styles.css"), "utf8");
     expect(css).toMatch(/\.gsh-gr-interested[\s\S]{0,120}#8b5cf6/);
     expect(css).toMatch(/#FFC86B|#ffc86b/);

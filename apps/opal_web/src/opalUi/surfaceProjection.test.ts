@@ -9,7 +9,7 @@ import {
   suppressDownstreamAction,
 } from "./surfaceProjection";
 
-describe("surfaceProjection — responder / proposer", () => {
+describe("surfaceProjection - responder / proposer", () => {
   it("responder 8pm: thread owns action, home none, banner suppress in active context", () => {
     const d = decideSurfaceProjection({
       sourceType: "proposal",
@@ -40,7 +40,7 @@ describe("surfaceProjection — responder / proposer", () => {
     expect(d.activeContextDuplicateAction).toBe(false);
   });
 
-  it("proposer: waiting only — no approval CTA across surfaces", () => {
+  it("proposer: waiting only - no approval CTA across surfaces", () => {
     const d = decideSurfaceProjection({
       sourceType: "proposal",
       role: "proposer",
@@ -58,7 +58,7 @@ describe("surfaceProjection — responder / proposer", () => {
   });
 });
 
-describe("surfaceProjection — dependency / mute / active context", () => {
+describe("surfaceProjection - dependency / mute / active context", () => {
   it("suppresses reservation when upstream proposal is unsettled", () => {
     const facts = {
       sourceType: "booking_authorization" as const,
@@ -109,7 +109,7 @@ describe("surfaceProjection — dependency / mute / active context", () => {
   });
 });
 
-describe("surfaceProjection — compact labels and reservation gate", () => {
+describe("surfaceProjection - compact labels and reservation gate", () => {
   it("chats compact label uses pending proposal value", () => {
     expect(
       compactChatsConsequence({

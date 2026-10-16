@@ -203,7 +203,7 @@ export class CallClient {
 
   private async resolveIceServers(): Promise<void> {
     if (!this.fetchTurn || !this.callId) {
-      console.info("[opal-call] ICE using provided/public STUN — no TURN fetcher", {
+      console.info("[opal-call] ICE using provided/public STUN - no TURN fetcher", {
         callId: this.callId,
       });
       return;
@@ -215,7 +215,7 @@ export class CallClient {
         this.turnDisabled = true;
         this.iceServers = PUBLIC_STUN_SERVERS;
         console.warn(
-          "[opal-call] TURN disabled — falling back to STUN-only (same-network OK; cross-NAT likely fails)",
+          "[opal-call] TURN disabled - falling back to STUN-only (same-network OK; cross-NAT likely fails)",
           { callId: this.callId, source: result.source },
         );
         return;
@@ -233,7 +233,7 @@ export class CallClient {
     } catch (err) {
       this.turnDisabled = true;
       this.iceServers = PUBLIC_STUN_SERVERS;
-      console.warn("[opal-call] TURN fetch failed — STUN-only fallback", {
+      console.warn("[opal-call] TURN fetch failed - STUN-only fallback", {
         callId: this.callId,
         err: err instanceof Error ? err.message : String(err),
       });
@@ -276,14 +276,14 @@ export class CallClient {
   /** One ICE restart with fresh TURN credentials before giving up. */
   private async onIceFailed(): Promise<void> {
     if (this.iceRestartAttempted) {
-      console.warn("[opal-call] ICE failed after restart — giving up", { callId: this.callId });
+      console.warn("[opal-call] ICE failed after restart - giving up", { callId: this.callId });
       this.setState(this.turnDisabled ? "needs_turn" : "failed");
       this.channel?.push("needs_turn", {});
       return;
     }
 
     this.iceRestartAttempted = true;
-    console.info("[opal-call] ICE failed — attempting one restart with fresh TURN", {
+    console.info("[opal-call] ICE failed - attempting one restart with fresh TURN", {
       callId: this.callId,
     });
 

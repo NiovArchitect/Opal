@@ -53,8 +53,9 @@ export function GraphLivePanel({
   broadcaster,
   mediaSrc = FULL_LIVE_MEDIA_SRC,
   videoLive = true,
-  hereLine = "Sadeil + 3 are here",
-  etaLine = "Maya is on the way · 8 min",
+  // F12-12: no fabricated presence defaults — callers pass real lines or nothing.
+  hereLine = "",
+  etaLine = "",
   tableReadyLabel = "Table ready · Great news",
   onOnMyWay,
   onMyWayActive,
@@ -128,7 +129,7 @@ export function GraphLivePanel({
         data-figma-node="863:14"
       >
         <p className="full-live-here" data-figma-node="863:15">
-          {hereLine}
+          {hereLine || "Live"}
         </p>
         {etaLine ? (
           <p className="full-live-eta" data-figma-node="863:16">

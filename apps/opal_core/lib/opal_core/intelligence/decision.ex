@@ -7,7 +7,7 @@ defmodule OpalCore.Intelligence.Decision do
 
   @actions ~w(
     respond.thread
-    plan.create plan.update plan.cancel plan.confirm
+    plan.create plan.update plan.cancel plan.confirm plan.change_time plan.change_date
     suggest.alternative
     notify.push
     silent

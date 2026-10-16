@@ -214,7 +214,7 @@ export function ContactSuggestPicker({
                     <span className="hs-contact-suggest-detail">{detail}</span>
                   ) : (
                     <span className="hs-contact-suggest-detail muted">
-                      No phone number — add one to invite
+                      No phone number - add one to invite
                     </span>
                   )}
                 </button>
@@ -280,7 +280,7 @@ export function ContactSuggestPicker({
                         <span className="hs-contact-suggest-detail">{detail}</span>
                       ) : (
                         <span className="hs-contact-suggest-detail muted">
-                          No phone number — add one to invite
+                          No phone number - add one to invite
                         </span>
                       )}
                     </button>

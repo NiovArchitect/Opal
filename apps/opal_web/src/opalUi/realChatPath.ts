@@ -60,7 +60,22 @@ export function isUnprovenThreadLabel(label: string | null | undefined): boolean
   return /Harbor Table|Herb & Wood fits the group|Coffee · Tuesday|10:30 AM · Harbor/i.test(text);
 }
 
-export function isSeedLeakMessage(body: string | null | undefined): boolean {
+/**
+ * F12-48: seed-leak detection is allowlist-based, never a body-text blocklist.
+ * A message counts as seed residue only when its sender is a known
+ * founder-seed identity. Body-text patterns false-positive on real user
+ * content ("Golden hour hike with the crew" is a plausible real message), so
+ * they are kept only as a last-resort fallback when the message carries no
+ * sender identity at all.
+ */
+export function isSeedLeakMessage(
+  body: string | null | undefined,
+  opts?: { senderUserId?: string | null },
+): boolean {
+  const sid = opts?.senderUserId;
+  if (sid && FOUNDER_SEED_PEER_IDS.has(sid)) return true;
+  // No identity to check against the allowlist — fall back to legacy patterns.
+  if (sid) return false;
   const text = body || "";
   return /Forwarded Memory:|\[seed-|Golden hour hike with the crew/i.test(text);
 }

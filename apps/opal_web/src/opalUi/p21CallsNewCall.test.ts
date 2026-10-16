@@ -16,7 +16,7 @@ describe("P2.1 New Call 928:276 + destination coherence", () => {
     expect(onNewCallBlock).not.toMatch(/setSearchOpen\(true\)/);
   });
 
-  it("New Call is people+groups scoped — no Places/Experiences taxonomy", () => {
+  it("New Call is people+groups scoped - no Places/Experiences taxonomy", () => {
     const nc = readFileSync(resolve(root, "opalUi/NewCallDestination.tsx"), "utf8");
     expect(nc).toMatch(/928:276/);
     expect(nc).toMatch(/Search people and groups/);
@@ -49,7 +49,7 @@ describe("P2.1 New Call 928:276 + destination coherence", () => {
     expect(app).toMatch(/setSearchOpen\(false\); \/\/ destination exclusivity/);
   });
 
-  it("story ring is explicit — no false affordance without hasStory", () => {
+  it("story ring is explicit - no false affordance without hasStory", () => {
     const chats = readFileSync(resolve(root, "opalUi/ChatsHome.tsx"), "utf8");
     const seed = readFileSync(resolve(root, "opalUi/callsContinuitySeed.ts"), "utf8");
     expect(chats).toMatch(/has-story-ring/);
@@ -57,7 +57,7 @@ describe("P2.1 New Call 928:276 + destination coherence", () => {
     expect(seed).toMatch(/hasStory: true/);
   });
 
-  it("stage destinations center on desktop — no viewport-left trap alone", () => {
+  it("stage destinations center on desktop - no viewport-left trap alone", () => {
     const css = readFileSync(resolve(root, "styles.css"), "utf8");
     expect(css).toMatch(/\.new-call-dest/);
     expect(css).toMatch(/\.profile-person-overlay/);

@@ -78,8 +78,8 @@ describe("opalCenterVoice", () => {
   });
 
   it("truncates TTS to ~30s plain text and strips formatting", () => {
-    const short = truncateForTts("Hello **world** — `code`");
-    expect(short).toBe("Hello world — code");
+    const short = truncateForTts("Hello **world** - `code`");
+    expect(short).toBe("Hello world - code");
     const long = "word ".repeat(500);
     const clipped = truncateForTts(long);
     expect(clipped.length).toBeLessThan(long.length);

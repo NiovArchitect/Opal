@@ -14,7 +14,6 @@ defmodule OpalCore.Center.AvailabilityUse do
   alias OpalCore.Calendar
   alias OpalCore.SocialFlow.AvailabilityGrant
   alias OpalCore.RelationshipAccess
-  alias OpalCore.Accounts.User
   alias OpalCore.Relationships
 
   @doc """
@@ -133,7 +132,15 @@ defmodule OpalCore.Center.AvailabilityUse do
     end
   end
 
-  @doc "Resolve a participant display name to user id (person-agnostic)."
+  @doc """
+  Resolve a participant display name to user id (person-agnostic).
+
+  F12-56 (per-account isolation): resolution is scoped to the organizer's own
+  relationships/contacts ONLY. Returns nil when no contact matches — callers
+  treat that as "unknown person", never as license to search the global user
+  table (a cross-account name collision must never resolve to a stranger, and
+  the lookup must not leak user existence).
+  """
   def resolve_participant_id(organizer_id, who) when is_binary(organizer_id) do
     name =
       cond do
@@ -151,22 +158,12 @@ defmodule OpalCore.Center.AvailabilityUse do
         if is_binary(uid) and String.contains?(String.downcase(display), String.downcase(name)) do
           uid
         end
-      end) || lookup_user_by_name(name)
+      end)
     end
   end
 
-  defp lookup_user_by_name(name) when is_binary(name) and name != "" do
-    like = "#{String.trim(name)}%"
-
-    from(u in User,
-      where: ilike(u.display_name, ^like) or ilike(u.handle, ^like),
-      select: u.id,
-      limit: 1
-    )
-    |> Repo.one()
-  end
-
-  defp lookup_user_by_name(_), do: nil
+  # F12-56 — lookup_user_by_name/1 (global ilike over ALL users, limit 1) is
+  # deleted. See resolve_participant_id/2.
 
   defp format_err(atom) when is_atom(atom), do: Atom.to_string(atom)
   defp format_err(other), do: inspect(other)

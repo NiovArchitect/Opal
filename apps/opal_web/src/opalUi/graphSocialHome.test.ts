@@ -157,7 +157,7 @@ describe("coherence reset: FR09 lands on Home 618:44", () => {
     expect(home).toMatch(/stay in feed|soft interest/i);
   });
 
-  it("Home header law uses Profile/Search/Activity — not OPAL GRAPH stamp", () => {
+  it("Home header law uses Profile/Search/Activity - not OPAL GRAPH stamp", () => {
     const home = readFileSync(resolve(root, "opalUi/GraphSocialHome.tsx"), "utf8");
     expect(home).toMatch(/gsh-own-profile/);
     expect(home).toMatch(/gsh-search/);

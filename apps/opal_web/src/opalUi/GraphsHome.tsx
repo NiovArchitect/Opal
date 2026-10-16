@@ -49,6 +49,9 @@ type Props = {
   onAdjustTimelineItem?: (item: TimelineItem) => void;
   /** Bump to open trip create inside GraphsTripsSection. */
   tripCreateSignal?: number;
+  /** F12-12: upstream load failure — renders an honest error with retry. */
+  listError?: string | null;
+  onRetryList?: () => void;
 };
 
 const STATUS_LABEL: Record<GraphStatus, string> = {
@@ -74,6 +77,8 @@ export function GraphsHome({
   onMessageTimelineItem,
   onAdjustTimelineItem,
   tripCreateSignal = 0,
+  listError,
+  onRetryList,
 }: Props) {
   const [lens, setLens] = useState<Lens>("all");
   const [mode, setMode] = useState<GraphMode>("people");
@@ -369,14 +374,31 @@ export function GraphsHome({
           {!visible.length ? (
             <div
               className="gsh-empty"
-              data-testid="graphs-home-empty"
-              data-empty={composed.mode === "EMPTY" ? "ready-world" : "lens"}
+              data-testid={listError ? "graphs-home-error" : "graphs-home-empty"}
+              data-empty={listError ? "error" : composed.mode === "EMPTY" ? "ready-world" : "lens"}
             >
               <p className="gsh-empty-title">
-                {composed.mode === "EMPTY"
-                  ? PRODUCT_COPY.emptyGraphs
-                  : PRODUCT_COPY.emptyGraphsLens}
+                {listError
+                  ? "Couldn't load graphs"
+                  : composed.mode === "EMPTY"
+                    ? PRODUCT_COPY.emptyGraphs
+                    : PRODUCT_COPY.emptyGraphsLens}
               </p>
+              {listError ? (
+                <>
+                  <p className="gsh-empty-body">{listError}</p>
+                  {onRetryList ? (
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      data-testid="graphs-home-retry"
+                      onClick={onRetryList}
+                    >
+                      Try again
+                    </button>
+                  ) : null}
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>

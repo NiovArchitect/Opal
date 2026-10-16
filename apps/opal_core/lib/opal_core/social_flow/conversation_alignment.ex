@@ -29,6 +29,18 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   @activities ["coffee", "dinner", "drinks", "something active", "somewhere quiet"]
   @schema_version 1
 
+  # F12-58 — stale alignment change proposals must die on their own.
+  # A proposal nobody answers (e.g. a solo founder's own change proposal, which
+  # accept_committed_change cannot confirm) may not sit at
+  # "Waiting on one response." forever.
+  @change_proposal_ttl_seconds 24 * 3600
+
+  @doc "Alignment action schema version — shared with direct writers (SocialFlow.change_plan_schedule)."
+  def schema_version, do: @schema_version
+
+  @doc "How long an alignment change_proposal stays actionable (seconds)."
+  def change_proposal_ttl_seconds, do: @change_proposal_ttl_seconds
+
   def consequential?(body) when is_binary(body) do
     text = normalize(body)
     text != "" and not trivial?(text) and not SeedFixtureLeak.seed_fixture_body?(body) and
@@ -673,7 +685,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       "proposed_by_user_id" => actor,
       "truth" => "proposed",
       "explicit" => true,
-      "approximate" => change["approximate"]
+      "approximate" => change["approximate"],
+      # F12-58 — every change proposal dies on its own if nobody answers.
+      "expires_at" => proposal_expires_at()
     }
   end
 
@@ -1117,6 +1131,44 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  # F12-02c (gyroscope) — schedule authority projection.
+  #
+  # change_plan_schedule/1 and the revision-accept path append a
+  # "schedule_change" explicit action carrying the accepted revision id. The
+  # fold replays it chronologically like any other explicit action, so folded
+  # state — and upsert_plan's label recompute — converges on the
+  # revision-applied value instead of reverting to older fragments on the next
+  # chat message. Later explicit schedule actions (chat locks, newer direct
+  # edits) supersede by timestamp order.
+  defp apply_action(
+         state,
+         %{"kind" => "schedule_change", "field" => "time_label", "value" => value} = action
+       )
+       when is_binary(value) do
+    state
+    |> put_field("exact_time", "locked", value, action["revision_id"], %{
+      "explicit" => true,
+      "truth" => "locked",
+      "needs_confirm" => false,
+      "schedule_change_revision_id" => action["revision_id"]
+    })
+    |> Map.update("plan_version", 1, &(&1 + 1))
+  end
+
+  defp apply_action(
+         state,
+         %{"kind" => "schedule_change", "field" => "date_label", "value" => value} = action
+       )
+       when is_binary(value) do
+    state
+    |> put_field("date", "locked", value, action["revision_id"], %{
+      "explicit" => true,
+      "truth" => "locked",
+      "schedule_change_revision_id" => action["revision_id"]
+    })
+    |> Map.update("plan_version", 1, &(&1 + 1))
+  end
+
   defp apply_action(state, _action), do: state
 
   defp propose_place(state, name, source, actor) do
@@ -1375,6 +1427,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         state
     end
     |> maybe_mark_activity_changeable()
+    |> expire_stale_change_proposal()
     |> surface_change_proposal()
     |> apply_temporal_gates()
   end
@@ -1445,6 +1498,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp put_change_proposal(state, proposal) when is_map(proposal) do
+    # F12-58 — proposals created without an expiry still die on their own.
+    proposal =
+      if is_binary(proposal["expires_at"]) do
+        proposal
+      else
+        Map.put(proposal, "expires_at", proposal_expires_at())
+      end
+
     Map.put(state, "change_proposal", proposal)
   end
 
@@ -1455,9 +1516,55 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       "current" => get_in(state, [field, "value"]),
       "proposed_by_user_id" => actor,
       "truth" => "proposed",
-      "explicit" => true
+      "explicit" => true,
+      "expires_at" => proposal_expires_at()
     })
   end
+
+  # F12-58 — ISO8601 expiry stamp for a fresh change proposal.
+  defp proposal_expires_at do
+    DateTime.utc_now()
+    |> DateTime.add(@change_proposal_ttl_seconds, :second)
+    |> DateTime.truncate(:second)
+    |> DateTime.to_iso8601()
+  end
+
+  # F12-58 — sweep: a change proposal past its expires_at is retired to
+  # proposal_history with status "expired" and removed from the live slot, so
+  # no surface can sit at "Waiting on one response." forever. Runs at fold
+  # presentation time — the invariant layer, not per-surface.
+  @doc """
+  Retire a past-due `change_proposal` to `proposal_history` (status "expired").
+  Public for regression testing; called from the fold's present pipeline.
+  """
+  def expire_stale_change_proposal(state) when is_map(state) do
+    case state["change_proposal"] do
+      %{"expires_at" => expires_at} = proposal when is_binary(expires_at) ->
+        case DateTime.from_iso8601(expires_at) do
+          {:ok, expiry, _} ->
+            if DateTime.compare(expiry, DateTime.utc_now()) == :lt do
+              history = state["proposal_history"] || []
+
+              state
+              |> Map.put(
+                "proposal_history",
+                history ++ [Map.put(proposal, "status", "expired")]
+              )
+              |> Map.delete("change_proposal")
+            else
+              state
+            end
+
+          _ ->
+            state
+        end
+
+      _ ->
+        state
+    end
+  end
+
+  def expire_stale_change_proposal(state), do: state
 
   defp apply_accepted_change(state, %{"field" => "datetime"} = proposal, _accepter) do
     state
@@ -1738,27 +1845,44 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     exact = state["exact_time"] || %{}
     date = state["date"] || %{}
     status = if exact["state"] == "locked", do: "agreed", else: "tentative"
-    time_label = [date["value"], exact["value"] || get_in(state, ["time_window", "value"])] |> Enum.reject(&is_nil/1) |> Enum.join(" ")
+
+    folded_time_label =
+      [date["value"], exact["value"] || get_in(state, ["time_window", "value"])]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(" ")
+
+    folded_time_label = if folded_time_label == "", do: nil, else: folded_time_label
 
     attrs = %{
       conversation_id: conversation_id,
-      title: "Meetup",
       status: status,
       timezone: "America/Los_Angeles",
-      time_label: if(time_label == "", do: nil, else: time_label),
+      time_label: folded_time_label,
       created_by_user_id: user_id,
       alignment: Map.put(state, "lineage_id", lineage_id(conversation_id))
     }
 
     case active_plan_for_conversation(conversation_id) do
       nil when is_binary(user_id) ->
-        %SharedPlan{} |> SharedPlan.changeset(attrs) |> Repo.insert()
+        # Insert: the fold owns the new row; "Meetup" is the fold's placeholder
+        # title until a real title is set by a plan-creation path.
+        %SharedPlan{}
+        |> SharedPlan.changeset(Map.put(attrs, :title, "Meetup"))
+        |> Repo.insert()
 
       %SharedPlan{} = plan ->
         prev_version = get_in(plan.alignment || %{}, ["plan_version"]) || 0
         new_version = state["plan_version"] || 0
 
-        case plan |> SharedPlan.changeset(attrs) |> Repo.update() do
+        # F12-02c (gyroscope): the update branch must never clobber
+        # row-owned authority. The title belongs to the plan-creation path
+        # (stamping "Meetup" here renamed real plans on every sync); the
+        # schedule belongs to the revision chain (see schedule_authority_label).
+        update_attrs =
+          attrs
+          |> Map.put(:time_label, schedule_authority_label(plan, state, folded_time_label))
+
+        case plan |> SharedPlan.changeset(update_attrs) |> Repo.update() do
           {:ok, updated} = ok ->
             maybe_invalidate_stale_tft(updated.id, prev_version, new_version)
             ok
@@ -1771,6 +1895,43 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         {:error, :no_owner}
     end
   end
+
+  # F12-02c — the revision chain is the schedule authority. A "schedule_change"
+  # explicit action (appended by change_plan_schedule/1 and the revision-accept
+  # path) carries the verbatim accepted value. When it is the newest
+  # schedule-bearing explicit action, the fold keeps it verbatim instead of
+  # recomputing the label from older fragments — a lead's direct edit is never
+  # paraphrased or reverted. A newer chat-driven exact_time_lock (or a newer
+  # schedule_change) supersedes by timestamp order.
+  defp schedule_authority_label(%SharedPlan{}, state, folded_label) do
+    actions = state["explicit_actions"] || []
+
+    sched_changes =
+      Enum.filter(actions, &(&1["kind"] == "schedule_change" and is_binary(&1["value"])))
+
+    case List.last(sched_changes) do
+      nil ->
+        folded_label
+
+      %{"value" => value, "at" => at} = latest ->
+        if superseded_by_newer_schedule_action?(actions, latest, at) do
+          folded_label
+        else
+          value
+        end
+    end
+  end
+
+  defp schedule_authority_label(_, _, folded_label), do: folded_label
+
+  defp superseded_by_newer_schedule_action?(actions, latest, at) when is_binary(at) do
+    Enum.any?(actions, fn a ->
+      a != latest and a["kind"] in ["exact_time_lock", "schedule_change"] and
+        is_binary(a["at"]) and a["at"] > at
+    end)
+  end
+
+  defp superseded_by_newer_schedule_action?(_, _, _), do: false
 
   # STALE_BACKGROUND_JOB_MUTATES_CURRENT_STATE = 0 — supersede loops bound to the
   # prior plan_version so Oban TFT ticks cannot act on outdated temporal state.

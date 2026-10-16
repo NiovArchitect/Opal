@@ -4,7 +4,7 @@ import {
   resolveFounderSeedGate,
 } from "./founderGraphSeed";
 
-describe("REALITY SOURCE PRIORITY — founder seed gate (Pass 1D)", () => {
+describe("REALITY SOURCE PRIORITY - founder seed gate (Pass 1D)", () => {
   it("recognizes private LAN hosts", () => {
     expect(isPrivateLanHost("192.168.1.20")).toBe(true);
     expect(isPrivateLanHost("10.0.0.5")).toBe(true);

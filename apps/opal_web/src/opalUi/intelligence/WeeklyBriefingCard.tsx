@@ -141,7 +141,7 @@ export function WeeklyBriefingCard({
                       {o.label}
                       <span className="intelligence-briefing-note">
                         {" "}
-                        — Nothing to open yet.
+                        - Nothing to open yet.
                       </span>
                     </span>
                   </li>
@@ -213,7 +213,7 @@ export function WeeklyBriefingCard({
             {briefing.question.label}
             <span className="intelligence-briefing-note">
               {" "}
-              — Nothing to open yet.
+              - Nothing to open yet.
             </span>
           </p>
         )

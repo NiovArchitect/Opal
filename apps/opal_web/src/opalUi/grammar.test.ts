@@ -45,7 +45,7 @@ const sampleOverlap = {
   participant_count: 2,
 };
 
-describe("Opal UI grammar — one surface at a time", () => {
+describe("Opal UI grammar - one surface at a time", () => {
   it("quiet → nothing", () => {
     expect(resolvePrimaryOpalSurface({})).toEqual({ kind: "none" });
     expect(contextChipLabel({})).toBeNull();
@@ -275,7 +275,7 @@ describe("Opal UI grammar — one surface at a time", () => {
     expect(css).toMatch(/opal-chip-edge/);
   });
 
-  it("OpalApp uses resolvePrimaryOpalSurface — one surface + OpalInsightField", () => {
+  it("OpalApp uses resolvePrimaryOpalSurface - one surface + OpalInsightField", () => {
     const app = readFileSync(resolve(root, "OpalApp.tsx"), "utf8");
     expect(app).toMatch(/resolvePrimaryOpalSurface/);
     expect(app).toMatch(/primary\.kind === "chip"/);

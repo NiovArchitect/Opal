@@ -26,7 +26,7 @@ export function UnifiedSignalCard({
 }: Props) {
   const family = signalFamily(sourceType);
   const privateLabel =
-    privacyClass === "private" ? "Private — only you can see this." : null;
+    privacyClass === "private" ? "Private - only you can see this." : null;
   const a11y = ["Opal update", familyLabel(family), title, explanation, privateLabel]
     .filter(Boolean)
     .join(". ");

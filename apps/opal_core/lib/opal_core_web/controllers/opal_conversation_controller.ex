@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.OpalConversationController do
   GET  /api/v1/product/opal/conversation
   POST /api/v1/product/opal/conversation/messages
   POST /api/v1/product/opal/plans — Paste J Phase 1 Center "Go with this"
+  GET  /api/v1/product/opal/plans — F12-06/07 owner-scoped plan listing
   """
 
   use OpalCoreWeb, :controller
@@ -174,6 +175,26 @@ defmodule OpalCoreWeb.OpalConversationController do
 
       {:error, %Ecto.Changeset{} = cs} ->
         unprocessable(conn, cs)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  @doc """
+  F12-06/F12-07 — owner-scoped plan listing for Graphs/Timeline projections.
+
+  GET /api/v1/product/opal/plans — returns the caller's SharedPlans including
+  conversation-less Center plans (source "center"), newest first. Cancelled
+  plans excluded unless `?status=all`.
+  """
+  def list_plans(conn, params) do
+    user_id = conn.assigns.current_user_id
+    opts = if params["status"] == "all", do: [status: :all], else: []
+
+    case SocialFlow.list_plans_for_user(user_id, opts) do
+      {:ok, plans} ->
+        json(conn, %{"plans" => plans})
 
       {:error, _} ->
         conn |> put_status(422) |> json(%{"error_code" => "invalid"})

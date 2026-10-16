@@ -18,7 +18,7 @@ describe("foreground call substrate", () => {
     expect(overlay).not.toContain("mediaChannel?.leave()");
   });
 
-  it("TURN credentials are fetched before RTCPeerConnection — no STUN-only hardcode on call path", () => {
+  it("TURN credentials are fetched before RTCPeerConnection - no STUN-only hardcode on call path", () => {
     const overlay = read("opalUi/ActiveCallOverlay.tsx");
     const client = read("realtime/CallClient.ts");
     const api = read("api/productClient.ts");

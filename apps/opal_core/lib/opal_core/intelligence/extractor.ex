@@ -17,6 +17,15 @@ defmodule OpalCore.Intelligence.Extractor do
   @confirm ~r/\b(yes|yeah|yep|yup|sure|sounds good|i'?m in\b|im in\b|locked in|perfect|works for me|i confirm|^confirm$|^down$)\b/i
   @cancel ~r/\b(can'?t make it|cannot make it|cancel|rain check|i'?m out|sitting out)\b/i
   @counter ~r/\b(after\s+\d{1,2}|before\s+\d{1,2}|works better|feels better|rather|instead|later|earlier|move (it|to))\b/i
+
+  # Repair #12 (F12-02) — explicit schedule changes with a CONCRETE new value.
+  # Distinct from plan.counter (soft constraints like "after 10"): a concrete
+  # new clock time or day means the plan itself should change via the
+  # SocialFlow schedule authority. Requires a meridiem for times (bare "8" is
+  # ambiguous); questions ("…?") and negations never match here.
+  @change_time_re ~r/\b(?:change|move|switch|push|shift)(?:\s+(?:it|the\s+time|dinner|plans?))?\s+(?:to|at)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\blet'?s\s+do\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\bactually[,.]?\s+let'?s\s+do\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i
+  @change_date_re ~r/\b(?:change|move|switch|push|shift)(?:\s+(?:it|the\s+day|dinner|plans?))?\s+(?:to|for)\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b|\blet'?s\s+do\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\s+instead\b/i
+  @change_negation_re ~r/\b(don'?t|do\s+not|never)\b.{0,20}\b(change|move|switch|push|shift)\b/i
   @question ~r/\b(what time|where|when|which|who'?s|how about)\b|\?/i
   @propose ~r/\b(let'?s|dinner|lunch|brunch|hike|market|coffee|saturday|sunday|tonight|tomorrow|add(?:ing)? a day|extend (?:the )?trip|one more day)\b/i
   @clarify ~r/^(maybe|perhaps|not sure|idk|i don'?t know|we'?ll see|might)\.?$/i
@@ -184,6 +193,11 @@ defmodule OpalCore.Intelligence.Extractor do
       Regex.match?(@cancel, lower) ->
         {"plan.cancel", %{}}
 
+      # Repair #12 (F12-02): concrete schedule changes beat the soft
+      # plan.counter ("move it to 8pm" is a time change, not a constraint).
+      change = detect_schedule_change(text, lower) ->
+        change
+
       Regex.match?(@counter, lower) ->
         {"plan.counter", %{}}
 
@@ -224,9 +238,23 @@ defmodule OpalCore.Intelligence.Extractor do
     cond do
       ents["should_commit"] == false -> false
       ents[:should_commit] == false -> false
-      intent in ["clarify", "chitchat", "plan.question", "info.share", "plan.cancel"] -> false
-      intent in ["booking_request", "set_reminder", "plan.confirm", "plan.propose"] -> true
-      true -> false
+      intent in ["clarify", "chitchat", "plan.question", "info.share", "plan.cancel"] ->
+        false
+
+      # Repair #12 (F12-02): schedule changes commit through the SocialFlow
+      # schedule authority — they are committing intents.
+      intent in [
+        "booking_request",
+        "set_reminder",
+        "plan.confirm",
+        "plan.propose",
+        "plan.change_time",
+        "plan.change_date"
+      ] ->
+        true
+
+      true ->
+        false
     end
   end
 
@@ -311,6 +339,62 @@ defmodule OpalCore.Intelligence.Extractor do
       Regex.match?(@info_share, lower) -> {"info.share", %{}}
       Regex.match?(@propose, lower) -> {"plan.propose", %{}}
       true -> {"chitchat", %{}}
+    end
+  end
+
+  # Repair #12 (F12-02): detect an explicit schedule change with a concrete
+  # new value. Returns {"plan.change_time", entities} |
+  # {"plan.change_date", entities} | nil. Questions, negations, hypotheticals
+  # (handled earlier in the cond) and bare-hour ambiguity never match.
+  defp detect_schedule_change(text, lower) do
+    cond do
+      String.contains?(text, "?") -> nil
+      Regex.match?(@change_negation_re, lower) -> nil
+      true -> detect_change_time(text) || detect_change_date(text)
+    end
+  end
+
+  defp detect_change_time(text) do
+    case Regex.run(@change_time_re, text) do
+      nil ->
+        nil
+
+      [_ | groups] ->
+        # Non-participating alternation groups come back as "" — skip them.
+        raw =
+          groups |> Enum.find("", &(is_binary(&1) and &1 != "")) |> to_string() |> String.trim()
+
+        if raw != "" do
+          {"plan.change_time", %{"new_time" => normalize_time_label(raw)}}
+        else
+          nil
+        end
+    end
+  end
+
+  defp detect_change_date(text) do
+    case Regex.run(@change_date_re, text) do
+      nil ->
+        nil
+
+      [_ | groups] ->
+        day =
+          groups |> Enum.find("", &(is_binary(&1) and &1 != "")) |> to_string() |> String.trim()
+
+        if day != "" do
+          {"plan.change_date", %{"new_date" => String.capitalize(day)}}
+        else
+          nil
+        end
+    end
+  end
+
+  # "8:00 pm" → "8:00 PM"; "8pm" → "8:00 PM". Keeps the user's meridiem
+  # framing — the label is display text on the plan, not a timestamp.
+  defp normalize_time_label(raw) do
+    case Regex.run(~r/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i, raw) do
+      [_, h, m, mer] -> "#{h}:#{m || "00"} #{String.upcase(mer)}"
+      _ -> String.trim(raw)
     end
   end
 

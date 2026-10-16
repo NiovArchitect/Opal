@@ -16,6 +16,7 @@ import {
   type TripCurateSuggestion,
   type TripLeg,
 } from "../api/productClient";
+import { humanErrorCopy } from "../sharedReality";
 import { GraphWhoPicker, type WhoPerson } from "./GraphWhoPicker";
 
 const SUGGEST_GROUPS: Array<{ leg_type: string; title: string }> = [
@@ -224,7 +225,7 @@ function TripDetail({
       setStartsOn("");
       setEndsOn("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add stop");
+      setError(humanErrorCopy(err, "Couldn't add that stop - check your connection and try again."));
     } finally {
       setBusy(false);
     }
@@ -245,12 +246,15 @@ function TripDetail({
         err && typeof err === "object" && "code" in err
           ? String((err as { code?: string }).code || "")
           : "";
-      const msg = err instanceof Error ? err.message : "Could not load suggestions";
+      const raw = err instanceof Error ? err.message : "";
       const dest = (trip.destination_label || "").trim() || "this destination";
-      if (code === "no_curated_destination" || /no_curated_destination/i.test(msg)) {
+      if (code === "no_curated_destination" || /no_curated_destination/i.test(raw)) {
         setSuggestError(`No curated suggestions for ${dest} yet.`);
       } else {
-        setSuggestError(msg);
+        // F12-44: human copy, never err.message verbatim.
+        setSuggestError(
+          humanErrorCopy(err, "Couldn't load suggestions - check your connection and try again."),
+        );
       }
       setSuggestions([]);
     } finally {
@@ -287,7 +291,7 @@ function TripDetail({
       onRefresh(res.trip);
       setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add stop");
+      setError(humanErrorCopy(err, "Couldn't add that stop - check your connection and try again."));
     } finally {
       setAddingSuggestionId(null);
     }
@@ -327,7 +331,7 @@ function TripDetail({
     } catch {
       setLegErrors((prev) => ({
         ...prev,
-        [leg.id]: "Couldn't create plan — retry",
+        [leg.id]: "Couldn't create plan - retry",
       }));
     } finally {
       setCreatingLegId(null);
@@ -616,7 +620,7 @@ function TripCreateFlow({
       );
       onCreated(res.trip);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create trip");
+      setError(humanErrorCopy(err, "Couldn't create that trip - check your connection and try again."));
     } finally {
       setBusy(false);
     }
@@ -766,7 +770,7 @@ export function GraphsTripsSection({ bearer, createSignal = 0 }: Props) {
       setPeople(dir);
       setWhoPeople(who);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load trips");
+      setError(humanErrorCopy(err, "Couldn't load trips - check your connection and try again."));
     } finally {
       setLoading(false);
     }
@@ -843,7 +847,7 @@ export function GraphsTripsSection({ bearer, createSignal = 0 }: Props) {
         </div>
       ) : !trips.length ? (
         <div className="graphs-trips-empty" data-testid="graphs-trips-empty">
-          <p className="graphs-card-place">No trips yet — plan one together.</p>
+          <p className="graphs-card-place">No trips yet - plan one together.</p>
           <button
             type="button"
             className="btn"

@@ -10,7 +10,7 @@ import {
   inferActivityCapabilities,
 } from "./activityCapabilities";
 
-describe("activityCapabilities — GRAPH != RESERVATION", () => {
+describe("activityCapabilities - GRAPH != RESERVATION", () => {
   it("exports product law zeros", () => {
     expect(GRAPH_NOT_RESERVATION).toBe(1);
     expect(FAKE_BOOKING_CTA_FOR_AT_HOME).toBe(0);

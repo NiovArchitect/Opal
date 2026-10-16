@@ -7,6 +7,7 @@
  * must not paint inferred person history — that implies Pass 2 intelligence.
  */
 import { isFounderSeedEnabled } from "./founderGraphSeed";
+import { formatClockAmPm } from "./composeHumanReality";
 
 export type TimelineBucket =
   | "now"
@@ -170,6 +171,22 @@ export type LiveGraphLike = {
   who?: string[];
 };
 
+/** Honest when-label from the canonical instant — always carries AM/PM (F12-01/F12-10). */
+function startsAtLabel(startsAt: string | null | undefined): string {
+  if (!startsAt) return "Time to be set";
+  const d = new Date(startsAt);
+  if (Number.isNaN(d.getTime())) return "Time to be set";
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((startOfDay(d) - startOfDay(new Date())) / DAY_MS);
+  const clock = formatClockAmPm(d);
+  if (diff === 0) return `Today · ${clock}`;
+  if (diff === 1) return `Tomorrow · ${clock}`;
+  if (diff > 1 && diff < 7)
+    return `${d.toLocaleDateString(undefined, { weekday: "long" })} · ${clock}`;
+  return `${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${clock}`;
+}
+
 export function liveGraphsToTimelineItems(
   live: LiveGraphLike[],
   nowMs = Date.now(),
@@ -187,7 +204,9 @@ export function liveGraphsToTimelineItems(
     return {
       id: g.id,
       title: g.title,
-      whenLabel: g.whenLine || g.signalLine || "Soon",
+      // F12-01/F12-45: derive from the canonical instant; a time label is never
+      // a person's name and never the vague "Soon".
+      whenLabel: g.whenLine || startsAtLabel(g.startsAt),
       who,
       where: g.title,
       status: g.status,
@@ -207,7 +226,8 @@ function bucketFromLive(g: LiveGraphLike, nowMs: number): TimelineBucket {
   if (/next week/i.test(g.whenLine)) return "next_week";
   if (/month/i.test(g.whenLine)) return "next_month";
   const start = g.startsAt ? Date.parse(g.startsAt) : NaN;
-  if (!Number.isFinite(start)) return "next_week";
+  // F12-47: a dateless plan is "someday" — never imply next week.
+  if (!Number.isFinite(start)) return "someday";
   const delta = start - nowMs;
   if (delta < 18 * 3600_000) return "tonight";
   if (delta < 3 * 86400_000) return "weekend";

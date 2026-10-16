@@ -22,7 +22,7 @@ export const APPEARANCE_OPTIONS: ReadonlyArray<{
   {
     value: "dark",
     label: "Dark",
-    description: "Midnight Opal — Opal’s darkest look.",
+    description: "Midnight Opal - Opal’s darkest look.",
   },
   {
     value: "light",

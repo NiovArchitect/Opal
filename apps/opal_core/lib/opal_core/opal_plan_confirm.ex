@@ -7,7 +7,6 @@ defmodule OpalCore.OpalPlanConfirm do
   Never auto-opens a human direct conversation or paints Opal transcript there.
   """
 
-  alias OpalCore.Accounts.User
   alias OpalCore.Relationships
   alias OpalCore.Repo
   alias OpalCore.SocialFlow
@@ -208,7 +207,11 @@ defmodule OpalCore.OpalPlanConfirm do
         end
       end)
 
-    peer = from_contacts || from_rels || lookup_user_by_name(name)
+    # F12-56 (per-account isolation): resolution is scoped to the account's
+    # own relationships/contacts ONLY. There is deliberately no global
+    # user-table fallback — a cross-account name collision must never attach
+    # a plan to a stranger, and the lookup must not leak user existence.
+    peer = from_contacts || from_rels
 
     cond do
       is_binary(peer) and peer != user_id -> {:ok, peer}
@@ -225,20 +228,10 @@ defmodule OpalCore.OpalPlanConfirm do
 
   defp get_in_ctx(_, _), do: nil
 
-  defp lookup_user_by_name(name) when is_binary(name) and name != "" do
-    import Ecto.Query
-
-    like = "#{String.trim(name)}%"
-
-    from(u in User,
-      where: ilike(u.display_name, ^like) or ilike(u.handle, ^like),
-      select: u.id,
-      limit: 1
-    )
-    |> Repo.one()
-  end
-
-  defp lookup_user_by_name(_), do: nil
+  # F12-56 — lookup_user_by_name/1 (global ilike over ALL users, limit 1) is
+  # deleted. Peer resolution stays inside the account's own
+  # relationships/contacts; a cross-account name collision must never resolve
+  # to a stranger, and the lookup must not leak user existence.
 
   # Paste W4 Phase 1 — echo user `what` words; never invent Movie/Hurricane titles.
   defp build_title(what, when_s, who) do

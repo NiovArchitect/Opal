@@ -75,7 +75,7 @@ describe("MediationCard", () => {
     ).toBe(item.mediation_draft);
   });
 
-  it("Send handoff posts to Center — does not claim auto-post", async () => {
+  it("Send handoff posts to Center - does not claim auto-post", async () => {
     const item = MEDIATION_MOCK_ITEMS[0];
     await act(async () => {
       root.render(<MediationCard item={item} bearer="tok" />);

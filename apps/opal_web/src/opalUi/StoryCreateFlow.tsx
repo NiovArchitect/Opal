@@ -39,7 +39,7 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
       if (result.status === "cancelled") {
         setNote(
           source === "camera"
-            ? "Camera cancelled — choose Photo library, or try again."
+            ? "Camera cancelled - choose Photo library, or try again."
             : "Photo library cancelled.",
         );
         return;
@@ -143,7 +143,7 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
             data-mode="active"
             onClick={() => {
               onShared?.({ mediaSrc, audience });
-              setNote("Story shared temporarily — expires; not on profile as Memory.");
+              setNote("Story shared temporarily - expires; not on profile as Memory.");
               onClose();
             }}
           >

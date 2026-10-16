@@ -166,7 +166,7 @@ describe("PersonMemoryView", () => {
     );
   });
 
-  it("removes a fact with confirmation — no bulk forget", async () => {
+  it("removes a fact with confirmation - no bulk forget", async () => {
     await act(async () => {
       root.render(
         <PersonMemoryView personId="person-maya" bearer="tok" onBack={() => {}} />,

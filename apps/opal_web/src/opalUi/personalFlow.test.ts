@@ -31,7 +31,7 @@ function jordanDinner(partial: Partial<ProductSignal> = {}): ProductSignal {
 }
 
 describe("personalFlow Pass 14", () => {
-  it("3 PM work — silence", () => {
+  it("3 PM work - silence", () => {
     const flow = composePersonalFlow([jordanDinner({ minutes_until: 240 } as ProductSignal & { minutes_until: number })], {
       workEndsInMinutes: 120,
       travelMinutes: 25,
@@ -41,7 +41,7 @@ describe("personalFlow Pass 14", () => {
     expect(flow.humanConsequence).toBeNull();
   });
 
-  it("5 PM work end — optional errand when slack exists", () => {
+  it("5 PM work end - optional errand when slack exists", () => {
     const flow = composePersonalFlow(
       [jordanDinner({ minutes_until: 120 } as ProductSignal & { minutes_until: number })],
       {
@@ -70,7 +70,7 @@ describe("personalFlow Pass 14", () => {
     expect(flow.humanConsequence).not.toMatch(/Go to the store at/i);
   });
 
-  it("pre-leave — actionable leave consequence", () => {
+  it("pre-leave - actionable leave consequence", () => {
     const flow = composePersonalFlow(
       [
         jordanDinner({
@@ -97,7 +97,7 @@ describe("personalFlow Pass 14", () => {
     expect(flow.sourceProvenance.join(" ")).toMatch(/travel|synthetic/i);
   });
 
-  it("on track — silence", () => {
+  it("on track - silence", () => {
     const flow = composePersonalFlow(
       [jordanDinner({ minutes_until: 30 } as ProductSignal & { minutes_until: number })],
       {

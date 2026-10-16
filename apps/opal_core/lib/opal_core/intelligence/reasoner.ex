@@ -79,8 +79,9 @@ defmodule OpalCore.Intelligence.Reasoner do
     vibe_hint = sleep_bias_hint(event.actor_id)
     entities = x.entities || %{}
 
-    # Paste H — never confirm/book/remind from non-committing extractions
-    if intent in ["plan.confirm", "set_reminder", "booking_request", "plan.propose"] and
+    # Paste H — never confirm/book/remind from non-committing extractions.
+    # Repair #12 (F12-02): schedule changes are committing intents guarded here too.
+    if intent in ["plan.confirm", "set_reminder", "booking_request", "plan.propose", "plan.change_time", "plan.change_date"] and
          not OpalCore.Intelligence.Extractor.may_commit?(intent, entities) do
       {"escalate.user",
        %{
@@ -114,6 +115,23 @@ defmodule OpalCore.Intelligence.Reasoner do
            "message" => adjusted.message,
            "plan_update" => adjusted.plan_update
          }, adjusted.confidence, adjusted.reason}
+
+      # Repair #12 (F12-02) — concrete schedule changes route through the
+      # SocialFlow schedule authority in the executor. Never a free-floating
+      # thread claim: no confirmation copy without a recorded change.
+      "plan.change_time" ->
+        new_time = entities["new_time"] || time_label_from(time)
+
+        {"plan.change_time", %{"body" => body, "new_time" => new_time}, 0.9,
+         "User requested a concrete time change (plan.change_time → #{new_time}). " <>
+           "Executor routes through SocialFlow.change_plan_time; no claim without a recorded change."}
+
+      "plan.change_date" ->
+        new_date = entities["new_date"] || time_label_from(time)
+
+        {"plan.change_date", %{"body" => body, "new_date" => new_date}, 0.9,
+         "User requested a concrete date change (plan.change_date → #{new_date}). " <>
+           "Executor routes through SocialFlow.change_plan_date; no claim without a recorded change."}
 
       "plan.cancel" ->
         # Repair #11 — no free-floating "Got it — I'll release this one." claim.
@@ -256,6 +274,14 @@ defmodule OpalCore.Intelligence.Reasoner do
     }
   end
 
+  # Repair #12 (F12-02): derive the new time/date label from the LLM-path
+  # time entity when the rules path did not set new_time/new_date directly.
+  defp time_label_from(%{"label" => label}) when is_binary(label) and label != "", do: label
+  defp time_label_from(%{"day" => day}) when is_binary(day) and day != "", do: String.capitalize(day)
+
+  defp time_label_from(%{"time" => t}) when is_binary(t) and t != "", do: t
+  defp time_label_from(_), do: nil
+
   defp suggestion_copy("respond.thread", %{"message" => msg}), do: msg
   defp suggestion_copy(_, _), do: "Want me to take the next step?"
 
@@ -283,7 +309,8 @@ defmodule OpalCore.Intelligence.Reasoner do
     # Repair #11 — plan.confirm/plan.cancel render deterministic truthful outcomes
     # from the authority result in the executor; an LLM draft must not rewrite
     # them (or be mistaken for the outcome).
-    if action in ["silent", "plan.confirm", "plan.cancel"] do
+    # Repair #12 (F12-02): same for plan.change_time/plan.change_date.
+    if action in ["silent", "plan.confirm", "plan.cancel", "plan.change_time", "plan.change_date"] do
       {action, payload, confidence, reason}
     else
       template =

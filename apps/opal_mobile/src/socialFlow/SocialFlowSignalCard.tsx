@@ -13,7 +13,7 @@ type Props = {
  */
 export function SocialFlowSignalCard({ signal, onAction }: Props) {
   const privateLabel =
-    signal.visibility === "private" ? "Private — only you can see this." : null;
+    signal.visibility === "private" ? "Private - only you can see this." : null;
 
   const a11yLabel = [
     "Opal suggestion",

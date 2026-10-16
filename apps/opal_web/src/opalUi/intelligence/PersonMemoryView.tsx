@@ -203,7 +203,7 @@ export function PersonMemoryView({
       {!loading && empty ? (
         <p className="you-memory-empty" data-testid="person-memory-empty">
           Opal doesn&apos;t know much about {name} yet. As you plan and talk,
-          what matters will show up here — and you can correct anything.
+          what matters will show up here - and you can correct anything.
         </p>
       ) : null}
 

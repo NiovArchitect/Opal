@@ -29,7 +29,7 @@ function momentTimeSheetShouldMount(opts: {
   return Boolean(opts.findTimeOpen && opts.exactPlaceGrounded);
 }
 
-describe("P31-PATCH-01 Solo WHEN — no chat required", () => {
+describe("P31-PATCH-01 Solo WHEN - no chat required", () => {
   it("domain seed keeps Juniper + Solo + nextGap when", () => {
     const { seed, error } = seedRealityFromMoment(
       DEMO_SOCIAL_MOMENT,

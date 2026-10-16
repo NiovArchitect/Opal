@@ -37,7 +37,7 @@ describe("push token outbound contract", () => {
 });
 
 describe("acquireExpoPushToken", () => {
-  test("denied permission returns null (silent — no throw)", async () => {
+  test("denied permission returns null (silent - no throw)", async () => {
     const mock: PushNotificationsModule = {
       getPermissionsAsync: async () => ({ status: "denied" }),
       requestPermissionsAsync: async () => ({ status: "denied" }),

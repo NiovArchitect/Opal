@@ -132,7 +132,7 @@ export function ForwardSharePicker({
 
       <h1 className="social-dest-title">Share</h1>
       <p className="social-dest-lede">
-        Share to a chat, or copy a link — without changing the original audience.
+        Share to a chat, or copy a link - without changing the original audience.
       </p>
 
       <div className="forward-quick-actions" data-testid="forward-quick-actions">
@@ -149,7 +149,7 @@ export function ForwardSharePicker({
               await navigator.clipboard.writeText(url);
               setCopyNote("Link copied");
             } catch {
-              setCopyNote("Couldn't copy — long-press the address bar instead.");
+              setCopyNote("Couldn't copy - long-press the address bar instead.");
             }
           }}
         >

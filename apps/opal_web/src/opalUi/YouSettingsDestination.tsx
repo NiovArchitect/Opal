@@ -183,7 +183,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         label: "Bio",
         value: "Keep it short. Let your Graph speak.",
         placeholder: "Keep it short. Let your Graph speak.",
-        blockedReason: "Bio is not on the user profile API yet — name and username save.",
+        blockedReason: "Bio is not on the user profile API yet - name and username save.",
       },
       {
         kind: "note",
@@ -199,7 +199,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
     rows: [
       {
         kind: "toggle",
-        blockedReason: "Needs per-Graph audience API — not wired yet.",
+        blockedReason: "Needs per-Graph audience API - not wired yet.",
         id: "graph-visibility",
         title: "Graph visibility",
         subtitle: "Choose who can see each Graph. Per-Graph choice wins.",
@@ -267,7 +267,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "nearby-range",
         title: "Nearby range",
         subtitle: "Default discovery distance. Per-search intent can expand it.",
-        blockedReason: "Needs discovery-distance preference API — not wired yet.",
+        blockedReason: "Needs discovery-distance preference API - not wired yet.",
       },
       {
         kind: "toggle",
@@ -389,7 +389,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        blockedReason: "Already private by product law — no toggle surface yet.",
+        blockedReason: "Already private by product law - no toggle surface yet.",
         id: "private-history",
         title: "Private shared history",
         subtitle: "Connection counts stay private and never become a public score.",
@@ -490,7 +490,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         blockedReason: "Social push categories need Expo rebuild + preference API.",
         id: "social-activity",
         title: "Social activity",
-        subtitle: "Likes, comments, and follows — quieter by default.",
+        subtitle: "Likes, comments, and follows - quieter by default.",
         defaultOn: false,
       },
       {
@@ -516,7 +516,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "nav",
         id: "this-phone",
         title: "This phone",
-        subtitle: "Primary device for this account — this session",
+        subtitle: "Primary device for this account - this session",
         value: "Active",
       },
       {
@@ -555,7 +555,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "nav",
         id: "muted",
         title: "Muted people",
-        subtitle: "Still connected — quieter in your feed",
+        subtitle: "Still connected - quieter in your feed",
         blockedReason: "Mute list UI needs conversation mute roster.",
       },
       {
@@ -611,7 +611,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
       {
         kind: "toggle",
-        blockedReason: "Already private by financial profile policy — no separate flag.",
+        blockedReason: "Already private by financial profile policy - no separate flag.",
         id: "budget-private",
         title: "Keep my budget private",
         subtitle: "Exact amounts stay private unless I explicitly share them.",
@@ -661,7 +661,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "phone",
         title: "Phone number",
         subtitle: "Your sign-in identity",
-        blockedReason: "Change-phone requires re-verify OTP flow — not exposed yet.",
+        blockedReason: "Change-phone requires re-verify OTP flow - not exposed yet.",
       },
       {
         kind: "nav",
@@ -675,7 +675,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         id: "two-step",
         title: "Two-step security",
         subtitle: "Extra check when something looks unusual",
-        blockedReason: "Phone OTP is the second factor today — no extra step UI.",
+        blockedReason: "Phone OTP is the second factor today - no extra step UI.",
       },
       {
         kind: "nav",
@@ -694,7 +694,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "account-law",
-        text: "Account changes stay private. Delete is nested and confirmed — never one tap. Name and username save from Edit profile.",
+        text: "Account changes stay private. Delete is nested and confirmed - never one tap. Name and username save from Edit profile.",
       },
     ],
   },
@@ -1153,7 +1153,7 @@ const GRAPHING_MODE_OPTIONS: { id: GraphingMode; label: string; hint: string }[]
   {
     id: "auto_eligible",
     label: "Automatically Graph allowed calls",
-    hint: "Standing permission — no repeated interruption when already granted.",
+    hint: "Standing permission - no repeated interruption when already granted.",
   },
   {
     id: "selected_only",
@@ -2194,7 +2194,7 @@ export function WhatOpalRemembersSection({
       const err = e as Error & { code?: string };
       setTrustError(
         err.code === "cannot_skip"
-          ? "Reach Deep understanding first — as we get to know each other better."
+          ? "Reach Deep understanding first - as we get to know each other better."
           : "Couldn't update trust right now.",
       );
     } finally {
@@ -2392,7 +2392,7 @@ export function WhatOpalRemembersSection({
             {trust.next_tier ? (
               <p className="you-trust-next" data-testid="trust-next">
                 Next: {trust.next_friendly_name}
-                {trust.next_requirements ? ` — ${trust.next_requirements}` : ""}
+                {trust.next_requirements ? ` - ${trust.next_requirements}` : ""}
               </p>
             ) : (
               <p className="you-trust-next" data-testid="trust-complete">
@@ -2658,7 +2658,7 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
     const msg = `Plan ${idea} for ${c.person_name}'s ${c.kind}`;
     try {
       await postOpalMessage(msg, token);
-      setPlanNote("Asked Opal to set it up — check Center.");
+      setPlanNote("Asked Opal to set it up - check Center.");
       try {
         window.dispatchEvent(
           new CustomEvent("opal-open-center", { detail: { source: "celebration-plan" } }),
@@ -2766,7 +2766,7 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
               inputMode="numeric"
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              placeholder="—"
+              placeholder="-"
               autoComplete="off"
             />
           </label>
@@ -2799,7 +2799,7 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
 
       {!loaded ? null : items.length === 0 && !adding ? (
         <p className="you-memory-empty" data-testid="celebrations-empty">
-          Add birthdays and anniversaries — Opal will remind you in time to plan something good.
+          Add birthdays and anniversaries - Opal will remind you in time to plan something good.
         </p>
       ) : items.length > 0 ? (
         <div className="you-consent-rows you-celebrations-rows">
@@ -2907,7 +2907,7 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
                                 <li key={`h-${i}`}>
                                   {h.plan_title || "A plan"}
                                   {h.vibe || h.cuisine
-                                    ? ` — ${[h.vibe, h.cuisine].filter(Boolean).join(", ")}`
+                                    ? ` - ${[h.vibe, h.cuisine].filter(Boolean).join(", ")}`
                                     : ""}
                                 </li>
                               ))}
@@ -2941,7 +2941,7 @@ export function CelebrationsSection({ session }: CelebrationsProps) {
                       </>
                     ) : (
                       <p className="you-celebrations-detail-loading">
-                        Keep planning together — Opal will learn what {c.person_name} loves.
+                        Keep planning together - Opal will learn what {c.person_name} loves.
                       </p>
                     )}
                   </div>
@@ -3011,8 +3011,8 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
       if (phone.trim()) {
         setDeliveryNote(
           smsQueued
-            ? "SMS queued — they'll get a text with your invite link."
-            : honest || "SMS invites need setup — share the link instead.",
+            ? "SMS queued - they'll get a text with your invite link."
+            : honest || "SMS invites need setup - share the link instead.",
         );
       } else {
         setDeliveryNote(null);
@@ -3062,7 +3062,7 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
       const err = e as Error & { code?: string };
       setError(
         err.code === "rate_limited"
-          ? "You've sent quite a few invites today — try again tomorrow."
+          ? "You've sent quite a few invites today - try again tomorrow."
           : "Couldn't create an invite right now.",
       );
     } finally {
@@ -3077,7 +3077,7 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
-      setError("Couldn't copy — try selecting the link.");
+      setError("Couldn't copy - try selecting the link.");
     }
   };
 
@@ -3148,7 +3148,7 @@ export function InviteFriendsSection({ session }: InviteFriendsProps) {
           )}
 
           <label className="you-invite-phone-field" data-testid="invite-phone-field">
-            <span>Phone (optional — for SMS)</span>
+            <span>Phone (optional - for SMS)</span>
             <input
               type="tel"
               inputMode="tel"

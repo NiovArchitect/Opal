@@ -65,7 +65,7 @@ describe("native host push token (Phase 2C)", () => {
     expect(__testOnly_lastSentPushToken()).toBe("ExponentPushToken[once-abc]");
   });
 
-  it("dedupes — second identical token does not POST again", async () => {
+  it("dedupes - second identical token does not POST again", async () => {
     installNativePushTokenListener();
     __testOnly_deliverPushToken({
       type: "opal_push_token",
