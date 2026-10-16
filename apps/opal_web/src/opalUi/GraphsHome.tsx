@@ -216,7 +216,7 @@ export function GraphsHome({
               </div>
             ) : null}
           </div>
-          <p className="graphs-home-lede">What is taking shape</p>
+          <p className="graphs-home-lede">What&apos;s taking shape</p>
         </header>
 
         <div className="graphs-mode-toggle" role="tablist" aria-label="Graphs mode" data-testid="graphs-mode-toggle">
