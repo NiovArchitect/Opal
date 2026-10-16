@@ -392,6 +392,9 @@ defmodule OpalCoreWeb.Router do
     post("/opal/conversation/clear", OpalConversationController, :clear_conversation)
     # Paste J Phase 1 — Center "Go with this" → durable solo SharedPlan
     post("/opal/plans", OpalConversationController, :create_plan)
+    # F12-06/F12-07 — owner-scoped plan listing (incl. conversation-less Center
+    # plans) for Graphs/Timeline projections.
+    get("/opal/plans", OpalConversationController, :list_plans)
 
     # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
     # venue ranking / near-me. Separate from the travel-mode 422 privacy law.

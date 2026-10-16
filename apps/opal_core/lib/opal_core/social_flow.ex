@@ -801,8 +801,8 @@ defmodule OpalCore.SocialFlow do
            end) do
         {:ok, {plan, c}} ->
           # Shared visibility of commitment existence is still private for SF-1 private commitments
-          broadcast(
-            plan.conversation_id,
+          broadcast_plan(
+            plan,
             "social_flow:commitment",
             %{
               "commitment" => PlanCommitment.to_contract(c)
@@ -875,8 +875,8 @@ defmodule OpalCore.SocialFlow do
            end) do
         {:ok, {plan, reminder, signal}} ->
           # Broadcast filtered: event includes audience; clients/sync strip for non-owners
-          broadcast(
-            plan.conversation_id,
+          broadcast_plan(
+            plan,
             "social_flow:reminder",
             %{
               "reminder" => PlanReminder.to_contract(reminder),
@@ -919,8 +919,8 @@ defmodule OpalCore.SocialFlow do
            ) do
         {:ok, {revision, signal}} ->
           # Broadcast only after commit.
-          broadcast(
-            plan.conversation_id,
+          broadcast_plan(
+            plan,
             "social_flow:revision",
             %{
               "revision" => PlanRevision.to_contract(revision),
@@ -1019,8 +1019,8 @@ defmodule OpalCore.SocialFlow do
              "Proposed cancelling #{plan.title}."
            ) do
         {:ok, {revision, signal}} ->
-          broadcast(
-            plan.conversation_id,
+          broadcast_plan(
+            plan,
             "social_flow:revision",
             %{
               "revision" => PlanRevision.to_contract(revision),
@@ -1139,8 +1139,8 @@ defmodule OpalCore.SocialFlow do
            end
          end) do
       {:ok, {:broadcast_revision, revision, plan}} ->
-        broadcast(
-          plan.conversation_id,
+        broadcast_plan(
+          plan,
           "social_flow:revision",
           %{
             "revision" => PlanRevision.to_contract(revision)
@@ -1151,8 +1151,8 @@ defmodule OpalCore.SocialFlow do
         {:ok, revision}
 
       {:ok, {:broadcast_plan, plan, revision, signal}} ->
-        broadcast(
-          plan.conversation_id,
+        broadcast_plan(
+          plan,
           "social_flow:plan",
           %{
             "plan" => plan_payload(plan),
@@ -1193,8 +1193,28 @@ defmodule OpalCore.SocialFlow do
       else
         time_label = changes["time_label"] || plan.time_label
 
-        {%{status: "changed", time_label: time_label, current_revision_id: rev.id},
-         "Dinner moved to #{time_label}."}
+        # F12-02c (gyroscope) — project the accepted change into the fold's
+        # explicit action log, same as change_plan_schedule/1, so the next
+        # sync_conversation keeps the accepted schedule verbatim.
+        alignment =
+          append_explicit_action(plan.alignment || %{}, %{
+            "kind" => "schedule_change",
+            "actor_user_id" => actor,
+            "field" => "time_label",
+            "value" => time_label,
+            "truth" => "locked",
+            "explicit" => true,
+            "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+            "revision_id" => rev.id,
+            "at" => DateTime.to_iso8601(now)
+          })
+
+        {%{
+           status: "changed",
+           time_label: time_label,
+           current_revision_id: rev.id,
+           alignment: alignment
+         }, "Dinner moved to #{time_label}."}
       end
 
     {:ok, rev} =
@@ -1366,15 +1386,14 @@ defmodule OpalCore.SocialFlow do
            end
          end) do
       {:ok, {plan, notify_user_ids}} ->
-        # Center plans have no conversation topic; the caller notifies.
-        if is_binary(plan.conversation_id) do
-          broadcast(
-            plan.conversation_id,
-            "social_flow:plan",
-            %{"plan" => plan_payload(plan), "cancelled" => true},
-            trace
-          )
-        end
+        # broadcast_plan/4 fans out on the conversation topic for chat plans
+        # and the owner user topic for conversation-less Center plans.
+        broadcast_plan(
+          plan,
+          "social_flow:plan",
+          %{"plan" => plan_payload(plan), "cancelled" => true},
+          trace
+        )
 
         {:ok, %{plan: plan, notify_user_ids: notify_user_ids}}
 
@@ -1436,6 +1455,219 @@ defmodule OpalCore.SocialFlow do
     })
   end
 
+  @doc """
+  F12-02 — the `plan.change_time` intent execution contract (peer chat + Center).
+
+  The extractor/reasoner layer owns classifying utterance text into the
+  `plan.change_time` intent (R2 wiring — see the F12-02 note in this module's
+  docs); this is the handler it calls:
+
+      SocialFlow.apply_nl_schedule_change(%{
+        conversation_id: conversation_id | nil,
+        user_id: user_id,
+        text: raw_text,
+        trace_id: trace_id
+      })
+
+  Resolution uses the same owner-scoped "current plan" query as
+  confirm_pending_revision/1 (one ordering, no per-surface shadow). Then:
+
+  - lead/organizer → change_plan_time/1 direct edit (FOR UPDATE lock,
+    revision row, audit, broadcast, calendar projection)
+  - non-lead participant → propose_revision/1 (approval flow; never a silent
+    direct edit)
+  - no interpretable time → {:error, :no_time_found} (honest, no mutation)
+  - no active plan → {:error, :no_active_plan}
+
+  Time interpretation reuses DateTimeChange.interpret/3 — the same parser the
+  alignment fold uses — so NL phrasings behave identically in chat and fold.
+  """
+  def apply_nl_schedule_change(attrs) when is_map(attrs) do
+    user_id = Map.get(attrs, :user_id) || Map.get(attrs, "user_id")
+    text = Map.get(attrs, :text) || Map.get(attrs, "text")
+    conversation_id = Map.get(attrs, :conversation_id) || Map.get(attrs, "conversation_id")
+    trace_id = Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") || @trace_default
+
+    cond do
+      not is_binary(user_id) or user_id == "" -> {:error, :invalid}
+      not is_binary(text) or String.trim(text) == "" -> {:error, :invalid}
+      true -> do_apply_nl_schedule_change(conversation_id, user_id, text, trace_id)
+    end
+  end
+
+  def apply_nl_schedule_change(_), do: {:error, :invalid}
+
+  defp do_apply_nl_schedule_change(conversation_id, user_id, text, trace_id)
+       when is_binary(conversation_id) do
+    with :ok <- ensure_member(conversation_id, user_id),
+         %SharedPlan{} = plan <-
+           OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(
+             conversation_id
+           ) || {:error, :no_active_plan},
+         {:ok, label} <- nl_schedule_label(text) do
+      if plan_lead?(plan, user_id) do
+        change_plan_time(%{
+          plan_id: plan.id,
+          user_id: user_id,
+          new_time_label: label,
+          trace_id: trace_id
+        })
+      else
+        propose_revision(%{
+          plan_id: plan.id,
+          proposed_by_user_id: user_id,
+          changes: %{"time_label" => label},
+          trace_id: trace_id
+        })
+      end
+    else
+      {:error, _} = err -> err
+    end
+  end
+
+  defp do_apply_nl_schedule_change(_conversation_id, _user_id, _text, _trace_id),
+    do: {:error, :no_active_plan}
+
+  # Interpret a change-time utterance with the fold's own temporal parser.
+  # Returns {:ok, label} or {:error, :no_time_found} — never invents a time.
+  defp nl_schedule_label(text) do
+    case OpalCore.SocialFlow.DateTimeChange.interpret(text, %{}, scoped: true) do
+      {:change, %{"summary" => summary}} when is_binary(summary) ->
+        case validate_schedule_label(summary) do
+          :ok -> {:ok, summary}
+          {:error, _} -> {:error, :no_time_found}
+        end
+
+      _ ->
+        {:error, :no_time_found}
+    end
+  end
+
+  @doc """
+  F12-06/F12-07 — owner-scoped plan listing (backs GET /api/v1/product/opal/plans).
+
+  Returns the user's SharedPlans — including conversation-less Center plans
+  (source "center") that every conversation-scoped read path excludes — newest
+  first. Ownership = created_by_user_id OR a PlanParticipant row for the user.
+  Cancelled plans are excluded by default; pass `status: :all` for history.
+
+  This is the one owner-scoped plan query feeding the Graphs/Timeline
+  projections (gyroscope: no per-surface shadow state).
+  """
+  def list_plans_for_user(user_id, opts \\ []) when is_binary(user_id) do
+    participant_plan_ids =
+      from(pp in PlanParticipant, where: pp.user_id == ^user_id, select: pp.plan_id)
+      |> Repo.all()
+
+    q =
+      from(p in SharedPlan,
+        where: p.created_by_user_id == ^user_id or p.id in ^participant_plan_ids,
+        order_by: [desc: p.updated_at, desc: p.inserted_at],
+        limit: 100
+      )
+
+    q =
+      if Keyword.get(opts, :status) == :all do
+        q
+      else
+        from(p in q, where: p.status != "cancelled")
+      end
+
+    plans = Repo.all(q)
+    {:ok, Enum.map(plans, &plan_payload/1)}
+  end
+
+  def list_plans_for_user(_, _), do: {:error, :invalid}
+
+  @doc """
+  F12-05/F12-07 — explicit share-to-chat authority path.
+
+  Projects an owner-private Center plan into a human conversation the user
+  explicitly chooses. Lead-only (the plan's lead or creator). Writes a durable
+  plan-announcement Signal on the conversation (never a fake human message),
+  audits, projects to the native calendar (idempotent per plan version), and
+  broadcasts on the conversation topic.
+
+  The plan itself stays owner-scoped (conversation_id untouched) — sharing is
+  a projection, not a move. This is the lawful replacement for the old
+  maybe_project_peer_chat stub and respects OpalPlanConfirm's boundary:
+  nothing auto-opens a human conversation; the user picks the destination.
+  """
+  def share_plan_to_conversation(%{
+        plan_id: plan_id,
+        user_id: user_id,
+        conversation_id: conversation_id
+      } = attrs)
+      when is_binary(plan_id) and is_binary(user_id) and is_binary(conversation_id) do
+    trace_id = Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") || @trace_default
+
+    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id) || {:error, :not_found},
+         :ok <- ensure_plan_access(plan, user_id),
+         :ok <- ensure_member(conversation_id, user_id) do
+      cond do
+        not plan_lead?(plan, user_id) ->
+          {:error, :not_authorized}
+
+        plan.status == "cancelled" ->
+          {:error, :invalid_status}
+
+        true ->
+          case Repo.transaction(fn ->
+                 signal =
+                   insert_signal!(%{
+                     conversation_id: conversation_id,
+                     plan_id: plan.id,
+                     kind: "plan_shared",
+                     status: "visible",
+                     copy: share_announcement_copy(plan),
+                     visibility: "shared",
+                     actions: %{"items" => []}
+                   })
+
+                 audit!(
+                   conversation_id,
+                   plan.id,
+                   user_id,
+                   "plan.shared_to_conversation",
+                   %{"plan_id" => plan.id, "conversation_id" => conversation_id},
+                   trace_id
+                 )
+
+                 _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
+                 signal
+               end) do
+            {:ok, signal} ->
+              broadcast(
+                conversation_id,
+                "social_flow:plan",
+                %{
+                  "plan" => plan_payload(plan),
+                  "signal" => Signal.to_contract(signal),
+                  "shared" => true
+                },
+                trace_id
+              )
+
+              {:ok, %{plan: plan, signal: signal}}
+
+            {:error, reason} ->
+              {:error, reason}
+          end
+      end
+    else
+      nil -> {:error, :not_found}
+      {:error, _} = err -> err
+    end
+  end
+
+  def share_plan_to_conversation(_), do: {:error, :invalid}
+
+  defp share_announcement_copy(%SharedPlan{} = plan) do
+    when_bit = plan.time_label || "time to be set"
+    "Shared a plan: #{plan.title || "Plans"} · #{when_bit}"
+  end
+
   # Version marker choice (documented): a PlanRevision row with
   # proposed_changes["kind"] == "schedule_change", status "accepted", and
   # approvals %{lead => "accept"}, linked via plan.current_revision_id — the
@@ -1443,6 +1675,15 @@ defmodule OpalCore.SocialFlow do
   # plan.time_label; date has no dedicated column (no migration in repair #11),
   # so the date label lives in alignment display metadata plus the revision
   # history. Transaction + broadcast-after-commit, payload carries the change.
+  #
+  # F12-02c (gyroscope): the same transaction also appends a "schedule_change"
+  # explicit action to the alignment fold's action log. Without it, the next
+  # sync_conversation recomputes time_label from fold state that is blind to
+  # PlanRevision rows and reverts the lead's edit. The revision chain stays
+  # the schedule authority; the action is its fold-visible projection.
+  #
+  # F12-05d: every schedule write projects to the native Opal calendar, so
+  # direct edits land on the calendar too — not just proposal agreements.
   defp change_plan_schedule(%{
          plan_id: plan_id,
          user_id: user_id,
@@ -1453,57 +1694,80 @@ defmodule OpalCore.SocialFlow do
        when field in ~w(time_label date_label) do
     trace = trace_id || @trace_default
 
-    with :ok <- validate_schedule_label(value) do
-      case Repo.transaction(fn ->
-             plan =
-               from(p in SharedPlan, where: p.id == ^plan_id, lock: "FOR UPDATE")
-               |> Repo.one()
+    case Repo.transaction(fn ->
+           plan =
+             from(p in SharedPlan, where: p.id == ^plan_id, lock: "FOR UPDATE")
+             |> Repo.one()
 
-             with %SharedPlan{} = plan <- plan,
-                  :ok <- ensure_plan_access(plan, user_id) do
-               cond do
-                 not plan_lead?(plan, user_id) ->
-                   Repo.rollback(:not_authorized)
+           with %SharedPlan{} = plan <- plan,
+                :ok <- ensure_plan_access(plan, user_id),
+                :ok <- validate_schedule_label(value) do
+             cond do
+               not plan_lead?(plan, user_id) ->
+                 Repo.rollback(:not_authorized)
 
-                 plan.status == "cancelled" ->
-                   Repo.rollback(:invalid_status)
+               plan.status == "cancelled" ->
+                 Repo.rollback(:invalid_status)
 
-                 true ->
-                   now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+               true ->
+                 now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-                   plan_attrs =
-                     case field do
-                       "time_label" ->
-                         %{time_label: value}
+                 # F12-02c — the revision chain is the sole schedule authority.
+                 # The date_label lives in the alignment map; merge it first so
+                 # the explicit action below doesn't clobber it.
+                 base_alignment =
+                   case field do
+                     "date_label" -> Map.put(plan.alignment || %{}, "date_label", value)
+                     _ -> plan.alignment || %{}
+                   end
 
-                       "date_label" ->
-                         %{alignment: Map.put(plan.alignment || %{}, "date_label", value)}
-                     end
+                 plan_attrs =
+                   case field do
+                     "time_label" -> %{time_label: value}
+                     "date_label" -> %{}
+                   end
 
-                   {:ok, revision} =
-                     %PlanRevision{}
-                     |> PlanRevision.changeset(%{
-                       plan_id: plan.id,
-                       proposed_by_user_id: user_id,
-                       prior_revision_id: plan.current_revision_id,
-                       proposed_changes: %{
-                         "kind" => "schedule_change",
-                         "field" => field,
-                         "new_value" => value
-                       },
-                       status: "accepted",
-                       accepted_at: now,
-                       required_approvals: [user_id],
-                       approvals: %{user_id => "accept"}
+                 {:ok, revision} =
+                   %PlanRevision{}
+                   |> PlanRevision.changeset(%{
+                     plan_id: plan.id,
+                     proposed_by_user_id: user_id,
+                     prior_revision_id: plan.current_revision_id,
+                     proposed_changes: %{
+                       "kind" => "schedule_change",
+                       "field" => field,
+                       "new_value" => value
+                     },
+                     status: "accepted",
+                     accepted_at: now,
+                     required_approvals: [user_id],
+                     approvals: %{user_id => "accept"}
+                   })
+                   |> Repo.insert()
+
+                 alignment =
+                   append_explicit_action(base_alignment, %{
+                     "kind" => "schedule_change",
+                     "actor_user_id" => user_id,
+                     "field" => field,
+                     "value" => value,
+                     "truth" => "locked",
+                     "explicit" => true,
+                     "schema_version" =>
+                       OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+                     "revision_id" => revision.id,
+                     "at" => DateTime.to_iso8601(now)
+                   })
+
+                 {:ok, plan} =
+                   plan
+                   |> SharedPlan.changeset(
+                     Map.merge(plan_attrs, %{
+                       current_revision_id: revision.id,
+                       alignment: alignment
                      })
-                     |> Repo.insert()
-
-                   {:ok, plan} =
-                     plan
-                     |> SharedPlan.changeset(
-                       Map.merge(plan_attrs, %{current_revision_id: revision.id})
-                     )
-                     |> Repo.update()
+                   )
+                   |> Repo.update()
 
                    audit!(
                      plan.conversation_id,
@@ -1518,6 +1782,10 @@ defmodule OpalCore.SocialFlow do
                      trace
                    )
 
+                   # Supersede prior calendar versions and project the new
+                   # schedule — same discipline as the revision-accept path.
+                   _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
+
                    {plan, revision}
                end
              else
@@ -1526,8 +1794,8 @@ defmodule OpalCore.SocialFlow do
              end
            end) do
         {:ok, {plan, revision}} ->
-          broadcast(
-            plan.conversation_id,
+          broadcast_plan(
+            plan,
             "social_flow:plan",
             %{
               "plan" => plan_payload(plan),
@@ -1540,16 +1808,64 @@ defmodule OpalCore.SocialFlow do
             trace
           )
 
+          # F12-08 — the alignment strip / plan projections derive from the
+          # alignment snapshot, so a direct schedule edit must also publish
+          # the snapshot refresh the frontend needs. R3 consumes this event;
+          # the payload carries everything to re-render without a refetch.
+          broadcast_plan(
+            plan,
+            "social_flow:alignment_updated",
+            %{
+              "plan_id" => plan.id,
+              "conversation_id" => plan.conversation_id,
+              "time_label" => plan.time_label,
+              "date_label" => get_in(plan.alignment || %{}, ["date_label"]),
+              "status" => plan.status,
+              "revision_id" => revision.id,
+              "source" => "schedule_change",
+              "lead_user_id" => lead_user_id(plan),
+              "organizer_name" => organizer_name(plan)
+            },
+            trace
+          )
+
           {:ok, %{plan: plan}}
 
         {:error, reason} ->
           {:error, reason}
       end
-    end
   end
 
+  # F12-54 — a schedule label is user-visible on every surface; garbage
+  # accepted here persists verbatim into time_label and renders in UI.
+  # A label must carry at least a time signal (digit, meridiem, day/month
+  # name, or relative-time word); content-free tokens like "asdf" are
+  # rejected, never normalized into a fake schedule.
+  @schedule_label_time_re ~r/\b(am|pm|a\.m\.|p\.m\.|noon|midnight|morning|afternoon|evening|night|today|tonight|tomorrow|weekend|tbd|tba|flexible|later|soon|window|sometime)\b/i
+  @schedule_label_day_re ~r/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\b/i
+
   defp validate_schedule_label(value) when is_binary(value) do
-    if String.trim(value) == "", do: {:error, :invalid_label}, else: :ok
+    trimmed = String.trim(value)
+
+    cond do
+      trimmed == "" ->
+        {:error, :invalid_label}
+
+      String.length(trimmed) > 120 ->
+        {:error, :invalid_label}
+
+      Regex.match?(~r/\d/, trimmed) ->
+        :ok
+
+      Regex.match?(@schedule_label_day_re, trimmed) ->
+        :ok
+
+      Regex.match?(@schedule_label_time_re, trimmed) ->
+        :ok
+
+      true ->
+        {:error, :invalid_label}
+    end
   end
 
   defp validate_schedule_label(_), do: {:error, :invalid_label}
@@ -1705,6 +2021,13 @@ defmodule OpalCore.SocialFlow do
     :ok
   end
 
+  # F12-07 — a nil conversation_id used to publish to the degenerate topic
+  # "social_flow:conversation:" with zero subscribers, so Center-plan
+  # mutations were silent everywhere. broadcast/4 now refuses a nil topic;
+  # plan events go through broadcast_plan/4, which fans conversation-less
+  # plans out on an owner-scoped user topic instead.
+  defp broadcast(nil, _event, _payload, _trace_id), do: :ok
+
   defp broadcast(conversation_id, event, payload, trace_id) do
     envelope = Contracts.event_envelope(event, payload, trace_id)
 
@@ -1718,14 +2041,45 @@ defmodule OpalCore.SocialFlow do
     :ok
   end
 
-  defp latest_plan(conversation_id) do
-    from(p in SharedPlan,
-      where:
-        p.conversation_id == ^conversation_id and p.status in ^["agreed", "changed", "tentative"],
-      order_by: [desc: p.inserted_at],
-      limit: 1
+  # Owner-scoped plan fanout (gyroscope): conversation plans publish on the
+  # conversation topic; conversation-less Center plans publish on the owner's
+  # user topic so Graphs/Timeline/Calendar subscribers still hear them.
+  defp broadcast_plan(%SharedPlan{conversation_id: cid}, event, payload, trace_id)
+       when is_binary(cid) and cid != "" do
+    broadcast(cid, event, payload, trace_id)
+  end
+
+  defp broadcast_plan(%SharedPlan{created_by_user_id: uid}, event, payload, trace_id)
+       when is_binary(uid) do
+    envelope = Contracts.event_envelope(event, payload, trace_id)
+
+    Phoenix.PubSub.broadcast(
+      OpalCore.PubSub,
+      "social_flow:user:#{uid}",
+      {:social_flow_event, event, envelope}
     )
-    |> Repo.one()
+
+    :ok
+  end
+
+  defp broadcast_plan(_, _, _, _), do: :ok
+
+  # Appends one explicit action to the alignment fold's action log — the
+  # fold-visible projection of a direct revision write (F12-02c). Each direct
+  # edit is a deliberate act with its own revision row, so no dedupe here;
+  # replay order is by the action's "at" timestamp.
+  defp append_explicit_action(alignment, action) when is_map(alignment) and is_map(action) do
+    actions = Map.get(alignment, "explicit_actions") || []
+    Map.put(alignment, "explicit_actions", actions ++ [action])
+  end
+
+  # F12-59 (gyroscope) — ONE owner-scoped ordering for "the conversation's
+  # current plan". Delegates to ConversationAlignment.active_plan_for_conversation/1
+  # (updated_at desc, inserted_at desc) — the same query sync_conversation and
+  # messages.current_plan_alignment use — so confirm_pending_revision/1 always
+  # acts on the plan the client is showing. Never order by inserted_at alone here.
+  defp latest_plan(conversation_id) do
+    OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(conversation_id)
   end
 
   # --- Repair #11: single lead/organizer authority (B1) ---
@@ -2152,9 +2506,41 @@ defmodule OpalCore.SocialFlow do
             {plan, [participant]}
           end)
           |> case do
-            {:ok, {plan, participants}} -> {:ok, plan, participants}
-            {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
-            {:error, reason} -> {:error, reason}
+            {:ok, {plan, participants}} ->
+              # F12-05d — Center creates project to the native Opal calendar,
+              # like every other plan-creation path.
+              _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
+              audit!(
+                nil,
+                plan.id,
+                user_id,
+                "plan.created",
+                %{
+                  "source" => "center",
+                  "title" => plan.title,
+                  "time_label" => plan.time_label
+                },
+                "trace-social-flow-center-1"
+              )
+
+              # F12-07 — Center creates were silent (broadcast(nil, …) went to
+              # a degenerate topic). broadcast_plan/4 fans out on the owner's
+              # user topic so Graphs/Timeline hear the new plan.
+              broadcast_plan(
+                plan,
+                "social_flow:plan",
+                %{"plan" => plan_payload(plan), "created" => true},
+                "trace-social-flow-center-1"
+              )
+
+              {:ok, plan, participants}
+
+            {:error, %Ecto.Changeset{} = cs} ->
+              {:error, cs}
+
+            {:error, reason} ->
+              {:error, reason}
           end
       end
     end

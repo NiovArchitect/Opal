@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.OpalConversationController do
   GET  /api/v1/product/opal/conversation
   POST /api/v1/product/opal/conversation/messages
   POST /api/v1/product/opal/plans — Paste J Phase 1 Center "Go with this"
+  GET  /api/v1/product/opal/plans — F12-06/07 owner-scoped plan listing
   """
 
   use OpalCoreWeb, :controller
@@ -159,11 +160,23 @@ defmodule OpalCoreWeb.OpalConversationController do
 
     case SocialFlow.create_tentative_plan_from_center(user_id, params) do
       {:ok, plan, participants} ->
+        # F12-05 — drive to completion: calendar, restaurant discovery (when
+        # no venue chosen), ride/directions next-steps.
+        completion =
+          case SocialFlow.PlanCompletion.drive(plan.id, user_id) do
+            {:ok, c} -> c
+            _ -> %{plan_id: plan.id, steps: []}
+          end
+
         conn
         |> put_status(201)
         |> json(%{
           "plan" => SharedPlan.to_contract(plan),
           "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
+          "completion" => %{
+            "steps" => completion.steps,
+            "next_steps" => next_step_copies(completion.steps)
+          },
           "message" => "It's on your day. Invite someone when you're ready."
         })
 
@@ -180,9 +193,38 @@ defmodule OpalCoreWeb.OpalConversationController do
     end
   end
 
+  @doc """
+  F12-06/F12-07 — owner-scoped plan listing for Graphs/Timeline projections.
+
+  GET /api/v1/product/opal/plans — returns the caller's SharedPlans including
+  conversation-less Center plans (source "center"), newest first. Cancelled
+  plans excluded unless `?status=all`.
+  """
+  def list_plans(conn, params) do
+    user_id = conn.assigns.current_user_id
+    opts = if params["status"] == "all", do: [status: :all], else: []
+
+    case SocialFlow.list_plans_for_user(user_id, opts) do
+      {:ok, plans} ->
+        json(conn, %{"plans" => plans})
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
   defp not_found(conn) do
     conn |> put_status(404) |> json(%{"error_code" => "not_found"})
   end
+
+  # F12-05 — surface the completion driver's suggested asks/offers.
+  defp next_step_copies(steps) when is_list(steps) do
+    steps
+    |> Enum.filter(&(&1["status"] == "suggested" and is_binary(&1["copy"])))
+    |> Enum.map(& &1["copy"])
+  end
+
+  defp next_step_copies(_), do: []
 
   defp unprocessable(conn, %Ecto.Changeset{} = cs) do
     conn

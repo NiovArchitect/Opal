@@ -5,7 +5,9 @@ defmodule OpalCore.SocialFlow.Signal do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @kinds ~w(possible_plan missing_detail agreement commitment private_reminder revision reconnect_summary)
+  # F12-05/F12-07 — "plan_shared": an owner-private Center plan explicitly
+  # projected into a human conversation (share_plan_to_conversation/1).
+  @kinds ~w(possible_plan missing_detail agreement commitment private_reminder revision reconnect_summary plan_shared)
   @statuses ~w(proposed visible acted dismissed snoozed superseded expired corrected)
 
   schema "social_flow_signals" do

@@ -69,13 +69,14 @@ defmodule OpalCore.SocialFlow.OpalCalendar.Commitment do
       :metadata
     ])
     |> validate_required([
-      :conversation_id,
       :owner_user_id,
       :status,
       :start_at,
       :end_at,
       :timezone
     ])
+    # F12-05d — conversation_id is optional: conversation-less Center plans
+    # project owner-private commitments with a nil conversation_id.
     |> validate_inclusion(:status, @statuses)
     |> validate_inclusion(:external_sync_status, @sync_statuses)
     |> validate_range()
