@@ -139,7 +139,7 @@ describe("InviteFriendsSection", () => {
       },
       delivery: {
         sms_queued: false,
-        sms_honest: "SMS invites need Twilio setup — share the link instead.",
+        sms_honest: "SMS invites need Twilio setup - share the link instead.",
       },
     });
 

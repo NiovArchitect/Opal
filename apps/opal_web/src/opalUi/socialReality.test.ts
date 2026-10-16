@@ -107,7 +107,7 @@ describe("social reality next-gap engine", () => {
     expect(r.what).toBe("Coffee");
   });
 
-  it("continuation is daypart-aware — not always Extend the night", () => {
+  it("continuation is daypart-aware - not always Extend the night", () => {
     const morning = deriveSocialReality(
       sig({
         kind: "set",

@@ -68,7 +68,7 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     title: "This phone",
     screen: "linked-devices",
     class: "GREEN",
-    wire: "Local session projection (Active) — this device only",
+    wire: "Local session projection (Active) - this device only",
   },
   {
     id: "linked-from-account",
@@ -89,7 +89,7 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     title: "Keep my account",
     screen: "delete-account",
     class: "GREEN",
-    wire: "Local dismiss back to Account — no fake delete",
+    wire: "Local dismiss back to Account - no fake delete",
   },
   {
     id: "appearance-theme",
@@ -103,7 +103,7 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     title: "Nearby range",
     screen: "feed-discovery",
     class: "HIDDEN",
-    wire: "Pass B hide — discovery-distance preference API not shipped",
+    wire: "Pass B hide - discovery-distance preference API not shipped",
   },
 ];
 

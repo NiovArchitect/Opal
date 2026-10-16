@@ -165,5 +165,5 @@ export function readFitContextForOpal(
   if (labels.length) parts.push(`activities: ${labels.join(", ")}`);
   if (goalLabel) parts.push(`goal: ${goalLabel}`);
   if (!parts.length) return "Fit preferences shared (none set yet).";
-  return `Fit — ${parts.join("; ")}.`;
+  return `Fit - ${parts.join("; ")}.`;
 }

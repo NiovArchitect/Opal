@@ -28,7 +28,7 @@ describe("discoveryOptions", () => {
 
   test("blocks scarcity and emotional commercial copy", () => {
     expect(isProhibitedDiscoveryCopy("Harbor Table fits accessibility.")).toBe(false);
-    expect(isProhibitedDiscoveryCopy("Only 2 left — act now!")).toBe(true);
+    expect(isProhibitedDiscoveryCopy("Only 2 left - act now!")).toBe(true);
     expect(isProhibitedDiscoveryCopy("You need a relaxing date")).toBe(true);
   });
 

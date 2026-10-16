@@ -81,7 +81,7 @@ export async function setupCallKeep(): Promise<boolean> {
     setupDone = true;
     return true;
   } catch (e) {
-    console.warn("[opal-call] CallKeep setup failed — using in-app fallback", e);
+    console.warn("[opal-call] CallKeep setup failed - using in-app fallback", e);
     return false;
   }
 }

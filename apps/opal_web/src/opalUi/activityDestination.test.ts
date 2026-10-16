@@ -10,7 +10,7 @@ describe("ActivityDestination A6.1 Attention Center", () => {
   const home = readFileSync(resolve(root, "GraphSocialHome.tsx"), "utf8");
   const rt = readFileSync(resolve(root, "../realtime/RealtimeClient.ts"), "utf8");
 
-  it("projects For you / Waiting / Updated — domain needs_you stays internal", () => {
+  it("projects For you / Waiting / Updated - domain needs_you stays internal", () => {
     expect(src).toMatch(/For you/);
     expect(src).toMatch(/Waiting/);
     expect(src).toMatch(/Updated/);
@@ -32,7 +32,7 @@ describe("ActivityDestination A6.1 Attention Center", () => {
     expect(src).not.toMatch(/>not found</i);
   });
 
-  it("deep-links to canonical action — no second acceptance path", () => {
+  it("deep-links to canonical action - no second acceptance path", () => {
     expect(src).toMatch(/onOpenAttentionItem/);
     expect(src).toMatch(/deep_link/);
     expect(src).not.toMatch(/approveProposal|acceptInline/);

@@ -126,7 +126,7 @@ describe("WHO-FAST-PATH-01 multi-person + no monopoly", () => {
   });
 });
 
-describe("P31-PATCH-01 direct dyad audience — never silent group widen", () => {
+describe("P31-PATCH-01 direct dyad audience - never silent group widen", () => {
   it("treats multi-name group title as multi-party", () => {
     expect(isMultiPartyConversation(groupMayaChrisJordan)).toBe(true);
     expect(isDirectDyadConversation(groupMayaChrisJordan)).toBe(false);

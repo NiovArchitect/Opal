@@ -7,7 +7,7 @@ import {
   episodeCategoryFrom,
 } from "./placeComposition";
 
-describe("placeComposition — memory + episode precedence", () => {
+describe("placeComposition - memory + episode precedence", () => {
   it("provider projection feeds existing composePlaceOptions without new engine", () => {
     const fromProvider = candidatesFromProviderProjection([
       {

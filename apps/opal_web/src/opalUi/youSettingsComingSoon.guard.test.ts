@@ -29,7 +29,7 @@ function screenBlock(key: string): string {
   return m![1];
 }
 
-describe("You settings — zero Coming soon + Pass B hide", () => {
+describe("You settings - zero Coming soon + Pass B hide", () => {
   it("has no user-facing Coming soon anywhere in YouSettingsDestination", () => {
     expect(code).not.toMatch(/Coming soon/i);
     expect(code).not.toMatch(/comingSoon\s*:/);

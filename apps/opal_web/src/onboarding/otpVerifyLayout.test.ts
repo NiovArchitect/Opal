@@ -10,7 +10,7 @@ const root = resolve(__dirname, "..");
 const css = readFileSync(resolve(root, "styles.css"), "utf8");
 const fre = readFileSync(resolve(__dirname, "FirstRunExperience.tsx"), "utf8");
 
-describe("Paste W6 Phase 0 — OTP Verify layout law", () => {
+describe("Paste W6 Phase 0 - OTP Verify layout law", () => {
   it("uses character identity, not abstract OPALGRAPH emblem, on verify", () => {
     expect(fre).toMatch(/fr-character-lockup|CharacterLockup/);
     expect(fre).toMatch(/opalCharacter|opal-character\.png/);

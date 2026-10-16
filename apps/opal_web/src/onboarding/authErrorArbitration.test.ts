@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const fr = readFileSync(resolve(__dirname, "FirstRunExperience.tsx"), "utf8");
 
 describe("auth error arbitration", () => {
-  it("fr06 renders error XOR status — never both", () => {
+  it("fr06 renders error XOR status - never both", () => {
     const fr06 = fr.slice(fr.indexOf('step === "fr06"'), fr.indexOf('step === "fr07"'));
     expect(fr06).toMatch(/error \? \(/);
     expect(fr06).toMatch(/: statusLine \? \(/);

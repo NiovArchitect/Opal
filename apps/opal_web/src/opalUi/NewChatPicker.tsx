@@ -112,7 +112,7 @@ export function NewChatPicker({
 
       <h1 className="chats-home-title">New chat</h1>
       <p className="gsh-meta">
-        One person opens a direct. Multiple people create an explicit group — never widens a dyad.
+        One person opens a direct. Multiple people create an explicit group - never widens a dyad.
       </p>
 
       <input

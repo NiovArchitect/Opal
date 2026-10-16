@@ -139,7 +139,7 @@ export function GraphCreateFlow({
       });
       if (result.status === "cancelled") {
         if (source === "camera") {
-          setNote("Camera cancelled — use Library, or try again.");
+          setNote("Camera cancelled - use Library, or try again.");
         }
         return;
       }
@@ -205,7 +205,7 @@ export function GraphCreateFlow({
           <p className="graph-create-lede">Start with something people can feel.</p>
           {contextLine ? (
             <p className="graph-create-context" data-testid="graph-create-context">
-              {contextLine} — Opal will not re-ask known dimensions.
+              {contextLine} - Opal will not re-ask known dimensions.
               {knownWho && onChangeWho ? (
                 <>
                   {" "}
@@ -260,7 +260,7 @@ export function GraphCreateFlow({
                 className="graph-create-thumb"
                 style={{ background: slot.bg }}
                 data-testid={`graph-create-recent-${i}`}
-                aria-label="Recent media slot — empty"
+                aria-label="Recent media slot - empty"
                 onClick={openLibrary}
               />
             ))}
@@ -310,7 +310,7 @@ export function GraphCreateFlow({
             id="gc-when"
             className="graph-create-when-input"
             data-testid="graph-create-when"
-            placeholder="When — decide together"
+            placeholder="When - decide together"
             value={whenLabel}
             onChange={(e) => setWhenLabel(e.target.value)}
           />

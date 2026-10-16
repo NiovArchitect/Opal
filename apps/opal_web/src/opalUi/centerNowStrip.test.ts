@@ -54,7 +54,7 @@ describe("Paste W6 Phase 5 center now strip", () => {
     expect(strip.nodes[1]?.label).toBe("Dinner");
   });
 
-  it("after sample day: Now/Open only — past events drop (real clock)", () => {
+  it("after sample day: Now/Open only - past events drop (real clock)", () => {
     const day = new Date(2026, 9, 9, 22, 0, 0, 0);
     const strip = composeNowStrip({
       nowMs: day.getTime(),

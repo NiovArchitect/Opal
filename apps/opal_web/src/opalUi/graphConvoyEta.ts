@@ -160,7 +160,7 @@ export function sortConvoyByArrival(members: ConvoyMember[], now = new Date()): 
     return {
       userId: m.userId,
       displayName: m.displayName,
-      line: `${m.displayName} — ${convoyStatusLine(m, now)}`,
+      line: `${m.displayName} - ${convoyStatusLine(m, now)}`,
       sortKey,
       travelState: m.travelState,
       location: view.location,

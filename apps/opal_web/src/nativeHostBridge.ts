@@ -457,7 +457,7 @@ function deliverSpeechDetail(detail: unknown): void {
         message:
           typeof msg.message === "string"
             ? msg.message
-            : "Voice input isn’t available on this build yet — type instead.",
+            : "Voice input isn’t available on this build yet - type instead.",
       });
       return;
     }
@@ -480,7 +480,7 @@ export function startNativeSpeechRecognition(): Promise<NativeSpeechResult> {
   if (!shouldUseNativeMediaBridge()) {
     return Promise.resolve({
       status: "unavailable",
-      message: "Voice isn’t set up on this build — type instead.",
+      message: "Voice isn’t set up on this build - type instead.",
     });
   }
   const request_id = newRequestId().replace(/^media-/, "speech-");

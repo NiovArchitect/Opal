@@ -165,7 +165,7 @@ export function GraphConvoyPanel({
           ~{eta.durationMinutes} min · geometric estimate
         </p>
         <p className="gsh-meta" data-testid="graph-eta-honesty">
-          Distance-based estimate — not live traffic.
+          Distance-based estimate - not live traffic.
         </p>
         <p className="graph-exec-line" data-testid="graph-best-leave">
           Best time to leave · {formatClock(leaveBy)}

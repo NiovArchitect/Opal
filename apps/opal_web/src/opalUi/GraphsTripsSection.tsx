@@ -327,7 +327,7 @@ function TripDetail({
     } catch {
       setLegErrors((prev) => ({
         ...prev,
-        [leg.id]: "Couldn't create plan — retry",
+        [leg.id]: "Couldn't create plan - retry",
       }));
     } finally {
       setCreatingLegId(null);
@@ -843,7 +843,7 @@ export function GraphsTripsSection({ bearer, createSignal = 0 }: Props) {
         </div>
       ) : !trips.length ? (
         <div className="graphs-trips-empty" data-testid="graphs-trips-empty">
-          <p className="graphs-card-place">No trips yet — plan one together.</p>
+          <p className="graphs-card-place">No trips yet - plan one together.</p>
           <button
             type="button"
             className="btn"

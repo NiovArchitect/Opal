@@ -59,7 +59,7 @@ describe("P0-31-03 reservation → same Reality", () => {
     expect(applied.humanConsequence).not.toMatch(/execution|provider|booking operation/i);
   });
 
-  it("Solo confirmed — no peer required; same Reality", () => {
+  it("Solo confirmed - no peer required; same Reality", () => {
     const before = juniperSoloAt730();
     const applied = applyExecutionToSeed(before, {
       status: "confirmed",
@@ -73,7 +73,7 @@ describe("P0-31-03 reservation → same Reality", () => {
     expect(applied.emitConsequence).toBe(true);
   });
 
-  it("failure keeps WHAT/WHERE/WHO/WHEN — no reopen", () => {
+  it("failure keeps WHAT/WHERE/WHO/WHEN - no reopen", () => {
     const before = juniperJordanAt730();
     const applied = applyExecutionToSeed(before, {
       status: "failed",
@@ -101,7 +101,7 @@ describe("P0-31-03 reservation → same Reality", () => {
     expect(applied.humanConsequence).toBeNull();
   });
 
-  it("idempotent confirmation — second apply does not re-emit", () => {
+  it("idempotent confirmation - second apply does not re-emit", () => {
     const before = juniperJordanAt730();
     const first = applyExecutionToSeed(before, {
       status: "confirmed",

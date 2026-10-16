@@ -256,7 +256,7 @@ export function TripCanvasView({
       inIds[0] === selfId;
     if (onlySelfWasIn) {
       setCuratorNote(
-        "Just you on this activity — still want to go, or find an alternative?",
+        "Just you on this activity - still want to go, or find an alternative?",
       );
     }
     if (state === "passed") {
@@ -264,13 +264,13 @@ export function TripCanvasView({
         (r) => r.user_id !== selfId && r.state === "in",
       );
       if (afterIn.length === 0 && inIds.every((id) => id === selfId)) {
-        setCuratorNote("Everyone passed — Opal is finding an alternative…");
+        setCuratorNote("Everyone passed - Opal is finding an alternative…");
         if (bearer && tripId && !String(tripId).startsWith("seed-")) {
           void curateTripExperience(tripId, bearer)
             .then((res) => {
               const p = res.proposals?.[0];
               if (p?.venue_name) {
-                setCuratorNote(`Opal suggests: ${p.venue_name} — want to try it?`);
+                setCuratorNote(`Opal suggests: ${p.venue_name} - want to try it?`);
               }
             })
             .catch(() => {});
@@ -283,7 +283,7 @@ export function TripCanvasView({
       } catch {
         if (before) patchActivity(activity.id, before);
         else patchActivity(activity.id, "interested");
-        setGateNote("Couldn't update RSVP — try again.");
+        setGateNote("Couldn't update RSVP - try again.");
       }
     }
   };
@@ -293,7 +293,7 @@ export function TripCanvasView({
       setConvoy({
         sharing: convoy?.sharing || false,
         members: (convoy?.members || []).filter((m) => m.sharing),
-        note: "Founder seed — convoy is local until a live trip id is linked.",
+        note: "Founder seed - convoy is local until a live trip id is linked.",
       });
       return;
     }
@@ -466,7 +466,7 @@ export function TripCanvasView({
           <p className="trip-canvas-sheet-title">Share location with trip members?</p>
           <p className="trip-canvas-sheet-body">
             Share your live location with trip members for the duration of this trip. Auto-expires
-            when the trip ends. Opt-in only — never default on.
+            when the trip ends. Opt-in only - never default on.
           </p>
           <div className="trip-canvas-sheet-actions">
             <button type="button" className="trip-canvas-primary" onClick={() => void startConvoy()}>
@@ -590,10 +590,10 @@ export function TripCanvasView({
                   <article className="trip-canvas-card is-free" data-testid={`trip-block-free-${block.id}`}>
                     <p>
                       {/evening|night/i.test(block.slot || block.time_label)
-                        ? "Free evening — explore or rest."
+                        ? "Free evening - explore or rest."
                         : /morning/i.test(block.slot || block.time_label)
-                          ? "Free morning — explore or rest."
-                          : "Free afternoon — explore or rest."}
+                          ? "Free morning - explore or rest."
+                          : "Free afternoon - explore or rest."}
                     </p>
                     {block.notes ? <p className="trip-canvas-card-meta">{block.notes}</p> : null}
                   </article>
@@ -720,7 +720,7 @@ function ActivityCard({
         </p>
       ) : null}
       {allPassed ? (
-        <p className="trip-canvas-curator">Everyone passed — Opal is finding an alternative…</p>
+        <p className="trip-canvas-curator">Everyone passed - Opal is finding an alternative…</p>
       ) : null}
 
       {activity.vibe_tags?.length ? (

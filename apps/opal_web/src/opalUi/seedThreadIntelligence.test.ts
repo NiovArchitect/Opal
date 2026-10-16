@@ -11,7 +11,7 @@ import {
 import { ALEX_MEXICO_TRIP_MEMORIES, isAlexTripGraphTarget } from "./alexTripMemories";
 
 describe("seedThreadIntelligence", () => {
-  it("matches ONLY seed-chat-* conversation ids (Repair #11 — no name hijack)", () => {
+  it("matches ONLY seed-chat-* conversation ids (Repair #11 - no name hijack)", () => {
     expect(seedChatKeyFrom({ conversationId: "seed-chat-alex" })).toBe("seed-chat-alex");
     expect(seedChatKeyFrom({ conversationId: "SEED-CHAT-MAYA" })).toBe("SEED-CHAT-MAYA");
     expect(seedChatKeyFrom({ conversationId: "  seed-chat-juniper-crew " })).toBe(
@@ -19,7 +19,7 @@ describe("seedThreadIntelligence", () => {
     );
   });
 
-  it("never matches display names — real conversations are never hijacked", () => {
+  it("never matches display names - real conversations are never hijacked", () => {
     // Pre-Repair #11 behavior: these returned seed keys and painted fabricated
     // messages as real people. Now they must all be null.
     for (const name of [
@@ -50,7 +50,7 @@ describe("seedThreadIntelligence", () => {
       recent: [
         {
           from: "them",
-          body: "Got it — 10:30 market, 12 coast drive?",
+          body: "Got it - 10:30 market, 12 coast drive?",
           opalFilament: true,
           opalSystemConsequence: true,
         },
@@ -71,7 +71,7 @@ describe("seedThreadIntelligence", () => {
       recent: [
         {
           from: "them",
-          body: "Trip Graph · Mexico City — 14 memories",
+          body: "Trip Graph · Mexico City - 14 memories",
           opalFilament: true,
         },
         { from: "me", body: "that rooftop shot though" },
@@ -86,7 +86,7 @@ describe("seedThreadIntelligence", () => {
     expect(ALEX_MEXICO_TRIP_MEMORIES).toHaveLength(14);
     expect(ALEX_MEXICO_TRIP_MEMORIES.every((m) => m.person === "Alex")).toBe(true);
     expect(isAlexTripGraphTarget("seed-alex-graph-gallery")).toBe(true);
-    expect(isAlexTripGraphTarget("Trip Graph · Mexico City — 14 memories")).toBe(true);
+    expect(isAlexTripGraphTarget("Trip Graph · Mexico City - 14 memories")).toBe(true);
   });
 });
 
@@ -98,7 +98,7 @@ describe("seedThreadIntelligence", () => {
  *
  * NOTE: this repo runs vitest, not jest (package.json: "test": "vitest run").
  */
-describe("seed quarantine — adversarial", () => {
+describe("seed quarantine - adversarial", () => {
   describe("seedChatKeyFrom never matches real conversations", () => {
     const realIds = [
       "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // UUID
@@ -154,7 +154,7 @@ describe("seed quarantine — adversarial", () => {
     });
   });
 
-  describe("seedChatIdForPersonName — intentional, documented exception", () => {
+  describe("seedChatIdForPersonName - intentional, documented exception", () => {
     // This helper exists ONLY for seed-mode-only person routing (openPersonChat,
     // gated on founderSeedEnabled). It must never be used in render/send paths.
     it("maps the five seed fixtures", () => {
@@ -171,7 +171,7 @@ describe("seed quarantine — adversarial", () => {
     });
   });
 
-  describe("isSeedDemoChatTarget — production send path can never enter the seed branch", () => {
+  describe("isSeedDemoChatTarget - production send path can never enter the seed branch", () => {
     const realIds = [
       "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "12345",
@@ -194,7 +194,7 @@ describe("seed quarantine — adversarial", () => {
     });
   });
 
-  describe("seedPeerAttribution — no generated text attributable to a real person", () => {
+  describe("seedPeerAttribution - no generated text attributable to a real person", () => {
     it("marks peer messages non-human with the simulated suffix", () => {
       expect(
         seedPeerAttribution({ from: "them", senderDisplayName: "Chanelle" }),
@@ -214,7 +214,7 @@ describe("seed quarantine — adversarial", () => {
         senderDisplayName: null,
       });
     });
-    it("returns null for Opal/system/own turns — those are not peers", () => {
+    it("returns null for Opal/system/own turns - those are not peers", () => {
       expect(
         seedPeerAttribution({ from: "them", opalFilament: true, senderDisplayName: "X" }),
       ).toBeNull();
@@ -231,7 +231,7 @@ describe("seed quarantine — adversarial", () => {
     });
   });
 
-  describe("SeedSimulatedBanner — unmistakable while seed mode is active", () => {
+  describe("SeedSimulatedBanner - unmistakable while seed mode is active", () => {
     afterEach(() => {
       window.history.pushState({}, "", "/");
       window.sessionStorage.clear();

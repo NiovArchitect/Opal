@@ -261,7 +261,7 @@ export const PERSON_MEMORY_MOCK: PersonMemoryView = {
   ],
   learned_preferences: [
     {
-      summary: "Maya didn't love the rooftop — avoiding similar",
+      summary: "Maya didn't love the rooftop - avoiding similar",
       evidence_count: 2,
       provenance: "observed",
     },
@@ -281,7 +281,7 @@ export const MEDIATION_MOCK_ITEMS: MediationItem[] = [
     ],
     silent_participants: ["Jordan"],
     mediation_draft:
-      "Looks like we're split — Rooftop 8pm (Maya, Sam) vs Juniper 7:30 (Alex). Jordan hasn't weighed in. Want to pick a lane?",
+      "Looks like we're split - Rooftop 8pm (Maya, Sam) vs Juniper 7:30 (Alex). Jordan hasn't weighed in. Want to pick a lane?",
     card_state: "pending",
   },
   {
@@ -293,7 +293,7 @@ export const MEDIATION_MOCK_ITEMS: MediationItem[] = [
       { proposal: "Juniper 7:30", supporters: ["Maya", "Sam", "Alex", "Jordan"] },
     ],
     silent_participants: [],
-    mediation_draft: "Everyone's on Juniper 7:30 — lock it in?",
+    mediation_draft: "Everyone's on Juniper 7:30 - lock it in?",
     card_state: "pending",
   },
 ];
@@ -311,7 +311,7 @@ export const WEEKLY_BRIEFING_MOCK: WeeklyBriefing = {
     },
   ],
   tight_spots: [],
-  suggestion: { label: "Leave Thursday evening free — two plans already stacked" },
+  suggestion: { label: "Leave Thursday evening free - two plans already stacked" },
   question: {
     label: "Want Opal to draft Saturday options?",
     link: { kind: "plan_create", prefill: "Draft Saturday dinner options" },

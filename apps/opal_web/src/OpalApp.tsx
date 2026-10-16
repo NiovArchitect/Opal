@@ -5322,7 +5322,7 @@ export function OpalApp() {
                 setCallsGateNote(
                   label
                     ? `Open Graphs to see more on: ${label}`
-                    : "Plan detail isn't linked yet — open Graphs to browse.",
+                    : "Plan detail isn't linked yet - open Graphs to browse.",
                 );
                 setTab("graphs");
               }}
@@ -6517,7 +6517,7 @@ export function OpalApp() {
                       });
                     }
                     // Soft-lock the chosen time into the composer as a clear next step.
-                    setDraft(`Confirmed ${locked} — locked in.`);
+                    setDraft(`Confirmed ${locked} - locked in.`);
                   }}
                 >
                   Confirm
@@ -6674,7 +6674,7 @@ export function OpalApp() {
                       )
                         .then((res) => {
                           setPlanThisNote(
-                            res.message || "Plan created — invite the group to confirm.",
+                            res.message || "Plan created - invite the group to confirm.",
                           );
                           setPlanThisBusyId(null);
                           // Soft navigate: load journey projection when available (no force).
@@ -7497,7 +7497,7 @@ export function OpalApp() {
                     }
                     if (opt.id === "camera") {
                       setCallsGateNote(
-                        "Camera attach needs the native Opal host — not wired into this chat yet.",
+                        "Camera attach needs the native Opal host - not wired into this chat yet.",
                       );
                       return;
                     }
@@ -7547,7 +7547,7 @@ export function OpalApp() {
                 return;
               }
               if (isFounderSeedChatId(activeChatId)) {
-                setCallsGateNote("Voice notes need a live conversation — open a real chat.");
+                setCallsGateNote("Voice notes need a live conversation - open a real chat.");
                 return;
               }
               void (async () => {
@@ -7576,7 +7576,7 @@ export function OpalApp() {
                   // Optimistic append into local thread if hydrate helpers exist
                   setCallsGateNote(
                     res.transcription_uncertain
-                      ? "Got it — I wasn't sure I heard that right."
+                      ? "Got it - I wasn't sure I heard that right."
                       : null,
                   );
                   if (msg?.body) {
@@ -9105,7 +9105,7 @@ export function OpalApp() {
                 if (seedOn && composed.rows.length < 5) {
                   console.warn("[opal-seed]", {
                     step: "chats-list-hard-fallback",
-                    detail: "compose under-delivered founder world — painting FOUNDER_CHATS_PLAN_PILL_ROWS",
+                    detail: "compose under-delivered founder world - painting FOUNDER_CHATS_PLAN_PILL_ROWS",
                     composedLen: composed.rows.length,
                     liveLen: liveRows.length,
                     diagnostics: composed.diagnostics,
@@ -9764,7 +9764,7 @@ export function OpalApp() {
               if (!matched) {
                 setNewChatError(
                   outcome === "invite_ready"
-                    ? "That number isn’t on Opal yet — invite them first."
+                    ? "That number isn’t on Opal yet - invite them first."
                     : "Couldn’t find that person on Opal.",
                 );
                 setNewChatBusy(false);
@@ -12565,7 +12565,7 @@ function YouPane({
               >
                 <span className="you-hub-row-copy">
                   <strong>Grow Your Circle</strong>
-                  <span>Invite people you know — connect your world</span>
+                  <span>Invite people you know - connect your world</span>
                 </span>
                 <span className="you-hub-chevron" aria-hidden>
                   ›

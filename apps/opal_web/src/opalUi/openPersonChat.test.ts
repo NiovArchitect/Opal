@@ -28,7 +28,7 @@ const group: PresenceChat = {
   memberCount: 4,
 };
 
-describe("resolvePersonChatTarget — ID authority", () => {
+describe("resolvePersonChatTarget - ID authority", () => {
   it("uses explicit conversationId over display name", () => {
     const r = resolvePersonChatTarget(
       { conversationId: "live-maya-uuid", displayName: "Chanelle" },
@@ -99,7 +99,7 @@ describe("resolvePersonChatTarget — ID authority", () => {
     if (!r.ok) expect(r.reason).toBe("new_chat");
   });
 
-  it("never returns empty Chats-home for a named person — New Chat intent", () => {
+  it("never returns empty Chats-home for a named person - New Chat intent", () => {
     const r = resolvePersonChatTarget(
       { displayName: "LiveContact" },
       [],

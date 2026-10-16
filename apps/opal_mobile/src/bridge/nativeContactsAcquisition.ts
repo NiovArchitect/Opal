@@ -211,7 +211,7 @@ export async function acquireNativeContacts(
       request_id: req.request_id,
       permission,
       message:
-        "Opal needs your contacts so you can pick real people to plan with — not type names from memory.",
+        "Opal needs your contacts so you can pick real people to plan with - not type names from memory.",
     };
   }
 

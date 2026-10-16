@@ -36,7 +36,7 @@ export const SAMPLE_DAY_SPECS = [
 export const STRIP_TICK_MS = 60_000;
 
 export const SAMPLE_DAY_ATTRIBUTION =
-  "Sample day — not your real appointments. Link calendar for live events.";
+  "Sample day - not your real appointments. Link calendar for live events.";
 
 export const CALENDAR_DAY_ATTRIBUTION = "From your linked calendar.";
 

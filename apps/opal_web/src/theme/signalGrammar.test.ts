@@ -20,7 +20,7 @@ describe("P3 Signal Grammar", () => {
     expect(signalForCallsKind(undefined)).toBeNull();
   });
 
-  it("goldAllowedFor requires earned reality — not confidence", () => {
+  it("goldAllowedFor requires earned reality - not confidence", () => {
     expect(goldAllowedFor({})).toBe(false);
     expect(goldAllowedFor({ providerConfirmed: true })).toBe(true);
     expect(goldAllowedFor({ participantConfirmed: true })).toBe(true);

@@ -31,7 +31,7 @@ const CONTEXT_GLOBAL: { id: string; label: string; value: string; icon: string; 
   { id: "people", label: "People", value: "18", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Who Opal is considering for this decision." },
   { id: "budget", label: "Budget", value: "$", icon: "/figma-v2/opal-ambient/icon-ctx-budget.png", hint: "Spend fit currently in play." },
   { id: "places", label: "Places", value: "96", icon: "/figma-v2/opal-ambient/icon-ctx-places.png", hint: "Place pool Opal can draw from." },
-  { id: "past", label: "Past moments", value: "24", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Past moments shaping taste — private until you share." },
+  { id: "past", label: "Past moments", value: "24", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Past moments shaping taste - private until you share." },
   { id: "vibe", label: "Vibe", value: "calm, fun", icon: "/figma-v2/opal-ambient/icon-ctx-vibe.png", w: 106, hint: "Current vibe constraint for this answer." },
   {
     id: "availability",
@@ -45,10 +45,10 @@ const CONTEXT_GLOBAL: { id: string; label: string; value: string; icon: string; 
 
 /** Solo chips: no fabricated friend counts (founder Solo law). */
 const CONTEXT_SOLO: { id: string; label: string; value: string; icon: string; w?: number; hint: string }[] = [
-  { id: "people", label: "People", value: "Solo", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Participant context is you only — zero-network value." },
+  { id: "people", label: "People", value: "Solo", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Participant context is you only - zero-network value." },
   { id: "budget", label: "Budget", value: "$", icon: "/figma-v2/opal-ambient/icon-ctx-budget.png", hint: "Your spend fit currently in play." },
   { id: "places", label: "Places", value: "Nearby", icon: "/figma-v2/opal-ambient/icon-ctx-places.png", hint: "Places Opal can draw from for you." },
-  { id: "past", label: "Past moments", value: "Yours", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Your past moments shaping taste — private." },
+  { id: "past", label: "Past moments", value: "Yours", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Your past moments shaping taste - private." },
   { id: "vibe", label: "Vibe", value: "open", icon: "/figma-v2/opal-ambient/icon-ctx-vibe.png", w: 106, hint: "Current vibe for this answer." },
   {
     id: "availability",
@@ -251,7 +251,7 @@ export function OpalAmbient({
         lng = geo.lng;
       } else {
         geoNote =
-          "Location unavailable — open with opal_cold_start_demo=1&lat=32.723&lng=-117.168 for proof, or allow geolocation.";
+          "Location unavailable - open with opal_cold_start_demo=1&lat=32.723&lng=-117.168 for proof, or allow geolocation.";
       }
     }
 
@@ -315,7 +315,7 @@ export function OpalAmbient({
       return;
     }
     setLiveDecision(null);
-    setNote(`Got it — applying “${chip}” to this context.`);
+    setNote(`Got it - applying “${chip}” to this context.`);
     // One-tap intent: seed without requiring a second Send when architecture allows
     onSeedGraph?.(chip);
   }
@@ -323,7 +323,7 @@ export function OpalAmbient({
   async function onLiveMediumChoice(choiceId: string, label: string) {
     if (!liveDecision?.result_id) {
       setMediumOpen(false);
-      setNote(`Answer “${label}” applied locally — live result id missing.`);
+      setNote(`Answer “${label}” applied locally - live result id missing.`);
       return;
     }
     setResolving(true);
@@ -340,7 +340,7 @@ export function OpalAmbient({
   async function onLiveLowChoice(selectedId: string, label: string) {
     if (!liveDecision?.result_id) {
       setLowOpen(false);
-      setNote(`Tradeoff “${label}” applied locally — live result id missing.`);
+      setNote(`Tradeoff “${label}” applied locally - live result id missing.`);
       return;
     }
     setResolving(true);
@@ -357,16 +357,16 @@ export function OpalAmbient({
   function applyCorrection(chip: (typeof REFINE)[number]) {
     if (chip.label === "More ideas") {
       setExploreMode(true);
-      setNote("Exploration open — multiple alternatives are intentional here. Default decision remains one-answer in P4.");
+      setNote("Exploration open - multiple alternatives are intentional here. Default decision remains one-answer in P4.");
       return;
     }
     setQuery((q) => (q ? `${q} · ${chip.mutate}` : chip.mutate));
     setSheet({
       kind: "correction",
       title: chip.label,
-      body: `Got it — I’ll keep that in mind for this decision.`,
+      body: `Got it - I’ll keep that in mind for this decision.`,
     });
-    setNote(`Got it — “${chip.label}” noted.`);
+    setNote(`Got it - “${chip.label}” noted.`);
   }
 
   function openContext(chip: (typeof CONTEXT)[number]) {
@@ -451,7 +451,7 @@ export function OpalAmbient({
             setSheet({
               kind: "history",
               title: "Recent with Opal",
-              body: "Session history: current Center thread only.\n\nPersistent multi-device Opal conversation history is a production dependency — not invented as a fake archive.",
+              body: "Session history: current Center thread only.\n\nPersistent multi-device Opal conversation history is a production dependency - not invented as a fake archive.",
             });
           }}
         >
@@ -549,18 +549,18 @@ export function OpalAmbient({
                   : exploreMode
                     ? "I found a few nearby options. Here are the best matches."
                     : lowOpen
-                      ? "This one's a real tradeoff — pick the side that fits you."
+                      ? "This one's a real tradeoff - pick the side that fits you."
                       : mediumOpen
-                        ? "One thing would finish this — then I can decide."
+                        ? "One thing would finish this - then I can decide."
                         : liveHigh
-                          ? "One best fit for this context — confirm when you're ready."
-                          : "One best fit for this context — confirm when you're ready."}
+                          ? "One best fit for this context - confirm when you're ready."
+                          : "One best fit for this context - confirm when you're ready."}
             </p>
             <p className="opal-response-picks">
               {resolving
                 ? "Using places near you when location is available."
                 : liveFailure
-                  ? "No single pick yet — your call."
+                  ? "No single pick yet - your call."
                   : exploreMode
                     ? "More ideas anytime."
                     : lowOpen
@@ -568,8 +568,8 @@ export function OpalAmbient({
                       : mediumOpen
                         ? "One question to finish the decision."
                         : liveHigh
-                          ? "Best match — not booked until you confirm."
-                          : "Best match — not booked until you confirm."}
+                          ? "Best match - not booked until you confirm."
+                          : "Best match - not booked until you confirm."}
             </p>
           </div>
         </div>
@@ -610,7 +610,7 @@ export function OpalAmbient({
                     }
                     setLowOpen(false);
                     setNote(
-                      `Tradeoff “${c.label}” applied to the same decision — soft preference only. Hard constraints intact. Recomputing.`,
+                      `Tradeoff “${c.label}” applied to the same decision - soft preference only. Hard constraints intact. Recomputing.`,
                     );
                   }}
                 >
@@ -655,7 +655,7 @@ export function OpalAmbient({
                     }
                     setMediumOpen(false);
                     setNote(
-                      `Answer “${c.label}” applied to the same decision — revision moves forward. Re-evaluating toward one answer.`,
+                      `Answer “${c.label}” applied to the same decision - revision moves forward. Re-evaluating toward one answer.`,
                     );
                   }}
                 >
@@ -737,8 +737,8 @@ export function OpalAmbient({
                     onSeedGraph?.(idea.title);
                     setNote(
                       exploreMode
-                        ? "Added to your Graph path — confirm when you're ready."
-                        : "Looks good — confirm when you're ready.",
+                        ? "Added to your Graph path - confirm when you're ready."
+                        : "Looks good - confirm when you're ready.",
                     );
                   }}
                 >
@@ -782,7 +782,7 @@ export function OpalAmbient({
                   : IDEAS[0].title;
                 setQuery(title);
                 onSeedGraph?.(title);
-                setNote("Go with this → same Graph. Provisional acceptance — not booked, not Gold.");
+                setNote("Go with this → same Graph. Provisional acceptance - not booked, not Gold.");
               }}
             >
               Go with this →
@@ -795,7 +795,7 @@ export function OpalAmbient({
             data-control-status="REAL_ACTIVE"
             onClick={() => {
               setExploreMode(true);
-              setNote("More ideas — explicit exploration escape hatch.");
+              setNote("More ideas - explicit exploration escape hatch.");
             }}
           >
             View more ideas  ›
@@ -843,7 +843,7 @@ export function OpalAmbient({
           data-testid="opal-attach"
           data-control-status="DEPENDENCY"
           onClick={() =>
-            setNote("Attachment / context add requires system file/media dependency — not faked.")
+            setNote("Attachment / context add requires system file/media dependency - not faked.")
           }
         >
           +
@@ -880,7 +880,7 @@ export function OpalAmbient({
               return;
             }
             setListening(true);
-            setNote("Listening UI on. Real ASR is a system dependency — not pretended transcription.");
+            setNote("Listening UI on. Real ASR is a system dependency - not pretended transcription.");
           }}
         >
           <span className="opal-voice-wave" aria-hidden />

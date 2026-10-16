@@ -114,12 +114,12 @@ const NUDGE_STORAGE = "opal.center.nudges.dismissed.v1";
 const CENTER_SAMPLE_PROMPTS = [
   {
     id: "maya-birthday-3d",
-    body: "Maya's birthday in 3 days — want me to plan something?",
+    body: "Maya's birthday in 3 days - want me to plan something?",
     tone: "gold" as const,
   },
   {
     id: "open-friday-window",
-    body: "Friday evening is still open — dinner with someone close?",
+    body: "Friday evening is still open - dinner with someone close?",
     tone: "cyan" as const,
   },
 ] as const;
@@ -139,7 +139,7 @@ function seedFromNudge(n: { id: string; body: string }): string {
   const body = n.body.trim();
   if (/birthday/i.test(body) && /want me to plan/i.test(body)) {
     // Tap is the affirmative; keep person/context, mark as plan something.
-    return body.replace(/\?\s*$/, "") + " — yes, plan something.";
+    return body.replace(/\?\s*$/, "") + " - yes, plan something.";
   }
   // Generic open window: WHO unresolved — send body as-is (BE clears stale who).
   return body;
@@ -385,7 +385,7 @@ export function OpalCenterLifeGraph({
           source: payload.answer?.area ? "decision_intelligence" : "unavailable",
         },
         {
-          claim: payload.provisional ? "Provisional — confirm before commit" : "Resolved",
+          claim: payload.provisional ? "Provisional - confirm before commit" : "Resolved",
           source: "decision_intelligence",
           detail: payload.confidence_class || payload.mode,
         },
@@ -610,9 +610,9 @@ export function OpalCenterLifeGraph({
           >
             {stripSource === "calendar"
               ? dayNodes.some((n) => n.kind === "now" && n.label === "Open")
-                ? "Right now looks open — ask and I'll shape one answer."
+                ? "Right now looks open - ask and I'll shape one answer."
                 : "Here's what's next on your linked calendar."
-              : "Sample day below — ask when you want a real answer."}
+              : "Sample day below - ask when you want a real answer."}
           </p>
 
           <LifeGraphStrip nodes={dayNodes} source={stripSource} />
@@ -748,7 +748,7 @@ export function OpalCenterLifeGraph({
                   ? "Looking nearby…"
                   : decision?.answer?.name
                     ? `${decision.answer.name} fits this window.`
-                    : "One answer first — then you confirm."}
+                    : "One answer first - then you confirm."}
               </p>
               <p className="opal-center-v2-signal-secondary">
                 {decision?.provisional
@@ -1194,7 +1194,7 @@ export function OpalCenterLifeGraph({
               </button>
             </header>
             <p className="opal-inline-sheet-body">
-              Why this suggestion — people, places, and vibe in play right now.
+              Why this suggestion - people, places, and vibe in play right now.
               {"\n\n"}
               Privacy boundaries stay on: Opal only uses what you allow for this moment.
             </p>

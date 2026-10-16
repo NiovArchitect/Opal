@@ -86,7 +86,7 @@ export const REMINDER_MOCK_SEED: ReminderProjection[] = [
     planId: null,
     planSummary: null,
     headline: "Alex's birthday was last week",
-    detail: "No plan was set — still worth a note",
+    detail: "No plan was set - still worth a note",
   },
   {
     attentionId: "mock-reminder-planned",
