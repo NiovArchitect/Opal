@@ -10145,12 +10145,30 @@ export function OpalApp() {
               return;
             }
             navigator.geolocation.getCurrentPosition(
-              () => {
+              (pos) => {
                 setLocationGranted(true);
                 setJourneyNote(
                   "Location granted for private timing only  -  not shared as exact coordinates.",
                 );
-                // Refresh leave estimate with geometric travel minutes if journey open
+                // Repair #12 (F12-41/F12-11c): POST coarse device coords to the
+                // Center endpoint for venue ranking / near-me. Never fabricate
+                // travel_minutes — omit it (null) unless computed from real data.
+                if (session?.access_token && pos?.coords) {
+                  const lat = Math.round(pos.coords.latitude * 1000) / 1000;
+                  const lon = Math.round(pos.coords.longitude * 1000) / 1000;
+                  void fetch("/opal/location", {
+                    method: "POST",
+                    headers: {
+                      "content-type": "application/json",
+                      authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ lat, lon }),
+                  }).catch(() => {
+                    // Best-effort; the Center works without coords.
+                  });
+                }
+                // Refresh leave estimate if journey open — without fabricated
+                // travel_minutes (the server computes or leaves null).
                 if (activeJourney && session?.access_token && activeJourney.conversation_id) {
                   void activateJourney(
                     {
@@ -10158,7 +10176,6 @@ export function OpalApp() {
                       title: activeJourney.title,
                       location: activeJourney.place || undefined,
                       time_label: activeJourney.when_label || undefined,
-                      travel_minutes: 18,
                     },
                     session.access_token,
                   ).then((res) => setActiveJourney(res.journey as JourneyProjection));

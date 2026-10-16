@@ -55,6 +55,10 @@ export function sendText(
     conversationId: string;
     body: string;
     traceId: string;
+    // Repair #12 (F12-11b): optional coarse device coords (user-granted).
+    // The server validates, coarsens, and stores best-effort; the send never
+    // fails because coords are absent or invalid.
+    coords?: { lat: number; lon: number } | null;
   },
 ): Promise<{ message: ServerMessage; origin: string }> {
   return new Promise((resolve, reject) => {
@@ -65,6 +69,7 @@ export function sendText(
         conversation_id: args.conversationId,
         body: args.body,
         trace_id: args.traceId,
+        ...(args.coords ? { coords: args.coords } : {}),
       })
       .receive("ok", (resp: { message: ServerMessage; origin: string }) => resolve(resp))
       .receive("error", (err: unknown) => reject(err))

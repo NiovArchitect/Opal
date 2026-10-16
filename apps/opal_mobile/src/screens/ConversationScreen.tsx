@@ -18,6 +18,7 @@ import {
 import { MessageRepository } from "../storage/messageRepository";
 import { MemorySqlDriver } from "../storage/sqlDriver";
 import { SocialFlowRepository } from "../socialFlow/socialFlowRepository";
+import { getCachedCoords } from "../location/deviceLocation";
 import { SocialFlowSignalCard } from "../socialFlow/SocialFlowSignalCard";
 import type { SocialFlowSignal } from "../socialFlow/types";
 import type { ChatMessage, ServerMessage } from "../types";
@@ -252,6 +253,8 @@ export function ConversationScreen({
               conversationId: item.conversationId,
               body: item.body,
               traceId: `trace-retry-${Date.now()}`,
+              // Repair #12 (F12-11b): best-effort cached fix; null when denied.
+              coords: getCachedCoords(),
             });
             repoRef.current.reconcileFromServer(fromServer(message));
           } catch {
@@ -305,6 +308,8 @@ export function ConversationScreen({
           conversationId,
           body: trimmed,
           traceId: `trace-mobile-${Date.now()}`,
+          // Repair #12 (F12-11b): best-effort cached fix; null when denied.
+          coords: getCachedCoords(),
         });
         repoRef.current.reconcileFromServer(fromServer(message));
         refresh();
