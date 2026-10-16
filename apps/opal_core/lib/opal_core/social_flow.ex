@@ -1055,6 +1055,10 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  # F12-61 — nil/non-binary revision_id is honest {:error, :invalid}, never a crash.
+  def respond_to_revision(%{revision_id: revision_id}) when not is_binary(revision_id),
+    do: {:error, :invalid}
+
   def respond_to_revision(%{
         revision_id: revision_id,
         user_id: user_id,
@@ -1089,6 +1093,9 @@ defmodule OpalCore.SocialFlow do
                 %SharedPlan{} = plan <- plan,
                 :ok <- ensure_member(plan.conversation_id, user_id),
                 true <- revision.status == "proposed",
+                # F12-62 — a cancelled/completed plan is terminal: a stale
+                # proposal can never resurrect it into "changed".
+                true <- plan.status not in ~w(cancelled completed),
                 true <- user_id in (revision.required_approvals || []) do
              approvals = Map.put(revision.approvals || %{}, user_id, decision)
 
@@ -1327,6 +1334,10 @@ defmodule OpalCore.SocialFlow do
   transaction and broadcasts after commit. Never posts chat messages — returns
   notify_user_ids so the caller (routing agent) can do durable notification.
   """
+  # F12-61 — nil/non-binary plan_id must be an honest {:error, :invalid},
+  # never an Ecto ArgumentError from `p.id == ^nil` inside the transaction.
+  def cancel_plan(%{plan_id: plan_id}) when not is_binary(plan_id), do: {:error, :invalid}
+
   def cancel_plan(%{plan_id: plan_id, user_id: user_id, trace_id: trace_id}) do
     trace = trace_id || @trace_default
 
@@ -1402,6 +1413,9 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  # F12-61 — catch-all after the main clause: non-map / shape-wrong input.
+  def cancel_plan(_), do: {:error, :invalid}
+
   defp cancel_notify_user_ids(%SharedPlan{} = plan) do
     participant_ids =
       from(pp in PlanParticipant, where: pp.plan_id == ^plan.id, select: pp.user_id)
@@ -1422,6 +1436,9 @@ defmodule OpalCore.SocialFlow do
   plan, no revision-proposal round-trip). Non-lead callers get :not_authorized;
   the routing agent offers them propose_revision/1 as the change-request path.
   """
+  # F12-61 — nil/non-binary plan_id is honest {:error, :invalid}, never a crash.
+  def change_plan_time(%{plan_id: plan_id}) when not is_binary(plan_id), do: {:error, :invalid}
+
   def change_plan_time(%{
         plan_id: plan_id,
         user_id: user_id,
@@ -1440,6 +1457,9 @@ defmodule OpalCore.SocialFlow do
   @doc """
   Lead/organizer-only direct date edit. Same contract as change_plan_time/1.
   """
+  # F12-61 — nil/non-binary plan_id is honest {:error, :invalid}, never a crash.
+  def change_plan_date(%{plan_id: plan_id}) when not is_binary(plan_id), do: {:error, :invalid}
+
   def change_plan_date(%{
         plan_id: plan_id,
         user_id: user_id,

@@ -33,7 +33,10 @@ describe("Pass 1F empty state quality", () => {
     expect(home).toMatch(/PRODUCT_COPY\.emptyHomeTitle/);
     expect(home).toMatch(/data-testid="home-empty"/);
     expect(graphs).toMatch(/PRODUCT_COPY\.emptyGraphs/);
-    expect(graphs).toMatch(/data-testid="graphs-home-empty"/);
+    // F12-12: empty keeps its testid; load errors get their own honest error
+    // testid instead of rendering the empty state on failure.
+    expect(graphs).toMatch(/graphs-home-empty/);
+    expect(graphs).toMatch(/graphs-home-error/);
     expect(chats).toMatch(/PRODUCT_COPY\.emptyChats/);
     expect(chats).toMatch(/data-testid="chats-home-empty"/);
     expect(graphs).not.toMatch(/No Graphs in this lens yet/);

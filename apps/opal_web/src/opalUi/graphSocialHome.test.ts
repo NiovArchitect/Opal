@@ -31,8 +31,10 @@ describe("coherence reset: FR09 lands on Home 618:44", () => {
     expect(app).toMatch(/GraphSocialHome/);
     expect(app).toMatch(/data-figma-home|201:5|graph-social-home/);
     // Authenticated path returns GraphSocialHome before legacy home-living-field shell
+    // (F12-12: the return opens with a fragment wrapping the honest load-error
+    // state — GraphSocialHome is still the Home shell).
     const authBlock = app.slice(app.indexOf("if (authenticated)"));
-    expect(authBlock).toMatch(/return \(\s*<GraphSocialHome/);
+    expect(authBlock).toMatch(/return \(\s*<>\s*[\s\S]*?<GraphSocialHome/);
   });
 
   it("founder seed feed matches OGSN social grammar cards", () => {

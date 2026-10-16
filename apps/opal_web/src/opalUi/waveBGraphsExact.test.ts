@@ -13,7 +13,8 @@ describe("Wave B Graphs exact authority", () => {
     const graphs = read("opalUi/GraphsHome.tsx");
     expect(graphs).toMatch(/data-figma="618:674"|data-figma-authority="618:674"/);
     expect(graphs).toMatch(/Your Graphs/);
-    expect(graphs).toMatch(/What is taking shape/);
+    // F12-10 screenshot item: founder-approved grammar "What's taking shape".
+    expect(graphs).toMatch(/What&apos;s taking shape/);
     expect(graphs).toMatch(/graphs-create/);
     expect(graphs).toMatch(/All/);
     expect(graphs).toMatch(/Action/);

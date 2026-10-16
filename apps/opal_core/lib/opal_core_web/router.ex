@@ -400,14 +400,6 @@ defmodule OpalCoreWeb.Router do
     # venue ranking / near-me. Separate from the travel-mode 422 privacy law.
     post("/opal/location", CenterLocationController, :update)
 
-    # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
-    # venue ranking / near-me. Separate from the travel-mode 422 privacy law.
-    post("/opal/location", CenterLocationController, :update)
-    # F12-06/F12-07 — owner-scoped plan listing (incl. conversation-less Center
-    # plans) for Graphs/Timeline projections.
-    get("/opal/plans", OpalConversationController, :list_plans)
-
-
     get("/social-moments/media-status", SocialMomentController, :media_status)
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)

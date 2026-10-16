@@ -131,7 +131,10 @@ defmodule OpalCore.Center.DeviceLocation do
   `{:error, reason}` without raising when the user has no Center conversation.
   """
   def put_for_user(user_id, coords) when is_binary(user_id) and is_map(coords) do
-    case PlanningContext.merge(user_id, %{"device_coords" => coords}, %{}) do
+    # F12-63 — pass coords as EXTRAS, not entities: PlanningContext.merge/3
+    # runs entities through an NL-entity allowlist (who/when/destination/...)
+    # that silently dropped "device_coords" while returning :ok.
+    case PlanningContext.merge(user_id, %{}, %{"device_coords" => coords}) do
       {:ok, _} -> :ok
       {:error, reason} -> {:error, reason}
     end

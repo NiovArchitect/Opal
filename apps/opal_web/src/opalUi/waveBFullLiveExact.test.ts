@@ -33,8 +33,12 @@ describe("P0-05.12A Full Live exact 863:2", () => {
     const live = read("opalUi/GraphLivePanel.tsx");
     expect(live).toMatch(/Rooftop jazz|place/);
     expect(live).toMatch(/Downtown/);
-    expect(live).toMatch(/Sadeil \+ 3 are here/);
-    expect(live).toMatch(/Maya is on the way/);
+    // F12-12: no invented presence defaults — the panel ships empty lines and
+    // callers pass real presence, never a fabricated "Sadeil + 3 are here".
+    expect(live).toMatch(/hereLine = ""/);
+    expect(live).toMatch(/etaLine = ""/);
+    expect(live).not.toMatch(/Sadeil \+ 3 are here/);
+    expect(live).not.toMatch(/Maya is on the way · 8 min/);
     expect(live).toMatch(/Table ready · Great news|tableReadyLabel/);
     expect(live).toMatch(/I'm on my way/);
     expect(live).toMatch(/VIDEO LIVE/);
