@@ -320,10 +320,22 @@ defmodule OpalCore.OpalIntent do
   # Repair #4 — natural phrasing founders actually type ("make plans", "let's do dinner").
   @plan_create_trigger ~r/\b(set\s+up|organize|arrange|plans?|schedule|make\s+plans?|help\s+me\s+plan|let'?s\s+do)\b/i
 
+  # Repair #14 (D2) — explicit creation verbs inside the trigger above. A
+  # status question that happens to contain one of these is still a creation;
+  # the bare noun "plan(s)" alone is not.
+  @creation_verbs ~r/\b(set\s+up|organize|arrange|schedule|make\s+plans?|help\s+me\s+plan|let'?s\s+do)\b/i
+
   defp try_plan_create(norm, names) do
     virtual? = virtual_meeting?(norm)
 
     cond do
+      # Repair #14 (D2) — a status question about existing plans ("Any
+      # upcoming plans?") must not route to :plan_create on the bare noun
+      # "plans". Status intent outranks the plan noun; try_check_status
+      # further down the chain claims the turn.
+      status_question?(norm) ->
+        nil
+
       match_phrase?(norm, @plan_create_trigger) or virtual? ->
         trigger =
           if virtual? and not match_phrase?(norm, @plan_create_trigger) do
@@ -708,6 +720,26 @@ defmodule OpalCore.OpalIntent do
         }
       end
     end
+  end
+
+  # Repair #14 (D2) — question-form status phrasing (mirrors the
+  # try_check_status triggers). Returns true only when the turn reads as a
+  # status inquiry AND carries no explicit creation verb, so "Any upcoming
+  # plans?" defers to :check_status while "Schedule plans for Saturday"
+  # still creates.
+  defp status_question?(norm) do
+    status? =
+      match_phrase?(norm, ~r/\bwhat's\b/i) or
+        match_phrase?(norm, ~r/\bwhats\b/i) or
+        match_phrase?(norm, ~r/\bhow's\b/i) or
+        match_phrase?(norm, ~r/\bhows\b/i) or
+        match_phrase?(norm, ~r/\bstatus\b/i) or
+        match_phrase?(norm, ~r/\bupcoming\b/i) or
+        match_phrase?(norm, ~r/\bcoming\s+up\b/i) or
+        match_phrase?(norm, ~r/\bwho\s+am\s+i\s+seeing\b/i) or
+        match_phrase?(norm, ~r/\bwhat'?s\s+next\b/i)
+
+    status? and not match_phrase?(norm, @creation_verbs)
   end
 
   defp try_check_status(norm, _names) do
