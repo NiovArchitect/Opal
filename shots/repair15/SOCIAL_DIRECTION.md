@@ -299,4 +299,4 @@ card with 99,999 likes.
   (2,655 / 0 baseline stands).
 - Full web suite after changes: 1,119 tests, 25 failures - name-identical
   to the pre-existing baseline recorded in SETTINGS_MAP.md. Zero new
-  failures. TypeScript: 8 errors before and after, identical set.
+  failures. TypeScript: 7 errors before and after, identical set.

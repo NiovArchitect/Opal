@@ -23,10 +23,12 @@ no noise, no pressure. Least friction. No fake successes.
   graphDetail, graphScroll x2, graphSpine, liveJourneyProof,
   pasteW4DeviceFixes x2, technicolor, waveBChats x3, waveBGraphs,
   waveBHome, OpalCenterChat send-error, CSP/design-token family).
-- TypeScript (`tsc --noEmit`): 8 errors at base, all in `OpalApp.tsx`
-  (ChatPreview planProjection, `setTab("opal")` x3) plus the known
-  `RelationshipContact.handle` error in `YouSettingsDestination.tsx`.
-  After this track: still 8, identical set. Zero new type errors.
+- TypeScript (`tsc --noEmit`): 7 errors, all pre-existing - 6 in
+  `OpalApp.tsx` (ChatPreview planProjection, `setTab("opal")` x3) plus
+  the known `RelationshipContact.handle` error in
+  `YouSettingsDestination.tsx` (all verified present in HEAD code at
+  identical locations). After this track: still 7, identical set.
+  Zero new type errors; none of the 7 sits in a file this track changed.
 
 ---
 
@@ -238,5 +240,5 @@ must be visible, plain-language, and revocable in YOU - and they are
   baseline list (compared name by name; only timings differ). Zero new
   failures, zero repaired-by-accident.
 - Backend: untouched by this track; the 2,655 / 0 baseline stands.
-- TypeScript: 8 errors before, 8 after, identical set (all pre-existing,
+- TypeScript: 7 errors before, 7 after, identical set (all pre-existing,
   in files/lines this track did not alter).
