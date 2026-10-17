@@ -202,6 +202,93 @@ defmodule OpalCoreWeb.OpalConversationController do
   end
 
   @doc """
+  Repair #16 (W1) — durable GraphCreateFlow completion.
+
+  POST /api/v1/product/opal/plans/graph-create — persists the non-post
+  graph draft (Graphs / Repeat / plan-from-chat) as a SharedPlan through
+  SocialFlow.create_plan_from_graph_create/2, the same plan authority
+  Center uses. Before this, those drafts landed in write-only web state
+  and vanished. A replay with the same idempotency_key returns the
+  existing plan with "deduplicated": true instead of a duplicate.
+  """
+  def create_graph_plan(conn, params) do
+    user_id = conn.assigns.current_user_id
+
+    case SocialFlow.create_plan_from_graph_create(user_id, params) do
+      {:ok, plan, participants, deduplicated} ->
+        completion =
+          case SocialFlow.PlanCompletion.drive(plan.id, user_id) do
+            {:ok, c} -> c
+            _ -> %{plan_id: plan.id, steps: []}
+          end
+
+        conn
+        |> put_status(201)
+        |> json(%{
+          "plan" => SharedPlan.to_contract(plan),
+          "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
+          "deduplicated" => deduplicated,
+          "completion" => %{
+            "steps" => completion.steps,
+            "next_steps" => next_step_copies(completion.steps)
+          },
+          "message" => "It's on your Graph."
+        })
+
+      {:error, :invalid_title} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid_title", "message" => "title or place is required"})
+
+      {:error, :unsupported_audience} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "unsupported_audience",
+          "message" => "Plans are visible only to the people in them - that audience isn't available for a plan."
+        })
+
+      {:error, :invalid_media} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid_media",
+          "message" => "That photo can't be attached to this plan."
+        })
+
+      {:error, :invalid_participant} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid_participant",
+          "message" => "One of the people on this plan couldn't be found."
+        })
+
+      {:error, :source_plan_not_found} ->
+        conn
+        |> put_status(404)
+        |> json(%{
+          "error_code" => "source_plan_not_found",
+          "message" => "The plan you're repeating couldn't be found."
+        })
+
+      {:error, :forbidden} ->
+        conn
+        |> put_status(403)
+        |> json(%{
+          "error_code" => "forbidden",
+          "message" => "You can't repeat a plan you aren't part of."
+        })
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  @doc """
   F12-06/F12-07 — owner-scoped plan listing for Graphs/Timeline projections.
 
   GET /api/v1/product/opal/plans — returns the caller's SharedPlans including

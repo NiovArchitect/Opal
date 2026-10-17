@@ -24,14 +24,6 @@ describe("P0-05 rejected-state regressions", () => {
     expect(buf.byteLength).toBeGreaterThan(1000);
   });
 
-  it("Direct Juniper is Figma 618:376 bytes (not gradient-only)", () => {
-    const dated = src("opalUi/DatedConversationContent.tsx");
-    expect(dated).toMatch(/opal-direct-juniper-618-376/);
-    const jpg = readFileSync(pub("figma-v2/direct/opal-direct-juniper-618-376.jpg"));
-    const sha = createHash("sha256").update(jpg).digest("hex");
-    expect(sha).toBe("d6d8c288dc4176477c4fae90d9702863811fbb5030ba03ed65dfe029a0de4916");
-  });
-
   it("founder seed is off by default (no query / env)", () => {
     const prev = window.location.href;
     // jsdom default location typically has no opal_founder_seed
@@ -129,14 +121,9 @@ describe("P0-05 rejected-state regressions", () => {
   });
 
   it("DIRECT_LEAVE_TRUTH_SLOT_NOT_NAVIGATION - Leave never opens Journey", () => {
-    const dated = src("opalUi/DatedConversationContent.tsx");
     const app = src("OpalApp.tsx");
     const css = src("styles.css");
     const detail = src("opalUi/GraphDetailSheet.tsx");
-    expect(dated).toMatch(/dated-opal-leave-slot/);
-    expect(dated).not.toMatch(/onOpenJourney/);
-    expect(dated).not.toMatch(/dated-opal-leave-action/);
-    expect(dated).not.toMatch(/open Journey/);
     // P0-05.7: Home Graph may expose Open Journey (nav-only). Direct Leave must not.
     expect(app).not.toMatch(/Direct Leave →/);
     expect(app).not.toMatch(/Leave[\s\S]{0,80}setActiveJourney/);

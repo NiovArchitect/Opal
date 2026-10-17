@@ -37,11 +37,24 @@ defmodule OpalCore.SocialFlow.TemporaryStory do
   def contract(%__MODULE__{} = s, display_name \\ nil) do
     now = DateTime.utc_now()
 
+    # Repair #16: story media stored on the media store is referenced as
+    # "media:<id>" in the row. The contract projects the story-scoped served
+    # URL (byte access is authorized per-viewer by
+    # SocialMomentPublishing.read_media/2 + TemporaryStoryPublishing
+    # eligibility) and exposes the raw media id additively. Legacy refs
+    # (data:, /, https:) pass through untouched.
+    {media_ref, media_id} =
+      case s.media_ref do
+        "media:" <> id -> {"/api/v1/product/social-moments/media/" <> id, id}
+        other -> {other, nil}
+      end
+
     %{
       "id" => s.id,
       "author_user_id" => s.author_user_id,
       "author_name" => display_name || "Someone",
-      "media_ref" => s.media_ref,
+      "media_ref" => media_ref,
+      "media_id" => media_id,
       "caption" => s.caption,
       "visibility" => s.visibility,
       "created_at" => s.inserted_at,

@@ -39,10 +39,10 @@ describe("S1 Final First Run (217:2)", () => {
     expect(fr).toMatch(/onAdvanceToPromise|leaveSplashToPromise/);
     expect(fr).toMatch(/startChallenge/);
     expect(fr).toMatch(/verifyChallenge/);
-    expect(fr).toMatch(/updateProfile/);
-    // Contacts resolve in Meet Opal — fr09 no longer mounts FindPeopleFlow
+    // Repair #16-W2: fr08/fr09/fr10 removed. Profile save is owned by Meet Opal.
+    expect(fr).not.toMatch(/fr08-profile|fr09-find|fr10-act-on-behalf/);
+    expect(source("onboarding/MeetOpalConversation.tsx")).toMatch(/updateProfile/);
     expect(fr).not.toMatch(/FindPeopleFlow/);
-    expect(fr).toMatch(/fr09-find|Almost there|Assist/);
     // Legacy demo screens may remain in file off-route
     expect(fr).toMatch(/step === "fr01"/);
     // Promise is top-level in OpalApp, not nested in FR shell
@@ -105,7 +105,8 @@ describe("S1 Final First Run (217:2)", () => {
     const src = source("onboarding/FirstRunExperience.tsx");
     expect(src).toMatch(/startChallenge\(/);
     expect(src).toMatch(/verifyChallenge\(/);
-    expect(src).toMatch(/updateProfile\(/);
+    // Repair #16-W2: profile seam lives in Meet Opal, not the removed fr08.
+    expect(source("onboarding/MeetOpalConversation.tsx")).toMatch(/updateProfile\(/);
     // Meet Opal owns contact pick; member shell still has FindPeopleFlow in OpalApp
     expect(src).not.toMatch(/FindPeopleFlow/);
     expect(source("OpalApp.tsx")).toMatch(/FindPeopleFlow/);

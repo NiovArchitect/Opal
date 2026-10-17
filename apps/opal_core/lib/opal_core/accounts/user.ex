@@ -18,6 +18,10 @@ defmodule OpalCore.Accounts.User do
     field :group_taste_opt_out, :boolean, default: false
     # Paste C3 — permanent opt-out of proactive Opal Center threads.
     field :proactive_opt_out, :boolean, default: false
+    # Repair #16 (W4, P1) — explicit opt-IN for proactive thread initiation.
+    # Default false: no account receives an Opal-started thread until the
+    # user enables this. `proactive_opt_out` still wins when both are set.
+    field :proactive_threads_enabled, :boolean, default: false
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -32,7 +36,8 @@ defmodule OpalCore.Accounts.User do
       :message_notifications_enabled,
       :assist_calls_enabled,
       :group_taste_opt_out,
-      :proactive_opt_out
+      :proactive_opt_out,
+      :proactive_threads_enabled
     ])
     |> validate_required([:handle, :display_name])
     |> validate_length(:handle, max: 64)

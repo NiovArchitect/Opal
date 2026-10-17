@@ -4,7 +4,9 @@
  * Lineage only: 149:31 / 145:216
  *
  * Tranche #1: native host → Expo camera/library bridge; browser → file-input fallback.
- * Mutation = existing onCreated → createdGraphs owner (no parallel store).
+ * Mutation = onCreated → host: post mode publishes a SocialMoment (R15);
+ * graph mode persists a SharedPlan via authoritativeCreateGraphPlan (R16).
+ * There is no local draft store — the flow closes only on backend confirm.
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { acquireMedia, mediaKindFromMime } from "../mediaAcquisition";
@@ -28,7 +30,8 @@ type Props = {
    * Repair #15: "post" = Home Add Post. Its draft is published durably by the
    * host (SocialMoment) — the audience selector offers only visibilities the
    * backend actually enforces (friends / private), and submit stays open on
-   * failure. "graph" keeps the legacy local-draft behavior for plan/repeat.
+   * failure. Repair #16: "graph" is durable too — the host persists the
+   * draft as a SharedPlan (plan authority) and submit stays open on failure.
    */
   mode?: "graph" | "post";
   onClose: () => void;
@@ -73,12 +76,14 @@ export function GraphCreateFlow({
   const [step, setStep] = useState<Step>("choose_media");
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaKind, setMediaKind] = useState<"photo" | "video">("photo");
-  const [title, setTitle] = useState(isPost ? "" : knownWhere || "Beach at sunset");
-  const [whenLabel, setWhenLabel] = useState(
-    isPost ? "" : knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM",
-  );
-  // Post mode starts blank — prefilled fiction must never be publishable by accident.
-  const [caption, setCaption] = useState(isPost ? "" : "Golden hour at Moonlight. Needed this.");
+  // Repair #16: graph mode also starts from REAL context only — the old
+  // prefilled title/caption/when fiction ("Beach at sunset", "Saturday ·
+  // around 6:00 PM") could be submitted verbatim as a plan the user never
+  // wrote (same disease Repair #15 E9 removed from post mode). knownWhere /
+  // knownWhen are real host context (Repeat / chat), so they still prefill.
+  const [title, setTitle] = useState(knownWhere || "");
+  const [whenLabel, setWhenLabel] = useState(knownWhen || "");
+  const [caption, setCaption] = useState("");
   const [postAudience, setPostAudience] = useState<"friends" | "private">("friends");
   const [joinRequestsOn, setJoinRequestsOn] = useState(true);
   const [exactSpotAfterJoin, setExactSpotAfterJoin] = useState(true);
@@ -91,7 +96,7 @@ export function GraphCreateFlow({
     const draft: GraphCreateDraft = {
       mediaSrc,
       mediaKind,
-      title: title.trim() || "Untitled Graph",
+      title: title.trim(),
       whenLabel: whenLabel.trim(),
       caption: caption.trim(),
       audience: isPost ? postAudience : "close_circle",
@@ -104,9 +109,15 @@ export function GraphCreateFlow({
       await onCreated?.(draft);
       onClose();
     } catch (e) {
-      // Draft stays open — a failed publish must never look like a posted one.
+      // Draft stays open — a failed create must never look like a created one.
       setNote(
-        e instanceof Error ? `Couldn't post: ${e.message}` : "Couldn't post. Try again.",
+        e instanceof Error
+          ? isPost
+            ? `Couldn't post: ${e.message}`
+            : `Couldn't add to your graph: ${e.message}`
+          : isPost
+            ? "Couldn't post. Try again."
+            : "Couldn't add to your graph. Try again.",
       );
     } finally {
       setSubmitting(false);
@@ -121,10 +132,10 @@ export function GraphCreateFlow({
     setStep("choose_media");
     setMediaSrc(null);
     setMediaKind("photo");
-    setTitle(isPost ? "" : knownWhere || "Beach at sunset");
+    setTitle(knownWhere || "");
     // null = Repeat / new decision — do not copy past when or invent a slot.
-    setWhenLabel(isPost ? "" : knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM");
-    setCaption(isPost ? "" : "Golden hour at Moonlight. Needed this.");
+    setWhenLabel(knownWhen || "");
+    setCaption("");
     setPostAudience("friends");
     setJoinRequestsOn(true);
     setExactSpotAfterJoin(true);
@@ -421,7 +432,7 @@ export function GraphCreateFlow({
             disabled={submitting}
             onClick={() => void submit()}
           >
-            {submitting ? "Posting..." : isPost ? "Post" : "Add to graph"}
+            {submitting ? (isPost ? "Posting..." : "Adding...") : isPost ? "Post" : "Add to graph"}
           </button>
           <p className="graph-create-footer">You control who sees the details.</p>
         </div>

@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     PlanAgreementTasteBridge,
     PlanParticipant,
     PlanProjection,
+    PlanRecentChanges,
     PlanRevision,
     PlanTransition,
     SharedPlan,
@@ -265,6 +266,12 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
         # derived projections too — same guarantee as the chat track's
         # broadcast_plan choke point (W1: one table, one invalidation).
         invalidate_derived_for_plan(body["plan_id"])
+
+        # Repair #16 (W4, P3) — a journey material change is a material
+        # plan mutation: record it for the plan's people (post-commit),
+        # with copy built from the accepted revision's own changes.
+        record_recent_change_for_journey(body)
+
         {:ok, body}
 
       {:error, :not_found} -> {:error, :not_found}
@@ -294,6 +301,27 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   end
 
   defp invalidate_derived_for_plan(_), do: :ok
+
+  # Repair #16 (W4, P3) — only a MATERIAL journey change records a
+  # recent-change entry; a non-material write mutated nothing material
+  # and must not claim otherwise.
+  defp record_recent_change_for_journey(%{
+         "material" => true,
+         "plan_id" => plan_id,
+         "revision_id" => revision_id
+       })
+       when is_binary(plan_id) and is_binary(revision_id) do
+    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+         %PlanRevision{} = revision <- Repo.get(PlanRevision, revision_id) do
+      _ = PlanRecentChanges.record_fields_changed(plan, revision)
+    end
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  defp record_recent_change_for_journey(_), do: :ok
 
   defp assert_expected_revision(%SharedPlan{} = plan, changes) do
     expected = changes["expected_revision_id"] || changes["expectedRevisionId"]

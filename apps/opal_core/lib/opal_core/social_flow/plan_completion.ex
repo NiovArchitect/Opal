@@ -34,6 +34,17 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
       Center screen they created it in. The shell writers likewise had
       no production producer; home_snapshot read rows nothing wrote.
 
+  Repair #16 (W4, P1) — consent-gated proactive anchor:
+  (g) proactive_anchor — ask `ProactiveConversation` for a
+      `temporal_anchor_3d` thread for the plan's owner. This creates NEW
+      OUTBOUND CONTACT, so it is gated on the additive
+      `users.proactive_threads_enabled` opt-in (default OFF — the step
+      is a suppressed no-op for every account that has not enabled it);
+      `proactive_opt_out`, the closed trigger list, the 1/day cap,
+      quiet hours, and the 7-day activity gate all still apply inside
+      `maybe_initiate/5`. See ProactiveConversation for the full consent
+      investigation.
+
   Steps persist on `plan.alignment["completion"]` (durable, visible to every
   surface) and are returned as data. Conversational copy (the actual asks and
   offers) stays with the caller/orchestrator — this module never paints chat.
@@ -43,6 +54,7 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
 
   alias OpalCore.Center.ProviderAction
   alias OpalCore.Center.ProviderActionJob
+  alias OpalCore.Intelligence.ProactiveConversation
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.OpalCalendar
   alias OpalCore.SocialFlow.PlanParticipant
@@ -76,6 +88,7 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
           |> drive_ride_and_directions(plan)
           |> drive_follow_through(plan, actor_id)
           |> drive_coming_up(plan)
+          |> drive_proactive_anchor(plan)
 
         persist_completion(plan, steps)
         {:ok, %{plan_id: plan.id, steps: steps}}
@@ -87,8 +100,11 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
   # (d) — native Opal calendar projection. Idempotent per plan version.
   defp drive_calendar(steps, %SharedPlan{} = plan) do
     case OpalCalendar.project_from_shared_plan(plan) do
-      {:ok, _} -> steps ++ [%{"id" => "calendar", "status" => "projected"}]
-      {:error, reason} -> steps ++ [%{"id" => "calendar", "status" => "failed", "reason" => inspect(reason)}]
+      {:ok, _} ->
+        steps ++ [%{"id" => "calendar", "status" => "projected"}]
+
+      {:error, reason} ->
+        steps ++ [%{"id" => "calendar", "status" => "failed", "reason" => inspect(reason)}]
     end
   end
 
@@ -100,6 +116,7 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
   defp drive_restaurants(steps, %SharedPlan{} = plan, actor_id) do
     alignment = plan.alignment || %{}
     venue_name = get_in(alignment, ["venue", "name"])
+
     venue_chosen? =
       (is_binary(venue_name) and String.trim(venue_name) != "") or
         alignment["option_selected"] == true or is_binary(alignment["decision_id"])
@@ -138,7 +155,9 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
 
   defp search_live?(plan_id) do
     from(j in ProviderActionJob,
-      where: j.plan_id == ^plan_id and j.kind == "places_search" and j.status in @search_active_statuses,
+      where:
+        j.plan_id == ^plan_id and j.kind == "places_search" and
+          j.status in @search_active_statuses,
       select: 1,
       limit: 1
     )
@@ -168,7 +187,10 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
       end
 
     if is_binary(venue_name) and String.trim(venue_name) != "" do
-      where = if is_binary(address) and address != "", do: "#{venue_name} · #{address}", else: venue_name
+      where =
+        if is_binary(address) and address != "",
+          do: "#{venue_name} · #{address}",
+          else: venue_name
 
       steps ++
         [
@@ -230,7 +252,8 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
             steps ++ [%{"id" => "follow_through", "status" => "already_registered"}]
 
           {:error, reason} ->
-            steps ++ [%{"id" => "follow_through", "status" => "failed", "reason" => inspect(reason)}]
+            steps ++
+              [%{"id" => "follow_through", "status" => "failed", "reason" => inspect(reason)}]
         end
     end
   end
@@ -291,10 +314,52 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
     tz = if is_binary(tz) and tz != "", do: tz, else: "America/Los_Angeles"
 
     case {DateTime.shift_zone(start, tz), DateTime.shift_zone(DateTime.utc_now(), tz)} do
-      {{:ok, local_start}, {:ok, local_now}} -> DateTime.to_date(local_start) == DateTime.to_date(local_now)
-      _ -> false
+      {{:ok, local_start}, {:ok, local_now}} ->
+        DateTime.to_date(local_start) == DateTime.to_date(local_now)
+
+      _ ->
+        false
     end
   end
+
+  # (g) — Repair #16 (W4, P1): the consent-gated proactive anchor. The
+  # thread, if any, belongs to the plan's OWNER (the account the plan was
+  # confirmed under), never to whoever happened to drive the plan. With
+  # the opt-in off (the default), this is a recorded suppression, not a
+  # silent skip — the step list shows exactly why nothing was sent.
+  defp drive_proactive_anchor(steps, %SharedPlan{} = plan) do
+    owner = plan.created_by_user_id
+
+    if is_binary(owner) do
+      case ProactiveConversation.maybe_initiate_temporal_anchor(owner, plan) do
+        {:ok, _result} ->
+          steps ++ [%{"id" => "proactive_anchor", "status" => "initiated"}]
+
+        {:suppressed, reason} ->
+          steps ++
+            [
+              %{
+                "id" => "proactive_anchor",
+                "status" => "suppressed",
+                "reason" => reason_label(reason)
+              }
+            ]
+
+        {:error, reason} ->
+          steps ++
+            [%{"id" => "proactive_anchor", "status" => "failed", "reason" => inspect(reason)}]
+      end
+    else
+      steps ++ [%{"id" => "proactive_anchor", "status" => "skipped_no_owner"}]
+    end
+  rescue
+    _ -> steps ++ [%{"id" => "proactive_anchor", "status" => "failed"}]
+  end
+
+  # Suppression reasons are atoms for ProactiveConversation's own gates
+  # and tuples for AttentionBudget denials ({:attention_budget, reason}).
+  defp reason_label(reason) when is_atom(reason), do: to_string(reason)
+  defp reason_label(reason), do: inspect(reason)
 
   defp canonical_start(%SharedPlan{} = plan) do
     alignment = plan.alignment || %{}

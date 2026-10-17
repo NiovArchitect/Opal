@@ -54,7 +54,6 @@ describe("S1 first-run auth conversion", () => {
     const files = [
       "src/onboarding/FirstRunExperience.tsx",
       "src/onboarding/firstRunCopy.ts",
-      "src/ActivationFlow.tsx",
       "src/designTokens.ts",
     ];
     for (const f of files) {
@@ -68,7 +67,9 @@ describe("S1 first-run auth conversion", () => {
     expect(fr).toMatch(/otpConsent/);
     expect(fr).toMatch(/startLockRef|verifyLockRef/);
     expect(fr).toMatch(/FR_COPY\.rates|rates/);
-    expect(fr).toMatch(/updateProfile/);
+    // Repair #16-W2: profile save moved out of FirstRunExperience; Meet Opal owns updateProfile.
+    const meet = readFileSync(resolve(root, "src/onboarding/MeetOpalConversation.tsx"), "utf8");
+    expect(meet).toMatch(/updateProfile/);
     const copy = readFileSync(resolve(root, "src/onboarding/firstRunCopy.ts"), "utf8");
     expect(copy).toMatch(/Message and data rates may apply/);
     const client = readFileSync(resolve(root, "src/api/productClient.ts"), "utf8");

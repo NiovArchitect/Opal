@@ -2405,7 +2405,7 @@ export async function uploadSocialMomentMedia(
 }
 
 export async function createTemporaryStory(
-  attrs: { media_ref: string; visibility?: string; caption?: string },
+  attrs: { media_ref?: string; media_id?: string; visibility?: string; caption?: string },
   bearer?: string,
 ) {
   return request<{ story: Record<string, unknown> }>("/api/v1/product/stories", {
@@ -3723,6 +3723,80 @@ export async function createCelebration(
   });
 }
 
+/**
+ * Repair #16 W3 — progressive profile ask surface (Repair #15 B6).
+ * Backend: ProfileGapController (owner-scoped; the owner is always the
+ * session user, never a param). `assess` records the ask in the durable
+ * ledger the first time it fires; `known` / `proceed_without` carry
+ * `ask: null` and the surface must render nothing for them.
+ */
+export type ProfileGapAskPayload = {
+  fact_key: string;
+  prompt: string;
+  flow: string;
+  blocking: boolean;
+  dismissible: boolean;
+  skip_label: string;
+  asked_once: boolean;
+};
+
+export type ProfileGapAssessment = {
+  status: "known" | "ask" | "proceed_without" | string;
+  value?: string | null;
+  ask?: ProfileGapAskPayload | null;
+  reason?: string;
+  plan_proceeds?: boolean;
+};
+
+export async function assessProfileGap(
+  personId: string,
+  personName?: string | null,
+  bearer?: string,
+) {
+  return request<{ profile_gap: ProfileGapAssessment }>(
+    "/api/v1/product/profile-gaps/assess",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        person_id: personId,
+        ...(personName ? { person_name: personName } : {}),
+      }),
+    },
+  );
+}
+
+export async function answerProfileGap(
+  personId: string,
+  value: string,
+  personName?: string | null,
+  bearer?: string,
+) {
+  return request<{ answered: boolean; fact_key: string; value: string }>(
+    "/api/v1/product/profile-gaps/answer",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        person_id: personId,
+        value,
+        ...(personName ? { person_name: personName } : {}),
+      }),
+    },
+  );
+}
+
+export async function skipProfileGap(personId: string, bearer?: string) {
+  return request<{ skipped: boolean; fact_key: string; status: string }>(
+    "/api/v1/product/profile-gaps/skip",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ person_id: personId }),
+    },
+  );
+}
+
 export async function deleteCelebration(id: string, bearer?: string) {
   return request<{ celebration: Celebration; deleted: boolean }>(
     `/api/v1/product/celebrations/${encodeURIComponent(id)}`,
@@ -3855,6 +3929,76 @@ export async function createCenterPlan(
     method: "POST",
     bearer: resolveBearer(bearer),
     body: JSON.stringify(attrs),
+  });
+}
+
+export type OpalPlanContract = {
+  id: string;
+  title: string;
+  status: string;
+  location?: string | null;
+  time_label?: string | null;
+  source?: string;
+  created_by_user_id?: string;
+  organizer_name?: string | null;
+  caption?: string;
+  media_id?: string;
+  audience?: string;
+  who_label?: string;
+  join_requests_on?: boolean;
+  exact_spot_after_join?: boolean;
+  repeated_from_plan_id?: string;
+  created_at?: string;
+};
+
+/**
+ * Repair #16 — durable GraphCreateFlow completion (non-post graph drafts).
+ * Same SharedPlan authority as createCenterPlan (POST /opal/plans), via the
+ * graph-create route that also carries caption/media/audience/participants,
+ * Repeat provenance, and an idempotency key (double-submit replays to the
+ * same plan instead of duplicating).
+ */
+export async function createGraphPlan(
+  attrs: {
+    title: string;
+    location?: string;
+    time_label?: string;
+    caption?: string;
+    media_id?: string;
+    audience?: string;
+    join_requests_on?: boolean;
+    exact_spot_after_join?: boolean;
+    participant_user_ids?: string[];
+    who_label?: string;
+    source_plan_id?: string;
+    entry?: string;
+    idempotency_key?: string;
+    timezone?: string;
+  },
+  bearer?: string,
+) {
+  return request<{
+    plan: OpalPlanContract;
+    participants: Array<{
+      id?: string;
+      user_id: string;
+      role: string;
+      response_state: string;
+    }>;
+    deduplicated?: boolean;
+    message?: string;
+  }>("/api/v1/product/opal/plans/graph-create", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+/** Repair #16 — owner-scoped SharedPlan read-back (backs Graphs/Timeline). */
+export async function listOpalPlans(bearer?: string) {
+  return request<{ plans: OpalPlanContract[] }>("/api/v1/product/opal/plans", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
   });
 }
 

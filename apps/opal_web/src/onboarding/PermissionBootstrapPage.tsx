@@ -4,7 +4,7 @@
  * Not now is allowed. Already-granted decisions persist via saveMeetOpalPermissions.
  * Browser without ReactNativeWebView stays honest for contacts.
  */
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   HOLY_SHIT_COPY,
   MEET_OPAL_PERMISSION_ORDER,
@@ -60,13 +60,23 @@ export function PermissionBootstrapPage({ userId, onContinue }: Props) {
   const [permDecisions, setPermDecisions] = useState(initialDecisions);
   const [contactsHint, setContactsHint] = useState<string | null>(null);
 
-  const allDecided = useMemo(
-    () =>
-      MEET_OPAL_PERMISSION_ORDER.every(
-        (kind) => permDecisions[kind] === "allowed" || permDecisions[kind] === "skipped",
-      ),
-    [permDecisions],
-  );
+  /**
+   * Repair #16-W2 (progressive law): Continue is enabled from the start.
+   * Rows the user never decided are treated and persisted as "skipped"
+   * (Not now) at Continue time, never as granted. Rows they did decide
+   * keep their real choice, which markPerm already persisted per row.
+   */
+  const handleContinue = () => {
+    const finalDecisions: Record<MeetOpalPermissionKind, PermDecision> = {
+      contacts: permDecisions.contacts === "pending" ? "skipped" : permDecisions.contacts,
+      notifications:
+        permDecisions.notifications === "pending" ? "skipped" : permDecisions.notifications,
+      location: permDecisions.location === "pending" ? "skipped" : permDecisions.location,
+    };
+    setPermDecisions(finalDecisions);
+    saveMeetOpalPermissions(finalDecisions, userId ?? undefined);
+    onContinue();
+  };
 
   const markPerm = (kind: MeetOpalPermissionKind, decision: PermDecision) => {
     setPermDecisions((prev) => {
@@ -255,8 +265,7 @@ export function PermissionBootstrapPage({ userId, onContinue }: Props) {
           type="button"
           className="hs-meet-send hs-meet-send-block"
           data-testid="permission-bootstrap-continue"
-          disabled={!allDecided}
-          onClick={onContinue}
+          onClick={handleContinue}
         >
           Continue
         </button>

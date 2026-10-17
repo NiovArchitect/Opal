@@ -14,7 +14,7 @@ import {
   FIRST_RUN_STORAGE_KEY,
   PRODUCT_PUBLIC_NAME,
 } from "./brand/brand";
-import { FirstRunExperience, type FirstRunStepId } from "./onboarding/FirstRunExperience";
+import { FirstRunExperience } from "./onboarding/FirstRunExperience";
 import {
   FirstRunPromisePage,
   CANONICAL_PROMISE_SHA,
@@ -346,6 +346,7 @@ import {
 import { consequenceCardsFromSignals, type ProductionHomeOwners } from "./opalUi/homeHydration";
 import {
   authoritativeAddComment,
+  authoritativeCreateGraphPlan,
   authoritativeCreatePost,
   authoritativeCreateStory,
   authoritativeForward,
@@ -354,10 +355,14 @@ import {
   authoritativeRepost,
   authoritativeSave,
   bootstrapDurableMemories,
+  loadDurablePlans,
   loadProductionHomeOwners,
   lookupHomeFeedCard,
+  mergeDurablePlanCards,
   resolveHomeStories,
+  type DurablePlanGraphCard,
 } from "./opalUi/socialAuthority";
+import type { OpalPlanContract } from "./api/productClient";
 import {
   DEMO_SOCIAL_MOMENT,
   DEMO_SOCIAL_MOMENT_MEDIA,
@@ -757,8 +762,9 @@ export function OpalApp() {
   const [holyShitEnabled] = useState(() => readHolyShitEnabled() || readForceMeetOpalFlag());
   /** After OTP, Meet Opal (Who's someone…) runs once before profile. */
   const [meetOpalDone, setMeetOpalDone] = useState(false);
-  /** Resume FirstRunExperience at fr08 after Meet Opal. */
-  const [frResumeStep, setFrResumeStep] = useState<FirstRunStepId | null>(null);
+  // Repair #16-W2: the old fr08 resume plumbing was removed. Its only setter
+  // was never called, and fr08 itself is removed; FirstRunExperience now
+  // sanitizes any legacy resume value internally.
   const [frResumeSession, setFrResumeSession] = useState<ProductSession | null>(null);
   /** Sticky founder/test override: Splash → Promise even if storage says done / session exists. */
   const [forcedFirstRun, setForcedFirstRun] = useState(() => {
@@ -968,7 +974,21 @@ export function OpalApp() {
     sourcePlanId?: string | null;
     /** Repair #15: set only by Home → Add Post; routes the draft to durable publish. */
     intent?: "post" | null;
+    /** Repair #16: entry surface for the durable graph-create record. */
+    entry?: string | null;
+    /** Repair #16: real backend user ids captured at open (chat/contact entries). */
+    participantUserIds?: string[] | null;
+    /** Repair #16: originating conversation (provenance; plan stays conversation-less). */
+    conversationId?: string | null;
   }>({});
+  /**
+   * Repair #16 — one idempotency key per GraphCreateFlow opening. Retries
+   * of the same draft replay to the same durable plan (backend dedupe);
+   * a fresh opening mints a fresh key.
+   */
+  const graphCreateKeyRef = useRef<string | null>(null);
+  /** Repair #16 — backend SharedPlan read-back for the Graphs tab (never a local copy). */
+  const [durableGraphPlans, setDurableGraphPlans] = useState<OpalPlanContract[]>([]);
   /** Paste W4 Phase 4 — Idea → PlanComposer (no camera). */
   const [planComposerOpen, setPlanComposerOpen] = useState(false);
   const [planComposerSeed, setPlanComposerSeed] = useState<PlanComposerSeed | null>(null);
@@ -976,7 +996,10 @@ export function OpalApp() {
   /** Repeat → Change who uses existing GraphWhoPicker; create stays the plan engine. */
   const [repeatWhoOpen, setRepeatWhoOpen] = useState(false);
   const [repeatWhoSelected, setRepeatWhoSelected] = useState<string[]>([]);
-  const [createdGraphs, setCreatedGraphs] = useState<GraphCreateDraft[]>([]);
+  // Repair #16: the write-only `createdGraphs` state is GONE. Non-post
+  // GraphCreateFlow completions now persist as SharedPlans via
+  // authoritativeCreateGraphPlan and are read back from the backend
+  // (durableGraphPlans) — there is no local graph-draft store anymore.
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatBusy, setNewChatBusy] = useState(false);
   const [newChatError, setNewChatError] = useState<string | null>(null);
@@ -2139,6 +2162,15 @@ export function OpalApp() {
         return seedOn ? overlayFounderSeedNamesOnChats(merged) : merged;
       });
       setLiveSignals(data.signals || []);
+      // Repair #16 — Graphs read-back: the caller's durable SharedPlans
+      // (Center + graph-create) from the owner-scoped list endpoint, so
+      // conversation-less plans render on Graphs from backend state.
+      try {
+        const plans = await loadDurablePlans(s.access_token);
+        setDurableGraphPlans(plans);
+      } catch {
+        /* Keep current plans; conversations already loaded. */
+      }
       // Needs you: one awaken  -  compressed presentation, not full headline thrice.
       const peerKeyByConv = new Map(
         mapped.map((c) => [c.id, c.homePeerKey || c.id] as const),
@@ -2831,11 +2863,39 @@ export function OpalApp() {
   };
 
   /**
-   * Repair #15 — GraphCreateFlow completion.
-   * Home → Post drafts (intent="post") now publish durably via
-   * authoritativeCreatePost and only resolve after the backend confirms;
-   * a rejection propagates so the flow stays open with the error.
-   * Other graph drafts keep the legacy local behavior (plan/repeat scope).
+   * Repair #16 — re-read the caller's SharedPlans after a durable graph
+   * create so the Graphs tab renders the plan from the SAME backend state
+   * every other surface reads (gyroscope), not from a local copy.
+   */
+  const refreshDurableGraphPlans = async (bearer?: string) => {
+    const token = bearer || session?.access_token;
+    if (!token) return;
+    try {
+      const plans = await loadDurablePlans(token);
+      setDurableGraphPlans(plans);
+    } catch {
+      /* Keep current plans; the create itself already succeeded durably. */
+    }
+  };
+
+  // Repair #16 — mint one idempotency key per GraphCreateFlow opening.
+  useEffect(() => {
+    if (graphCreateOpen && !graphCreateKeyRef.current) {
+      graphCreateKeyRef.current =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `gc-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    if (!graphCreateOpen) graphCreateKeyRef.current = null;
+  }, [graphCreateOpen]);
+
+  /**
+   * Repair #15/#16 — GraphCreateFlow completion.
+   * Home → Post drafts (intent="post") publish durably via
+   * authoritativeCreatePost; ALL other drafts (Graphs / Repeat /
+   * plan-from-chat) now persist durably via authoritativeCreateGraphPlan
+   * as SharedPlans. Both only resolve after the backend confirms; a
+   * rejection propagates so the flow stays open with the error shown.
    */
   const handleGraphCreated = async (draft: GraphCreateDraft) => {
     if (graphCreateContext.intent === "post") {
@@ -2853,11 +2913,28 @@ export function OpalApp() {
       setTab("home");
       return;
     }
-    // REPEAT_MUTATES_OLD_GRAPH = 0 — local draft only; never patch sourcePlanId.
-    void graphCreateContext.sourcePlanId;
-    setCreatedGraphs((prev) => [draft, ...prev]);
+    // REPEAT_MUTATES_OLD_GRAPH = 0 — sourcePlanId is provenance only; the
+    // backend creates a NEW SharedPlan and never writes the source.
+    await authoritativeCreateGraphPlan({
+      mediaSrc: draft.mediaSrc,
+      mediaKind: draft.mediaKind,
+      title: draft.title,
+      whenLabel: draft.whenLabel,
+      where: graphCreateContext.where,
+      caption: draft.caption,
+      audience: draft.audience,
+      joinRequestsOn: draft.joinRequestsOn,
+      exactSpotAfterJoin: draft.exactSpotAfterJoin,
+      participantUserIds: graphCreateContext.participantUserIds || undefined,
+      whoLabel: graphCreateContext.who,
+      sourcePlanId: graphCreateContext.sourcePlanId,
+      entry: graphCreateContext.entry || (graphCreateContext.sourcePlanId ? "repeat" : "graphs_plus"),
+      idempotencyKey: graphCreateKeyRef.current || undefined,
+      bearer: session?.access_token,
+    });
     setGraphCreateContext({});
     setRepeatWhoOpen(false);
+    await refreshDurableGraphPlans();
     setTab("graphs");
   };
 
@@ -4222,6 +4299,20 @@ export function OpalApp() {
       where: ctx.where,
       when: null,
       sourcePlanId: ctx.sourcePlanId,
+      entry: "repeat",
+      // Repeat who-picker works in display names; resolve to real backend
+      // ids from conversation peers where a name matches exactly.
+      participantUserIds: (ctx.who || "")
+        .split(",")
+        .map((part) => part.trim().toLowerCase())
+        .filter(Boolean)
+        .map(
+          (name) =>
+            chats
+              .flatMap((c) => c.peers || [])
+              .find((p) => (p.display_name || "").trim().toLowerCase() === name)?.id,
+        )
+        .filter((id): id is string => !!id),
     });
     setGraphCreateOpen(true);
     setTab("graphs");
@@ -4885,6 +4976,9 @@ export function OpalApp() {
               who: activeChat.name,
               where: null,
               when: null,
+              entry: "chat_plan",
+              conversationId: activeChat.id,
+              participantUserIds: (activeChat.peers || []).map((p) => p.id),
             });
             setGraphCreateOpen(true);
           }}
@@ -5007,6 +5101,9 @@ export function OpalApp() {
                 who: activeChat.name,
                 where: null,
                 when: null,
+                entry: "contact_plan",
+                conversationId: activeChat.id,
+                participantUserIds: (activeChat.peers || []).map((p) => p.id),
               });
               setGraphCreateOpen(true);
             }}
@@ -7750,9 +7847,11 @@ export function OpalApp() {
               setGraphCreateContext({});
               setRepeatWhoOpen(false);
             }}
-            onCreated={(draft) => {
+            onCreated={async (draft) => {
+              // Repair #16: leave the chat only after the durable create
+              // confirms — a failure keeps the flow (and the chat) open.
+              await handleGraphCreated(draft);
               setActiveChatId(null);
-              return handleGraphCreated(draft);
             }}
           />
         ) : null}
@@ -8245,7 +8344,6 @@ export function OpalApp() {
             onAdvanceToPromise={advanceSplashToPromise}
             onWalkthroughComplete={markWalkthroughDone}
             onAfterPhoneVerify={handleAfterPhoneVerify}
-            resumeStep={frResumeStep}
             resumeSession={frResumeSession}
             onAuthenticated={(s) => {
               // Always re-apply session — Meet Opal may have set authReady earlier;
@@ -9508,7 +9606,8 @@ export function OpalApp() {
               const s = sessionRef.current;
               if (s) void refreshLive(s);
             }}
-            liveGraphs={chats.flatMap((chat) => {
+            liveGraphs={mergeDurablePlanCards(
+              chats.flatMap((chat) => {
               const plan = chat.planProjection;
               if (!plan?.place && !plan?.when_label) return [];
               const state = planSurfaceState({
@@ -9560,7 +9659,9 @@ export function OpalApp() {
                   who: chat.name ? [chat.name] : undefined,
                 },
               ];
-            })}
+              }),
+              durableGraphPlans,
+            )}
             onOpenGraph={(cardId) => openGraphDetail(cardId, "graphs")}
             onMessageTimelineItem={(item) => {
               const who = item.who.map((w) => w.toLowerCase());

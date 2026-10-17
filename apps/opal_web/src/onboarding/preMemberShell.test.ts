@@ -30,8 +30,10 @@ describe("pre-member shell isolation (S1)", () => {
     expect(firstRun).toMatch(/fr05-already-account/);
     expect(firstRun).toMatch(/fr06-phone/);
     expect(firstRun).toMatch(/fr07-verify/);
-    expect(firstRun).toMatch(/fr08-profile/);
-    expect(firstRun).toMatch(/fr09-find/);
+    // Repair #16-W2: fr08/fr09 removed; post-verify handoff is the parent callback.
+    expect(firstRun).not.toMatch(/fr08-profile/);
+    expect(firstRun).not.toMatch(/fr09-find/);
+    expect(firstRun).toMatch(/onAfterPhoneVerify/);
   });
 
   it("walkthrough complete + auth complete both land in session authority", () => {

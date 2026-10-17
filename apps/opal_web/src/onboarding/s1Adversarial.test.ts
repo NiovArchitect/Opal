@@ -79,25 +79,29 @@ describe("S1 adversarial harness - authority and isolation", () => {
   });
 
   it("profile persists via server PATCH not only localStorage", () => {
-    const fr = src("onboarding/FirstRunExperience.tsx");
+    // Repair #16-W2: the fr08 profile screen is removed. The profile save is
+    // owned by Meet Opal, which persists via the same server PATCH seam.
+    const meet = src("onboarding/MeetOpalConversation.tsx");
     const client = src("api/productClient.ts");
-    expect(fr).toMatch(/updateProfile\(/);
+    expect(meet).toMatch(/updateProfile\(/);
     expect(client).toMatch(/\/api\/v1\/product\/session\/profile/);
     expect(client).toMatch(/method:\s*"PATCH"/);
   });
 
   it("username uniqueness is real (no fake success path)", () => {
-    const fr = src("onboarding/FirstRunExperience.tsx");
-    expect(fr).toMatch(/handle_taken|already taken/);
-    expect(fr).toMatch(/usernameOptional|Optional/);
+    // Repair #16-W2: handle ownership moved to Meet Opal with the profile.
+    const meet = src("onboarding/MeetOpalConversation.tsx");
+    expect(meet).toMatch(/handle_taken|already taken/);
+    expect(meet).toMatch(/Try another|Accept/);
   });
 
   it("contacts path is optional and cannot trap the user", () => {
     const fr = src("onboarding/FirstRunExperience.tsx");
     const meet = src("onboarding/MeetOpalConversation.tsx");
-    expect(fr).toMatch(/fr09-not-now/);
-    expect(fr).toMatch(/Not now|FR_COPY\.notNow/);
-    // Meet Opal owns contact pick (native bridge / ContactSuggestPicker); fr09 does not remount FindPeopleFlow.
+    // Repair #16-W2: fr09 is removed entirely, so it cannot trap anyone.
+    expect(fr).not.toMatch(/fr09-not-now/);
+    expect(fr).not.toMatch(/fr09-find/);
+    // Meet Opal owns contact pick (native bridge / ContactSuggestPicker).
     expect(meet).toMatch(/ContactSuggestPicker|requestNativeContacts|selectFromContacts/);
     expect(FR_COPY.contactsPrivacy.toLowerCase()).toMatch(/select|not|upload|silent/);
   });
@@ -206,10 +210,10 @@ describe("S1 adversarial harness - NOT_YET_IMPLEMENTED inventory", () => {
     expect(CREATE_DOCK_EXPOSED).toBe(false);
     expect(deferred.fullGraphCreate).toBe("S5");
     const fr = src("onboarding/FirstRunExperience.tsx");
-    // P0-05.8: Add photo is actionable (773:80). Persistence may still gap.
-    expect(fr).toMatch(/fr08-add-photo/);
-    expect(fr).toMatch(/type="file"/);
-    expect(fr).toMatch(/createObjectURL|photoPreview/);
-    expect(fr).toMatch(/PHOTO_PERSISTENCE|photoPersistenceGap|not available in this build/i);
+    // Repair #16-W2: fr08 is removed, so its non-durable photo affordance is
+    // gone with it. Durable upload stays deferred (inventory entry above);
+    // no first-run surface may promise a photo it cannot persist.
+    expect(fr).not.toMatch(/fr08-add-photo/);
+    expect(fr).not.toMatch(/createObjectURL|photoPreview/);
   });
 });

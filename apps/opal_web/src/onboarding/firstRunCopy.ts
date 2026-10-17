@@ -114,15 +114,12 @@ export type FirstRunStepId =
   | "fr04"
   | "fr05"
   | "fr06"
-  | "fr07"
-  | "fr08"
-  | "fr09"
-  | "fr10";
+  | "fr07";
 
 /** Production walkthrough: splash + single promise (founder override 2026-08-20). */
 export const WALKTHROUGH_STEPS: FirstRunStepId[] = ["fr00", "frPromise"];
 
-export const AUTH_STEPS: FirstRunStepId[] = ["fr06", "fr07", "fr08", "fr09", "fr10"];
+export const AUTH_STEPS: FirstRunStepId[] = ["fr06", "fr07"];
 
 /** @deprecated Legacy export for tests that still inspect step narrative. Prefer FR_COPY. */
 export const FIRST_RUN_STEPS = [

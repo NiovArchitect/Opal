@@ -68,28 +68,79 @@ defmodule OpalCoreWeb.ConversationController do
 
   def confirm_alignment(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
-    alignment_result(conn, conversation_id, ConversationAlignment.confirm_exact_time(conversation_id, user_id))
+    result = ConversationAlignment.confirm_exact_time(conversation_id, user_id)
+    conn = alignment_result(conn, conversation_id, result)
+    drive_chat_locked_plan(result, conversation_id, user_id)
+    conn
   end
 
   def nominate_alignment_place(conn, %{"id" => conversation_id} = params) do
     user_id = conn.assigns.current_user_id
     name = params["name"] || params["place"]
-    alignment_result(conn, conversation_id, ConversationAlignment.nominate_place(conversation_id, user_id, name))
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.nominate_place(conversation_id, user_id, name)
+    )
   end
 
   def confirm_alignment_place(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
-    alignment_result(conn, conversation_id, ConversationAlignment.confirm_place(conversation_id, user_id))
+    result = ConversationAlignment.confirm_place(conversation_id, user_id)
+    conn = alignment_result(conn, conversation_id, result)
+    drive_chat_locked_plan(result, conversation_id, user_id)
+    conn
   end
+
+  # Repair #16 (W4, P2) — chat-born plans run PlanCompletion.
+  #
+  # `ConversationAlignment.sync_conversation/1` materializes plans from
+  # chat, but `PlanCompletion.drive/3` was only ever called from Center /
+  # confirm endpoints — a plan locked entirely in chat got no calendar
+  # projection, restaurant discovery, TFT loop, or coming-up row. The
+  # hook lives HERE, at the two chat plan-lock action endpoints (place
+  # confirm, exact-time lock), and runs AFTER the lock's sync transaction
+  # has committed — never inside the fold/sync transaction or a replayed
+  # projection, where drive's side effects (provider jobs, calendar
+  # writes) do not belong. A re-sync / replay never reaches this code
+  # (sync is a read-model fold, not an action endpoint), and a duplicate
+  # lock tap re-drives idempotently: drive/3's calendar (per-version),
+  # TFT (per plan+version+start key), coming-up (per owner+plan key),
+  # and places-search (one live search per plan) keys make the second
+  # drive a no-op in effects. Drive failure never fails the lock the
+  # user just made — the lock response is already built above.
+  defp drive_chat_locked_plan({:ok, _state}, conversation_id, user_id) do
+    case ConversationAlignment.active_plan_for_conversation(conversation_id) do
+      %SharedPlan{} = plan -> _ = SocialFlow.PlanCompletion.drive(plan.id, user_id)
+      _ -> :ok
+    end
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  defp drive_chat_locked_plan(_, _, _), do: :ok
 
   def decline_alignment_place(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
-    alignment_result(conn, conversation_id, ConversationAlignment.decline_place(conversation_id, user_id))
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.decline_place(conversation_id, user_id)
+    )
   end
 
   def reopen_alignment_place(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
-    alignment_result(conn, conversation_id, ConversationAlignment.reopen_place(conversation_id, user_id))
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.reopen_place(conversation_id, user_id)
+    )
   end
 
   def propose_alignment_datetime(conn, %{"id" => conversation_id} = params) do
@@ -134,13 +185,22 @@ defmodule OpalCoreWeb.ConversationController do
     alignment_result(
       conn,
       conversation_id,
-      ConversationAlignment.accept_committed_change(conversation_id, user_id, params["proposal_id"])
+      ConversationAlignment.accept_committed_change(
+        conversation_id,
+        user_id,
+        params["proposal_id"]
+      )
     )
   end
 
   def keep_alignment_plan(conn, %{"id" => conversation_id}) do
     user_id = conn.assigns.current_user_id
-    alignment_result(conn, conversation_id, ConversationAlignment.keep_committed_plan(conversation_id, user_id))
+
+    alignment_result(
+      conn,
+      conversation_id,
+      ConversationAlignment.keep_committed_plan(conversation_id, user_id)
+    )
   end
 
   def authorize_alignment_reservation(conn, %{"id" => conversation_id}) do

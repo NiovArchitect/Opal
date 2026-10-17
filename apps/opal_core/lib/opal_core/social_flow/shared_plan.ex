@@ -161,6 +161,31 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "completed_at" => dt(p.completed_at)
     }
 
+    # Repair #16 (W1): graph-create plans carry draft fields in alignment
+    # (caption / media / audience / join prefs / repeat provenance / who
+    # label). Surface them on the canonical contract so the durable record
+    # is what surfaces read back — keys appear ONLY when the plan actually
+    # carries them, so every other plan shape is byte-identical to before.
+    base =
+      Enum.reduce(
+        ~w(caption media_id audience who_label repeated_from_plan_id),
+        base,
+        fn key, acc ->
+          case Map.get(p.alignment || %{}, key) do
+            v when is_binary(v) and v != "" -> Map.put(acc, key, v)
+            _ -> acc
+          end
+        end
+      )
+      |> then(fn acc ->
+        Enum.reduce(~w(join_requests_on exact_spot_after_join), acc, fn key, a ->
+          case Map.get(p.alignment || %{}, key) do
+            v when is_boolean(v) -> Map.put(a, key, v)
+            _ -> a
+          end
+        end)
+      end)
+
     case Keyword.get(opts, :viewer_timezone) || Keyword.get(opts, :local_times) do
       tz when is_binary(tz) ->
         Map.merge(base, viewer_local_fields(p, tz, opts))

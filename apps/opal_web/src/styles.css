@@ -20192,6 +20192,57 @@ button.alignment-choice:focus-visible,
   background: rgba(0, 229, 255, 0.14);
   color: #00e5ff;
 }
+/* Repair #16 W3 — progressive profile ask: in-flow card, never a modal. */
+.profile-gap-ask {
+  flex: 0 0 auto;
+  margin: 0 12px 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #f8faff;
+}
+.profile-gap-ask-prompt {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.profile-gap-ask-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.profile-gap-ask-input {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 250, 255, 0.25);
+  background: rgba(10, 14, 24, 0.55);
+  color: #f8faff;
+  color-scheme: dark;
+}
+.profile-gap-ask-answer {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #ff4d5e;
+  background: rgba(255, 77, 94, 0.16);
+  color: #f8faff;
+  cursor: pointer;
+}
+.profile-gap-ask-skip,
+.profile-gap-ask-dismiss {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 255, 0.25);
+  background: transparent;
+  color: #f8faff;
+  cursor: pointer;
+}
+.profile-gap-ask-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #ff8a8a;
+}
 .opal-center-chat-voice-hint {
   flex: 0 0 auto;
   margin: 0 12px 6px;

@@ -5,15 +5,12 @@ import {
   FOUNDER_AUTH_FIXTURE,
   codeHintForE164,
   normalizePhoneInput,
-  saveProfile,
   startChallenge,
-  updateProfile,
   verifyChallenge,
   type ProductSession,
 } from "../api/productClient";
 import { isFounderSeedEnabled } from "../opalUi/founderGraphSeed";
 
-import { ActOnBehalfOptInStep } from "./ActOnBehalfOptInStep";
 import {
   FR_COPY,
   FR_FIXTURE_PEOPLE,
@@ -37,10 +34,25 @@ export const FIRST_RUN_ROUTE_ORDER: FirstRunStepId[] = [
   "frPromise", // historical id  -  Promise is owned by OpalApp FirstRunPromisePage
   "fr06",
   "fr07",
-  "fr08",
-  "fr09",
-  "fr10", // Phase 1E: act-on-behalf opt-in (final door before app)
 ];
+
+/**
+ * Repair #16-W2: steps removed from the product (fr08 profile, fr09 Assist,
+ * fr10 act-on-behalf). A persisted or passed-in resume value naming one of
+ * these must never render a blank screen: it is ignored and the flow starts
+ * at its lawful first step. Meet Opal owns name/handle after phone verify,
+ * and Settings owns Assist / act-on-behalf consent at the moment of need.
+ */
+export const REMOVED_FIRST_RUN_STEPS: readonly string[] = ["fr08", "fr09", "fr10"];
+
+export function lawfulResumeStep(
+  candidate: FirstRunStepId | null | undefined,
+): FirstRunStepId | null {
+  if (!candidate) return null;
+  if (REMOVED_FIRST_RUN_STEPS.includes(candidate)) return null;
+  if (!FIRST_RUN_ROUTE_ORDER.includes(candidate) && candidate !== "fr01" && candidate !== "fr02" && candidate !== "fr03" && candidate !== "fr04" && candidate !== "fr05") return null;
+  return candidate;
+}
 
 function nextStep(current: FirstRunStepId): FirstRunStepId | null {
   const i = FIRST_RUN_ROUTE_ORDER.indexOf(current);
@@ -75,7 +87,7 @@ type Props = {
    * Return true to pause here (do not advance to profile yet).
    */
   onAfterPhoneVerify?: (session: ProductSession) => boolean;
-  /** Resume into a specific step after Meet Opal (usually fr08 profile). */
+  /** Legacy resume request. Values naming removed steps are ignored (see lawfulResumeStep). */
   resumeStep?: FirstRunStepId | null;
   /** Session to restore when resuming after Meet Opal. */
   resumeSession?: ProductSession | null;
@@ -152,13 +164,6 @@ export function splitPhoneForDisplay(
   }
 
   return { dial: currentDial, national: digits };
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
 function Avatar({
@@ -277,7 +282,7 @@ export function FirstRunExperience({
 }: Props) {
   const reduce = useReducedMotion();
   const startStep: FirstRunStepId = mode === "sign_in" ? "fr06" : "fr00";
-  const [step, setStep] = useState<FirstRunStepId>(resumeStep || startStep);
+  const [step, setStep] = useState<FirstRunStepId>(lawfulResumeStep(resumeStep) || startStep);
   /** Demo-only selection  -  Chanelle pre-selected for FR02 illustration. */
   const [selectedWho] = useState<Set<string>>(() => new Set(["chanelle"]));
   const [together] = useState(true);
@@ -302,16 +307,9 @@ export function FirstRunExperience({
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [session, setSession] = useState<ProductSession | null>(resumeSession || null);
 
-  // Profile: Add photo is ACTION (773:80). Local preview always; persist if owner exists.
+  // Provisional name/handle hints for verifyChallenge; Meet Opal owns the real profile save.
   const [displayName, setDisplayName] = useState(() => resumeSession?.display_name || "");
   const [username, setUsername] = useState(() => resumeSession?.handle || "");
-  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
-  const [photoPersistenceGap, setPhotoPersistenceGap] = useState(false);
-  const photoInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Find people overlay after FR09 primary
-
-  const [assistChoice, setAssistChoice] = useState<"on" | "off" | null>(null);
   const finishingRef = useRef(false);
   const startLockRef = useRef(false);
   const verifyLockRef = useRef(false);
@@ -329,8 +327,9 @@ export function FirstRunExperience({
   }, [open, startStep]);
 
   useEffect(() => {
-    if (!resumeStep) return;
-    setStep(resumeStep);
+    const lawful = lawfulResumeStep(resumeStep);
+    if (!lawful) return;
+    setStep(lawful);
     if (resumeSession) {
       setSession(resumeSession);
       if (resumeSession.display_name) setDisplayName(resumeSession.display_name);
@@ -449,12 +448,11 @@ export function FirstRunExperience({
 
   /** Founder/preview only: Skip for now continues walk via real OTP fixture path. */
   const founderSkipForNow = async () => {
-    if (!isFounderSeedEnabled()) {
-      // Arbitration: one message only - clear service errors before helper status.
-      setError(null);
-      setStatusLine("Phone verification is required to continue.");
-      return;
-    }
+    // Repair #16-W2: this control is only rendered on founder-seed builds,
+    // where it performs a REAL fixture OTP challenge and verify. There is no
+    // guest or deferred-verification session in the session model: a session
+    // exists only after verifyChallenge. The guard stays as defense in depth.
+    if (!isFounderSeedEnabled()) return;
     if (busy || startLockRef.current) return;
     startLockRef.current = true;
     setBusy(true);
@@ -490,9 +488,14 @@ export function FirstRunExperience({
           if (s.display_name && s.display_name !== "You" && !displayName.trim()) {
             setDisplayName(s.display_name);
           }
-          setStep("fr08");
           setStatusLine(null);
           lastErr = null;
+          // Same post-verify handoff as the normal verify path: the parent
+          // routes to PermissionBootstrap then Meet Opal. Without a parent
+          // handler, finish honestly with the verified session.
+          if (!onAfterPhoneVerify?.(s)) {
+            finishToHome(s);
+          }
           break;
         } catch (e) {
           lastErr = e;
@@ -590,7 +593,7 @@ export function FirstRunExperience({
     setError(null);
     setStatusLine(FR_COPY.checking);
     try {
-      // Provisional name until FR08; session must exist before profile authority.
+      // Provisional name until Meet Opal; session must exist before profile authority.
       const e164 = normalizePhoneInput(phone, dialCode);
       const s = await verifyChallenge({
         challengeId,
@@ -615,8 +618,10 @@ export function FirstRunExperience({
         setStatusLine(null);
         return;
       }
-      setStep("fr08");
+      // No parent handoff (tests / standalone): the verified session is the
+      // completion. There is no in-component step after fr07 anymore.
       setStatusLine(null);
+      finishToHome(s);
     } catch (e) {
       setError(mapVerifyError(e as Error & { code?: string }));
       setStatusLine(null);
@@ -624,41 +629,6 @@ export function FirstRunExperience({
     } finally {
       setBusy(false);
       verifyLockRef.current = false;
-    }
-  };
-
-  const saveProfileAndContinue = async () => {
-    if (busy || !session) return;
-    const name = displayName.trim();
-    if (!name) {
-      setError(FR_COPY.nameRequired);
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const handle = username.trim().replace(/^@/, "");
-      const data = await updateProfile(
-        { displayName: name, handle: handle || undefined },
-        session.access_token,
-      );
-      const next: ProductSession = {
-        ...session,
-        display_name: data.user.display_name,
-        handle: data.user.handle,
-      };
-      saveProfile(next);
-      setSession(next);
-      setStep("fr09");
-    } catch (e) {
-      const err = e as Error & { code?: string };
-      if (err.code === "handle_taken" || /taken/i.test(err.message || "")) {
-        setError("That username is already taken. Try another.");
-      } else {
-        setError(err.message || "Could not save your profile. Try again.");
-      }
-    } finally {
-      setBusy(false);
     }
   };
 
@@ -1293,6 +1263,9 @@ export function FirstRunExperience({
                 <p className="fr-phone-hint" id="fr-phone-hint" data-testid="fr06-phone-hint">
                   {FR_COPY.phoneHint}
                 </p>
+                <p className="fr-meta" data-testid="fr06-verify-required">
+                  Your phone number is your account key, so we verify it before you continue. There is no guest sign-in.
+                </p>
                 <fieldset className="fr-consent">
                   <legend className="sr-only">Text message consent</legend>
                   <label className="fr-consent-label" htmlFor="fr-otp-consent">
@@ -1322,16 +1295,19 @@ export function FirstRunExperience({
                 >
                   {busy ? FR_COPY.busy : FR_COPY.continue}
                 </button>
-                <button
-                  type="button"
-                  className="fr-text-action fr-skip-for-now"
-                  data-testid="fr06-skip-for-now"
-                  onClick={() => {
-                    void founderSkipForNow();
-                  }}
-                >
-                  {FR_COPY.skipForNow}
-                </button>
+                {founderReview ? (
+                  <button
+                    type="button"
+                    className="fr-text-action fr-skip-for-now"
+                    data-testid="fr06-skip-for-now"
+                    disabled={busy}
+                    onClick={() => {
+                      void founderSkipForNow();
+                    }}
+                  >
+                    {FR_COPY.skipForNow}
+                  </button>
+                ) : null}
               </form>
             </div>
           ) : null}
@@ -1430,208 +1406,6 @@ export function FirstRunExperience({
             </div>
           ) : null}
 
-          {step === "fr08" ? (
-            <div
-              className="fr-screen fr-profile fr-auth-v4"
-              data-testid="fr08-profile"
-              data-figma-authority="773:80"
-              data-figma-node="773:80"
-              data-viewport="390x844"
-            >
-              <CharacterLockup />
-              <h1 className="fr-title">{FR_COPY.profileTitle}</h1>
-              <p className="fr-body fr-profile-desc" data-testid="fr08-profile-body">
-                {FR_COPY.profileBody}
-              </p>
-              {error ? (
-                <p className="fr-error" role="alert">
-                  {error}
-                </p>
-              ) : null}
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                capture="user"
-                hidden
-                data-testid="fr08-photo-input"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
-                  const url = URL.createObjectURL(file);
-                  setPhotoPreviewUrl(url);
-                  // No durable user-avatar persistence owner in Accounts yet.
-                  setPhotoPersistenceGap(true);
-                }}
-              />
-              <div className="fr-profile-photo-stack" data-testid="fr08-photo-stack">
-                <button
-                  type="button"
-                  className="fr-profile-photo"
-                  data-profile-photo="action"
-                  data-testid="fr08-add-photo"
-                  data-participation-action="add_photo"
-                  aria-label="Add photo"
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  <span className="fr-profile-ring">
-                    {photoPreviewUrl ? (
-                      <img
-                        className="fr-profile-img"
-                        src={photoPreviewUrl}
-                        alt=""
-                        data-testid="fr08-photo-preview"
-                      />
-                    ) : (
-                      <span className="fr-profile-initials" aria-hidden data-testid="fr08-initials">
-                        {initialsFromName(displayName || "You")}
-                      </span>
-                    )}
-                  </span>
-                  <span className="fr-profile-edit" aria-hidden data-testid="fr08-photo-edit-badge">
-                    ✎
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="fr-add-photo-label"
-                  data-testid="fr08-photo-label"
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  Add photo
-                </button>
-                {photoPersistenceGap ? (
-                  <span className="fr-meta fr-center" data-testid="fr08-photo-persistence-gap">
-                    Preview ready. Durable profile photo upload is not available in this build
-                  </span>
-                ) : null}
-              </div>
-              <form
-                className="fr-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void saveProfileAndContinue();
-                }}
-              >
-                <label htmlFor="fr-name">{FR_COPY.nameLabel}</label>
-                <input
-                  id="fr-name"
-                  className="composer-input fr-input"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Sadeil"
-                  autoComplete="name"
-                  required
-                  maxLength={128}
-                  data-testid="fr08-name-input"
-                />
-                <label htmlFor="fr-username">{FR_COPY.usernameLabel}</label>
-                <input
-                  id="fr-username"
-                  className="composer-input fr-input"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="@sadeil"
-                  autoComplete="username"
-                  maxLength={64}
-                  data-testid="fr08-username-input"
-                />
-                <p className="fr-meta">{FR_COPY.usernameOptional}</p>
-                <button
-                  type="submit"
-                  className="btn primary fr-primary"
-                  disabled={busy || !displayName.trim()}
-                  data-testid="fr08-continue"
-                >
-                  {busy ? FR_COPY.busy : FR_COPY.continue}
-                </button>
-              </form>
-            </div>
-          ) : null}
-
-          {step === "fr09" ? (
-            <div
-              className="fr-screen fr-find fr-auth-v4"
-              data-testid="fr09-find"
-              data-figma-authority="773:113"
-              data-figma-node="773:113"
-              data-viewport="390x844"
-            >
-              <CharacterLockup />
-              <h1 className="fr-title">Almost there</h1>
-              <p className="fr-body fr-find-desc" data-testid="fr09-find-body">
-                Your people are already set from Meet Opal. Optional: turn on Assist for calls.
-              </p>
-              <div className="fr-find-card fr-assist-card" data-testid="fr-assist-choice">
-                <div>
-                  <strong>Opal Assist</strong>
-                  <p className="fr-meta">
-                    Opal Assist can listen during Opal calls you allow, to help with plans and shared context. Raw audio is not saved.
-                  </p>
-                </div>
-                <div className="fr-assist-actions" data-testid="fr-assist-actions">
-                  <button
-                    type="button"
-                    className="fr-assist-enable"
-                    data-testid="fr-assist-enable"
-                    onClick={() => {
-                      setAssistChoice("on");
-                      void import("../api/productClient")
-                        .then(({ updateAssistPreference }) =>
-                          updateAssistPreference(true, session?.access_token),
-                        )
-                        .catch(() => undefined)
-                        .finally(() => setStep("fr10"));
-                    }}
-                  >
-                    Enable Assist
-                  </button>
-                  <button
-                    type="button"
-                    className="fr-assist-dismiss"
-                    data-testid="fr-assist-not-now"
-                    onClick={() => {
-                      setAssistChoice("off");
-                      void import("../api/productClient")
-                        .then(({ updateAssistPreference }) =>
-                          updateAssistPreference(false, session?.access_token),
-                        )
-                        .catch(() => undefined)
-                        .finally(() => setStep("fr10"));
-                    }}
-                  >
-                    Not now
-                  </button>
-                </div>
-                {assistChoice === "on" ? (
-                  <p className="fr-meta fr-assist-status" data-testid="fr-assist-status">
-                    Assist enabled for calls you allow.
-                  </p>
-                ) : null}
-              </div>
-              <div className="fr-find-actions">
-              <button
-                type="button"
-                className="fr-not-now"
-                data-testid="fr09-not-now"
-                onClick={() => setStep("fr10")}
-              >
-                Continue
-              </button>
-              </div>
-              {/* Contacts already resolved in Meet Opal; never re-ask with a phone form here. */}
-            </div>
-          ) : null}
-
-          {step === "fr10" ? (
-            <ActOnBehalfOptInStep
-              session={session}
-              busy={busy}
-              onContinue={() => finishToHome()}
-              onSkip={() => finishToHome()}
-            />
-          ) : null}
         </motion.div>
       </AnimatePresence>
     </div>

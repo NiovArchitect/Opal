@@ -29,6 +29,18 @@ defmodule OpalCore.CelebrationCuration do
 
   Returns `{:ok, curation}` with either full fields (known+) or a basic
   reminder map (below known). Foreign celebrations → `{:error, :not_found}`.
+
+  Repair #16 (W4, P5) — every curation also carries a `preparation`:
+  deterministic, pull-side preparation computed at READ time from data
+  the curation already holds (days-until, the person's name/kind, and —
+  in full mode — the shared plan history with that person). It surfaces
+  ONLY inside this read path (the celebration surface's own curation
+  response): nothing is pushed to the Attention Center, no notification
+  is created, no TFT loop or shell row is written by reading. The push
+  variant was P5's unanswered consent question and stays unimplemented.
+  Preparation claims only what the data supports: banded lead-time
+  actions from days-until, plus a history action when a real past plan
+  with the person exists. No invented facts, no generative content.
   """
   def curate_for(user_id, celebration_id)
       when is_binary(user_id) and is_binary(celebration_id) do
@@ -122,7 +134,8 @@ defmodule OpalCore.CelebrationCuration do
       "gift_ideas" => curation[:gift_ideas] || [],
       "plan_ideas" => curation[:plan_ideas] || [],
       "budget_note" => curation[:budget_note],
-      "reminder" => curation[:reminder]
+      "reminder" => curation[:reminder],
+      "preparation" => stringify_preparation(curation[:preparation])
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) end)
     |> Map.new()
@@ -174,7 +187,8 @@ defmodule OpalCore.CelebrationCuration do
       group_suggestion: group,
       gift_ideas: gift_ideas,
       plan_ideas: plan_ideas,
-      budget_note: budget_note
+      budget_note: budget_note,
+      preparation: build_preparation(c, celebration_slice[:days_until], history)
     }
   end
 
@@ -188,7 +202,103 @@ defmodule OpalCore.CelebrationCuration do
       gift_ideas: [],
       plan_ideas: [],
       budget_note: nil,
-      reminder: basic_reminder_text(c, days)
+      reminder: basic_reminder_text(c, days),
+      # Basic mode holds no taste/history, so preparation is honestly
+      # limited to the days-until band — still useful, never padded
+      # with invented personalization.
+      preparation: build_preparation(c, days, [])
+    }
+  end
+
+  # --- preparation (Repair #16, W4, P5) ---------------------------------------
+  #
+  # Deterministic lead-time preparation. Bands are a pure function of
+  # days-until; the only personal facts used are the person's name, the
+  # celebration kind, and (full mode) real past plan titles shared with
+  # that person. Actions never name products, venues, or features that
+  # do not exist in the data.
+
+  defp build_preparation(%Celebration{} = c, days, history)
+       when is_integer(days) and is_list(history) do
+    first = first_name(c.person_name)
+
+    band =
+      cond do
+        days <= 0 -> "today"
+        days == 1 -> "tomorrow"
+        days <= 7 -> "this_week"
+        days <= 21 -> "soon"
+        true -> "plenty"
+      end
+
+    actions =
+      case band do
+        "today" ->
+          ["Today is #{first}'s #{c.kind} — send your wishes."]
+
+        "tomorrow" ->
+          [
+            "Tomorrow is #{first}'s #{c.kind} — pick a plan idea and lock the time.",
+            "If a gift is part of it, today is the day to have it in hand."
+          ]
+
+        "this_week" ->
+          [
+            "#{first}'s #{c.kind} is this week — choose a plan idea while the week is still open.",
+            "Going out? Reserve ahead so the day itself is easy."
+          ]
+
+        "soon" ->
+          [
+            "#{first}'s #{c.kind} is in #{days} days — enough time to plan something thoughtful.",
+            "Save the date on your calendar before the week fills up."
+          ]
+
+        "plenty" ->
+          [
+            "#{first}'s #{c.kind} is in #{days} days — no rush yet.",
+            "Jot down gift ideas as they come to you; there is time."
+          ]
+      end
+
+    last_title =
+      history
+      |> Enum.map(& &1.plan_title)
+      |> Enum.find(&(is_binary(&1) and &1 != ""))
+
+    actions =
+      if is_binary(last_title) do
+        actions ++
+          [
+            "Last time you marked a plan with #{first}: #{last_title} — a rematch is among the ideas."
+          ]
+      else
+        actions
+      end
+
+    %{
+      days_until: days,
+      lead_time: band,
+      person_name: c.person_name,
+      kind: c.kind,
+      actions: actions,
+      based_on: %{
+        "past_plans_together" => length(history),
+        "last_plan_title" => last_title
+      }
+    }
+  end
+
+  defp build_preparation(%Celebration{} = c, _days, _history) do
+    # No derivable days-until: preparation honestly degrades to the
+    # person's facts only, with no lead-time claim.
+    %{
+      days_until: nil,
+      lead_time: "unknown",
+      person_name: c.person_name,
+      kind: c.kind,
+      actions: [],
+      based_on: %{"past_plans_together" => 0, "last_plan_title" => nil}
     }
   end
 
@@ -527,6 +637,19 @@ defmodule OpalCore.CelebrationCuration do
   defp stringify_val(list) when is_list(list), do: Enum.map(list, &stringify_val/1)
   defp stringify_val(map) when is_map(map), do: stringify_map(map)
   defp stringify_val(v), do: v
+
+  defp stringify_preparation(nil), do: nil
+
+  defp stringify_preparation(%{} = p) do
+    %{
+      "days_until" => p[:days_until],
+      "lead_time" => p[:lead_time],
+      "person_name" => p[:person_name],
+      "kind" => p[:kind],
+      "actions" => p[:actions] || [],
+      "based_on" => stringify_map(p[:based_on] || %{})
+    }
+  end
 
   defp stringify_taste(nil), do: nil
 

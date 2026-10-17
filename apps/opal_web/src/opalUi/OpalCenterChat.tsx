@@ -6,10 +6,12 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import {
   clearOpalConversation,
   getOpalConversation,
+  listRelationships,
   postOpalMessage,
   startOpalNewChat,
   type OpalChatMessage,
 } from "../api/productClient";
+import { ProfileGapAsk } from "./ProfileGapAsk";
 import {
   LISTENING_COPY,
   MIC_BLOCKED_COPY,
@@ -196,6 +198,29 @@ function fromServer(m: OpalChatMessage): LocalMsg {
   };
 }
 
+/**
+ * Repair #16 W3 — birthday-plan detection for the progressive ask.
+ * The Center pipeline marks birthday turns in the message metadata's
+ * context_snapshot (`intent_scope: "birthday"`, `who`/`primary_person`
+ * set from the utterance — see PlanContextPatch). Returns the honoree's
+ * name from the LATEST such turn, or null. Name only: identity
+ * resolution happens against the owner's relationship contacts, and
+ * fails closed (no assess) when the name doesn't resolve uniquely.
+ */
+function birthdayPersonNameFromMessages(messages: LocalMsg[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const m = messages[i];
+    if (m.role !== "opal") continue;
+    const snap = m.metadata?.context_snapshot as Record<string, unknown> | undefined;
+    if (!snap || snap.intent_scope !== "birthday") continue;
+    const who = [snap.who, snap.primary_person].find(
+      (v): v is string => typeof v === "string" && v.trim() !== "" && v !== "__clear__",
+    );
+    if (who) return who.trim();
+  }
+  return null;
+}
+
 function optionsFromMeta(meta?: Record<string, unknown> | null): PlaceOption[] {
   const raw = meta?.options;
   if (!Array.isArray(raw)) return [];
@@ -246,6 +271,9 @@ export function OpalCenterChat({
   const [voiceHint, setVoiceHint] = useState<string | null>(null);
   const [online, setOnline] = useState(() => isOnline());
   const [audioPlaying, setAudioPlaying] = useState(false);
+  // Repair #16 W3 — progressive profile ask (birthday): the honoree of
+  // the latest birthday-plan turn, resolved to a relationship contact.
+  const [gapPerson, setGapPerson] = useState<{ id: string; name: string } | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
@@ -824,6 +852,42 @@ export function OpalCenterChat({
 
   const hasText = draft.trim().length > 0;
   const empty = !loading && !loadError && messages.length === 0 && !sending;
+
+  // Repair #16 W3 — resolve the birthday honoree's name (from the
+  // latest birthday-plan turn) to the owner's relationship contact.
+  // Fail closed: no unique contact match → no assess, no ask, and the
+  // plan flow is untouched either way.
+  const birthdayPersonName = birthdayPersonNameFromMessages(messages);
+  useEffect(() => {
+    if (!birthdayPersonName) {
+      setGapPerson(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await listRelationships(bearer);
+        if (cancelled) return;
+        const wanted = birthdayPersonName.toLowerCase();
+        const contacts = (res.contacts || []).filter(
+          (c) => !!c.contact_user_id && typeof c.display_name === "string",
+        );
+        const exact = contacts.filter((c) => c.display_name!.trim().toLowerCase() === wanted);
+        const byFirstName = contacts.filter(
+          (c) => c.display_name!.trim().toLowerCase().split(/\s+/)[0] === wanted,
+        );
+        const match = exact.length === 1 ? exact[0] : byFirstName.length === 1 ? byFirstName[0] : null;
+        setGapPerson(
+          match ? { id: match.contact_user_id, name: match.display_name!.trim() } : null,
+        );
+      } catch {
+        if (!cancelled) setGapPerson(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [birthdayPersonName, bearer]);
   // Offline / no STT path: disable before tap. Real denial only after listenOnce fails.
   const micOfflineBlocked = !online && !listening;
   const micUnavailable = !sttReady && !listening;
@@ -1088,6 +1152,15 @@ export function OpalCenterChat({
           </div>
         ) : null}
       </div>
+
+      {gapPerson ? (
+        <ProfileGapAsk
+          key={gapPerson.id}
+          personId={gapPerson.id}
+          personName={gapPerson.name}
+          bearer={bearer}
+        />
+      ) : null}
 
       {showJump ? (
         <button

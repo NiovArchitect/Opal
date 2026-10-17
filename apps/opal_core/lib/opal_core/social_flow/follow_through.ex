@@ -17,6 +17,7 @@ defmodule OpalCore.SocialFlow.FollowThrough do
     AuditEvent,
     CompletionEvent,
     FeedbackEvent,
+    FollowThroughProducers,
     MemoryCandidate,
     PlanCommitment,
     PlanReminder,
@@ -479,7 +480,16 @@ defmodule OpalCore.SocialFlow.FollowThrough do
              true <- c.owner_user_id == user_id,
              %SharedPlan{} = plan <- Repo.get(SharedPlan, c.plan_id),
              :ok <- ensure_member(plan.conversation_id, user_id) do
-          persist_completion(c, plan, user_id, share, shared_message, idem, signal_id, trace_id)
+          case persist_completion(c, plan, user_id, share, shared_message, idem, signal_id, trace_id) do
+            {:ok, _result, :created} = ok ->
+              # Repair #16 (W4, P4) — completing the commitment completes
+              # its waiting_on follow-through loop (post-commit).
+              _ = FollowThroughProducers.complete_waiting_on_commitment(commitment_id)
+              ok
+
+            other ->
+              other
+          end
         else
           nil -> {:error, :not_found}
           false -> {:error, :forbidden}

@@ -13,11 +13,13 @@ defmodule OpalCore.SocialFlow do
 
   alias OpalCore.SocialFlow.{
     AuditEvent,
+    FollowThroughProducers,
     PlanAgreementTasteBridge,
     PlanCommitment,
     PlanOption,
     PlanOptionResponse,
     PlanParticipant,
+    PlanRecentChanges,
     PlanReminder,
     PlanRevision,
     PlanProjection,
@@ -825,6 +827,11 @@ defmodule OpalCore.SocialFlow do
             trace
           )
 
+          # Repair #16 (W4, P4) — the confirm tap IS an explicit structured
+          # commitment: register the waiting_on follow-through loop now
+          # (post-commit; see FollowThroughProducers for the deadline law).
+          _ = FollowThroughProducers.register_waiting_on_commitment(c, plan)
+
           {:ok, c}
 
         {:error, reason} ->
@@ -952,6 +959,11 @@ defmodule OpalCore.SocialFlow do
             trace_id
           )
 
+          # Repair #16 (W4, P4) — a proposed revision names the people who
+          # owe an answer (required_approvals): register their explicit
+          # open_question loops now (post-commit).
+          _ = FollowThroughProducers.register_open_questions(revision, plan)
+
           {:ok, %{revision: revision, signal: signal}}
 
         {:error, reason} ->
@@ -1057,6 +1069,10 @@ defmodule OpalCore.SocialFlow do
             },
             trace
           )
+
+          # Repair #16 (W4, P4) — a cancel proposal also names required
+          # approvers who owe an answer: same explicit open_question loops.
+          _ = FollowThroughProducers.register_open_questions(revision, plan)
 
           {:ok, %{revision: revision, signal: signal}}
 
@@ -1188,6 +1204,11 @@ defmodule OpalCore.SocialFlow do
           trace
         )
 
+        # Repair #16 (W4, P4) — rejected: the question is settled, so every
+        # approver's open_question loop completes. No plan mutation
+        # happened, so NO recent-change entry is recorded (P3 truth law).
+        _ = FollowThroughProducers.complete_open_questions(revision.id)
+
         {:ok, revision}
 
       {:ok, {:broadcast_plan, plan, revision, signal}} ->
@@ -1202,14 +1223,47 @@ defmodule OpalCore.SocialFlow do
           trace
         )
 
+        # Repair #16 (W4) — the revision was accepted AND applied
+        # (post-commit): P3 records the material change for the plan's
+        # people; P4 completes the now-answered open_question loops.
+        _ = record_recent_change_for_revision(plan, revision)
+        _ = FollowThroughProducers.complete_open_questions(revision.id)
+
         {:ok, %{plan: plan, revision: revision, signal: signal}}
 
       {:ok, {:silent, revision}} ->
+        # Repair #16 (W4, P4) — a partial approval answers only THIS
+        # approver's question; the others still owe an answer. The plan
+        # has not mutated yet, so no recent-change entry (P3 truth law).
+        _ = FollowThroughProducers.complete_open_questions(revision.id, user_id)
+
         {:ok, revision}
 
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  # Repair #16 (W4, P3) — recent-change copy for an accepted revision is
+  # built from the revision's own kind and the post-apply plan row: a
+  # cancel revision records a cancellation, anything else records the
+  # schedule change at the plan's now-current time_label. The revision id
+  # is the idempotency event key (one entry per owner per mutation).
+  defp record_recent_change_for_revision(%SharedPlan{} = plan, %PlanRevision{} = revision) do
+    changes = revision.proposed_changes || %{}
+
+    if changes["kind"] == "cancel" do
+      PlanRecentChanges.record_cancelled(plan, "rev-#{revision.id}")
+    else
+      PlanRecentChanges.record_schedule_changed(
+        plan,
+        "rev-#{revision.id}",
+        "time_label",
+        plan.time_label
+      )
+    end
+  rescue
+    _ -> :ok
   end
 
   # Applies an accepted revision to the already-locked plan + revision rows.
@@ -1476,6 +1530,11 @@ defmodule OpalCore.SocialFlow do
           %{"plan" => plan_payload(plan), "cancelled" => true},
           trace
         )
+
+        # Repair #16 (W4, P3) — a direct cancel is a material mutation:
+        # record it for the plan's people (post-commit). A cancel is
+        # terminal, so the literal event key can only ever fire once.
+        _ = PlanRecentChanges.record_cancelled(plan, "cancel")
 
         {:ok, %{plan: plan, notify_user_ids: notify_user_ids}}
 
@@ -1966,6 +2025,17 @@ defmodule OpalCore.SocialFlow do
             trace
           )
 
+          # Repair #16 (W4, P3) — a lead's direct schedule edit is a
+          # material mutation: record it for the plan's people
+          # (post-commit), keyed by the revision row the edit created.
+          _ =
+            PlanRecentChanges.record_schedule_changed(
+              plan,
+              "rev-#{revision.id}",
+              field,
+              value
+            )
+
           {:ok, %{plan: plan}}
 
         {:error, reason} ->
@@ -2122,6 +2192,16 @@ defmodule OpalCore.SocialFlow do
   # so a Center plan's own owner got :forbidden here. The public contract is
   # unchanged: {:ok, plan} | {:error, :forbidden} | {:error, :not_found}.
   def get_plan_for_user(plan_id, user_id) do
+    # Repair #16 (W1): a junk (non-UUID) id is a guessed id — the contract is
+    # :not_found, not a CastError crash on the read path.
+    if not match?({:ok, _}, Ecto.UUID.cast(plan_id)) do
+      {:error, :not_found}
+    else
+      do_get_plan_for_user(plan_id, user_id)
+    end
+  end
+
+  defp do_get_plan_for_user(plan_id, user_id) do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
         case ensure_plan_access(plan, user_id) do
@@ -2738,6 +2818,315 @@ defmodule OpalCore.SocialFlow do
   end
 
   def create_tentative_plan_from_center(_, _), do: {:error, :invalid}
+
+  # Repair #16 (W1) — durable GraphCreateFlow completion.
+  #
+  # Before this, every non-post GraphCreateFlow completion (Graphs/Repeat/
+  # plan-from-chat) landed in write-only React state (`createdGraphs` was
+  # never read anywhere): the "plan" vanished on refresh, was invisible to
+  # every other account, and the flow closed as if it had succeeded.
+  #
+  # The lawful durable home is the SAME plan authority Center uses: a
+  # conversation-less SharedPlan (source "center" shape — owner is lead +
+  # accepted, invitees are pending PlanParticipants), read back through
+  # list_plans_for_user/2 / get_plan_for_user/2, the owner-scoped readers
+  # behind the Graphs/Timeline projections (gyroscope: one plan, one state).
+  # True provenance is recorded in alignment["origin"] = "graph_create"
+  # plus alignment["entry"] (the entry surface).
+  #
+  # Field fates (draft -> plan):
+  # - title -> SharedPlan.title (required; blank -> :invalid_title)
+  # - location/place (host knownWhere) -> SharedPlan.location
+  # - time_label (draft whenLabel) -> SharedPlan.time_label
+  # - caption -> alignment["caption"] (no first-class plan column exists;
+  #   exposed back on the plan contract — durable + read back, never faked)
+  # - media_id -> alignment["media_id"], ONLY when the media row exists,
+  #   is owned by the creator, and is not deleted (Repair #15 E8 law —
+  #   another user's / ghost / junk media is :invalid_media, zero rows)
+  # - audience -> alignment["audience"]. Plan visibility is participant-
+  #   scoped by construction (ensure_plan_access/2), so only audiences
+  #   consistent with that are lawful: "close_circle" and "private".
+  #   Anything wider ("friends", "custom", junk) is rejected honestly with
+  #   :unsupported_audience instead of being silently stored and ignored.
+  # - join_requests_on / exact_spot_after_join -> alignment booleans,
+  #   exposed back on the contract. No self-join surface exists for plans
+  #   today, and plan location is only readable by participants, which is
+  #   what those toggles describe; the stored values are the creator's
+  #   stated preference on the durable record.
+  # - participant_user_ids -> pending PlanParticipants (real user ids only;
+  #   unknown/junk ids are :invalid_participant, zero rows). Display-name
+  #   "who" text is kept as alignment["who_label"] for surfaces.
+  # - source_plan_id (Repeat provenance) -> alignment["repeated_from_plan_id"].
+  #   REPEAT_MUTATES_OLD_GRAPH = 0: the source is never written. Repeating a
+  #   plan the caller cannot lawfully read is :forbidden; a missing source
+  #   is :source_plan_not_found. A NEW plan is always created.
+  # - idempotency_key -> alignment["graph_create_key"]. A replay / double
+  #   submit with the same key returns the existing plan (deduplicated:
+  #   true) instead of inserting a duplicate.
+  #
+  # Returns {:ok, plan, participants, deduplicated?} or {:error, reason}.
+  @graph_create_audiences ~w(close_circle private)
+
+  def create_plan_from_graph_create(user_id, attrs)
+      when is_binary(user_id) and is_map(attrs) do
+    params = stringify_keys(attrs)
+    title = present_string(params["title"] || params["place"])
+    audience = present_string(params["audience"]) || "close_circle"
+    media_id = present_string(params["media_id"])
+    source_plan_id = present_string(params["source_plan_id"])
+    idempotency_key = present_string(params["idempotency_key"])
+
+    with :ok <- require_graph_title(title),
+         :ok <- require_graph_audience(audience),
+         :ok <- require_owned_graph_media(user_id, media_id),
+         :ok <- require_repeatable_source(user_id, source_plan_id),
+         {:ok, participant_ids} <-
+           resolve_graph_participants(user_id, params["participant_user_ids"]) do
+      case find_graph_create_plan(user_id, idempotency_key) do
+        %SharedPlan{} = existing ->
+          participants =
+            from(pp in PlanParticipant, where: pp.plan_id == ^existing.id) |> Repo.all()
+
+          {:ok, existing, participants, true}
+
+        nil ->
+          insert_graph_create_plan(user_id, params, %{
+            title: title,
+            audience: audience,
+            media_id: media_id,
+            source_plan_id: source_plan_id,
+            idempotency_key: idempotency_key,
+            participant_ids: participant_ids
+          })
+      end
+    end
+  end
+
+  def create_plan_from_graph_create(_, _), do: {:error, :invalid}
+
+  defp require_graph_title(nil), do: {:error, :invalid_title}
+  defp require_graph_title(_title), do: :ok
+
+  defp require_graph_audience(audience) when audience in @graph_create_audiences, do: :ok
+  defp require_graph_audience(_audience), do: {:error, :unsupported_audience}
+
+  # Repair #15 E8 law, plan edition: only the creator's own live media may
+  # be attached to a plan. Junk (non-UUID) ids are rejected, never crash.
+  defp require_owned_graph_media(_user_id, nil), do: :ok
+
+  defp require_owned_graph_media(user_id, media_id) do
+    owned? =
+      case Ecto.UUID.cast(media_id) do
+        {:ok, uuid} ->
+          from(m in OpalCore.SocialFlow.SocialMomentMedia,
+            where:
+              m.id == ^uuid and m.owner_user_id == ^user_id and is_nil(m.deleted_at),
+            select: m.id
+          )
+          |> Repo.exists?()
+
+        :error ->
+          false
+      end
+
+    if owned?, do: :ok, else: {:error, :invalid_media}
+  end
+
+  # Repeat provenance: the source must exist and be lawfully readable by
+  # the repeater (creator or participant — ensure_plan_access/2). It is
+  # only ever READ here; the repeat writes a brand-new plan.
+  defp require_repeatable_source(_user_id, nil), do: :ok
+
+  defp require_repeatable_source(user_id, source_plan_id) do
+    case Ecto.UUID.cast(source_plan_id) do
+      {:ok, uuid} ->
+        case Repo.get(SharedPlan, uuid) do
+          %SharedPlan{} = source ->
+            case ensure_plan_access(source, user_id) do
+              :ok -> :ok
+              {:error, _} -> {:error, :forbidden}
+            end
+
+          nil ->
+            {:error, :source_plan_not_found}
+        end
+
+      :error ->
+        {:error, :source_plan_not_found}
+    end
+  end
+
+  defp resolve_graph_participants(user_id, raw) do
+    entries = List.wrap(raw)
+
+    # A non-string entry can never be a lawful participant id — reject the
+    # create rather than silently dropping an invited person.
+    if Enum.any?(entries, &(not is_binary(&1))) do
+      {:error, :invalid_participant}
+    else
+      resolve_graph_participant_ids(user_id, entries)
+    end
+  end
+
+  defp resolve_graph_participant_ids(user_id, entries) do
+    ids =
+      entries
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == "" or &1 == user_id))
+      |> Enum.uniq()
+
+    # Any non-UUID or unknown id fails the whole create honestly — a plan
+    # must never silently drop an invited person.
+    invalid? =
+      Enum.any?(ids, fn id ->
+        case Ecto.UUID.cast(id) do
+          {:ok, uuid} ->
+            not Repo.exists?(from(u in OpalCore.Accounts.User, where: u.id == ^uuid))
+
+          :error ->
+            true
+        end
+      end)
+
+    if invalid?, do: {:error, :invalid_participant}, else: {:ok, ids}
+  end
+
+  defp find_graph_create_plan(_user_id, nil), do: nil
+
+  defp find_graph_create_plan(user_id, key) do
+    from(p in SharedPlan,
+      where:
+        p.created_by_user_id == ^user_id and p.status != "cancelled" and
+          fragment("? ->> 'graph_create_key' = ?", p.alignment, ^key),
+      order_by: [desc: p.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
+
+  defp insert_graph_create_plan(user_id, params, ctx) do
+    location =
+      present_string(params["location"] || params["place"] || params["area"]) || ctx.title
+
+    alignment =
+      %{}
+      |> Map.put("origin", "graph_create")
+      |> Map.put("graph_create", true)
+      |> Map.put("scope", if(ctx.participant_ids == [], do: "solo", else: "shared"))
+      |> put_alignment("entry", present_string(params["entry"]))
+      |> put_alignment("caption", present_string(params["caption"]))
+      |> put_alignment("who_label", present_string(params["who_label"]))
+      |> put_alignment("area", present_string(params["area"] || params["area_label"]))
+      |> then(fn a ->
+        if ctx.media_id, do: Map.put(a, "media_id", ctx.media_id), else: a
+      end)
+      |> then(fn a ->
+        if ctx.source_plan_id,
+          do: Map.put(a, "repeated_from_plan_id", ctx.source_plan_id),
+          else: a
+      end)
+      |> then(fn a ->
+        if ctx.idempotency_key,
+          do: Map.put(a, "graph_create_key", ctx.idempotency_key),
+          else: a
+      end)
+      |> Map.put("audience", ctx.audience)
+      |> Map.put("join_requests_on", params["join_requests_on"] != false)
+      |> Map.put("exact_spot_after_join", params["exact_spot_after_join"] != false)
+
+    plan_attrs = %{
+      "conversation_id" => nil,
+      "title" => ctx.title,
+      "location" => location,
+      "time_label" => present_string(params["time_label"]) || "Open window",
+      "timezone" => present_string(params["timezone"]) || "UTC",
+      "status" => "tentative",
+      "created_by_user_id" => user_id,
+      "source" => "center",
+      "alignment" => alignment,
+      "plan_type" => "in_person",
+      "meeting_link" => nil
+    }
+
+    Repo.transaction(fn ->
+      plan =
+        case %SharedPlan{}
+             |> SharedPlan.changeset(plan_attrs)
+             # Gyroscope (R13): graph-create plans pass the gate too.
+             |> PlanTransition.guard_changeset(:plan, :create)
+             |> Repo.insert() do
+          {:ok, p} -> p
+          {:error, cs} -> Repo.rollback(cs)
+        end
+
+      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+      lead =
+        case %PlanParticipant{}
+             |> PlanParticipant.changeset(%{
+               "plan_id" => plan.id,
+               "user_id" => user_id,
+               "role" => "lead",
+               "response_state" => "accepted",
+               "responded_at" => now,
+               "authority_source" => "user_action"
+             })
+             |> Repo.insert() do
+          {:ok, p} -> p
+          {:error, cs} -> Repo.rollback(cs)
+        end
+
+      invitees =
+        Enum.map(ctx.participant_ids, fn uid ->
+          case %PlanParticipant{}
+               |> PlanParticipant.changeset(%{
+                 "plan_id" => plan.id,
+                 "user_id" => uid,
+                 "role" => "participant",
+                 "response_state" => "pending",
+                 "authority_source" => "graph_create"
+               })
+               |> Repo.insert() do
+            {:ok, p} -> p
+            {:error, cs} -> Repo.rollback(cs)
+          end
+        end)
+
+      {plan, [lead | invitees]}
+    end)
+    |> case do
+      {:ok, {plan, participants}} ->
+        _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
+        audit!(
+          nil,
+          plan.id,
+          user_id,
+          "plan.created",
+          %{
+            "source" => "graph_create",
+            "title" => plan.title,
+            "time_label" => plan.time_label
+          },
+          "trace-social-flow-graph-create-1"
+        )
+
+        broadcast_plan(
+          plan,
+          "social_flow:plan",
+          %{"plan" => plan_payload(plan), "created" => true},
+          "trace-social-flow-graph-create-1"
+        )
+
+        {:ok, plan, participants, false}
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        {:error, cs}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 
   defp find_pending_center_plan(_user_id, nil), do: nil
 

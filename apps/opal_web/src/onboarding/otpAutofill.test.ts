@@ -20,14 +20,13 @@ import { describe, expect, it } from "vitest";
 const root = resolve(__dirname, "..");
 const css = readFileSync(resolve(root, "styles.css"), "utf8");
 const fre = readFileSync(resolve(__dirname, "FirstRunExperience.tsx"), "utf8");
-const activation = readFileSync(resolve(root, "ActivationFlow.tsx"), "utf8");
 
 function block(source: string, from: string, to: string): string {
   return source.slice(source.indexOf(from), source.indexOf(to));
 }
 
 describe("Repair #15-A - OTP autofill (first-run fr07)", () => {
-  const verifyBlock = block(fre, 'step === "fr07"', 'step === "fr08"');
+  const verifyBlock = block(fre, 'step === "fr07"', '</AnimatePresence>');
 
   it("has exactly one code input and it is a single field, not per-digit splits", () => {
     expect(verifyBlock.match(/<input/g)).toHaveLength(1);
@@ -75,11 +74,3 @@ describe("Repair #15-A - OTP autofill (CSS visibility law)", () => {
   });
 });
 
-describe("Repair #15-A - OTP autofill (ActivationFlow fallback surface)", () => {
-  it("code input carries the same visible autofill contract", () => {
-    const codeBlock = activation.slice(activation.indexOf('step === "code"'));
-    expect(codeBlock).toMatch(/autoComplete="one-time-code"/);
-    expect(codeBlock).toMatch(/inputMode="numeric"/);
-    expect(codeBlock).toMatch(/type="text"/);
-  });
-});

@@ -382,8 +382,22 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
     end
   end
 
-  @doc "Serve media bytes only if viewer may access the owning moment."
+  @doc """
+  Serve media bytes only if viewer may access the owning moment — or,
+  Repair #16 (B2), a live TemporaryStory referencing this media whose
+  audience includes the viewer (story-scoped authorization via
+  TemporaryStoryPublishing eligibility, evaluated live per request).
+  """
   def read_media(media_id, viewer_user_id) do
+    # Repair #16: a tampered / non-UUID media id must be a clean denial,
+    # never a cast-error crash on the byte-serving path.
+    case Ecto.UUID.cast(media_id) do
+      {:ok, _} -> do_read_media(media_id, viewer_user_id)
+      :error -> {:error, :not_found}
+    end
+  end
+
+  defp do_read_media(media_id, viewer_user_id) do
     case Repo.get(SocialMomentMedia, media_id) do
       nil ->
         {:error, :not_found}
@@ -404,13 +418,21 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
           media.owner_user_id == viewer_user_id ->
             MediaLocalStore.read(media.storage_key)
 
-          is_nil(moment) ->
-            {:error, :not_found}
+          not is_nil(moment) and
+              SocialMomentVisibility.can_access_media?(
+                moment_map(moment),
+                viewer_user_id,
+                viewer_opts(moment, viewer_user_id)
+              ) ->
+            MediaLocalStore.read(media.storage_key)
 
-          SocialMomentVisibility.can_access_media?(
-            moment_map(moment),
-            viewer_user_id,
-            viewer_opts(moment, viewer_user_id)
+          # Story path: a referencing moment is NOT required — a story is
+          # its own referencing object. Deny-by-default when no live story
+          # authorizes this viewer.
+          OpalCore.SocialFlow.TemporaryStoryPublishing.story_media_authorized?(
+            media_id,
+            media.owner_user_id,
+            viewer_user_id
           ) ->
             MediaLocalStore.read(media.storage_key)
 

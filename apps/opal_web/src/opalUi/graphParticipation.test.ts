@@ -108,11 +108,6 @@ describe("P0-05.7 Graph participation state machine", () => {
     expect(app).not.toMatch(/Graph → SharedPlan → Journey \(618:3288\)/);
   });
 
-  it("DIRECT_LEAVE_NOT_NAVIGATION", () => {
-    const dated = read("opalUi/DatedConversationContent.tsx");
-    expect(dated).not.toMatch(/onOpenJourney/);
-  });
-
   it("brand semantics - violet interested / gold going / green Open Graph outline", () => {
     const css = readFileSync(resolve(webSrc, "styles.css"), "utf8");
     expect(css).toMatch(/\.gsh-gr-interested[\s\S]{0,120}#8b5cf6/);

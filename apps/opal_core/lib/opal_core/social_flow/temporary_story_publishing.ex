@@ -13,7 +13,9 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   alias OpalCore.Relationships
 
   alias OpalCore.SocialFlow.{
+    MediaLocalStore,
     RelationshipGraph,
+    SocialMomentMedia,
     TemporaryStory
   }
 
@@ -29,14 +31,49 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
     vis = a["visibility"] || "close_circle"
 
     cond do
-      media == "" ->
+      media == "" and not (is_binary(a["media_id"]) and a["media_id"] != "") ->
         {:error, :media_required}
 
       vis not in ~w(close_circle friends) ->
         {:error, :invalid_visibility}
 
       true ->
-        create_with_ttl(author_user_id, a, media, vis)
+        # Repair #16 (B2): image media may arrive as a media-store reference
+        # ("media:<id>" media_ref, or an explicit media_id) instead of an
+        # inline data: URL. The reference is validated BEFORE anything
+        # persists — the media must exist, belong to the author, be live,
+        # and be an image — exactly the ownership law Repair #15 applied to
+        # post media_ids. Anything else claiming to be a media reference is
+        # rejected as :invalid_media. Legacy refs (data:, /, https:) are
+        # stored unchanged so existing rows keep rendering.
+        case stored_media_ref(author_user_id, a, media) do
+          {:ok, stored_ref} -> create_with_ttl(author_user_id, a, stored_ref, vis)
+          {:error, :invalid_media} -> {:error, :invalid_media}
+        end
+    end
+  end
+
+  defp stored_media_ref(author_user_id, a, media) do
+    cond do
+      is_binary(a["media_id"]) and a["media_id"] != "" ->
+        validate_story_media(author_user_id, a["media_id"])
+
+      is_binary(media) and String.starts_with?(media, "media:") ->
+        validate_story_media(author_user_id, String.replace_prefix(media, "media:", ""))
+
+      true ->
+        {:ok, media}
+    end
+  end
+
+  defp validate_story_media(author_user_id, media_id) do
+    with {:ok, _uuid} <- Ecto.UUID.cast(media_id),
+         %SocialMomentMedia{owner_user_id: ^author_user_id, deleted_at: nil} = media_row <-
+           Repo.get(SocialMomentMedia, media_id),
+         true <- media_row.mime_type in MediaLocalStore.allowed_mimes() do
+      {:ok, "media:" <> media_id}
+    else
+      _ -> {:error, :invalid_media}
     end
   end
 
@@ -114,6 +151,41 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
     |> Enum.filter(fn s -> eligible?(s, viewer_user_id) end)
     |> Enum.map(fn s -> TemporaryStory.contract(s, display_name(s.author_user_id)) end)
   end
+
+  @doc """
+  Repair #16 (B2): public eligibility check — the single authority the
+  media byte-serving path consults for story-referenced media. Evaluated
+  live on every call, so relationship changes (friend revoked, block,
+  type change) and story expiry/deletion take effect immediately.
+  """
+  def eligible_story?(%TemporaryStory{} = story, viewer_user_id),
+    do: eligible?(story, viewer_user_id)
+
+  def eligible_story?(_, _), do: false
+
+  @doc """
+  Repair #16 (B2): true when at least one LIVE story (not deleted, not
+  expired) references `media_id` (stored ref "media:<id>"), the story's
+  author is the media's owner (a tampered row pointing at someone else's
+  media never authorizes), and the viewer is eligible for that story.
+  Signed-out / non-user viewers are denied.
+  """
+  def story_media_authorized?(media_id, media_owner_user_id, viewer_user_id)
+      when is_binary(media_id) and is_binary(media_owner_user_id) and
+             is_binary(viewer_user_id) do
+    ref = "media:" <> media_id
+    now = DateTime.utc_now()
+
+    from(s in TemporaryStory,
+      where:
+        s.media_ref == ^ref and s.author_user_id == ^media_owner_user_id and
+          is_nil(s.deleted_at) and s.expires_at > ^now
+    )
+    |> Repo.all()
+    |> Enum.any?(fn s -> eligible?(s, viewer_user_id) end)
+  end
+
+  def story_media_authorized?(_, _, _), do: false
 
   defp eligible?(%TemporaryStory{author_user_id: author}, viewer) when author == viewer, do: true
 

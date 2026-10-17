@@ -5,8 +5,11 @@
  */
 import {
   addSocialMomentComment,
+  createGraphPlan,
   createTemporaryStory,
   fetchHomeFeed,
+  listOpalPlans,
+  type OpalPlanContract,
   isDurableMomentId,
   likeSocialMoment,
   listSocialMomentComments,
@@ -484,6 +487,38 @@ export async function authoritativeCreateStory(opts: {
   bearer?: string;
 }) {
   if (!opts.bearer) throw new Error("Sign in required for durable Story");
+  // Repair #16 (B2): an image capture (data: URL) is uploaded to the media
+  // store first and the story stores the media id — the backend serves the
+  // bytes only to viewers eligible for the story. The story contract then
+  // returns the served media URL, which the viewer renders like any other
+  // "/" ref. Anything that cannot be uploaded throws — never fake success.
+  if (/^data:image\//i.test(opts.mediaRef)) {
+    const parsed = parseDataUrl(opts.mediaRef);
+    if (!parsed) {
+      throw new Error(
+        "That photo can't be shared as a story from here - pick a photo from Camera or Photo library.",
+      );
+    }
+    const uploaded = await uploadSocialMomentMedia(
+      { base64: parsed.base64, mime_type: parsed.mimeType },
+      opts.bearer,
+    );
+    const mediaId = uploaded.media?.id;
+    if (typeof mediaId !== "string" || !mediaId) {
+      throw new Error("Media upload did not return a durable media id");
+    }
+    return createTemporaryStory(
+      {
+        media_id: mediaId,
+        visibility: opts.visibility,
+        caption: opts.caption,
+      },
+      opts.bearer,
+    );
+  }
+  // Video stories are OUT of the media-store scope (the store is image-only
+  // today): video data: refs keep the legacy inline storage exactly as
+  // before. Non-data refs (fixture paths, https) also pass through untouched.
   return createTemporaryStory(
     {
       media_ref: opts.mediaRef,
@@ -556,6 +591,160 @@ export async function authoritativeCreatePost(opts: {
     opts.bearer,
   );
   return res.moment;
+}
+
+/**
+ * Repair #16 — durable GraphCreateFlow completion (non-post drafts).
+ *
+ * Before this, Graphs / Repeat / plan-from-chat completions landed in the
+ * write-only `createdGraphs` React state (never read anywhere): the plan
+ * vanished on refresh, reached no other account, and the flow closed as
+ * if it had succeeded. The lawful durable home is the SharedPlan authority
+ * Center already uses — POST /opal/plans/graph-create creates a
+ * conversation-less SharedPlan (owner lead, invitees pending), read back
+ * through GET /opal/plans (list_plans_for_user). Anything that cannot be
+ * persisted throws — the flow stays open with the error, never a fake
+ * success.
+ *
+ * Field fates: title -> plan title; where -> location; whenLabel ->
+ * time_label; caption / audience / join prefs / who label -> plan
+ * alignment, exposed back on the plan contract; photo -> uploaded to the
+ * SocialMoment media store and referenced by id (the backend validates
+ * ownership, like Repair #15 E8). Video has no lawful media home yet, so
+ * it is refused honestly — same pattern as video posts.
+ */
+export async function authoritativeCreateGraphPlan(opts: {
+  mediaSrc?: string | null;
+  mediaKind?: string | null;
+  title: string;
+  whenLabel?: string;
+  where?: string | null;
+  caption?: string;
+  audience?: string;
+  joinRequestsOn?: boolean;
+  exactSpotAfterJoin?: boolean;
+  participantUserIds?: string[];
+  whoLabel?: string | null;
+  /** Repeat provenance only — must be a durable plan id; never the new id. */
+  sourcePlanId?: string | null;
+  entry?: string;
+  idempotencyKey?: string;
+  bearer?: string;
+}) {
+  if (!opts.bearer) throw new Error("Sign in required to add to your graph");
+  const title = (opts.title || "").trim();
+  if (!title) throw new Error("Give this plan a title first.");
+
+  let mediaId: string | undefined;
+  if (opts.mediaSrc) {
+    if (opts.mediaKind === "video" || /^data:video\//i.test(opts.mediaSrc)) {
+      // Backend media store is image-only today (media_status video=PARTIAL_FUTURE).
+      throw new Error("Video isn't supported yet - choose a photo for this plan.");
+    }
+    const parsed = parseDataUrl(opts.mediaSrc);
+    if (!parsed) {
+      throw new Error(
+        "That media can't be added from here - pick a photo from Camera or Photo library.",
+      );
+    }
+    const uploaded = await uploadSocialMomentMedia(
+      { base64: parsed.base64, mime_type: parsed.mimeType },
+      opts.bearer,
+    );
+    const id = uploaded.media?.id;
+    if (typeof id !== "string" || !id) {
+      throw new Error("Media upload did not return a durable media id");
+    }
+    mediaId = id;
+  }
+
+  const res = await createGraphPlan(
+    {
+      title,
+      location: (opts.where || "").trim() || undefined,
+      time_label: (opts.whenLabel || "").trim() || undefined,
+      caption: (opts.caption || "").trim() || undefined,
+      media_id: mediaId,
+      audience: opts.audience || "close_circle",
+      join_requests_on: opts.joinRequestsOn !== false,
+      exact_spot_after_join: opts.exactSpotAfterJoin !== false,
+      participant_user_ids: opts.participantUserIds?.length
+        ? opts.participantUserIds
+        : undefined,
+      who_label: (opts.whoLabel || "").trim() || undefined,
+      // Provenance is only lawful when it names a durable backend plan;
+      // seed/fixture ids stay client-side and are never sent as lineage.
+      source_plan_id:
+        opts.sourcePlanId && isDurableMomentId(opts.sourcePlanId)
+          ? opts.sourcePlanId
+          : undefined,
+      entry: opts.entry || undefined,
+      idempotency_key: opts.idempotencyKey || undefined,
+    },
+    opts.bearer,
+  );
+  if (!res.plan?.id) throw new Error("Plan create did not return a durable plan id");
+  return res.plan;
+}
+
+/** Repair #16 — fresh backend read-back of the caller's SharedPlans. */
+export async function loadDurablePlans(bearer?: string): Promise<OpalPlanContract[]> {
+  if (!bearer) return [];
+  const res = await listOpalPlans(bearer);
+  return res.plans || [];
+}
+
+export type DurablePlanGraphCard = {
+  id: string;
+  title: string;
+  whenLine: string;
+  signalLine: string;
+  status: "ready" | "action" | "forming" | "aligned" | "past";
+  person: string;
+  startsAt: string | null;
+  who?: string[];
+};
+
+/** Map a SharedPlan contract (GET /opal/plans) to a Graphs live card. */
+export function productionPlanToGraphCard(plan: OpalPlanContract): DurablePlanGraphCard {
+  const status =
+    plan.status === "completed"
+      ? "past"
+      : plan.status === "agreed"
+        ? "ready"
+        : plan.status === "changed"
+          ? "action"
+          : "forming";
+  const who = plan.who_label
+    ? plan.who_label.split(",").map((w) => w.trim()).filter(Boolean)
+    : undefined;
+  return {
+    id: plan.id,
+    title: plan.title || "Plan",
+    whenLine: plan.time_label || "Time to be set",
+    signalLine: plan.who_label || plan.organizer_name || "",
+    status,
+    person: plan.organizer_name || "",
+    startsAt: null,
+    who,
+  };
+}
+
+/**
+ * Merge durable plan cards into the Graphs live list WITHOUT an optimistic
+ * local copy: chat plan projections already render conversation plans
+ * (their lineage id IS the SharedPlan id), so a durable plan whose id is
+ * already rendered is skipped — one plan, one card (gyroscope).
+ */
+export function mergeDurablePlanCards<T extends { id: string }>(
+  liveCards: T[],
+  plans: OpalPlanContract[],
+): Array<T | DurablePlanGraphCard> {
+  const rendered = new Set(liveCards.map((c) => c.id));
+  const extra = plans
+    .filter((p) => p.status !== "cancelled" && !rendered.has(p.id))
+    .map((p) => productionPlanToGraphCard(p));
+  return [...liveCards, ...extra];
 }
 
 /**

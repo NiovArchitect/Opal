@@ -59,13 +59,6 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(brandChrome).not.toMatch(/OpalMark/);
   });
 
-  it("ActOnBehalfOptInStep header uses character identity (no OPAL GRAPH text)", () => {
-    const act = src("onboarding/ActOnBehalfOptInStep.tsx");
-    expect(act).toMatch(/BRAND_ASSETS\.opalCharacter/);
-    expect(act).not.toMatch(/opalGraphEmblemHero/);
-    expect(act).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph|fr-auth-header-wordmark/);
-  });
-
   it("force Splash isolation exists without ambient/fr-void wrappers", () => {
     const main = src("main.tsx");
     expect(main).toMatch(/opal_force_splash/);

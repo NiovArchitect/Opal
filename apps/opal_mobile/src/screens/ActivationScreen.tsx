@@ -27,9 +27,8 @@ const PHONE_ACCESSORY_ID = "opal-activation-phone-accessory";
 const CODE_ACCESSORY_ID = "opal-activation-code-accessory";
 
 /**
- * R1B activation — same R1A product authority.
- * "Your number is your key" → real Twilio Verify when production_sms.
- * No synthetic fixture defaults. No founder seed.
+ * Activation: "Your number is your key".
+ * The code is sent by text message and verified for real.
  */
 export function ActivationScreen({
   onAuthenticated,
@@ -56,13 +55,13 @@ export function ActivationScreen({
       if (res.development_code) {
         // Only present when server explicitly returns synthetic development code.
         setCode(res.development_code);
-        setStatus("Development code available.");
+        setStatus("Your code is filled in for you.");
       } else {
         setCode("");
         setStatus("Enter the code from your SMS.");
       }
     } catch (e) {
-      setError((e as Error).message || "Could not start");
+      setError((e as Error).message || "We could not send a code. Try again.");
       setStatus(null);
     } finally {
       setBusy(false);
@@ -91,7 +90,7 @@ export function ActivationScreen({
       setStatus("Signed in.");
       onAuthenticated(session);
     } catch (e) {
-      setError((e as Error).message || "Could not verify");
+      setError((e as Error).message || "That code did not work. Try again.");
       setStatus(null);
     } finally {
       setBusy(false);
@@ -115,12 +114,11 @@ export function ActivationScreen({
           <Text style={styles.eyebrow}>OPAL GRAPH</Text>
           <Text style={styles.title}>Your number is your key</Text>
           <Text style={styles.sub}>
-            Real verification through Opal. No founder seed. No synthetic
-            shortcut on production SMS.
+            We will text you a code to verify that this number is yours.
           </Text>
         </Pressable>
 
-        <Text style={styles.label}>Phone (E.164)</Text>
+        <Text style={styles.label}>Phone number</Text>
         <TextInput
           style={styles.input}
           value={phone}
@@ -195,7 +193,7 @@ export function ActivationScreen({
 
         {provider ? (
           <Text style={styles.meta} testID="activation-provider">
-            Provider: {provider}
+            Your code was sent securely.
           </Text>
         ) : null}
         {status ? <Text style={styles.meta}>{status}</Text> : null}

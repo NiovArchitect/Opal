@@ -15,7 +15,7 @@ describe("Paste W6 Phase 0 - OTP Verify layout law", () => {
     expect(fre).toMatch(/fr-character-lockup|CharacterLockup/);
     expect(fre).toMatch(/opalCharacter|opal-character\.png/);
     // Verify step must not mount AuthHeroMark / graph emblem hero
-    const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('step === "fr08"'));
+    const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('</AnimatePresence>'));
     expect(verifyBlock).toMatch(/CharacterLockup/);
     expect(verifyBlock).not.toMatch(/AuthHeroMark|opalGraphEmblemHero/);
   });
@@ -34,7 +34,7 @@ describe("Paste W6 Phase 0 - OTP Verify layout law", () => {
   });
 
   it("places Verify submit after code wrap in document order", () => {
-    const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('step === "fr08"'));
+    const verifyBlock = fre.slice(fre.indexOf('step === "fr07"'), fre.indexOf('</AnimatePresence>'));
     const wrapIdx = verifyBlock.indexOf("fr-code-wrap");
     const submitIdx = verifyBlock.indexOf('data-testid="fr07-submit"');
     expect(wrapIdx).toBeGreaterThan(0);

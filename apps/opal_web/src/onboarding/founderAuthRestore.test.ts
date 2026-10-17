@@ -36,10 +36,12 @@ describe("P0-05.11B founder auth restore", () => {
   });
 
   it("FOUNDER_PHONE_TO_PROFILE_FLOW_SUCCEEDS", () => {
-    // Continue → verifyChallenge → setStep("fr08") Profile; no visual Preview chrome.
+    // Repair #16-W2: Continue, verifyChallenge, then the post-verify parent
+    // handoff (PermissionBootstrap then Meet Opal owns the profile). fr08 is removed.
     expect(fr).toMatch(/verifyChallenge\(/);
-    expect(fr).toMatch(/setStep\("fr08"\)/);
-    expect(fr).toMatch(/data-testid="fr08-profile"/);
+    expect(fr).toMatch(/onAfterPhoneVerify/);
+    expect(fr).not.toMatch(/setStep\("fr08"\)/);
+    expect(fr).not.toMatch(/data-testid="fr08-profile"/);
     expect(fr).not.toMatch(/Preview code/);
   });
 
@@ -50,8 +52,12 @@ describe("P0-05.11B founder auth restore", () => {
   });
 
   it("FOUNDER_SKIP_DOES_NOT_CREATE_PRODUCTION_AUTH", () => {
-    expect(fr).toMatch(/if \(!isFounderSeedEnabled\(\)\)/);
-    expect(fr).toMatch(/Phone verification is required to continue/);
+    // Repair #16-W2: Skip renders only on founder-seed builds (founderReview gate)
+    // and the handler still refuses to run without the seed. No production auth
+    // can be created by it: its only session comes from a real verifyChallenge.
+    expect(fr).toMatch(/if \(!isFounderSeedEnabled\(\)\) return;/);
+    expect(fr).toMatch(/founderReview \? \(/);
+    expect(fr).toMatch(/data-testid="fr06-verify-required"/);
   });
 
   it("INTERNATIONAL_PHONE_STILL_SUPPORTED", () => {

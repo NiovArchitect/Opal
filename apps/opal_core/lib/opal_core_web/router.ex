@@ -327,6 +327,12 @@ defmodule OpalCoreWeb.Router do
     get("/celebrations/:id/curate", CelebrationController, :curate)
     delete("/celebrations/:id", CelebrationController, :delete)
 
+    # Repair #16 W3 — progressive profile ask surface (Repair #15 B6):
+    # owner-scoped assess/answer/skip for ProfileGap facts (birthday first).
+    post("/profile-gaps/assess", ProfileGapController, :assess)
+    post("/profile-gaps/answer", ProfileGapController, :answer)
+    post("/profile-gaps/skip", ProfileGapController, :skip)
+
     # Phase RU-1 — relationship types (how you know each person)
     get("/relationships", RelationshipController, :index)
     put("/relationships/:contact_user_id", RelationshipController, :upsert)
@@ -395,6 +401,9 @@ defmodule OpalCoreWeb.Router do
     # F12-06/F12-07 — owner-scoped plan listing (incl. conversation-less Center
     # plans) for Graphs/Timeline projections.
     get("/opal/plans", OpalConversationController, :list_plans)
+    # Repair #16 (W1) — durable GraphCreateFlow completion (non-post graph
+    # drafts) through the same SharedPlan authority as Center plans.
+    post("/opal/plans/graph-create", OpalConversationController, :create_graph_plan)
 
     # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
     # venue ranking / near-me. Separate from the travel-mode 422 privacy law.

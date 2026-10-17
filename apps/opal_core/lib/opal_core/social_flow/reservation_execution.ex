@@ -30,6 +30,7 @@ defmodule OpalCore.SocialFlow.ReservationExecution do
     AttributionGraph,
     BookingAuthorization,
     ExternalWorldTruth,
+    FollowThroughProducers,
     ReservationExecutionRecord,
     SyntheticReservationProvider
   }
@@ -170,8 +171,13 @@ defmodule OpalCore.SocialFlow.ReservationExecution do
       })
       |> Repo.update()
       |> case do
-        {:ok, updated} -> {:ok, ReservationExecutionRecord.public_contract(updated)}
-        err -> err
+        {:ok, updated} ->
+          # Repair #16 (W4, P4) — execution state changed: sync the loop.
+          _ = FollowThroughProducers.sync_execution_loop(updated)
+          {:ok, ReservationExecutionRecord.public_contract(updated)}
+
+        err ->
+          err
       end
     end
   end
@@ -235,6 +241,9 @@ defmodule OpalCore.SocialFlow.ReservationExecution do
       |> Repo.update()
       |> case do
         {:ok, updated} ->
+          # Repair #16 (W4, P4) — a cancelled execution cancels its loop.
+          _ = FollowThroughProducers.sync_execution_loop(updated)
+
           {:ok,
            %{
              "execution" => ReservationExecutionRecord.public_contract(updated),
@@ -652,6 +661,11 @@ defmodule OpalCore.SocialFlow.ReservationExecution do
     |> Repo.update()
     |> case do
       {:ok, updated} ->
+        # Repair #16 (W4, P4) — the provider result IS an explicit
+        # execution state: sync the execution follow-through loop to it
+        # (post-write; register/update/complete per TFT execution law).
+        _ = FollowThroughProducers.sync_execution_loop(updated)
+
         attribution =
           if updated.status == "confirmed" do
             attribute_row(updated)
