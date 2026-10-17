@@ -226,7 +226,12 @@ asserts a real observable changes:
 
 ## Final SHA
 
-PENDING — to be filled after push.
+`9fe611719570f0a95fec681263d91e3c1c99e519` on `muse/repair-13-w3`
+(pushed 2026-10-16; tree `2f8a67a41040e054d4a5e41656aac19ebeb6220e`,
+byte-identical to the local commit's tree). Pushed via the GitHub Git
+Data API because `git push` over HTTPS has no credential helper in this
+worktree (surrogate auth is api.github.com-only); no merge, no
+production, no Pass 2.
 
 ## Worktree incident (2026-10-16 ~23:48–23:55 UTC)
 
