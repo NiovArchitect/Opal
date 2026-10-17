@@ -32,9 +32,13 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
   @lock_in_label "Lock-in Friday · 6 PM"
   @group_label "Jordan Saturday Graph"
 
-  # Extra peers beyond FounderCommunicationSeed for 4 interested baseline
-  @nina_id "f0c4a4e1-1111-4111-8111-c4a4e1100005"
-  @alex_id "f0c4a4e1-1111-4111-8111-c4a4e1100006"
+  # Extra peers beyond FounderCommunicationSeed for 4 interested baseline.
+  # Repair #14 (D5) — Alex MUST reuse FounderCommunicationSeed's stable ID
+  # (...0005, handle "founder-alex"): the two IDs were transposed, so Nina's
+  # upsert renamed the communication seed's Alex and Alex's re-insert then
+  # collided on the unique handle. Nina takes the previously unused ...0006.
+  @nina_id "f0c4a4e1-1111-4111-8111-c4a4e1100006"
+  @alex_id "f0c4a4e1-1111-4111-8111-c4a4e1100005"
 
   def allowed? do
     Application.get_env(:opal_core, :allow_founder_communication_seed, false) == true
