@@ -133,7 +133,16 @@ defmodule OpalCore.Intelligence.PipelineTest do
       {:ok, x} = Extractor.extract(event)
       assert {:ok, d} = Reasoner.reason(event, x, %{})
       assert d.action == "plan.confirm"
-      assert d.payload["message"] =~ "Locked in"
+
+      # Repair #14 (D3) — this assertion originally demanded the reasoner's
+      # free-floating "Locked in!" claim. Repair #11 removed that claim on
+      # purpose: a confirmation may only be stated after the revision
+      # authority records it, and the executor posts the truthful outcome
+      # ("Confirmed." / "There's nothing pending to confirm."). The
+      # decision payload now carries the user's body for routing and no
+      # pre-emptive success message — nil text, handled honestly.
+      assert d.payload["body"] == "yes"
+      assert d.payload["message"] == nil
     end
 
     test "lol → silent" do
