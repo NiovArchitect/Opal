@@ -11,6 +11,7 @@ defmodule OpalCore.Oracle do
 
   alias OpalCore.Accounts.User
   alias OpalCore.Calendar, as: OpalCalendar
+  alias OpalCore.Center.PlanContextPatch
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
@@ -85,6 +86,17 @@ defmodule OpalCore.Oracle do
 
       spend_month?(lower) ->
         :spend_month
+
+      # Repair #13 (W4-5) — person/place questions about the user's own plans,
+      # answered from real PlanParticipant / SharedPlan rows. Never invented.
+      plan_attendees?(lower) ->
+        :plan_attendees
+
+      plan_organizer?(lower) ->
+        :plan_organizer
+
+      plan_place?(text, lower) ->
+        :plan_place
 
       true ->
         :not_oracle
@@ -213,6 +225,31 @@ defmodule OpalCore.Oracle do
       ~r/\bhow\s+much\s+(have\s+i|did\s+i)\s+spend\b|\bspen[td]\s+on\s+plans?\b.*\b(month|this\s+month)\b|\bwallet\s+spend\b.*\bmonth\b/i,
       lower
     )
+  end
+
+  # Repair #13 (W4-5) — "who's coming (to X)?" / "who's invited?" — answered
+  # from real participant rows.
+  defp plan_attendees?(lower) do
+    Regex.match?(
+      ~r/\bwho'?s\s+(coming|invited|going|attending)\b|\bwho\s+(is|are)\s+(coming|invited|going|attending)\b|\bguest\s+list\b/i,
+      lower
+    )
+  end
+
+  # Repair #13 (W4-5) — "who organized X?" / "who planned X?" — the plan lead.
+  defp plan_organizer?(lower) do
+    Regex.match?(
+      ~r/\bwho\s+(organized|organised|planned|created|made|set\s+up|hosted?)\b|\bwho'?s\s+(the\s+)?(organizer|organiser|host)\b/i,
+      lower
+    )
+  end
+
+  # Repair #13 (W4-5) — "where is (the) X?" about a plan. A proper-noun venue
+  # question ("where is The Henry in Coronado") stays a :named_venue question;
+  # only plan-referencing phrasing becomes :plan_place.
+  defp plan_place?(text, lower) do
+    Regex.match?(~r/\bwhere\s+is\b/i, lower) and
+      is_nil(PlanContextPatch.extract_venue_question(text))
   end
 
   # --- render ----------------------------------------------------------------
@@ -452,9 +489,193 @@ defmodule OpalCore.Oracle do
     {"You've spent $#{label} on plans this month.", sources}
   end
 
+  # Repair #13 (W4-5) — "who's coming?" / "who's invited?" — answered from real
+  # participant rows only. Never invented, never a dead-end.
+  defp render(:plan_attendees, user_id, text, _ctx) do
+    case resolve_referenced_plan(user_id, text) do
+      {:ok, plan} ->
+        names =
+          from(pp in PlanParticipant,
+            where: pp.plan_id == ^plan.id,
+            where: pp.role != "lead",
+            where: pp.response_state in ["accepted", "pending"]
+          )
+          |> Repo.all()
+          |> Enum.map(&display_name_for(&1.user_id))
+          |> Enum.filter(&(is_binary(&1) and &1 != ""))
+          |> Enum.map(&first_name/1)
+          |> Enum.uniq()
+
+        case names do
+          [] ->
+            {"Just you so far on #{plan.title} — want to invite someone?", ["plan_attendees"]}
+
+          _ ->
+            {"#{join_names(names)} #{if length(names) == 1, do: "is", else: "are"} in on #{plan.title}.",
+             ["plan_attendees"]}
+        end
+
+      {:error, :none} ->
+        {"You don't have any active plans right now.", ["plan_attendees"]}
+
+      {:error, :ambiguous, titles} ->
+        {"I see a few plans (#{Enum.join(titles, ", ")}). Which one did you mean?",
+         ["plan_attendees"]}
+
+      {:error, :no_match} ->
+        {"I don't see a plan by that name on your Graph. Which one do you mean?",
+         ["plan_attendees"]}
+    end
+  end
+
+  # Repair #13 (W4-5) — "who organized X?" — the plan lead, from real rows.
+  defp render(:plan_organizer, user_id, text, _ctx) do
+    case resolve_referenced_plan(user_id, text) do
+      {:ok, plan} ->
+        lead =
+          from(pp in PlanParticipant,
+            where: pp.plan_id == ^plan.id,
+            where: pp.role == "lead",
+            limit: 1
+          )
+          |> Repo.one()
+
+        organizer =
+          cond do
+            is_nil(lead) -> nil
+            lead.user_id == user_id -> "you"
+            true -> lead.user_id |> display_name_for() |> first_name()
+          end
+
+        case organizer do
+          nil ->
+            {"I can't tell who organized #{plan.title}.", ["plan_organizer"]}
+
+          "you" ->
+            {"You organized #{plan.title}.", ["plan_organizer"]}
+
+          name ->
+            {"#{name} organized #{plan.title}.", ["plan_organizer"]}
+        end
+
+      {:error, :none} ->
+        {"You don't have any active plans right now.", ["plan_organizer"]}
+
+      {:error, :ambiguous, titles} ->
+        {"I see a few plans (#{Enum.join(titles, ", ")}). Which one did you mean?",
+         ["plan_organizer"]}
+
+      {:error, :no_match} ->
+        {"I don't see a plan by that name on your Graph. Which one do you mean?",
+         ["plan_organizer"]}
+    end
+  end
+
+  # Repair #13 (W4-5) — "where is (the) X?" about a plan. Answers from the
+  # attached venue only; honest when nothing is pinned down. A Center plan's
+  # location is just the echoed "what", never a place, so it is not used.
+  defp render(:plan_place, user_id, text, _ctx) do
+    case resolve_referenced_plan(user_id, text) do
+      {:ok, plan} ->
+        case plan_place_label(plan) do
+          nil ->
+            {"I don't have a place pinned down for #{plan.title} yet.", ["plan_place"]}
+
+          label ->
+            {"#{plan.title} is at #{label}.", ["plan_place"]}
+        end
+
+      {:error, :none} ->
+        {"You don't have any active plans right now.", ["plan_place"]}
+
+      {:error, :ambiguous, titles} ->
+        {"I see a few plans (#{Enum.join(titles, ", ")}). Which one did you mean?",
+         ["plan_place"]}
+
+      {:error, :no_match} ->
+        {"I don't see a plan by that name on your Graph. Which one do you mean?",
+         ["plan_place"]}
+    end
+  end
+
   defp render(_, _user_id, _text, _ctx), do: {"I'm not sure how to answer that yet.", []}
 
   # --- data helpers ----------------------------------------------------------
+
+  # Repair #13 (W4-5) — resolve "which plan" from a person/place question.
+  # Owner's own active plans only (participant-scoped, like plans_for_user/1).
+  defp resolve_referenced_plan(user_id, text) do
+    plans =
+      plans_for_user(user_id)
+      |> Enum.filter(fn p -> to_string(p.status || "") in ~w(agreed changed tentative) end)
+
+    words =
+      text
+      |> String.downcase()
+      |> String.split(~r/[^a-z0-9']+/, trim: true)
+      |> Enum.reject(&(&1 in ~w(who s is are the a an to for on of my this that it s
+        coming invited going organized created planned made set up host organizer
+        guest list dinner lunch brunch breakfast with what which)))
+
+    case {plans, words} do
+      {[], _} ->
+        {:error, :none}
+
+      {[one], []} ->
+        {:ok, one}
+
+      {_, _} ->
+        scored =
+          plans
+          |> Enum.map(fn p ->
+            title = String.downcase(to_string(p.title || ""))
+            {p, Enum.count(words, &String.contains?(title, &1))}
+          end)
+          |> Enum.filter(fn {_p, score} -> score > 0 end)
+          |> Enum.sort_by(fn {_p, score} -> score end, :desc)
+
+        case scored do
+          [] when words == [] and length(plans) == 1 ->
+            {:ok, hd(plans)}
+
+          [] ->
+            {:error, :no_match}
+
+          [{best, top} | rest] ->
+            if Enum.any?(rest, fn {_p, s} -> s == top end) do
+              titles = scored |> Enum.take(3) |> Enum.map(fn {p, _} -> p.title end)
+              {:error, :ambiguous, titles}
+            else
+              {:ok, best}
+            end
+        end
+    end
+  end
+
+  # The plan's place: an attached venue (name + address) wins; a Center
+  # plan's location is just the echoed "what", never a place, so it is not
+  # used. Honest nil when nothing is pinned down.
+  defp plan_place_label(%SharedPlan{} = plan) do
+    alignment = plan.alignment || %{}
+    venue = alignment["venue"] || alignment[:venue]
+
+    cond do
+      is_map(venue) and is_binary(venue["name"]) and venue["name"] != "" ->
+        name = venue["name"]
+        addr = venue["address"]
+
+        if is_binary(addr) and addr != "", do: "#{name}, #{addr}", else: name
+
+      is_binary(venue) and venue != "" ->
+        venue
+
+      plan.source != "center" and is_binary(plan.location) and plan.location != "" ->
+        plan.location
+
+      true ->
+        nil
+    end
+  end
 
   defp timezone(ctx) do
     get_in_ctx(ctx, [:user, :timezone]) || "America/Los_Angeles"

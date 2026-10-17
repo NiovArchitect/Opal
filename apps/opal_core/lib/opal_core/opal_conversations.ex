@@ -89,6 +89,8 @@ defmodule OpalCore.OpalConversations do
       when is_binary(user_id) and is_binary(body) and is_list(opts) do
     trimmed = String.trim(body)
     client_context = Keyword.get(opts, :client_context)
+    # Repair #13 (W4-3) — client-supplied idempotency key for chat POSTs.
+    client_message_id = Keyword.get(opts, :client_message_id)
 
     cond do
       trimmed == "" ->
@@ -103,19 +105,29 @@ defmodule OpalCore.OpalConversations do
       true ->
         with :ok <- ensure_opal_rate_limit(user_id),
              {:ok, conversation} <- get_or_create_conversation(user_id) do
-          {context_snapshot, intent_snapshot, response_text, draft_meta, action_meta} =
-            assemble_classify_generate(user_id, trimmed, client_context)
+          # Idempotent retry: a repeated POST carrying the same
+          # client_message_id returns the original triple instead of
+          # duplicating the message and re-running the pipeline.
+          case find_idempotent_pair(conversation, client_message_id) do
+            {:ok, _} = ok ->
+              ok
 
-          result =
-            Repo.transaction(fn ->
-              user_msg =
-                %OpalMessage{}
-                |> OpalMessage.changeset(%{
-                  "conversation_id" => conversation.id,
-                  "role" => "user",
-                  "body" => trimmed
-                })
-                |> Repo.insert!()
+            :miss ->
+              {context_snapshot, intent_snapshot, response_text, draft_meta, action_meta} =
+                assemble_classify_generate(user_id, trimmed, client_context)
+
+              result =
+                try do
+                  Repo.transaction(fn ->
+                    user_msg =
+                      %OpalMessage{}
+                      |> OpalMessage.changeset(%{
+                        "conversation_id" => conversation.id,
+                        "role" => "user",
+                        "body" => trimmed,
+                        "client_message_id" => client_message_id
+                      })
+                      |> Repo.insert!()
 
               generated_at = DateTime.utc_now() |> DateTime.to_iso8601()
 
@@ -178,22 +190,92 @@ defmodule OpalCore.OpalConversations do
                 end
 
               {conversation, user_msg, opal_msg}
-            end)
+                end)
+              rescue
+                e in Ecto.InvalidChangesetError ->
+                  if idempotent_conflict?(e.changeset) do
+                    # Lost the insert race: the winner's triple is committed;
+                    # return it instead of raising.
+                    case find_idempotent_pair(conversation, client_message_id) do
+                      {:ok, _} = ok -> ok
+                      :miss -> reraise e, __STACKTRACE__
+                    end
+                  else
+                    reraise e, __STACKTRACE__
+                  end
+              end
 
-          # RU-2 — promote from activity after the message is persisted.
-          case result do
-            {:ok, _} = ok ->
-              _ = TrustTiers.maybe_promote(user_id)
-              ok
+              # RU-2 — promote from activity after the message is persisted.
+              case result do
+                {:ok, _} = ok ->
+                  _ = TrustTiers.maybe_promote(user_id)
+                  ok
 
-            other ->
-              other
+                other ->
+                  other
+              end
           end
         end
     end
   end
 
   def create_user_message(_, _, _), do: {:error, :invalid}
+
+  # Repair #13 (W4-3) — idempotent Center POSTs. Returns the original
+  # {conversation, user_msg, opal_msg} triple when this conversation already
+  # holds a user message with the given client_message_id (and the opal reply
+  # that followed it). :miss when there is no key or no complete pair yet.
+  defp find_idempotent_pair(_conversation, nil), do: :miss
+  defp find_idempotent_pair(_conversation, ""), do: :miss
+
+  defp find_idempotent_pair(%{id: conversation_id} = conversation, client_message_id)
+       when is_binary(client_message_id) do
+    user_msg =
+      from(m in OpalMessage,
+        where: m.conversation_id == ^conversation_id,
+        where: m.role == "user",
+        where: m.client_message_id == ^client_message_id,
+        order_by: [asc: m.inserted_at],
+        limit: 1
+      )
+      |> Repo.one()
+
+    case user_msg do
+      nil ->
+        :miss
+
+      %OpalMessage{} = um ->
+        opal_msg =
+          from(m in OpalMessage,
+            where: m.conversation_id == ^conversation_id,
+            where: m.role == "opal",
+            where: m.inserted_at > ^um.inserted_at,
+            order_by: [asc: m.inserted_at],
+            limit: 1
+          )
+          |> Repo.one()
+
+        case opal_msg do
+          nil -> :miss
+          %OpalMessage{} = om -> {:ok, {conversation, um, om}}
+        end
+    end
+  end
+
+  # The partial unique index on (conversation_id, client_message_id) fired:
+  # a concurrent request won the insert race.
+  defp idempotent_conflict?(%Ecto.Changeset{errors: errors}) do
+    Enum.any?(errors, fn
+      {:client_message_id,
+       {_msg, [constraint: :unique, constraint_name: name]}} ->
+        to_string(name) == "opal_messages_conversation_client_msg_uidx"
+
+      _ ->
+        false
+    end)
+  end
+
+  defp idempotent_conflict?(_), do: false
 
   # Paste J 3.3 — 90 Center messages / minute per user (never crash on flood).
   defp ensure_opal_rate_limit(user_id) do
@@ -304,6 +386,16 @@ defmodule OpalCore.OpalConversations do
 
     case OpalCore.OpalPlanConfirm.execute(user_id, entities, ctx) do
       {:ok, result} ->
+        # Repair #13 (W4-1) — persist the sticky plan_id on a successful
+        # confirm so follow-ups ("move it to 8pm", "cancel it") resolve to
+        # the just-created plan instead of going stale.
+        _ =
+          OpalCore.Center.PlanningContext.merge(
+            user_id,
+            %{"plan_id" => result.plan_id},
+            %{}
+          )
+
         enriched = %{
           intent
           | entities:

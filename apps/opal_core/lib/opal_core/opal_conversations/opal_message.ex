@@ -23,6 +23,8 @@ defmodule OpalCore.OpalConversations.OpalMessage do
     field :role, :string
     field :body, :string
     field :metadata, :map
+    # Repair #13 (W4-3) — client-supplied idempotency key for chat POSTs.
+    field :client_message_id, :string
 
     belongs_to :conversation, OpalCore.OpalConversations.OpalConversation,
       define_field: false,
@@ -39,11 +41,14 @@ defmodule OpalCore.OpalConversations.OpalMessage do
 
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:conversation_id, :role, :body, :metadata])
+    |> cast(attrs, [:conversation_id, :role, :body, :metadata, :client_message_id])
     |> validate_required([:conversation_id, :role, :body])
     |> update_change(:body, &trim_body/1)
     |> validate_length(:body, min: 1, max: @max_body)
     |> validate_inclusion(:role, @roles)
+    |> unique_constraint(:client_message_id,
+      name: :opal_messages_conversation_client_msg_uidx
+    )
   end
 
   def to_contract(%__MODULE__{} = m) do

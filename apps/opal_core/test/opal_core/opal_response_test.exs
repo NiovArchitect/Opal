@@ -164,10 +164,11 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "I can help move Oak to Saturday"
-    assert text =~ "Open it on your Graph"
-    assert text =~ "aren't live yet"
-    refute text =~ "Done. Oak moved"
+    # Repair #13 (W4-2): the backstop never claims chat updates "aren't live"
+    # — they are. It asks for the actionable detail instead.
+    assert text =~ "move Oak to Saturday"
+    assert text =~ "I'll update it"
+    refute text =~ "aren't live"
   end
 
   test "plan_modify honest when plan not found" do
@@ -179,7 +180,7 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "I don't see brunch on your calendar"
+    assert text =~ "I don't see brunch on your Graph"
     assert text =~ "Want to create it?"
   end
 

@@ -92,7 +92,11 @@ defmodule OpalCore.OpalResponse do
               entities["conversation_owns_routing"] == true
 
           case intent do
-            i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate, :named_venue] ->
+            # Repair #13 (W4-5) — :oracle answers are grounded facts from real
+            # rows (Oracle.answer); the LLM must never rewrite them, per
+            # Oracle's documented template-only contract. :recall likewise
+            # quotes stored memories verbatim.
+            i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate, :named_venue, :oracle, :recall] ->
               put_draft_meta(template_meta())
               template
 
@@ -459,22 +463,24 @@ defmodule OpalCore.OpalResponse do
         String.contains?(String.downcase(title), String.downcase(plan_ref))
       end)
 
-    # Suggest → Prepare only. Chat does not mutate SharedPlan yet (no fake Done).
+    # Repair #13 (W4-2) — backstop for :plan_modify turns the orchestrator did
+    # not execute (no when/when_time to apply, no cancel verb). Never claim
+    # chat updates "aren't live" — they are. Be honest and actionable.
     cond do
       found? and is_binary(new_when) and new_when != "" and action in ["move", "reschedule", "change"] ->
-        "I can help move #{plan_ref} to #{new_when}. Open it on your Graph to confirm — chat updates aren't live yet."
+        "Say the day and time — like \"move #{plan_ref} to Saturday at 8 PM\" — and I'll update it."
 
       found? and action == "cancel" ->
-        "I can help cancel #{plan_ref}. Open it on your Graph to confirm — chat cancels aren't live yet."
+        "Say \"cancel #{plan_ref}\" and I'll cancel it right now."
 
       found? and is_binary(new_when) and new_when != "" ->
-        "I can help update #{plan_ref} to #{new_when}. Open it on your Graph to confirm."
+        "Tell me the new day or time for #{plan_ref} and I'll update it."
 
       found? ->
-        "I found #{plan_ref}. Open it on your Graph to change it — chat updates aren't live yet."
+        "I found #{plan_ref}. What should I change — the day, the time, or cancel it?"
 
       true ->
-        "I don't see #{plan_ref} on your calendar. Want to create it?"
+        "I don't see #{plan_ref} on your Graph. Want to create it?"
     end
   end
 
@@ -1191,7 +1197,16 @@ defmodule OpalCore.OpalResponse do
       capability_question?(lower) ->
         "I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you want to do?"
 
-      is_binary(recent_who) and recent_who != "" ->
+      # Repair #13 (W4-6) — "remind me to X" has no reminder execution path in
+      # Center. Say so honestly instead of the "Tell me more" dead-end.
+      remind_request?(lower) ->
+        "I can't set reminders yet — want me to help you plan it instead?"
+
+      # Repair #13 (W4-4b) — the sticky "You mentioned X earlier" re-engagement
+      # must not hijack a direct question. A question-shaped turn (has "?" or
+      # opens with a question word) gets a real answer attempt, never the
+      # sticky nudge.
+      is_binary(recent_who) and recent_who != "" and not question_shaped?(lower) ->
         "You mentioned #{recent_who} earlier — want to keep going on that, or something new?"
 
       String.length(String.trim(raw)) <= 2 ->
@@ -1238,6 +1253,27 @@ defmodule OpalCore.OpalResponse do
       lower
     )
   end
+
+  # Repair #13 (W4-4b) — a direct question keeps its own answer; the sticky
+  # "You mentioned X earlier" nudge must not fire for it.
+  defp question_shaped?(lower) when is_binary(lower) do
+    String.contains?(lower, "?") or
+      Regex.match?(
+        ~r/^\s*(who|what|when|where|why|how|which|whom|whose|is|are|was|were|do|does|did|can|could|will|would|should|have|has)\b/i,
+        lower
+      )
+  end
+
+  defp question_shaped?(_), do: false
+
+  # Repair #13 (W4-6) — "remind me to <task>" is a reminder request. Center
+  # has no reminder execution path; this predicate routes it to the honest
+  # refusal instead of the "Tell me more" dead-end.
+  defp remind_request?(lower) when is_binary(lower) do
+    Regex.match?(~r/\bremind\s+me\s+to\b/i, lower)
+  end
+
+  defp remind_request?(_), do: false
 
   defp recent_mentioned_name(context) do
     history = get_in_ctx(context, [:conversation_history]) || []
