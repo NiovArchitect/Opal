@@ -2392,6 +2392,18 @@ export async function publishSocialMoment(
   });
 }
 
+/** Repair #15: media upload for posts — backend LOCAL_DEV store (Pass 17). */
+export async function uploadSocialMomentMedia(
+  attrs: { base64: string; mime_type: string },
+  bearer?: string,
+) {
+  return request<{ media: Record<string, unknown> }>("/api/v1/product/social-moments/media", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
 export async function createTemporaryStory(
   attrs: { media_ref: string; visibility?: string; caption?: string },
   bearer?: string,

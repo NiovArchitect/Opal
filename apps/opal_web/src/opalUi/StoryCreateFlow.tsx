@@ -10,7 +10,12 @@ import { acquireMedia } from "../mediaAcquisition";
 
 type Props = {
   onClose: () => void;
-  onShared?: (draft: { mediaSrc: string; audience: string }) => void;
+  /**
+   * Repair #15: sharing is async and authoritative. The flow stays open until
+   * the backend confirms the story exists; a rejection keeps the draft on
+   * screen with the error — it must never close with a fake "shared".
+   */
+  onShared?: (draft: { mediaSrc: string; audience: string; caption: string }) => Promise<void> | void;
 };
 
 const LIBRARY = [
@@ -22,8 +27,33 @@ const LIBRARY = [
 export function StoryCreateFlow({ onClose, onShared }: Props) {
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [audience, setAudience] = useState<"close_circle" | "friends">("close_circle");
+  const [caption, setCaption] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sharing, setSharing] = useState(false);
+
+  async function share() {
+    if (!mediaSrc || sharing) return;
+    if (!onShared) {
+      setNote("Story sharing isn't connected on this surface yet.");
+      return;
+    }
+    setSharing(true);
+    setNote(null);
+    try {
+      await onShared({ mediaSrc, audience, caption: caption.trim() });
+      onClose();
+    } catch (e) {
+      // Stay open with the draft intact — never report a share that failed.
+      setNote(
+        e instanceof Error
+          ? `Couldn't share your story: ${e.message}`
+          : "Couldn't share your story. Try again.",
+      );
+    } finally {
+      setSharing(false);
+    }
+  }
 
   async function openSource(source: "camera" | "photo_library") {
     if (busy) return;
@@ -117,6 +147,18 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
           <div className="graph-create-compose-media">
             <img src={mediaSrc} alt="" />
           </div>
+          <label className="gsh-meta" htmlFor="story-caption">
+            Caption
+          </label>
+          <textarea
+            id="story-caption"
+            className="graph-create-caption-input"
+            data-testid="story-create-caption"
+            rows={2}
+            placeholder="Say something about this moment"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+          />
           <p className="gsh-meta">Who can see it?</p>
           <div className="opal-refine">
             <button
@@ -141,13 +183,10 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
             className="btn primary"
             data-testid="story-create-share"
             data-mode="active"
-            onClick={() => {
-              onShared?.({ mediaSrc, audience });
-              setNote("Story shared temporarily - expires; not on profile as Memory.");
-              onClose();
-            }}
+            disabled={sharing}
+            onClick={() => void share()}
           >
-            Share story
+            {sharing ? "Sharing..." : "Share story"}
           </button>
           <button
             type="button"
