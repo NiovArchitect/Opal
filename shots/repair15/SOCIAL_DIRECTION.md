@@ -297,6 +297,9 @@ card with 99,999 likes.
   unaffected by removing the engagement term).
 - No other social code changed. No feed rebuild. Backend untouched
   (2,655 / 0 baseline stands).
-- Full web suite after changes: 1,119 tests, 25 failures - name-identical
-  to the pre-existing baseline recorded in SETTINGS_MAP.md. Zero new
-  failures. TypeScript: 7 errors before and after, identical set.
+- Full web suite after changes: 25 failures in both after-runs,
+  name-identical to the pre-existing baseline recorded in
+  SETTINGS_MAP.md (collected totals wobble run to run for two
+  unrelated flaky-collection suites; the failure set never varied).
+  Zero new failures. TypeScript: 7 errors before and after, identical
+  set.

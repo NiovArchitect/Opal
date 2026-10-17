@@ -16,13 +16,21 @@ no noise, no pressure. Least friction. No fake successes.
 - Backend: 2,655 tests / 0 failures at the base tip
   (`shots/repair14/VERIFY.json`, integrated Repair #14 result). This track
   changed no backend code, so the backend baseline stands untouched.
-- Web (vitest, full suite, this worktree at base): 1,103 tests,
-  25 failures in 18 files - the same 25 pre-existing failures documented
-  in Repair #13 (activation, availability, designTokens, firstRun,
+- Web (vitest, full suite): **25 failing tests, invariant across four
+  full runs (two at base, two after this track), with the failing test
+  names identical in every run** - the same 25 pre-existing failures
+  documented in Repair #13, spread over 18 files (activation,
+  availability, designTokens, firstRun,
   s1Adversarial, authorityRejectedStates, grammar, graphCalendaring x2,
   graphDetail, graphScroll x2, graphSpine, liveJourneyProof,
   pasteW4DeviceFixes x2, technicolor, waveBChats x3, waveBGraphs,
   waveBHome, OpalCenterChat send-error, CSP/design-token family).
+  Collected-test totals wobble between runs (1,069-1,119 observed)
+  because two unrelated suites (`onboarding/phoneAutofillDisplay`,
+  `opalUi/callSubstrate`) intermittently fail to collect in this VM's
+  jsdom environment; they hold no failing tests in any run, are
+  untouched by this track, and account for the failed-file count
+  varying (18-20). The 25-failure test set never varied.
 - TypeScript (`tsc --noEmit`): 7 errors, all pre-existing - 6 in
   `OpalApp.tsx` (ChatPreview planProjection, `setTab("opal")` x3) plus
   the known `RelationshipContact.handle` error in
@@ -235,10 +243,12 @@ must be visible, plain-language, and revocable in YOU - and they are
   including the new GREEN row's existence check),
   `youSettingsComingSoon.guard.test.ts` (4), `youHubHierarchy.test.ts`
   (4), `youSettingsRender.proof.test.tsx` (2).
-- Full web suite after changes: 1,119 tests (1,103 baseline + 16 new),
-  25 failures - the failing test names are byte-identical to the
-  baseline list (compared name by name; only timings differ). Zero new
-  failures, zero repaired-by-accident.
+- Full web suite after changes (two runs, incl. one on the final
+  committed tree): 25 failures in both - the failing test names are
+  identical to the baseline list (compared name by name across all
+  four runs). The 16 new tests pass in the full suite (final run:
+  connectedSources 13/13, homeFeedRanking.socialDirection 3/3).
+  Zero new failures, zero repaired-by-accident.
 - Backend: untouched by this track; the 2,655 / 0 baseline stands.
 - TypeScript: 7 errors before, 7 after, identical set (all pre-existing,
   in files/lines this track did not alter).
