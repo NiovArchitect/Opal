@@ -1,1 +1,89 @@
-{"adversarial":{"attacks":32,"fake_success":0,"leakage":0,"state_corruption":0},"branch":"muse/repair-13","capability_loss":0,"commit":"TBD-final-tip","date":"2026-10-17","dead_actions":0,"evidence":["shots/repair13/FAILURE_LEDGER.md","shots/repair13/TEST_REPORT.md","shots/repair13/TEST_REPORT_W1.md","shots/repair13/F13_LEDGER_W2.md","shots/repair13/SETTINGS_AUDIT.md","shots/repair13/GYROSCOPE.md","shots/repair13/TESTFLIGHT_READINESS.md","shots/repair13/VERIFY.json"],"failures_preexisting":11,"failures_preexisting_categories":["voice/deepgram key-gated x7","virtual_plan","founder_graph_commitment_seed","opal_intent check_status Any-upcoming-plans","pipeline 1.3","event_driven B4"],"findings":{"blind_spot_new":["F13-01","F13-02","F13-03","F13-04","F13-05"],"chat_loops":["F13-07","F13-08","F13-09","F13-10","F13-11","F13-12"],"gyroscope":"structural: PlanTransition gate (21 sites), PlanProjection registry, journey-guard suite; Python side evaluated and declined with evidence","journeys":"F13-06 meridiem invention","settings":["F13-13","F13-14"]},"full_suite":{"failures":11,"tests":2618},"gyroscope":{"journey_guard_tests":22,"plan_transition_sites":21,"projection_registry":true,"python_side":"evaluated-declined-with-evidence"},"journeys":{"families":10,"runs":"multi-run with paraphrased inputs","tests":44},"new_tests":160,"parent_tip":"5f170ead0118b8e28a72bb9a31185fabe7bf24c2","phone_pass":"NOT_CLAIMED","prior_green_regressions":0,"regressions_introduced":0,"settings":{"controls_audited":"all YOU-screen controls","dead_screens_removed":2,"decorative_fixed":2,"new_tests":17,"noise_trimmed":"20+ copy sites"},"toolchain":{"elixir":"1.17.3","note":"Project CI pins OTP 27.2; VM ships OTP 25. All tests pass on OTP 25.","postgres":"16"},"verification":"break-fix-break-fix with end-to-end root-cause before each fix; no weakened assertions; fresh randomized accounts; real-effect assertions only"}
+{
+  "adversarial": {
+    "attacks": 32,
+    "fake_success": 0,
+    "leakage": 0,
+    "state_corruption": 0
+  },
+  "branch": "muse/repair-13",
+  "capability_loss": 0,
+  "commit": "ddcfaf3917a8972110702f14554c17c33dbc86a7",
+  "date": "2026-10-17",
+  "dead_actions": 0,
+  "evidence": [
+    "shots/repair13/FAILURE_LEDGER.md",
+    "shots/repair13/TEST_REPORT.md",
+    "shots/repair13/TEST_REPORT_W1.md",
+    "shots/repair13/F13_LEDGER_W2.md",
+    "shots/repair13/SETTINGS_AUDIT.md",
+    "shots/repair13/GYROSCOPE.md",
+    "shots/repair13/TESTFLIGHT_READINESS.md",
+    "shots/repair13/VERIFY.json"
+  ],
+  "failures_preexisting": 11,
+  "failures_preexisting_categories": [
+    "voice/deepgram key-gated x7",
+    "virtual_plan",
+    "founder_graph_commitment_seed",
+    "opal_intent check_status Any-upcoming-plans",
+    "pipeline 1.3",
+    "event_driven B4"
+  ],
+  "findings": {
+    "blind_spot_new": [
+      "F13-01",
+      "F13-02",
+      "F13-03",
+      "F13-04",
+      "F13-05"
+    ],
+    "chat_loops": [
+      "F13-07",
+      "F13-08",
+      "F13-09",
+      "F13-10",
+      "F13-11",
+      "F13-12"
+    ],
+    "gyroscope": "structural: PlanTransition gate (21 sites), PlanProjection registry, journey-guard suite; Python side evaluated and declined with evidence",
+    "journeys": "F13-06 meridiem invention",
+    "settings": [
+      "F13-13",
+      "F13-14"
+    ]
+  },
+  "full_suite": {
+    "failures": 11,
+    "tests": 2618
+  },
+  "gyroscope": {
+    "journey_guard_tests": 22,
+    "plan_transition_sites": 21,
+    "projection_registry": true,
+    "python_side": "evaluated-declined-with-evidence"
+  },
+  "journeys": {
+    "families": 10,
+    "runs": "multi-run with paraphrased inputs",
+    "tests": 44
+  },
+  "new_tests": 160,
+  "parent_tip": "5f170ead0118b8e28a72bb9a31185fabe7bf24c2",
+  "phone_pass": "NOT_CLAIMED",
+  "prior_green_regressions": 0,
+  "regressions_introduced": 0,
+  "settings": {
+    "controls_audited": "all YOU-screen controls",
+    "dead_screens_removed": 2,
+    "decorative_fixed": 2,
+    "new_tests": 17,
+    "noise_trimmed": "20+ copy sites"
+  },
+  "toolchain": {
+    "elixir": "1.17.3",
+    "note": "Project CI pins OTP 27.2; VM ships OTP 25. All tests pass on OTP 25.",
+    "postgres": "16"
+  },
+  "verification": "break-fix-break-fix with end-to-end root-cause before each fix; no weakened assertions; fresh randomized accounts; real-effect assertions only",
+  "commit_note": "single squashed-equivalent commit on 5f170ead; track branches retain full history on origin/muse/repair-13-w1..w6"
+}
