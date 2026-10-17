@@ -376,7 +376,12 @@ defmodule OpalCore.SocialFlow.EconomicQualificationTest do
       refute AttributionEntitlement.leaks_downstream_identity?()
       priv = EconomicQualification.privacy_invariants()
       assert priv["creator_sees_who_booked"] == false
-      assert priv["forbidden_creator_copy"] =~ "Jordan"
+      # Forbidden example must still demonstrate the leak shape (a named
+      # booker + companion + time) — with generic placeholders, never a
+      # real person's name (Repair #14, H5).
+      assert priv["forbidden_creator_copy"] =~ "booked with"
+      refute priv["forbidden_creator_copy"] =~ "Jordan"
+      refute priv["forbidden_creator_copy"] =~ "Chanelle"
     end
 
     test "payout_policy_not_required_for_causal_attribution" do

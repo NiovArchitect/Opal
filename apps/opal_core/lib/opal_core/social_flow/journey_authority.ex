@@ -808,8 +808,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       conversation_id: a["conversation_id"],
       title: a["title"] || "Journey",
       status: "agreed",
-      location: a["location"] || a["place"] || "Juniper & Ivy",
-      time_label: a["time_label"] || a["when_label"] || "Saturday · 7:30 PM",
+      location: a["location"] || a["place"],
+      time_label: a["time_label"] || a["when_label"],
       start_at: start_at,
       timezone: a["timezone"] || "America/Los_Angeles",
       created_by_user_id: a["user_id"]

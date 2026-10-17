@@ -188,7 +188,7 @@ defmodule OpalCore.SocialFlow.EconomicQualification do
       "public_moment_shows_earnings" => false,
       "provider_sees_social_graph" => false,
       "safe_creator_future_copy" => "Your Moment inspired a completed experience.",
-      "forbidden_creator_copy" => "Jordan booked with Chanelle Thursday at 7."
+      "forbidden_creator_copy" => "Guest A booked with Guest B Thursday at 7."
     }
   end
 

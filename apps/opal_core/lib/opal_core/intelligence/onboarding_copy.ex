@@ -114,7 +114,7 @@ defmodule OpalCore.Intelligence.OnboardingCopy do
 
   defp moment_instruction("ask_more"),
     do:
-      "Confirm the friend to the USER (Got Maya.). Ask whether to add anyone else or plan with them. " <>
+      "Confirm the friend to the USER (e.g. \"Got it — added them.\"). Ask whether to add anyone else or plan with them. " <>
         "Never say Hi to the friend. Never address the friend as if they are answering."
 
   defp moment_instruction("ask_when"),

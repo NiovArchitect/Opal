@@ -165,13 +165,13 @@ def pre_send_check(context_items: list[dict[str, Any]]) -> dict[str, Any]:
     if unanswered:
         q = unanswered[-1]
         insight = (
-            "Jordan asked whether you are still coming. Your draft does not answer that yet."
+            "They asked whether you are still coming. Your draft does not answer that yet."
             if re.search(r"coming|still planning|saturday", q, re.I)
             else f"A direct question still needs an answer: {q}"
         )
         if re.search(r"coming|still planning|saturday|together", q + prior_text, re.I):
             insight = (
-                "Jordan asked whether you are still coming. Your draft does not answer that yet."
+                "They asked whether you are still coming. Your draft does not answer that yet."
             )
             suggested = (
                 "I'm not sure yet, and I should have been clearer. "
@@ -257,7 +257,7 @@ def repair_suggest(context_items: list[dict[str, Any]]) -> dict[str, Any]:
         "result_type": "repair_suggestion",
         "repair": {
             "insight_copy": (
-                "Jordan said the message felt dismissive. "
+                "They said the message felt dismissive. "
                 "Would you like help acknowledging that before explaining your intent?"
             ),
             "suggested_draft": (

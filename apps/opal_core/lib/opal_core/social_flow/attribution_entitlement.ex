@@ -4,8 +4,8 @@ defmodule OpalCore.SocialFlow.AttributionEntitlement do
 
   NOT cash. NOT a wallet balance. NOT a payout.
 
-  Attribution: “Chanelle's Moment helped cause this.”
-  Entitlement: “Under current policy, Chanelle may participate in the value pool.”
+  Attribution: “A creator's Moment helped cause this.”
+  Entitlement: “Under current policy, that creator may participate in the value pool.”
   Payout: “Money was actually sent.” — FUTURE ONLY.
 
   Policy version: econ-dev-0.1 (non-monetary; no split percentages).

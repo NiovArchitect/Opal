@@ -7261,25 +7261,31 @@ export function OpalApp() {
                       } | null
                     )?.collective_fit;
                     const serverTop = cf?.options?.[0];
+                    // Repair #14 (H7) - never invent a venue: only draft a
+                    // place that a real candidate actually named.
                     const top = serverTop
-                      ? { name: serverTop.name || "Juniper & Ivy", area: serverTop.area || "" }
+                      ? serverTop.name
+                        ? { name: serverTop.name, area: serverTop.area || "" }
+                        : null
                       : resolvePlaceCandidates(
-                          convSignal,
-                          (threads[activeChatId || ""] || [])
-                            .filter((m) => !m.opalFilament)
-                            .map((m) => m.body)
-                            .join(" "),
-                          Boolean(reality.where),
-                        )[0] || {
-                          name: momentSeed?.placeCandidateName || "Juniper & Ivy",
-                          area: "Little Italy",
-                        };
-                    const d = buildPlaceShareDraft({
-                      name: top.name,
-                      area: top.area,
-                    });
-                    setDraft(d.text);
-                    document.getElementById("composer-input")?.focus();
+                            convSignal,
+                            (threads[activeChatId || ""] || [])
+                              .filter((m) => !m.opalFilament)
+                              .map((m) => m.body)
+                              .join(" "),
+                            Boolean(reality.where),
+                          )[0] ||
+                        (momentSeed?.placeCandidateName
+                          ? { name: momentSeed.placeCandidateName, area: "" }
+                          : null);
+                    if (top) {
+                      const d = buildPlaceShareDraft({
+                        name: top.name,
+                        area: top.area,
+                      });
+                      setDraft(d.text);
+                      document.getElementById("composer-input")?.focus();
+                    }
                   } else if (activeChatId) {
                     const privateMoment: Message = {
                       id: `opal-filament-private-curate-${Date.now()}`,
@@ -8476,34 +8482,11 @@ export function OpalApp() {
       {momentForkChooserOpen ? (
         <div className="moment-people-sheet moment-fork-sheet" data-testid="moment-fork-sheet">
           <GraphWhoPicker
-            people={(whoFastPath.fastPath.length
-              ? whoFastPath.fastPath.map((p) => ({
-                  id: p.peerUserId,
-                  name: p.displayName,
-                  initial: p.displayName.slice(0, 1).toUpperCase(),
-                }))
-              : [
-                  "Maya",
-                  "Jordan",
-                  "Chanelle",
-                  "Sam",
-                  "Alex",
-                  "Sabrina",
-                  "Nina",
-                  "Taylor",
-                  "Riley",
-                ].map((name) => ({
-                  id: name.toLowerCase(),
-                  name,
-                  initial: name.slice(0, 1),
-                  avatarSrc:
-                    name === "Chanelle"
-                      ? "/figma-v2/home-201/avatar-chanelle.png"
-                      : name === "Maya"
-                        ? "/figma-v2/home-201/avatar-maya.png"
-                        : undefined,
-                }))
-            )}
+            people={whoFastPath.fastPath.map((p) => ({
+              id: p.peerUserId,
+              name: p.displayName,
+              initial: p.displayName.slice(0, 1).toUpperCase(),
+            }))}
             selectedIds={
               momentNamedTappedId
                 ? [momentNamedTappedId]

@@ -7972,6 +7972,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 .gwho-brand { display: flex; gap: 8px; align-items: center; }
 .gwho-title { margin: 16px 0 0; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
 .gwho-body { color: #8a96a8; margin: 8px 0 18px; }
+.gwho-empty { color: #8a96a8; margin: 8px 0 18px; }
 .gwho-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

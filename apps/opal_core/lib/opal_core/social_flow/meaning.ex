@@ -138,7 +138,7 @@ defmodule OpalCore.SocialFlow.Meaning do
       cond do
         Enum.any?(unanswered, &Regex.match?(~r/coming|saturday|still planning|together/i, &1)) ->
           {
-            "Jordan asked whether you are still coming. Your draft does not answer that yet.",
+            "They asked whether you are still coming. Your draft does not answer that yet.",
             "I'm not sure yet, and I should have been clearer. I'll know by tonight and will let you know."
           }
 
@@ -583,7 +583,7 @@ defmodule OpalCore.SocialFlow.Meaning do
                 privacy_class: "private",
                 status: "visible",
                 copy:
-                  "Jordan said the message felt dismissive. Would you like help acknowledging that before explaining your intent?",
+                  "They said the message felt dismissive. Would you like help acknowledging that before explaining your intent?",
                 actions: %{
                   "items" => [
                     %{"id" => "help_respond", "label" => "Help me respond"},
