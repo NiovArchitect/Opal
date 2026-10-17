@@ -43,7 +43,11 @@ type Props = {
   assistBearer?: string | null;
 };
 
-const DEFAULT_GROUP_PARTICIPANTS = ["Sadeil", "Chanelle", "Maya", "Jordan"];
+/**
+ * Neutral stage labels when a group call surface opens before real
+ * participant names load. Never a specific person's circle.
+ */
+const DEFAULT_GROUP_PARTICIPANTS = ["You", "Guest 1", "Guest 2", "Guest 3"];
 
 /** Exact Figma tile geometry within control rails (video/group). */
 /** Tile left within rail (rail at x=16). Viewport x = 16 + left → 22/108/194/280. */

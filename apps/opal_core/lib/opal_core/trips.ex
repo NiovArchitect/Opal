@@ -1002,7 +1002,7 @@ defmodule OpalCore.Trips do
                 venue_area: "Centro",
                 activity_kind: "activity",
                 vibe_tags: ["market", "foodie", "early"],
-                notes: "Chanelle-energy market morning.",
+                notes: "Big-energy market morning — go hungry.",
                 responses: %{in: [:a, :b], passed: [:c], interested: [:d]}
               },
               %{
@@ -1010,7 +1010,7 @@ defmodule OpalCore.Trips do
                 venue_area: "Roma Norte",
                 activity_kind: "activity",
                 vibe_tags: ["photography", "golden_hour"],
-                notes: "Alex photography track — meet the others later.",
+                notes: "Photography track — meet the others later.",
                 position: 1,
                 responses: %{in: [:c], interested: [:d], passed: [:a, :b]}
               }
@@ -1066,7 +1066,7 @@ defmodule OpalCore.Trips do
                 activity_kind: "activity",
                 vibe_tags: ["cooking", "intimate"],
                 position: 1,
-                notes: "Maya track — regroup for lunch.",
+                notes: "Second track — regroup for lunch.",
                 responses: %{in: [:b], interested: [:d], passed: [:a, :c]}
               }
             ]

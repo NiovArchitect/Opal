@@ -80,67 +80,75 @@ export function GraphWhoPicker({
       </motion.h2>
       <p className="gwho-body">{body}</p>
 
-      <div className="gwho-grid" role="group" aria-label="People">
-        {people.map((p, i) => {
-          const isOn = selected.has(p.id);
-          const initial = p.initial || p.name.slice(0, 1).toUpperCase();
-          return (
-            <motion.button
-              key={p.id}
-              type="button"
-              className={`gwho-cell ${isOn ? "is-selected" : ""}`}
-              aria-pressed={isOn}
-              data-testid={`gwho-person-${p.id}`}
-              onClick={() => onToggle(p.id)}
-              initial={reduce ? false : { opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={
-                reduce ? { duration: 0 } : { delay: 0.04 * i, duration: 0.3, ease: EASE }
-              }
-            >
-              <span className="gwho-avatar-wrap">
-                {p.avatarSrc ? (
-                  <img className="gwho-avatar" src={p.avatarSrc} alt="" width={78} height={78} />
-                ) : (
-                  <span className="gwho-avatar gwho-avatar-fallback">{initial}</span>
-                )}
-                {isOn ? (
-                  <span className="gwho-check" aria-hidden>
-                    ✓
+      {people.length === 0 ? (
+        <p className="gwho-empty" data-testid="gwho-empty">
+          No people here yet. People you connect with will show up here.
+        </p>
+      ) : (
+        <>
+          <div className="gwho-grid" role="group" aria-label="People">
+            {people.map((p, i) => {
+              const isOn = selected.has(p.id);
+              const initial = p.initial || p.name.slice(0, 1).toUpperCase();
+              return (
+                <motion.button
+                  key={p.id}
+                  type="button"
+                  className={`gwho-cell ${isOn ? "is-selected" : ""}`}
+                  aria-pressed={isOn}
+                  data-testid={`gwho-person-${p.id}`}
+                  onClick={() => onToggle(p.id)}
+                  initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={
+                    reduce ? { duration: 0 } : { delay: 0.04 * i, duration: 0.3, ease: EASE }
+                  }
+                >
+                  <span className="gwho-avatar-wrap">
+                    {p.avatarSrc ? (
+                      <img className="gwho-avatar" src={p.avatarSrc} alt="" width={78} height={78} />
+                    ) : (
+                      <span className="gwho-avatar gwho-avatar-fallback">{initial}</span>
+                    )}
+                    {isOn ? (
+                      <span className="gwho-check" aria-hidden>
+                        ✓
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-              </span>
-              <span className="gwho-name">{p.name}</span>
-            </motion.button>
-          );
-        })}
-      </div>
+                  <span className="gwho-name">{p.name}</span>
+                </motion.button>
+              );
+            })}
+          </div>
 
-      <motion.div
-        className="gwho-segment"
-        role="group"
-        aria-label="How to send"
-        initial={reduce ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={reduce ? { duration: 0 } : { delay: 0.35, duration: 0.3 }}
-      >
-        <button
-          type="button"
-          className={`gwho-seg-btn ${!together ? "is-active" : ""}`}
-          aria-pressed={!together}
-          onClick={() => onTogetherChange(false)}
-        >
-          Send separately
-        </button>
-        <button
-          type="button"
-          className={`gwho-seg-btn ${together ? "is-active" : ""}`}
-          aria-pressed={together}
-          onClick={() => onTogetherChange(true)}
-        >
-          Together
-        </button>
-      </motion.div>
+          <motion.div
+            className="gwho-segment"
+            role="group"
+            aria-label="How to send"
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={reduce ? { duration: 0 } : { delay: 0.35, duration: 0.3 }}
+          >
+            <button
+              type="button"
+              className={`gwho-seg-btn ${!together ? "is-active" : ""}`}
+              aria-pressed={!together}
+              onClick={() => onTogetherChange(false)}
+            >
+              Send separately
+            </button>
+            <button
+              type="button"
+              className={`gwho-seg-btn ${together ? "is-active" : ""}`}
+              aria-pressed={together}
+              onClick={() => onTogetherChange(true)}
+            >
+              Together
+            </button>
+          </motion.div>
+        </>
+      )}
 
       {showSolo && onSolo ? (
         <button type="button" className="btn ghost gwho-solo" onClick={onSolo} data-testid="gwho-solo">

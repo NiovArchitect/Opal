@@ -750,10 +750,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
     cond do
       # Question names the person/topic — never answer with a sticky venue instead.
-      Regex.match?(~r/\bmaya\b/i, raw_l) or
-          (String.contains?(raw_l, "birthday") and (mentions_who? or who_l != "")) ->
-        label = if who_s != "", do: who_s, else: "Maya"
-        "We were working on #{label}'s birthday plan."
+      # Repair #14 (H7): this branch fires on the PLAN's own person + a
+      # birthday topic only — never on a hardcoded name mention.
+      String.contains?(raw_l, "birthday") and (mentions_who? or who_l != "") ->
+        "We were working on #{who_s}'s birthday plan."
 
       mentions_who? ->
         "We were working on plans with #{who_s}."

@@ -83,12 +83,12 @@ defmodule OpalCore.Intelligence.Extractor do
         {intent, entities, vibe, "llm", %{"llm_confidence" => conf, "usage" => ok[:usage] || ok["usage"]}}
 
       {:fallback, reason} ->
-        {intent, entities, vibe} = classify_message(body || "")
+        {intent, entities, vibe} = classify_message(body || "", context)
         Logger.info("intelligence.extract_path=llm_fallback reason=#{inspect(reason)}")
         {intent, entities, vibe, "llm_fallback", %{"fallback_reason" => inspect(reason)}}
 
       {:disabled, _} ->
-        {intent, entities, vibe} = classify_message(body || "")
+        {intent, entities, vibe} = classify_message(body || "", context)
         {intent, entities, vibe, "rules", %{}}
     end
   end
@@ -107,19 +107,30 @@ defmodule OpalCore.Intelligence.Extractor do
   @world_event ~r/\b(concert|festival|what'?s\s+on|happening|tickets?\s+for|show\s+in|events?\s+in)\b/i
   @world_venue_in_city ~r/\b(restaurant|cafe|bar|venue|hotel|museum|park|brunch|dinner).{0,30}\bin\s+[A-Z][A-Za-z\s\-]{2,40}\b/
 
-  @doc "Pure classify for tests / Maya examples."
-  def classify_message(body) when is_binary(body) do
+  @doc """
+  Pure classify for tests / examples.
+
+  Repair #14 (H1) — when `context` carries the speaking user's identity
+  (`user_id` / `actor_id` / `account_id`, or an explicit `contacts` list of
+  display names), person extraction resolves against THAT user's actual
+  contacts/relationships. With no identity, a generic name-candidate
+  extractor runs instead. There is no built-in circle of names.
+  """
+  def classify_message(body, context \\ %{})
+
+  def classify_message(body, context) when is_binary(body) do
     text = String.trim(body)
     lower = String.downcase(text)
 
     {intent, booking_entities} = classify_intent(text, lower)
+    person = extract_person(text, context)
 
     entities =
       %{
         "time" => extract_time(lower),
-        "place" => extract_place(text),
+        "place" => extract_place(text, person),
         "activity" => extract_activity(lower),
-        "person" => extract_person(text)
+        "person" => person
       }
       |> Map.merge(booking_entities)
 
@@ -131,7 +142,7 @@ defmodule OpalCore.Intelligence.Extractor do
     {intent, entities, vibe}
   end
 
-  def classify_message(_), do: {"chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}}
+  def classify_message(_, _), do: {"chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}}
 
   defp classify_intent(text, lower) do
     cond do
@@ -541,9 +552,56 @@ defmodule OpalCore.Intelligence.Extractor do
     end
   end
 
-  defp extract_place(text) do
-    known = ~w(Juniper Pujol Contramar Quintonil Rosetta Soumaya Teotihuacan)
-    Enum.find(known, fn name -> String.contains?(String.downcase(text), String.downcase(name)) end)
+  # Capitalized words that are grammar, not people or places
+  # (days / months / time words) — shared by the H1/H2 candidate filters.
+  @non_person_words ~w(saturday sunday monday tuesday wednesday thursday friday
+                       january february march april may june july august september
+                       october november december today tomorrow tonight morning
+                       afternoon evening weekend)
+
+  # Repair #14 (H2) — venue CANDIDATE extraction. The rules floor no longer
+  # "knows" a fixed list of venues: any venue a user names can be captured
+  # here as a candidate string. Resolution of the candidate (address,
+  # existence, ranking) belongs to the real venue pipeline —
+  # `OpalCore.Places.Gateway` (Geoapify) via Center ProviderAction
+  # exact-entity jobs and WorldEnrichment — never to this synchronous
+  # classifier, and never to a hardcoded catalog.
+  @place_lead_re ~r/^([A-Z][\w&'\-]*(?:\s+[A-Z][\w&'\-]*)*)\s+(?i:saturday|sunday|monday|tuesday|wednesday|thursday|friday|tonight|tomorrow)\b/
+  @place_cue_re ~r/\b(?:at|to|near|inside|for|book|reserve)\s+([A-Z][\w&'\-]*(?:\s+[A-Z][\w&'\-]*)*)/
+
+  defp extract_place(text, person) do
+    candidates =
+      [@place_lead_re, @place_cue_re]
+      |> Enum.map(fn re ->
+        case Regex.run(re, text) do
+          [_, name] -> clean_place_candidate(name)
+          _ -> nil
+        end
+      end)
+      |> Enum.reject(&(&1 in [nil, ""]))
+
+    # A person is never a place: skip a candidate that is the extracted person.
+    Enum.find(candidates, fn name ->
+      not (is_binary(person) and String.downcase(name) == String.downcase(person))
+    end)
+  end
+
+  # Trim trailing day/month words a greedy name run can swallow
+  # ("Contramar Friday" → "Contramar"); a candidate that is ONLY a
+  # day/month word ("book Friday") is not a place at all.
+  defp clean_place_candidate(name) do
+    tokens =
+      name
+      |> String.trim()
+      |> String.split(~r/\s+/)
+      |> Enum.reverse()
+      |> Enum.drop_while(&(String.downcase(&1) in @non_person_words))
+      |> Enum.reverse()
+
+    case tokens do
+      [] -> nil
+      _ -> Enum.join(tokens, " ")
+    end
   end
 
   defp extract_activity(lower) do
@@ -558,13 +616,72 @@ defmodule OpalCore.Intelligence.Extractor do
     end
   end
 
-  defp extract_person(text) do
-    known = [{"Maya", "maya"}, {"Jordan", "jordan"}, {"Chanelle", "chanelle"}, {"Alex", "alex"}]
+  # Repair #14 (H1) — person extraction. Authority order:
+  #   1. The speaking user's ACTUAL contacts/relationships (display names
+  #      from `OpalCore.Relationships.contacts_with_types/1`, or an explicit
+  #      `contacts` list in the context).
+  #   2. A generic name-candidate extractor (grammar cues only — works for
+  #      any user's names, not a built-in circle).
+  @person_cue_re ~r/\b(?:with|w|call|text|phone|ring|meet|ask|tell|invite)\s+([A-Z][a-z]+)\b/
+  @person_possessive_re ~r/\b([A-Z][a-z]+)'s\b/
+  @person_subject_re ~r/(?:^|[.!?]\s+|—\s+|\bif\s+|\bheard\s+)([A-Z][a-z]+)\s+(?:just\s+)?(?:got|is|was|said|free|wants|needs|asked|invited)\b/
 
-    Enum.find_value(known, fn {label, _} ->
-      if Regex.match?(~r/\b#{Regex.escape(label)}\b/i, text), do: label
+  defp extract_person(text, context) do
+    contact_hit =
+      Enum.find_value(contact_names(context), fn name ->
+        if Regex.match?(~r/\b#{Regex.escape(name)}\b/i, text), do: name
+      end)
+
+    contact_hit || extract_person_candidate(text)
+  end
+
+  defp extract_person_candidate(text) do
+    [@person_possessive_re, @person_cue_re, @person_subject_re]
+    |> Enum.find_value(fn re ->
+      case Regex.run(re, text) do
+        [_, name] ->
+          if String.downcase(name) in @non_person_words, do: nil, else: name
+
+        _ ->
+          nil
+      end
     end)
   end
+
+  # Display names of the speaking user's real contacts/relationships.
+  # Explicit `contacts` in the context wins (tests, pre-resolved callers);
+  # otherwise resolve live from the user's identity. Any failure → no
+  # contacts (the generic candidate path still applies) — never a fallback
+  # to built-in names.
+  defp contact_names(context) when is_map(context) do
+    explicit = context[:contacts] || context["contacts"]
+
+    cond do
+      is_list(explicit) ->
+        explicit
+        |> Enum.map(&to_string/1)
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+
+      true ->
+        user_id =
+          context[:user_id] || context["user_id"] || context[:actor_id] ||
+            context["actor_id"] || context[:account_id] || context["account_id"]
+
+        if is_binary(user_id) and user_id != "" do
+          user_id
+          |> OpalCore.Relationships.contacts_with_types()
+          |> Enum.map(& &1.display_name)
+          |> Enum.filter(&is_binary/1)
+        else
+          []
+        end
+    end
+  rescue
+    _ -> []
+  end
+
+  defp contact_names(_), do: []
 
   defp sentiment(lower, intent) do
     cond do

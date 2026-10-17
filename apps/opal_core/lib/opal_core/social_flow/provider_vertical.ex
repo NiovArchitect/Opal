@@ -492,8 +492,8 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
 
     facts = [
       %{
-        "conversation_id" => c["conversation_id"] || "jordan-1",
-        "who" => c["who"] || "Jordan",
+        "conversation_id" => c["conversation_id"] || "conv-1",
+        "who" => c["who"] || "friend",
         "next_gap" => "none",
         "lifecycle_stage" => "set",
         "sufficiency" => "usable",
@@ -512,7 +512,7 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
         "already_travelling" => c["already_travelling"] == true
       })
 
-    soft_copy = leave_copy(travel, "dinner with Jordan")
+    soft_copy = leave_copy(travel, "dinner")
 
     flow
     |> Map.put("travel_fresh", travel_fresh?(travel))
