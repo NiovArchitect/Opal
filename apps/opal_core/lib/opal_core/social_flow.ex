@@ -1553,15 +1553,56 @@ defmodule OpalCore.SocialFlow do
   defp nl_schedule_label(text) do
     case OpalCore.SocialFlow.DateTimeChange.interpret(text, %{}, scoped: true) do
       {:change, %{"summary" => summary}} when is_binary(summary) ->
-        case validate_schedule_label(summary) do
-          :ok -> {:ok, summary}
-          {:error, _} -> {:error, :no_time_found}
+        cond do
+          # Repair #13 (W1-01) - the open-chat NL path never invents AM/PM
+          # (extends the pinned R2 bare-hour law). DateTimeChange defaults a
+          # missing meridiem to PM, so "Saturday after 10" became
+          # "after 10 PM", "around 8" became "about 8:00 PM", and "make it 8"
+          # became "8:00 PM" - a mutated plan with an invented half-day. When
+          # the utterance carries no meridiem signal of its own but the
+          # interpretation pins AM/PM, refuse honestly instead of mutating.
+          invented_meridiem?(text, summary) ->
+            {:error, :no_time_found}
+
+          :ok == validate_schedule_label(summary) ->
+            {:ok, summary}
+
+          true ->
+            {:error, :no_time_found}
         end
 
       _ ->
         {:error, :no_time_found}
     end
   end
+
+  # The open-chat NL path refuses when the interpretation pins a meridiem the
+  # user never uttered. The signal reader mirrors DateTimeChange's own
+  # meridiem/2 (substring "am"/"pm" on normalized text, plus a.m./p.m.
+  # collapsing) so the guard agrees with the parser about what counts as
+  # said: "8pm" and "8 pm" both read as PM to the parser, and both count
+  # here. noon/midnight pin a half-day outright.
+  @nl_pinned_meridiem_re ~r/\b(AM|PM)\b/
+
+  defp user_meridiem_signal?(text) when is_binary(text) do
+    down =
+      text
+      |> String.downcase()
+      |> String.replace(~r/\bp\s*\.?\s*m\b/, "pm")
+      |> String.replace(~r/\ba\s*\.?\s*m\b/, "am")
+
+    String.contains?(down, "am") or String.contains?(down, "pm") or
+      Regex.match?(~r/\b(noon|midnight)\b/, down)
+  end
+
+  defp user_meridiem_signal?(_), do: false
+
+  defp invented_meridiem?(text, summary)
+       when is_binary(text) and is_binary(summary) do
+    not user_meridiem_signal?(text) and Regex.match?(@nl_pinned_meridiem_re, summary)
+  end
+
+  defp invented_meridiem?(_, _), do: false
 
   @doc """
   F12-06/F12-07 — owner-scoped plan listing (backs GET /api/v1/product/opal/plans).
