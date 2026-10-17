@@ -2596,7 +2596,20 @@ defmodule OpalCore.SocialFlow do
       when is_binary(user_id) and is_map(attrs) do
     params = stringify_keys(attrs)
     title = present_string(params["title"] || params["option_label"] || params["place"])
-    location = present_string(params["location"] || params["place"] || params["area"] || title)
+    # Repair #14 (D4) — honor plan_type / meeting_link exactly like the
+    # conversation path. This path silently dropped both, so a virtual
+    # Center confirm (OpalPlanConfirm) persisted as "in_person" with no
+    # meeting link and no Online location.
+    plan_type = normalize_plan_type(params["plan_type"])
+    meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(params["meeting_link"])
+
+    location =
+      if plan_type == "virtual" do
+        "Online"
+      else
+        present_string(params["location"] || params["place"] || params["area"] || title)
+      end
+
     time_label = present_string(params["time_label"]) || "Open window"
     area = present_string(params["area"] || params["area_label"])
     decision_id = present_string(params["decision_id"])
@@ -2622,6 +2635,17 @@ defmodule OpalCore.SocialFlow do
             |> put_alignment("area", area)
             |> put_alignment("scope", "solo")
             |> put_alignment("decision_id", decision_id)
+            |> put_alignment("plan_type", plan_type)
+            |> then(fn a ->
+              if meeting_link, do: Map.put(a, "meeting_link", meeting_link), else: a
+            end)
+            |> then(fn a ->
+              if plan_type == "virtual" do
+                Map.put(a, "place", %{"state" => "locked", "value" => "Online"})
+              else
+                a
+              end
+            end)
             |> Map.put("center_v2", true)
 
           plan_attrs = %{
@@ -2633,7 +2657,9 @@ defmodule OpalCore.SocialFlow do
             "status" => "tentative",
             "created_by_user_id" => user_id,
             "source" => "center",
-            "alignment" => alignment
+            "alignment" => alignment,
+            "plan_type" => plan_type,
+            "meeting_link" => meeting_link
           }
 
           Repo.transaction(fn ->
@@ -2668,6 +2694,10 @@ defmodule OpalCore.SocialFlow do
           end)
           |> case do
             {:ok, {plan, participants}} ->
+              # Repair #14 (D4) — virtual Center plans get the join reminder,
+              # like conversation-created virtual plans.
+              _ = maybe_schedule_virtual_join_reminder(plan, user_id)
+
               # F12-05d — Center creates project to the native Opal calendar,
               # like every other plan-creation path.
               _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
