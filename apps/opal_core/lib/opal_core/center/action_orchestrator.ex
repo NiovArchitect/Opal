@@ -141,6 +141,12 @@ defmodule OpalCore.Center.ActionOrchestrator do
               ] ->
             handle_conversational_turn(user_id, intent, planning, prior, patch, raw_text)
 
+          # Repair #13 (W4-2) — Center had no cancel path: "cancel the dinner
+          # plan" must perform the real SocialFlow.cancel_plan, never claim
+          # "chat cancels aren't live yet".
+          plan_cancel_turn?(intent, patch, raw_text) ->
+            handle_plan_cancel(user_id, intent, planning, patch, raw_text)
+
           (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
               # F12-13/F12-53 — the sticky plan_id is only actionable while
               # fresh and the plan is still active. A bare is_binary check let
@@ -149,6 +155,38 @@ defmodule OpalCore.Center.ActionOrchestrator do
               not Regex.match?(@select_option_re, raw_text) and
               patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"] ->
             handle_when_correction(user_id, intent, planning, prior, patch)
+
+          # Repair #13 (W4-2b) — a :plan_modify correction with no ACTIVE
+          # sticky plan_id ("move dinner to Saturday" after the sticky
+          # expired, or on a fresh context) resolves the plan by reference
+          # from the user's own active plans, then runs the same correction.
+          plan_modify_correction_turn?(intent, patch, raw_text) ->
+            case ensure_modify_plan_id(user_id, intent, planning) do
+              {:ok, planning_with_id} ->
+                handle_when_correction(
+                  user_id,
+                  intent,
+                  planning_with_id,
+                  prior,
+                  patch
+                )
+
+              {:error, :no_plan} ->
+                {intent_without_search(intent),
+                 "I don't see which plan you mean — which one should I change?",
+                 %{
+                   "planning_context" => planning,
+                   "conversation_owns_routing" => true
+                 }}
+
+              {:error, :ambiguous, titles} ->
+                {intent_without_search(intent),
+                 "I see more than one plan that could match (#{Enum.join(titles, ", ")}). Which one did you mean?",
+                 %{
+                   "planning_context" => planning,
+                   "conversation_owns_routing" => true
+                 }}
+            end
 
           # Conversation owns routing: coordinate/chat/status must not be hijacked by a
           # sticky ready restaurant draft or an in-flight provider job.
@@ -460,19 +498,35 @@ defmodule OpalCore.Center.ActionOrchestrator do
       select? ->
         false
 
+      # Repair #13 (W4) — :plan_create / :plan_modify own the turn even when
+      # it mentions dinner ("Plan dinner with Maya Friday" must reach the
+      # plan_create ask, not the QuestionEconomy soft-assume). The keyword
+      # heuristic below stays for turns with no explicit plan intent.
+      atom in [:plan_create, :plan_modify] ->
+        true
+
       restaurant_this_turn? ->
         false
 
-      atom in [:coordinate, :chat, :remember, :recall, :check_status] ->
+      atom in [:coordinate, :chat, :remember, :recall, :check_status, :recommend] ->
+        true
+
+      # Repair #13 (W4) — :plan_confirm is executed by generate_with_side_effects
+      # (OpalPlanConfirm.execute); the provider-search / QuestionEconomy
+      # machinery must never hijack the affirmation turn.
+      atom == :plan_confirm ->
+        true
+
+      # Repair #13 (W4-5) — :oracle is a grounded question-answering intent
+      # (Oracle.answer). A question that mentions dinner/a day ("who's coming
+      # to dinner friday?") must not be hijacked by the QuestionEconomy
+      # soft-assume.
+      atom == :oracle ->
         true
 
       # Named-venue turns must reach the provider path in exact mode — never parked.
       atom == :named_venue ->
         false
-
-      # Birthday / plan create without restaurant cues must not restart a sticky venue job.
-      atom in [:plan_create, :plan_modify, :recommend] ->
-        true
 
       true ->
         false
@@ -731,6 +785,151 @@ defmodule OpalCore.Center.ActionOrchestrator do
   # transaction, accepted revision row, audit, broadcast, calendar
   # projection. Never a direct Repo.update. Lead/status errors get honest
   # non-mutating copies; the plan is never touched on failure.
+  # Repair #13 (W4-2) — "cancel the dinner plan" / "cancel it". The intent is
+  # :plan_modify with action "cancel" (the modify verb now outranks the noun
+  # "plan" in the classifier). Performs the real SocialFlow.cancel_plan.
+  defp plan_cancel_turn?(intent, _patch, raw_text) when is_binary(raw_text) do
+    atom = intent[:intent] || intent["intent"]
+    ents = intent[:entities] || intent["entities"] || %{}
+    action = ents[:action] || ents["action"]
+
+    atom in [:plan_modify, "plan_modify"] and action == "cancel" and
+      not Regex.match?(@select_option_re, raw_text)
+  end
+
+  defp plan_cancel_turn?(_, _, _), do: false
+
+  defp handle_plan_cancel(user_id, intent, planning, _patch, raw_text) do
+    with {:ok, plan_id} <- ensure_cancel_plan_id(user_id, intent, planning, raw_text),
+         {:ok, _} <-
+           SocialFlow.cancel_plan(%{plan_id: plan_id, user_id: user_id, trace_id: nil}) do
+      # The cancelled plan must not stay sticky.
+      {:ok, cleared} = PlanningContext.merge(user_id, %{"plan_id" => "__clear__"}, %{})
+
+      {intent_without_search(intent), "Done — I cancelled that plan.",
+       %{
+         "planning_context" => cleared,
+         "action_state" => "cancelled",
+         "conversation_owns_routing" => true
+       }}
+    else
+      {:error, :no_plan} ->
+        {intent_without_search(intent),
+         "I don't see which plan you mean — which one should I cancel?",
+         %{"planning_context" => planning, "conversation_owns_routing" => true}}
+
+      {:error, :ambiguous, titles} ->
+        {intent_without_search(intent),
+         "I see more than one plan that could match (#{Enum.join(titles, ", ")}). Which one did you mean?",
+         %{"planning_context" => planning, "conversation_owns_routing" => true}}
+
+      {:error, :not_authorized} ->
+        {intent_without_search(intent),
+         "I can't cancel that one — you're not the organizer.",
+         %{"planning_context" => planning, "conversation_owns_routing" => true}}
+
+      {:error, :already_cancelled} ->
+        {intent_without_search(intent), "That plan is already cancelled.",
+         %{"planning_context" => planning, "conversation_owns_routing" => true}}
+
+      {:error, _} ->
+        {intent_without_search(intent),
+         "I couldn't cancel that just now. Try again in a moment.",
+         %{"planning_context" => planning, "conversation_owns_routing" => true}}
+    end
+  end
+
+  # Sticky plan_id wins when active; otherwise resolve "the dinner plan"
+  # against the user's own active plans.
+  defp ensure_cancel_plan_id(user_id, intent, planning, _raw_text) do
+    if PlanningContext.plan_id_active?(planning) do
+      {:ok, planning["plan_id"]}
+    else
+      resolve_plan_ref_to_id(user_id, intent)
+    end
+  end
+
+  # Repair #13 (W4-2b) — :plan_modify carrying a when/when_time correction
+  # but no ACTIVE sticky plan_id (expired sticky, or fresh context).
+  defp plan_modify_correction_turn?(intent, patch, raw_text) when is_binary(raw_text) do
+    atom = intent[:intent] || intent["intent"]
+
+    atom in [:plan_modify, "plan_modify"] and
+      (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
+      not Regex.match?(@select_option_re, raw_text) and
+      patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"]
+  end
+
+  defp plan_modify_correction_turn?(_, _, _), do: false
+
+  # Resolve the referenced plan and stamp a fresh sticky plan_id so the
+  # existing handle_when_correction (with its plan_id_active? guard) runs.
+  defp ensure_modify_plan_id(user_id, intent, planning) do
+    case resolve_plan_ref_to_id(user_id, intent) do
+      {:ok, plan_id} ->
+        {:ok,
+         planning
+         |> Map.put("plan_id", plan_id)
+         |> Map.put("plan_id_set_at", DateTime.utc_now() |> DateTime.to_iso8601())}
+
+      err ->
+        err
+    end
+  end
+
+  # Owner-scoped plan reference resolution: "the dinner plan" / "it" against
+  # the user's own active (non-cancelled) plans. {:ok, id} on a unique best
+  # match; {:error, :ambiguous, titles} on a tie; {:error, :no_plan} otherwise.
+  defp resolve_plan_ref_to_id(user_id, intent) when is_binary(user_id) do
+    ents = intent[:entities] || intent["entities"] || %{}
+    ref = to_string(ents[:plan_ref] || ents["plan_ref"] || "")
+
+    words =
+      ref
+      |> String.downcase()
+      |> String.split(~r/[^a-z0-9']+/, trim: true)
+      |> Enum.reject(&(&1 in ~w(it that this the a an plan plans my)))
+
+    if words == [] do
+      {:error, :no_plan}
+    else
+      case SocialFlow.list_plans_for_user(user_id) do
+        {:ok, plans} ->
+          scored =
+            plans
+            |> Enum.filter(fn p -> to_string(p["status"] || "") in ~w(agreed changed tentative) end)
+            |> Enum.map(fn p ->
+              title = String.downcase(to_string(p["title"] || ""))
+              {p, Enum.count(words, &String.contains?(title, &1))}
+            end)
+            |> Enum.filter(fn {_p, score} -> score > 0 end)
+            |> Enum.sort_by(fn {_p, score} -> score end, :desc)
+
+          case scored do
+            [] ->
+              {:error, :no_plan}
+
+            [{best, top_score}, {_, second_score} | _] when top_score == second_score ->
+              titles =
+                scored
+                |> Enum.take_while(fn {_p, s} -> s == top_score end)
+                |> Enum.map(fn {p, _} -> p["title"] end)
+                |> Enum.take(3)
+
+              {:error, :ambiguous, titles}
+
+            [{best, _} | _] ->
+              {:ok, best["id"]}
+          end
+
+        {:error, _} ->
+          {:error, :no_plan}
+      end
+    end
+  end
+
+  defp resolve_plan_ref_to_id(_, _), do: {:error, :no_plan}
+
   defp handle_when_correction(user_id, intent, planning, prior, patch) do
     plan_id = planning["plan_id"]
     when_s = planning["when"]

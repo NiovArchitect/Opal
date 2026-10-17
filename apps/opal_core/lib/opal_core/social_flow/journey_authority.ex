@@ -19,7 +19,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   alias OpalCore.SocialFlow.{
     PlanAgreementTasteBridge,
     PlanParticipant,
+    PlanProjection,
     PlanRevision,
+    PlanTransition,
     SharedPlan,
     TrustSafety
   }
@@ -189,6 +191,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
                      status: "accepted",
                      accepted_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
                    })
+                   # Gyroscope (R13): the Journey track's direct revision is
+                   # born accepted — same creation path as the chat track.
+                   |> PlanTransition.guard_changeset(:revision, :accept_direct)
                    |> Repo.insert()
 
                  rev.id
@@ -204,6 +209,14 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
              {:ok, plan} =
                plan
                |> SharedPlan.changeset(attrs)
+               # Gyroscope (R13): the Journey track's plan transition passes
+               # the same gate as the chat track — W1's two authority systems
+               # now share one transition table.
+               |> then(fn cs ->
+                 if material?,
+                   do: PlanTransition.guard_changeset(cs, :plan, :change),
+                   else: cs
+               end)
                |> Repo.update()
 
              if material? do
@@ -247,7 +260,13 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
              {:error, reason} -> Repo.rollback(reason)
            end
          end) do
-      {:ok, body} -> {:ok, body}
+      {:ok, body} ->
+        # Gyroscope (R13): the journey track's committed mutations clear
+        # derived projections too — same guarantee as the chat track's
+        # broadcast_plan choke point (W1: one table, one invalidation).
+        invalidate_derived_for_plan(body["plan_id"])
+        {:ok, body}
+
       {:error, :not_found} -> {:error, :not_found}
       {:error, :forbidden} -> {:error, :forbidden}
       {:error, :stale_revision} -> {:error, :stale_revision}
@@ -256,6 +275,25 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   end
 
   def material_change(_, _, _), do: {:error, :invalid}
+
+  defp invalidate_derived_for_plan(plan_id) when is_binary(plan_id) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{conversation_id: cid} when is_binary(cid) and cid != "" ->
+        member_ids =
+          from(cm in ConversationMember,
+            where: cm.conversation_id == ^cid,
+            select: cm.user_id
+          )
+          |> Repo.all()
+
+        PlanProjection.invalidate_derived(cid, member_ids)
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp invalidate_derived_for_plan(_), do: :ok
 
   defp assert_expected_revision(%SharedPlan{} = plan, changes) do
     expected = changes["expected_revision_id"] || changes["expectedRevisionId"]
@@ -776,6 +814,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       timezone: a["timezone"] || "America/Los_Angeles",
       created_by_user_id: a["user_id"]
     })
+    # Gyroscope (R13): Journey plans are born agreed, via the gate.
+    |> PlanTransition.guard_changeset(:plan, :create_agreed)
     |> Repo.insert()
   end
 

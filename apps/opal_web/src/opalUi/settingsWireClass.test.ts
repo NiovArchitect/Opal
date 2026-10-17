@@ -44,12 +44,35 @@ describe("Pass B settings live-wire classification", () => {
 
   it("every classified GREEN row exists in YouSettingsDestination", () => {
     for (const row of SETTINGS_WIRE_CLASSIFICATION.filter((r) => r.class === "GREEN")) {
-      expect(youSrc, row.id).toContain(`id: "${row.id}"`);
+      const byId = youSrc.includes(`id: "${row.id}"`);
+      const byTestId = youSrc.includes(`data-testid="${row.id}"`);
+      expect(byId || byTestId, row.id).toBe(true);
     }
   });
 
   it("consumer paint never claims Coming soon or next build", () => {
     expect(youSrc).not.toMatch(/Coming soon/i);
     expect(youSrc).not.toMatch(/next build/i);
+  });
+
+  it("dead engagement/safety screens are removed (Repair #13 W3)", () => {
+    // Unreachable from the hub, zero live controls — removed outright.
+    expect(youSrc).not.toMatch(/^\s*engagement:\s*\{/m);
+    expect(youSrc).not.toMatch(/^\s*safety:\s*\{/m);
+    expect(youSrc).not.toMatch(/\|\s*"engagement"/);
+    expect(youSrc).not.toMatch(/\|\s*"safety"/);
+    expect(youSrc).not.toContain('engagement: "618:1868"');
+    expect(youSrc).not.toContain('safety: "618:2060"');
+  });
+
+  it("mobile You screen carries no fabricated counts (Repair #13 W3)", () => {
+    const mobileSrc = readFileSync(
+      resolve(root, "../../../opal_mobile/src/screens/YouScreen.tsx"),
+      "utf8",
+    );
+    expect(mobileSrc).not.toMatch(/deviceCount/);
+    expect(mobileSrc).not.toMatch(/blockCount/);
+    expect(mobileSrc).not.toMatch(/active session\(s\)/);
+    expect(mobileSrc).not.toMatch(/No active blocks/);
   });
 });

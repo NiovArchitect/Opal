@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     DateTimeChange,
     PlaceIdentity,
     PlanStateArbitration,
+    PlanTransition,
     SeedFixtureLeak,
     SharedPlan,
     SmokeResidue,
@@ -279,6 +280,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
                   cancelled_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
                   alignment: alignment
                 })
+                # Gyroscope (R13): even the (currently uncalled) dedupe passes
+                # the gate — a duplicate that already resolved terminal stays.
+                |> PlanTransition.guard_changeset(:plan, :cancel)
                 |> Repo.update()
 
               updated.id
@@ -1866,8 +1870,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       nil when is_binary(user_id) ->
         # Insert: the fold owns the new row; "Meetup" is the fold's placeholder
         # title until a real title is set by a plan-creation path.
+        # Gyroscope (R13): the fold births via the gate — a locked fold
+        # births agreed, an unlocked fold births tentative.
+        create_action = if status == "agreed", do: :create_agreed, else: :create
+
         %SharedPlan{}
         |> SharedPlan.changeset(Map.put(attrs, :title, "Meetup"))
+        |> PlanTransition.guard_changeset(:plan, create_action)
         |> Repo.insert()
 
       %SharedPlan{} = plan ->

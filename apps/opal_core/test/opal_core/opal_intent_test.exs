@@ -118,6 +118,20 @@ defmodule OpalCore.OpalIntentTest do
     assert r.entities.new_when == "Friday"
   end
 
+  # Repair #13 (F13-05) — a modify verb beats the create trigger's bare
+  # "plans" match: these must route to :plan_modify, never :plan_create.
+  test "plan_modify wins over plan_create when a modify verb is present" do
+    r = assert_intent("cancel all plans", :plan_modify)
+    assert r.entities.action == "cancel"
+
+    r = assert_intent("change the dinner plan", :plan_modify)
+    assert r.entities.action == "change"
+
+    # Pure creations still route to plan_create.
+    assert_intent("schedule dinner", :plan_create)
+    assert_intent("plan a dinner", :plan_create)
+  end
+
   test "plan_modify negative: Plan dinner Friday" do
     refute_intent("Plan dinner Friday", :plan_modify)
   end

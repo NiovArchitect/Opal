@@ -105,6 +105,63 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     class: "HIDDEN",
     wire: "Pass B hide - discovery-distance preference API not shipped",
   },
+  // Repair #13 (W3) — proven end-to-end by repair13_settings_audit_test.exs.
+  {
+    id: "what-opal-can-do",
+    title: "Place calls for you / Make reservations for you",
+    screen: "calls-assist",
+    class: "GREEN",
+    wire: "UI → grantConsent/revokeConsent → Consent.grant/revoke → Consent.require_for_action execution gate (calls.ex, plan_execution.ex)",
+  },
+  {
+    id: "opal-graphing-standing",
+    title: "Pause Graphing + call modes",
+    screen: "calls-assist",
+    class: "GREEN",
+    wire: "UI → updateGraphingPolicy → RelationshipAccess → graphing_decision (:global_paused/:never/:ask/:auto/:selected)",
+  },
+  {
+    id: "spending-comfort",
+    title: "Spending comfort save/remove",
+    screen: "spending",
+    class: "GREEN",
+    wire: "UI → setFinancialProfile/deleteFinancialProfile → FinancialProfiles (trusted+ gate) → GroupTastes + CelebrationCuration budget_note",
+  },
+  {
+    id: "fit-prefs-section",
+    title: "Fit preferences save + share gate",
+    screen: "fit",
+    class: "GREEN",
+    wire: "UI → saveFitPreferences (per-user localStorage) → readFitSliceForOpal → OpalCenterChat :fit context (null when share off)",
+  },
+  {
+    id: "what-opal-remembers",
+    title: "Memory forget / relationship types / trust grant-revoke",
+    screen: "privacy",
+    class: "GREEN",
+    wire: "UI → forgetMemoryFact/setRelationshipType/grantInnerCircleTrust → DurablePreferenceMemory/Relationships/TrustTiers → list read-back",
+  },
+  {
+    id: "celebrations-section",
+    title: "Celebrations add/remove + curation",
+    screen: "privacy",
+    class: "GREEN",
+    wire: "UI → createCelebration/deleteCelebration/curateCelebration → Celebrations/CelebrationCuration → list + curation read-back",
+  },
+  {
+    id: "invite-friends",
+    title: "Invite link / SMS / status list",
+    screen: "feed-discovery",
+    class: "GREEN",
+    wire: "UI → createProductInvite → Invites.create_invite (rate-limited; honest SMS note) → get_by_code resolves",
+  },
+  {
+    id: "appearance-theme-picker",
+    title: "Appearance theme picker",
+    screen: "appearance",
+    class: "GREEN",
+    wire: "UI → setAppearancePreference → localStorage (opal.appearance.theme.v1) → data-theme on documentElement",
+  },
 ];
 
 export function settingsWireSummary(rows: SettingsWireRow[] = SETTINGS_WIRE_CLASSIFICATION) {

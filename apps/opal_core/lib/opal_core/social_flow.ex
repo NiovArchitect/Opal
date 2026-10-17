@@ -20,6 +20,8 @@ defmodule OpalCore.SocialFlow do
     PlanParticipant,
     PlanReminder,
     PlanRevision,
+    PlanProjection,
+    PlanTransition,
     Proposal,
     SharedPlan,
     Signal
@@ -137,6 +139,8 @@ defmodule OpalCore.SocialFlow do
           visibility: "shared",
           expires_at: expires
         })
+        # Gyroscope (R13): proposal creation passes the transition gate.
+        |> PlanTransition.guard_changeset(:proposal, :create)
         |> Repo.insert()
 
       options =
@@ -332,6 +336,9 @@ defmodule OpalCore.SocialFlow do
                {:ok, proposal} =
                  proposal
                  |> Proposal.changeset(%{status: "approved_for_coordination"})
+                 # Gyroscope (R13): the gate owns the target; an approved
+                 # proposal can never be re-approved or approved from terminal.
+                 |> PlanTransition.guard_changeset(:proposal, :approve)
                  |> Repo.update()
 
                options =
@@ -424,6 +431,9 @@ defmodule OpalCore.SocialFlow do
              {:ok, proposal} =
                proposal
                |> Proposal.changeset(%{status: "dismissed", dismissed_at: now})
+               # Gyroscope (R13): dismissing a converted/expired proposal is
+               # illegal — the gate refuses, the row keeps its terminal state.
+               |> PlanTransition.guard_changeset(:proposal, :dismiss)
                |> Repo.update()
 
              from(s in Signal, where: s.proposal_id == ^proposal.id and s.status == "visible")
@@ -677,6 +687,8 @@ defmodule OpalCore.SocialFlow do
                created_from_proposal_id: locked_proposal.id,
                created_by_user_id: created_by
              })
+             # Gyroscope (R13): conversion births the plan agreed, via the gate.
+             |> PlanTransition.guard_changeset(:plan, :create_agreed)
              |> Repo.insert()
 
            # B1 — single lead/organizer authority on the chat path: the creator
@@ -696,6 +708,9 @@ defmodule OpalCore.SocialFlow do
 
            locked_proposal
            |> Proposal.changeset(%{status: "converted", converted_at: now})
+           # Gyroscope (R13): conversion is terminal; a double-convert of a
+           # converted proposal is refused by the gate, not by lock timing.
+           |> PlanTransition.guard_changeset(:proposal, :convert)
            |> Repo.update!()
 
            option
@@ -897,6 +912,11 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  # Repair #13 (F13-01) — a proposal against a terminal plan is refused.
+  # Creating a "proposed" revision on a cancelled/completed plan would be a
+  # fake success: it can never be applied (respond_to_revision refuses
+  # terminal plans, F12-62), so it would linger as a dead live proposal.
+  # Terminal set matches respond_to_revision's F12-62 guard.
   def propose_revision(attrs) do
     plan_id = fetch!(attrs, :plan_id)
     user_id = fetch!(attrs, :proposed_by_user_id)
@@ -904,7 +924,10 @@ defmodule OpalCore.SocialFlow do
     trace_id = Map.get(attrs, :trace_id) || @trace_default
 
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
-         :ok <- ensure_member(plan.conversation_id, user_id) do
+         :ok <- ensure_member(plan.conversation_id, user_id),
+         # Gyroscope (R13): a revision on a terminal plan could never be
+         # accepted (F12-62) — refusing it at birth keeps the lifecycle honest.
+         false <- PlanTransition.terminal?(:plan, plan.status) do
       members = member_user_ids(plan.conversation_id)
       required = Enum.reject(members, &(&1 == user_id))
       label = changes["time_label"] || "new time"
@@ -936,6 +959,8 @@ defmodule OpalCore.SocialFlow do
       end
     else
       nil -> {:error, :not_found}
+      # Gyroscope (R13): propose on a terminal plan is refused at birth.
+      true -> {:error, :invalid_status}
       {:error, _} = err -> err
     end
   end
@@ -955,6 +980,8 @@ defmodule OpalCore.SocialFlow do
           required_approvals: required,
           approvals: %{}
         })
+        # Gyroscope (R13): a proposal is born proposed, via the gate.
+        |> PlanTransition.guard_changeset(:revision, :propose)
         |> Repo.insert()
 
       signal =
@@ -1007,7 +1034,9 @@ defmodule OpalCore.SocialFlow do
 
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
          :ok <- ensure_plan_access(plan, user_id),
-         true <- plan.status != "cancelled" do
+         # Gyroscope (R13): terminal is terminal — proposing a cancel on a
+         # completed plan is as incoherent as on a cancelled one.
+         false <- PlanTransition.terminal?(:plan, plan.status) do
       required = cancel_required_approvals(plan, user_id)
 
       case insert_revision_tx(
@@ -1037,6 +1066,8 @@ defmodule OpalCore.SocialFlow do
     else
       nil -> {:error, :not_found}
       false -> {:error, :invalid_status}
+      # Gyroscope (R13): terminal plan — cancel-revision refused at birth.
+      true -> {:error, :invalid_status}
       {:error, _} = err -> err
     end
   end
@@ -1108,6 +1139,8 @@ defmodule OpalCore.SocialFlow do
                      rejected_at: now,
                      approvals: approvals
                    })
+                   # Gyroscope (R13): reject is only legal from proposed.
+                   |> PlanTransition.guard_changeset(:revision, :reject)
                    |> Repo.update()
 
                  audit!(
@@ -1191,7 +1224,38 @@ defmodule OpalCore.SocialFlow do
          actor,
          trace
        ) do
+    # Repair #13 (F13-02) — accepting a revision retires every other live
+    # proposal for the same plan to "superseded" inside this transaction.
+    # Without this, an older "proposed" revision could be accepted afterwards
+    # and silently regress the plan (e.g. 9:00 PM back to 8:00 PM). The
+    # "superseded" status already exists in the schema; respond_to_revision
+    # only decides revisions with status == "proposed", so a later accept of
+    # a superseded revision is refused (:forbidden), never applied. Sibling
+    # signals are retired too, so no dead "Accept change" button lingers.
+    superseded_ids =
+      from(r in PlanRevision,
+        where: r.plan_id == ^plan.id and r.id != ^rev.id and r.status == "proposed",
+        select: r.id
+      )
+      |> Repo.all()
+
+    if superseded_ids != [] do
+      from(r in PlanRevision, where: r.id in ^superseded_ids)
+      |> Repo.update_all(set: [status: "superseded", updated_at: now])
+
+      from(s in Signal,
+        where: s.revision_id in ^superseded_ids and s.status == "visible"
+      )
+      |> Repo.update_all(set: [status: "superseded", updated_at: now])
+    end
+
     changes = rev.proposed_changes || %{}
+
+    # Gyroscope (R13): the gate decides the plan's target status from the
+    # revision kind. Terminal plans (cancelled/completed) have no legal
+    # outbound move, so a stale accept can never resurrect them — F12-62
+    # generalized from one guard into the table.
+    plan_action = if changes["kind"] == "cancel", do: :cancel, else: :change
 
     {plan_attrs, signal_copy} =
       if changes["kind"] == "cancel" do
@@ -1231,11 +1295,15 @@ defmodule OpalCore.SocialFlow do
         accepted_at: now,
         approvals: approvals
       })
+      # Gyroscope (R13): accept is only legal from proposed — a revision that
+      # is already accepted/rejected can never be accepted again.
+      |> PlanTransition.guard_changeset(:revision, :accept)
       |> Repo.update()
 
     {:ok, plan} =
       plan
       |> SharedPlan.changeset(plan_attrs)
+      |> PlanTransition.guard_changeset(:plan, plan_action)
       |> Repo.update()
 
     signal =
@@ -1361,6 +1429,9 @@ defmodule OpalCore.SocialFlow do
                  {:ok, plan} =
                    plan
                    |> SharedPlan.changeset(%{status: "cancelled", cancelled_at: now})
+                   # Gyroscope (R13): cancel is refused on terminal plans by
+                   # the gate, not just by the :already_cancelled check above.
+                   |> PlanTransition.guard_changeset(:plan, :cancel)
                    |> Repo.update()
 
                  audit!(
@@ -1553,15 +1624,56 @@ defmodule OpalCore.SocialFlow do
   defp nl_schedule_label(text) do
     case OpalCore.SocialFlow.DateTimeChange.interpret(text, %{}, scoped: true) do
       {:change, %{"summary" => summary}} when is_binary(summary) ->
-        case validate_schedule_label(summary) do
-          :ok -> {:ok, summary}
-          {:error, _} -> {:error, :no_time_found}
+        cond do
+          # Repair #13 (W1-01) - the open-chat NL path never invents AM/PM
+          # (extends the pinned R2 bare-hour law). DateTimeChange defaults a
+          # missing meridiem to PM, so "Saturday after 10" became
+          # "after 10 PM", "around 8" became "about 8:00 PM", and "make it 8"
+          # became "8:00 PM" - a mutated plan with an invented half-day. When
+          # the utterance carries no meridiem signal of its own but the
+          # interpretation pins AM/PM, refuse honestly instead of mutating.
+          invented_meridiem?(text, summary) ->
+            {:error, :no_time_found}
+
+          :ok == validate_schedule_label(summary) ->
+            {:ok, summary}
+
+          true ->
+            {:error, :no_time_found}
         end
 
       _ ->
         {:error, :no_time_found}
     end
   end
+
+  # The open-chat NL path refuses when the interpretation pins a meridiem the
+  # user never uttered. The signal reader mirrors DateTimeChange's own
+  # meridiem/2 (substring "am"/"pm" on normalized text, plus a.m./p.m.
+  # collapsing) so the guard agrees with the parser about what counts as
+  # said: "8pm" and "8 pm" both read as PM to the parser, and both count
+  # here. noon/midnight pin a half-day outright.
+  @nl_pinned_meridiem_re ~r/\b(AM|PM)\b/
+
+  defp user_meridiem_signal?(text) when is_binary(text) do
+    down =
+      text
+      |> String.downcase()
+      |> String.replace(~r/\bp\s*\.?\s*m\b/, "pm")
+      |> String.replace(~r/\ba\s*\.?\s*m\b/, "am")
+
+    String.contains?(down, "am") or String.contains?(down, "pm") or
+      Regex.match?(~r/\b(noon|midnight)\b/, down)
+  end
+
+  defp user_meridiem_signal?(_), do: false
+
+  defp invented_meridiem?(text, summary)
+       when is_binary(text) and is_binary(summary) do
+    not user_meridiem_signal?(text) and Regex.match?(@nl_pinned_meridiem_re, summary)
+  end
+
+  defp invented_meridiem?(_, _), do: false
 
   @doc """
   F12-06/F12-07 — owner-scoped plan listing (backs GET /api/v1/product/opal/plans).
@@ -1726,7 +1838,9 @@ defmodule OpalCore.SocialFlow do
                not plan_lead?(plan, user_id) ->
                  Repo.rollback(:not_authorized)
 
-               plan.status == "cancelled" ->
+               # Gyroscope (R13): terminal is terminal — a completed plan's
+               # schedule is history, not something to edit.
+               PlanTransition.terminal?(:plan, plan.status) ->
                  Repo.rollback(:invalid_status)
 
                true ->
@@ -1763,6 +1877,9 @@ defmodule OpalCore.SocialFlow do
                      required_approvals: [user_id],
                      approvals: %{user_id => "accept"}
                    })
+                   # Gyroscope (R13): a lead's direct edit is born accepted —
+                   # the gate records that creation path, never "proposed".
+                   |> PlanTransition.guard_changeset(:revision, :accept_direct)
                    |> Repo.insert()
 
                  alignment =
@@ -1999,10 +2116,18 @@ defmodule OpalCore.SocialFlow do
     end
   end
 
+  # Repair #13 (F13-03) — access goes through ensure_plan_access/2 so
+  # conversation-less Center plans are readable by their creator/participants.
+  # The old member?/2 check compared conversation_id == nil and always missed,
+  # so a Center plan's own owner got :forbidden here. The public contract is
+  # unchanged: {:ok, plan} | {:error, :forbidden} | {:error, :not_found}.
   def get_plan_for_user(plan_id, user_id) do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
-        if member?(plan.conversation_id, user_id), do: {:ok, plan}, else: {:error, :forbidden}
+        case ensure_plan_access(plan, user_id) do
+          :ok -> {:ok, plan}
+          {:error, _} -> {:error, :forbidden}
+        end
 
       nil ->
         {:error, :not_found}
@@ -2014,8 +2139,12 @@ defmodule OpalCore.SocialFlow do
   defp supersede_open_proposals!(conversation_id) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
+    # Gyroscope (R13): the supersedeable set comes from the gate's table, not
+    # a hardcoded list — the filter can never drift from the legal moves.
     from(p in Proposal,
-      where: p.conversation_id == ^conversation_id and p.status in ^["proposed", "visible"]
+      where:
+        p.conversation_id == ^conversation_id and
+          p.status in ^PlanTransition.from_statuses(:proposal, :supersede)
     )
     |> Repo.update_all(set: [status: "superseded", superseded_at: now, updated_at: now])
   end
@@ -2067,6 +2196,14 @@ defmodule OpalCore.SocialFlow do
   defp broadcast_plan(%SharedPlan{conversation_id: cid}, event, payload, trace_id)
        when is_binary(cid) and cid != "" do
     broadcast(cid, event, payload, trace_id)
+
+    # Gyroscope (R13) — projection coherence: the SocialMemory recall cache is
+    # a derived projection of plan state (R11 runner-up: 60s TTL with no
+    # invalidation on plan edits). Every committed chat-track mutation lands
+    # here (R11 task 5: broadcast only after commit); the journey track calls
+    # invalidate_derived/2 directly. A miss recomputes from the single
+    # store; no surface can serve a pre-mutation recall.
+    PlanProjection.invalidate_derived(cid, member_user_ids(cid))
   end
 
   defp broadcast_plan(%SharedPlan{created_by_user_id: uid}, event, payload, trace_id)
@@ -2187,14 +2324,14 @@ defmodule OpalCore.SocialFlow do
   # The in-transaction expiry mark is rolled back with the transaction, so the
   # "expired" status is persisted here in its own write afterwards. Guarded to
   # pre-conversion statuses so a concurrently converted proposal is never
-  # clobbered.
+  # clobbered. Gyroscope (R13): the expirable set comes from the gate's table.
   defp persist_expired_mark(proposal_id) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
     from(p in Proposal,
       where:
         p.id == ^proposal_id and
-          p.status in ^["proposed", "visible", "approved_for_coordination"]
+          p.status in ^PlanTransition.from_statuses(:proposal, :expire)
     )
     |> Repo.update_all(set: [status: "expired", updated_at: now])
 
@@ -2310,6 +2447,8 @@ defmodule OpalCore.SocialFlow do
             plan =
               case %SharedPlan{}
                    |> SharedPlan.changeset(plan_attrs)
+                   # Gyroscope (R13): tentative plans are born via the gate.
+                   |> PlanTransition.guard_changeset(:plan, :create)
                    |> Repo.insert() do
                 {:ok, p} -> p
                 {:error, cs} -> Repo.rollback(cs)
@@ -2501,6 +2640,8 @@ defmodule OpalCore.SocialFlow do
             plan =
               case %SharedPlan{}
                    |> SharedPlan.changeset(plan_attrs)
+                   # Gyroscope (R13): Center-birthed plans pass the gate too.
+                   |> PlanTransition.guard_changeset(:plan, :create)
                    |> Repo.insert() do
                 {:ok, p} -> p
                 {:error, cs} -> Repo.rollback(cs)

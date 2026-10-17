@@ -164,10 +164,32 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "I can help move Oak to Saturday"
-    assert text =~ "Open it on your Graph"
-    assert text =~ "aren't live yet"
+    # Repair #13 (F13-04 / W4-2): the backstop never claims chat updates
+    # "aren't live" — they are — and never points at a fictional Graph
+    # confirm action. It asks for the actionable detail instead.
+    assert text =~ "move Oak to Saturday"
+    assert text =~ "I'll update it"
+    refute text =~ "aren't live"
+    refute text =~ "Open it on your Graph"
     refute text =~ "Done. Oak moved"
+  end
+
+  test "plan_modify cancel is honest and actionable, never a fictional Graph confirm (F13-04 / W4-2)" do
+    ctx = base_context()
+
+    assert {:ok, text} =
+             OpalResponse.generate(
+               intent(:plan_modify, %{action: "cancel", plan_ref: "Oak"}),
+               ctx
+             )
+
+    # Merged copy: the unified chat pipeline routes through
+    # ActionOrchestrator, where cancel executes for real — so the backstop
+    # invites the actionable retry instead of claiming it can't cancel.
+    assert text =~ "cancel Oak"
+    assert text =~ "I'll cancel it"
+    refute text =~ "Open it on your Graph"
+    refute text =~ "aren't live"
   end
 
   test "plan_modify honest when plan not found" do
@@ -179,7 +201,7 @@ defmodule OpalCore.OpalResponseTest do
                ctx
              )
 
-    assert text =~ "I don't see brunch on your calendar"
+    assert text =~ "I don't see brunch on your Graph"
     assert text =~ "Want to create it?"
   end
 

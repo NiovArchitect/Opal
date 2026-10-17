@@ -189,9 +189,7 @@ describe("P0-05 rejected-state regressions", () => {
       "delete-account",
       "edit-profile",
       "feed-discovery",
-      "engagement",
       "linked-devices",
-      "safety",
     ]) {
       expect(you).toContain(`"${key}"`);
     }

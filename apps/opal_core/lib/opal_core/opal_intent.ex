@@ -58,8 +58,13 @@ defmodule OpalCore.OpalIntent do
 
               _ ->
                 [
-                  &try_plan_create/2,
+                  # Repair #13 (F13-05 / W4-2) — modify before create: an
+                  # explicit modify verb (cancel/move/change/reschedule)
+                  # outranks the noun "plan", so "cancel all plans" and
+                  # "change the dinner plan" route to :plan_modify instead of
+                  # being misread as a plan creation.
                   &try_plan_modify/2,
+                  &try_plan_create/2,
                   # Recall before remember so "what do you remember about X" is not stored.
                   &try_recall/2,
                   &try_remember/2,
@@ -150,24 +155,65 @@ defmodule OpalCore.OpalIntent do
   defp pending_plan_create(context) when is_map(context) do
     history = context[:conversation_history] || context["conversation_history"] || []
 
-    history
-    |> Enum.reverse()
-    |> Enum.find_value(fn turn ->
-      role = turn[:role] || turn["role"]
-      body = turn[:body] || turn["body"] || ""
-      intent = turn[:intent] || turn["intent"]
+    # Repair #13 (W4-1b) — the pending ask is CONSUMED by the first successful
+    # confirm. Walk newest-first: an affirmation followed (in forward time) by
+    # an opal turn whose intent snapshot is plan_confirm+confirmed means the
+    # ask already produced a plan; a later bare "yes" must not create a
+    # duplicate. An affirmation with no successful confirm after it (the
+    # confirm failed) leaves the ask pending so the user can retry.
+    {pending, _saw_affirmation, _saw_confirm} =
+      history
+      |> Enum.reverse()
+      |> Enum.reduce_while({nil, false, false}, fn turn, {_found, saw_aff, saw_conf} ->
+        role = turn[:role] || turn["role"]
+        body = turn[:body] || turn["body"] || ""
+        intent = turn[:intent] || turn["intent"]
 
-      cond do
-        role in ["opal", :opal] and pending_setup_ask?(body, intent) ->
-          entities_from_pending(intent, body)
+        cond do
+          role in ["opal", :opal] and successful_confirm_turn?(intent) ->
+            {:cont, {nil, saw_aff, true}}
 
-        true ->
-          nil
-      end
-    end)
+          role in ["user", :user] and affirmation_turn?(body) ->
+            {:cont, {nil, true, saw_conf}}
+
+          role in ["opal", :opal] and pending_setup_ask?(body, intent) ->
+            if saw_aff and saw_conf do
+              {:halt, {nil, saw_aff, saw_conf}}
+            else
+              case entities_from_pending(intent, body) do
+                nil -> {:cont, {nil, saw_aff, saw_conf}}
+                ents -> {:halt, {ents, saw_aff, saw_conf}}
+              end
+            end
+
+          true ->
+            {:cont, {nil, saw_aff, saw_conf}}
+        end
+      end)
+
+    pending
   end
 
   defp pending_plan_create(_), do: nil
+
+  # An opal turn whose stored intent snapshot is a successful plan_confirm.
+  defp successful_confirm_turn?(intent) when is_map(intent) do
+    name = intent_name(intent)
+    ents = intent[:entities] || intent["entities"] || %{}
+
+    name in ["plan_confirm", :plan_confirm] and
+      (ents[:confirmed] == true or ents["confirmed"] == true)
+  end
+
+  defp successful_confirm_turn?(_), do: false
+
+  # A user turn that reads as an affirmation of the pending ask.
+  defp affirmation_turn?(body) when is_binary(body) do
+    Regex.match?(@affirmations, body) or
+      usual_meeting_affirmation?(%{original: body, lower: String.downcase(body)})
+  end
+
+  defp affirmation_turn?(_), do: false
 
   defp pending_setup_ask?(body, intent) when is_binary(body) do
     intent_name = intent_name(intent)

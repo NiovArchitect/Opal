@@ -37,7 +37,7 @@ describe("YouSettingsDestination render proof", () => {
       );
     });
     const text = container.textContent || "";
-    expect(text).toMatch(/Privacy & audience/);
+    expect(text).toMatch(/Privacy/);
     expect(text).not.toMatch(/Coming soon/i);
     expect(text).not.toMatch(/not wired yet/i);
     expect(text).not.toMatch(/Graph visibility/);

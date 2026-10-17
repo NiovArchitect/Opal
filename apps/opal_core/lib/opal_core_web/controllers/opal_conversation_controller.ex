@@ -101,6 +101,14 @@ defmodule OpalCoreWeb.OpalConversationController do
         []
       end
 
+    # Repair #13 (W4-3) — client-supplied idempotency key; duplicate POSTs
+    # return the original pair instead of duplicating the turn.
+    opts =
+      case conn.params["client_message_id"] do
+        id when is_binary(id) and id != "" -> Keyword.put(opts, :client_message_id, id)
+        _ -> opts
+      end
+
     case OpalConversations.create_user_message(user_id, body, opts) do
       {:ok, {_conversation, user_msg, opal_msg}} ->
         conn
