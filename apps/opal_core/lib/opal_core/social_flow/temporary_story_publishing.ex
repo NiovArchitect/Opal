@@ -10,54 +10,94 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   alias OpalCore.Events.Publisher
   alias OpalCore.Repo
 
+  alias OpalCore.Relationships
+
   alias OpalCore.SocialFlow.{
     RelationshipGraph,
     TemporaryStory
   }
 
   @default_ttl_hours 24
+  # Close circle = the Lives audience law (apps/opal_core/lib/opal_core/lives.ex):
+  # an explicit user-set relationship type of one of these, in either direction,
+  # on top of friend visibility authority (which already applies blocks).
+  @close_circle_types ~w(spouse partner family close_friend)
 
   def create(author_user_id, attrs) when is_binary(author_user_id) and is_map(attrs) do
     a = stringify(attrs)
     media = a["media_ref"] || a["mediaSrc"] || a["media_src"] || ""
     vis = a["visibility"] || "close_circle"
-    hours = a["ttl_hours"] || @default_ttl_hours
 
-    if media == "" do
-      {:error, :media_required}
-    else
-      expires =
-        DateTime.utc_now()
-        |> DateTime.add(hours * 3600, :second)
-        |> DateTime.truncate(:microsecond)
+    cond do
+      media == "" ->
+        {:error, :media_required}
 
-      %TemporaryStory{}
-      |> TemporaryStory.changeset(%{
-        author_user_id: author_user_id,
-        media_ref: media,
-        caption: a["caption"] || "",
-        visibility: vis,
-        expires_at: expires
-      })
-      |> Repo.insert()
-      |> case do
-        {:ok, story} ->
-          _ =
-            Publisher.record(%{
-              event_type: "temporary_story.created",
-              aggregate_type: "temporary_story",
-              aggregate_id: story.id,
-              partition_key: story.id,
-              privacy_class: "shared_authorized",
-              purpose: "temporary_story",
-              payload: %{"story_id" => story.id, "author_user_id" => author_user_id}
-            })
+      vis not in ~w(close_circle friends) ->
+        {:error, :invalid_visibility}
 
-          {:ok, TemporaryStory.contract(story, display_name(author_user_id))}
+      true ->
+        create_with_ttl(author_user_id, a, media, vis)
+    end
+  end
 
-        err ->
-          err
-      end
+  defp create_with_ttl(author_user_id, a, media, vis) do
+    case parse_ttl_hours(a["ttl_hours"]) do
+      {:ok, hours} ->
+        do_create(author_user_id, a, media, vis, hours)
+
+      :error ->
+        {:error, :invalid_ttl}
+    end
+  end
+
+  # ttl_hours arrives from JSON as a number; a string like "24" used to crash
+  # the create with an ArithmeticError (500) and non-positive values produced
+  # a story that was born expired yet reported as created. Reject both.
+  defp parse_ttl_hours(nil), do: {:ok, @default_ttl_hours}
+  defp parse_ttl_hours(h) when is_integer(h) and h >= 1 and h <= 72, do: {:ok, h}
+  defp parse_ttl_hours(h) when is_float(h), do: parse_ttl_hours(trunc(h))
+
+  defp parse_ttl_hours(h) when is_binary(h) do
+    case Integer.parse(String.trim(h)) do
+      {n, ""} -> parse_ttl_hours(n)
+      _ -> :error
+    end
+  end
+
+  defp parse_ttl_hours(_), do: :error
+
+  defp do_create(author_user_id, a, media, vis, hours) do
+    expires =
+      DateTime.utc_now()
+      |> DateTime.add(hours * 3600, :second)
+      |> DateTime.truncate(:microsecond)
+
+    %TemporaryStory{}
+    |> TemporaryStory.changeset(%{
+      author_user_id: author_user_id,
+      media_ref: media,
+      caption: a["caption"] || "",
+      visibility: vis,
+      expires_at: expires
+    })
+    |> Repo.insert()
+    |> case do
+      {:ok, story} ->
+        _ =
+          Publisher.record(%{
+            event_type: "temporary_story.created",
+            aggregate_type: "temporary_story",
+            aggregate_id: story.id,
+            partition_key: story.id,
+            privacy_class: "shared_authorized",
+            purpose: "temporary_story",
+            payload: %{"story_id" => story.id, "author_user_id" => author_user_id}
+          })
+
+        {:ok, TemporaryStory.contract(story, display_name(author_user_id))}
+
+      err ->
+        err
     end
   end
 
@@ -84,8 +124,23 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   end
 
   defp eligible?(%TemporaryStory{visibility: "close_circle", author_user_id: author}, viewer) do
-    author == viewer
+    # Repair #15: this clause used to be `author == viewer`, which made the
+    # DEFAULT story audience author-only — a close-circle story reached
+    # nobody. Close circle follows the Lives audience law: friend authority
+    # (RelationshipGraph, blocks included) AND an explicit relationship type
+    # of spouse / partner / family / close_friend in either direction.
+    RelationshipGraph.friend_visibility_authorized?(author, viewer) and
+      close_circle_member?(author, viewer)
   end
+
+  @doc "True when either party has explicitly typed the other as close circle."
+  def close_circle_member?(author_user_id, viewer_user_id)
+      when is_binary(author_user_id) and is_binary(viewer_user_id) do
+    Relationships.get_type(author_user_id, viewer_user_id) in @close_circle_types or
+      Relationships.get_type(viewer_user_id, author_user_id) in @close_circle_types
+  end
+
+  def close_circle_member?(_, _), do: false
 
   defp eligible?(_, _), do: false
 

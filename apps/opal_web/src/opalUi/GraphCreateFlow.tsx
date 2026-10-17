@@ -15,7 +15,7 @@ export type GraphCreateDraft = {
   title: string;
   whenLabel: string;
   caption: string;
-  audience: "close_circle" | "friends" | "custom";
+  audience: "close_circle" | "friends" | "custom" | "private";
   joinRequestsOn: boolean;
   exactSpotAfterJoin: boolean;
 };
@@ -24,6 +24,13 @@ type Step = "choose_media" | "compose";
 
 type Props = {
   open: boolean;
+  /**
+   * Repair #15: "post" = Home Add Post. Its draft is published durably by the
+   * host (SocialMoment) — the audience selector offers only visibilities the
+   * backend actually enforces (friends / private), and submit stays open on
+   * failure. "graph" keeps the legacy local-draft behavior for plan/repeat.
+   */
+  mode?: "graph" | "post";
   onClose: () => void;
   /** Optional known context from conversation/Home — speed to alignment. */
   knownWho?: string | null;
@@ -35,7 +42,8 @@ type Props = {
   knownWhen?: string | null;
   /** Optional — open existing people picker to change WHO (Repeat default same people). */
   onChangeWho?: () => void;
-  onCreated?: (draft: GraphCreateDraft) => void;
+  /** May be async: the flow closes only after it resolves; a rejection keeps the draft open with the error shown. */
+  onCreated?: (draft: GraphCreateDraft) => Promise<void> | void;
 };
 
 /** Formal Figma media for 863:338 deterministic proof — not a claim of camera capture. */
@@ -53,6 +61,7 @@ const RECENT_SLOTS = [
 
 export function GraphCreateFlow({
   open,
+  mode = "graph",
   onClose,
   knownWho,
   knownWhere,
@@ -60,18 +69,49 @@ export function GraphCreateFlow({
   onChangeWho,
   onCreated,
 }: Props) {
+  const isPost = mode === "post";
   const [step, setStep] = useState<Step>("choose_media");
   const [mediaSrc, setMediaSrc] = useState<string | null>(null);
   const [mediaKind, setMediaKind] = useState<"photo" | "video">("photo");
-  const [title, setTitle] = useState(knownWhere || "Beach at sunset");
+  const [title, setTitle] = useState(isPost ? "" : knownWhere || "Beach at sunset");
   const [whenLabel, setWhenLabel] = useState(
-    knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM",
+    isPost ? "" : knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM",
   );
-  const [caption, setCaption] = useState("Golden hour at Moonlight. Needed this.");
+  // Post mode starts blank — prefilled fiction must never be publishable by accident.
+  const [caption, setCaption] = useState(isPost ? "" : "Golden hour at Moonlight. Needed this.");
+  const [postAudience, setPostAudience] = useState<"friends" | "private">("friends");
   const [joinRequestsOn, setJoinRequestsOn] = useState(true);
   const [exactSpotAfterJoin, setExactSpotAfterJoin] = useState(true);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit() {
+    if (!mediaSrc || submitting) return;
+    const draft: GraphCreateDraft = {
+      mediaSrc,
+      mediaKind,
+      title: title.trim() || "Untitled Graph",
+      whenLabel: whenLabel.trim(),
+      caption: caption.trim(),
+      audience: isPost ? postAudience : "close_circle",
+      joinRequestsOn,
+      exactSpotAfterJoin,
+    };
+    setSubmitting(true);
+    setNote(null);
+    try {
+      await onCreated?.(draft);
+      onClose();
+    } catch (e) {
+      // Draft stays open — a failed publish must never look like a posted one.
+      setNote(
+        e instanceof Error ? `Couldn't post: ${e.message}` : "Couldn't post. Try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
   const [cameraCapability, setCameraCapability] = useState<
     "native_bridge" | "browser_fallback" | "unsupported" | "denied"
   >("native_bridge");
@@ -81,16 +121,18 @@ export function GraphCreateFlow({
     setStep("choose_media");
     setMediaSrc(null);
     setMediaKind("photo");
-    setTitle(knownWhere || "Beach at sunset");
+    setTitle(isPost ? "" : knownWhere || "Beach at sunset");
     // null = Repeat / new decision — do not copy past when or invent a slot.
-    setWhenLabel(knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM");
-    setCaption("Golden hour at Moonlight. Needed this.");
+    setWhenLabel(isPost ? "" : knownWhen === null ? "" : knownWhen || "Saturday · around 6:00 PM");
+    setCaption(isPost ? "" : "Golden hour at Moonlight. Needed this.");
+    setPostAudience("friends");
     setJoinRequestsOn(true);
     setExactSpotAfterJoin(true);
     setNote(null);
     setBusy(false);
+    setSubmitting(false);
     setCameraCapability("native_bridge");
-  }, [open, knownWhere, knownWhen]);
+  }, [open, knownWhere, knownWhen, isPost]);
 
   /* Narrow viewports: scale the locked 390 stage (formal parity remains 390×844). */
   useEffect(() => {
@@ -281,11 +323,11 @@ export function GraphCreateFlow({
           >
             ‹
           </button>
-          <h1 className="graph-create-compose-title">Add to your graph</h1>
+          <h1 className="graph-create-compose-title">{isPost ? "Create post" : "Add to your graph"}</h1>
 
           <div className="graph-create-compose-media">
             {mediaSrc ? <img src={mediaSrc} alt="" draggable={false} /> : null}
-            <span className="graph-create-graph-pill">GRAPH</span>
+            <span className="graph-create-graph-pill">{isPost ? "POST" : "GRAPH"}</span>
             <button
               type="button"
               className="graph-create-replace"
@@ -296,24 +338,28 @@ export function GraphCreateFlow({
             </button>
           </div>
 
-          <label className="graph-create-field-label" htmlFor="gc-title">
-            <span className="sr-only">Title</span>
-          </label>
-          <input
-            id="gc-title"
-            className="graph-create-title-input"
-            data-testid="graph-create-title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <input
-            id="gc-when"
-            className="graph-create-when-input"
-            data-testid="graph-create-when"
-            placeholder="When - decide together"
-            value={whenLabel}
-            onChange={(e) => setWhenLabel(e.target.value)}
-          />
+          {isPost ? null : (
+            <>
+              <label className="graph-create-field-label" htmlFor="gc-title">
+                <span className="sr-only">Title</span>
+              </label>
+              <input
+                id="gc-title"
+                className="graph-create-title-input"
+                data-testid="graph-create-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <input
+                id="gc-when"
+                className="graph-create-when-input"
+                data-testid="graph-create-when"
+                placeholder="When - decide together"
+                value={whenLabel}
+                onChange={(e) => setWhenLabel(e.target.value)}
+              />
+            </>
+          )}
           <p className="graph-create-caption-label">Caption</p>
           <textarea
             id="gc-caption"
@@ -325,47 +371,57 @@ export function GraphCreateFlow({
           />
 
           <p className="graph-create-who-label">Who can see it?</p>
-          <div className="graph-create-audience">
-            <span className="graph-create-chip graph-create-chip-close">Close circle</span>
-            <button
-              type="button"
-              className={`graph-create-chip graph-create-chip-join${joinRequestsOn ? " is-on" : ""}`}
-              data-testid="graph-create-join-requests"
-              onClick={() => setJoinRequestsOn((v) => !v)}
-            >
-              Join requests {joinRequestsOn ? "on" : "off"}
-            </button>
-            <button
-              type="button"
-              className={`graph-create-chip graph-create-chip-spot${exactSpotAfterJoin ? " is-on" : ""}`}
-              data-testid="graph-create-exact-spot"
-              onClick={() => setExactSpotAfterJoin((v) => !v)}
-            >
-              Exact spot after join
-            </button>
-          </div>
+          {isPost ? (
+            <div className="graph-create-audience" role="group" aria-label="Post audience">
+              <button
+                type="button"
+                className={`graph-create-chip${postAudience === "friends" ? " is-on" : ""}`}
+                data-testid="graph-create-audience-friends"
+                aria-pressed={postAudience === "friends"}
+                onClick={() => setPostAudience("friends")}
+              >
+                Friends
+              </button>
+              <button
+                type="button"
+                className={`graph-create-chip${postAudience === "private" ? " is-on" : ""}`}
+                data-testid="graph-create-audience-private"
+                aria-pressed={postAudience === "private"}
+                onClick={() => setPostAudience("private")}
+              >
+                Only me
+              </button>
+            </div>
+          ) : (
+            <div className="graph-create-audience">
+              <span className="graph-create-chip graph-create-chip-close">Close circle</span>
+              <button
+                type="button"
+                className={`graph-create-chip graph-create-chip-join${joinRequestsOn ? " is-on" : ""}`}
+                data-testid="graph-create-join-requests"
+                onClick={() => setJoinRequestsOn((v) => !v)}
+              >
+                Join requests {joinRequestsOn ? "on" : "off"}
+              </button>
+              <button
+                type="button"
+                className={`graph-create-chip graph-create-chip-spot${exactSpotAfterJoin ? " is-on" : ""}`}
+                data-testid="graph-create-exact-spot"
+                onClick={() => setExactSpotAfterJoin((v) => !v)}
+              >
+                Exact spot after join
+              </button>
+            </div>
+          )}
 
           <button
             type="button"
             className="graph-create-submit"
             data-testid="graph-create-submit"
-            onClick={() => {
-              if (!mediaSrc) return;
-              const draft: GraphCreateDraft = {
-                mediaSrc,
-                mediaKind,
-                title: title.trim() || "Untitled Graph",
-                whenLabel: whenLabel.trim(),
-                caption: caption.trim(),
-                audience: "close_circle",
-                joinRequestsOn,
-                exactSpotAfterJoin,
-              };
-              onCreated?.(draft);
-              onClose();
-            }}
+            disabled={submitting}
+            onClick={() => void submit()}
           >
-            Add to graph
+            {submitting ? "Posting..." : isPost ? "Post" : "Add to graph"}
           </button>
           <p className="graph-create-footer">You control who sees the details.</p>
         </div>

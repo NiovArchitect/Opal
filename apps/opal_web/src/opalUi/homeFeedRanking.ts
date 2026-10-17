@@ -82,9 +82,12 @@ export function scoreCard(
   else if (card.kind === "memory") score += 10;
   else if (card.kind === "discovery" || card.kind === "near") score += 6;
 
-  // Engagement
-  score += Math.min(12, Math.floor((card.likeCount || 0) / 50));
-  score += Math.min(8, card.commentCount || 0);
+  // Repair #15 (DF) - SOCIAL_DIRECTION: no engagement term. Like/comment
+  // counts never raise a card. Order comes from relationship, recency,
+  // kind (Live / consequence / Graph / Memory), and place relevance -
+  // the plan, people, and place anchors - not from attention.
+  // (Engagement counts are still shown truthfully on cards when the
+  // backend reports them; they just do not buy position.)
 
   // Diversity / repetition suppression
   score -= typeBalancePenalty(card.kind, recentKinds);

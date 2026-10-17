@@ -337,9 +337,22 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  # Repair #15 (Track G) — nominate semantics. A name is nominatable when it
+  # resolves through a real pipeline, in authority order:
+  #   1. it is one of the candidates currently OFFERED for this plan's
+  #      activity by CandidateProvider (the UI's candidate buttons), or
+  #   2. it is already IN this plan's place state (candidate value, a
+  #      conflict proposal, a conflict option) — i.e. it entered through
+  #      chat proposal / another pipeline and this tap re-nominates it, or
+  #   3. it matches a catalog entry (partial mentions included) but is not
+  #      offered for the current activity → :activity_not_ready, exactly as
+  #      before for a dinner place under a coffee activity.
+  # Anything else is :unknown_place — an honest error. A brand-new real-world
+  # venue enters via chat proposal (candidate, peer-confirmed) or the Center
+  # Geoapify exact-entity pipeline, never by this button endpoint inventing
+  # a resolution it did not perform.
   def nominate_place(conversation_id, user_id, name) when is_binary(conversation_id) do
-    with :ok <- member?(conversation_id, user_id),
-         {:ok, canonical} <- canonical_place(name) do
+    with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
 
       offered =
@@ -350,19 +363,62 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
           %{}
         )
 
-      cond do
-        field_state(state, "place") == "locked" ->
-          {:error, :place_locked}
-
-        not Enum.any?(offered, &(&1["name"] == canonical)) ->
-          {:error, :activity_not_ready}
-
-        true ->
-          with :ok <- append_action(conversation_id, action("place_propose", user_id, canonical, "proposed")) do
-            {:ok, sync_conversation(conversation_id)}
+      case nomination_resolution(name, state, offered) do
+        {:ok, resolved} ->
+          if field_state(state, "place") == "locked" do
+            {:error, :place_locked}
+          else
+            with :ok <- append_action(conversation_id, action("place_propose", user_id, resolved, "proposed")) do
+              {:ok, sync_conversation(conversation_id)}
+            end
           end
+
+        :catalog_only ->
+          if field_state(state, "place") == "locked",
+            do: {:error, :place_locked},
+            else: {:error, :activity_not_ready}
+
+        :unknown ->
+          {:error, :unknown_place}
       end
     end
+  end
+
+  defp nomination_resolution(name, state, offered) when is_binary(name) do
+    down = name |> String.trim() |> String.downcase()
+
+    cond do
+      down == "" ->
+        :unknown
+
+      offered_name = Enum.find_value(offered, fn o -> if String.downcase(o["name"] || "") == down, do: o["name"] end) ->
+        {:ok, offered_name}
+
+      in_plan = in_plan_place_name(state, down) ->
+        {:ok, in_plan}
+
+      is_binary(CandidateProvider.catalog_match(name)) ->
+        :catalog_only
+
+      true ->
+        :unknown
+    end
+  end
+
+  defp nomination_resolution(_, _, _), do: :unknown
+
+  # Names already carried by this plan's own place state (gyroscope: the
+  # plan's state, not a global list, is the authority for what it holds).
+  defp in_plan_place_name(state, down) do
+    candidates =
+      [get_in(state, ["place", "value"])] ++
+        Enum.map(get_in(state, ["place", "proposals"]) || [], & &1["value"]) ++
+        Enum.map(state["conflict_options"] || [], & &1["name"])
+
+    Enum.find_value(candidates, fn
+      value when is_binary(value) -> if String.downcase(value) == down, do: value
+      _ -> nil
+    end)
   end
 
   def confirm_place(conversation_id, user_id) when is_binary(conversation_id) do
@@ -630,7 +686,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         |> note_window(text, id)
         |> note_exact(text, id)
         |> retarget_time(text, id, actor)
-        |> note_place(text, id, actor)
+        |> note_place(text, body, id, actor)
         |> accept_place(text, id, actor)
         |> note_datetime_change(text, id, actor)
         |> note_activity_intent(text, id, actor)
@@ -865,11 +921,19 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp note_place(state, text, id, actor) do
+  # Repair #15 (Track G) — chat place extraction. Recognition order:
+  #   1. a CandidateProvider catalog entry mentioned in the text
+  #      (catalog-driven; covers every catalog activity, not just dinner);
+  #   2. a generic named place after a proposal cue in the ORIGINAL body
+  #      ("Let's do Harbor Table", "Actually Contramar") — the R14 generic
+  #      venue-candidate grammar. Extraction only ever creates a CANDIDATE:
+  #      the place locks solely through the existing confirmation mechanics
+  #      (peer confirm, both-selected, convergence), never on mention alone.
+  defp note_place(state, text, body, id, actor) do
     name =
-      if Regex.match?(~r/\b(let'?s do|lets do|make it|actually)\b/, text),
-        do: canonical_from_text(text),
-        else: nil
+      if Regex.match?(~r/\b(let'?s do|lets do|make it|actually)\b/, text) do
+        CandidateProvider.catalog_match(text) || named_place_after_cue(body)
+      end
 
     cond do
       is_nil(name) ->
@@ -1057,8 +1121,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  # Repair #15 (Track G) — a place_propose action is an explicit structured
+  # action, not free text to re-mine: its value IS the proposed name (same
+  # trust the fold gives exact_time_lock / activity_lock values). Writers
+  # are nominate_place/3 (pipeline-validated), the restore script, and
+  # in-plan replays. Replay therefore trusts a plausible name verbatim and
+  # normalizes only when the value is a catalog mention.
   defp apply_action(state, %{"kind" => "place_propose", "value" => value} = action) when is_binary(value) do
-    case canonical_from_text(value) do
+    case place_name_from_value(value) do
       nil ->
         state
 
@@ -1094,11 +1164,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  # Repair #15 (Track G) — place_lock is the restore/lock action: its value
+  # was locked once already (or synthesized from a locked stored place), so
+  # replay restores it verbatim for any plausible name. A locked place must
+  # stay locked because it was confirmed, not because its name is catalogued.
   defp apply_action(state, %{"kind" => "place_lock", "value" => value} = action) when is_binary(value) do
-    if canonical_from_text(value) do
-      lock_place(state, canonical_from_text(value), nil, action["actor_user_id"], "restored")
-    else
-      state
+    case place_name_from_value(value) do
+      nil -> state
+      name -> lock_place(state, name, nil, action["actor_user_id"], "restored")
     end
   end
 
@@ -1606,7 +1679,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   defp apply_accepted_change(state, %{"field" => "place", "value" => value, "proposed_by_user_id" => proposer}, accepter)
        when is_binary(value) do
-    name = canonical_from_text(value) || value
+    name = CandidateProvider.catalog_match(value) || value
 
     state
     |> clear_place()
@@ -1692,10 +1765,15 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  # Repair #15 (Track G) — restore synthesis trusts the stored state: a
+  # place that was locked when stored is re-locked on replay whatever its
+  # name. Previously a locked non-catalog place (e.g. a coffee candidate or
+  # a Center-resolved venue) silently lost its place on resync.
   defp maybe_synth_place(actions, alignment, iso, actor) do
     current = alignment["place"] || %{}
 
-    if current["state"] == "locked" and is_binary(current["value"]) and canonical_from_text(current["value"]) do
+    if current["state"] == "locked" and is_binary(current["value"]) and
+         String.trim(current["value"]) != "" do
       actions ++ [synth_action("place_lock", actor, current["value"], "locked", iso)]
     else
       actions
@@ -1992,27 +2070,85 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   defp truth_for("agreed"), do: "agreed"
   defp truth_for(_), do: nil
 
-  defp canonical_place(name) when is_binary(name) do
-    case canonical_from_text(name) do
-      nil -> {:error, :unknown_place}
-      canonical -> {:ok, canonical}
+  # Repair #15 (Track G) — place-name resolution for STRUCTURED values
+  # (explicit action values, stored locked values). A catalog mention
+  # normalizes to the catalog spelling (preserving the old partial-mention
+  # behavior: "juniper" → "Juniper & Ivy"); any other plausible name is
+  # taken verbatim — the value's authority is the explicit action / stored
+  # locked state that carries it, not a name list. Implausible values
+  # (blank, purely numeric/time-like, a bare activity or generic word)
+  # resolve to nil so replay ignores them, as it ignored unknown names.
+  defp place_name_from_value(value) when is_binary(value) do
+    CandidateProvider.catalog_match(value) ||
+      if(plausible_place_name?(String.trim(value)), do: String.trim(value))
+  end
+
+  defp place_name_from_value(_), do: nil
+
+  @place_stoplist ~w(dinner lunch brunch breakfast coffee drinks drink drinks
+                     food restaurant restaurants place places somewhere
+                     something anywhere it that this there here tonight
+                     tomorrow today reopen unknown)
+
+  defp plausible_place_name?(name) when is_binary(name) do
+    down = String.downcase(name)
+
+    name != "" and String.length(name) <= 80 and Regex.match?(~r/[a-z]/, down) and
+      down not in @place_stoplist and
+      not Regex.match?(~r/\A\d{1,2}(:\d{2})?\s*(am|pm)?\z/, down)
+  end
+
+  defp plausible_place_name?(_), do: false
+
+  # Repair #15 (Track G) — generic named-place extraction from chat, the
+  # R14 extractor grammar applied to the alignment fold: a capitalized
+  # phrase immediately after a proposal cue ("let's do / lets do / make
+  # it / actually"). The fold's normalized text is downcased, so this runs
+  # on the original body. Candidates are cleaned of trailing day/month
+  # words and rejected when they are an activity, a generic word, a time,
+  # or a single name followed by a speech verb ("Actually Maya said…"
+  # names a person, not a place).
+  @place_cue_re ~r/\b(?:let's do|lets do|make it|actually)\b[,\s]+/i
+  @place_phrase_re ~r/\A([A-Z][\w&'\-]*(?:\s+(?:[A-Z][\w&'\-]*|&)){0,4})/
+  @place_trailing_words ~w(saturday sunday monday tuesday wednesday thursday
+                           friday january february march april may june july
+                           august september october november december today
+                           tomorrow tonight morning afternoon evening weekend)
+  @speech_verbs ~w(said says asked asks wants needs told tells)
+
+  defp named_place_after_cue(body) when is_binary(body) do
+    case Regex.split(@place_cue_re, body, parts: 2) do
+      [_before, rest] ->
+        case Regex.run(@place_phrase_re, String.trim(rest)) do
+          [_, phrase] -> clean_chat_place_candidate(phrase, rest)
+          _ -> nil
+        end
+
+      _ ->
+        nil
     end
   end
 
-  defp canonical_place(_), do: {:error, :unknown_place}
+  defp named_place_after_cue(_), do: nil
 
-  defp canonical_from_text(text) when is_binary(text) do
-    down = String.downcase(text)
+  defp clean_chat_place_candidate(phrase, rest) do
+    tokens =
+      phrase
+      |> String.split(~r/\s+/, trim: true)
+      |> Enum.reverse()
+      |> Enum.drop_while(&(String.downcase(&1) in @place_trailing_words))
+      |> Enum.reverse()
+
+    name = Enum.join(tokens, " ")
+    following = rest |> String.trim() |> String.split(~r/\s+/, trim: true) |> Enum.at(length(tokens))
 
     cond do
-      String.contains?(down, "juniper") -> "Juniper & Ivy"
-      String.contains?(down, "herb") and String.contains?(down, "wood") -> "Herb & Wood"
-      String.contains?(down, "fort") and String.contains?(down, "oak") -> "Fort Oak"
-      true -> nil
+      tokens == [] -> nil
+      not plausible_place_name?(name) -> nil
+      length(tokens) == 1 and is_binary(following) and String.downcase(following) in @speech_verbs -> nil
+      true -> name
     end
   end
-
-  defp canonical_from_text(_), do: nil
 
   defp place_retarget?(text) do
     Regex.match?(~r/\b(actually|instead|change to|switch to)\b/, text)

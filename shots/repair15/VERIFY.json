@@ -1,0 +1,41 @@
+{
+  "repair": 15,
+  "branch": "muse/repair-15",
+  "base": "025a0289907cf5006f5a755fa8f73484824a252f",
+  "date": "2026-10-16",
+  "gates": {
+    "FOUNDER_ACCEPTED": "NO",
+    "FREEZE": "HOLD",
+    "PASS2": "NO",
+    "FOUNDER_PHONE_PASS": "NOT_CLAIMED",
+    "merged": false,
+    "production": false
+  },
+  "backend_suite": {"tests": 2713, "failures": 0, "baseline": {"tests": 2655, "failures": 0}, "new_tests": 58, "seed": 0, "verified_by": "coordinator solo run on integrated tree, full output captured"},
+  "web_suite": {"tests": 1116, "failures": 25, "baseline": {"tests": 1081, "failures": 25}, "failing_sets_name_identical_to_baseline": true, "new_tests": 35, "new_failures": 0},
+  "mobile_suite": {"tests": 105, "passed": 104, "failures": 1, "preexisting_failure": "pushTokenBridge app.json expo-notifications (identical at baseline)", "new_tests": 3},
+  "tracks": {
+    "A_onboarding": "OTP invisible-overlay root cause fixed on the founder's actual surface (web fr07 in WKWebView); full first-run audit in ONBOARDING_AUDIT.md",
+    "B_family_taxonomy": "family subtype dimension (8 subtypes) + family_minor, additive; coordination identical proven; R14 tests extended not replaced",
+    "C_progressive_profile": "ProfileGap mechanism + durable ask ledger; birthday ask-once via MemoryAdmission->MemoryStore + Celebrations; front-end render = follow-up (B6)",
+    "D_settings": "SETTINGS_MAP.md; connected-sources status wired (13 tests); R13 real-or-hidden standard re-audited",
+    "E_story_post": "9 defects enumerated and fixed incl. Post never persisted and close-circle stories reaching nobody; video/story-media blocked on media-service decision (B1/B2)",
+    "F_social_direction": "SOCIAL_DIRECTION.md encoded (Moments anchored to plans/people/places); Home ranking engagement term removed with guard tests",
+    "G_canonical_venue": "DONE — 3-restaurant gate genericized; 21 regression tests over all 6 former call sites",
+    "H_proactivity": "2 zero-producer mechanisms wired into PlanCompletion.drive/3; 5 proposals documented with consent questions"
+  },
+  "evidence": [
+    "shots/repair15/FAILURE_LEDGER.md",
+    "shots/repair15/TEST_REPORT.md",
+    "shots/repair15/TEST_REPORT_BC.md",
+    "shots/repair15/ONBOARDING_AUDIT.md",
+    "shots/repair15/FAMILY_TAXONOMY.md",
+    "shots/repair15/PROGRESSIVE_PROFILE.md",
+    "shots/repair15/SETTINGS_MAP.md",
+    "shots/repair15/SOCIAL_DIRECTION.md",
+    "shots/repair15/STORY_POST_REPORT.md",
+    "shots/repair15/CANONICAL_VENUE.md",
+    "shots/repair15/PROACTIVITY.md",
+    "shots/repair15/VERIFY.json"
+  ]
+}

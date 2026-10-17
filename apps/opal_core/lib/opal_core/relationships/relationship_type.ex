@@ -26,6 +26,10 @@ defmodule OpalCore.Relationships.RelationshipType do
   schema "relationship_types" do
     field :type, :string
     field :communication_bounds, :map
+    # Repair #15 Track B — additive family subtype dimension (see
+    # Relationships.FamilySubtype). Only meaningful when type == "family".
+    field :family_subtype, :string
+    field :family_minor, :boolean, default: false
     # Paste I 0.4 — noiseless inference
     field :source, :string, default: "explicit"
     field :inference_status, :string
@@ -50,6 +54,8 @@ defmodule OpalCore.Relationships.RelationshipType do
       :contact_user_id,
       :type,
       :communication_bounds,
+      :family_subtype,
+      :family_minor,
       :source,
       :inference_status,
       :inference_shown_at,
@@ -61,10 +67,33 @@ defmodule OpalCore.Relationships.RelationshipType do
     |> maybe_validate_source()
     |> maybe_validate_inference_status()
     |> validate_not_self()
+    |> validate_family_subtype()
     |> validate_bounds()
     |> unique_constraint([:user_id, :contact_user_id])
     |> foreign_key_constraint(:user_id)
     |> foreign_key_constraint(:contact_user_id)
+  end
+
+  # Repair #15: subtype is a refinement of "family" only. A subtype on any
+  # other type, or an unknown subtype slug, is rejected (fail closed) so the
+  # dimension can never smuggle in an 8th top-level type.
+  defp validate_family_subtype(cs) do
+    subtype = get_change(cs, :family_subtype) || get_field(cs, :family_subtype)
+    type = get_change(cs, :type) || get_field(cs, :type)
+
+    cond do
+      is_nil(subtype) ->
+        cs
+
+      not OpalCore.Relationships.FamilySubtype.valid?(subtype) ->
+        add_error(cs, :family_subtype, "invalid")
+
+      type != "family" ->
+        add_error(cs, :family_subtype, "only valid for family type")
+
+      true ->
+        cs
+    end
   end
 
   defp maybe_validate_source(cs) do

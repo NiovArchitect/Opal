@@ -50,8 +50,19 @@ defmodule OpalCore.Relationships do
           |> Repo.insert()
 
         %RelationshipType{} = existing ->
+          update_attrs =
+            %{type: type, communication_bounds: bounds_map}
+            # Repair #15: changing away from "family" clears the subtype
+            # dimension (it is only valid under family); re-setting "family"
+            # keeps the stored subtype.
+            |> then(fn attrs ->
+              if type != "family",
+                do: Map.merge(attrs, %{family_subtype: nil, family_minor: false}),
+                else: attrs
+            end)
+
           existing
-          |> RelationshipType.changeset(%{type: type, communication_bounds: bounds_map})
+          |> RelationshipType.changeset(update_attrs)
           |> Repo.update()
       end
 
@@ -61,6 +72,53 @@ defmodule OpalCore.Relationships do
   end
 
   def set_type(_, _, _, _), do: {:error, :invalid}
+
+  @doc """
+  Repair #15 Track B — set (or clear, with `nil`) the family subtype for a
+  contact whose RU-1 type is `family`.
+
+  `opts`: `minor: boolean` — flags the counterpart as a minor, which turns
+  on the Behavior minor restraint (no adult-pattern nudges; planning help
+  unaffected). Returns `{:error, :not_family}` when the pair has no stored
+  `family` type, and a changeset error for an unknown subtype slug.
+  """
+  def set_family_subtype(user_id, contact_user_id, subtype, opts \\ [])
+
+  def set_family_subtype(user_id, contact_user_id, subtype, opts)
+      when is_binary(user_id) and is_binary(contact_user_id) do
+    case Repo.get_by(RelationshipType, user_id: user_id, contact_user_id: contact_user_id) do
+      %RelationshipType{type: "family"} = existing ->
+        existing
+        |> RelationshipType.changeset(%{
+          family_subtype: subtype,
+          family_minor: Keyword.get(opts, :minor, existing.family_minor || false)
+        })
+        |> Repo.update()
+
+      %RelationshipType{} ->
+        {:error, :not_family}
+
+      nil ->
+        {:error, :not_family}
+    end
+  end
+
+  def set_family_subtype(_, _, _, _), do: {:error, :invalid}
+
+  @doc "Family subtype + minor flag for a contact: `%{subtype, minor}` or nil."
+  def get_family_subtype(user_id, contact_user_id)
+      when is_binary(user_id) and is_binary(contact_user_id) do
+    case Repo.get_by(RelationshipType, user_id: user_id, contact_user_id: contact_user_id) do
+      %RelationshipType{type: "family", family_subtype: subtype, family_minor: minor}
+      when is_binary(subtype) ->
+        %{subtype: subtype, minor: minor || false}
+
+      _ ->
+        nil
+    end
+  end
+
+  def get_family_subtype(_, _), do: nil
 
   @doc "Return the type string for a contact, or nil when unset."
   def get_type(user_id, contact_user_id)
@@ -127,6 +185,8 @@ defmodule OpalCore.Relationships do
         contact_user_id: id,
         display_name: Map.get(users, id),
         type: rel && rel.type,
+        family_subtype: rel && rel.family_subtype,
+        family_minor: (rel && rel.family_minor) || false,
         communication_bounds: rel && rel.communication_bounds,
         id: rel && rel.id
       }
@@ -168,6 +228,8 @@ defmodule OpalCore.Relationships do
       "user_id" => r.user_id,
       "contact_user_id" => r.contact_user_id,
       "type" => r.type,
+      "family_subtype" => r.family_subtype,
+      "family_minor" => r.family_minor || false,
       "communication_bounds" => r.communication_bounds,
       "source" => r.source || "explicit",
       "inference_status" => r.inference_status,
@@ -184,6 +246,8 @@ defmodule OpalCore.Relationships do
       "contact_user_id" => c[:contact_user_id] || c["contact_user_id"],
       "display_name" => c[:display_name] || c["display_name"],
       "type" => c[:type] || c["type"],
+      "family_subtype" => c[:family_subtype] || c["family_subtype"],
+      "family_minor" => c[:family_minor] || c["family_minor"] || false,
       "communication_bounds" => c[:communication_bounds] || c["communication_bounds"]
     }
   end

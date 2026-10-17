@@ -18,6 +18,7 @@ import {
   unlikeSocialMoment,
   unrepostSocialMoment,
   unsaveSocialMoment,
+  uploadSocialMomentMedia,
 } from "../api/productClient";
 import {
   FOUNDER_HOME_FEED,
@@ -131,13 +132,22 @@ export function productionObjectToCard(obj: Record<string, unknown>): FounderFee
   };
 }
 
+/**
+ * Story/post media refs that can actually render in a viewer.
+ * Repair #15: this used to accept only "/" paths, which silently dropped
+ * every real user capture — browser and native-bridge acquisition both
+ * produce data: URLs — so a created story rendered with NO media.
+ */
+export function renderableMediaRef(ref: unknown): string | undefined {
+  if (typeof ref !== "string" || ref.length === 0) return undefined;
+  if (ref.startsWith("/") || ref.startsWith("data:") || ref.startsWith("https://")) return ref;
+  return undefined;
+}
+
 /** Map TemporaryStory DTO → FounderStoryItem for the Home stories rail. */
 export function productionStoryToItem(obj: Record<string, unknown>): FounderStoryItem {
   const name = String(obj.author_name || "Someone");
-  const media =
-    typeof obj.media_ref === "string" && obj.media_ref.startsWith("/")
-      ? obj.media_ref
-      : undefined;
+  const media = renderableMediaRef(obj.media_ref);
   const rawPulse = String(obj.pulse_state || obj.pulseState || obj.kind || "")
     .trim()
     .toUpperCase();
@@ -482,6 +492,70 @@ export async function authoritativeCreateStory(opts: {
     },
     opts.bearer,
   );
+}
+
+/** Split a data: URL into mime + base64 payload for the media upload endpoint. */
+export function parseDataUrl(src: string): { mimeType: string; base64: string } | null {
+  const m = /^data:([^;,]+);base64,(.+)$/s.exec(src || "");
+  if (!m) return null;
+  return { mimeType: m[1], base64: m[2] };
+}
+
+/**
+ * Repair #15 — durable Add Post.
+ *
+ * Before this, Home → Post opened GraphCreateFlow whose draft landed in a
+ * write-only React state (`createdGraphs` was never read anywhere): the post
+ * never persisted, never reached any other account, and vanished on refresh
+ * while the UI implied success.
+ *
+ * Real chain now: image data-URL media is uploaded to the SocialMoment media
+ * store (LOCAL_DEV backend), then publishSocialMoment persists the post with
+ * the chosen visibility. Anything that cannot be persisted throws — the UI
+ * must never claim a post that does not exist.
+ */
+export async function authoritativeCreatePost(opts: {
+  mediaSrc?: string | null;
+  mediaKind?: string | null;
+  caption?: string;
+  visibility: "friends" | "private";
+  bearer?: string;
+}) {
+  if (!opts.bearer) throw new Error("Sign in required for durable Post");
+  const caption = (opts.caption || "").trim();
+  const mediaIds: string[] = [];
+
+  if (opts.mediaSrc) {
+    if (opts.mediaKind === "video" || /^data:video\//i.test(opts.mediaSrc)) {
+      // Backend media store is image-only today (media_status video=PARTIAL_FUTURE).
+      throw new Error("Video posts aren't supported yet - choose a photo for this post.");
+    }
+    const parsed = parseDataUrl(opts.mediaSrc);
+    if (!parsed) {
+      throw new Error(
+        "That media can't be posted from here - pick a photo from Camera or Photo library.",
+      );
+    }
+    const uploaded = await uploadSocialMomentMedia(
+      { base64: parsed.base64, mime_type: parsed.mimeType },
+      opts.bearer,
+    );
+    const mediaId = uploaded.media?.id;
+    if (typeof mediaId !== "string" || !mediaId) {
+      throw new Error("Media upload did not return a durable media id");
+    }
+    mediaIds.push(mediaId);
+  }
+
+  if (!caption && mediaIds.length === 0) {
+    throw new Error("Write a caption or add a photo before posting.");
+  }
+
+  const res = await publishSocialMoment(
+    { caption, visibility: opts.visibility, media_ids: mediaIds },
+    opts.bearer,
+  );
+  return res.moment;
 }
 
 /**

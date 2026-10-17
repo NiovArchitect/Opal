@@ -18,6 +18,7 @@ import {
   deleteFinancialProfile,
   forgetMemoryFact,
   getFinancialProfile,
+  getGoogleCalendarStatus,
   getGraphingPolicy,
   grantConsent,
   listCelebrations,
@@ -32,9 +33,11 @@ import {
   listRelationships,
   postOpalMessage,
   revokeConsent,
+  revokeGoogleCalendarConnection,
   revokeRelationshipAccessGrant,
   setFinancialProfile,
   setRelationshipType,
+  startGoogleCalendarConnect,
   updateGraphingPolicy,
   upsertRelationshipAccessGrant,
   type Celebration,
@@ -43,6 +46,7 @@ import {
   type ConsentCapability,
   type ConsentProof,
   type FinancialProfile,
+  type GoogleCalendarConnectionStatus,
   type GraphingMode,
   type GraphingPolicy,
   type MemoryFact,
@@ -103,6 +107,55 @@ export function projectTravelModeLabel(
   const home = normalizeTimezoneLabel(homeTz);
   if (device && home && device !== home) return "Adapting";
   return "Off";
+}
+
+/**
+ * Repair #15 (DF) - Connected sources projection.
+ * Pure projection of the real ProviderConnections status payload
+ * (ConnectorController.google_status). Never invents a state: an absent
+ * or failed status read stays "unknown" and the UI says it could not
+ * check instead of guessing Connected / Not connected.
+ */
+export type GoogleConnectionProjection = {
+  state: "connected" | "not_connected" | "unknown";
+  label: string;
+  detail: string;
+};
+
+export function projectGoogleConnection(
+  status: GoogleCalendarConnectionStatus | null | undefined,
+  loadFailed = false,
+): GoogleConnectionProjection {
+  if (loadFailed) {
+    return {
+      state: "unknown",
+      label: "Could not check",
+      detail: "Opal could not check this connection. Try again.",
+    };
+  }
+  if (!status) {
+    return { state: "unknown", label: "Checking", detail: "Checking this connection." };
+  }
+  if (status.connected) {
+    return {
+      state: "connected",
+      label: "Connected",
+      detail:
+        "Opal can check busy times when a plan needs a time. Disconnecting stops that right away.",
+    };
+  }
+  if (status.status === "revoked") {
+    return {
+      state: "not_connected",
+      label: "Not connected",
+      detail: "You disconnected this. Sharing your availability by hand still works.",
+    };
+  }
+  return {
+    state: "not_connected",
+    label: "Not connected",
+    detail: "Connect so Opal can check busy times when a plan needs a time.",
+  };
 }
 
 export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
@@ -1028,6 +1081,7 @@ export function YouSettingsDestination({
         {setting === "privacy" && session ? (
           <div className="you-settings-filed" data-testid="you-settings-filed-privacy">
             <YouAccessControlSection />
+            <ConnectedSourcesSection session={session} />
             <WhatOpalRemembersSection session={session} />
             <CelebrationsSection session={session} />
           </div>
@@ -1293,6 +1347,155 @@ export function GraphingStandingPermissionSection({ session }: WhatOpalCanDoProp
       {error ? (
         <p className="you-settings-error" role="alert" data-testid="opal-graphing-error">
           {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+/**
+ * Repair #15 (DF) - Connected sources, filed into Privacy (what Opal may
+ * access from outside accounts). Only sources with a real backend status
+ * are painted: Google today (ConnectorController / ProviderConnections).
+ * Contacts, health, and other categories have no persistent connection or
+ * status API, so they are NOT painted - see shots/repair15/SETTINGS_MAP.md.
+ *
+ * Connect runs the real OAuth start endpoint and leaves for Google's own
+ * consent screen (calendar.readonly + gmail.readonly, one sign-in). When
+ * the server has no Google OAuth configured, the start endpoint refuses
+ * (503 oauth_not_configured) and this section says so in plain language -
+ * the raw server message names server env vars and is never painted.
+ * Disconnect revokes the provider connection server-side; manual
+ * availability keeps working either way (backend contract).
+ */
+export function ConnectedSourcesSection({ session }: WhatOpalCanDoProps) {
+  const token = session?.access_token;
+  const [status, setStatus] = useState<GoogleCalendarConnectionStatus | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!session?.user_id) return;
+    try {
+      const res = await getGoogleCalendarStatus(token);
+      setStatus(res);
+      setLoadFailed(false);
+    } catch {
+      setLoadFailed(true);
+    }
+  }, [session?.user_id, token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  if (!session) return null;
+
+  const projection = projectGoogleConnection(status, loadFailed);
+
+  const onConnect = async () => {
+    if (busy) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      const res = await startGoogleCalendarConnect(token);
+      if (res?.authorize_url) {
+        window.location.href = res.authorize_url;
+        return;
+      }
+      setNote("Could not start Google connect. Try again.");
+    } catch {
+      setNote(
+        "Google connect is not set up on this server yet. You can still share your availability by hand.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDisconnect = async () => {
+    if (busy) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      await revokeGoogleCalendarConnection(token);
+      await refresh();
+      setNote("Google disconnected. Sharing your availability by hand still works.");
+    } catch {
+      setNote("Could not disconnect Google. Try again.");
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section
+      className="section you-connected-sources"
+      aria-label="Connected sources"
+      data-testid="connected-sources"
+    >
+      <h3 className="section-label">Connected sources</h3>
+      <p className="you-settings-note" data-testid="connected-sources-law">
+        Accounts Opal can check for you. Connecting is your choice, and you can disconnect
+        anytime.
+      </p>
+      <div className="you-consent-rows">
+        <div
+          className="you-settings-row"
+          data-testid="connected-sources-google"
+          data-connection-state={projection.state}
+        >
+          <div className="you-settings-row-copy">
+            <strong>Google Calendar and email</strong>
+            <span>
+              One Google sign-in, read-only. Opal checks busy times for planning and can
+              read email with the same sign-in. It cannot send, change, or delete anything.
+            </span>
+            <span data-testid="connected-sources-google-detail">{projection.detail}</span>
+          </div>
+          <span className="you-settings-row-value" data-testid="connected-sources-google-status">
+            {projection.label}
+          </span>
+        </div>
+      </div>
+      {projection.state === "not_connected" ? (
+        <button
+          type="button"
+          className="you-trust-grant"
+          data-testid="connected-sources-google-connect"
+          disabled={busy}
+          onClick={() => void onConnect()}
+        >
+          {busy ? "Opening Google..." : "Connect Google"}
+        </button>
+      ) : null}
+      {projection.state === "connected" ? (
+        <button
+          type="button"
+          className="you-trust-grant"
+          data-testid="connected-sources-google-disconnect"
+          disabled={busy}
+          onClick={() => void onDisconnect()}
+        >
+          {busy ? "Disconnecting..." : "Disconnect Google"}
+        </button>
+      ) : null}
+      {projection.state === "unknown" && loadFailed ? (
+        <button
+          type="button"
+          className="you-trust-grant"
+          data-testid="connected-sources-retry"
+          disabled={busy}
+          onClick={() => void refresh()}
+        >
+          Try again
+        </button>
+      ) : null}
+      {note ? (
+        <p className="you-settings-note" role="status" data-testid="connected-sources-note">
+          {note}
         </p>
       ) : null}
     </section>

@@ -159,6 +159,7 @@ export function ActivationScreen({
               onChangeText={setCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
+              autoComplete="sms-otp"
               placeholder="••••••"
               placeholderTextColor="#6B7280"
               inputAccessoryViewID={

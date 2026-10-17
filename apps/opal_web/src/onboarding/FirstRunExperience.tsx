@@ -1274,6 +1274,7 @@ export function FirstRunExperience({
                   </select>
                   <input
                     id="fr-phone"
+                    type="tel"
                     className="composer-input fr-input"
                     inputMode="tel"
                     autoComplete="tel-national"
@@ -1368,23 +1369,20 @@ export function FirstRunExperience({
                   Six digit code
                 </label>
                 {/* Paste W6 Phase 0 - document order: boxes then Verify (never absolute). */}
+                {/* Repair #15-A - the code input IS the visible field. It used to be an
+                    opacity:0 overlay ("bridge") painting digits into aria-hidden span
+                    cells; iOS/WebKit only offers the Messages one-time-code suggestion
+                    for a visible rendered input, so the suggestion never appeared and
+                    the founder had to type the code by hand. One visible input, never
+                    per-digit split inputs (split inputs also break one-time-code). */}
                 <div className="fr-code-wrap" data-testid="fr07-code-wrap">
-                  <div className="fr-code-cells" aria-hidden>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <span
-                        key={i}
-                        className="fr-code-cell"
-                        data-testid={`fr07-code-cell-${i}`}
-                      >
-                        {code.replace(/\D/g, "")[i] || ""}
-                      </span>
-                    ))}
-                  </div>
                   <input
                     id="fr-code"
-                    className="composer-input fr-input fr-code-input fr-code-input-bridge"
+                    type="text"
+                    className="composer-input fr-input fr-code-input"
                     inputMode="numeric"
                     autoComplete="one-time-code"
+                    enterKeyHint="done"
                     value={code}
                     onChange={(e) => onCodeChange(e.target.value)}
                     maxLength={6}

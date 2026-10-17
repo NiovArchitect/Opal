@@ -71,48 +71,92 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
   def publish(author_user_id, attrs) when is_binary(author_user_id) and is_map(attrs) do
     a = stringify(attrs)
     visibility = a["visibility"] || SocialMomentVisibility.default_visibility()
+    media_ids = List.wrap(a["media_ids"] || [])
+    caption = a["caption"] || ""
 
-    if visibility not in SocialMomentVisibility.supported_visibilities() do
-      {:error, :invalid_visibility}
-    else
-      place = normalize_place(a["place_ref"] || a["place"] || %{})
-      media_ids = List.wrap(a["media_ids"] || [])
+    cond do
+      visibility not in SocialMomentVisibility.supported_visibilities() ->
+        {:error, :invalid_visibility}
 
-      %SocialMomentRecord{}
-      |> SocialMomentRecord.changeset(%{
-        author_user_id: author_user_id,
-        caption: a["caption"] || "",
-        social_context: a["social_context"],
-        visibility: visibility,
-        audience_user_ids: List.wrap(a["audience_user_ids"] || []),
-        group_conversation_id: a["group_conversation_id"],
-        place_ref: place,
-        media_ids: media_ids,
-        source_lineage_id: a["source_lineage_id"],
-        shared_reality_id: a["shared_reality_id"],
-        moderation_state: "active",
-        commerce_led: false,
-        attribution_eligible: false
-      })
-      |> Repo.insert()
-      |> case do
-        {:ok, m} ->
-          delivery = SocialMomentRealtime.publish_moment_event(m, "social_moment:published")
-          preview = SocialMomentAudience.preview(m.visibility, %{"author_user_id" => author_user_id, "audience_user_ids" => m.audience_user_ids, "group_conversation_id" => m.group_conversation_id})
+      # Repair #15: an empty post (no caption, no media) used to persist and
+      # render in Home as a blank "Memory" card. A post must carry something.
+      String.trim(caption) == "" and media_ids == [] ->
+        {:error, :empty_post}
 
-          {:ok,
-           %{
-             "moment" => SocialMomentRecord.public_contract(m),
-             "created_notification" => SocialMomentVisibility.publish_creates_notification?(),
-             "created_attribution" => SocialMomentVisibility.publish_creates_attribution?(),
-             "media_status" => media_status(),
-             "audience_preview" => preview,
-             "realtime_delivery" => delivery
-           }}
+      # Repair #15: media_ids used to be accepted unchecked. A moment could
+      # reference media that does not exist (feed card pointing at a 404) or
+      # media owned by someone else — and read_media/2 would then serve that
+      # person's bytes to this moment's audience. Only the author's own,
+      # live media may be attached.
+      not media_owned_by?(author_user_id, media_ids) ->
+        {:error, :invalid_media}
 
-        err ->
-          err
-      end
+      true ->
+        do_publish(author_user_id, a, visibility, media_ids)
+    end
+  end
+
+  defp media_owned_by?(_author_user_id, []), do: true
+
+  defp media_owned_by?(author_user_id, media_ids) do
+    ids = Enum.uniq(media_ids)
+
+    found =
+      from(m in SocialMomentMedia,
+        where: m.id in ^ids and m.owner_user_id == ^author_user_id and is_nil(m.deleted_at),
+        select: m.id
+      )
+      |> Repo.all()
+
+    length(found) == length(ids)
+  rescue
+    # Non-UUID media ids raise a cast error — they are simply invalid media.
+    _ -> false
+  end
+
+  defp do_publish(author_user_id, a, visibility, media_ids) do
+    place = normalize_place(a["place_ref"] || a["place"] || %{})
+
+    %SocialMomentRecord{}
+    |> SocialMomentRecord.changeset(%{
+      author_user_id: author_user_id,
+      caption: a["caption"] || "",
+      social_context: a["social_context"],
+      visibility: visibility,
+      audience_user_ids: List.wrap(a["audience_user_ids"] || []),
+      group_conversation_id: a["group_conversation_id"],
+      place_ref: place,
+      media_ids: media_ids,
+      source_lineage_id: a["source_lineage_id"],
+      shared_reality_id: a["shared_reality_id"],
+      moderation_state: "active",
+      commerce_led: false,
+      attribution_eligible: false
+    })
+    |> Repo.insert()
+    |> case do
+      {:ok, m} ->
+        delivery = SocialMomentRealtime.publish_moment_event(m, "social_moment:published")
+
+        preview =
+          SocialMomentAudience.preview(m.visibility, %{
+            "author_user_id" => author_user_id,
+            "audience_user_ids" => m.audience_user_ids,
+            "group_conversation_id" => m.group_conversation_id
+          })
+
+        {:ok,
+         %{
+           "moment" => SocialMomentRecord.public_contract(m),
+           "created_notification" => SocialMomentVisibility.publish_creates_notification?(),
+           "created_attribution" => SocialMomentVisibility.publish_creates_attribution?(),
+           "media_status" => media_status(),
+           "audience_preview" => preview,
+           "realtime_delivery" => delivery
+         }}
+
+      err ->
+        err
     end
   end
 
@@ -170,7 +214,11 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
     )
     |> Repo.all()
     |> Enum.filter(fn m ->
-      SocialMomentVisibility.can_view?(moment_map(m), viewer_user_id, viewer_opts(m, viewer_user_id))
+      SocialMomentVisibility.can_view?(
+        moment_map(m),
+        viewer_user_id,
+        viewer_opts(m, viewer_user_id)
+      )
     end)
     # Discovery does not use commission/economics
     |> Enum.reject(fn _ -> SocialMomentVisibility.discovery_uses_commission?() end)
@@ -180,7 +228,8 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
   def hide(viewer_user_id, moment_id) do
     case Repo.get_by(SocialMomentHide, viewer_user_id: viewer_user_id, moment_id: moment_id) do
       %SocialMomentHide{} ->
-        {:ok, %{"hidden" => true, "not_report" => true, "not_block" => true, "idempotent" => true}}
+        {:ok,
+         %{"hidden" => true, "not_report" => true, "not_block" => true, "idempotent" => true}}
 
       nil ->
         %SocialMomentHide{}
@@ -316,7 +365,9 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
         |> case do
           {:ok, updated} ->
             # Audience authority changed — re-fanout only to newly authorized set
-            _ = SocialMomentRealtime.publish_moment_event(updated, "social_moment:audience_updated")
+            _ =
+              SocialMomentRealtime.publish_moment_event(updated, "social_moment:audience_updated")
+
             {:ok, SocialMomentRecord.public_contract(updated)}
 
           err ->

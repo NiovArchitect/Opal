@@ -346,6 +346,7 @@ import {
 import { consequenceCardsFromSignals, type ProductionHomeOwners } from "./opalUi/homeHydration";
 import {
   authoritativeAddComment,
+  authoritativeCreatePost,
   authoritativeCreateStory,
   authoritativeForward,
   authoritativeLike,
@@ -965,6 +966,8 @@ export function OpalApp() {
     when?: string | null;
     /** Provenance for Repeat only — never the new plan / lineage id. */
     sourcePlanId?: string | null;
+    /** Repair #15: set only by Home → Add Post; routes the draft to durable publish. */
+    intent?: "post" | null;
   }>({});
   /** Paste W4 Phase 4 — Idea → PlanComposer (no camera). */
   const [planComposerOpen, setPlanComposerOpen] = useState(false);
@@ -2806,6 +2809,57 @@ export function OpalApp() {
     const timer = window.setTimeout(() => setNotificationNotice(null), 2200);
     return () => window.clearTimeout(timer);
   }, [notificationNotice]);
+
+  /**
+   * Repair #15 — re-read production Home owners after a durable create
+   * (story/post) so the new object appears from the SAME backend state every
+   * other surface reads (gyroscope), not from a local optimistic copy.
+   */
+  const refreshProductionHomeOwners = async () => {
+    if (!session?.access_token || isFounderSeedEnabled()) return;
+    try {
+      const prod = await loadProductionHomeOwners(session.access_token);
+      setProductionOwners((prev) => ({
+        ...prod.productionOwners,
+        memories: prod.memories || [],
+        stories: prod.stories || prod.productionOwners.stories || [],
+        conversationConsequences: prev?.conversationConsequences,
+      }));
+    } catch {
+      /* Keep current owners; the create itself already succeeded durably. */
+    }
+  };
+
+  /**
+   * Repair #15 — GraphCreateFlow completion.
+   * Home → Post drafts (intent="post") now publish durably via
+   * authoritativeCreatePost and only resolve after the backend confirms;
+   * a rejection propagates so the flow stays open with the error.
+   * Other graph drafts keep the legacy local behavior (plan/repeat scope).
+   */
+  const handleGraphCreated = async (draft: GraphCreateDraft) => {
+    if (graphCreateContext.intent === "post") {
+      await authoritativeCreatePost({
+        mediaSrc: draft.mediaSrc,
+        mediaKind: draft.mediaKind,
+        caption: draft.caption || draft.title,
+        visibility: draft.audience === "private" ? "private" : "friends",
+        bearer: session?.access_token,
+      });
+      setGraphCreateContext({});
+      setRepeatWhoOpen(false);
+      await refreshProductionHomeOwners();
+      setHomeGateNote("Posted - it's live for the audience you chose.");
+      setTab("home");
+      return;
+    }
+    // REPEAT_MUTATES_OLD_GRAPH = 0 — local draft only; never patch sourcePlanId.
+    void graphCreateContext.sourcePlanId;
+    setCreatedGraphs((prev) => [draft, ...prev]);
+    setGraphCreateContext({});
+    setRepeatWhoOpen(false);
+    setTab("graphs");
+  };
 
   // Durable SocialMoment Home hydration + multi-session engagement bootstrap.
   // Authenticated production ALWAYS loads production owners (firewall).
@@ -7673,6 +7727,7 @@ export function OpalApp() {
         {graphCreateOpen ? (
           <GraphCreateFlow
             open={graphCreateOpen}
+            mode={graphCreateContext.intent === "post" ? "post" : "graph"}
             knownWho={graphCreateContext.who}
             knownWhere={graphCreateContext.where}
             knownWhen={graphCreateContext.when}
@@ -7696,13 +7751,8 @@ export function OpalApp() {
               setRepeatWhoOpen(false);
             }}
             onCreated={(draft) => {
-              // REPEAT_MUTATES_OLD_GRAPH = 0 — local draft only; never patch sourcePlanId.
-              void graphCreateContext.sourcePlanId;
-              setCreatedGraphs((prev) => [draft, ...prev]);
               setActiveChatId(null);
-              setGraphCreateContext({});
-              setRepeatWhoOpen(false);
-              setTab("graphs");
+              return handleGraphCreated(draft);
             }}
           />
         ) : null}
@@ -8850,7 +8900,7 @@ export function OpalApp() {
             }}
             onCreateStory={() => setStoryCreateOpen(true)}
             onCreatePost={() => {
-              setGraphCreateContext({});
+              setGraphCreateContext({ intent: "post" });
               setGraphCreateOpen(true);
             }}
             graphParticipationByCardId={graphParticipationByCardId}
@@ -9703,6 +9753,7 @@ export function OpalApp() {
       {graphCreateOpen ? (
         <GraphCreateFlow
           open={graphCreateOpen}
+          mode={graphCreateContext.intent === "post" ? "post" : "graph"}
           knownWho={graphCreateContext.who}
           knownWhere={graphCreateContext.where}
           knownWhen={graphCreateContext.when}
@@ -9725,14 +9776,7 @@ export function OpalApp() {
             setGraphCreateContext({});
             setRepeatWhoOpen(false);
           }}
-          onCreated={(draft) => {
-            // REPEAT_MUTATES_OLD_GRAPH = 0 — local draft only; never patch sourcePlanId.
-            void graphCreateContext.sourcePlanId;
-            setCreatedGraphs((prev) => [draft, ...prev]);
-            setGraphCreateContext({});
-            setRepeatWhoOpen(false);
-            setTab("graphs");
-          }}
+          onCreated={(draft) => handleGraphCreated(draft)}
         />
       ) : null}
 
@@ -10663,24 +10707,20 @@ export function OpalApp() {
             setStoryCreateOpen(false);
             setHomeScrollToken((t) => t + 1);
           }}
-          onShared={(draft) => {
-            void authoritativeCreateStory({
+          onShared={async (draft) => {
+            // Repair #15: propagate failure — StoryCreateFlow stays open and
+            // shows the error; success is claimed only after the backend
+            // confirms the story row exists.
+            await authoritativeCreateStory({
               mediaRef: draft.mediaSrc,
               visibility: draft.audience === "friends" ? "friends" : "close_circle",
+              caption: draft.caption,
               bearer: session?.access_token,
-            })
-              .then(() =>
-                setHomeGateNote(
-                  "Story shared temporarily  -  durable until expiry · Story ≠ Memory · Story ≠ Graph",
-                ),
-              )
-              .catch((e) =>
-                setHomeGateNote(
-                  e instanceof Error
-                    ? e.message
-                    : "Story create requires signed-in durable session",
-                ),
-              );
+            });
+            await refreshProductionHomeOwners();
+            setHomeGateNote(
+              "Story shared temporarily  -  durable until expiry · Story ≠ Memory · Story ≠ Graph",
+            );
           }}
         />
       ) : null}

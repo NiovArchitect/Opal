@@ -255,6 +255,7 @@ export function ActivationFlow({ onAuthenticated }: Props) {
           <label htmlFor="phone">Phone number</label>
           <input
             id="phone"
+            type="tel"
             className="composer-input"
             inputMode="tel"
             autoComplete="tel"
@@ -345,9 +346,11 @@ export function ActivationFlow({ onAuthenticated }: Props) {
           <label htmlFor="code">Your code</label>
           <input
             id="code"
+            type="text"
             className="composer-input"
             inputMode="numeric"
             autoComplete="one-time-code"
+            enterKeyHint="done"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required

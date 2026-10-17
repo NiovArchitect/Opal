@@ -72,6 +72,34 @@ defmodule OpalCore.SocialFlow.CandidateProvider do
 
   def recommend(_activity, _participants, _plan_state, _permitted_context), do: []
 
+  @doc "All catalog place names, in catalog order."
+  def catalog_names, do: Enum.map(@catalog, & &1["name"])
+
+  @doc """
+  Repair #15 (Track G) — the catalog entry a piece of text refers to, if any.
+
+  Matching is catalog-driven (this provider owns the list, callers do not
+  hardcode names): a text matches an entry when it contains the full name,
+  every name token, or the entry's distinctive first token
+  ("juniper" → "Juniper & Ivy"). Returns the canonical catalog spelling
+  or nil. This is a *recognition* helper only — it confers no lock; a
+  place locks through participant confirmation in the alignment fold.
+  """
+  def catalog_match(text) when is_binary(text) do
+    down = String.downcase(text)
+
+    Enum.find(catalog_names(), fn name ->
+      nd = String.downcase(name)
+      tokens = String.split(nd, ~r/[^a-z0-9]+/, trim: true)
+
+      String.contains?(down, nd) or
+        (tokens != [] and Enum.all?(tokens, &String.contains?(down, &1))) or
+        (tokens != [] and String.contains?(down, hd(tokens)))
+    end)
+  end
+
+  def catalog_match(_), do: nil
+
   @doc """
   Catalog identity for a locked place name.
 
