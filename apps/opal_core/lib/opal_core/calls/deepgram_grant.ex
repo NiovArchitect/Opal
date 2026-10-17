@@ -46,14 +46,23 @@ defmodule OpalCore.Calls.DeepgramGrant do
     System.get_env("DEEPGRAM_API_KEY") || launchctl_key()
   end
 
+  # Repair #14 (D1) — same launchctl guard as DeepgramClient: launchctl is
+  # macOS-only; on Linux System.cmd raises ErlangError :enoent. Fall through
+  # to nil so issue/0 honestly returns :not_configured instead of crashing.
   defp launchctl_key do
-    case System.cmd("launchctl", ["getenv", "DEEPGRAM_API_KEY"], stderr_to_stdout: true) do
-      {value, 0} ->
-        trimmed = String.trim(value)
-        if trimmed == "" or String.starts_with?(trimmed, "Could not"), do: nil, else: trimmed
+    if System.find_executable("launchctl") do
+      case System.cmd("launchctl", ["getenv", "DEEPGRAM_API_KEY"], stderr_to_stdout: true) do
+        {value, 0} ->
+          trimmed = String.trim(value)
+          if trimmed == "" or String.starts_with?(trimmed, "Could not"), do: nil, else: trimmed
 
-      _ ->
-        nil
+        _ ->
+          nil
+      end
+    else
+      nil
     end
+  rescue
+    ErlangError -> nil
   end
 end

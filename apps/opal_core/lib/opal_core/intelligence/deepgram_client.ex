@@ -175,15 +175,25 @@ defmodule OpalCore.Intelligence.DeepgramClient do
       launchctl_key()
   end
 
+  # Repair #14 (D1) — launchctl is macOS-only. On Linux hosts System.cmd
+  # raises ErlangError :enoent, which crashed every voice/listen/transcribe
+  # path instead of honestly reporting "not configured". Guard the call so
+  # key resolution falls through to nil on hosts without launchctl.
   defp launchctl_key do
-    case System.cmd("launchctl", ["getenv", "DEEPGRAM_API_KEY"], stderr_to_stdout: true) do
-      {value, 0} ->
-        trimmed = String.trim(value)
-        if trimmed == "" or String.starts_with?(trimmed, "Could not"), do: nil, else: trimmed
+    if System.find_executable("launchctl") do
+      case System.cmd("launchctl", ["getenv", "DEEPGRAM_API_KEY"], stderr_to_stdout: true) do
+        {value, 0} ->
+          trimmed = String.trim(value)
+          if trimmed == "" or String.starts_with?(trimmed, "Could not"), do: nil, else: trimmed
 
-      _ ->
-        nil
+        _ ->
+          nil
+      end
+    else
+      nil
     end
+  rescue
+    ErlangError -> nil
   end
 
   defp io_to_bin(bin) when is_binary(bin), do: bin
