@@ -300,6 +300,50 @@ export function planSurfaceState(input: {
   return "forming";
 }
 
+/**
+ * Repair #17 (W3) — THE single plan-state derivation for projection-backed
+ * surfaces. Chat list, Graphs, and Graph reality used to each hand-roll a
+ * planSurfaceState call from chats[].planProjection (and could not express
+ * "action": the projection lacked the proposer, so a change proposed by the
+ * other person rendered gold/ready in the list while the thread showed
+ * action/red from alignment). Every projection consumer now calls this one
+ * function with the same projection + viewer, so list and thread resolve the
+ * same state — and planStateColors maps that state to the canonical color.
+ */
+export type PlanProjectionLike = {
+  execution_label?: string | null;
+  pending_change?: boolean;
+  pending_proposal_by_user_id?: string | null;
+  upcoming_ready?: boolean;
+  temporal_state?: string | null;
+  canonical_start_at?: string | null;
+  timezone?: string | null;
+};
+
+export function planProjectionSurfaceState(
+  projection: PlanProjectionLike | null | undefined,
+  viewerUserId?: string | null,
+): PlanSurfaceState {
+  const p = projection || {};
+  const proposer = p.pending_proposal_by_user_id || null;
+  return planSurfaceState({
+    commitment: p.execution_label ? "execution_ready" : "aligned",
+    pendingChange: p.pending_change === true,
+    // Same needsViewer term the thread header derives from alignment:
+    // a pending change proposed by someone else needs THIS viewer.
+    needsViewer: Boolean(
+      p.pending_change === true &&
+        proposer &&
+        viewerUserId &&
+        proposer !== viewerUserId,
+    ),
+    upcomingReady: p.upcoming_ready,
+    temporalState: p.temporal_state,
+    canonicalStartAt: p.canonical_start_at,
+    timezone: p.timezone,
+  });
+}
+
 export function planConsequenceLabel(input: {
   state: PlanSurfaceState;
   whenLabel?: string | null;

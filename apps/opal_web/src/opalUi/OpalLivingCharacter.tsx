@@ -21,6 +21,7 @@ import {
   stopSpeaking,
   type SttResult,
 } from "./opalCenterVoice";
+import { presenceStateForLivingState } from "./opalPresence";
 
 type Props = {
   size?: number;
@@ -30,6 +31,13 @@ type Props = {
   requestInFlight?: boolean;
   /** When true, TTS/audio is actually playing (speaking honesty). Parent-owned audio. */
   audioPlaying?: boolean;
+  /**
+   * Repair #17 W6 — when true, a PARENT surface mic is actually capturing
+   * (composer mic / rest-surface mic STT session open). The character
+   * reflects that real capture as "listening"; it never starts capture
+   * itself from this prop, and it unwinds when the prop goes false.
+   */
+  externalListening?: boolean;
   /** Optional: parent wants transcript text after listen. */
   onTranscript?: (text: string) => void;
   /** Optional: speak this when set (component-owned TTS). Prefer audioPlaying when parent speaks. */
@@ -135,6 +143,7 @@ export function OpalLivingCharacter({
   testId = "opal-living-character",
   requestInFlight = false,
   audioPlaying = false,
+  externalListening = false,
   onTranscript,
   speakQueue = null,
   onSpeakDone,
@@ -144,6 +153,8 @@ export function OpalLivingCharacter({
   const machineRef = useRef(machine);
   machineRef.current = machine;
   const listenGen = useRef(0);
+  /** True while THIS component's own listenOnce session is capturing. */
+  const internalListenActive = useRef(false);
   const onTranscriptRef = useRef(onTranscript);
   onTranscriptRef.current = onTranscript;
 
@@ -173,6 +184,7 @@ export function OpalLivingCharacter({
       return;
     }
     // Optimistic listening only after getUserMedia / STT path is about to run.
+    internalListenActive.current = true;
     dispatch({ type: "mic_open" });
     try {
       navigator.vibrate?.(10);
@@ -180,6 +192,7 @@ export function OpalLivingCharacter({
       /* */
     }
     const result: SttResult = await listenOnce();
+    internalListenActive.current = false;
     if (gen !== listenGen.current) return;
     if (result.status === "denied") {
       dispatch({ type: "mic_denied" });
@@ -202,10 +215,28 @@ export function OpalLivingCharacter({
   useEffect(() => {
     if (requestInFlight) {
       dispatch({ type: "request_start" });
-    } else if (machineRef.current.state === "thinking") {
+    } else if (
+      machineRef.current.state === "thinking" ||
+      machineRef.current.state === "processing"
+    ) {
       dispatch({ type: "request_end" });
     }
   }, [requestInFlight, dispatch]);
+
+  // Repair #17 W6 — parent-owned mic capture (composer / rest surface)
+  // drives listening. Opens no capture here; reflects the real one and
+  // unwinds when it ends. The component's own listen session (guarded by
+  // internalListenActive) is never torn down by this effect.
+  useEffect(() => {
+    if (externalListening) {
+      dispatch({ type: "mic_open" });
+    } else if (
+      machineRef.current.state === "listening" &&
+      !internalListenActive.current
+    ) {
+      dispatch({ type: "mic_closed" });
+    }
+  }, [externalListening, dispatch]);
 
   // Honest speaking: only while audio is actually playing (parent-owned TTS)
   useEffect(() => {
@@ -269,6 +300,7 @@ export function OpalLivingCharacter({
     const s = machine.state;
     if (s === "listening") {
       listenGen.current += 1;
+      internalListenActive.current = false;
       stopListening();
       dispatch({ type: "speech_end" });
       return;
@@ -302,11 +334,18 @@ export function OpalLivingCharacter({
     machine.permissionPrompt ||
     (state === "listening"
       ? "Listening"
-      : state === "thinking"
-        ? LIVING_STATE_COPY.thinking
-        : state === "speaking"
-          ? "Speaking"
-          : null);
+      : state === "processing"
+        ? LIVING_STATE_COPY.processing
+        : state === "thinking"
+          ? LIVING_STATE_COPY.thinking
+          : state === "response_ready"
+            ? LIVING_STATE_COPY.response_ready
+            : state === "speaking"
+              ? "Speaking"
+              : null);
+
+  /** Repair #17 W6 — founder presence quartet, derived from real state only. */
+  const presence = presenceStateForLivingState(state);
 
   return (
     <div className={`opal-living-wrap ${className ?? ""}`.trim()}>
@@ -315,6 +354,7 @@ export function OpalLivingCharacter({
         className={`opal-living-character opal-living-${state}`}
         data-testid={testId}
         data-living-state={state}
+        data-presence-state={presence}
         data-headphones={showHp ? "1" : "0"}
         aria-label={
           machine.permissionPrompt

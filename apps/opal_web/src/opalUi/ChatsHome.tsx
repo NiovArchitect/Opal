@@ -625,7 +625,11 @@ export function ChatsHome({
                             onOpenPlan(pillId || pill?.label || r.id, r);
                           }}
                         >
-                          {pill.label}
+                          {/* Repair #17 (W3): the label needs its OWN truncating
+                              element — text-overflow on the pill never applied
+                              to its anonymous flex item, so long labels painted
+                              outside the pill bounds. */}
+                          <span className="chats-plan-pill-label">{pill.label}</span>
                         </span>
                       ) : null}
                     </span>

@@ -110,7 +110,10 @@ describe("Opal Center V2 behavior convergence", () => {
   it("Investor honesty: rest lede + nearby chips do not fake free windows or curation", () => {
     expect(center).not.toMatch(/Two open windows before tonight/);
     expect(center).toMatch(/opal-center-rest-lede/);
-    expect(center).toMatch(/Sample day below/);
+    // Repair #17 W5 — sample-day lede replaced by the honest empty state:
+    // the strip renders live calendar/plans data or nothing fake at all.
+    expect(center).toMatch(/Nothing on your day yet/);
+    expect(center).not.toMatch(/Sample day below/);
     expect(center).toMatch(/Nearby now/);
     expect(center).toMatch(/Tonight ideas/);
     expect(center).not.toMatch(/Curate my time/);

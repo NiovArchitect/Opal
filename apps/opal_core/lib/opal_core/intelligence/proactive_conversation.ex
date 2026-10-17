@@ -18,7 +18,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
 
   alias OpalCore.Repo
   alias OpalCore.Intelligence.{AttentionBudget, LlmAdapter, LlmRespond}
-  alias OpalCore.SocialFlow.{PlanStateArbitration, SharedPlan}
+  alias OpalCore.SocialFlow.{Clock, PlanStateArbitration, SharedPlan}
   alias OpalCore.SocialMemory.ProactiveThreadLog
 
   # founder-tunable
@@ -117,7 +117,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
       true ->
         case anchor_start(plan) do
           %DateTime{} = start ->
-            hours = DateTime.diff(start, DateTime.utc_now(), :second) / 3600
+            hours = DateTime.diff(start, Clock.utc_now(), :second) / 3600
 
             if hours >= @anchor_min_hours and hours <= @anchor_max_hours do
               maybe_initiate(account_id, "temporal_anchor_3d", plan.id, anchor_reason(plan), opts)
@@ -192,7 +192,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
         ref = %{
           person_id: opts[:person_id],
           topic: trigger_type,
-          date: Date.to_iso8601(Date.utc_today()),
+          date: Date.to_iso8601(Clock.utc_now() |> DateTime.to_date()),
           provenance: opts[:provenance] || "observed"
         }
 
@@ -274,7 +274,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
 
   defp active_recently?(account_id) do
     # Prefer Opal Center activity; fall back to conversation_index
-    since = DateTime.add(DateTime.utc_now(), -7 * 86_400, :second)
+    since = DateTime.add(Clock.utc_now(), -7 * 86_400, :second)
 
     from(i in OpalCore.SocialMemory.ConversationIndex,
       where: i.account_id == ^account_id and i.last_activity_at >= ^since,
@@ -295,7 +295,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
       _ ->
         tz = @default_tz
 
-        case DateTime.now(tz) do
+        case DateTime.shift_zone(Clock.utc_now(), tz) do
           {:ok, local} -> local.hour >= @quiet_start and local.hour < @quiet_end
           _ -> true
         end
@@ -303,7 +303,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   end
 
   defp daily_cap_reached?(account_id) do
-    today = Date.utc_today()
+    today = Clock.utc_now() |> DateTime.to_date()
 
     count =
       from(l in ProactiveThreadLog,
@@ -343,7 +343,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
         account_id: account_id,
         trigger_type: trigger_type,
         trigger_ref_id: trigger_ref_id,
-        opened_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+        opened_at: Clock.utc_now(),
         conversation_id: conversation_id,
         owner_response: nil
       })

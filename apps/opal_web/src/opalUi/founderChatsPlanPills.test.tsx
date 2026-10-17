@@ -7,12 +7,10 @@ import { describe, expect, it, vi } from "vitest";
 import { ChatsHome } from "./ChatsHome";
 import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
-  founderSeedThreadMessages,
   inferPlanPillTone,
   isFounderSeedChatId,
   overlayFounderSeedNamesOnChats,
   remapFounderChatRowsToLive,
-  resolveFounderSeedThread,
 } from "./founderChatsPlanPills";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -174,68 +172,10 @@ describe("founder chats plan pills (screenshot A)", () => {
     expect(overlaid.every((c) => !/^(conversation|founder)/i.test(c.name))).toBe(true);
   });
 
-  it("resolves Chanelle seed thread with Opal Juniper plan filament", () => {
-    const turns = resolveFounderSeedThread({ conversationId: "seed-chat-chanelle" });
-    expect(turns.length).toBeGreaterThanOrEqual(4);
-    expect(turns.some((t) => /Juniper tonight/i.test(t.body))).toBe(true);
-    expect(turns.some((t) => /I can do 7:30/i.test(t.body))).toBe(true);
-    const filament = turns.find((t) => t.opalSystemConsequence || t.opalFilament);
-    expect(filament?.body).toMatch(/Opal lined this up/);
-    expect(filament?.body).toMatch(/Juniper & Ivy/);
-    expect(filament?.body).toMatch(/7:30/);
-  });
-
-  it("each seed chat has a unique 4–8 turn thread matching its preview", () => {
-    for (const row of FOUNDER_CHATS_PLAN_PILL_ROWS) {
-      const turns = resolveFounderSeedThread({ conversationId: row.id, displayName: row.name });
-      const humans = turns.filter((t) => !t.opalFilament && !t.opalSystemConsequence);
-      expect(humans.length, row.name).toBeGreaterThanOrEqual(4);
-      expect(humans.every((t) => (t.body || "").trim().length > 0), row.name).toBe(true);
-      const last = humans[humans.length - 1];
-      expect(last?.body, row.name).toBe(row.preview);
-      // Group rows should label peer speakers
-      if (row.kind === "group") {
-        expect(humans.some((t) => t.from === "them" && !!t.senderDisplayName), row.name).toBe(true);
-      }
-    }
-    // Distinct arcs — no shared first-line copy across chats
-    const firstBodies = FOUNDER_CHATS_PLAN_PILL_ROWS.map((row) => {
-      const turns = resolveFounderSeedThread({ conversationId: row.id });
-      return turns.find((t) => !t.opalFilament)?.body;
-    });
-    expect(new Set(firstBodies).size).toBe(firstBodies.length);
-  });
-
-  it("resolves remapped live UUID thread by display name", () => {
-    const turns = resolveFounderSeedThread({
-      conversationId: "938ee21c-e675-4cf6-b705-265adda9a6db",
-      displayName: "Chanelle",
-    });
-    expect(turns.some((t) => t.opalSystemConsequence)).toBe(true);
-    expect(turns.find((t) => t.from === "them" && !t.opalFilament)?.senderDisplayName).toBe(
-      "Chanelle",
-    );
-  });
-
-  it("Maya planId correlates to Graphs coast seed", () => {
-    const maya = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === "Maya");
-    expect(maya?.planConsequence?.planId).toBe("seed-maya-graph-coast");
-    expect(maya?.planConsequence?.label).toBe("Farmers market + coast");
-  });
-
-  it("Maya counter-proposal gets an Opal closing response", () => {
-    const turns = resolveFounderSeedThread({ conversationId: "seed-chat-maya" });
-    const humans = turns.filter((t) => !t.opalFilament && !t.opalSystemConsequence);
-    expect(humans[humans.length - 1]?.body).toBe("I'm free after 10");
-    const close = turns.find((t) => /10:30 market/i.test(t.body));
-    expect(close?.opalFilament || close?.opalSystemConsequence).toBeTruthy();
-    expect(close?.body).toMatch(/Got it/i);
-    expect(close?.body).toMatch(/coast/i);
-    // Closing turn must follow the counter-proposal
-    const afterIdx = turns.findIndex((t) => t.body === "I'm free after 10");
-    const closeIdx = turns.findIndex((t) => t.id === close?.id);
-    expect(closeIdx).toBeGreaterThan(afterIdx);
-  });
+  // Repair #17: the scripted seed-thread tests are deleted WITH the
+  // scripted threads (resolveFounderSeedThread / SEED_THREADS_BY_KEY).
+  // Fixture rows are DATA (asserted above); no fixture message content
+  // exists to resolve anymore.
 
   it("seed relationship labels are specific (not Direct connection)", () => {
     const byName = Object.fromEntries(
@@ -248,9 +188,4 @@ describe("founder chats plan pills (screenshot A)", () => {
     expect(byName.Alex).toBe("Following");
   });
 
-  it("founderSeedThreadMessages strips Opal filaments for legacy callers", () => {
-    const msgs = founderSeedThreadMessages("seed-chat-chanelle");
-    expect(msgs.every((m) => !/Opal lined this up/i.test(m.body))).toBe(true);
-    expect(msgs.some((m) => /Juniper tonight/i.test(m.body))).toBe(true);
-  });
 });

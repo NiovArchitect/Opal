@@ -186,6 +186,21 @@ defmodule OpalCore.OpalIntent do
               end
             end
 
+          # Repair #17 (W4-3) — a failed plan_confirm turn belongs to the
+          # same flow (W4-1c: the ask stays retryable), so keep walking.
+          role in ["opal", :opal] and intent_name(intent) in ["plan_confirm", :plan_confirm] ->
+            {:cont, {nil, saw_aff, saw_conf}}
+
+          # Repair #17 (W4-3) — any OTHER opal turn newer than the ask means
+          # the conversation moved on: the old ask is no longer outstanding.
+          # A bare "yes" after a derailment (sticky re-engagement, a new
+          # question, a different topic) must never resurrect a stale
+          # historical plan ("Done. nighthawk with Maya is set up." for a
+          # venue nobody mentioned in the current flow). The affirmation
+          # binds only to an ask that is still the live flow.
+          role in ["opal", :opal] ->
+            {:halt, {nil, saw_aff, saw_conf}}
+
           true ->
             {:cont, {nil, saw_aff, saw_conf}}
         end
@@ -326,6 +341,26 @@ defmodule OpalCore.OpalIntent do
   @creation_verbs ~r/\b(set\s+up|organize|arrange|schedule|make\s+plans?|help\s+me\s+plan|let'?s\s+do)\b/i
 
   defp try_plan_create(norm, names) do
+    # Repair #17 (W4-5) — "Let's do Dave & Busters near me" matches the
+    # generic "let's do" plan-create trigger, but it names a venue: the
+    # named-venue search must claim it, never the plan-create ask (and
+    # never the location gate's category question). Only the let's-do /
+    # go-to shapes defer; every other plan-create phrasing is unchanged.
+    if lets_do_named_venue?(norm.original) do
+      nil
+    else
+      try_plan_create_scoped(norm, names)
+    end
+  end
+
+  defp lets_do_named_venue?(original) when is_binary(original) do
+    Regex.match?(~r/^\s*(?:let'?s\s+do|let'?s\s+go\s+to|go\s+to)\b/i, original) and
+      match?(%{name: _}, OpalCore.Center.PlanContextPatch.extract_exact_venue(original))
+  end
+
+  defp lets_do_named_venue?(_), do: false
+
+  defp try_plan_create_scoped(norm, names) do
     virtual? = virtual_meeting?(norm)
 
     cond do

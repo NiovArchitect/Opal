@@ -13,6 +13,7 @@ defmodule OpalCore.Push.Workers.DigestWorker do
   alias OpalCore.Push.NotificationIntelligence
   alias OpalCore.Repo
   alias OpalCore.Accounts.User
+  alias OpalCore.SocialFlow.Clock
 
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
@@ -36,9 +37,9 @@ defmodule OpalCore.Push.Workers.DigestWorker do
     {_start, end_h} = NotificationIntelligence.quiet_window(user_id)
     # Flush at quiet-end hour (morning summary). Default end 8 → flush at 8–9.
     hour =
-      case DateTime.now("America/Los_Angeles") do
+      case DateTime.shift_zone(Clock.utc_now(), "America/Los_Angeles") do
         {:ok, dt} -> dt.hour
-        _ -> DateTime.utc_now().hour
+        _ -> Clock.utc_now().hour
       end
 
     hour == end_h or hour == 9

@@ -93,4 +93,44 @@ defmodule OpalCore.SocialFlow.HomeProjectionTest do
     assert card["when_label"] == "Tuesday · Sep 29 · 7:30 PM"
     assert card["place"] == "Fort Oak"
   end
+
+  # Repair #17 (W3): surfaces must derive "action needed" from the same
+  # projection the thread uses — that requires the proposer on the card.
+  test "pending change_proposal projects proposed_by_user_id" do
+    alignment = %{
+      "lineage_id" => "plan-fort-oak",
+      "plan_version" => 4,
+      "commitment" => "aligned",
+      "date" => %{"value" => "Tuesday · Sep 29"},
+      "exact_time" => %{"state" => "locked", "value" => "7:30 PM"},
+      "place" => %{"state" => "locked", "value" => "Fort Oak"},
+      "change_proposal" => %{
+        "field" => "exact_time",
+        "value" => "8:00 PM",
+        "proposal_id" => "p-8pm",
+        "proposed_by_user_id" => "user-maya"
+      }
+    }
+
+    card = HomeProjection.from_alignment(alignment, "conv", 2)
+
+    assert card["pending_change"] == true
+    assert card["pending_proposal_by_user_id"] == "user-maya"
+  end
+
+  test "no change_proposal means no pending_proposal_by_user_id key" do
+    alignment = %{
+      "lineage_id" => "plan-fort-oak",
+      "plan_version" => 4,
+      "commitment" => "aligned",
+      "date" => %{"value" => "Tuesday · Sep 29"},
+      "exact_time" => %{"state" => "locked", "value" => "7:30 PM"},
+      "place" => %{"state" => "locked", "value" => "Fort Oak"}
+    }
+
+    card = HomeProjection.from_alignment(alignment, "conv", 2)
+
+    assert card["pending_change"] == false
+    refute Map.has_key?(card, "pending_proposal_by_user_id")
+  end
 end

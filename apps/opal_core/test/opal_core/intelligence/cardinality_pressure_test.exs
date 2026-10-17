@@ -10,6 +10,7 @@ defmodule OpalCore.Intelligence.CardinalityPressureTest do
   import OpalCore.MultiuserHarness
 
   alias OpalCore.Intelligence.{AttentionBudget, PromptBuilder}
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.Messages
   alias OpalCore.Relationships.{Access, Behavior, BroadcastFraming}
   alias OpalCore.Repo
@@ -239,6 +240,12 @@ defmodule OpalCore.Intelligence.CardinalityPressureTest do
 
   @tag :cardinality
   test "N3 — three typed nudges; grant_batch uses exactly one AttentionBudget unit" do
+    # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+    # 12:00 JST); grant_batch goes through AttentionBudget's
+    # quiet-hours gate with proactive_thread priority (no bypass).
+    Clock.freeze(~U[2026-06-01 03:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     owner = account!(%{display_name: "Owner", timezone: "Asia/Tokyo", maturity: "established"})
     mom = account!(%{display_name: "Mom"})
     colleague = account!(%{display_name: "Colleague"})

@@ -94,7 +94,7 @@ defmodule OpalCore.Center.PlanningContext do
   def get(_), do: %{}
 
   def get_for_user(user_id) when is_binary(user_id) do
-    case Repo.get_by(OpalConversation, user_id: user_id) do
+    case Repo.one(OpalConversation.active_query(user_id)) do
       %OpalConversation{} = c -> get(c)
       _ -> %{}
     end
@@ -102,7 +102,7 @@ defmodule OpalCore.Center.PlanningContext do
 
   @doc "Merge entities from this turn into durable planning context."
   def merge(user_id, entities, extras \\ %{}) when is_binary(user_id) and is_map(entities) do
-    case Repo.get_by(OpalConversation, user_id: user_id) do
+    case Repo.one(OpalConversation.active_query(user_id)) do
       %OpalConversation{} = c ->
         prev = get(c)
         next = merge_maps(prev, entities_to_ctx(entities), stringify(extras))
@@ -123,7 +123,7 @@ defmodule OpalCore.Center.PlanningContext do
 
   @doc "Replace durable planning context with an already-composed map (patch apply)."
   def put(user_id, ctx) when is_binary(user_id) and is_map(ctx) do
-    case Repo.get_by(OpalConversation, user_id: user_id) do
+    case Repo.one(OpalConversation.active_query(user_id)) do
       %OpalConversation{} = c ->
         prev = get(c)
 
@@ -145,6 +145,101 @@ defmodule OpalCore.Center.PlanningContext do
         {:error, :no_conversation}
     end
   end
+
+  # --- Repair #17 (W4-2/W4-3): outstanding-question state -----------------
+  #
+  # When Opal asks the user a question in Center (category choice, economy
+  # question), that question is OUTSTANDING until the user's next message.
+  # The state lives here — on the durable planning context, the same state
+  # layer every Center turn reads — never in a per-turn local. While a
+  # question is outstanding, the next user message is consumed as its
+  # answer in flow: it must never be reclassified as a new topic or trigger
+  # the sticky re-engagement guard, and a bare affirmation binds only to
+  # this outstanding question/proposal, never to stale history.
+
+  @doc "The outstanding question map for a planning context, or nil."
+  def outstanding_question(ctx) when is_map(ctx) do
+    case stringify(ctx)["outstanding_question"] do
+      %{} = q -> q
+      _ -> nil
+    end
+  end
+
+  def outstanding_question(_), do: nil
+
+  @doc """
+  Record the question Opal just asked. `attrs` carries :kind and :prompt
+  plus a snapshot of the in-flow context (who/what) the question belongs to,
+  so the answer can be consumed against the SAME flow later.
+  """
+  def set_outstanding_question(user_id, attrs)
+      when is_binary(user_id) and is_map(attrs) do
+    q =
+      attrs
+      |> stringify()
+      |> Map.put("asked_at", DateTime.utc_now() |> DateTime.to_iso8601())
+
+    merge(user_id, %{}, %{"outstanding_question" => q})
+  end
+
+  def set_outstanding_question(_, _), do: {:error, :invalid}
+
+  @doc "Clear the outstanding question (consumed, superseded, or new chat)."
+  def clear_outstanding_question(user_id) when is_binary(user_id) do
+    case Repo.one(OpalConversation.active_query(user_id)) do
+      %OpalConversation{} = c ->
+        next = c |> get() |> Map.delete("outstanding_question")
+
+        c
+        |> change(%{planning_context: next})
+        |> Repo.update()
+        |> case do
+          {:ok, updated} -> {:ok, get(updated)}
+          err -> err
+        end
+
+      _ ->
+        {:error, :no_conversation}
+    end
+  end
+
+  def clear_outstanding_question(_), do: {:error, :invalid}
+
+  @doc """
+  True when `raw` reads as a direct answer to the outstanding question
+  rather than a new direction: a short message that is not itself a
+  question, carries no explicit new-plan / change / cancel command, and
+  (for category questions) names one of the offered choices or a bare
+  affirmation.
+  """
+  def answer_to_outstanding?(q, raw) when is_map(q) and is_binary(raw) do
+    text = String.trim(raw)
+    down = String.downcase(text)
+
+    cond do
+      text == "" -> false
+      String.contains?(text, "?") -> false
+      String.length(text) > 60 -> false
+      # Explicit commands are new directions, not answers.
+      Regex.match?(
+        ~r/\b(cancel|change|move|reschedule|schedule|plan|book|find|search|remind)\b/i,
+        down
+      ) ->
+        false
+
+      q["kind"] == "category" ->
+        Regex.match?(
+          ~r/^\s*(food|outdoors?|nightlife|dinner|drinks?|yes|yeah|yep|sure|ok|okay)\b/i,
+          down
+        )
+
+      true ->
+        # Economy/other questions: a short non-question reply is the answer.
+        true
+    end
+  end
+
+  def answer_to_outstanding?(_, _), do: false
 
   @doc """
   Clear transient Center planning (venue search, sticky provider flags) without
@@ -184,6 +279,14 @@ defmodule OpalCore.Center.PlanningContext do
     cond do
       exact? and is_binary(dest) and dest != "" and
           (is_binary(when_s) and when_s != "" or restaurant?) ->
+        true
+
+      # Repair #17 (W4-5) — an exact named venue carrying a near-me signal
+      # starts its search on the venue name alone (text search; device
+      # coords rank when available). The location gate must not block a
+      # search that carries a venue name. A bare named find with NO
+      # locality signal at all still asks for the city (existing law).
+      exact? and c["near_me"] == true ->
         true
 
       discovery_request? and is_binary(dest) and dest != "" and restaurant? ->

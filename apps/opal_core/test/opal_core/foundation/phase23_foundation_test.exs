@@ -14,6 +14,7 @@ defmodule OpalCore.Foundation.Phase23FoundationTest do
   alias OpalCore.SocialFlow.RateLimitBucket
   alias OpalCore.SocialFlow.TrustSafety
   alias OpalCore.Push.Workers.DeliverPushWorker
+  alias OpalCore.SocialFlow.Clock
 
   setup do
     previous = Application.get_env(:opal_core, :phone_verify_mode)
@@ -85,6 +86,13 @@ defmodule OpalCore.Foundation.Phase23FoundationTest do
   end
 
   test "2.2 Inbox fanout enqueues DeliverPushWorker for recipient", %{conn: conn} do
+    # Repair #17 — pin the clock to a non-quiet local time (12:00 PDT).
+    # Fanout pushes at tier :normal, which NotificationIntelligence
+    # holds for the morning during quiet hours (22:00–08:00 PT); the
+    # wall clock must not decide whether the push is enqueued.
+    Clock.freeze(~U[2026-06-01 19:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     Oban.Testing.with_testing_mode(:manual, fn ->
       {sess_a, alice_id} = activate(conn, "+15551002001", "Alice Push", "alice_p23")
       {_sess_b, bob_id} = activate(build_conn(), "+15551002002", "Bob Push", "bob_p23")

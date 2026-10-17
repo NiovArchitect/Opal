@@ -412,7 +412,7 @@ defmodule OpalCore.OpalContext do
 
   # Last N Opal Center messages (role + body + optional intent). Empty when none yet.
   defp assemble_conversation_history(user_id) do
-    case Repo.get_by(OpalConversation, user_id: user_id) do
+    case Repo.one(OpalConversation.active_query(user_id)) do
       %OpalConversation{id: cid} ->
         OpalConversations.list_messages(cid, @history_limit)
         |> Enum.map(fn %OpalMessage{} = m ->

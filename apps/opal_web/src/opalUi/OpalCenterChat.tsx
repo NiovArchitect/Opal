@@ -4,13 +4,20 @@
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  clearOpalChatSession,
   clearOpalConversation,
+  createOpalChatSession,
+  getOpalChatSession,
   getOpalConversation,
+  listOpalChatSessions,
   listRelationships,
   postOpalMessage,
+  postOpalSessionMessage,
   startOpalNewChat,
   type OpalChatMessage,
+  type OpalChatSessionSummary,
 } from "../api/productClient";
+import { OpalChatSessionsDrawer } from "./OpalChatSessionsDrawer";
 import { ProfileGapAsk } from "./ProfileGapAsk";
 import {
   LISTENING_COPY,
@@ -30,11 +37,9 @@ import {
   type MicPermission,
 } from "./opalCenterVoice";
 import {
-  planFromLocalConfirm,
   planFromOpalMetadata,
   type CreatedPlanSurface,
 } from "./graphSurfaceInterop";
-import { isFounderSeedEnabled } from "./founderGraphSeed";
 import { OpalLivingCharacter } from "./OpalLivingCharacter";
 import { readFitSliceForOpal } from "./fitPreferences";
 
@@ -71,7 +76,7 @@ type Props = {
   bearer?: string;
   /** Optional user id for per-user voice-mode persistence. */
   userId?: string | null;
-  /** Fired when a plan is confirmed (backend metadata or founder-seed local). */
+  /** Fired when a plan is confirmed (backend plan metadata only). */
   onPlanCreated?: (plan: CreatedPlanSurface) => void;
   /**
    * Repair #4 — rest composer / chips converge here.
@@ -282,8 +287,6 @@ export function OpalCenterChat({
   const spokenIds = useRef<Set<string>>(new Set());
   const voiceModeRef = useRef(voiceMode);
   voiceModeRef.current = voiceMode;
-  const lastUserPlanAsk = useRef<string | null>(null);
-  const surfacedPlanIds = useRef<Set<string>>(new Set());
   const onPlanCreatedRef = useRef(onPlanCreated);
   onPlanCreatedRef.current = onPlanCreated;
   const initialSentRef = useRef(false);
@@ -303,33 +306,28 @@ export function OpalCenterChat({
   const [showJump, setShowJump] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
+  const [clearError, setClearError] = useState(false);
+  // Repair #17 W5 — real backend chat sessions. sessionsMode turns on only
+  // when the sessions list route actually answers; until then every call
+  // below stays on the legacy single-conversation endpoints.
+  const [sessions, setSessions] = useState<OpalChatSessionSummary[] | null>(null);
+  const [sessionsFailed, setSessionsFailed] = useState(false);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [activeSessionId, setActiveSessionIdState] = useState<string | null>(null);
+  const sessionsModeRef = useRef(false);
+  const sessionsRef = useRef<OpalChatSessionSummary[] | null>(null);
+  const activeSessionIdRef = useRef<string | null>(null);
+  const currentConversationIdRef = useRef<string | null>(null);
+  const setActiveSession = useCallback((id: string | null) => {
+    activeSessionIdRef.current = id;
+    setActiveSessionIdState(id);
+  }, []);
   const NEAR_BOTTOM_PX = 96;
 
-  // Holistic loop: when founder-seed thread shows plan-ask → Yes, surface a plan
-  // even if the backend replied with generic chat (no plan_confirm metadata).
-  useEffect(() => {
-    if (!isFounderSeedEnabled()) return;
-    if (!onPlanCreatedRef.current) return;
-    const users = messages.filter((m) => m.role === "user" && m.status !== "failed");
-    if (users.length < 2) return;
-    const latest = users[users.length - 1];
-    if (!latest || !/^(yes|yeah|yep|sure|ok|okay)\b/i.test(latest.body.trim())) return;
-    const prior = [...users]
-      .slice(0, -1)
-      .reverse()
-      .find((m) =>
-        /\b(plan|dinner|brunch|lunch|beach|coffee|drinks|hike|walk)\b/i.test(m.body),
-      );
-    if (!prior) return;
-    const local = planFromLocalConfirm({
-      priorUserText: prior.body,
-      affirmText: latest.body,
-    });
-    if (!local || surfacedPlanIds.current.has(local.id)) return;
-    surfacedPlanIds.current.add(local.id);
-    lastUserPlanAsk.current = null;
-    onPlanCreatedRef.current(local);
-  }, [messages]);
+  // Repair #17: plans surface ONLY from backend plan metadata
+  // (planFromOpalMetadata in the send path). The former founder-seed local
+  // confirm — synthesizing a plan plus a fabricated Opal confirmation
+  // reply when the user said "yes" — was scripted and is deleted.
 
   const distanceFromBottom = (el: HTMLElement) =>
     el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -429,6 +427,17 @@ export function OpalCenterChat({
     try {
       const res = await getOpalConversation(bearer);
       if (gen !== loadGen.current) return;
+      const convId = res.conversation?.id ? String(res.conversation.id) : null;
+      currentConversationIdRef.current = convId;
+      // If the sessions list already arrived and knows this conversation,
+      // it is the active session — sends then route to its session path.
+      if (
+        convId &&
+        !activeSessionIdRef.current &&
+        sessionsRef.current?.some((s) => s.id === convId)
+      ) {
+        setActiveSession(convId);
+      }
       const list = Array.isArray(res.conversation?.messages)
         ? res.conversation.messages.map(fromServer)
         : [];
@@ -466,7 +475,10 @@ export function OpalCenterChat({
     const t = window.setInterval(() => {
       void (async () => {
         try {
-          const res = await getOpalConversation(bearer);
+          const activeId = activeSessionIdRef.current;
+          const res = activeId
+            ? await getOpalChatSession(activeId, bearer)
+            : await getOpalConversation(bearer);
           const list = Array.isArray(res.conversation?.messages)
             ? res.conversation.messages.map(fromServer)
             : [];
@@ -566,16 +578,23 @@ export function OpalCenterChat({
 
     try {
       const fit = readFitSliceForOpal(userId);
-      const res = fit
-        ? await postOpalMessage(body, bearer, { clientContext: { fit } })
-        : await postOpalMessage(body, bearer);
+      const activeId = activeSessionIdRef.current;
+      const res = activeId
+        ? await postOpalSessionMessage(
+            activeId,
+            body,
+            bearer,
+            fit ? { clientContext: { fit } } : undefined,
+          )
+        : fit
+          ? await postOpalMessage(body, bearer, { clientContext: { fit } })
+          : await postOpalMessage(body, bearer);
       const rawMsgs = Array.isArray(res.messages) ? res.messages : [];
       const serverMsgs = rawMsgs.map(fromServer);
       setMessages((prev) => {
         const without = prev.filter((m) => m.key !== optimisticKey);
         return [...without, ...serverMsgs];
       });
-      let surfaced = false;
       for (const m of rawMsgs) {
         if (m.role !== "opal") continue;
         const fromMeta = planFromOpalMetadata(
@@ -583,50 +602,12 @@ export function OpalCenterChat({
         );
         if (fromMeta) {
           emitPlanIfAny(fromMeta);
-          surfaced = true;
-          lastUserPlanAsk.current = null;
           break;
         }
       }
-      if (!surfaced && isFounderSeedEnabled() && lastUserPlanAsk.current) {
-        const local = planFromLocalConfirm({
-          priorUserText: lastUserPlanAsk.current,
-          affirmText: body,
-        });
-        if (local) {
-          emitPlanIfAny(local);
-          lastUserPlanAsk.current = null;
-        }
-      }
     } catch {
-      if (isFounderSeedEnabled() && lastUserPlanAsk.current) {
-        const local = planFromLocalConfirm({
-          priorUserText: lastUserPlanAsk.current,
-          affirmText: body,
-        });
-        if (local) {
-          emitPlanIfAny(local);
-          lastUserPlanAsk.current = null;
-          setMessages((prev) => {
-            const without = prev.filter((m) => m.key !== optimisticKey);
-            return [
-              ...without,
-              { key: optimisticKey, role: "user", body, status: "sent" },
-              {
-                key: `local-opal-${Date.now()}`,
-                role: "opal",
-                body: `Done. ${local.title}${local.when ? ` · ${local.when}` : ""} is on your Graph.`,
-                status: "sent",
-              },
-            ];
-          });
-          sendQueueRef.current.shift();
-          flushingRef.current = false;
-          requestAnimationFrame(() => inputRef.current?.focus());
-          void flushSendQueue();
-          return;
-        }
-      }
+      // Repair #17: a failed Center send is an honest failure state — never
+      // a locally fabricated Opal reply or plan (former seed-mode fallback).
       setMessages((prev) => {
         const exists = prev.some((m) => m.key === optimisticKey);
         if (!exists) {
@@ -664,11 +645,6 @@ export function OpalCenterChat({
       ) {
         return;
       }
-
-      const looksLikePlanAsk =
-        /\b(plan|dinner|brunch|lunch|hike|coffee|drinks)\b/i.test(body) &&
-        /\b(with|for|[A-Z][a-z]+)\b/.test(body);
-      if (looksLikePlanAsk) lastUserPlanAsk.current = body;
 
       const optimisticKey = retryKey || `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       if (!retryKey) {
@@ -716,33 +692,141 @@ export function OpalCenterChat({
     setShowJump(false);
     setMenuOpen(false);
     setClearConfirm(false);
+    setClearError(false);
     spokenIds.current = new Set();
-    surfacedPlanIds.current.clear();
-    lastUserPlanAsk.current = null;
   }, []);
+
+  /**
+   * Repair #17 W5 — sessions discovery. Success (even an empty list) turns
+   * sessions mode on; failure leaves the legacy single-conversation path
+   * fully in charge and the drawer reports the failure honestly.
+   */
+  const refreshSessions = useCallback(async () => {
+    try {
+      const res = await listOpalChatSessions(bearer);
+      const list = Array.isArray(res.conversations) ? res.conversations : [];
+      sessionsModeRef.current = true;
+      sessionsRef.current = list;
+      setSessions(list);
+      setSessionsFailed(false);
+      const currentId = currentConversationIdRef.current;
+      if (currentId && !activeSessionIdRef.current && list.some((s) => s.id === currentId)) {
+        setActiveSession(currentId);
+      }
+      return list;
+    } catch {
+      setSessionsFailed(true);
+      return null;
+    }
+  }, [bearer, setActiveSession]);
+
+  useEffect(() => {
+    void refreshSessions();
+  }, [refreshSessions]);
+
+  const selectSession = useCallback(
+    async (id: string) => {
+      setSessionsOpen(false);
+      if (id === activeSessionIdRef.current) return;
+      // A pending rest-composer seed belongs to the chat it was typed in.
+      initialSentRef.current = true;
+      const gen = ++loadGen.current;
+      setLoading(true);
+      setLoadError(false);
+      try {
+        const res = await getOpalChatSession(id, bearer);
+        if (gen !== loadGen.current) return;
+        const list = Array.isArray(res.conversation?.messages)
+          ? res.conversation.messages.map(fromServer)
+          : [];
+        for (const m of list) {
+          if (m.role === "opal" && m.id) spokenIds.current.add(m.id);
+        }
+        resetLocalChatState();
+        setMessages(list);
+        setActiveSession(id);
+        currentConversationIdRef.current = id;
+        hydrated.current = true;
+      } catch {
+        if (gen === loadGen.current) setLoadError(true);
+      } finally {
+        if (gen === loadGen.current) setLoading(false);
+      }
+    },
+    [bearer, resetLocalChatState, setActiveSession],
+  );
 
   const onNewChat = useCallback(async () => {
     setMenuOpen(false);
+    setSessionsOpen(false);
+    if (sessionsModeRef.current) {
+      try {
+        const res = await createOpalChatSession(bearer);
+        const conv = res.conversation;
+        resetLocalChatState();
+        if (conv?.id) {
+          setActiveSession(conv.id);
+          currentConversationIdRef.current = conv.id;
+          const summary: OpalChatSessionSummary = {
+            id: conv.id,
+            title: conv.title ?? null,
+            message_count: 0,
+            last_message_preview: null,
+            inserted_at: conv.inserted_at ?? null,
+            updated_at: conv.updated_at ?? null,
+          };
+          sessionsRef.current = [
+            summary,
+            ...(sessionsRef.current ?? []).filter((s) => s.id !== conv.id),
+          ];
+          setSessions(sessionsRef.current);
+          const list = Array.isArray(conv.messages) ? conv.messages.map(fromServer) : [];
+          setMessages(list);
+          hydrated.current = true;
+        }
+      } catch {
+        /* keep the current chat on failure — never fake a new one */
+      }
+      return;
+    }
     try {
       await startOpalNewChat(bearer);
       resetLocalChatState();
     } catch {
       /* keep prior messages on failure */
     }
-  }, [bearer, resetLocalChatState]);
+  }, [bearer, resetLocalChatState, setActiveSession]);
 
-  const onClearConversation = useCallback(async () => {
-    if (!clearConfirm) {
-      setClearConfirm(true);
-      return;
-    }
+  /** Clear step 1 — arm the plain-language confirm bar (no delete yet). */
+  const onClearConversation = useCallback(() => {
+    setMenuOpen(false);
+    setClearError(false);
+    setClearConfirm(true);
+  }, []);
+
+  /** Clear step 2 — the delete actually happens server-side, then local reset. */
+  const confirmClearConversation = useCallback(async () => {
+    const activeId = activeSessionIdRef.current;
     try {
-      await clearOpalConversation(bearer);
+      if (activeId) {
+        await clearOpalChatSession(activeId, bearer);
+        if (sessionsRef.current) {
+          sessionsRef.current = sessionsRef.current.map((s) =>
+            s.id === activeId
+              ? { ...s, message_count: 0, last_message_preview: null }
+              : s,
+          );
+          setSessions(sessionsRef.current);
+        }
+      } else {
+        await clearOpalConversation(bearer);
+      }
       resetLocalChatState();
     } catch {
-      setClearConfirm(false);
+      // Honest failure: the chat is NOT cleared and the confirm stays up.
+      setClearError(true);
     }
-  }, [bearer, clearConfirm, resetLocalChatState]);
+  }, [bearer, resetLocalChatState]);
 
   // One intelligence path: rest composer / chips hand utterance here once hydrated.
   useEffect(() => {
@@ -904,6 +988,15 @@ export function OpalCenterChat({
             ? "Stop listening"
             : "Talk to Opal";
 
+  // Repair #17 W6 — real "Opal is still working" signal for the header
+  // character: a provider action queued/running on an Opal reply (the
+  // same signal the poll loop above chases). Never inferred from timers.
+  const providerWorking = messages.some(
+    (m) =>
+      m.role === "opal" &&
+      (m.metadata?.action_state === "queued" || m.metadata?.action_state === "running"),
+  );
+
   return (
     <section className="opal-center-chat" data-testid="opal-center-chat">
       <header className="opal-center-chat-header">
@@ -920,8 +1013,9 @@ export function OpalCenterChat({
           <OpalLivingCharacter
             size={64}
             testId="opal-center-chat-presence"
-            requestInFlight={sending}
+            requestInFlight={sending || providerWorking}
             audioPlaying={audioPlaying}
+            externalListening={listening}
             voiceEnabled={online && sttReady}
             onTranscript={(text) => {
               void sendBody(text);
@@ -964,16 +1058,78 @@ export function OpalCenterChat({
             data-testid="opal-center-chat-new"
             onClick={() => void onNewChat()}
           >
-            New Chat
+            New chat
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            data-testid="opal-center-chat-sessions"
+            onClick={() => {
+              setMenuOpen(false);
+              setSessionsOpen(true);
+              if (sessions === null) void refreshSessions();
+            }}
+          >
+            All chats
           </button>
           <button
             type="button"
             role="menuitem"
             data-testid="opal-center-chat-clear"
-            onClick={() => void onClearConversation()}
+            onClick={onClearConversation}
           >
-            {clearConfirm ? "Confirm clear visible history" : "Clear Conversation"}
+            Clear this chat
           </button>
+        </div>
+      ) : null}
+
+      <OpalChatSessionsDrawer
+        open={sessionsOpen}
+        sessions={sessions}
+        loadFailed={sessionsFailed}
+        activeSessionId={activeSessionId}
+        onClose={() => setSessionsOpen(false)}
+        onSelect={(id) => void selectSession(id)}
+        onNewChat={() => void onNewChat()}
+        onRetry={() => void refreshSessions()}
+      />
+
+      {clearConfirm ? (
+        <div
+          className="opal-center-chat-clear-confirm"
+          data-testid="opal-center-chat-clear-confirm"
+          role="alertdialog"
+          aria-label="Clear this chat"
+        >
+          <p>
+            Clear this chat? Every message in this conversation will be deleted.
+            Plans you made stay on your Graph.
+          </p>
+          {clearError ? (
+            <p role="alert" data-testid="opal-center-chat-clear-error">
+              Couldn&apos;t clear this chat. Nothing was deleted. Try again.
+            </p>
+          ) : null}
+          <div className="opal-center-chat-clear-actions">
+            <button
+              type="button"
+              className="opal-center-chat-clear-do"
+              data-testid="opal-center-chat-clear-confirm-btn"
+              onClick={() => void confirmClearConversation()}
+            >
+              Clear chat
+            </button>
+            <button
+              type="button"
+              data-testid="opal-center-chat-clear-cancel"
+              onClick={() => {
+                setClearConfirm(false);
+                setClearError(false);
+              }}
+            >
+              Keep messages
+            </button>
+          </div>
         </div>
       ) : null}
 

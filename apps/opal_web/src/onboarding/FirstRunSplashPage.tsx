@@ -1,8 +1,12 @@
 /**
- * TOP-LEVEL Splash — Founder Reality Repair #2.
+ * TOP-LEVEL Splash — Founder Reality Repair #2, amended Repair #17 (W7).
  *
- * SINGLE approved identity: animated Opal character on Midnight.
- * No side-by-side character+wordmark collage. No second logo. No tagline layer.
+ * SINGLE approved identity: the canon Opal logo lockup on Midnight
+ * (BRAND_ASSETS.opalLogo = shots/brand/opal-logo.png — character +
+ * bubble-letter "Opal" as ONE canon asset; that bubble-letter text is
+ * the logo text the founder asked for). The lockup is a single asset,
+ * not a composed collage: never pair it with a separate character,
+ * wordmark, rendered text logo, or tagline layer. Logo count stays 1.
  * NEW_USER_SKIP_SPLASH_2 = 0 — only “I already have an account” bypasses to Phone.
  */
 import React, { useRef } from "react";
@@ -13,8 +17,8 @@ type Props = {
   onAlreadyAccount: () => void;
 };
 
-/** Character-only splash identity — never the bad side-by-side opal-logo collage. */
-const SPLASH_IDENTITY_SRC = `${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`;
+/** Canon logo lockup only — one asset, never a composed character+wordmark collage. */
+const SPLASH_IDENTITY_SRC = `${BRAND_ASSETS.opalLogo}?v=repair17-canon-lockup`;
 
 export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount }: Props) {
   const advanced = useRef(false);
@@ -40,21 +44,21 @@ export function FirstRunSplashPage({ onTapBegin, onAlreadyAccount }: Props) {
       data-splash-logo-count="1"
       data-double-composition="0"
       data-splash-runtime-asset="single_source"
-      data-splash-identity="opal-character"
+      data-splash-identity="opal-logo-lockup"
       aria-label={PRODUCT_PUBLIC_NAME}
     >
       <div className="fr-splash-aura" aria-hidden data-figma-node="631:2" />
       <div className="fr-splash-hero">
-        <div className="fr-splash-mark fr-splash-mark-character">
+        <div className="fr-splash-mark fr-splash-mark-logo">
           <img
-            className="fr-splash-spectral-emblem fr-splash-character-lockup"
+            className="fr-splash-spectral-emblem fr-splash-logo-lockup"
             src={SPLASH_IDENTITY_SRC}
             alt=""
-            width={210}
-            height={210}
+            width={300}
+            height={200}
             draggable={false}
-            data-brand-role="character-lockup"
-            data-brand-source="opal-character"
+            data-brand-role="logo-lockup"
+            data-brand-source="opal-logo"
             data-figma-node="631:3"
             data-testid="fr00-splash-emblem"
           />

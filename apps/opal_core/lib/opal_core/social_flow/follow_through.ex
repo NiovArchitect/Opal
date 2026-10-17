@@ -15,6 +15,7 @@ defmodule OpalCore.SocialFlow.FollowThrough do
     AssistancePreference,
     AttentionSignal,
     AuditEvent,
+    Clock,
     CompletionEvent,
     FeedbackEvent,
     FollowThroughProducers,
@@ -122,7 +123,7 @@ defmodule OpalCore.SocialFlow.FollowThrough do
   def evaluate_follow_through(attrs) do
     owner_id = fetch!(attrs, :owner_user_id)
     commitment_id = fetch!(attrs, :commitment_id)
-    now = Map.get(attrs, :now) || DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    now = Map.get(attrs, :now) || Clock.utc_now()
     force_due = Map.get(attrs, :force_due, false)
     shadow = Map.get(attrs, :shadow, false)
     trace_id = Map.get(attrs, :trace_id) || @trace

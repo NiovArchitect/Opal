@@ -151,7 +151,10 @@ defmodule OpalCore.SocialFlow.Repair14RelationshipJourneysTest do
   # AttentionBudget prefs: established maturity (no maturity gate) and a quiet
   # window placed 2h in the future so casual slots are never quiet-denied.
   defp pref_daytime(account_id) do
-    now = DateTime.utc_now()
+    # Repair #17 — read the injectable Clock (real time when unpinned)
+    # so the daytime window always matches the gate's "now", even when
+    # a run pins the clock.
+    now = OpalCore.SocialFlow.Clock.utc_now()
     pad = fn h -> h |> Integer.to_string() |> String.pad_leading(2, "0") end
 
     %AssistancePreference{}

@@ -690,16 +690,16 @@ export function FirstRunExperience({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={reduce ? { duration: 0 } : { duration: 0.55, ease: EASE_OUT }}
               >
-                {/* Match FirstRunSplashPage: character-only identity (Repair #2). */}
+                {/* Match FirstRunSplashPage: canon logo lockup only (Repair #17). */}
                 <img
-                  className="fr-splash-spectral-emblem fr-splash-character-lockup"
-                  src={`${BRAND_ASSETS.opalCharacter}?v=founder-reality-repair-2`}
+                  className="fr-splash-spectral-emblem fr-splash-logo-lockup"
+                  src={`${BRAND_ASSETS.opalLogo}?v=repair17-canon-lockup`}
                   alt=""
-                  width={210}
-                  height={210}
+                  width={300}
+                  height={200}
                   draggable={false}
-                  data-brand-role="character-lockup"
-                  data-brand-source="opal-character"
+                  data-brand-role="logo-lockup"
+                  data-brand-source="opal-logo"
                   data-figma-node="631:3"
                   data-testid="fr00-splash-emblem"
                 />

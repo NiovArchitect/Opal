@@ -68,7 +68,16 @@
       ],
       "./plugins/withCallKeep.js",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#A78BFA",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
     ],
     "extra": {
       "buildNumber": "5",

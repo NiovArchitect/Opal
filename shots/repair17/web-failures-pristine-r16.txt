@@ -1,0 +1,25 @@
+src/activation.test.ts > S1 first-run auth conversion > CSP allows hosted API hosts (same-site + Render rollback)
+src/activation.test.ts > S1 first-run auth conversion > boot recovers session without requiring localStorage bearer
+src/activation.test.ts > S1 first-run auth conversion > has no em dashes in walkthrough or activation copy
+src/availability/availability.test.ts > availability UI - age-12 + color truth > maps availability_overlap to recognition, not completion
+src/designTokens.test.ts > design tokens + brand > brand mark is ownable and premium void grammar
+src/onboarding/firstRun.test.ts > S1 Final First Run (217:2) > forbids em dash, en dash, and ellipsis in S1 customer copy
+src/onboarding/s1Adversarial.test.ts > S1 adversarial harness - brand and assets > no old opposing-arcs mark in first-run source
+src/opalUi/OpalCenterChat.test.tsx > OpalCenterChat > shows send error and keeps typed text on failure
+src/opalUi/authorityRejectedStates.test.ts > P0-05 rejected-state regressions > Center Opal 1114:2 wrapper geometry (86×64 @ 142,0) - not obsolete Trio 66@146,-4
+src/opalUi/grammar.test.ts > chat_single_primary_next_gap_cta > does not render journey Choose a place when chip already owns place gap
+src/opalUi/graphCalendaring.test.ts > Paste J Phase 5 graph calendaring > GraphsHome and profile surfaces carry temporal context
+src/opalUi/graphCalendaring.test.ts > Paste J Phase 5 graph calendaring > timeline UI wires range toggle and future actions
+src/opalUi/graphDetail.test.ts > graph detail navigation > sends Next Together and Your Graphs to the same Graph Detail
+src/opalUi/graphScroll.test.ts > graph list scroll > demotes past below live/seeds in All via STATUS_RANK sort of combined list
+src/opalUi/graphScroll.test.ts > graph list scroll > keeps Past lens chip in source and horizontally reachable
+src/opalUi/graphSpine.test.ts > founder-locked 201 spine surfaces > forbids em dashes in new spine customer files
+src/opalUi/liveJourneyProof.test.ts > FOUNDER LIVE JOURNEY CLOSURE (deterministic) > product uses continuous orbital mark path (not historical flat arcs only)
+src/opalUi/pasteW4DeviceFixes.test.ts > Paste W4 Phase 5 notifications / composer / New / add-someone / detail > Attention empty copy replaces not found
+src/opalUi/pasteW4DeviceFixes.test.ts > Paste W5 Phase 4 PlanComposer tells the truth > orb is idle/working never ready; proposal echoes state; filament stays plan_forming
+src/opalUi/waveBChatsExact.test.ts > Wave B Chats exact authority > CHATS_CURRENT_AUTHORITY_618_271
+src/opalUi/waveBChatsExact.test.ts > Wave B Chats exact authority > CHATS_NEW_ROUTES_SEARCH_PEOPLE_MODE
+src/opalUi/waveBChatsExact.test.ts > Wave B Chats exact authority > GROUP_ADD_PEOPLE_ROUTES_SEARCH_PEOPLE_MODE
+src/opalUi/waveBGraphsExact.test.ts > Wave B Graphs exact authority > GRAPHS_FILTER_COLORS_PRESERVED
+src/opalUi/waveBHomeExact.test.ts > Wave B Home exact authority > HOME_TIMELINE_MULTICOLOR
+src/theme/technicolorProduction.test.ts > production Technicolor system > maps signals to semantic states with non-color-only labels available

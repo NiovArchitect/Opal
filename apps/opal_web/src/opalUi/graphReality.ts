@@ -6,7 +6,10 @@
  */
 import type { ChatPreview } from "../data";
 import { formatPastPlanWhen, parsePlanInstant } from "./historyTime";
-import { planSurfaceState, type PlanSurfaceState } from "./nextPlan";
+import {
+  planProjectionSurfaceState,
+  type PlanSurfaceState,
+} from "./nextPlan";
 import { graphPendingStatusLabel } from "./surfaceProjection";
 
 export type { PlanSurfaceState };
@@ -240,6 +243,7 @@ export function clientPlanFields(
     pending_change: raw.pending_change === true,
     pending_proposal_value: text(raw.pending_proposal_value),
     pending_proposal_field: text(raw.pending_proposal_field),
+    pending_proposal_by_user_id: text(raw.pending_proposal_by_user_id),
     placeIdentity: readPlaceIdentity(raw.place_identity, place),
     public: false,
     temporal_state: text(raw.temporal_state),
@@ -270,14 +274,8 @@ export function canonicalGraphFromChat(
     .map((name) => name?.trim() || "")
     .filter((name, index, all) => name && all.indexOf(name) === index);
   const pendingChange = plan.pending_change === true;
-  const state = planSurfaceState({
-    commitment: plan.execution_label ? "execution_ready" : "aligned",
-    pendingChange,
-    upcomingReady: plan.upcoming_ready,
-    temporalState: plan.temporal_state,
-    canonicalStartAt: plan.canonical_start_at,
-    timezone: plan.timezone,
-  });
+  // Repair #17: same shared projection derivation as chat list / Graphs.
+  const state = planProjectionSurfaceState(plan);
   // M-03: past plans use relative history voice; future keeps absolute when_label.
   const pastInstant =
     state === "past" || plan.temporal_state === "past"

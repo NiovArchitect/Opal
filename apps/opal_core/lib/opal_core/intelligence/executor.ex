@@ -153,9 +153,21 @@ defmodule OpalCore.Intelligence.Executor do
            }) do
         {:ok, _result} ->
           msg =
-            if decision == "reject",
-              do: "Noted. I won't lock that in.",
-              else: "Confirmed."
+            if decision == "reject" do
+              "Noted. I won't lock that in."
+            else
+              # Repair #17 (W4-1) — state the applied truth from the plan
+              # row itself (the confirm just mutated it through the revision
+              # authority), never a bare claim detached from state.
+              case active_plan(conversation_id) do
+                %SharedPlan{time_label: label, title: title}
+                when is_binary(label) and label != "" ->
+                  "Confirmed — #{title || "the plan"} is now at #{label}."
+
+                _ ->
+                  "Confirmed."
+              end
+            end
 
           notify(conversation_id, d.id, msg, Map.put(base, "confirmed", true))
 
@@ -274,6 +286,17 @@ defmodule OpalCore.Intelligence.Executor do
                   Map.merge(base, %{"plan_id" => plan.id, "changed" => true, "new_value" => new_value})
                 )
 
+              # Repair #17 (W4-1) — a non-lead participant cannot edit the
+              # plan directly, but their change request is not a dead end:
+              # it becomes a real revision proposal through the same
+              # machinery apply_nl_schedule_change/1 uses, and the copy
+              # states the truth — proposed, other party notified, awaiting
+              # THEIR confirmation; the plan has NOT moved yet. The old path
+              # stopped at :not_authorized, so the founder's "confirm 8 PM"
+              # later found nothing pending and nothing ever changed.
+              {:error, :not_authorized} when kind == "time" ->
+                propose_time_revision(d, plan, user_id, new_value, conversation_id, base)
+
               {:error, reason} ->
                 notify(
                   conversation_id,
@@ -287,6 +310,42 @@ defmodule OpalCore.Intelligence.Executor do
   end
 
   defp do_execute(%Decision{action: action}), do: {:error, {:unknown_action, action}}
+
+  # Repair #17 (W4-1) — non-lead time change → revision proposal + truthful
+  # proposing copy. Never claims the change is done; the current time stays
+  # in force until a required approver confirms.
+  defp propose_time_revision(d, plan, user_id, new_value, conversation_id, base) do
+    case OpalCore.SocialFlow.propose_revision(%{
+           plan_id: plan.id,
+           proposed_by_user_id: user_id,
+           changes: %{"time_label" => new_value},
+           trace_id: d.id
+         }) do
+      {:ok, %{revision: revision}} ->
+        current = plan.time_label || "the current time"
+
+        notify(
+          conversation_id,
+          d.id,
+          "Proposing #{new_value} — I've sent that change to the other person on this plan. " <>
+            "It stays at #{current} until they confirm.",
+          Map.merge(base, %{
+            "plan_id" => plan.id,
+            "proposed" => true,
+            "revision_id" => revision.id,
+            "new_value" => new_value
+          })
+        )
+
+      {:error, reason} ->
+        notify(
+          conversation_id,
+          d.id,
+          "I couldn't propose that change (#{human_reason(reason)}). Nothing was changed.",
+          Map.merge(base, %{"plan_id" => plan.id, "error" => inspect(reason)})
+        )
+    end
+  end
 
   # Repair #11 — cancel disambiguation against the conversation's active plan.
   defp route_plan_cancel(d, plan, user_id, body, conversation_id, base) do
@@ -399,13 +458,14 @@ defmodule OpalCore.Intelligence.Executor do
   end
 
   # The conversation's active plan (mirrors SocialFlow.latest_plan/1, which is private).
+  # Repair #17 (W4-1) — ordering must match SocialFlow.latest_plan/1 exactly
+  # (updated_at desc, inserted_at desc, via ConversationAlignment). The old
+  # inserted_at-only ordering diverged whenever a conversation held more than
+  # one active plan: a change/confirm executed here could land on a different
+  # plan row than the one confirm_pending_revision/1 and the sync surfaces
+  # resolve — a change proposed on plan A and a confirm consumed on plan B.
   defp active_plan(conversation_id) when is_binary(conversation_id) do
-    from(p in SharedPlan,
-      where: p.conversation_id == ^conversation_id and p.status in ^["agreed", "changed", "tentative"],
-      order_by: [desc: p.inserted_at],
-      limit: 1
-    )
-    |> Repo.one()
+    OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(conversation_id)
   end
 
   defp active_plan(_), do: nil

@@ -8,6 +8,7 @@ defmodule OpalCore.Relationships.RelationshipMatrixTest do
 
   alias OpalCore.Intelligence.AttentionBudget
   alias OpalCore.Relationships.Behavior
+  alias OpalCore.SocialFlow.Clock
 
   @moduletag :relationship_matrix
 
@@ -50,6 +51,12 @@ defmodule OpalCore.Relationships.RelationshipMatrixTest do
     end
 
     test "AttentionBudget.request_slot — acquaintance + priority nudge → :relationship_bounds; close_friend grants" do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST) so the quiet-hours gate, which runs before the
+      # relationship gate, never decides this test by wall clock.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       # Asia/Tokyo + established keeps CI daytime and past maturity gate
       owner =
         account!(%{timezone: "Asia/Tokyo", maturity: "established", display_name: "Owner"})

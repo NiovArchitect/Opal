@@ -16,6 +16,7 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{
     ConversationIndex,
@@ -52,6 +53,12 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
 
   describe "C1–C2 group decision + mediation" do
     test "proposals → blocked → mediate to owner Center only", %{account_id: aid} do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST for this account's preference); mediation is
+      # suppressed by AttentionBudget quiet hours overnight.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       conv = Ecto.UUID.generate()
       a = Ecto.UUID.generate()
       b = Ecto.UUID.generate()
@@ -149,6 +156,12 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
 
   describe "C3 ProactiveConversation" do
     test "only allowed triggers; daily cap; delivers to Center", %{account_id: aid} do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST for this account's preference). maybe_initiate runs
+      # AttentionBudget's quiet-hours gate for proactive threads.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       assert {:suppressed, :trigger_not_allowed} =
                ProactiveConversation.maybe_initiate(aid, "random", nil, "hi")
 
@@ -161,7 +174,7 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
                  "Birthday soon"
                )
 
-      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      now = Clock.utc_now()
 
       {:ok, _} =
         %ConversationIndex{}
@@ -193,6 +206,12 @@ defmodule OpalCore.Intelligence.CoordinatorLearnerTest do
 
   describe "C4 weekly briefing" do
     test "generates once per week and posts to Center", %{account_id: aid} do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST); weekly briefings defer under quiet hours
+      # (:quiet_hours_defer_8am) overnight.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       assert {:ok, %WeeklyBriefing{}} = WeeklyBriefingWorker.generate_for(aid)
       assert {:ok, :already} = WeeklyBriefingWorker.generate_for(aid)
 

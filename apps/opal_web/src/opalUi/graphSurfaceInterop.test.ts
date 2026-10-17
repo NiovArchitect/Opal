@@ -8,7 +8,6 @@ import {
   localPlanSurfaceId,
   mergeChatRowsWithCreated,
   mergeFeedWithCreated,
-  planFromLocalConfirm,
   planFromOpalMetadata,
   travelLabelFor,
 } from "./graphSurfaceInterop";
@@ -112,13 +111,8 @@ describe("graphSurfaceInterop", () => {
     expect(fromMeta?.id).toBe("plan-abc");
     expect(fromMeta?.who).toBe("Maya");
 
-    const local = planFromLocalConfirm({
-      priorUserText: "Plan dinner with Maya Friday",
-      affirmText: "Yes",
-    });
-    expect(local?.who).toBe("Maya");
-    expect(local?.when).toBe("Friday");
-    expect(local?.title).toMatch(/Dinner with Maya/i);
+    // Repair #17: planFromLocalConfirm (local plan fabrication) is deleted;
+    // plans surface only from backend metadata — asserted above via fromMeta.
   });
 
   it("applies On the way to matching chat pills", () => {

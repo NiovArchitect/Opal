@@ -386,6 +386,17 @@ defmodule OpalCore.Center.PlanContextPatch do
             "participants" => "__clear__",
             "plan_id" => "__clear__"
           }
+          |> then(fn b ->
+            # Repair #17 (W4-5) — "…near me" with a named venue is a
+            # locality signal, not a missing locality: the search proceeds
+            # on the venue name (device coords when available, text search
+            # otherwise) instead of stopping at the location gate.
+            if is_nil(locality) and Regex.match?(~r/\bnear\s+me\b/i, raw) do
+              Map.put(b, "near_me", true)
+            else
+              b
+            end
+          end)
 
           # Explicit current instruction outranks historical WHEN from prior tasks.
           base =
@@ -538,17 +549,121 @@ defmodule OpalCore.Center.PlanContextPatch do
   Examples: "Nighthawk in Coronado", "take us to Pujol in Mexico City".
   """
   def extract_exact_venue(raw) when is_binary(raw) do
-    # "Find The Henry restaurant in Coronado" is an exact named venue — not cuisine discovery.
-    case extract_named_find_venue(raw) do
+    # Repair #17 (W4-5) — "Let's do Dave & Busters near me" is a named-venue
+    # turn: the venue name rides with a near-me phrase instead of an
+    # "in <City>" locality. It must route to named-venue search, never to
+    # the location gate + category question (that gate is only for
+    # name-less discovery).
+    case extract_lets_do_venue(raw) do
       %{name: _} = named ->
         named
 
       nil ->
-        extract_exact_venue_legacy(raw)
+        # "Find The Henry restaurant in Coronado" is an exact named venue — not cuisine discovery.
+        case extract_named_find_venue(raw) do
+          %{name: _} = named ->
+            named
+
+          nil ->
+            extract_exact_venue_legacy(raw)
+        end
     end
   end
 
   def extract_exact_venue(_), do: nil
+
+  # "let's do/go to <Proper Name> near me|near <Place>|in <Place>" — the name
+  # is a proper-noun phrase (apostrophes and "&" allowed, e.g. a chain name
+  # written without its apostrophe: "Dave & Busters"). Generic/cuisine/day
+  # words never become a venue. Locality is nil for "near me" (device/text
+  # search territory — the search proceeds on the name alone).
+  defp extract_lets_do_venue(raw) when is_binary(raw) do
+    name_re = ~S"((?:[A-Z][\w'&.]*(?:\s+(?:[A-Z][\w'&.]*|&)){0,4}))"
+
+    patterns = [
+      Regex.compile!(
+        "\\b(?i:let'?s\\s+(?:do|go\\s+to)|go\\s+to)\\s+#{name_re}\\s+(?i:near\\s+me)\\b"
+      ),
+      Regex.compile!(
+        "\\b(?i:let'?s\\s+(?:do|go\\s+to)|go\\s+to)\\s+#{name_re}\\s+(?i:near|in)\\s+([A-Z][\\w]+(?:\\s+[A-Z][\\w]+){0,2})\\b"
+      )
+    ]
+
+    stop = exact_venue_stop_words()
+
+    Enum.find_value(patterns, fn re ->
+      case Regex.run(re, raw) do
+        [_, name] ->
+          validate_lets_do_name(name, nil, stop)
+
+        [_, name, loc] ->
+          validate_lets_do_name(name, loc, stop)
+
+        _ ->
+          nil
+      end
+    end)
+  end
+
+  defp extract_lets_do_venue(_), do: nil
+
+  defp validate_lets_do_name(name, loc, stop) do
+    name = name |> String.trim() |> strip_venue_lead_verbs() |> String.trim()
+    bare = name |> String.replace(~r/^(?:the\s+)/i, "") |> String.trim()
+    loc = if is_binary(loc), do: sanitize_locality(String.trim(loc)), else: nil
+
+    cond do
+      bare == "" -> nil
+      MapSet.member?(stop, name) or MapSet.member?(stop, bare) -> nil
+      day_word?(bare) -> nil
+      cuisine_word?(bare) or name_has_cuisine_token?(bare) -> nil
+      String.downcase(bare) in ~w(dinner lunch brunch breakfast restaurant venue food drinks) -> nil
+      true -> %{name: name, locality: loc}
+    end
+  end
+
+  @doc """
+  Repair #17 (W4-5) — fuzzy venue-name comparison for the intent/venue
+  layer. Normalizes case, apostrophes (straight/curly/missing), "&" vs
+  "and", punctuation, and a trailing plural "s" per token, so an
+  imperfect chain name the user typed ("Dave & Busters") matches the
+  canonical provider name ("Dave & Buster's"). Returns false for names
+  that differ in substance.
+  """
+  def venue_names_match?(a, b) when is_binary(a) and is_binary(b) do
+    ka = normalize_venue_name(a)
+    kb = normalize_venue_name(b)
+
+    ka != "" and kb != "" and
+      (ka == kb or singularize_venue_key(ka) == singularize_venue_key(kb))
+  end
+
+  def venue_names_match?(_, _), do: false
+
+  @doc "Canonical comparison key for a venue name (see venue_names_match?/2)."
+  def normalize_venue_name(name) when is_binary(name) do
+    name
+    |> String.downcase()
+    |> String.replace(~r/[’‘`]/u, "'")
+    |> String.replace("'", "")
+    |> String.replace("&", " and ")
+    |> String.replace(~r/[^a-z0-9]+/, " ")
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+  end
+
+  def normalize_venue_name(_), do: ""
+
+  defp singularize_venue_key(key) do
+    key
+    |> String.split(" ")
+    |> Enum.map(fn tok ->
+      if String.length(tok) > 3 and String.ends_with?(tok, "s"),
+        do: String.slice(tok, 0..-2//1),
+        else: tok
+    end)
+    |> Enum.join(" ")
+  end
 
   @doc """
   Detect a venue-location *question* with no locality: "where is X",

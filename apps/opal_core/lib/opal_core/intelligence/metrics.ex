@@ -17,6 +17,7 @@ defmodule OpalCore.Intelligence.Metrics do
 
   alias OpalCore.Intelligence.{AttentionSlot, DailyMetric}
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory.{OutcomeSignal, ProactiveThreadLog, SurfacedNudge}
 
   # founder-tunable alert thresholds
@@ -36,7 +37,9 @@ defmodule OpalCore.Intelligence.Metrics do
   end
 
   @doc "IEx helper — metrics map for one account on a day (default today)."
-  def for_account(account_id, day \\ Date.utc_today()) when is_binary(account_id) do
+  def for_account(account_id, day \\ nil) when is_binary(account_id) do
+    day = day || Clock.utc_now() |> DateTime.to_date()
+
     case Repo.get_by(DailyMetric, account_id: account_id, day: day) do
       %DailyMetric{} = m -> %{day: m.day, metrics: m.metrics, alerts: m.alerts}
       nil -> aggregate_account(account_id, day)
@@ -44,7 +47,9 @@ defmodule OpalCore.Intelligence.Metrics do
   end
 
   @doc "IEx helper — global metrics for a day."
-  def global(day \\ Date.utc_today()) do
+  def global(day \\ nil) do
+    day = day || Clock.utc_now() |> DateTime.to_date()
+
     case from(m in DailyMetric, where: is_nil(m.account_id) and m.day == ^day, limit: 1)
          |> Repo.one() do
       %DailyMetric{} = m -> %{day: m.day, metrics: m.metrics, alerts: m.alerts}
@@ -53,14 +58,16 @@ defmodule OpalCore.Intelligence.Metrics do
   end
 
   @doc "Compute + upsert daily metrics for an account."
-  def aggregate_account(account_id, day \\ Date.utc_today()) do
+  def aggregate_account(account_id, day \\ nil) do
+    day = day || Clock.utc_now() |> DateTime.to_date()
     metrics = compute_account(account_id, day)
     alerts = evaluate_alerts(metrics)
     upsert(account_id, day, metrics, alerts)
     %{day: day, metrics: metrics, alerts: alerts}
   end
 
-  def aggregate_global(day \\ Date.utc_today()) do
+  def aggregate_global(day \\ nil) do
+    day = day || Clock.utc_now() |> DateTime.to_date()
     metrics = compute_global(day)
     alerts = evaluate_alerts(metrics)
     upsert(nil, day, metrics, alerts)

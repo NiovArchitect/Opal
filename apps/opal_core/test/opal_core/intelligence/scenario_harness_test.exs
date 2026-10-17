@@ -22,6 +22,7 @@ defmodule OpalCore.Intelligence.ScenarioHarnessTest do
   }
 
   alias OpalCore.SocialMemory.Workers.WeeklyBriefingWorker
+  alias OpalCore.SocialFlow.Clock
 
   setup do
     owner_id = Ecto.UUID.generate()
@@ -200,6 +201,12 @@ defmodule OpalCore.Intelligence.ScenarioHarnessTest do
   test "7 — Weekly briefing + consensus channel owner isolation + temporal enrichment", %{
     owner_id: owner_id
   } do
+    # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+    # 12:00 JST for the owner preference); weekly briefings defer
+    # under AttentionBudget quiet hours overnight.
+    Clock.freeze(~U[2026-06-01 03:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     # Briefing
     assert {:ok, %WeeklyBriefing{} = briefing} = WeeklyBriefingWorker.generate_for(owner_id)
     assert {:ok, contract} = ProductSurface.get_briefing(owner_id, briefing.id)

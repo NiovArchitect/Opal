@@ -42,6 +42,13 @@
         "EXPO_PUBLIC_OPAL_PROFILE": "internal_rc"
       }
     },
+    "testflight": {
+      "extends": "production",
+      "distribution": "store",
+      "ios": {
+        "simulator": false
+      }
+    },
     "production": {
       "distribution": "store",
       "ios": {

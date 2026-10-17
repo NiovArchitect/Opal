@@ -10172,6 +10172,10 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  /* Repair #17 (W3) audit: chat-list signal text must stay inside its row —
+   * a single long word could previously paint past the copy column. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .calls-signal-action {
   color: #00e5ff;
@@ -10391,7 +10395,11 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   white-space: nowrap;
 }
 .chats-plan-pill {
-  flex-shrink: 0;
+  /* Repair #17 (W3): the pill itself must be shrinkable — flex-shrink:0 in a
+   * nowrap meta-row forced long pills past the row edge, painting the label
+   * outside the pill. Shrink + min-width:0 lets max-width actually bind. */
+  flex: 0 1 auto;
+  min-width: 0;
   max-width: 58%;
   display: inline-flex;
   align-items: center;
@@ -10406,6 +10414,16 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   cursor: pointer;
   border: 1px solid transparent;
   /* Tone classes are legacy hooks; W6 state fill wins via [data-plan-state]. */
+}
+/* Repair #17 (W3): containment lives on the label element itself — ellipsis
+ * only applies to a real box, never to a flex item's anonymous text run. No
+ * chat-list pill text may render outside its pill bounds. */
+.chats-plan-pill-label {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .chats-plan-pill.is-tone-dinner,
 .chats-plan-pill.is-tone-activity,
@@ -13956,6 +13974,25 @@ html.opal-native-host .you-hub-pane.scroll {
   margin: 0;
   padding: 0;
 }
+/* Repair #17 W5 — hub settings search, same field family as the hub rows. */
+.you-hub-search {
+  margin: 12px 20px 0;
+}
+.you-hub-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(148, 161, 184, 0.22);
+  border-radius: 10px;
+  background: rgba(148, 161, 184, 0.08);
+  color: inherit;
+  font-size: 14px;
+  padding: 9px 12px;
+}
+.you-hub-search-empty {
+  margin: 16px 20px 4px;
+  font-size: 0.85rem;
+  color: #6b778c;
+}
 .you-hub-section-label {
   margin: 18px 20px 2px;
   padding: 0;
@@ -15297,7 +15334,11 @@ button.group-info-shared-graph-tappable {
   border-radius: 12px;
   background: transparent;
   border: 0;
-  padding: 0 8px;
+  /* Repair #17 (W3): right padding clears the absolutely-positioned voice
+   * (right:44px, 32px wide) + send controls — typed text previously ran
+   * UNDER the voice button while typing (form padding alone is only 48px,
+   * the voice button spans 44–76px from the right edge). */
+  padding: 0 36px 0 8px;
   flex: 1;
   /* Figma Direct 618:409 / Group 618:477  -  Inter Regular 14 / #E2E8F0 */
   font-family: var(--font);
@@ -19146,7 +19187,10 @@ html.opal-native-host .story-create-flow {
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px solid rgba(0, 229, 255, 0.22);
-  background: rgba(11, 18, 38, 0.94);
+  /* Repair #17 (W3): FULLY opaque — the card docks over the thread scroll
+   * (is-sheet sticky) and at 0.94 alpha message bubbles ghosted through it
+   * (founder screenshot). Same opaque law the next-plan-strip got in F12-08. */
+  background: rgb(11, 18, 38);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -20157,6 +20201,117 @@ button.alignment-choice:focus-visible,
 .opal-center-chat-menu button:hover,
 .opal-center-chat-menu button:focus-visible {
   background: rgba(0, 229, 255, 0.12);
+}
+/* Repair #17 W5 — Opal chat sessions drawer + clear confirm. Same chrome
+   family as the conversation menu; no new look. */
+.opal-center-sessions {
+  flex: 0 0 auto;
+  margin: 0 12px 8px;
+  z-index: 6;
+}
+.opal-center-sessions-card {
+  border-radius: 12px;
+  background: rgba(12, 18, 36, 0.92);
+  border: 1px solid rgba(148, 161, 184, 0.22);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.opal-center-sessions-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.opal-center-sessions-top h2 {
+  margin: 0;
+  font-size: 15px;
+  color: #f8faff;
+}
+.opal-center-sessions-top button {
+  border: 0;
+  background: transparent;
+  color: #94a1b8;
+  font-size: 13px;
+  cursor: pointer;
+}
+.opal-center-sessions-note {
+  margin: 0;
+  color: #94a1b8;
+  font-size: 13px;
+}
+.opal-center-sessions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.opal-center-sessions-row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  background: transparent;
+  color: #f8faff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.opal-center-sessions-row:hover,
+.opal-center-sessions-row:focus-visible {
+  background: rgba(0, 229, 255, 0.12);
+}
+.opal-center-sessions-row.is-active {
+  background: rgba(148, 161, 184, 0.12);
+}
+.opal-center-sessions-row-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.opal-center-sessions-row-time,
+.opal-center-sessions-row-current {
+  flex: 0 0 auto;
+  color: #94a1b8;
+  font-size: 12px;
+}
+.opal-center-chat-clear-confirm {
+  flex: 0 0 auto;
+  margin: 0 12px 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(12, 18, 36, 0.92);
+  border: 1px solid rgba(148, 161, 184, 0.22);
+  color: #f8faff;
+  font-size: 14px;
+  z-index: 6;
+}
+.opal-center-chat-clear-confirm p {
+  margin: 0 0 8px;
+}
+.opal-center-chat-clear-actions {
+  display: flex;
+  gap: 8px;
+}
+.opal-center-chat-clear-actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(148, 161, 184, 0.12);
+  color: #f8faff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.opal-center-chat-clear-actions .opal-center-chat-clear-do {
+  background: rgba(255, 77, 94, 0.18);
 }
 .opal-center-chat-jump-latest {
   position: absolute;
@@ -23653,7 +23808,10 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   color: #9eadc7;
 }
 .opal-living-idle .opal-living-art {
-  animation: opal-living-idle-soft 4.2s ease-in-out infinite;
+  animation: opal-living-idle-soft 5s ease-in-out infinite;
+}
+.opal-living-idle .opal-living-border {
+  animation: opal-living-breathe 5s ease-in-out infinite;
 }
 .opal-living-notice .opal-living-art {
   animation: opal-living-notice 420ms ease-out both;
@@ -23670,7 +23828,7 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   animation: opal-living-wave-ticks 0.55s steps(4) infinite;
 }
 .opal-living-thinking .opal-living-art {
-  transform: translateY(-2px);
+  animation: opal-living-think-sway 3s ease-in-out infinite;
 }
 .opal-living-thinking .opal-living-border {
   animation: opal-living-breathe 2.6s ease-in-out infinite;
@@ -23685,8 +23843,12 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   animation: opal-living-hp-off 520ms ease-in both;
 }
 @keyframes opal-living-idle-soft {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.015); }
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.03) translateY(-2px); }
+}
+@keyframes opal-living-think-sway {
+  0%, 100% { transform: translateY(-2px) scale(1); }
+  50% { transform: translateY(-3px) scale(1.02); }
 }
 @keyframes opal-living-notice {
   0% { transform: scale(1) translateY(0); }
@@ -23718,6 +23880,22 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
 @keyframes opal-living-hp-off {
   0% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-6px); }
+}
+/* Repair #17 W6 — reduced motion: the living character goes still.
+   State stays readable without motion (border opacity, headphones,
+   lightbulb, and the status line are non-motion cues). */
+@media (prefers-reduced-motion: reduce) {
+  .opal-living-character,
+  .opal-living-art,
+  .opal-living-border,
+  .opal-living-headphones,
+  .opal-living-lightbulb {
+    animation: none !important;
+    transition: none !important;
+  }
+  .opal-living-thinking .opal-living-art {
+    transform: translateY(-2px);
+  }
 }
 
 /* ─── W6A2 / W6A3 brand chrome ─── */

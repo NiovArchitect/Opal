@@ -7,6 +7,7 @@ defmodule OpalCore.Relationships.RelationshipInferenceTest do
   import OpalCore.MultiuserHarness
 
   alias OpalCore.Intelligence.{AttentionBudget, ProductSurface}
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.Relationships
   alias OpalCore.Relationships.{Behavior, Inference}
 
@@ -111,6 +112,12 @@ defmodule OpalCore.Relationships.RelationshipInferenceTest do
 
   describe "A8 infer → one-time prompt → confirm" do
     test "3 weeks signals → close_friend provisional → confirm → source confirmed" do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST); the quiet-hours gate runs before the relationship
+      # gate in AttentionBudget and must not decide this test.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       owner = account!(%{display_name: "Owner", timezone: "Asia/Tokyo", maturity: "established"})
       contact = account!(%{display_name: "Sam"})
 

@@ -390,43 +390,10 @@ export function planFromOpalMetadata(
   };
 }
 
-/** Founder-seed local confirm: synthesize a surface when Yes follows a plan ask. */
-export function planFromLocalConfirm(opts: {
-  priorUserText?: string;
-  affirmText?: string;
-}): CreatedPlanSurface | null {
-  const affirm = (opts.affirmText || "").trim().toLowerCase();
-  if (!/^(yes|yeah|yep|sure|ok|okay|do it|set it up|please)\b/.test(affirm)) {
-    return null;
-  }
-  const prior = opts.priorUserText || "";
-  const withWho = prior.match(/\b(?:with|for)\s+([A-Z][a-z]+)\b/);
-  const possessiveWho = prior.match(
-    /\b([A-Z][a-z]+)(?:'s)\s+(?:birthday|dinner|plans?)\b/,
-  );
-  // Person-agnostic: never hardcode Maya. Unresolved who stays Friend.
-  const who = withWho?.[1] || possessiveWho?.[1] || "Friend";
-  const whenMatch = prior.match(
-    /\b(Friday|Saturday|Sunday|Monday|Tuesday|Wednesday|Thursday|tonight|tomorrow|this weekend)\b/i,
-  );
-  const when = whenMatch?.[1] || "soon";
-  // Paste W4 Phase 1 — include beach + echo user words; never default to dinner.
-  const whatMatch = prior.match(
-    /\b(dinner|brunch|lunch|hike|coffee|drinks|beach|walk|church|movie|birthday)\b/i,
-  );
-  const activity = (whatMatch?.[1] || "plans").toLowerCase();
-  const title = planTitleWithFriend(activity, who);
-  const id = localPlanSurfaceId(who, `${activity}-${when}`);
-  return {
-    id,
-    title,
-    who,
-    when,
-    what: activity,
-    place: planTitleFromUserWords(activity),
-    // Local founder confirm is Center-private until explicit share.
-    conversationId: null,
-    sharedPlanId: id,
-    createdAt: new Date().toISOString(),
-  };
-}
+/**
+ * Repair #17: planFromLocalConfirm was deleted. It synthesized a plan
+ * surface (and, in OpalCenterChat, a fabricated "Done … is on your Graph"
+ * reply) locally when a user said "yes" after a plan ask — a scripted
+ * fabrication reachable from a user path. Plans now surface ONLY from
+ * backend plan metadata via planFromOpalMetadata.
+ */

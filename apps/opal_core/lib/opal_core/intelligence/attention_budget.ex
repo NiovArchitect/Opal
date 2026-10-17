@@ -30,6 +30,7 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   alias OpalCore.Intelligence.AttentionSlot
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory.ConversationIndex
 
   # founder-tunable
@@ -65,7 +66,7 @@ defmodule OpalCore.Intelligence.AttentionBudget do
       when is_binary(account_id) and is_binary(surface) do
     priority = normalize_priority(priority)
     ref = stringify_keys(ref || %{})
-    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    now = Clock.utc_now()
     {_tz, local_now, local_date} = local_clock(account_id, now)
 
     cond do
@@ -201,7 +202,7 @@ defmodule OpalCore.Intelligence.AttentionBudget do
 
   @doc false
   def used_today(account_id, local_date \\ nil) do
-    date = local_date || Date.utc_today()
+    date = local_date || (Clock.utc_now() |> DateTime.to_date())
 
     from(s in AttentionSlot,
       where:
@@ -260,7 +261,7 @@ defmodule OpalCore.Intelligence.AttentionBudget do
   end
 
   defp grant_or_dedupe(account_id, surface, priority, ref, dedupe, local_date) do
-    since = DateTime.add(DateTime.utc_now(), -24 * 3600, :second)
+    since = DateTime.add(Clock.utc_now(), -24 * 3600, :second)
 
     existing =
       from(s in AttentionSlot,

@@ -10,6 +10,7 @@ import {
   authorizeRelationshipAction,
   createCenterPlan,
   fetchCalendarToday,
+  listOpalPlans,
   resolveDecision,
   type DecisionResolvePayload,
 } from "../api/productClient";
@@ -20,7 +21,7 @@ import {
   STRIP_TICK_MS,
   composeNowStrip,
   normalizeDayStripEvents,
-  sampleDayEventsFor,
+  planEventsForToday,
   type DayStripEvent,
   type DayStripNode,
   type DayStripSource,
@@ -167,12 +168,16 @@ export function OpalCenterLifeGraph({
       return next;
     });
   };
+  // Repair #17 W5 — the strip paints ONLY live data: linked-calendar
+  // events, else the user's real plans for today, else an honest empty
+  // state. The old sample-day fallback (3:30 Appointment / 7:30 Dinner
+  // fixtures) is gone from the render path.
   const initialStrip = useMemo(
     () =>
       composeNowStrip({
         nowMs: Date.now(),
-        events: sampleDayEventsFor(),
-        source: "sample",
+        events: [],
+        source: "none",
       }),
     [],
   );
@@ -217,42 +222,57 @@ export function OpalCenterLifeGraph({
   /** Idempotency: double-tap "Go with this" must not seed two Graphs. */
   const acceptLock = useRef(false);
   const lastIdempotencyKey = useRef<string | null>(null);
-  /** null = not linked → sample day; array = linked calendar events (may be empty). */
-  const calendarEventsRef = useRef<DayStripEvent[] | null>(null);
+  /** Live strip data: linked-calendar events, else today's real plans. */
+  const stripDataRef = useRef<{ events: DayStripEvent[]; source: DayStripSource }>({
+    events: [],
+    source: "none",
+  });
   /** Pause live recompute after accept overwrites the strip. */
   const stripLiveRef = useRef(true);
 
   function applyLiveStrip(nowMs = Date.now()) {
     if (!stripLiveRef.current) return;
-    const linked = calendarEventsRef.current !== null;
-    const events = linked
-      ? calendarEventsRef.current!
-      : sampleDayEventsFor(new Date(nowMs));
+    const { events, source } = stripDataRef.current;
     const result = composeNowStrip({
       nowMs,
       events,
-      source: linked ? "calendar" : "sample",
+      source,
     });
     setDayNodes(result.nodes);
     setStripSource(result.source);
     setStripAttribution(result.attribution);
   }
 
-  async function loadCalendarForStrip() {
+  async function loadStripData() {
     if (!bearer) {
-      calendarEventsRef.current = null;
+      stripDataRef.current = { events: [], source: "none" };
       applyLiveStrip();
       return;
     }
+    // 1) Linked calendar, when connected — the richest real source.
     try {
       const res = await fetchCalendarToday(bearer);
       if (res.connected) {
-        calendarEventsRef.current = normalizeDayStripEvents(res.events || []);
-      } else {
-        calendarEventsRef.current = null;
+        stripDataRef.current = {
+          events: normalizeDayStripEvents(res.events || []),
+          source: "calendar",
+        };
+        applyLiveStrip();
+        return;
       }
     } catch {
-      /* Keep prior source; never silently promote sample as calendar. */
+      /* Calendar read failed — fall through to the user's real plans. */
+    }
+    // 2) The user's real plans for today (live plans endpoint).
+    try {
+      const res = await listOpalPlans(bearer);
+      const events = planEventsForToday(res.plans || [], new Date());
+      stripDataRef.current = {
+        events,
+        source: events.length ? "plans" : "none",
+      };
+    } catch {
+      stripDataRef.current = { events: [], source: "none" };
     }
     applyLiveStrip();
   }
@@ -260,7 +280,7 @@ export function OpalCenterLifeGraph({
   useEffect(() => {
     if (phase !== "rest") return;
     stripLiveRef.current = true;
-    void loadCalendarForStrip();
+    void loadStripData();
     const id = window.setInterval(() => applyLiveStrip(), STRIP_TICK_MS);
     return () => window.clearInterval(id);
   }, [phase, bearer]);
@@ -429,10 +449,11 @@ export function OpalCenterLifeGraph({
     setAcceptedTitle(title);
     const timeLabel = "Open";
     stripLiveRef.current = false;
+    // Repair #17 W5 — no fabricated "Next event" node after accept: the
+    // strip shows Now plus the plan the user just accepted, nothing else.
     setDayNodes([
       { id: "now", time: "Now", label: timeLabel, kind: "now" },
       { id: "fit", time: "Next", label: title, kind: "accepted" },
-      { id: "eve", time: "Later", label: "Next event", kind: "event" },
     ]);
     setPhase("accepted");
     onSeedGraph?.(title);
@@ -574,6 +595,7 @@ export function OpalCenterLifeGraph({
             size={56}
             testId="opal-center-presence"
             requestInFlight={resolving}
+            externalListening={listening}
             speakQueue={speakQueue}
             onSpeakDone={() => setSpeakQueue(null)}
             onTranscript={(text) => {
@@ -593,7 +615,7 @@ export function OpalCenterLifeGraph({
             setPhase("rest");
             setQuery("");
             stripLiveRef.current = true;
-            void loadCalendarForStrip();
+            void loadStripData();
           }}
         >
           ↻
@@ -615,7 +637,9 @@ export function OpalCenterLifeGraph({
               ? dayNodes.some((n) => n.kind === "now" && n.label === "Open")
                 ? "Right now looks open - ask and I'll shape one answer."
                 : "Here's what's next on your linked calendar."
-              : "Sample day below - ask when you want a real answer."}
+              : stripSource === "plans"
+                ? "Here's what's next from your plans."
+                : "Nothing on your day yet - ask and I'll shape one answer."}
           </p>
 
           <LifeGraphStrip nodes={dayNodes} source={stripSource} />
@@ -967,8 +991,8 @@ export function OpalCenterLifeGraph({
 
       {phase === "family" ? (
         <section className="opal-center-v2-body" data-testid="opal-center-family">
-          <p className="opal-center-v2-kicker">SHARED · SATURDAY</p>
-          <h1 className="opal-center-v2-title">Family Saturday</h1>
+          <p className="opal-center-v2-kicker">SHARED</p>
+          <h1 className="opal-center-v2-title">Shared plans</h1>
           <p className="opal-center-v2-lede">
             Same graph. Shared result. Private constraints stay private.
           </p>
@@ -1203,7 +1227,7 @@ export function OpalCenterLifeGraph({
 
       {onClose ? (
         <button type="button" className="opal-center-v2-close sr-only" onClick={onClose}>
-          Close Opal Center
+          Close Opal chat center
         </button>
       ) : null}
     </div>

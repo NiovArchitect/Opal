@@ -8,6 +8,7 @@ defmodule OpalCore.Relationships.RelationshipAccessTest do
 
   alias OpalCore.Intelligence.AttentionBudget
   alias OpalCore.Relationships
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.Relationships.{Access, Behavior}
 
   @moduletag :relationship_matrix
@@ -138,6 +139,11 @@ defmodule OpalCore.Relationships.RelationshipAccessTest do
 
   describe "A5 upgrade friend → close_friend same session" do
     test "spontaneity unlocks; proactive nudge allowed; plan_proposal warms" do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST) so AttentionBudget's quiet-hours gate is deterministic.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       owner = account!(%{display_name: "Owner", timezone: "Asia/Tokyo", maturity: "established"})
       contact = account!(%{display_name: "Riley"})
 
@@ -169,6 +175,11 @@ defmodule OpalCore.Relationships.RelationshipAccessTest do
 
   describe "A6 downgrade close_friend → acquaintance" do
     test "weekend personal visibility drops immediately; copy never punitive" do
+      # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+      # 12:00 JST) so AttentionBudget's quiet-hours gate is deterministic.
+      Clock.freeze(~U[2026-06-01 03:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       owner = account!(%{display_name: "Owner", timezone: "Asia/Tokyo", maturity: "established"})
       contact = account!(%{display_name: "Casey"})
 

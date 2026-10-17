@@ -38,6 +38,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/artifacts.ex
     lib/opal_core/celebration_curation.ex
     lib/opal_core/center/action_orchestrator.ex
+    lib/opal_core/center/now_strip.ex
     lib/opal_core/center/planning_context.ex
     lib/opal_core/center/provider_action.ex
     lib/opal_core/intelligence/executor.ex
@@ -91,6 +92,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
       {OpalCore.SocialFlow.SharedPlan, :viewer_card, 3, "per-viewer plan card"},
       {OpalCore.SocialFlow.JourneyAuthority, :project, 3, "journey projection"},
       {OpalCore.Center.PlanningContext, :get_for_user, 1, "center in-flight planning state"},
+      {OpalCore.Center.NowStrip, :plan_events, 3,
+       "Center header strip: live plan commitments in window (Repair #17 W4-6)"},
       {OpalCore.SocialFlow.PlanTransition, :tables, 0, "the transition table itself"}
     ]
   end

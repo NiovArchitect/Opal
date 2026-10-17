@@ -3882,6 +3882,106 @@ export async function startOpalNewChat(bearer?: string) {
   });
 }
 
+/**
+ * Repair #17 W5 + integration — Opal chat SESSIONS (multiple real backend
+ * conversations). Reconciled at integration against the W4 backend API
+ * (OpalConversationController); every session call lives in this block and
+ * nowhere else in the web layer:
+ *
+ *   GET    /api/v1/product/opal/conversations
+ *          -> { conversations: OpalChatSessionSummary[] }   (list, active first)
+ *   POST   /api/v1/product/opal/conversation/new           (body {})
+ *          -> { ok, cleared, deleted_messages, conversation }  (fresh session;
+ *             the prior session is retained in the list)
+ *   POST   /api/v1/product/opal/conversations/:id/switch   (body {})
+ *          -> { ok, conversation }   (makes :id active, returns it with messages)
+ *   POST   /api/v1/product/opal/conversation/messages
+ *          body { body, conversation_id, client_context? } -> { messages }
+ *   POST   /api/v1/product/opal/conversation/clear
+ *          body { conversation_id } -> { ok, cleared, deleted_messages, conversation }
+ *
+ * Until the list route answers successfully the Center chat stays on the
+ * legacy single-conversation endpoints (getOpalConversation /
+ * postOpalMessage / startOpalNewChat / clearOpalConversation) — the UI
+ * never paints a session it could not load.
+ */
+export type OpalChatSessionSummary = {
+  id: string;
+  title?: string | null;
+  message_count?: number | null;
+  last_message_preview?: string | null;
+  inserted_at?: string | null;
+  updated_at?: string | null;
+};
+
+export async function listOpalChatSessions(bearer?: string) {
+  return request<{ conversations: OpalChatSessionSummary[] }>(
+    "/api/v1/product/opal/conversations",
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+}
+
+export async function createOpalChatSession(bearer?: string) {
+  return request<{ conversation: OpalChatConversation }>(
+    "/api/v1/product/opal/conversation/new",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({}),
+    },
+  );
+}
+
+/** Switch the active Opal session to :id and load it (with its messages). */
+export async function getOpalChatSession(sessionId: string, bearer?: string) {
+  return request<{ conversation: OpalChatConversation }>(
+    `/api/v1/product/opal/conversations/${encodeURIComponent(sessionId)}/switch`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({}),
+    },
+  );
+}
+
+export async function postOpalSessionMessage(
+  sessionId: string,
+  body: string,
+  bearer?: string,
+  opts?: { clientContext?: OpalClientContext | null },
+) {
+  const payload: {
+    body: string;
+    conversation_id: string;
+    client_context?: OpalClientContext;
+  } = { body, conversation_id: sessionId };
+  if (opts?.clientContext && typeof opts.clientContext === "object") {
+    payload.client_context = opts.clientContext;
+  }
+  return request<{ messages: OpalChatMessage[] }>(
+    "/api/v1/product/opal/conversation/messages",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+/** Clear ONE session's messages server-side. Plans made in it are preserved. */
+export async function clearOpalChatSession(sessionId: string, bearer?: string) {
+  return request<{
+    ok: boolean;
+    cleared: boolean;
+    deleted_messages?: number;
+    conversation: OpalChatConversation;
+  }>("/api/v1/product/opal/conversation/clear", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ conversation_id: sessionId }),
+  });
+}
+
 /** Clear Conversation — same retention rules as New Chat. */
 export async function clearOpalConversation(bearer?: string) {
   return request<{

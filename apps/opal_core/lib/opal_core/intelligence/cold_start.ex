@@ -21,6 +21,7 @@ defmodule OpalCore.Intelligence.ColdStart do
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory.{ConversationIndex, PersonMemory, Routine, TemporalAnchor}
 
   # founder-tunable
@@ -149,7 +150,7 @@ defmodule OpalCore.Intelligence.ColdStart do
   @doc "In-conversation learning question gate (max 3/day; not attention budget)."
   def allow_learning_question?(account_id) when is_binary(account_id) do
     pref = ensure_pref(account_id)
-    today = Date.utc_today()
+    today = Clock.utc_now() |> DateTime.to_date()
 
     {count, pref} =
       if pref.learning_questions_on == today do
@@ -190,7 +191,7 @@ defmodule OpalCore.Intelligence.ColdStart do
           Map.put(facts, "onboarding_note", %{
             "value" => String.slice(text, 0, 400),
             "provenance" => "stated",
-            "learned_at" => DateTime.utc_now() |> DateTime.to_iso8601()
+            "learned_at" => Clock.utc_now() |> DateTime.to_iso8601()
           })
 
         row |> PersonMemory.changeset(%{known_facts: facts}) |> Repo.update()
@@ -208,7 +209,7 @@ defmodule OpalCore.Intelligence.ColdStart do
         cadence: "weekly",
         confidence: 0.4,
         detection_count: 1,
-        last_occurrence_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+        last_occurrence_at: Clock.utc_now()
       })
       |> Repo.insert()
     end
@@ -264,7 +265,7 @@ defmodule OpalCore.Intelligence.ColdStart do
     }
 
     m = Map.get(months, String.downcase(month_name))
-    year = Date.utc_today().year
+    year = (Clock.utc_now() |> DateTime.to_date()).year
 
     if is_integer(m), do: Date.new(year, m, day), else: {:error, :bad_month}
   end
@@ -284,7 +285,7 @@ defmodule OpalCore.Intelligence.ColdStart do
   defp mark_seed_done(pref) do
     pref
     |> AssistancePreference.changeset(%{
-      onboarding_seed_completed_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      onboarding_seed_completed_at: Clock.utc_now()
     })
     |> Repo.update()
   end
@@ -309,7 +310,7 @@ defmodule OpalCore.Intelligence.ColdStart do
 
     age_days =
       case earliest do
-        %DateTime{} = dt -> div(DateTime.diff(DateTime.utc_now(), dt, :second), 86_400)
+        %DateTime{} = dt -> div(DateTime.diff(Clock.utc_now(), dt, :second), 86_400)
         _ -> 0
       end
 

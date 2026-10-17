@@ -43,6 +43,9 @@ export type ChatPreview = {
     pending_change?: boolean;
     pending_proposal_value?: string | null;
     pending_proposal_field?: string | null;
+    /** Repair #17: who proposed the pending change — lets every surface derive
+     * "action needed" for THIS viewer from the same projection the thread uses. */
+    pending_proposal_by_user_id?: string | null;
     placeIdentity?: {
       name: string | null;
       area: string | null;

@@ -5,9 +5,17 @@ defmodule OpalCore.Intelligence.AttentionBudgetTest do
   alias OpalCore.Intelligence.{AttentionBudget, AttentionSlot}
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory.ConversationIndex
 
   setup do
+    # Repair #17 — pin the clock to an instant that is daytime in both
+    # timezones this file uses: 2026-06-01 03:00Z = 12:00 JST (the
+    # setup preference) and 20:00 PDT the prior evening in Los Angeles.
+    # Individual tests re-pin when they exercise the quiet-hours gate.
+    Clock.freeze(~U[2026-06-01 03:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     account_id = Ecto.UUID.generate()
 
     {:ok, _} =
@@ -125,47 +133,48 @@ defmodule OpalCore.Intelligence.AttentionBudgetTest do
       |> AssistancePreference.changeset(%{timezone: "America/Los_Angeles"})
       |> Repo.update()
 
-    # Approx America/Los_Angeles without tzdata (UTC-7 Mar–Nov)
-    utc = DateTime.utc_now()
-    offset = if utc.month >= 3 and utc.month <= 10, do: -7, else: -8
-    local = DateTime.add(utc, offset * 3600, :second)
-    quiet? = local.hour >= 22 or local.hour < 8
+    # Repair #17 — both branches of this test used to be chosen by the
+    # real wall clock. Pin a quiet instant instead (2026-06-01 09:00Z =
+    # 02:00 PDT) and exercise the quiet branch deterministically…
+    Clock.freeze(~U[2026-06-01 09:00:00Z])
 
-    if quiet? do
-      # Opal proactive nudges respect quiet hours (user-command Reminders bypass separately)
-      assert {:denied, :quiet_hours} =
-               AttentionBudget.request_slot(aid, "nudge", "proactive_thread", %{
-                 person_id: Ecto.UUID.generate(),
-                 topic: "quiet_test",
-                 provenance: "stated"
-               })
+    # Opal proactive nudges respect quiet hours (user-command Reminders bypass separately)
+    assert {:denied, :quiet_hours} =
+             AttentionBudget.request_slot(aid, "nudge", "proactive_thread", %{
+               person_id: Ecto.UUID.generate(),
+               topic: "quiet_test",
+               provenance: "stated"
+             })
 
-      {:ok, _} =
-        %ConversationIndex{}
-        |> ConversationIndex.changeset(%{
-          account_id: aid,
-          conversation_id: Ecto.UUID.generate(),
-          last_activity_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
-        })
-        |> Repo.insert()
+    {:ok, _} =
+      %ConversationIndex{}
+      |> ConversationIndex.changeset(%{
+        account_id: aid,
+        conversation_id: Ecto.UUID.generate(),
+        last_activity_at: ~U[2026-06-01 09:00:00Z]
+      })
+      |> Repo.insert()
 
-      assert {:granted, _} =
-               AttentionBudget.request_slot(aid, "reminder", "time_critical", %{
-                 person_id: Ecto.UUID.generate(),
-                 topic: "urgent",
-                 provenance: "stated"
-               })
-    else
-      assert {:granted, id} =
-               AttentionBudget.request_slot(aid, "nudge", "proactive_thread", %{
-                 person_id: Ecto.UUID.generate(),
-                 topic: "daytime",
-                 provenance: "stated"
-               })
+    assert {:granted, _} =
+             AttentionBudget.request_slot(aid, "reminder", "time_critical", %{
+               person_id: Ecto.UUID.generate(),
+               topic: "urgent",
+               provenance: "stated"
+             })
 
-      slot = Repo.get!(AttentionSlot, id)
-      assert slot.granted_on == DateTime.to_date(local)
-    end
+    # …then pin a non-quiet instant (2026-06-01 19:00Z = 12:00 PDT) and
+    # exercise the daytime branch deterministically too.
+    Clock.freeze(~U[2026-06-01 19:00:00Z])
+
+    assert {:granted, id} =
+             AttentionBudget.request_slot(aid, "nudge", "proactive_thread", %{
+               person_id: Ecto.UUID.generate(),
+               topic: "daytime",
+               provenance: "stated"
+             })
+
+    slot = Repo.get!(AttentionSlot, id)
+    assert slot.granted_on == ~D[2026-06-01]
   end
 
   test "midnight local date reset — used_today scoped to granted_on", %{account_id: aid} do

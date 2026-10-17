@@ -31,6 +31,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
   alias OpalCore.SocialFlow
   alias OpalCore.SocialFlow.AttentionCenter
   alias OpalCore.SocialFlow.BookingAuthorization
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialFlow.FollowThrough
   alias OpalCore.SocialFlow.FollowThroughProducers
   alias OpalCore.SocialFlow.JourneyAuthority
@@ -910,13 +911,21 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
     defp proactive_ready_user do
       user = fresh_user()
 
+      # Repair #17 — pin the clock to a fixed daytime instant
+      # (2026-06-01 19:00Z = 12:00 PDT) so ProactiveConversation's own
+      # quiet-hours gate (08:00–22:00 America/Los_Angeles, no local_hour
+      # passed on the drive path) is deterministic at any wall clock,
+      # and derive every relative fixture below from that same clock.
+      Clock.freeze(~U[2026-06-01 19:00:00Z])
+      on_exit(fn -> Clock.unfreeze() end)
+
       # AttentionBudget enforces the OWNER's quiet window (default
       # 22:00–08:00) with no bypass for proactive_thread. Pin the
       # preference to UTC with a one-hour quiet window two hours from
       # now, so initiation tests are deterministic at any wall-clock
       # run time. (The quiet-hours ATTACKS below are exercised through
       # ProactiveConversation's own gate via the local_hour seam.)
-      now_h = DateTime.utc_now().hour
+      now_h = Clock.utc_now().hour
       qs = rem(now_h + 2, 24)
       qe = rem(now_h + 3, 24)
       pad = fn h -> String.pad_leading(Integer.to_string(h), 2, "0") end
@@ -935,7 +944,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
       |> ConversationIndex.changeset(%{
         account_id: user.id,
         conversation_id: Ecto.UUID.generate(),
-        last_activity_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+        last_activity_at: Clock.utc_now(),
         rolling_summary: "active"
       })
       |> Repo.insert!()
@@ -945,7 +954,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
 
     defp anchor_plan(owner, hours_from_now) do
       start =
-        DateTime.utc_now()
+        Clock.utc_now()
         |> DateTime.add(trunc(hours_from_now * 3600), :second)
         |> DateTime.truncate(:microsecond)
 

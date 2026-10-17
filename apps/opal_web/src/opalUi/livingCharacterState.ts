@@ -43,6 +43,7 @@ export function headphonesVisible(state: LivingCharacterState): boolean {
 export type LivingCharacterEvent =
   | { type: "tap" }
   | { type: "mic_open" }
+  | { type: "mic_closed" }
   | { type: "mic_denied" }
   | { type: "mic_unavailable" }
   | { type: "utterance_captured" }
@@ -130,6 +131,15 @@ export function reduceLivingCharacter(
       }
       return { ...prev, state: "listening", permissionPrompt: null };
 
+    case "mic_closed":
+      // Repair #17 W6 — capture session ended (parent mic stopped, STT
+      // session closed without an utterance). Listening must never
+      // outlive real capture.
+      if (state === "listening") {
+        return { ...prev, state: "back_to_idle", micLevel: 0 };
+      }
+      return prev;
+
     case "utterance_captured":
       if (state === "listening") {
         return { ...prev, state: "processing", micLevel: 0 };
@@ -169,8 +179,18 @@ export function reduceLivingCharacter(
       return prev;
 
     case "speech_end":
-      if (state === "speaking" || state === "response_ready") {
-        return { ...prev, state: "back_to_idle", speechLevel: 0 };
+      // Repair #17 W6 — speech_end is also the capture/playback stop
+      // signal: a tap-stop while listening, an STT session that ended
+      // with no speech, and a processing window whose request never
+      // started must all unwind instead of pinning the character in
+      // listening/processing after the real activity already ended.
+      if (
+        state === "speaking" ||
+        state === "response_ready" ||
+        state === "listening" ||
+        state === "processing"
+      ) {
+        return { ...prev, state: "back_to_idle", speechLevel: 0, micLevel: 0 };
       }
       return prev;
 

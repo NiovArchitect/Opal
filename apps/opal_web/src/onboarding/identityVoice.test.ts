@@ -21,7 +21,6 @@ import {
   fixtureSpotsForVibe,
 } from "./holyShitCopy";
 import {
-  planFromLocalConfirm,
   planFromOpalMetadata,
 } from "../opalUi/graphSurfaceInterop";
 
@@ -179,16 +178,8 @@ describe("Paste W4 Phase 1 scripted Sadeil / Chanelle / beach", () => {
 });
 
 describe("plan title builders echo user words", () => {
-  it("planFromLocalConfirm keeps beach (never Dinner / Hurricane)", () => {
-    const local = planFromLocalConfirm({
-      priorUserText: "Plan beach with Chanelle Friday",
-      affirmText: "Yes",
-    });
-    expect(local?.who).toBe("Chanelle");
-    expect(local?.what).toBe("beach");
-    expect(local?.title).toBe("Beach with Chanelle");
-    expect(assertTitleEchoesUserWords(local!.title, "beach")).toEqual([]);
-  });
+  // Repair #17: the planFromLocalConfirm case is removed with the
+  // function — local plan fabrication no longer exists to test.
 
   it("planFromOpalMetadata does not invent Dinner when what is beach", () => {
     const plan = planFromOpalMetadata({

@@ -396,6 +396,9 @@ defmodule OpalCoreWeb.Router do
     post("/opal/conversation/messages", OpalConversationController, :create_message)
     post("/opal/conversation/new", OpalConversationController, :new_chat)
     post("/opal/conversation/clear", OpalConversationController, :clear_conversation)
+    # Repair #17 (W4-7) — Opal chat sessions: list + switch (owner-scoped).
+    get("/opal/conversations", OpalConversationController, :list_sessions)
+    post("/opal/conversations/:id/switch", OpalConversationController, :switch_session)
     # Paste J Phase 1 — Center "Go with this" → durable solo SharedPlan
     post("/opal/plans", OpalConversationController, :create_plan)
     # F12-06/F12-07 — owner-scoped plan listing (incl. conversation-less Center

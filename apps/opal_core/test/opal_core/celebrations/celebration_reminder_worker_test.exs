@@ -11,6 +11,18 @@ defmodule OpalCore.Celebrations.CelebrationReminderWorkerTest do
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
   alias OpalCore.SocialFlow.AttentionCenterItem
+  alias OpalCore.SocialFlow.Clock
+
+  setup do
+    # Repair #17 — pin the clock to a non-quiet local time (12:00 PDT;
+    # these accounts use America/Los_Angeles preferences). The 1-day
+    # milestone goes out as time_critical, which quiet hours deny when
+    # the owner has not been recently active — the wall clock must not
+    # decide whether milestones fire.
+    Clock.freeze(~U[2026-06-01 19:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+    :ok
+  end
 
   defp user!(prefix) do
     user =

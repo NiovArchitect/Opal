@@ -1,6 +1,7 @@
 /**
  * P0-05.9 — FOUNDER_RESET_SPLASH_PRIMARY_CONTENT_VISIBLE
- * Founder Reality Repair #2 — character-only splash identity.
+ * Founder Reality Repair #2 — splash identity, amended Repair #17 (W7):
+ * Splash 1 identity is the single canon logo lockup (opal-logo.png).
  * A 390×844 frost-only backdrop must NEVER pass as Splash.
  */
 import { readFileSync, existsSync } from "node:fs";
@@ -21,7 +22,7 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(splash).toMatch(/data-figma-authority="618:19"/);
     expect(splash).toMatch(/data-splash-owner="FirstRunSplashPage"/);
     expect(splash).toMatch(/fr00-tap-begin/);
-    expect(splash).toMatch(/opalCharacter|opal-character/);
+    expect(splash).toMatch(/BRAND_ASSETS\.opalLogo|opal-logo\.png/);
     expect(splash).toMatch(/data-splash-runtime-asset="single_source"/);
     expect(splash).not.toMatch(/initial=\{[^}]*opacity:\s*0/);
     expect(app).toMatch(/FirstRunSplashPage/);
@@ -32,21 +33,24 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
     expect(app).toMatch(/firstRunMode = "sign_in"/);
   });
 
-  it("production Splash uses character identity - no side-by-side collage / OPAL GRAPH text", () => {
+  it("production Splash uses the canon logo lockup - one asset, no composed collage / OPAL GRAPH text", () => {
     const splash = src("onboarding/FirstRunSplashPage.tsx");
-    expect(splash).toMatch(/BRAND_ASSETS\.opalCharacter|opalCharacter/);
-    expect(splash).toMatch(/data-brand-role="character-lockup"/);
-    expect(splash).not.toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(splash).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(splash).toMatch(/data-brand-role="logo-lockup"/);
+    expect(splash).toMatch(/data-brand-source="opal-logo"/);
+    expect(splash).not.toMatch(/BRAND_ASSETS\.opalCharacter/);
     // No separate wordmark line / OPAL GRAPH h1 in JSX (comments may mention the law).
     expect(splash).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph|fr-splash-wordmark/);
     expect(splash).not.toMatch(/<h1[\s\S]{0,120}OPAL[\s\S]{0,40}GRAPH/);
   });
 
-  it("nested fr00 + BrandChrome are character-only (no double composition)", () => {
+  it("nested fr00 uses the canon logo lockup; BrandChrome stays character-only (no double composition)", () => {
     const fre = src("onboarding/FirstRunExperience.tsx");
     const fr00 = fre.slice(fre.indexOf('step === "fr00"'), fre.indexOf("{/* Legacy SFR"));
-    expect(fr00).toMatch(/BRAND_ASSETS\.opalCharacter/);
-    expect(fr00).toMatch(/data-brand-role="character-lockup"/);
+    expect(fr00).toMatch(/BRAND_ASSETS\.opalLogo/);
+    expect(fr00).toMatch(/data-brand-role="logo-lockup"/);
+    expect(fr00).toMatch(/data-brand-source="opal-logo"/);
+    expect(fr00).not.toMatch(/BRAND_ASSETS\.opalCharacter/);
     expect(fr00).not.toMatch(/opal-graph-word-opal|opal-graph-word-graph|fr-splash-wordmark/);
     expect(fr00).not.toMatch(/OpalWordmark|opalWordmark/);
     // BrandChrome: character identity — never OpalMark + OpalWordmark collage
@@ -73,13 +77,14 @@ describe("P0-05.9 founder Splash primary content visibility", () => {
       "fr00-already-account",
       'data-splash-hold="indefinite"',
       'data-splash-auto-advance="0"',
-      'data-splash-identity="opal-character"',
+      'data-splash-identity="opal-logo-lockup"',
     ]) {
       expect(splash, needle).toMatch(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     }
     expect(splash).not.toMatch(/fr00-skip-intro|onSkipIntro/);
     expect(splash).not.toMatch(/SPLASH_AUTO_MS|setTimeout\(goBegin/);
-    // Legacy nested fr00 may still expose Skip for tests — must remain character-only.
+    // Legacy nested fr00 may still expose Skip for tests — splash identity
+    // there is the same canon logo lockup (auth chrome keeps the character).
     const fre = src("onboarding/FirstRunExperience.tsx");
     expect(fre).toMatch(/opalCharacter|opal-character/);
   });

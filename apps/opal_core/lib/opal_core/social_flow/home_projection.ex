@@ -95,6 +95,14 @@ defmodule OpalCore.SocialFlow.HomeProjection do
     card
     |> maybe_put_binary("pending_proposal_value", change_proposal["value"])
     |> maybe_put_binary("pending_proposal_field", change_proposal["field"])
+    # Repair #17 (W3): the proposer is genuinely missing from this projection.
+    # The thread derives "action needed" from alignment.change_proposal's
+    # proposed_by_user_id, but the chat list / Graphs only receive this
+    # projection — without the proposer they cannot tell a proposal that
+    # needs THIS viewer from one the viewer made, so their status color
+    # diverged from the thread. Participant-scoped card: every participant
+    # already sees the proposer in-thread.
+    |> maybe_put_binary("pending_proposal_by_user_id", change_proposal["proposed_by_user_id"])
   end
 
   defp maybe_put_pending_proposal(card, _), do: card

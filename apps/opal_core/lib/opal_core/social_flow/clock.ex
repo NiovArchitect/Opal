@@ -1,10 +1,24 @@
 defmodule OpalCore.SocialFlow.Clock do
   @moduledoc """
-  Small injectable server clock for temporal follow-through.
+  Small injectable server clock for temporal follow-through and the
+  notification / quiet-hours path (AttentionBudget, NotificationIntelligence,
+  ProactiveConversation, celebration reminders, inbox fanout).
 
   Production: DateTime.utc_now/0.
-  Tests: put a frozen instant via `freeze/1` / `unfreeze/0` (process-local)
-  or Application config `:opal_core, OpalCore.SocialFlow.Clock, now: fun`.
+  Tests / verification runs may pin "now" — highest precedence first:
+
+  1. `freeze/1` / `unfreeze/0` — process-local frozen instant.
+  2. Application env `:opal_core, :clock_override` — a `%DateTime{}`, an
+     ISO-8601 binary, or a 0-arity fun returning a `%DateTime{}`.
+     Global (crosses process boundaries, unlike `freeze/1`), so it also
+     pins code running in request/worker processes.
+  3. Application config `:opal_core, OpalCore.SocialFlow.Clock, now: fun`
+     (legacy seam).
+  4. `OPAL_CLOCK_OVERRIDE` OS env var — an ISO-8601 instant, e.g.
+     `OPAL_CLOCK_OVERRIDE=2026-10-17T09:00:00Z mix test` pins the whole
+     run to 02:00 America/Los_Angeles (PDT); `...T21:00:00Z` pins 14:00.
+
+  With none of these set, behavior is exactly the real wall clock.
 
   Client clocks are never authority for durable deadline evaluation.
   """
@@ -17,8 +31,14 @@ defmodule OpalCore.SocialFlow.Clock do
       match?(%DateTime{}, Process.get(@process_key)) ->
         Process.get(@process_key)
 
+      match?(%DateTime{}, app_override()) ->
+        app_override()
+
       is_function(config_now(), 0) ->
         config_now().()
+
+      match?(%DateTime{}, env_override()) ->
+        env_override()
 
       true ->
         DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -52,6 +72,32 @@ defmodule OpalCore.SocialFlow.Clock do
 
       _ ->
         {:error, :not_frozen}
+    end
+  end
+
+  defp app_override do
+    case Application.get_env(:opal_core, :clock_override) do
+      %DateTime{} = dt -> DateTime.truncate(dt, :microsecond)
+      iso when is_binary(iso) -> parse_iso(iso)
+      fun when is_function(fun, 0) -> coerce(fun.())
+      _ -> nil
+    end
+  end
+
+  defp env_override do
+    case System.get_env("OPAL_CLOCK_OVERRIDE") do
+      iso when is_binary(iso) and iso != "" -> parse_iso(iso)
+      _ -> nil
+    end
+  end
+
+  defp coerce(%DateTime{} = dt), do: DateTime.truncate(dt, :microsecond)
+  defp coerce(_), do: nil
+
+  defp parse_iso(iso) do
+    case DateTime.from_iso8601(iso) do
+      {:ok, dt, _} -> DateTime.truncate(dt, :microsecond)
+      _ -> nil
     end
   end
 

@@ -6,9 +6,19 @@ defmodule OpalCore.Intelligence.MetricsTest do
   alias OpalCore.Intelligence.Workers.{LlmVerifyBaselineWorker, MetricsDailyWorker}
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory.SurfacedNudge
 
   setup do
+    # Repair #17 — pin the clock to 2026-06-01 03:00Z (12:00 JST for
+    # this account; UTC date and Tokyo local date agree). Slots are
+    # counted by AttentionBudget LOCAL granted_on while Metrics
+    # aggregates a UTC day — unpinned, the two dates split whenever
+    # Tokyo is past midnight and UTC is not (and vice versa for
+    # western timezones), silently zeroing slots_granted.
+    Clock.freeze(~U[2026-06-01 03:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     account_id = Ecto.UUID.generate()
 
     {:ok, _} =
@@ -42,7 +52,7 @@ defmodule OpalCore.Intelligence.MetricsTest do
                })
     end
 
-    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    now = Clock.utc_now()
 
     for _ <- 1..2 do
       {:ok, _} =

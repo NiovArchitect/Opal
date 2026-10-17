@@ -28,7 +28,7 @@ defmodule OpalCore.Intelligence.MultiuserPressureTest do
   alias OpalCore.Relationships.Behavior
   alias OpalCore.Reminders
   alias OpalCore.Repo
-  alias OpalCore.SocialFlow.{JourneyAuthority, PlanParticipant, SharedPlan}
+  alias OpalCore.SocialFlow.{Clock, JourneyAuthority, PlanParticipant, SharedPlan}
   alias OpalCore.SocialMemory.{GroupDecisionState, PersonMemory, Scoped}
   alias OpalCore.Voice
   alias OpalCore.Voice.AudioStore
@@ -98,6 +98,12 @@ defmodule OpalCore.Intelligence.MultiuserPressureTest do
 
   @tag :multiuser
   test "T2 — Four timezones, one decision: mediation + quiet hours per account" do
+    # Repair #17 — pin the clock to 2026-06-01 09:00Z: 02:00 PDT in LA
+    # (quiet), 18:00 JST, 10:00 BST, 19:00 AEST (all non-quiet), so the
+    # per-account quiet-hours split is deterministic at any wall clock.
+    Clock.freeze(~U[2026-06-01 09:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     la = account!(%{display_name: "LA", timezone: "America/Los_Angeles", maturity: "established"})
     tyo = account!(%{display_name: "TYO", timezone: "Asia/Tokyo", maturity: "established"})
     lon = account!(%{display_name: "LON", timezone: "Europe/London", maturity: "established"})
@@ -360,6 +366,13 @@ defmodule OpalCore.Intelligence.MultiuserPressureTest do
 
   @tag :multiuser
   test "G1 — Split vote 2-2 → mediation → consensus → plan + outbox" do
+    # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+    # 12:00 JST). Mediation goes through AttentionBudget and quiet
+    # hours (22:00–08:00 JST) suppress it — a silent wall-clock
+    # dependence this test carried before the fix.
+    Clock.freeze(~U[2026-06-01 03:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     owner = account!(%{display_name: "Owner", timezone: "Asia/Tokyo", maturity: "established"})
     sam = account!(%{display_name: "Sam"})
     alex = account!(%{display_name: "Alex"})
@@ -1278,6 +1291,13 @@ defmodule OpalCore.Intelligence.MultiuserPressureTest do
 
   @tag :multiuser
   test "E5 — Notification storm: budget binds; booking critical breaks through" do
+    # Repair #17 — pin the clock to Tokyo midday (2026-06-01 03:00Z =
+    # 12:00 JST). The closing time_critical breakthrough is denied by
+    # quiet hours for an inactive owner, so the wall clock must not
+    # decide this test.
+    Clock.freeze(~U[2026-06-01 03:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     a = account!(%{display_name: "A", timezone: "Asia/Tokyo", maturity: "established"})
     b = account!(%{display_name: "B", timezone: "Asia/Tokyo", maturity: "established"})
 

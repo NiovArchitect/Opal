@@ -22,6 +22,7 @@ defmodule OpalCore.Push.NotificationIntelligence do
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Push.Workers.DeliverPushWorker
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.Trips.VibeProfiles
 
   @tiers ~w(urgent normal low)a
@@ -170,7 +171,7 @@ defmodule OpalCore.Push.NotificationIntelligence do
   defp hold(user_id, title, body, data, tier) do
     ensure_held_table()
     key = held_key(user_id)
-    entry = %{title: title, body: body, data: data, tier: tier, at: DateTime.utc_now()}
+    entry = %{title: title, body: body, data: data, tier: tier, at: Clock.utc_now()}
 
     list =
       case :ets.lookup(:opal_push_held, key) do
@@ -193,12 +194,13 @@ defmodule OpalCore.Push.NotificationIntelligence do
     # Device TZ not always known — use America/Los_Angeles as product default for quiet hours.
     # Without tzdata, never fall back to raw UTC hour (that falsely triggers 22–08 quiet
     # every evening UTC and drops DeliverPushWorker in foundation tests / prod-like envs).
-    case DateTime.now("America/Los_Angeles") do
+    utc = Clock.utc_now()
+
+    case DateTime.shift_zone(utc, "America/Los_Angeles") do
       {:ok, dt} ->
         dt.hour
 
       _ ->
-        utc = DateTime.utc_now()
         offset_h = if pacific_dst_approx?(utc), do: -7, else: -8
         DateTime.add(utc, offset_h * 3600, :second).hour
     end

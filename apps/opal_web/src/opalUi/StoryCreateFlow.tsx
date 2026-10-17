@@ -5,6 +5,7 @@
  * Tranche #1: native host uses Expo camera/library bridge; browser keeps file-input fallback.
  */
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
 import { acquireMedia } from "../mediaAcquisition";
 
@@ -85,10 +86,18 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
     }
   }
 
-  return (
+  // Repair #17 (W3): mount in the TOP layer. Rendered inline, the composer
+  // sat inside the .app stacking context and the social/Home screen painted
+  // over it (founder phone walk: composer visible only inside a frame behind
+  // Home). Portaling to document.body — the same contract CallSurfaces and
+  // the full-live destination use — puts it above every surface, fully
+  // interactive. CSS keeps the .story-create-flow layer rules (z-index 80 /
+  // native-host 10060) which now apply at the root stacking level.
+  const flow = (
     <div
       className="story-create-flow"
       data-testid="story-create-flow"
+      data-top-layer="portal-body"
       data-figma-story="476:92"
       data-media-bridge="native-or-fallback"
       role="dialog"
@@ -208,4 +217,6 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
       ) : null}
     </div>
   );
+  if (typeof document === "undefined") return flow;
+  return createPortal(flow, document.body);
 }

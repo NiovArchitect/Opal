@@ -4,14 +4,16 @@
  * Seed on → founder plan-pill rows remapped onto live conversation ids.
  * Seed off → live rows only (never seed-chat-* as current social state).
  *
- * Physical path (URL seed → session → onboarding → member shell → Chats)
- * must paint FOUNDER_PHONE_CHAT_ROWS_MIN without Playwright session injection.
+ * Repair #17 — seed content is DATA, not behavior. A fixture row that did
+ * NOT remap onto a real backend conversation is dropped, never painted:
+ * a `seed-chat-*` id is not an openable conversation on any path. The
+ * backend founder seed (founder-communication-seed) creates the real
+ * conversations the fixture rows bind to, so the walk list is real.
  * Diagnostics land on window.__opalSeedPipeline + console only — never UI.
  */
 import type { ChatsHomeRow } from "./ChatsHome";
 import {
   FOUNDER_CHATS_PLAN_PILL_ROWS,
-  FOUNDER_PHONE_CHAT_ROWS_MIN,
   remapFounderChatRowsToLive,
 } from "./founderChatsPlanPills";
 import { isFounderSeedEnabled } from "./founderGraphSeed";
@@ -94,9 +96,8 @@ function logFounderChatCompose(diag: FounderChatComposeDiagnostics) {
 
 /**
  * Compose Chats home rows.
- * PRODUCTION / EMPTY never include seed-chat-* fixture ids as the list body.
- * Seed on always paints ≥ FOUNDER_PHONE_CHAT_ROWS_MIN coherent fixtures
- * (hard fallback to FOUNDER_CHATS_PLAN_PILL_ROWS when remap under-delivers).
+ * No mode ever includes a seed-chat-* fixture id as a list row: fixture
+ * rows survive composition ONLY when remapped onto a real conversation id.
  */
 export function composeChatsList(opts: {
   liveRows: ChatsHomeRow[];
@@ -129,26 +130,25 @@ export function composeChatsList(opts: {
         memberCount: r.memberCount,
       })),
     );
-    let rows = mergeChatRowsWithCreated(remapped, created);
-    let hardFallback = false;
-    if (rows.length < FOUNDER_PHONE_CHAT_ROWS_MIN) {
-      hardFallback = true;
-      rows = mergeChatRowsWithCreated(
-        fixtureRows.map((r) => ({ ...r })),
-        created,
-      );
-    }
+    // Repair #17: only fixture rows bound to a REAL conversation id may be
+    // painted. Unbound rows still carry seed-chat-* ids — painting them
+    // would put an unreachable scripted fixture on the open path.
+    const boundRows = remapped.filter((r) => !isSeedChatRowId(r.id));
+    const rows = mergeChatRowsWithCreated(boundRows, created);
     const diagnostics: FounderChatComposeDiagnostics = {
       seedEnabled: true,
       liveRows: liveRows.length,
       fixtureRows: fixtureRows.length,
-      composedRows: remapped.length,
+      composedRows: boundRows.length,
       paintedRows: rows.length,
-      hardFallback,
+      hardFallback: false,
       path: "physical_compose",
       names: rows.map((r) => r.name),
     };
     logFounderChatCompose(diagnostics);
+    if (!rows.length) {
+      return { mode: "EMPTY", rows: [], diagnostics };
+    }
     return { mode: "FOUNDER_FIXTURE", rows, diagnostics };
   }
 

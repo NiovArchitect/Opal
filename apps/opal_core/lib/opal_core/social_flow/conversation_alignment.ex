@@ -19,6 +19,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     CandidateProvider,
     DateTimeChange,
     PlaceIdentity,
+    PlanRevision,
     PlanStateArbitration,
     PlanTransition,
     SeedFixtureLeak,
@@ -190,6 +191,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       fold(messages, members, actions)
       |> freeze_plan_set_event(plan && plan.alignment)
       |> PlaceIdentity.attach_resolved(plan && plan.alignment)
+      |> surface_pending_revision(plan)
 
     if plan_material?(state) do
       _ = upsert_plan(conversation_id, state, List.first(members))
@@ -221,6 +223,65 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   def freeze_plan_set_event(state, _), do: state
+
+  # Repair #17 (W4-1) — a live PlanRevision proposal is part of the current
+  # truth of the thread. The fold is built from messages + explicit actions,
+  # so a revision proposed through the revision authority (channel button or
+  # NL executor) never appeared in it: surfaces kept rendering the frozen
+  # plan_set_event ("… · Sat 7:30 PM is locked") as if nothing was pending.
+  # Overlay the newest proposed revision from the plan row's own revision
+  # chain: state["pending_revision"] carries the proposed label and who must
+  # still confirm, and the frozen set event is flagged as superseded by the
+  # pending revision so no surface may present it as the current truth.
+  defp surface_pending_revision(state, %SharedPlan{} = plan) when is_map(state) do
+    revision =
+      from(r in PlanRevision,
+        where: r.plan_id == ^plan.id and r.status == "proposed",
+        order_by: [desc: r.inserted_at],
+        limit: 1
+      )
+      |> Repo.one()
+
+    case revision do
+      %PlanRevision{} = rev ->
+        pending = %{
+          "revision_id" => rev.id,
+          "plan_id" => plan.id,
+          "status" => "awaiting_confirmation",
+          "proposed_changes" => rev.proposed_changes || %{},
+          "proposed_time_label" => (rev.proposed_changes || %{})["time_label"],
+          "proposed_by_user_id" => rev.proposed_by_user_id,
+          "required_approvals" => rev.required_approvals || [],
+          "current_time_label" => plan.time_label
+        }
+
+        state
+        |> Map.put("pending_revision", pending)
+        |> then(fn s ->
+          case s["plan_set_event"] do
+            %{} = event ->
+              Map.put(
+                s,
+                "plan_set_event",
+                Map.merge(event, %{
+                  "pending_revision_id" => rev.id,
+                  "superseded_by_pending_revision" => true
+                })
+              )
+
+            _ ->
+              s
+          end
+        end)
+
+      _ ->
+        state
+    end
+  rescue
+    _ -> state
+  end
+
+  defp surface_pending_revision(state, _), do: state
 
   @doc """
   Multiple SharedPlans per conversation are lawful (new lineage / residue).

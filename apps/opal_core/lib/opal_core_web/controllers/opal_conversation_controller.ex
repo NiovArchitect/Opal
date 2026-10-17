@@ -40,15 +40,50 @@ defmodule OpalCoreWeb.OpalConversationController do
     client_context = Map.get(params, "client_context")
 
     # Optional conversation_id: if present and foreign → 404 (auth isolation).
+    # Repair #17 (W4-7) — an owned session id targets that session (an
+    # archived one is switched to first) instead of the active one.
     case Map.get(params, "conversation_id") do
       id when is_binary(id) and id != "" ->
         case OpalConversations.get_conversation_for_user(user_id, id) do
-          {:ok, _} -> do_create_message(conn, user_id, body, client_context)
+          {:ok, _} -> do_create_message(conn, user_id, body, client_context, id)
           {:error, :not_found} -> not_found(conn)
         end
 
       _ ->
-        do_create_message(conn, user_id, body, client_context)
+        do_create_message(conn, user_id, body, client_context, nil)
+    end
+  end
+
+  @doc """
+  Repair #17 (W4-7) — list the caller's Opal chat sessions (active first).
+  Owner-scoped: only the caller's own sessions are ever returned.
+  """
+  def list_sessions(conn, _params) do
+    user_id = conn.assigns.current_user_id
+    json(conn, %{"conversations" => OpalConversations.list_sessions(user_id)})
+  end
+
+  @doc """
+  Repair #17 (W4-7) — switch the active Opal session to one of the
+  caller's own sessions. Foreign/unknown ids → 404.
+  """
+  def switch_session(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalConversations.switch_conversation(user_id, id) do
+      {:ok, conversation} ->
+        messages = OpalConversations.list_messages(conversation.id)
+
+        json(conn, %{
+          "ok" => true,
+          "conversation" => OpalConversations.to_conversation_contract(conversation, messages)
+        })
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
     end
   end
 
@@ -75,11 +110,22 @@ defmodule OpalCoreWeb.OpalConversationController do
 
   @doc """
   Clear Conversation — same durable retention rules as New Chat.
+  With a `conversation_id` param, clears that one of the caller's own
+  sessions (Repair #17, W4-7); foreign/unknown ids → 404.
   """
-  def clear_conversation(conn, _params) do
+  def clear_conversation(conn, params) do
     user_id = conn.assigns.current_user_id
 
-    case OpalConversations.clear_visible_conversation(user_id) do
+    result =
+      case Map.get(params, "conversation_id") do
+        id when is_binary(id) and id != "" ->
+          OpalConversations.clear_conversation_by_id(user_id, id)
+
+        _ ->
+          OpalConversations.clear_visible_conversation(user_id)
+      end
+
+    case result do
       {:ok, %{conversation: c, deleted_messages: n}} ->
         json(conn, %{
           "ok" => true,
@@ -88,18 +134,27 @@ defmodule OpalCoreWeb.OpalConversationController do
           "conversation" => OpalConversations.to_conversation_contract(c, [])
         })
 
+      {:error, :not_found} ->
+        not_found(conn)
+
       {:error, _} ->
         conn |> put_status(422) |> json(%{"error_code" => "invalid"})
     end
   end
 
-  defp do_create_message(conn, user_id, body, client_context) when is_binary(body) do
+  defp do_create_message(conn, user_id, body, client_context, conversation_id)
+       when is_binary(body) do
     opts =
       if is_map(client_context) do
         [client_context: client_context]
       else
         []
       end
+
+    opts =
+      if is_binary(conversation_id),
+        do: Keyword.put(opts, :conversation_id, conversation_id),
+        else: opts
 
     # Repair #13 (W4-3) — client-supplied idempotency key; duplicate POSTs
     # return the original pair instead of duplicating the turn.
@@ -153,7 +208,7 @@ defmodule OpalCoreWeb.OpalConversationController do
     end
   end
 
-  defp do_create_message(conn, _user_id, _body, _client_context) do
+  defp do_create_message(conn, _user_id, _body, _client_context, _conversation_id) do
     conn
     |> put_status(422)
     |> json(%{"error_code" => "invalid", "errors" => %{"body" => ["can't be blank"]}})

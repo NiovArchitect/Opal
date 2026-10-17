@@ -3,45 +3,39 @@
  * Never: Message → fuzzy display-name match → generic Chats home.
  *
  * Ladder:
- * 1. Explicit conversationId (caller-owned)
+ * 1. Explicit conversationId (caller-owned) — real backend ids only
  * 2. peerUserId → existing direct dyad
- * 3. Founder seed key → remapped live id or seed-chat-* id
- * 4. Exact display-name dyad match (last resort; no substring fuzzy)
- * 5. ensure via peerUserId (caller) OR new-chat intent for that person
+ * 3. Exact display-name dyad match (last resort; no substring fuzzy)
+ * 4. ensure via peerUserId (caller) OR new-chat intent for that person
+ *
+ * Repair #17 — the scripted seed layer is dead. This resolver NEVER returns
+ * a `seed-chat-*` id: seed/demo content is backend DATA (real accounts,
+ * real conversations), so a person always resolves to a real conversation
+ * or to the caller's ensure/new-chat path. An explicit `seed-chat-*` id
+ * passed by a legacy fixture row is treated as absent and resolution falls
+ * through to the peer/name rungs — it can never drop the user into a
+ * scripted parallel universe.
  */
-import {
-  FOUNDER_CHATS_PLAN_PILL_ROWS,
-  isFounderSeedChatId,
-  remapFounderChatRowsToLive,
-  type LiveChatMatchInput,
-} from "./founderChatsPlanPills";
+import { isFounderSeedChatId } from "./founderChatsPlanPills";
 import {
   listDirectPeopleFromChats,
   resolveDirectConversationForPerson,
   type PresenceChat,
 } from "./momentNamedPresence";
-// Repair #11: seedChatKeyFrom is id-only now (quarantine). Seed-mode-only
-// person routing keeps its explicit name→fixture map via
-// seedChatIdForPersonName — same return values, no trigger on real chats.
-import { seedChatIdForPersonName } from "./seedThreadIntelligence";
 
 export type PersonChatTarget = {
   /** Primary when known — Call Continuity / profile / live row. */
   conversationId?: string | null;
   /** Peer user id when known — ensure/create path. */
   peerUserId?: string | null;
-  /** Display name for seed key + New Chat label only. */
+  /** Display name for exact dyad match + New Chat label only. */
   displayName?: string | null;
 };
 
 export type PersonChatResolveOk = {
   ok: true;
   conversationId: string;
-  via:
-    | "conversation_id"
-    | "peer_user_id"
-    | "founder_seed"
-    | "exact_name_dyad";
+  via: "conversation_id" | "peer_user_id" | "exact_name_dyad";
 };
 
 export type PersonChatResolveNew = {
@@ -73,54 +67,27 @@ function isDirectish(c: PresenceChat): boolean {
 /**
  * Resolve which conversation to open for a person target.
  * Pure — does not call ensureDirectConversation (async stays in app layer).
+ * The returned conversationId is always a real backend conversation id.
  */
 export function resolvePersonChatTarget(
   target: PersonChatTarget,
   chats: PresenceChat[],
-  opts?: { founderSeedEnabled?: boolean },
 ): PersonChatResolveResult {
   const displayName = (target.displayName || "").trim();
-  const conversationId = (target.conversationId || "").trim();
+  const rawConversationId = (target.conversationId || "").trim();
+  // Repair #17: a seed-chat-* id is not a conversation. Ignore it and let
+  // the real rungs (peer dyad / exact-name dyad / new-chat ensure) decide.
+  const conversationId = isFounderSeedChatId(rawConversationId)
+    ? ""
+    : rawConversationId;
   const peerUserId = (target.peerUserId || "").trim();
 
   if (!conversationId && !peerUserId && !displayName) {
     return { ok: false, reason: "empty" };
   }
 
-  // 1) Explicit conversation id wins (including seed-chat-*).
+  // 1) Explicit real conversation id wins.
   if (conversationId) {
-    if (isFounderSeedChatId(conversationId) && opts?.founderSeedEnabled) {
-      const live = chats.map(
-        (c): LiveChatMatchInput => ({
-          id: c.id,
-          name: c.name,
-          kind:
-            c.composition === "group" || (c.memberCount ?? 0) >= 3
-              ? "group"
-              : "direct",
-          memberCount: c.memberCount,
-        }),
-      );
-      const remapped = remapFounderChatRowsToLive(
-        FOUNDER_CHATS_PLAN_PILL_ROWS,
-        live,
-      );
-      const seedRow = FOUNDER_CHATS_PLAN_PILL_ROWS.find(
-        (r) => r.id === conversationId,
-      );
-      const hit = seedRow
-        ? remapped.find((r) => r.name === seedRow.name)
-        : remapped.find((r) => r.id === conversationId);
-      if (hit?.id) {
-        return {
-          ok: true,
-          conversationId: hit.id,
-          via: isFounderSeedChatId(hit.id) ? "founder_seed" : "conversation_id",
-        };
-      }
-      return { ok: true, conversationId, via: "founder_seed" };
-    }
-    // Prefer id if it exists in chats; still open if seed/local hydrate will accept it.
     return { ok: true, conversationId, via: "conversation_id" };
   }
 
@@ -153,47 +120,12 @@ export function resolvePersonChatTarget(
     };
   }
 
-  // 3) Founder seed key from exact/prefix display name (seed on only).
-  if (opts?.founderSeedEnabled && displayName) {
-    const seedKey = seedChatIdForPersonName(displayName);
-    if (seedKey) {
-      const live = chats.map(
-        (c): LiveChatMatchInput => ({
-          id: c.id,
-          name: c.name,
-          kind:
-            c.composition === "group" || (c.memberCount ?? 0) >= 3
-              ? "group"
-              : "direct",
-          memberCount: c.memberCount,
-        }),
-      );
-      const remapped = remapFounderChatRowsToLive(
-        FOUNDER_CHATS_PLAN_PILL_ROWS,
-        live,
-      );
-      const hit = remapped.find(
-        (r) =>
-          r.id === seedKey ||
-          normExact(r.name) === normExact(displayName) ||
-          seedChatIdForPersonName(r.name) === seedKey,
-      );
-      if (hit?.id) {
-        return {
-          ok: true,
-          conversationId: hit.id,
-          via: "founder_seed",
-        };
-      }
-      return { ok: true, conversationId: seedKey, via: "founder_seed" };
-    }
-  }
-
-  // 4) Exact display-name dyad only (no substring fuzzy).
+  // 3) Exact display-name dyad only (no substring fuzzy).
   if (displayName) {
     const needle = normExact(displayName);
     const exact = chats.find((c) => {
       if (!isDirectish(c)) return false;
+      if (isFounderSeedChatId(c.id)) return false;
       if (normExact(c.name) === needle) return true;
       const peerName = c.peers?.[0]?.display_name;
       return peerName ? normExact(peerName) === needle : false;
@@ -203,7 +135,7 @@ export function resolvePersonChatTarget(
     }
   }
 
-  // 5) Never land on bare Chats home — New Chat intent for this person.
+  // 4) Never land on bare Chats home — New Chat intent for this person.
   if (displayName || peerUserId) {
     return {
       ok: false,
@@ -214,11 +146,4 @@ export function resolvePersonChatTarget(
   }
 
   return { ok: false, reason: "empty" };
-}
-
-/** Stable seed conversation id for a founder Calls Continuity person row. */
-export function founderSeedConversationIdForName(
-  name: string | null | undefined,
-): string | null {
-  return seedChatIdForPersonName(name);
 }

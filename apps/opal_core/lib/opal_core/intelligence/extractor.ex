@@ -14,7 +14,7 @@ defmodule OpalCore.Intelligence.Extractor do
   alias OpalCore.Repo
   alias OpalCore.Trips.VibeProfiles
 
-  @confirm ~r/\b(yes|yeah|yep|yup|sure|sounds good|i'?m in\b|im in\b|locked in|perfect|works for me|i confirm|^confirm$|^down$)\b/i
+  @confirm ~r/\b(yes|yeah|yep|yup|sure|sounds good|i'?m in\b|im in\b|locked in|perfect|works for me|i confirm|^down$)\b|^confirm\b/i
   @cancel ~r/\b(can'?t make it|cannot make it|cancel|rain check|i'?m out|sitting out)\b/i
   @counter ~r/\b(after\s+\d{1,2}|before\s+\d{1,2}|works better|feels better|rather|instead|later|earlier|move (it|to))\b/i
 
@@ -23,7 +23,12 @@ defmodule OpalCore.Intelligence.Extractor do
   # new clock time or day means the plan itself should change via the
   # SocialFlow schedule authority. Requires a meridiem for times (bare "8" is
   # ambiguous); questions ("…?") and negations never match here.
-  @change_time_re ~r/\b(?:change|move|switch|push|shift)(?:\s+(?:it|the\s+time|dinner|plans?))?\s+(?:to|at)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\blet'?s\s+do\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\bactually[,.]?\s+let'?s\s+do\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i
+  # Repair #17 (W4-1) — the founder's real phrasing "Let's change the time for
+  # Juniper and Ivy at 8pm" never matched: a "for <plan/venue>" phrase sits
+  # between the verb and the clock. The third alternative carries that phrase
+  # (non-greedy, stops at the first to/at + meridiem time) so the change is
+  # classified as a schedule change instead of a fresh plan.propose.
+  @change_time_re ~r/\b(?:change|move|switch|push|shift)(?:\s+(?:it|the\s+time|dinner|plans?))?\s+(?:to|at)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\blet'?s\s+do\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\bactually[,.]?\s+let'?s\s+do\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b|\b(?:change|move|switch|push|shift)\s+(?:the\s+time\s+)?for\s+.+?\s+(?:to|at)\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i
   @change_date_re ~r/\b(?:change|move|switch|push|shift)(?:\s+(?:it|the\s+day|dinner|plans?))?\s+(?:to|for)\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b|\blet'?s\s+do\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\s+instead\b/i
   @change_negation_re ~r/\b(don'?t|do\s+not|never)\b.{0,20}\b(change|move|switch|push|shift)\b/i
   @question ~r/\b(what time|where|when|which|who'?s|how about)\b|\?/i
@@ -404,7 +409,9 @@ defmodule OpalCore.Intelligence.Extractor do
   # framing — the label is display text on the plan, not a timestamp.
   defp normalize_time_label(raw) do
     case Regex.run(~r/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i, raw) do
-      [_, h, m, mer] -> "#{h}:#{m || "00"} #{String.upcase(mer)}"
+      # Repair #17 (W4-1) — a non-participating minute group comes back as
+      # "" (not nil): "8pm" must normalize to "8:00 PM", never "8: PM".
+      [_, h, m, mer] -> "#{h}:#{if(m in [nil, ""], do: "00", else: m)} #{String.upcase(mer)}"
       _ -> String.trim(raw)
     end
   end

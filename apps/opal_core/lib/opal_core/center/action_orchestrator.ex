@@ -147,11 +147,32 @@ defmodule OpalCore.Center.ActionOrchestrator do
           plan_cancel_turn?(intent, patch, raw_text) ->
             handle_plan_cancel(user_id, intent, planning, patch, raw_text)
 
+          # Repair #17 (W4-2) — an outstanding question Opal asked consumes
+          # the user's next message as its answer, in flow. This branch runs
+          # before the sticky-plan correction, the provider search, and the
+          # template/sticky re-engagement paths, so an answer like "Food"
+          # can never be reclassified as a new topic.
+          outstanding_answer_turn?(prior, raw_text) ->
+            handle_outstanding_answer(
+              user_id,
+              intent,
+              planning,
+              PlanningContext.outstanding_question(prior),
+              raw_text
+            )
+
           (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
               # F12-13/F12-53 — the sticky plan_id is only actionable while
               # fresh and the plan is still active. A bare is_binary check let
               # days-old or cancelled plan_ids hijack unrelated utterances.
               PlanningContext.plan_id_active?(planning) and
+              # Repair #17 (W4-4) — a NEW plan request ("Schedule a date
+              # night with Chanelle tonight at 5 PM…") carries its own when,
+              # but it is not a correction of the sticky plan. It must create
+              # a new plan, never be answered "Updated — Same plan, same
+              # people." Bare clock corrections ("tonight 8 PM") carry no
+              # new-plan verb and still route here.
+              not new_plan_request?(intent, raw_text) and
               not Regex.match?(@select_option_re, raw_text) and
               patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"] ->
             handle_when_correction(user_id, intent, planning, prior, patch)
@@ -231,6 +252,17 @@ defmodule OpalCore.Center.ActionOrchestrator do
                         end
 
                       {:ask, asked_planning, question} ->
+                        # Repair #17 (W4-2) — record the question as
+                        # outstanding on the state layer so the next user
+                        # message is consumed as its answer.
+                        _ =
+                          PlanningContext.set_outstanding_question(user_id, %{
+                            "kind" => "economy",
+                            "prompt" => question,
+                            "who" => asked_planning["who"] || asked_planning["primary_person"],
+                            "what" => asked_planning["what"]
+                          })
+
                         {intent, question,
                          %{
                            "planning_context" => asked_planning,
@@ -551,6 +583,23 @@ defmodule OpalCore.Center.ActionOrchestrator do
         :none ->
           parked = Map.put(planning, "provider_parked", true)
 
+          # Repair #17 (W4-2) — this category question is now OUTSTANDING:
+          # the user's next message is its answer, consumed in flow by
+          # handle_outstanding_answer/5 — never the sticky re-engagement.
+          # Repair #17 (W4-5) — but a turn that names a venue is not a
+          # category question at all: named-venue turns are routed to the
+          # venue search before this gate (see after_classify), so this
+          # branch only ever asks the category question for name-less
+          # discovery.
+          _ =
+            PlanningContext.set_outstanding_question(user_id, %{
+              "kind" => "category",
+              "prompt" => "food, outdoors, or nightlife?",
+              "who" => planning["who"] || planning["primary_person"],
+              "what" => planning["what"],
+              "intent_scope" => planning["intent_scope"]
+            })
+
           {intent_without_search(intent),
            "I can look for nearby ideas once location access is available — food, outdoors, or nightlife?",
            %{
@@ -846,6 +895,133 @@ defmodule OpalCore.Center.ActionOrchestrator do
       {:ok, planning["plan_id"]}
     else
       resolve_plan_ref_to_id(user_id, intent)
+    end
+  end
+
+  # Repair #17 (W4-4) — a NEW plan request: a :plan_create turn carrying an
+  # explicit create/schedule verb and no change verb. Its when/when_time
+  # belong to the new plan, never to a correction of the sticky plan.
+  defp new_plan_request?(intent, raw_text) when is_binary(raw_text) do
+    atom = intent[:intent] || intent["intent"]
+
+    atom in [:plan_create, "plan_create"] and
+      Regex.match?(
+        ~r/\b(schedule|set\s+up|create|arrange|book|plan)\b/i,
+        raw_text
+      ) and
+      not Regex.match?(~r/\b(change|move|reschedule|shift|push)\b/i, raw_text)
+  end
+
+  defp new_plan_request?(_, _), do: false
+
+  # Repair #17 (W4-2) — the outstanding question (recorded when Opal asked
+  # it, on the prior turn's planning context) consumes this turn as its
+  # answer when the message reads as an answer, not a new direction.
+  defp outstanding_answer_turn?(prior, raw_text) do
+    case PlanningContext.outstanding_question(prior) do
+      %{} = q -> PlanningContext.answer_to_outstanding?(q, raw_text)
+      _ -> false
+    end
+  end
+
+  # Consume the answer in flow: the outstanding question is cleared, the
+  # answer lands on the SAME planning context (same who/what), and the
+  # reply continues that flow. The sticky re-engagement template never
+  # renders for an answer turn (this override owns the turn).
+  defp handle_outstanding_answer(user_id, intent, planning, q, raw_text) do
+    answer = String.trim(raw_text)
+
+    planning2 =
+      planning
+      |> Map.delete("outstanding_question")
+      |> apply_outstanding_answer(q, answer)
+
+    {:ok, planning2} = PlanningContext.put(user_id, planning2)
+
+    who =
+      planning2["who"] || planning2["primary_person"] || q["who"]
+
+    who_label =
+      case who do
+        w when is_binary(w) and w != "" -> w
+        [n | _] when is_binary(n) -> n
+        _ -> nil
+      end
+
+    flow_label =
+      cond do
+        is_binary(q["intent_scope"]) and String.contains?(q["intent_scope"], "birth") and
+            is_binary(who_label) ->
+          "#{who_label}'s birthday plan"
+
+        is_binary(who_label) and is_binary(planning2["what"]) ->
+          "#{planning2["what"]} with #{who_label}"
+
+        is_binary(who_label) ->
+          "your plan with #{who_label}"
+
+        is_binary(planning2["what"]) ->
+          planning2["what"]
+
+        true ->
+          "your plan"
+      end
+
+    override =
+      case q["kind"] do
+        "category" ->
+          "#{category_answer_label(answer)} — keeping going on #{flow_label}."
+
+        _ ->
+          "Got it — #{answer}. Keeping going on #{flow_label}."
+      end
+
+    meta = %{
+      "action_state" => "outstanding_answered",
+      "outstanding_question_kind" => q["kind"],
+      "planning_context" => planning2,
+      "conversation_owns_routing" => true
+    }
+
+    {intent_without_search(intent), override, meta}
+  end
+
+  defp apply_outstanding_answer(planning, %{"kind" => "category"}, answer) do
+    down = String.downcase(answer)
+
+    cond do
+      Regex.match?(~r/\b(food|dinner|drinks?|nightlife)\b/, down) and
+          Regex.match?(~r/\bfood\b/, down) ->
+        planning
+        |> Map.put("category", "food")
+        |> Map.put("wants_restaurant", true)
+
+      Regex.match?(~r/\boutdoors?\b/, down) ->
+        Map.put(planning, "category", "outdoors")
+
+      Regex.match?(~r/\b(nightlife|drinks?)\b/, down) ->
+        Map.put(planning, "category", "nightlife")
+
+      Regex.match?(~r/\b(dinner)\b/, down) ->
+        planning
+        |> Map.put("category", "food")
+        |> Map.put("wants_restaurant", true)
+
+      true ->
+        planning
+    end
+  end
+
+  defp apply_outstanding_answer(planning, _q, _answer), do: planning
+
+  defp category_answer_label(answer) do
+    down = String.downcase(answer)
+
+    cond do
+      String.contains?(down, "food") -> "Food it is"
+      String.contains?(down, "outdoor") -> "Outdoors it is"
+      String.contains?(down, "nightlife") -> "Nightlife it is"
+      true -> "Got it"
     end
   end
 
@@ -1334,9 +1510,15 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
     cands = ((job && job.result) || %{})["candidates"] || []
 
+    # Repair #17 (W4-5) — fuzzy first: an imperfect typed name ("Dave &
+    # Busters") must still select the canonical candidate ("Dave &
+    # Buster's"); exact/contains matching stays as the fallback order.
     Enum.find(cands, fn c ->
-      is_binary(c["name"]) and String.downcase(c["name"]) == String.downcase(name)
+      is_binary(c["name"]) and PlanContextPatch.venue_names_match?(c["name"], name)
     end) ||
+      Enum.find(cands, fn c ->
+        is_binary(c["name"]) and String.downcase(c["name"]) == String.downcase(name)
+      end) ||
       Enum.find(cands, fn c ->
         is_binary(c["name"]) and
           String.contains?(String.downcase(c["name"]), String.downcase(name))
@@ -1410,8 +1592,20 @@ defmodule OpalCore.Center.ActionOrchestrator do
                 exact? and is_binary(planning["requested_venue_name"]) ->
                   # Repair #12 (F12-42): single copy source with the
                   # no-provider fallback render.
-                  PlanContextPatch.venue_lookup_copy(planning["requested_venue_name"], dest) ||
-                    "Looking up #{planning["requested_venue_name"]} in #{dest}…"
+                  base_copy =
+                    PlanContextPatch.venue_lookup_copy(planning["requested_venue_name"], dest) ||
+                      "Looking up #{planning["requested_venue_name"]} in #{dest}…"
+
+                  # Repair #17 (W4-5) — a named-venue search with no
+                  # locality and no device coords proceeds on the name as
+                  # text; state the ranking limitation honestly instead of
+                  # gating on location access.
+                  if (is_nil(dest) or dest == "") and planning["origin_source"] != "device" do
+                    base_copy <>
+                      " Searching by name — without your location I can't rank by distance."
+                  else
+                    base_copy
+                  end
 
                 is_binary(cuisine) and cuisine != "" and is_binary(dest) ->
                   # Cuisine discovery without inherited WHEN — do not invent Saturday/Friday.

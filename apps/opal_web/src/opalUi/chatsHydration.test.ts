@@ -23,36 +23,48 @@ const seedLeakRow: ChatsHomeRow = {
 };
 
 describe("chatsHydration prefer-real / seed-off", () => {
-  it("seed on remaps founder plan-pill rows", () => {
+  it("seed on remaps founder plan-pill rows onto REAL conversation ids only", () => {
+    // Repair #17: fixture rows are painted ONLY when bound to a real
+    // backend conversation (the backend founder seed creates them).
+    const liveChanelle: ChatsHomeRow = {
+      id: "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
+      name: "Chanelle",
+      kind: "direct",
+      preview: "Real backend preview",
+      when: "now",
+    };
     const fix = composeChatsList({
       founderSeedEnabled: true,
-      liveRows: [liveFortOak],
+      liveRows: [liveChanelle, liveFortOak],
     });
     expect(fix.mode).toBe("FOUNDER_FIXTURE");
-    expect(fix.rows.length).toBeGreaterThanOrEqual(1);
-    expect(fix.rows.some((r) => r.name === "Chanelle" || r.id.includes("seed-chat"))).toBe(
-      true,
-    );
+    expect(fix.rows.length).toBe(1);
+    expect(fix.rows[0]?.name).toBe("Chanelle");
+    expect(fix.rows[0]?.id).toBe(liveChanelle.id);
+    expect(fix.rows.every((r) => !isSeedChatRowId(r.id))).toBe(true);
   });
 
-  it("physical seed on with empty live paints ≥5 coherent founder rows", () => {
+  it("seed on with NO matching live conversation paints NOTHING (Repair #17)", () => {
+    // The old law painted ≥5 pure seed-chat-* fixture rows. That put
+    // unreachable scripted fixtures on the open path — now forbidden.
     const fix = composeChatsList({
       founderSeedEnabled: true,
       liveRows: [],
     });
-    expect(fix.mode).toBe("FOUNDER_FIXTURE");
-    expect(fix.rows.length).toBeGreaterThanOrEqual(5);
-    const names = fix.rows.map((r) => r.name);
-    for (const n of ["Chanelle", "Maya", "Juniper crew", "Sabrina", "Alex"]) {
-      expect(names).toContain(n);
-    }
+    expect(fix.mode).toBe("EMPTY");
+    expect(fix.rows).toEqual([]);
     expect(fix.diagnostics?.seedEnabled).toBe(true);
-    expect(fix.diagnostics?.paintedRows).toBeGreaterThanOrEqual(5);
+    expect(fix.diagnostics?.paintedRows).toBe(0);
+    expect(fix.diagnostics?.hardFallback).toBe(false);
     expect(fix.diagnostics?.path).toBe("physical_compose");
-    expect(fix.rows.some((r) => (r.unread || 0) > 0)).toBe(true);
-    expect(fix.rows.some((r) => !r.unread)).toBe(true);
-    const maya = fix.rows.find((r) => r.name === "Maya");
-    expect(maya?.planConsequence?.label).toMatch(/Farmers market/i);
+  });
+
+  it("seed on with only non-matching live rows never leaks a seed-chat id", () => {
+    const fix = composeChatsList({
+      founderSeedEnabled: true,
+      liveRows: [liveFortOak],
+    });
+    expect(fix.rows.every((r) => !isSeedChatRowId(r.id))).toBe(true);
   });
 
   it("seed off + no live is EMPTY with zero seed-chat rows", () => {

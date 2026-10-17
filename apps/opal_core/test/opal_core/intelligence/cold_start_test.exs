@@ -7,9 +7,16 @@ defmodule OpalCore.Intelligence.ColdStartTest do
   alias OpalCore.Intelligence.{AttentionBudget, ColdStart, PromptBuilder}
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.AssistancePreference
+  alias OpalCore.SocialFlow.Clock
   alias OpalCore.SocialMemory.{ConversationIndex, PersonMemory, Routine, TemporalAnchor}
 
   setup do
+    # Repair #17 — pin the clock to a non-quiet local time (12:00 PDT for
+    # the default America/Los_Angeles preference) so AttentionBudget's
+    # quiet-hours gate never decides this file's outcomes by wall clock.
+    Clock.freeze(~U[2026-06-01 19:00:00Z])
+    on_exit(fn -> Clock.unfreeze() end)
+
     account_id = Ecto.UUID.generate()
 
     {:ok, _} =

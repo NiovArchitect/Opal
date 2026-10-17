@@ -122,6 +122,23 @@ export type GoogleConnectionProjection = {
   detail: string;
 };
 
+/** "Oct 17, 8:02 AM" for a real ISO sync stamp; null when absent/invalid. */
+export function formatConnectionSyncTime(iso?: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(d);
+  } catch {
+    return null;
+  }
+}
+
 export function projectGoogleConnection(
   status: GoogleCalendarConnectionStatus | null | undefined,
   loadFailed = false,
@@ -137,11 +154,16 @@ export function projectGoogleConnection(
     return { state: "unknown", label: "Checking", detail: "Checking this connection." };
   }
   if (status.connected) {
+    // Repair #17 W5 — status refinement: when the backend reports a real
+    // last sync, say when. Absent or unparseable stays unpainted (never
+    // a guessed freshness claim).
+    const synced = formatConnectionSyncTime(status.last_synced_at);
     return {
       state: "connected",
       label: "Connected",
       detail:
-        "Opal can check busy times when a plan needs a time. Disconnecting stops that right away.",
+        "Opal can check busy times when a plan needs a time. Disconnecting stops that right away." +
+        (synced ? ` Last checked ${synced}.` : ""),
     };
   }
   if (status.status === "revoked") {

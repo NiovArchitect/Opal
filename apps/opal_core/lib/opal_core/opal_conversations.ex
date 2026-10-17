@@ -20,7 +20,7 @@ defmodule OpalCore.OpalConversations do
 
   @doc "Get or create the user's single active Opal conversation."
   def get_or_create_conversation(user_id) when is_binary(user_id) do
-    case Repo.get_by(OpalConversation, user_id: user_id) do
+    case Repo.one(OpalConversation.active_query(user_id)) do
       %OpalConversation{} = c ->
         {:ok, c}
 
@@ -33,9 +33,9 @@ defmodule OpalCore.OpalConversations do
             {:ok, c}
 
           {:error, %Ecto.Changeset{errors: errors} = cs} ->
-            # Race: unique user_id — re-fetch winner.
+            # Race: one-active partial unique index — re-fetch winner.
             if Keyword.has_key?(errors, :user_id) do
-              case Repo.get_by(OpalConversation, user_id: user_id) do
+              case Repo.one(OpalConversation.active_query(user_id)) do
                 %OpalConversation{} = c -> {:ok, c}
                 nil -> {:error, cs}
               end
@@ -47,6 +47,125 @@ defmodule OpalCore.OpalConversations do
   end
 
   def get_or_create_conversation(_), do: {:error, :invalid}
+
+  @doc "The user's active Opal session, or nil."
+  def get_active_conversation(user_id) when is_binary(user_id) do
+    Repo.one(OpalConversation.active_query(user_id))
+  end
+
+  def get_active_conversation(_), do: nil
+
+  # --- Repair #17 (W4-7): Opal chat sessions --------------------------------
+
+  @doc """
+  List the user's Opal chat sessions (active first, then most recently
+  updated), each as a conversation contract plus "message_count" and
+  "active". Owner-scoped by construction: the query is keyed on user_id.
+  """
+  def list_sessions(user_id) when is_binary(user_id) do
+    sessions = Repo.all(OpalConversation.sessions_query(user_id))
+
+    counts =
+      from(m in OpalMessage,
+        where: m.conversation_id in ^Enum.map(sessions, & &1.id),
+        group_by: m.conversation_id,
+        select: {m.conversation_id, count(m.id)}
+      )
+      |> Repo.all()
+      |> Map.new()
+
+    # Repair #17 (integration) — last-message preview per session so the
+    # sessions list can label untitled rows by their own content (the web
+    # drawer contract W5 designed against). Latest message per
+    # conversation, body truncated; sessions without messages get nil.
+    previews =
+      from(m in OpalMessage,
+        where: m.conversation_id in ^Enum.map(sessions, & &1.id),
+        order_by: [asc: m.conversation_id, desc: m.inserted_at, desc: m.id],
+        select: {m.conversation_id, m.body}
+      )
+      |> Repo.all()
+      |> Enum.reduce(%{}, fn {cid, body}, acc ->
+        Map.put_new(acc, cid, session_preview(body))
+      end)
+
+    Enum.map(sessions, fn c ->
+      c
+      |> OpalConversation.to_contract([])
+      |> Map.delete("messages")
+      |> Map.put("message_count", Map.get(counts, c.id, 0))
+      |> Map.put("last_message_preview", Map.get(previews, c.id))
+      |> Map.put("active", is_nil(c.archived_at))
+    end)
+  end
+
+  def list_sessions(_), do: []
+
+  defp session_preview(body) when is_binary(body) do
+    trimmed = String.trim(body)
+    if String.length(trimmed) > 80, do: String.slice(trimmed, 0, 80) <> "…", else: trimmed
+  end
+
+  defp session_preview(_), do: nil
+
+  @doc """
+  Switch the active Opal session to one of the user's own archived
+  sessions: the current active session is archived (retained) and the
+  target is reactivated. Foreign or unknown ids → {:error, :not_found}
+  (existence is never revealed across accounts).
+  """
+  def switch_conversation(user_id, conversation_id)
+      when is_binary(user_id) and is_binary(conversation_id) do
+    with {:ok, target} <- get_conversation_for_user(user_id, conversation_id) do
+      Repo.transaction(fn ->
+        case Repo.one(OpalConversation.active_query(user_id)) do
+          %OpalConversation{id: id} = current when id != target.id ->
+            current
+            |> Ecto.Changeset.change(%{archived_at: DateTime.utc_now(:microsecond)})
+            |> Repo.update!()
+
+          _ ->
+            :ok
+        end
+
+        target
+        |> Ecto.Changeset.change(%{archived_at: nil})
+        |> Repo.update!()
+      end)
+      |> case do
+        {:ok, updated} -> {:ok, updated}
+        {:error, reason} -> {:error, reason}
+      end
+    end
+  end
+
+  def switch_conversation(_, _), do: {:error, :not_found}
+
+  @doc """
+  Clear ONE of the user's own Opal sessions by id: its messages are
+  deleted (gone from user surfaces). Foreign or unknown ids →
+  {:error, :not_found}. SharedPlans / Graph / human chats are untouched.
+  """
+  def clear_conversation_by_id(user_id, conversation_id)
+      when is_binary(user_id) and is_binary(conversation_id) do
+    with {:ok, conversation} <- get_conversation_for_user(user_id, conversation_id) do
+      {deleted, _} =
+        from(m in OpalMessage, where: m.conversation_id == ^conversation.id)
+        |> Repo.delete_all()
+
+      conversation =
+        conversation
+        |> Ecto.Changeset.change(%{
+          title: nil,
+          updated_at: DateTime.utc_now(:microsecond)
+        })
+        |> Repo.update!()
+
+      {:ok, %{conversation: conversation, deleted_messages: deleted}}
+    end
+  end
+
+  def clear_conversation_by_id(_, _), do: {:error, :not_found}
 
   @doc "Owner-only fetch by id. Foreign → :not_found."
   def get_conversation_for_user(user_id, id)
@@ -104,7 +223,7 @@ defmodule OpalCore.OpalConversations do
 
       true ->
         with :ok <- ensure_opal_rate_limit(user_id),
-             {:ok, conversation} <- get_or_create_conversation(user_id) do
+             {:ok, conversation} <- resolve_message_conversation(user_id, opts) do
           # Idempotent retry: a repeated POST carrying the same
           # client_message_id returns the original triple instead of
           # duplicating the message and re-running the pipeline.
@@ -221,6 +340,24 @@ defmodule OpalCore.OpalConversations do
 
   def create_user_message(_, _, _), do: {:error, :invalid}
 
+  # Repair #17 (W4-7) — posting to a specific session: it must be the
+  # user's own (foreign → :not_found, existence never revealed). An
+  # archived target is switched to (reactivated) first, preserving the
+  # one-active-session law.
+  defp resolve_message_conversation(user_id, opts) do
+    case Keyword.get(opts, :conversation_id) do
+      id when is_binary(id) and id != "" ->
+        case get_conversation_for_user(user_id, id) do
+          {:ok, %OpalConversation{archived_at: nil} = c} -> {:ok, c}
+          {:ok, %OpalConversation{}} -> switch_conversation(user_id, id)
+          {:error, :not_found} -> {:error, :not_found}
+        end
+
+      _ ->
+        get_or_create_conversation(user_id)
+    end
+  end
+
   # Repair #13 (W4-3) — idempotent Center POSTs. Returns the original
   # {conversation, user_msg, opal_msg} triple when this conversation already
   # holds a user message with the given client_message_id (and the opal reply
@@ -328,12 +465,43 @@ defmodule OpalCore.OpalConversations do
   def clear_visible_conversation(_), do: {:error, :invalid}
 
   @doc """
-  Start a fresh Center turn surface: clear visible history + transient planning.
-  Same durable conversation row (one Opal conversation per user) with empty
-  visible log — New Chat for the consumer.
+  Start a NEW Opal chat session (Repair #17, W4-7): the current active
+  session is archived — retained in the session list, messages intact —
+  and a fresh empty session becomes active. Transient planning is cleared
+  and in-flight provider jobs are cancelled, so nothing sticky leaks into
+  the new session. SharedPlans / Graph / human chats are preserved.
   """
   def start_new_chat(user_id) when is_binary(user_id) do
-    clear_visible_conversation(user_id)
+    with {:ok, current} <- get_or_create_conversation(user_id) do
+      _ = OpalCore.Center.ProviderAction.cancel_inflight_for_user(user_id)
+
+      Repo.transaction(fn ->
+        current
+        |> Ecto.Changeset.change(%{archived_at: DateTime.utc_now(:microsecond)})
+        |> Repo.update!()
+
+        fresh =
+          %OpalConversation{}
+          |> OpalConversation.changeset(%{"user_id" => user_id})
+          |> Repo.insert!()
+
+        fresh
+      end)
+      |> case do
+        {:ok, fresh} ->
+          _ = OpalCore.Center.PlanningContext.clear_transient(user_id)
+
+          {:ok,
+           %{
+             conversation: fresh,
+             archived_conversation_id: current.id,
+             deleted_messages: 0
+           }}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
   end
 
   def start_new_chat(_), do: {:error, :invalid}

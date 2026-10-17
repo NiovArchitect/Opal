@@ -2127,6 +2127,13 @@ defmodule OpalCore.SocialFlow do
         |> Repo.all()
         |> Enum.map(&PlanRevision.to_contract/1)
 
+      # Repair #17 (W4-1) — pending (proposed, undecided) revisions are the
+      # surfaceable current truth while they are open: a surface reading this
+      # payload must show the pending proposal, not present the plan's old
+      # time_label as locked/current.
+      pending_revisions =
+        Enum.filter(revisions, fn r -> r["status"] == "proposed" end)
+
       signals =
         from(s in Signal,
           where:
@@ -2159,6 +2166,7 @@ defmodule OpalCore.SocialFlow do
          "commitments" => commitments,
          "reminders" => reminders,
          "revisions" => revisions,
+         "pending_revisions" => pending_revisions,
          "signals" => signals
        }}
     end

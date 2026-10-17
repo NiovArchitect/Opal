@@ -358,7 +358,7 @@ export function OpalAmbient({
   function applyCorrection(chip: (typeof REFINE)[number]) {
     if (chip.label === "More ideas") {
       setExploreMode(true);
-      setNote("Exploration open - multiple alternatives are intentional here. Default decision remains one-answer in P4.");
+      setNote("Exploration open - here are a few alternatives. Opal still leads with one answer.");
       return;
     }
     setQuery((q) => (q ? `${q} · ${chip.mutate}` : chip.mutate));
@@ -375,7 +375,7 @@ export function OpalAmbient({
       kind: "context",
       id: chip.id,
       title: chip.label,
-      body: `${chip.hint}\n\nCurrent value: ${chip.value}\n\nInline correct/remove of this dimension without leaving Opal Center is the intended UX. Full intelligent recompose after correction is P4_REQUIRED.`,
+      body: `${chip.hint}\n\nCurrent value: ${chip.value}\n\nTell Opal in the chat if this should change - corrections apply to this decision.`,
     });
   }
 
