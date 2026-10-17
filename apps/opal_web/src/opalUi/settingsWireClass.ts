@@ -155,6 +155,15 @@ export const SETTINGS_WIRE_CLASSIFICATION: SettingsWireRow[] = [
     class: "GREEN",
     wire: "UI → createProductInvite → Invites.create_invite (rate-limited; honest SMS note) → get_by_code resolves",
   },
+  // Repair #15 (DF) - proven by connectedSources.test.tsx (status projection
+  // unit tests + render against a mocked status endpoint).
+  {
+    id: "connected-sources-google",
+    title: "Google Calendar and email connection status / connect / disconnect",
+    screen: "privacy",
+    class: "GREEN",
+    wire: "UI -> getGoogleCalendarStatus/startGoogleCalendarConnect/revokeGoogleCalendarConnection -> ConnectorController -> ProviderConnections.public_status/revoke -> Calendar.connected? gates free/busy checks; OAuth consent is calendar.readonly + gmail.readonly",
+  },
   {
     id: "appearance-theme-picker",
     title: "Appearance theme picker",

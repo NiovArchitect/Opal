@@ -3650,6 +3650,49 @@ export async function fetchCalendarToday(bearer?: string) {
   });
 }
 
+/**
+ * Repair #15 (DF) - Connected sources: Google connector status / connect /
+ * disconnect. Backend: ConnectorController + ProviderConnections
+ * (GET /connectors/google_calendar, POST .../start, POST .../revoke).
+ * Tokens are never returned by the API; status is the only truth painted.
+ */
+export type GoogleCalendarConnectionStatus = {
+  provider: string;
+  connected: boolean;
+  status: string;
+  scopes: string[];
+  token_present: boolean;
+  last_synced_at?: string | null;
+  last_error_class?: string | null;
+};
+
+export async function getGoogleCalendarStatus(bearer?: string) {
+  return request<GoogleCalendarConnectionStatus>(
+    "/api/v1/product/connectors/google_calendar",
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+}
+
+export async function startGoogleCalendarConnect(bearer?: string) {
+  return request<{
+    authorize_url: string;
+    state: string;
+    scopes: string[];
+    consent_includes_gmail_readonly: boolean;
+  }>("/api/v1/product/connectors/google_calendar/start", {
+    bearer: resolveBearer(bearer),
+    method: "POST",
+    body: "{}",
+  });
+}
+
+export async function revokeGoogleCalendarConnection(bearer?: string) {
+  return request<{ connected: boolean; revoked: boolean }>(
+    "/api/v1/product/connectors/google_calendar/revoke",
+    { bearer: resolveBearer(bearer), method: "POST", body: "{}" },
+  );
+}
+
 export async function createCelebration(
   attrs: {
     person_name: string;
