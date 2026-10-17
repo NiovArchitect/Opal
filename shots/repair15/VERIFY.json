@@ -1,0 +1,14 @@
+{
+  "branch": "muse/repair-15-gh",
+  "base": "025a0289 (Repair #14 tip)",
+  "track_g": "DONE - canonical venue surgery (see CANONICAL_VENUE.md)",
+  "track_h": "2 producers implemented in PlanCompletion.drive/3 (follow_through, coming_up); 5 proposals documented (see PROACTIVITY.md)",
+  "backend_suite": {"command": "cd apps/opal_core && mix test --seed 0", "tests": 2682, "failures": 0, "baseline_r14": {"tests": 2655, "failures": 0}, "new_tests": 27},
+  "new_test_files": [
+    "apps/opal_core/test/opal_core/social_flow/conversation_alignment_canonical_venue_test.exs (14)",
+    "apps/opal_core/test/opal_core/social_flow/repair15_canonical_venue_db_test.exs (7)",
+    "apps/opal_core/test/opal_core/social_flow/repair15_proactivity_test.exs (6)"
+  ],
+  "merged": false,
+  "production": false
+}
