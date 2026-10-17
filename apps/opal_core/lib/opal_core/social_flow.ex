@@ -14,11 +14,13 @@ defmodule OpalCore.SocialFlow do
   alias OpalCore.SocialFlow.{
     AuditEvent,
     FollowThroughProducers,
+    JourneyAuthority,
     PlanAgreementTasteBridge,
     PlanCommitment,
     PlanOption,
     PlanOptionResponse,
     PlanParticipant,
+    PlanIdentity,
     PlanRecentChanges,
     PlanReminder,
     PlanRevision,
@@ -249,7 +251,9 @@ defmodule OpalCore.SocialFlow do
                    commitment_id: commitment.id,
                    kind: "commitment",
                    status: "visible",
-                   copy: candidate["recommended_signal_copy"] || "You offered to make the reservation.",
+                   copy:
+                     candidate["recommended_signal_copy"] ||
+                       "You offered to make the reservation.",
                    visibility: "private",
                    audience_user_id: user_id,
                    actions: %{
@@ -1316,13 +1320,19 @@ defmodule OpalCore.SocialFlow do
         {%{status: "cancelled", cancelled_at: now, current_revision_id: rev.id},
          "#{plan.title} was cancelled."}
       else
-        time_label = changes["time_label"] || plan.time_label
+        time_label = changes["time_label"] || changes["new_value"] || plan.time_label
 
         # F12-02c (gyroscope) — project the accepted change into the fold's
         # explicit action log, same as change_plan_schedule/1, so the next
         # sync_conversation keeps the accepted schedule verbatim.
+        # Repair #18: the same transaction also syncs the STORED
+        # exact_time, the resolved start_at and the plan_set_event
+        # summary (sync_stored_schedule/5), so read-back on the stored
+        # projections equals the plan row immediately - no later sync
+        # is required for the truth to move.
         alignment =
-          append_explicit_action(plan.alignment || %{}, %{
+          (plan.alignment || %{})
+          |> append_explicit_action(%{
             "kind" => "schedule_change",
             "actor_user_id" => actor,
             "field" => "time_label",
@@ -1333,10 +1343,12 @@ defmodule OpalCore.SocialFlow do
             "revision_id" => rev.id,
             "at" => DateTime.to_iso8601(now)
           })
+          |> sync_stored_schedule(plan, time_label, rev.id, now)
 
         {%{
            status: "changed",
            time_label: time_label,
+           start_at: resolved_start_at(plan, time_label, changes),
            current_revision_id: rev.id,
            alignment: alignment
          }, "Dinner moved to #{time_label}."}
@@ -1446,6 +1458,140 @@ defmodule OpalCore.SocialFlow do
   end
 
   def confirm_pending_revision(_), do: {:error, :invalid}
+
+  @doc """
+  Repair #18 (Division A, F18-02 unification) - ONE change system.
+
+  The web's alignment-fold accept path (System B) used to move only
+  fold-local state: the plan row, its stored alignment and every
+  PlanRevision stayed untouched, so the two systems diverged and a
+  later read-back resurrected the old time. This entry is how a fold
+  acceptance lands on the surviving authority (System A): it records a
+  born-accepted PlanRevision through PlanTransition (:accept_direct,
+  the same gate a lead's direct edit uses), supersedes any still-open
+  PlanRevision proposals for the plan (they described the same change;
+  the fold's accept settles them), and updates the plan row's canonical
+  fields - time_label, resolved start_at, stored alignment exact_time
+  and the regenerated plan_set_event - in one transaction. The fold's
+  change_proposal is thereafter a PROJECTION of this record
+  (surface_pending_revision overlays it), not a second writer.
+
+  Only time changes route here; place/activity fold accepts keep their
+  fold semantics and are noted as an open boundary in the handoff.
+  """
+  def record_fold_change_acceptance(attrs) when is_map(attrs) do
+    conversation_id = Map.get(attrs, :conversation_id) || Map.get(attrs, "conversation_id")
+    user_id = Map.get(attrs, :user_id) || Map.get(attrs, "user_id")
+    value = Map.get(attrs, :value) || Map.get(attrs, "value")
+    trace = Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") || @trace_default
+
+    cond do
+      not is_binary(conversation_id) or not is_binary(user_id) or
+        not is_binary(value) or String.trim(value) == "" ->
+        {:error, :invalid}
+
+      true ->
+        now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+        Repo.transaction(fn ->
+          plan =
+            from(p in SharedPlan,
+              where:
+                p.conversation_id == ^conversation_id and
+                  p.status in ^~w(tentative agreed changed),
+              order_by: [desc: p.updated_at, desc: p.inserted_at],
+              limit: 1,
+              lock: "FOR UPDATE"
+            )
+            |> Repo.one()
+
+          with %SharedPlan{} = plan <- plan do
+            # Settle any open System A proposals for this plan: the fold
+            # accept IS their resolution (never leave a second pending
+            # representation of the same change behind).
+            superseded_ids =
+              from(r in PlanRevision,
+                where: r.plan_id == ^plan.id and r.status == "proposed",
+                select: r.id
+              )
+              |> Repo.all()
+
+            if superseded_ids != [] do
+              from(r in PlanRevision, where: r.id in ^superseded_ids)
+              |> Repo.update_all(set: [status: "superseded", updated_at: now])
+
+              from(s in Signal, where: s.revision_id in ^superseded_ids and s.status == "visible")
+              |> Repo.update_all(set: [status: "superseded", updated_at: now])
+            end
+
+            {:ok, revision} =
+              %PlanRevision{}
+              |> PlanRevision.changeset(%{
+                plan_id: plan.id,
+                proposed_by_user_id: user_id,
+                prior_revision_id: plan.current_revision_id,
+                proposed_changes: %{
+                  "kind" => "schedule_change",
+                  "field" => "time_label",
+                  "time_label" => value,
+                  "new_value" => value,
+                  "source" => "alignment_fold"
+                },
+                status: "accepted",
+                accepted_at: now,
+                required_approvals: [user_id],
+                approvals: %{user_id => "accept"}
+              })
+              |> PlanTransition.guard_changeset(:revision, :accept_direct)
+              |> Repo.insert()
+
+            alignment =
+              (plan.alignment || %{})
+              |> append_explicit_action(%{
+                "kind" => "schedule_change",
+                "actor_user_id" => user_id,
+                "field" => "time_label",
+                "value" => value,
+                "truth" => "locked",
+                "explicit" => true,
+                "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+                "revision_id" => revision.id,
+                "at" => DateTime.to_iso8601(now)
+              })
+              |> sync_stored_schedule(plan, value, revision.id, now)
+
+            {:ok, plan} =
+              plan
+              |> SharedPlan.changeset(%{
+                status: PlanTransition.target_for(:plan, plan.status, :change) || plan.status,
+                time_label: value,
+                start_at: resolved_start_at(plan, value, %{}),
+                current_revision_id: revision.id,
+                alignment: alignment
+              })
+              |> PlanTransition.guard_changeset(:plan, :change)
+              |> Repo.update()
+
+            audit!(
+              plan.conversation_id,
+              plan.id,
+              user_id,
+              "revision.accepted",
+              %{"revision_id" => revision.id},
+              trace
+            )
+
+            _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
+
+            %{plan: plan, revision: revision}
+          else
+            nil -> Repo.rollback(:no_active_plan)
+          end
+        end)
+    end
+  end
+
+  def record_fold_change_acceptance(_), do: {:error, :invalid}
 
   @doc """
   Lead/organizer-only immediate cancellation of a shared plan.
@@ -1650,33 +1796,176 @@ defmodule OpalCore.SocialFlow do
   defp do_apply_nl_schedule_change(conversation_id, user_id, text, trace_id)
        when is_binary(conversation_id) do
     with :ok <- ensure_member(conversation_id, user_id),
-         %SharedPlan{} = plan <-
-           OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(
-             conversation_id
-           ) || {:error, :no_active_plan},
          {:ok, label} <- nl_schedule_label(text) do
-      if plan_lead?(plan, user_id) do
-        change_plan_time(%{
-          plan_id: plan.id,
-          user_id: user_id,
-          new_time_label: label,
-          trace_id: trace_id
-        })
-      else
-        propose_revision(%{
-          plan_id: plan.id,
-          proposed_by_user_id: user_id,
-          changes: %{"time_label" => label},
-          trace_id: trace_id
-        })
+      case resolve_nl_target(user_id, conversation_id, text) do
+        {:ok, %SharedPlan{} = plan} ->
+          apply_schedule_to_plan(plan, user_id, label, trace_id)
+
+        {:ambiguous, candidates} ->
+          {:error, :ambiguous,
+           %{
+             candidates: candidates,
+             prompt:
+               "Which plan did you mean: " <>
+                 Enum.map_join(candidates, ", ", & &1["title"]) <> "?"
+           }}
+
+        :none ->
+          {:error, :no_active_plan}
       end
     else
       {:error, _} = err -> err
     end
   end
 
-  defp do_apply_nl_schedule_change(_conversation_id, _user_id, _text, _trace_id),
-    do: {:error, :no_active_plan}
+  defp do_apply_nl_schedule_change(_conversation_id, user_id, text, trace_id) do
+    # Repair #18: a conversation-less (Center) change can still resolve
+    # when the utterance names a unique plan; ambiguity asks, and no
+    # match keeps the honest :no_active_plan.
+    with {:ok, label} <- nl_schedule_label(text) do
+      case resolve_nl_target(user_id, nil, text) do
+        {:ok, %SharedPlan{} = plan} -> apply_schedule_to_plan(plan, user_id, label, trace_id)
+        {:ambiguous, candidates} -> {:error, :ambiguous, %{candidates: candidates}}
+        :none -> {:error, :no_active_plan}
+      end
+    end
+  end
+
+  defp apply_schedule_to_plan(%SharedPlan{} = plan, user_id, label, trace_id) do
+    if plan_lead?(plan, user_id) do
+      change_plan_time(%{
+        plan_id: plan.id,
+        user_id: user_id,
+        new_time_label: label,
+        trace_id: trace_id
+      })
+    else
+      propose_revision(%{
+        plan_id: plan.id,
+        proposed_by_user_id: user_id,
+        changes: %{"time_label" => label},
+        trace_id: trace_id
+      })
+    end
+  end
+
+  # Target resolution with the Center resolver's discipline
+  # (resolve_plan_ref_to_id): the utterance's plan reference is scored
+  # against the user's active plans (title, location, participants,
+  # stored activity/who label). A unique best match wins even outside
+  # the current thread; a tie asks - it never silently picks; no match
+  # falls back to the thread's active plan (context is a prior, not an
+  # override when the utterance names a different plan).
+  defp resolve_nl_target(user_id, conversation_id, text) do
+    words = plan_ref_words(text)
+    candidates = if words == [], do: [], else: resolve_plan_candidates(user_id, words)
+
+    case candidates do
+      [] ->
+        fallback_nl_target(conversation_id)
+
+      [%{"plan_id" => plan_id, "score" => top} | rest] ->
+        tied = Enum.filter(rest, &(&1["score"] == top))
+
+        if tied == [] do
+          case Repo.get(SharedPlan, plan_id) do
+            %SharedPlan{} = plan -> {:ok, plan}
+            nil -> fallback_nl_target(conversation_id)
+          end
+        else
+          {:ambiguous, Enum.take([hd(candidates) | tied], 5)}
+        end
+    end
+  end
+
+  defp fallback_nl_target(conversation_id) when is_binary(conversation_id) do
+    case OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(conversation_id) do
+      %SharedPlan{} = plan -> {:ok, plan}
+      nil -> :none
+    end
+  end
+
+  defp fallback_nl_target(_), do: :none
+
+  @nl_ref_stopwords ~w(change move switch push shift lets let's let the time for to at please it this that plan plans my a an do does can we i and with)
+  @nl_ref_schedule_words ~w(monday tuesday wednesday thursday friday saturday sunday today tonight tomorrow morning afternoon evening night noon midnight am pm)
+
+  @doc "Content words of a change utterance that can name a plan (verbs, schedule and clock tokens removed)."
+  def plan_ref_words(text) when is_binary(text) do
+    text
+    |> String.downcase()
+    |> String.replace(~r/\d{1,2}(:\d{2})?\s*(am|pm)?\b/, " ")
+    |> String.split(~r/[^a-z0-9'&]+/, trim: true)
+    |> Enum.reject(&(&1 in @nl_ref_stopwords or &1 in @nl_ref_schedule_words))
+    |> Enum.uniq()
+  end
+
+  def plan_ref_words(_), do: []
+
+  @doc """
+  F18-03 disambiguation: the user's active plans scored against a plan
+  reference (string or word list), best first. Each candidate carries
+  plan_id, title, time_label, location and conversation_id so a caller
+  can ask "which one" with an explicit list.
+  """
+  def resolve_plan_candidates(user_id, ref) when is_binary(user_id) do
+    words =
+      cond do
+        is_binary(ref) -> plan_ref_words("change " <> ref <> " to")
+        is_list(ref) -> ref |> Enum.filter(&is_binary/1) |> Enum.map(&String.downcase/1)
+        true -> []
+      end
+
+    if words == [] do
+      []
+    else
+      user_id
+      |> user_active_plans()
+      |> Enum.map(fn plan -> {plan, plan_ref_score(plan, words)} end)
+      |> Enum.filter(fn {_plan, score} -> score > 0 end)
+      |> Enum.sort_by(fn {_plan, score} -> score end, :desc)
+      |> Enum.map(fn {plan, score} ->
+        %{
+          "plan_id" => plan.id,
+          "title" => plan.title,
+          "time_label" => plan.time_label,
+          "location" => plan.location,
+          "conversation_id" => plan.conversation_id,
+          "score" => score
+        }
+      end)
+    end
+  end
+
+  def resolve_plan_candidates(_, _), do: []
+
+  defp plan_ref_score(%SharedPlan{} = plan, words) do
+    participant_names =
+      plan
+      |> plan_participant_ids()
+      |> Enum.map(fn uid ->
+        case Repo.get(OpalCore.Accounts.User, uid) do
+          %OpalCore.Accounts.User{display_name: name} -> String.downcase(name || "")
+          _ -> ""
+        end
+      end)
+
+    haystack =
+      String.downcase(
+        Enum.join(
+          [
+            plan.title || "",
+            plan.location || "",
+            get_in(plan.alignment || %{}, ["activity", "value"]) || "",
+            get_in(plan.alignment || %{}, ["who_label"]) || "",
+            get_in(plan.alignment || %{}, ["subject_who"]) || ""
+          ] ++ participant_names,
+          " "
+        )
+      )
+
+    Enum.count(words, &String.contains?(haystack, &1))
+  end
 
   # Interpret a change-time utterance with the fold's own temporal parser.
   # Returns {:ok, label} or {:error, :no_time_found} — never invents a time.
@@ -1746,6 +2035,10 @@ defmodule OpalCore.SocialFlow do
   projections (gyroscope: no per-surface shadow state).
   """
   def list_plans_for_user(user_id, opts \\ []) when is_binary(user_id) do
+    # Repair #18 (Division A): lazy stale-tentative expiry on the read
+    # path (proposal pattern) - no sweeper needed for correctness.
+    _ = expire_stale_tentative_plans(user_id)
+
     participant_plan_ids =
       from(pp in PlanParticipant, where: pp.user_id == ^user_id, select: pp.plan_id)
       |> Repo.all()
@@ -1761,11 +2054,23 @@ defmodule OpalCore.SocialFlow do
       if Keyword.get(opts, :status) == :all do
         q
       else
-        from(p in q, where: p.status != "cancelled")
+        from(p in q, where: p.status not in ^["cancelled", "expired"])
       end
 
     plans = Repo.all(q)
-    {:ok, Enum.map(plans, &plan_payload/1)}
+
+    # Repair #18: the Center/Graphs list is viewer-scoped - each listed
+    # plan also carries the viewer's own canonical state (viewer_state)
+    # from the same one counter, when the plan has participant rows.
+    {:ok,
+     Enum.map(plans, fn plan ->
+       payload = plan_payload(plan)
+
+       case JourneyAuthority.attendance_contract(plan.id, user_id) do
+         %{"viewer_state" => viewer_state} -> Map.put(payload, "viewer_state", viewer_state)
+         _ -> payload
+       end
+     end)}
   end
 
   def list_plans_for_user(_, _), do: {:error, :invalid}
@@ -1784,11 +2089,13 @@ defmodule OpalCore.SocialFlow do
   maybe_project_peer_chat stub and respects OpalPlanConfirm's boundary:
   nothing auto-opens a human conversation; the user picks the destination.
   """
-  def share_plan_to_conversation(%{
-        plan_id: plan_id,
-        user_id: user_id,
-        conversation_id: conversation_id
-      } = attrs)
+  def share_plan_to_conversation(
+        %{
+          plan_id: plan_id,
+          user_id: user_id,
+          conversation_id: conversation_id
+        } = attrs
+      )
       when is_binary(plan_id) and is_binary(user_id) and is_binary(conversation_id) do
     trace_id = Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") || @trace_default
 
@@ -1955,6 +2262,16 @@ defmodule OpalCore.SocialFlow do
                      "at" => DateTime.to_iso8601(now)
                    })
 
+                 # Repair #18: a lead's direct edit is an accepted change
+                 # too - stored projections move in the same write.
+                 {alignment, plan_attrs} =
+                   if field == "time_label" do
+                     {sync_stored_schedule(alignment, plan, value, revision.id, now),
+                      Map.put(plan_attrs, :start_at, resolved_start_at(plan, value, %{}))}
+                   else
+                     {alignment, plan_attrs}
+                   end
+
                  {:ok, plan} =
                    plan
                    |> SharedPlan.changeset(
@@ -1965,82 +2282,85 @@ defmodule OpalCore.SocialFlow do
                    )
                    |> Repo.update()
 
-                   audit!(
-                     plan.conversation_id,
-                     plan.id,
-                     user_id,
-                     "plan.schedule_changed",
-                     %{
-                       "field" => field,
-                       "new_value" => value,
-                       "revision_id" => revision.id
-                     },
-                     trace
+                 audit!(
+                   plan.conversation_id,
+                   plan.id,
+                   user_id,
+                   "plan.schedule_changed",
+                   %{
+                     "field" => field,
+                     "new_value" => value,
+                     "revision_id" => revision.id
+                   },
+                   trace
+                 )
+
+                 # Supersede prior calendar versions and project the new
+                 # schedule — same discipline as the revision-accept path.
+                 _ =
+                   OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan,
+                     plan_version: 2
                    )
 
-                   # Supersede prior calendar versions and project the new
-                   # schedule — same discipline as the revision-accept path.
-                   _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
-
-                   {plan, revision}
-               end
-             else
-               nil -> Repo.rollback(:not_found)
-               {:error, reason} -> Repo.rollback(reason)
+                 {plan, revision}
              end
-           end) do
-        {:ok, {plan, revision}} ->
-          broadcast_plan(
+           else
+             nil -> Repo.rollback(:not_found)
+             {:error, reason} -> Repo.rollback(reason)
+           end
+         end) do
+      {:ok, {plan, revision}} ->
+        broadcast_plan(
+          plan,
+          "social_flow:plan",
+          %{
+            "plan" => plan_payload(plan),
+            "schedule_change" => %{
+              "field" => field,
+              "new_value" => value,
+              "revision_id" => revision.id
+            }
+          },
+          trace
+        )
+
+        # F12-08 — the alignment strip / plan projections derive from the
+        # alignment snapshot, so a direct schedule edit must also publish
+        # the snapshot refresh the frontend needs. R3 consumes this event;
+        # the payload carries everything to re-render without a refetch.
+        broadcast_plan(
+          plan,
+          "social_flow:alignment_updated",
+          %{
+            "plan_id" => plan.id,
+            "conversation_id" => plan.conversation_id,
+            "time_label" => plan.time_label,
+            "date_label" => get_in(plan.alignment || %{}, ["date_label"]),
+            "status" => plan.status,
+            "revision_id" => revision.id,
+            "source" => "schedule_change",
+            "lead_user_id" => lead_user_id(plan),
+            "organizer_name" => organizer_name(plan)
+          },
+          trace
+        )
+
+        # Repair #16 (W4, P3) — a lead's direct schedule edit is a
+        # material mutation: record it for the plan's people
+        # (post-commit), keyed by the revision row the edit created.
+        _ =
+          PlanRecentChanges.record_schedule_changed(
             plan,
-            "social_flow:plan",
-            %{
-              "plan" => plan_payload(plan),
-              "schedule_change" => %{
-                "field" => field,
-                "new_value" => value,
-                "revision_id" => revision.id
-              }
-            },
-            trace
+            "rev-#{revision.id}",
+            field,
+            value
           )
 
-          # F12-08 — the alignment strip / plan projections derive from the
-          # alignment snapshot, so a direct schedule edit must also publish
-          # the snapshot refresh the frontend needs. R3 consumes this event;
-          # the payload carries everything to re-render without a refetch.
-          broadcast_plan(
-            plan,
-            "social_flow:alignment_updated",
-            %{
-              "plan_id" => plan.id,
-              "conversation_id" => plan.conversation_id,
-              "time_label" => plan.time_label,
-              "date_label" => get_in(plan.alignment || %{}, ["date_label"]),
-              "status" => plan.status,
-              "revision_id" => revision.id,
-              "source" => "schedule_change",
-              "lead_user_id" => lead_user_id(plan),
-              "organizer_name" => organizer_name(plan)
-            },
-            trace
-          )
+        {:ok, %{plan: plan}}
 
-          # Repair #16 (W4, P3) — a lead's direct schedule edit is a
-          # material mutation: record it for the plan's people
-          # (post-commit), keyed by the revision row the edit created.
-          _ =
-            PlanRecentChanges.record_schedule_changed(
-              plan,
-              "rev-#{revision.id}",
-              field,
-              value
-            )
-
-          {:ok, %{plan: plan}}
-
-        {:error, reason} ->
-          {:error, reason}
-      end
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   # F12-54 — a schedule label is user-visible on every surface; garbage
@@ -2318,6 +2638,115 @@ defmodule OpalCore.SocialFlow do
     Map.put(alignment, "explicit_actions", actions ++ [action])
   end
 
+  # Repair #18 (Division A, F18-02 read-back truth) - an accepted schedule
+  # change must move EVERY stored projection in the same transaction:
+  # the stored alignment's exact_time field (what Messages'
+  # current_plan_alignment and HomeProjection read), the plan row's
+  # resolved start_at, and the plan_set_event summary (which the fold
+  # otherwise freezes at the first committed value forever). Surfaces
+  # reading the row after acceptance therefore all read the new time.
+  defp sync_stored_schedule(alignment, %SharedPlan{} = plan, time_label, revision_id, now)
+       when is_binary(time_label) do
+    alignment = if is_map(alignment), do: alignment, else: %{}
+
+    exact =
+      Map.merge(alignment["exact_time"] || %{}, %{
+        "state" => "locked",
+        "value" => time_label,
+        "needs_confirm" => false,
+        "explicit" => true,
+        "truth" => "locked",
+        "schedule_change_revision_id" => revision_id
+      })
+
+    alignment
+    |> Map.put("exact_time", exact)
+    |> Map.put(
+      "plan_set_event",
+      regenerated_plan_set_event(plan, alignment, time_label, revision_id, now)
+    )
+  end
+
+  defp regenerated_plan_set_event(%SharedPlan{} = plan, alignment, time_label, revision_id, now) do
+    date = get_in(alignment || %{}, ["date", "value"]) || plan_alignment_date_label(plan)
+    place = get_in(alignment || %{}, ["place", "value"]) || plan.location
+
+    summary =
+      [date, time_label, place]
+      |> Enum.filter(&(is_binary(&1) and &1 != ""))
+      |> Enum.uniq()
+      |> Enum.join(" · ")
+
+    %{
+      "summary" => summary,
+      "at" => DateTime.to_iso8601(now),
+      "regenerated_from_revision_id" => revision_id
+    }
+  end
+
+  defp plan_alignment_date_label(%SharedPlan{alignment: alignment}) when is_map(alignment),
+    do: alignment["date_label"]
+
+  defp plan_alignment_date_label(_), do: nil
+
+  # Resolve the plan row's start_at for a newly accepted label: an
+  # explicit start_at in the changes wins; an existing start_at keeps
+  # its date and takes the new clock; otherwise the canonical start of
+  # the relabeled plan (weekday/daypart + clock) is resolved once, here,
+  # so every later comparison (conflict gate, NowStrip) has an instant.
+  defp resolved_start_at(%SharedPlan{} = plan, time_label, changes) do
+    explicit =
+      case changes["start_at"] do
+        value when is_binary(value) ->
+          case DateTime.from_iso8601(value) do
+            {:ok, dt, _} -> dt
+            _ -> nil
+          end
+
+        %DateTime{} = dt ->
+          dt
+
+        _ ->
+          nil
+      end
+
+    cond do
+      not is_nil(explicit) ->
+        explicit
+
+      match?(%DateTime{}, plan.start_at) ->
+        case PlanIdentity.parse_clock(time_label || "") do
+          nil ->
+            plan.start_at
+
+          clock ->
+            [hour, minute] = String.split(clock, ":")
+
+            date = DateTime.to_date(plan.start_at)
+
+            case DateTime.new(
+                   date,
+                   Time.new!(String.to_integer(hour), String.to_integer(minute), 0),
+                   "Etc/UTC"
+                 ) do
+              {:ok, dt} -> dt
+              _ -> plan.start_at
+            end
+        end
+
+      true ->
+        PlanIdentity.canonical_start(%{
+          plan
+          | time_label: time_label,
+            alignment:
+              Map.put(plan.alignment || %{}, "exact_time", %{
+                "state" => "locked",
+                "value" => time_label
+              })
+        }) || plan.start_at
+    end
+  end
+
   # F12-59 (gyroscope) — ONE owner-scoped ordering for "the conversation's
   # current plan". Delegates to ConversationAlignment.active_plan_for_conversation/1
   # (updated_at desc, inserted_at desc) — the same query sync_conversation and
@@ -2367,11 +2796,375 @@ defmodule OpalCore.SocialFlow do
 
   # Plan contract enriched with lead identity for surfaces (B3).
   # Uses JourneyAuthority's existing "lead_user_id" projection key.
+  # Repair #18 (Division A): the ONE attendance counter rides this
+  # contract too (going_count / interested_count / total_count from
+  # PlanParticipant rows) - merged only when rows exist, so a plan with
+  # no participants carries NO count fields (absence is honest).
+  # Repair #18 (Division A): every plan payload also carries its dedupe
+  # key and its F18-03 conflict (or nil) - the projection IS the output
+  # the conflict gate is required to surface on, including the proactive
+  # case where canonical times landed without a new user action (seed,
+  # fold): reading the plan shows the overlap.
   defp plan_payload(%SharedPlan{} = plan) do
     plan
     |> SharedPlan.to_contract()
     |> Map.put("lead_user_id", lead_user_id(plan))
     |> Map.put("organizer_name", organizer_name(plan))
+    |> Map.merge(JourneyAuthority.attendance_contract(plan.id))
+    |> Map.put("conflict", plan_conflict(plan))
+  end
+
+  # -------------------------------------------------------------------
+  # Repair #18 (Division A) - dedupe identity, conflict gate, cleanup
+  # -------------------------------------------------------------------
+
+  @doc """
+  Participant user ids for a plan row (PlanParticipant rows; falls back
+  to the alignment participants field for fold-born rows that predate
+  participant rows, then to the creator alone).
+  """
+  def plan_participant_ids(%SharedPlan{} = plan) do
+    ids =
+      from(pp in PlanParticipant, where: pp.plan_id == ^plan.id, select: pp.user_id)
+      |> Repo.all()
+
+    cond do
+      ids != [] ->
+        Enum.uniq(ids)
+
+      is_list(get_in(plan.alignment || %{}, ["participants", "value"])) ->
+        get_in(plan.alignment, ["participants", "value"]) |> Enum.filter(&is_binary/1)
+
+      is_binary(plan.created_by_user_id) ->
+        [plan.created_by_user_id]
+
+      true ->
+        []
+    end
+  end
+
+  @doc "Dedupe components + key for a persisted plan (PlanIdentity is the one definition)."
+  def plan_dedupe_components(%SharedPlan{} = plan) do
+    PlanIdentity.components_for_plan(plan, plan_participant_ids(plan))
+  end
+
+  def plan_dedupe_key(%SharedPlan{} = plan),
+    do: plan |> plan_dedupe_components() |> PlanIdentity.dedupe_key()
+
+  @doc """
+  F18-03 conflict gate: the first of the plan owner's OTHER active plans
+  whose canonical window overlaps this plan's, as
+  %{with_plan_id, title, time_label} - or nil. Plans with no resolvable
+  canonical time cannot conflict (there is nothing honest to compare).
+  """
+  def plan_conflict(%SharedPlan{} = plan) do
+    detect_conflict(plan.created_by_user_id, plan, plan.id)
+  end
+
+  def plan_conflict(_), do: nil
+
+  @doc """
+  Conflict for a candidate plan shape (create / revision-accept time):
+  `plan` supplies title, time_label, start/end and alignment.
+  """
+  def detect_conflict(owner_id, %SharedPlan{} = candidate, exclude_plan_id)
+      when is_binary(owner_id) do
+    case PlanIdentity.window(candidate) do
+      nil ->
+        nil
+
+      {_, _} = window ->
+        owner_id
+        |> user_active_plans()
+        |> Enum.reject(&(&1.id == exclude_plan_id or &1.id == candidate.id))
+        |> Enum.find_value(fn other ->
+          case PlanIdentity.window(other) do
+            nil ->
+              nil
+
+            other_window ->
+              if PlanIdentity.windows_overlap?(window, other_window) do
+                %{
+                  "with_plan_id" => other.id,
+                  "title" => other.title,
+                  "time_label" => other.time_label
+                }
+              end
+          end
+        end)
+    end
+  end
+
+  def detect_conflict(_, _, _), do: nil
+
+  @doc "The user's active (tentative/agreed/changed) plans as creator or participant."
+  def user_active_plans(user_id) when is_binary(user_id) do
+    participant_plan_ids =
+      from(pp in PlanParticipant, where: pp.user_id == ^user_id, select: pp.plan_id)
+      |> Repo.all()
+
+    from(p in SharedPlan,
+      where:
+        p.status in ^~w(tentative agreed changed) and
+          (p.created_by_user_id == ^user_id or p.id in ^participant_plan_ids),
+      order_by: [desc: p.updated_at, desc: p.inserted_at],
+      limit: 100
+    )
+    |> Repo.all()
+  end
+
+  def user_active_plans(_), do: []
+
+  # Find an existing non-terminal plan owned by `owner_id` whose dedupe
+  # components match `components` (day may be open on either side).
+  defp find_dedupe_survivor(owner_id, components, opts \\ []) do
+    exclude_id = Keyword.get(opts, :exclude_id)
+
+    owner_id
+    |> user_active_plans()
+    |> Enum.reject(&(&1.id == exclude_id))
+    |> Enum.find(fn plan ->
+      PlanIdentity.components_match?(components, plan_dedupe_components(plan))
+    end)
+  end
+
+  # Alignment stamp carrying the dedupe identity computed at creation.
+  defp dedupe_alignment(alignment, owner_id, participant_ids, attrs) do
+    components = PlanIdentity.components(owner_id, participant_ids, attrs)
+
+    Map.put(alignment, "dedupe", Map.put(components, "key", PlanIdentity.dedupe_key(components)))
+  end
+
+  # Merge-not-overwrite: a dedupe collision fills the survivor's EMPTY
+  # slots from the new fragments and stamps the merge - it never
+  # overwrites a resolved field (a conflicting fragment is a revision's
+  # job, not a create's).
+  defp merge_fragments_into(%SharedPlan{} = survivor, attrs) do
+    updates =
+      %{}
+      |> maybe_fill(
+        :location,
+        survivor.location,
+        present_string(attrs["location"] || attrs["place"])
+      )
+      |> maybe_fill(:time_label, survivor.time_label, present_string(attrs["time_label"]))
+      |> maybe_fill_title(survivor, present_string(attrs["title"]))
+
+    alignment =
+      (survivor.alignment || %{})
+      |> Map.put(
+        "dedupe_merged_at",
+        DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
+      )
+
+    updates = Map.put(updates, :alignment, alignment)
+
+    if map_size(updates) > 1 or updates[:alignment] != survivor.alignment do
+      case survivor |> SharedPlan.changeset(updates) |> Repo.update() do
+        {:ok, updated} -> updated
+        _ -> survivor
+      end
+    else
+      survivor
+    end
+  end
+
+  defp maybe_fill(acc, _field, current, _new) when is_binary(current) and current != "", do: acc
+
+  defp maybe_fill(acc, field, _current, new) when is_binary(new) and new != "",
+    do: Map.put(acc, field, new)
+
+  defp maybe_fill(acc, _field, _current, _new), do: acc
+
+  defp maybe_fill_title(acc, %SharedPlan{title: current}, new)
+       when is_binary(new) and new != "" do
+    if current in [nil, "", "Meetup", "Meetup.", "Plan", "Plans"] do
+      Map.put(acc, :title, new)
+    else
+      acc
+    end
+  end
+
+  defp maybe_fill_title(acc, _, _), do: acc
+
+  @doc """
+  F18-06 one-time cleanup for already-duplicated plans (dry-run capable,
+  transition-based, no deletion). Groups the user's non-terminal plans
+  by dedupe identity; per group the richest row survives (agreed over
+  changed over tentative, then most participants, then latest update),
+  losers are cancelled through PlanTransition with merged_into stamps,
+  and the survivor absorbs only empty-slot fragments from losers.
+
+  Returns {:ok, report} with groups, survivor ids, loser ids and (for
+  dry runs) would_cancel ids. Idempotent: cancelled losers leave the
+  active set, so a second run finds no groups.
+  """
+  def cleanup_duplicate_plans(user_id, opts \\ []) when is_binary(user_id) do
+    dry_run = Keyword.get(opts, :dry_run, true)
+    plans = user_active_plans(user_id)
+
+    groups =
+      plans
+      |> Enum.group_by(fn plan -> plan |> plan_dedupe_components() |> Map.delete("day") end)
+      |> Enum.flat_map(fn {_base, members} -> cluster_by_dedupe(members) end)
+      |> Enum.filter(&(length(&1) > 1))
+
+    results =
+      Enum.map(groups, fn members ->
+        [survivor | losers] = sort_survivor_first(members)
+
+        if dry_run do
+          %{
+            "survivor_id" => survivor.id,
+            "would_cancel" => Enum.map(losers, & &1.id),
+            "cancelled" => []
+          }
+        else
+          cancelled = apply_cleanup_group(survivor, losers)
+
+          %{
+            "survivor_id" => survivor.id,
+            "would_cancel" => [],
+            "cancelled" => cancelled
+          }
+        end
+      end)
+
+    {:ok,
+     %{
+       "dry_run" => dry_run,
+       "groups" => results,
+       "group_count" => length(results),
+       "would_cancel_count" => Enum.sum(Enum.map(results, &length(&1["would_cancel"]))),
+       "cancelled_count" => Enum.sum(Enum.map(results, &length(&1["cancelled"])))
+     }}
+  end
+
+  def cleanup_duplicate_plans(_, _), do: {:error, :invalid}
+
+  # Cluster plans sharing owner/participants/venue into day-compatible
+  # groups (equal days together; open joins the first compatible group).
+  defp cluster_by_dedupe(members) do
+    Enum.reduce(members, [], fn plan, clusters ->
+      components = plan_dedupe_components(plan)
+
+      case Enum.find_index(clusters, fn [head | _] ->
+             PlanIdentity.components_match?(components, plan_dedupe_components(head))
+           end) do
+        nil -> clusters ++ [[plan]]
+        idx -> List.update_at(clusters, idx, &(&1 ++ [plan]))
+      end
+    end)
+  end
+
+  defp sort_survivor_first(members) do
+    rank = %{"agreed" => 3, "changed" => 2, "tentative" => 1}
+
+    Enum.sort_by(
+      members,
+      fn plan ->
+        {Map.get(rank, plan.status, 0), length(plan_participant_ids(plan)),
+         plan.updated_at || plan.inserted_at}
+      end,
+      :desc
+    )
+  end
+
+  defp apply_cleanup_group(%SharedPlan{} = survivor, losers) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    survivor =
+      Enum.reduce(losers, survivor, fn loser, acc ->
+        merge_fragments_into(acc, %{
+          "location" => loser.location,
+          "time_label" => loser.time_label,
+          "title" => loser.title
+        })
+      end)
+
+    absorbed = get_in(survivor.alignment || %{}, ["absorbed_plan_ids"]) || []
+
+    _ =
+      survivor
+      |> SharedPlan.changeset(%{
+        alignment:
+          Map.put(
+            survivor.alignment || %{},
+            "absorbed_plan_ids",
+            absorbed ++ Enum.map(losers, & &1.id)
+          )
+      })
+      |> Repo.update()
+
+    Enum.flat_map(losers, fn loser ->
+      alignment =
+        (loser.alignment || %{})
+        |> Map.put("merged_into", survivor.id)
+        |> Map.put("reconcile_reason", "duplicate_intent_cleanup")
+        |> Map.put("reconciled_at", DateTime.to_iso8601(now))
+
+      case loser
+           |> SharedPlan.changeset(%{status: "cancelled", cancelled_at: now, alignment: alignment})
+           |> PlanTransition.guard_changeset(:plan, :cancel)
+           |> Repo.update() do
+        {:ok, updated} -> [updated.id]
+        _ -> []
+      end
+    end)
+  end
+
+  @doc """
+  F18-06 stale tentative expiry (gated, lazy): a tentative plan expires
+  when its canonical start plus 24h has passed, or when it has no
+  canonical start and is 14+ days old with no update in 7 days. Agreed
+  and changed plans never expire. Enforcement is lazy (called from the
+  plan list read) so no sweeper is required for correctness; expired is
+  terminal and excluded from default lists, present with status: :all.
+  """
+  def expire_stale_tentative_plans(user_id, now \\ nil) when is_binary(user_id) do
+    now = now || DateTime.utc_now()
+    now = DateTime.truncate(now, :microsecond)
+
+    expired_ids =
+      user_id
+      |> user_active_plans()
+      |> Enum.filter(&(&1.status == "tentative"))
+      |> Enum.filter(&stale_tentative?(&1, now))
+      |> Enum.flat_map(fn plan ->
+        alignment =
+          (plan.alignment || %{})
+          |> Map.put("expired_at", DateTime.to_iso8601(now))
+          |> Map.put(
+            "expired_reason",
+            if(PlanIdentity.canonical_start(plan), do: "start_passed", else: "startless_stale")
+          )
+
+        case plan
+             |> SharedPlan.changeset(%{status: "expired", alignment: alignment})
+             |> PlanTransition.guard_changeset(:plan, :expire)
+             |> Repo.update() do
+          {:ok, updated} -> [updated.id]
+          _ -> []
+        end
+      end)
+
+    {:ok, expired_ids}
+  end
+
+  def expire_stale_tentative_plans(_, _), do: {:error, :invalid}
+
+  defp stale_tentative?(%SharedPlan{} = plan, now) do
+    case PlanIdentity.canonical_start(plan) do
+      %DateTime{} = start ->
+        # Only plans that have existed long enough to have had their
+        # chance: created at least a day ago, start a day past.
+        DateTime.compare(DateTime.add(start, 24 * 3600, :second), now) == :lt and
+          DateTime.compare(plan.inserted_at, DateTime.add(now, -24 * 3600, :second)) != :gt
+
+      nil ->
+        DateTime.compare(plan.inserted_at, DateTime.add(now, -14 * 24 * 3600, :second)) != :gt and
+          DateTime.compare(plan.updated_at, DateTime.add(now, -7 * 24 * 3600, :second)) != :gt
+    end
   end
 
   # Display name of the plan's lead/organizer for surfaces (B3-web).
@@ -2517,6 +3310,18 @@ defmodule OpalCore.SocialFlow do
               end
             end)
 
+          # Repair #18 (Division A, F18-06): stamp the dedupe identity
+          # and merge into a surviving twin instead of inserting a
+          # sibling - a twin in THIS conversation, or a conversation-less
+          # Center twin for the same intent (cross-path merge).
+          alignment =
+            dedupe_alignment(alignment, user_id, member_ids, %{
+              "title" => title,
+              "location" => location || title,
+              "time_label" => time_label,
+              "plan_type" => plan_type
+            })
+
           plan_attrs = %{
             "conversation_id" => conversation_id,
             "title" => title,
@@ -2531,69 +3336,100 @@ defmodule OpalCore.SocialFlow do
             "meeting_link" => meeting_link
           }
 
-          Repo.transaction(fn ->
-            plan =
-              case %SharedPlan{}
-                   |> SharedPlan.changeset(plan_attrs)
-                   # Gyroscope (R13): tentative plans are born via the gate.
-                   |> PlanTransition.guard_changeset(:plan, :create)
-                   |> Repo.insert() do
-                {:ok, p} -> p
-                {:error, cs} -> Repo.rollback(cs)
-              end
+          dedupe_survivor =
+            case find_dedupe_survivor(
+                   user_id,
+                   PlanIdentity.components(user_id, member_ids, %{
+                     "title" => title,
+                     "location" => location || title,
+                     "time_label" => time_label,
+                     "plan_type" => plan_type
+                   })
+                 ) do
+              %SharedPlan{} = survivor
+              when survivor.conversation_id == conversation_id or
+                     is_nil(survivor.conversation_id) ->
+                merge_fragments_into(survivor, %{
+                  "title" => title,
+                  "location" => location,
+                  "time_label" => time_label
+                })
 
-            now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-
-            participants =
-              Enum.map(member_ids, fn uid ->
-                role = if uid == user_id, do: "lead", else: "participant"
-                state = if uid == user_id, do: "accepted", else: "pending"
-
-                case %PlanParticipant{}
-                     |> PlanParticipant.changeset(%{
-                       "plan_id" => plan.id,
-                       "user_id" => uid,
-                       "role" => role,
-                       "response_state" => state,
-                       "responded_at" => if(state == "accepted", do: now, else: nil),
-                       "authority_source" => "plan_this"
-                     })
-                     |> Repo.insert() do
-                  {:ok, row} -> row
-                  {:error, cs} -> Repo.rollback(cs)
-                end
-              end)
-
-            _ = maybe_schedule_virtual_join_reminder(plan, user_id)
-
-            case Publisher.record(%{
-                   event_type: "plan.created",
-                   event_id: "plan_created:#{plan.id}",
-                   aggregate_type: "shared_plan",
-                   aggregate_id: plan.id,
-                   partition_key: user_id,
-                   privacy_class: "private_authorized",
-                   purpose: "plan_create",
-                   actor_user_id: user_id,
-                   conversation_id: conversation_id,
-                   plan_id: plan.id,
-                   payload: %{
-                     "plan_id" => plan.id,
-                     "status" => plan.status,
-                     "source" => "conversation",
-                     "plan_type" => plan.plan_type
-                   }
-                 }) do
-              {:ok, _} -> :ok
-              {:error, reason} -> Repo.rollback(reason)
+              _ ->
+                nil
             end
 
-            {plan, participants}
-          end)
-          |> case do
-            {:ok, {plan, participants}} -> {:ok, plan, participants}
-            {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
-            {:error, reason} -> {:error, reason}
+          if dedupe_survivor do
+            participants =
+              from(pp in PlanParticipant, where: pp.plan_id == ^dedupe_survivor.id)
+              |> Repo.all()
+
+            {:ok, dedupe_survivor, participants}
+          else
+            Repo.transaction(fn ->
+              plan =
+                case %SharedPlan{}
+                     |> SharedPlan.changeset(plan_attrs)
+                     # Gyroscope (R13): tentative plans are born via the gate.
+                     |> PlanTransition.guard_changeset(:plan, :create)
+                     |> Repo.insert() do
+                  {:ok, p} -> p
+                  {:error, cs} -> Repo.rollback(cs)
+                end
+
+              now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+              participants =
+                Enum.map(member_ids, fn uid ->
+                  role = if uid == user_id, do: "lead", else: "participant"
+                  state = if uid == user_id, do: "accepted", else: "pending"
+
+                  case %PlanParticipant{}
+                       |> PlanParticipant.changeset(%{
+                         "plan_id" => plan.id,
+                         "user_id" => uid,
+                         "role" => role,
+                         "response_state" => state,
+                         "responded_at" => if(state == "accepted", do: now, else: nil),
+                         "authority_source" => "plan_this"
+                       })
+                       |> Repo.insert() do
+                    {:ok, row} -> row
+                    {:error, cs} -> Repo.rollback(cs)
+                  end
+                end)
+
+              _ = maybe_schedule_virtual_join_reminder(plan, user_id)
+
+              case Publisher.record(%{
+                     event_type: "plan.created",
+                     event_id: "plan_created:#{plan.id}",
+                     aggregate_type: "shared_plan",
+                     aggregate_id: plan.id,
+                     partition_key: user_id,
+                     privacy_class: "private_authorized",
+                     purpose: "plan_create",
+                     actor_user_id: user_id,
+                     conversation_id: conversation_id,
+                     plan_id: plan.id,
+                     payload: %{
+                       "plan_id" => plan.id,
+                       "status" => plan.status,
+                       "source" => "conversation",
+                       "plan_type" => plan.plan_type
+                     }
+                   }) do
+                {:ok, _} -> :ok
+                {:error, reason} -> Repo.rollback(reason)
+              end
+
+              {plan, participants}
+            end)
+            |> case do
+              {:ok, {plan, participants}} -> {:ok, plan, participants}
+              {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
+              {:error, reason} -> {:error, reason}
+            end
           end
         end
       end
@@ -2702,6 +3538,34 @@ defmodule OpalCore.SocialFlow do
     area = present_string(params["area"] || params["area_label"])
     decision_id = present_string(params["decision_id"])
 
+    # Repair #18 (Division A, F18-06): the subject of a Center plan is
+    # real data, not a title fragment. Persist the resolved subject id
+    # (and any explicit participant ids) as PlanParticipant rows and in
+    # alignment, so the dedupe key, the NowStrip who and later merges
+    # have something true to read. subject_who (display text) is kept
+    # in alignment for surfaces when no id could be resolved.
+    subject_who =
+      case params["subject_who"] do
+        [first | _] -> present_string(first)
+        value -> present_string(value)
+      end
+
+    subject_ids =
+      (List.wrap(params["participant_user_ids"]) ++
+         List.wrap(params["subject_user_id"]) ++
+         List.wrap(params["subject_user_ids"]))
+      |> Enum.filter(&is_binary/1)
+      |> Enum.reject(&(&1 == user_id))
+      |> Enum.uniq()
+
+    dedupe_components =
+      PlanIdentity.components(user_id, subject_ids, %{
+        "title" => title,
+        "location" => location,
+        "time_label" => time_label,
+        "plan_type" => plan_type
+      })
+
     if is_nil(title) do
       {:error, :invalid_title}
     else
@@ -2709,7 +3573,25 @@ defmodule OpalCore.SocialFlow do
       # the same center opportunity resumes the pending plan instead of
       # inserting a duplicate. Opportunity identity = the center decision_id
       # carried in alignment; without one there is nothing to dedupe on.
-      case find_pending_center_plan(user_id, decision_id) do
+      # Repair #18: when no decision_id exists, the dedupe identity is
+      # the fallback - a matching intent merges into the survivor
+      # (merge-not-overwrite) instead of inserting a sibling row.
+      dedupe_existing =
+        if is_nil(decision_id) do
+          case find_dedupe_survivor(user_id, dedupe_components) do
+            %SharedPlan{} = survivor ->
+              merge_fragments_into(survivor, %{
+                "title" => title,
+                "location" => location,
+                "time_label" => time_label
+              })
+
+            nil ->
+              nil
+          end
+        end
+
+      case find_pending_center_plan(user_id, decision_id) || dedupe_existing do
         %SharedPlan{} = existing ->
           participants =
             from(pp in PlanParticipant, where: pp.plan_id == ^existing.id)
@@ -2724,6 +3606,18 @@ defmodule OpalCore.SocialFlow do
             |> put_alignment("scope", "solo")
             |> put_alignment("decision_id", decision_id)
             |> put_alignment("plan_type", plan_type)
+            |> put_alignment("subject_who", subject_who)
+            |> then(fn a ->
+              if subject_ids != [],
+                do: Map.put(a, "participant_ids", subject_ids),
+                else: a
+            end)
+            |> dedupe_alignment(user_id, subject_ids, %{
+              "title" => title,
+              "location" => location,
+              "time_label" => time_label,
+              "plan_type" => plan_type
+            })
             |> then(fn a ->
               if meeting_link, do: Map.put(a, "meeting_link", meeting_link), else: a
             end)
@@ -2778,7 +3672,30 @@ defmodule OpalCore.SocialFlow do
                 {:error, cs} -> Repo.rollback(cs)
               end
 
-            {plan, [participant]}
+            # Repair #18: subject participants (pending until they act).
+            # Unknown ids are skipped honestly - a name that never
+            # resolved to a real user stays as alignment subject_who.
+            subject_participants =
+              Enum.flat_map(subject_ids, fn subject_id ->
+                if Repo.get(OpalCore.Accounts.User, subject_id) do
+                  case %PlanParticipant{}
+                       |> PlanParticipant.changeset(%{
+                         "plan_id" => plan.id,
+                         "user_id" => subject_id,
+                         "role" => "participant",
+                         "response_state" => "pending",
+                         "authority_source" => "center_subject"
+                       })
+                       |> Repo.insert() do
+                    {:ok, p} -> [p]
+                    _ -> []
+                  end
+                else
+                  []
+                end
+              end)
+
+            {plan, [participant | subject_participants]}
           end)
           |> case do
             {:ok, {plan, participants}} ->
@@ -2898,14 +3815,42 @@ defmodule OpalCore.SocialFlow do
           {:ok, existing, participants, true}
 
         nil ->
-          insert_graph_create_plan(user_id, params, %{
-            title: title,
-            audience: audience,
-            media_id: media_id,
-            source_plan_id: source_plan_id,
-            idempotency_key: idempotency_key,
-            participant_ids: participant_ids
-          })
+          # Repair #18 (Division A, F18-06): a fresh flow key is not a
+          # fresh intent. An identical dedupe identity returns the
+          # survivor as deduplicated - UNLESS this is an explicit
+          # Repeat (source_plan_id) or force_new, which opt out by
+          # naming themselves.
+          dedupe_survivor =
+            if is_nil(source_plan_id) and params["force_new"] != true do
+              components =
+                PlanIdentity.components(user_id, participant_ids, %{
+                  "title" => title,
+                  "location" =>
+                    present_string(params["location"] || params["place"] || params["area"]) ||
+                      title,
+                  "time_label" => present_string(params["time_label"]) || "Open window"
+                })
+
+              find_dedupe_survivor(user_id, components)
+            end
+
+          case dedupe_survivor do
+            %SharedPlan{} = survivor ->
+              participants =
+                from(pp in PlanParticipant, where: pp.plan_id == ^survivor.id) |> Repo.all()
+
+              {:ok, survivor, participants, true}
+
+            _ ->
+              insert_graph_create_plan(user_id, params, %{
+                title: title,
+                audience: audience,
+                media_id: media_id,
+                source_plan_id: source_plan_id,
+                idempotency_key: idempotency_key,
+                participant_ids: participant_ids
+              })
+          end
       end
     end
   end
@@ -2927,8 +3872,7 @@ defmodule OpalCore.SocialFlow do
       case Ecto.UUID.cast(media_id) do
         {:ok, uuid} ->
           from(m in OpalCore.SocialFlow.SocialMomentMedia,
-            where:
-              m.id == ^uuid and m.owner_user_id == ^user_id and is_nil(m.deleted_at),
+            where: m.id == ^uuid and m.owner_user_id == ^user_id and is_nil(m.deleted_at),
             select: m.id
           )
           |> Repo.exists?()
@@ -3041,6 +3985,11 @@ defmodule OpalCore.SocialFlow do
       |> Map.put("audience", ctx.audience)
       |> Map.put("join_requests_on", params["join_requests_on"] != false)
       |> Map.put("exact_spot_after_join", params["exact_spot_after_join"] != false)
+      |> dedupe_alignment(user_id, ctx.participant_ids, %{
+        "title" => ctx.title,
+        "location" => location,
+        "time_label" => present_string(params["time_label"]) || "Open window"
+      })
 
     plan_attrs = %{
       "conversation_id" => nil,

@@ -88,7 +88,18 @@ defmodule OpalCore.Center.ActionOrchestrator do
       |> Map.reject(fn {_k, v} -> is_nil(v) or v == "" or v == [] end)
 
     # Compose patch + turn extract; patch wins on explicit corrections.
-    merge_extras = Map.merge(from_text, patch)
+    # Repair #18 (A-center) - a city the user states in this turn ("I'm in
+    # Oceanside") is stored as a PlanningContext extra so the
+    # :current_location oracle kind can answer from it later. Extras
+    # bypass the NL-entity allowlist (same path as device_coords).
+    merge_extras =
+      Map.merge(from_text, patch)
+      |> then(fn extras ->
+        case stated_city(raw_text) do
+          nil -> extras
+          city -> Map.put(extras, "stated_city", city)
+        end
+      end)
 
     case PlanningContext.merge(user_id, enriched, merge_extras) do
       {:ok, planning0} ->
@@ -112,7 +123,8 @@ defmodule OpalCore.Center.ActionOrchestrator do
         # Persist composed planning (incl. surprise / deps / clears).
         {:ok, planning} = PlanningContext.put(user_id, planning)
 
-        intent = put_entities(intent, Map.merge(atomize(enriched), string_to_atom_map(planning)))
+        intent =
+          put_entities(intent, fresh_entities_for_turn(intent, raw_text, enriched, planning))
 
         cond do
           still_need_trip?(raw_text) ->
@@ -1907,6 +1919,71 @@ defmodule OpalCore.Center.ActionOrchestrator do
     |> then(fn m -> if quality, do: Map.put(m, "quality_intent", quality), else: m end)
     |> then(fn m -> if when_s, do: Map.put(m, "when", when_s), else: m end)
   end
+
+  # Repair #18 (A-center) - entity freshness. The stored planning_context
+  # used to be merged OVER the per-turn entities for every turn, so a new
+  # question was answered (and snapshotted) with stale slots from an old
+  # plan - the walk's "Where am I?" carried who=Maya / what=nighthawk
+  # from a days-old birthday thread. For question turns the per-turn
+  # intent wins: entities come from this turn's classification and text
+  # only. Plan-building turns keep the stored-context merge, which is
+  # what follow-ups like "move it to 8pm" resolve against.
+  defp fresh_entities_for_turn(intent, raw_text, enriched, planning) do
+    if question_turn?(intent, raw_text) do
+      atomize(enriched)
+    else
+      Map.merge(atomize(enriched), string_to_atom_map(planning))
+    end
+  end
+
+  defp question_turn?(intent, raw_text) when is_map(intent) do
+    atom = intent[:intent] || intent["intent"]
+    atom == :oracle or (atom == :chat and question_shaped_text?(raw_text))
+  end
+
+  defp question_turn?(_, _), do: false
+
+  defp question_shaped_text?(raw) when is_binary(raw) do
+    lower = String.downcase(raw)
+
+    String.contains?(lower, "?") or
+      Regex.match?(
+        ~r/^\s*(who|what|when|where|why|how|which|whom|whose|is|are|was|were|do|does|did|can|could|will|would|should|have|has)\b/i,
+        lower
+      )
+  end
+
+  defp question_shaped_text?(_), do: false
+
+  # Repair #18 (A-center) - a stated current city: "I'm in Oceanside",
+  # "I am currently in San Diego", "I live in Austin". Statements only
+  # (a question never states), and the city must be proper-noun shaped so
+  # "I'm in the mood" / "I'm in trouble" never match.
+  defp stated_city(raw) when is_binary(raw) do
+    if String.contains?(raw, "?") do
+      nil
+    else
+      city =
+        case Regex.run(
+               ~r/\b(?:I'm|i'm|I am|i am)\s+(?:currently\s+)?in\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\b/,
+               raw
+             ) do
+          [_, c] -> c
+          _ -> nil
+        end
+
+      city ||
+        case Regex.run(
+               ~r/\b(?:I|i)\s+live\s+in\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\b/,
+               raw
+             ) do
+          [_, c] -> c
+          _ -> nil
+        end
+    end
+  end
+
+  defp stated_city(_), do: nil
 
   defp put_entities(%{entities: _} = intent, ents), do: %{intent | entities: ents}
   defp put_entities(intent, ents) when is_map(intent), do: Map.put(intent, :entities, ents)

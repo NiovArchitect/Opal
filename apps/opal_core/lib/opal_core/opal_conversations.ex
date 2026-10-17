@@ -101,6 +101,60 @@ defmodule OpalCore.OpalConversations do
 
   def list_sessions(_), do: []
 
+  @doc """
+  One of the user's sessions in the exact shape `list_sessions/1`
+  returns (contract plus "message_count", "last_message_preview" and
+  "active"), or nil when the user holds no such session.
+  """
+  def session_summary(user_id, %OpalConversation{id: id}),
+    do: session_summary(user_id, id)
+
+  def session_summary(user_id, conversation_id)
+      when is_binary(user_id) and is_binary(conversation_id) do
+    user_id
+    |> list_sessions()
+    |> Enum.find(&(&1["id"] == conversation_id))
+  end
+
+  def session_summary(_, _), do: nil
+
+  @doc """
+  Rename ONE of the user's own Opal sessions (Repair #18, G-IA3): the
+  Center chat header shows the conversation title, and this is the
+  write path for it. Foreign or unknown ids → {:error, :not_found}
+  (existence is never revealed across accounts). The title is trimmed;
+  empty after trim → {:error, :empty_title}; longer than the schema
+  title limit (`OpalConversation.max_title/0`) →
+  {:error, :title_too_long}; a non-string title → {:error, :invalid_title}.
+  """
+  def rename_conversation(user_id, conversation_id, title)
+      when is_binary(user_id) and is_binary(conversation_id) do
+    with {:ok, conversation} <- get_conversation_for_user(user_id, conversation_id),
+         {:ok, trimmed} <- validate_title(title) do
+      conversation
+      |> Ecto.Changeset.change(%{
+        title: trimmed,
+        updated_at: DateTime.utc_now(:microsecond)
+      })
+      |> Repo.update()
+    end
+  end
+
+  def rename_conversation(_, _, _), do: {:error, :not_found}
+
+  defp validate_title(title) when is_binary(title) do
+    trimmed = String.trim(title)
+
+    cond do
+      trimmed == "" -> {:error, :empty_title}
+      not String.valid?(trimmed) -> {:error, :invalid_title}
+      String.length(trimmed) > OpalConversation.max_title() -> {:error, :title_too_long}
+      true -> {:ok, trimmed}
+    end
+  end
+
+  defp validate_title(_), do: {:error, :invalid_title}
+
   defp session_preview(body) when is_binary(body) do
     trimmed = String.trim(body)
     if String.length(trimmed) > 80, do: String.slice(trimmed, 0, 80) <> "…", else: trimmed
@@ -113,28 +167,42 @@ defmodule OpalCore.OpalConversations do
   sessions: the current active session is archived (retained) and the
   target is reactivated. Foreign or unknown ids → {:error, :not_found}
   (existence is never revealed across accounts).
+
+  Idempotent (Repair #18): switching to the already-active session is a
+  no-op success with zero writes.
   """
   def switch_conversation(user_id, conversation_id)
       when is_binary(user_id) and is_binary(conversation_id) do
     with {:ok, target} <- get_conversation_for_user(user_id, conversation_id) do
-      Repo.transaction(fn ->
-        case Repo.one(OpalConversation.active_query(user_id)) do
-          %OpalConversation{id: id} = current when id != target.id ->
-            current
-            |> Ecto.Changeset.change(%{archived_at: DateTime.utc_now(:microsecond)})
-            |> Repo.update!()
+      case Repo.one(OpalConversation.active_query(user_id)) do
+        # Repair #18 (A-center) - idempotent switch: switching to the
+        # already-active session is a no-op success. No transaction, no
+        # archived_at write, no updated_at bump - so a client that calls
+        # switch repeatedly (or a poll that re-reads through it) cannot
+        # churn the session list order or mutate any state.
+        %OpalConversation{id: active_id} when active_id == target.id ->
+          {:ok, target}
 
-          _ ->
-            :ok
-        end
+        current ->
+          Repo.transaction(fn ->
+            if match?(%OpalConversation{}, current) do
+              current
+              |> Ecto.Changeset.change(%{archived_at: DateTime.utc_now(:microsecond)})
+              |> Repo.update!()
+            end
 
-        target
-        |> Ecto.Changeset.change(%{archived_at: nil})
-        |> Repo.update!()
-      end)
-      |> case do
-        {:ok, updated} -> {:ok, updated}
-        {:error, reason} -> {:error, reason}
+            if is_nil(target.archived_at) do
+              target
+            else
+              target
+              |> Ecto.Changeset.change(%{archived_at: nil})
+              |> Repo.update!()
+            end
+          end)
+          |> case do
+            {:ok, updated} -> {:ok, updated}
+            {:error, reason} -> {:error, reason}
+          end
       end
     end
   end

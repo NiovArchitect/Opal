@@ -571,9 +571,12 @@ html, body, #root { background: var(--opal-midnight); color: var(--opal-luminous
   --signal-active: #00e5ff;
   --signal-changed: #00f0d1;
   --signal-confirmed: #ffc86b;
-  --signal-needs-attention: #ff6b9d;
+  /* Repair #18: the parallel signal palette is retired for PLAN
+   * semantics - needs-attention IS the canon action color and settled
+   * IS canon past (white), never pink or slate. */
+  --signal-needs-attention: #FF4D5E;
   --signal-provisional: #8b5cf6;
-  --signal-settled: #94a1b8;
+  --signal-settled: #FFFFFF;
   --color-signal: var(--signal-active);
   --color-motion: var(--signal-changed);
   --color-aligned: var(--signal-confirmed);
@@ -691,8 +694,7 @@ html[data-theme="light"] .gsh-story-avatar {
  * (not modal sheets). Dock (z=70) stays above (z=62) so Option B remains visible.
  * ========================================================================== */
 .app .search-dest-373-261,
-.app .activity-dest-473-141,
-.app .ogsn-graph-detail.social-dest-373-385 {
+.app .activity-dest-473-141 {
   position: fixed;
   top: 0;
   bottom: auto;
@@ -718,9 +720,25 @@ html[data-theme="light"] .gsh-story-avatar {
    Opaque + z above chat chrome (header/call controls) so opening from Chat
    cannot leave Chanelle header artifacts bleeding through (Repair #8). */
 .app .ogsn-graph-detail.social-dest-373-385 {
+  position: fixed;
+  top: 0;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  width: 390px;
+  max-width: 390px;
+  height: 844px;
+  margin-left: 0;
+  margin-right: 0;
+  transform: translateX(-50%);
   background: #050816;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 15px 12px var(--dock-clearance);
-  z-index: 68;
+  box-sizing: border-box;
+  color: var(--opal-luminous-white);
+  border-radius: 0;
+  z-index: var(--layer-sheet-high);
   isolation: isolate;
   box-shadow: 0 0 0 100vmax #050816;
 }

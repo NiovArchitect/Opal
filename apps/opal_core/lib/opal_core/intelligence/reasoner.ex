@@ -48,7 +48,8 @@ defmodule OpalCore.Intelligence.Reasoner do
            Map.merge(payload, %{
              "suggested_action" => action,
              "suggestion" => suggestion_copy(action, payload)
-           }), confidence, reason <> " Confidence below #{@confidence_floor} — escalating to user."}
+           }), confidence,
+           reason <> " Confidence below #{@confidence_floor} — escalating to user."}
 
         true ->
           {action, payload, confidence, reason}
@@ -81,7 +82,14 @@ defmodule OpalCore.Intelligence.Reasoner do
 
     # Paste H — never confirm/book/remind from non-committing extractions.
     # Repair #12 (F12-02): schedule changes are committing intents guarded here too.
-    if intent in ["plan.confirm", "set_reminder", "booking_request", "plan.propose", "plan.change_time", "plan.change_date"] and
+    if intent in [
+         "plan.confirm",
+         "set_reminder",
+         "booking_request",
+         "plan.propose",
+         "plan.change_time",
+         "plan.change_date"
+       ] and
          not OpalCore.Intelligence.Extractor.may_commit?(intent, entities) do
       {"escalate.user",
        %{
@@ -122,7 +130,19 @@ defmodule OpalCore.Intelligence.Reasoner do
       "plan.change_time" ->
         new_time = entities["new_time"] || time_label_from(time)
 
-        {"plan.change_time", %{"body" => body, "new_time" => new_time}, 0.9,
+        # Repair #18 (Division A, F18-03): carry the plan reference
+        # through - dropping the named plan ("dinner") here is what made
+        # disambiguation impossible downstream.
+        payload =
+          %{"body" => body, "new_time" => new_time}
+          |> then(fn p ->
+            case entities["plan_ref"] do
+              ref when is_binary(ref) and ref != "" -> Map.put(p, "plan_ref", ref)
+              _ -> p
+            end
+          end)
+
+        {"plan.change_time", payload, 0.9,
          "User requested a concrete time change (plan.change_time → #{new_time}). " <>
            "Executor routes through SocialFlow.change_plan_time; no claim without a recorded change."}
 
@@ -172,8 +192,7 @@ defmodule OpalCore.Intelligence.Reasoner do
          %{
            "message" => "Want me to hold that, or are you still deciding?",
            "suggestion" => "Want me to hold that, or are you still deciding?"
-         }, 0.55,
-         "Ambiguous / clarify intent — ask before acting."}
+         }, 0.55, "Ambiguous / clarify intent — ask before acting."}
 
       "world.lookup" ->
         kind = entities["lookup_kind"] || "venue"
@@ -183,8 +202,7 @@ defmodule OpalCore.Intelligence.Reasoner do
            "message" =>
              "I'll look that up — if I can't find a real #{kind}, I'll say so instead of guessing.",
            "world_enrichment" => true
-         }, 0.78,
-         "Venue/event lookup (world.lookup). Enrich from Search/Places; never invent."}
+         }, 0.78, "Venue/event lookup (world.lookup). Enrich from Search/Places; never invent."}
 
       "booking_request" ->
         {"respond.thread",
@@ -277,7 +295,9 @@ defmodule OpalCore.Intelligence.Reasoner do
   # Repair #12 (F12-02): derive the new time/date label from the LLM-path
   # time entity when the rules path did not set new_time/new_date directly.
   defp time_label_from(%{"label" => label}) when is_binary(label) and label != "", do: label
-  defp time_label_from(%{"day" => day}) when is_binary(day) and day != "", do: String.capitalize(day)
+
+  defp time_label_from(%{"day" => day}) when is_binary(day) and day != "",
+    do: String.capitalize(day)
 
   defp time_label_from(%{"time" => t}) when is_binary(t) and t != "", do: t
   defp time_label_from(_), do: nil
@@ -337,7 +357,8 @@ defmodule OpalCore.Intelligence.Reasoner do
         relationship: context[:relationship] || context["relationship"],
         vibe_profile: context[:vibe_profile] || context["vibe_profile"],
         account_id: account_id,
-        conversation_id: event.conversation_id || context[:conversation_id] || context["conversation_id"],
+        conversation_id:
+          event.conversation_id || context[:conversation_id] || context["conversation_id"],
         template_message: template,
         search_section: world.search_section,
         places_section: world.places_section,

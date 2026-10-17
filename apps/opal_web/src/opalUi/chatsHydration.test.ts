@@ -23,25 +23,34 @@ const seedLeakRow: ChatsHomeRow = {
 };
 
 describe("chatsHydration prefer-real / seed-off", () => {
-  it("seed on remaps founder plan-pill rows onto REAL conversation ids only", () => {
-    // Repair #17: fixture rows are painted ONLY when bound to a real
-    // backend conversation (the backend founder seed creates them).
+  it("seed on renders the LIVE rows - fixture rows are never painted (Repair #18)", () => {
+    // Repair #18: seed mode composes from live rows exactly like
+    // production. The live row (with its projection-derived pill, built
+    // in OpalApp) is the only thing that can paint.
     const liveChanelle: ChatsHomeRow = {
       id: "b599fcd7-7a97-4736-8221-86e0a6d8dc7a",
       name: "Chanelle",
       kind: "direct",
       preview: "Real backend preview",
       when: "now",
+      planConsequence: {
+        state: "ready",
+        label: "3 of 4 going",
+        planId: "plan-live-1",
+        tone: "dinner",
+      },
     };
     const fix = composeChatsList({
       founderSeedEnabled: true,
       liveRows: [liveChanelle, liveFortOak],
     });
     expect(fix.mode).toBe("FOUNDER_FIXTURE");
-    expect(fix.rows.length).toBe(1);
+    expect(fix.rows.length).toBe(2);
     expect(fix.rows[0]?.name).toBe("Chanelle");
     expect(fix.rows[0]?.id).toBe(liveChanelle.id);
+    expect(fix.rows[0]?.planConsequence?.label).toBe("3 of 4 going");
     expect(fix.rows.every((r) => !isSeedChatRowId(r.id))).toBe(true);
+    expect(fix.diagnostics?.fixtureRows).toBe(0);
   });
 
   it("seed on with NO matching live conversation paints NOTHING (Repair #17)", () => {

@@ -626,7 +626,7 @@ html.opal-native-host .first-run-promise-cta {
 
 /* Tabbar, call surface, and conversation exact chrome must keep absolute positioning.
  * Relative hammer previously: dock → y748/w356; Direct header scrolled off-screen with thread. */
-.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.ogsn-graph-detail):not(.new-call-dest):not(.call-continuity-dest):not(.search-dest-373-261):not(.activity-dest-473-141):not(.memory-comments-sheet):not(.forward-share-picker):not(.memory-detail-sheet):not(.discovery-detail-sheet):not(.saved-browse-sheet):not(.save-to-collection-sheet):not(.story-viewer):not(.story-create-flow):not(.full-live-destination):not(.trip-canvas):not(.contact-profile-sheet):not(.plan-composer) {
+.app > *:not(.app-ambient):not(.call-surface):not(.tabbar):not(.gpt-header):not(.composer):not(.thread):not(.gpt-shared-graph-plate):not(.dated-conv):not(.group-info-dest):not(.graph-create-flow):not(.you-pane-nested):not(.profile-person-overlay):not(.opal-ambient-destination):not(.opal-ambient-overlay):not(.new-call-dest):not(.call-continuity-dest):not(.search-dest-373-261):not(.activity-dest-473-141):not(.memory-comments-sheet):not(.forward-share-picker):not(.memory-detail-sheet):not(.discovery-detail-sheet):not(.saved-browse-sheet):not(.save-to-collection-sheet):not(.story-viewer):not(.full-live-destination):not(.trip-canvas):not(.plan-composer) {
   position: relative;
   z-index: 1;
 }
@@ -7669,7 +7669,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  background: var(--signal-needs-attention, #ff6b9d);
+  background: var(--signal-needs-attention, #FF4D5E);
   color: #0a0c10;
   font-size: 11px;
   font-weight: 750;
@@ -8656,8 +8656,8 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
   height: auto !important;
   max-width: 390px !important;
   max-height: none !important;
-  /* Repair #8: above chat header/call chrome (was 56 — Chanelle artifacts bled through). */
-  z-index: 68 !important;
+  /* Repair #8: above chat header/call chrome. Repair #18: registry token. */
+  z-index: var(--layer-sheet-high) !important;
   background: #050816 !important;
   isolation: isolate;
   /* Paste W4 5.5 — clear safe inset without clipping 7:30 PM timeblock */
@@ -10590,12 +10590,14 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   font-weight: 650;
   line-height: 1.3;
 }
-.chats-plan-consequence.is-ready { color: var(--signal-confirmed); }
-.chats-plan-consequence.is-action { color: var(--signal-needs-attention); }
-.chats-plan-consequence.is-forming { color: var(--signal-provisional); }
+.chats-plan-consequence.is-ready { color: var(--plan-state-ready); }
+.chats-plan-consequence.is-action { color: var(--plan-state-action); }
+.chats-plan-consequence.is-forming { color: var(--plan-state-forming); }
+.chats-plan-consequence.is-happening { color: var(--plan-state-happening); }
 .chats-plan-consequence.is-past {
-  /* M-03: settled slate; B-05: no opacity wash */
-  color: #94A1B8;
+  /* Repair #18: canon past is white - the slate signal is retired for
+   * plan semantics. B-05: no opacity wash. */
+  color: var(--plan-state-past);
   font-weight: 500;
 }
 /* Legacy text consequence kept for Graphs/past; Chats list uses .chats-plan-pill.
@@ -12374,8 +12376,6 @@ button.gsh-cx-history:focus-visible {
  * FW-D4: never leave destinations at viewport left:0 while .app is margin-auto centered.
  */
 .memory-detail-sheet,
-.ogsn-graph-detail,
-.story-create-flow,
 .memory-comments-sheet,
 .discovery-detail-sheet,
 .forward-share-picker,
@@ -12399,14 +12399,18 @@ button.gsh-cx-history:focus-visible {
 }
 
 /* Home social destinations 437:* / Stories  -  full-bleed over Home; dock stays visible underneath */
-.memory-detail-sheet,
-.ogsn-graph-detail {
+.memory-detail-sheet {
   position: fixed; top: 0; bottom: 0; z-index: 58; background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
-/* Story create above dock (70); above viewer (72) while create is open */
+/* Repair #18: Graph detail is a TopLayer sheet - registry token only. */
+.ogsn-graph-detail {
+  position: fixed; top: 0; bottom: 0; z-index: var(--layer-sheet-low); background: #050816;
+  overflow-y: auto; padding: 14px 20px var(--dock-clearance);
+}
+/* Story create: TopLayer flow band - registry token only. */
 .story-create-flow {
-  position: fixed; top: 0; bottom: 0; z-index: 80; background: #050816;
+  position: fixed; top: 0; bottom: 0; z-index: var(--layer-flow); background: #050816;
   overflow-y: auto; padding: 14px 20px var(--dock-clearance);
 }
 /* Comments / Discovery / Forward are full destinations — never flex-sliver above dock */
@@ -18706,11 +18710,9 @@ html.opal-native-host .gsh-feed {
   position: relative;
 }
 .gsh-compose-chooser {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
+  position: fixed;
   transform: translateX(-50%);
-  z-index: 36;
+  z-index: var(--layer-sheet);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -18832,7 +18834,7 @@ html.opal-native-host .story-create-chrome,
 html.opal-native-host .graph-create-back {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: var(--layer-raised);
 }
 html.opal-native-host .ogsn-graph-detail-head {
   background: rgba(5, 8, 22, 0.92);
@@ -18884,7 +18886,6 @@ html.opal-native-host .story-create-flow {
   height: 100% !important;
   max-width: none !important;
   transform: none !important;
-  z-index: 10060 !important;
   padding-top: calc(12px + var(--opal-safe-top)) !important;
   box-sizing: border-box !important;
 }
@@ -18910,13 +18911,9 @@ html.opal-native-host .story-create-flow {
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .call-surface,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .group-info-dest,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .graph-create-flow,
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .contact-profile-sheet,
 .app[data-testid="member-conversation"][data-conversation-layout="structured"] > .plan-composer {
   pointer-events: auto;
   z-index: 40;
-}
-.app[data-testid="member-conversation"][data-conversation-layout="structured"] > .contact-profile-sheet {
-  z-index: 72;
 }
 
 /* Clean-row header — height follows content; never absolute-ghost a second chevron. */
@@ -19095,14 +19092,13 @@ html.opal-native-host .story-create-flow {
 
 .app[data-conversation-layout="structured"] .opal-gap-chip-wrap,
 .app[data-conversation-layout="structured"] .opal-context-chip-wrap,
-.app[data-conversation-layout="structured"] .opal-private-guidance,
-.app[data-conversation-layout="structured"] .next-together-strip {
+.app[data-conversation-layout="structured"] .opal-private-guidance {
   display: none !important;
 }
 .next-plan-strip {
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: var(--layer-raised);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -19197,8 +19193,8 @@ html.opal-native-host .story-create-flow {
   outline: none;
 }
 .alignment-card[data-attention-focused="true"] {
-  border-color: color-mix(in srgb, var(--signal-needs-attention, #ff6b9d) 55%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--signal-needs-attention, #ff6b9d) 35%, transparent);
+  border-color: color-mix(in srgb, var(--signal-needs-attention, #FF4D5E) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--signal-needs-attention, #FF4D5E) 35%, transparent);
 }
 /* Keep accessible focus on the actual Accept/Keep controls — not a giant oval on the card. */
 .alignment-card:focus,
@@ -20130,19 +20126,143 @@ button.alignment-choice:focus-visible,
   z-index: 5;
 }
 .opal-center-chat-presence {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
   min-width: 0;
 }
 .opal-center-chat-title {
   margin: 0;
-  flex: 1 1 auto;
+  min-width: 0;
   text-align: center;
   font-size: 17px;
   font-weight: 600;
   color: #f8faff;
   letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Repair #18 - inline rename of the open chat, in the header. */
+.opal-center-chat-title-zone {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.opal-center-chat-rename-btn {
+  border: 0;
+  border-radius: 19px;
+  padding: 6px 10px;
+  cursor: pointer;
+  background: rgba(148, 161, 184, 0.12);
+  color: #b9c2d4;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.opal-center-chat-rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.opal-center-chat-rename-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.opal-center-chat-rename-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid rgba(148, 161, 184, 0.35);
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: rgba(12, 18, 36, 0.92);
+  color: #f8faff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.opal-center-chat-rename-save,
+.opal-center-chat-rename-cancel {
+  border: 0;
+  border-radius: 19px;
+  padding: 7px 11px;
+  cursor: pointer;
+  background: rgba(0, 229, 255, 0.16);
+  color: #f8faff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.opal-center-chat-rename-cancel {
+  background: rgba(148, 161, 184, 0.12);
+  color: #b9c2d4;
+}
+.opal-center-chat-rename-error {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff8a94;
+  text-align: left;
+}
+/* Repair #18 - first-class Center IA controls + destination pill. */
+.opal-center-chat-chats-btn,
+.opal-center-chat-new-btn {
+  border: 0;
+  border-radius: 19px;
+  padding: 9px 12px;
+  cursor: pointer;
+  background: rgba(148, 161, 184, 0.12);
+  color: #f8faff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.opal-center-chat-new-btn {
+  background: rgba(0, 229, 255, 0.16);
+}
+.opal-center-destination-pill {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 12px 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(148, 161, 184, 0.12);
+  border: 1px solid rgba(148, 161, 184, 0.22);
+  color: #b9c2d4;
+  font-size: 12px;
+  font-weight: 600;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chats-home-plan-attendance,
+.chats-home-plan-conflict {
+  display: block;
+  font-size: 12px;
+  color: #94a1b8;
+}
+.chats-home-plan-conflict,
+.next-plan-conflict {
+  color: #ff8a94;
+}
+.next-plan-attendance,
+.next-plan-conflict {
+  display: block;
+  font-size: 12px;
+}
+.opal-life-graph-detail {
+  display: block;
+  font-size: 12px;
+  color: #94a1b8;
 }
 .opal-center-chat-header-spacer {
   width: 38px;
@@ -23046,7 +23166,7 @@ html.opal-native-host .trip-canvas {
 .contact-profile-sheet {
   position: fixed;
   inset: 0;
-  z-index: 72;
+  z-index: var(--layer-sheet-high);
   display: grid;
   place-items: end center;
   pointer-events: auto;
@@ -23064,7 +23184,7 @@ html.opal-native-host .trip-canvas {
 }
 .contact-profile-card {
   position: relative;
-  z-index: 1;
+  z-index: var(--layer-raised);
   width: min(390px, 100%);
   max-height: min(780px, 92dvh);
   overflow-y: auto;

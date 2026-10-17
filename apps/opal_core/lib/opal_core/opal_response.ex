@@ -19,6 +19,12 @@ defmodule OpalCore.OpalResponse do
 
   @draft_meta_key :opal_response_last_draft_meta
 
+  # Repair #18 (A-center) - the generic chat deflection, named once so the
+  # LLM routing below can recognize a fallthrough turn: a turn whose only
+  # template is this string has no facts to protect, so it is drafted by
+  # the LLM when the provider is configured instead of being served raw.
+  @chat_deflection "Tell me more — I can help you plan or check what's coming up."
+
   @fallback "I'm having trouble thinking right now. Try again in a moment."
 
   @above_tier_msg "I'd love to help with that — as we get to know each other better, I'll be able to give more personalized suggestions."
@@ -102,9 +108,17 @@ defmodule OpalCore.OpalResponse do
 
             # Greetings / parked conversation turns stay on the template floor so a
             # sticky restaurant draft cannot rewrite "how are you?" into another lookup.
+            # Repair #18 (A-center) - except a turn that fell all the way
+            # through to the generic deflection: that template carries no
+            # facts, so the real LLM drafts the reply when configured
+            # (template remains the floor on genuine provider failure).
             :chat when owns_routing? ->
-              put_draft_meta(template_meta())
-              template
+              if template == @chat_deflection do
+                maybe_llm_phrase(template, intent, intent_map, context_map)
+              else
+                put_draft_meta(template_meta())
+                template
+              end
 
             _ ->
               maybe_llm_phrase(template, intent, intent_map, context_map)
@@ -164,6 +178,15 @@ defmodule OpalCore.OpalResponse do
 
     instruction =
       cond do
+        # Repair #18 (A-center) - a deflection-floor turn: the template is
+        # a generic fallback, not an answer. The model answers the user's
+        # actual message from context instead of paraphrasing the floor.
+        template == @chat_deflection ->
+          "Answer the user's latest message directly and helpfully. Warm Center voice. Max 3 short sentences. " <>
+            "The template floor is a generic fallback, not an answer - do not repeat or paraphrase it. " <>
+            "Use only facts present in the context. If you cannot answer from the context, ask one concrete clarifying question or say plainly what you would need. " <>
+            "Do NOT invent plans, people, places, bookings, or messages sent."
+
         owns_routing? ->
           "Keep facts from the template floor. Warm Center voice. Max 3 short sentences. " <>
             "Answer ONLY the current user message. " <>
@@ -1220,7 +1243,7 @@ defmodule OpalCore.OpalResponse do
 
       true ->
         # Pass 2 memory advertising locked — offer plan / status only.
-        "Tell me more — I can help you plan or check what's coming up."
+        @chat_deflection
     end
   end
 

@@ -49,7 +49,9 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/attention_center.ex
     lib/opal_core/social_flow/conversation_alignment.ex
     lib/opal_core/social_flow/follow_through.ex
+    lib/opal_core/social_flow/founder_communication_seed.ex
     lib/opal_core/social_flow/founder_graph_commitment_seed.ex
+    lib/opal_core/social_flow/home_projection.ex
     lib/opal_core/social_flow/journey_authority.ex
     lib/opal_core/social_flow/meaning.ex
     lib/opal_core/social_flow/plan_agreement_taste_bridge.ex
@@ -91,6 +93,11 @@ defmodule OpalCore.SocialFlow.PlanProjection do
       {OpalCore.SocialFlow.SharedPlan, :to_contract, 2, "canonical plan contract"},
       {OpalCore.SocialFlow.SharedPlan, :viewer_card, 3, "per-viewer plan card"},
       {OpalCore.SocialFlow.JourneyAuthority, :project, 3, "journey projection"},
+      {OpalCore.SocialFlow.HomeProjection, :from_alignment, 4,
+       "chats list / thread / graphs card projection; Repair #18 attendance " <>
+         "counter (going/total/viewer_state from PlanParticipant rows via " <>
+         "JourneyAuthority.attendance_contract/2) and the F18-03 conflict " <>
+         "object via SocialFlow.plan_conflict/1 for plan-backed cards"},
       {OpalCore.Center.PlanningContext, :get_for_user, 1, "center in-flight planning state"},
       {OpalCore.Center.NowStrip, :plan_events, 3,
        "Center header strip: live plan commitments in window (Repair #17 W4-6)"},

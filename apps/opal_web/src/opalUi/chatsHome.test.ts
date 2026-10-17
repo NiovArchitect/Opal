@@ -65,13 +65,11 @@ describe("CHATS-00 + New chat contract", () => {
     expect(css).toMatch(/\.chats-plan-pill\.is-tone-activity/);
     expect(css).toMatch(/\.chats-plan-pill\.is-tone-live/);
     expect(css).toMatch(/\.chats-home-connection[\s\S]*?#00E5FF/);
-    expect(fixture).toMatch(/Juniper & Ivy · 7:30 PM/);
-    expect(fixture).toMatch(/Farmers market \+ coast/);
-    expect(fixture).toMatch(/3 of 4 going/);
-    expect(fixture).toMatch(/Farmers market \+ coast/);
-    expect(fixture).toMatch(/3 of 4 going/);
-    expect(fixture).toMatch(/Live nearby/);
-    expect(fixture).toMatch(/Trip Graph/);
+    // Repair #18: fixture rows carry NO literal plan pills - the strings
+    // below were static fixture labels no backend value could update.
+    expect(fixture).not.toMatch(/Juniper & Ivy · 7:30 PM/);
+    expect(fixture).not.toMatch(/3 of 4 going/);
+    expect(fixture).not.toMatch(/planConsequence: \{/);
     expect(fixture).toMatch(/Following/);
   });
 });

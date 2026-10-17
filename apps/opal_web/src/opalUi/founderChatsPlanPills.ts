@@ -1,6 +1,13 @@
 /**
- * Founder-approved Chats list rows with plan pills (screenshot A).
- * Used as test data and founder-seed visual walk overlay.
+ * Founder Chats list row CHROME (names, avatars, relationship labels).
+ *
+ * Repair #18 (F18-01/02): fixture rows carry NO plan consequence. The
+ * seed-mode literal pills that used to live here (a going-count pill
+ * and a venue-and-time pill) were static strings no backend value
+ * could ever update, and they diverged from every other surface. Plan pills
+ * now come only from the backend projection (attendance contract) via
+ * the live row composition in OpalApp - a row whose conversation has
+ * no projection renders no pill at all.
  *
  * Seed row ids (`seed-chat-*`) are visual fixtures only. When live API
  * conversations exist, remap onto real ids so openChat / Channel join work.
@@ -59,13 +66,6 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     when: "2m",
     unread: 0,
     relationshipLabel: "Fiancée",
-    planConsequence: {
-      state: "ready",
-      // Founder chats-reference: cyan connection label + GOLD plan pill.
-      label: "Juniper & Ivy · 7:30 PM",
-      planId: "seed-chanelle-juniper",
-      tone: "dinner",
-    },
     avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Chanelle,
     avatarTone: "#6EE7F5",
   },
@@ -77,12 +77,6 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     when: "18m",
     unread: 2,
     relationshipLabel: "Close friend",
-    planConsequence: {
-      state: "ready",
-      label: "Farmers market + coast",
-      planId: "seed-maya-graph-coast",
-      tone: "activity",
-    },
     avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Maya,
     avatarTone: "#5FAECF",
   },
@@ -96,12 +90,6 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     unread: 1,
     memberCount: 4,
     relationshipLabel: "4 people · Group",
-    planConsequence: {
-      state: "ready",
-      label: "3 of 4 going",
-      planId: "seed-chanelle-juniper",
-      tone: "dinner",
-    },
     avatarTone: "#FFC86B",
   },
   {
@@ -112,12 +100,6 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     when: "1h",
     unread: 3,
     relationshipLabel: "Neighbor",
-    planConsequence: {
-      state: "action",
-      label: "Live nearby",
-      planId: "seed-live-sabrina",
-      tone: "live",
-    },
     avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Sabrina,
     avatarTone: "#FF6B9D",
   },
@@ -129,12 +111,6 @@ export const FOUNDER_CHATS_PLAN_PILL_ROWS: ChatsHomeRow[] = [
     when: "Yesterday",
     unread: 0,
     relationshipLabel: "Following",
-    planConsequence: {
-      state: "ready",
-      label: "Trip Graph",
-      planId: "seed-alex-graph-gallery",
-      tone: "trip",
-    },
     avatarSrc: FOUNDER_PEER_AVATAR_BY_NAME.Alex,
     avatarTone: "#8B5CF6",
   },
@@ -168,10 +144,10 @@ function isFounderFallbackLabel(name: string | null | undefined): boolean {
 
 /**
  * Map founder-seed visual rows onto live API conversations by name.
- * Keeps seed plan pills / relationship labels / preview / when / avatar tones —
- * the approved chats-reference chrome. Only the id (and group size) bind to live
- * so openChat / Channel join work. Live previews like "We should do something
- * Italian…" must never overwrite the seed list.
+ * Keeps seed relationship labels / avatar tones - chrome only. Repair #18:
+ * plan consequences are NEVER carried by this remap; the chats list no
+ * longer composes from these rows at all (see chatsHydration), so a pill
+ * can only come from the live conversation's backend projection.
  * Repair #17: unmatched seed rows keep seed ids HERE (pure data remap), but
  * the Chats list composition drops them — a `seed-chat-*` id is never an
  * openable conversation. Seed content is data, never behavior.

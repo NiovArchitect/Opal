@@ -3,6 +3,7 @@
  * Photo, name, relationship, shared plans, memories, message/call.
  */
 import React from "react";
+import { TopLayer } from "./TopLayer";
 
 export type ContactSharedPlan = {
   id: string;
@@ -55,7 +56,12 @@ export function ContactProfileSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Repair #18: the contact / shared-plans card mounts through the ONE
+  // TopLayer portal (sheet band) - never inline inside the conversation
+  // root, where the thread's sealed stacking context capped it under the
+  // header name and call glyphs.
   return (
+    <TopLayer band="sheet">
     <div
       className="contact-profile-sheet"
       data-testid="contact-profile-sheet"
@@ -211,5 +217,6 @@ export function ContactProfileSheet({
         ) : null}
       </div>
     </div>
+    </TopLayer>
   );
 }

@@ -77,7 +77,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthorityTest do
     peer_row =
       Enum.find(body["journey"]["participants"], &(&1["user_id"] == peer.id))
 
-    assert peer_row["response_state"] == "withdrawn"
+    # Repair #18: projections speak the canonical vocabulary - the stored
+    # "withdrawn" row reads as "declined" on every surface.
+    assert peer_row["response_state"] == "declined"
     assert body["journey"]["status"] in ~w(agreed changed)
   end
 
@@ -117,7 +119,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthorityTest do
     peer_state =
       Enum.find(changed["journey"]["participants"], &(&1["user_id"] == peer.id))
 
-    assert peer_state["response_state"] == "tentative"
+    # Repair #18: canonical vocabulary - reconfirm-pending is "pending".
+    assert peer_state["response_state"] == "pending"
   end
 
   test "stranger denied journey get", %{lead: lead, stranger: stranger, conv: conv} do
@@ -163,7 +166,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthorityTest do
     {:ok, _} = JourneyAuthority.add_people(plan_id, lead.id, [peer.id])
 
     peer_before = Repo.get_by(PlanParticipant, plan_id: plan_id, user_id: peer.id)
-    assert peer_before.response_state == "proposed"
+    # Repair #18: canonical vocabulary - add_people writes "pending".
+    assert peer_before.response_state == "pending"
 
     assert {:ok, body} = JourneyAuthority.accept_going(plan_id, peer.id)
     assert body["current_user_accepted"] == true

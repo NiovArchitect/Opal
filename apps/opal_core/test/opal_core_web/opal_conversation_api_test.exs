@@ -128,4 +128,87 @@ defmodule OpalCoreWeb.OpalConversationApiTest do
     assert b_body["conversation"]["id"] != id1
     assert b_body["conversation"]["messages"] == []
   end
+
+  test "PATCH rename: owner renames (summary shape), non-owner 404, invalid titles 422", %{
+    conn: conn
+  } do
+    {tok_a, _user_a} = activate(conn, @alex, "OC1 A", "oc1_a")
+    {tok_b, _user_b} = activate(build_conn(), @jordan, "OC1 B", "oc1_b")
+
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/opal/conversation")
+    id = json_response(conn, 200)["conversation"]["id"]
+
+    # Owner renames: 200, and the payload is the sessions-list summary
+    # shape (no second fetch needed to re-render).
+    conn =
+      build_conn()
+      |> auth(tok_a)
+      |> patch("/api/v1/product/opal/conversations/#{id}", %{"title" => "  Weekend plans  "})
+
+    body = json_response(conn, 200)
+    assert body["ok"] == true
+    summary = body["conversation"]
+    assert summary["id"] == id
+    assert summary["title"] == "Weekend plans"
+    assert summary["active"] == true
+    assert summary["message_count"] == 0
+    assert Map.has_key?(summary, "last_message_preview")
+    refute Map.has_key?(summary, "messages")
+
+    # Persisted: the sessions list and the conversation read agree.
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/opal/conversations")
+    sessions = json_response(conn, 200)["conversations"]
+    assert Enum.find(sessions, &(&1["id"] == id)) == summary
+
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/opal/conversation")
+    assert json_response(conn, 200)["conversation"]["title"] == "Weekend plans"
+
+    # Non-owner: same 404 shape as switch, title untouched.
+    conn =
+      build_conn()
+      |> auth(tok_b)
+      |> patch("/api/v1/product/opal/conversations/#{id}", %{"title" => "Stolen"})
+
+    assert json_response(conn, 404)["error_code"] == "not_found"
+
+    # Unknown id: 404.
+    conn =
+      build_conn()
+      |> auth(tok_a)
+      |> patch("/api/v1/product/opal/conversations/#{Ecto.UUID.generate()}", %{
+        "title" => "Nope"
+      })
+
+    assert json_response(conn, 404)["error_code"] == "not_found"
+
+    # Empty after trim: 422 with the house error shape.
+    conn =
+      build_conn()
+      |> auth(tok_a)
+      |> patch("/api/v1/product/opal/conversations/#{id}", %{"title" => "   "})
+
+    empty = json_response(conn, 422)
+    assert empty["error_code"] == "invalid"
+    assert empty["errors"]["title"] == ["can't be blank"]
+
+    # Overlong (> the schema limit of 120): 422, not truncated.
+    conn =
+      build_conn()
+      |> auth(tok_a)
+      |> patch("/api/v1/product/opal/conversations/#{id}", %{
+        "title" => String.duplicate("x", 121)
+      })
+
+    long = json_response(conn, 422)
+    assert long["error_code"] == "invalid"
+    assert long["errors"]["title"] == ["should be at most 120 character(s)"]
+
+    # Missing title: 422.
+    conn = build_conn() |> auth(tok_a) |> patch("/api/v1/product/opal/conversations/#{id}", %{})
+    assert json_response(conn, 422)["error_code"] == "invalid"
+
+    # None of the rejected calls wrote anything.
+    conn = build_conn() |> auth(tok_a) |> get("/api/v1/product/opal/conversation")
+    assert json_response(conn, 200)["conversation"]["title"] == "Weekend plans"
+  end
 end

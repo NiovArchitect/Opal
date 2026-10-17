@@ -7,12 +7,40 @@ defmodule OpalCore.SocialFlow.HomeProjection do
   does not qualify. Broader sharing stays explicit.
   """
 
+  import Ecto.Query
+
+  alias OpalCore.Repo
   alias OpalCore.SocialFlow.DateTimeChange
+  alias OpalCore.SocialFlow.JourneyAuthority
   alias OpalCore.SocialFlow.PlaceIdentity
   alias OpalCore.SocialFlow.PlanStateArbitration
+  alias OpalCore.SocialFlow.SharedPlan
 
   @spec from_alignment(map() | nil, String.t(), non_neg_integer()) :: map() | nil
-  def from_alignment(alignment, conversation_id, member_count)
+  def from_alignment(alignment, conversation_id, member_count),
+    do: from_alignment(alignment, conversation_id, member_count, [])
+
+  @doc """
+  The shared plan projection every surface renders (chats list, thread,
+  graphs list, inbox:plan fanout).
+
+  Repair #18 (Division A, plan truth): when the conversation has a real
+  SharedPlan with PlanParticipant rows, the card carries the ONE counter
+  (JourneyAuthority.attendance_contract/2): going_count, total_count,
+  interested_count and - when `viewer_id:` is given - viewer_state, the
+  viewer's own canonical response state. Surfaces render these numbers;
+  they never derive their own. When there is no plan or the plan has no
+  participant rows, the card carries NO count fields: absence is honest.
+
+  Repair #18 (Division A, gap-fill): a card backed by a real plan also
+  carries "conflict" - the SAME F18-03 object SocialFlow.plan_payload/1
+  puts on list/sync paths (SocialFlow.plan_conflict/1, or nil when the
+  owner's other active plans do not overlap), so the overlap is visible
+  on the chats list / thread card and not only on the plan payload. A
+  card with no real plan behind it carries no "conflict" key.
+  """
+  @spec from_alignment(map() | nil, String.t(), non_neg_integer(), keyword()) :: map() | nil
+  def from_alignment(alignment, conversation_id, member_count, opts)
       when is_map(alignment) and is_binary(conversation_id) and is_integer(member_count) do
     exact = alignment["exact_time"] || %{}
     place = alignment["place"] || %{}
@@ -56,7 +84,8 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "meeting_link" => meeting_link,
         "online" => plan_type == "virtual",
         "execution_label" => if(past?, do: nil, else: execution_label(commitment, plan_type)),
-        "execution_detail" => if(past?, do: nil, else: execution_detail(commitment, plan_type, meeting_link)),
+        "execution_detail" =>
+          if(past?, do: nil, else: execution_detail(commitment, plan_type, meeting_link)),
         "pending_change" => is_map(change_proposal),
         "public" => false,
         "share" => "explicit_only",
@@ -70,12 +99,59 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "memory_label" => false
       }
       |> maybe_put_pending_proposal(change_proposal)
+      |> maybe_put_plan_truth(alignment, conversation_id, Keyword.get(opts, :viewer_id))
     else
       nil
     end
   end
 
-  def from_alignment(_, _, _), do: nil
+  def from_alignment(_, _, _, _), do: nil
+
+  # --- Repair #18: attendance (the one counter, carried - never derived) ---
+  # --- and the F18-03 conflict (the one detector, carried - never re-derived)
+
+  defp maybe_put_plan_truth(card, alignment, conversation_id, viewer_id) do
+    case attendance_plan(alignment, conversation_id) do
+      %SharedPlan{} = plan ->
+        card
+        |> Map.merge(JourneyAuthority.attendance_contract(plan.id, viewer_id))
+        |> Map.put("conflict", OpalCore.SocialFlow.plan_conflict(plan))
+
+      _ ->
+        card
+    end
+  rescue
+    # Pure-projection call sites (unit tests without a DB sandbox) keep the
+    # pre-R18 card shape: no plan rows are readable, so no counts are shown.
+    _ -> card
+  end
+
+  # The alignment's lineage_id IS the SharedPlan id once the fold has
+  # materialized the plan; before that it falls back to the conversation
+  # id, so resolve the conversation's active plan as the second source.
+  defp attendance_plan(alignment, conversation_id) do
+    with lineage when is_binary(lineage) <- alignment["lineage_id"],
+         {:ok, _} <- Ecto.UUID.cast(lineage),
+         %SharedPlan{} = plan <- Repo.get(SharedPlan, lineage) do
+      plan
+    else
+      _ -> active_plan(conversation_id)
+    end
+  end
+
+  defp active_plan(conversation_id) do
+    with {:ok, _} <- Ecto.UUID.cast(conversation_id) do
+      from(p in SharedPlan,
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at],
+        limit: 1
+      )
+      |> Repo.one()
+    else
+      _ -> nil
+    end
+  end
 
   defp participant_mode(1), do: "solo"
   defp participant_mode(2), do: "dyad"
@@ -86,7 +162,9 @@ defmodule OpalCore.SocialFlow.HomeProjection do
   defp execution_label("execution_ready", _), do: "Reservation approved"
   defp execution_label(_, _), do: nil
 
-  defp execution_detail(_commitment, "virtual", link) when is_binary(link), do: "Join when it starts"
+  defp execution_detail(_commitment, "virtual", link) when is_binary(link),
+    do: "Join when it starts"
+
   defp execution_detail(_commitment, "virtual", _), do: "Add a meeting link when you have one"
   defp execution_detail("execution_ready", _, _), do: "Booking hasn't been placed yet."
   defp execution_detail(_, _, _), do: nil

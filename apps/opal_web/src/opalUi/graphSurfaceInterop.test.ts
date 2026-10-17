@@ -116,7 +116,22 @@ describe("graphSurfaceInterop", () => {
   });
 
   it("applies On the way to matching chat pills", () => {
-    const rows = applyTravelToChatRows(FOUNDER_CHATS_PLAN_PILL_ROWS, {
+    // Repair #18: fixture rows carry no plan consequence - the pill under
+    // test is supplied here the way the backend projection supplies it.
+    const pillRows = FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) =>
+      r.name === "Chanelle"
+        ? {
+            ...r,
+            planConsequence: {
+              state: "ready" as const,
+              label: "Dinner Thursday",
+              planId: "seed-chanelle-juniper",
+              tone: "dinner" as const,
+            },
+          }
+        : r,
+    );
+    const rows = applyTravelToChatRows(pillRows, {
       "seed-chanelle-juniper": {
         graphId: "seed-chanelle-juniper",
         travelState: "on_the_way",

@@ -65,6 +65,22 @@ export type ChatPreview = {
     /** Past Shared Reality — not Durable/Published Memory */
     past_shared_reality?: boolean;
     occurrence_state?: string | null;
+    /** Repair #18 - attendance contract, carried from the backend's one
+     * counter (null/absent when the plan has no participant rows).
+     * Coordinator merge note: the backend conflict is an OBJECT
+     * ({with_plan_id, title, time_label} | null) - surfaces format the
+     * line from it (planCardContract.conflictLineFromContract) and never
+     * treat it as a pre-formatted string. */
+    going_count?: number | null;
+    interested_count?: number | null;
+    total_count?: number | null;
+    viewer_state?: string | null;
+    /** Repair #18 - F18-03 conflict object, or null when no overlap. */
+    conflict?: {
+      with_plan_id?: string | null;
+      title?: string | null;
+      time_label?: string | null;
+    } | null;
   } | null;
   signal?: SignalKind;
   /** Human shared-reality line — never internal "Set" / "Still open". */

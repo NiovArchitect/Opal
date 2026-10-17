@@ -5,8 +5,8 @@
  * Tranche #1: native host uses Expo camera/library bridge; browser keeps file-input fallback.
  */
 import React, { useState } from "react";
-import { createPortal } from "react-dom";
 import { OpalMark, OpalWordmark } from "../brand/OpalLogo";
+import { TopLayer } from "./TopLayer";
 import { acquireMedia } from "../mediaAcquisition";
 
 type Props = {
@@ -218,5 +218,7 @@ export function StoryCreateFlow({ onClose, onShared }: Props) {
     </div>
   );
   if (typeof document === "undefined") return flow;
-  return createPortal(flow, document.body);
+  // Repair #18: the composer mounts through the ONE TopLayer portal, from
+  // every entry point - never inline, never a private portal.
+  return <TopLayer band="flow">{flow}</TopLayer>;
 }

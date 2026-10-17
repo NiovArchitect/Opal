@@ -5,8 +5,36 @@ defmodule OpalCore.SocialFlow.PlanParticipant do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  # Repair #18 (Division A, plan truth): ONE canonical response-state
+  # vocabulary for every surface that reads or counts participation:
+  # "accepted" (going), "pending" (invited / interested, not yet answered),
+  # "declined" (not going). Legacy stored values ("proposed", "tentative",
+  # "withdrawn") remain writable by the paths that still produce them, but
+  # every READ goes through canonical_response_state/1 - the single
+  # translation point - so no surface translates privately.
+  @canonical_response_states ~w(accepted pending declined)
+
   # pending = trip-leg-created invite; not yet agreed (Phase 4E)
   @response_states ~w(proposed pending accepted declined tentative withdrawn)
+
+  @doc "The one canonical response-state vocabulary: accepted / pending / declined."
+  def canonical_response_states, do: @canonical_response_states
+
+  @doc """
+  Translate any stored response_state into the canonical vocabulary.
+  This is the ONLY translation site; counters and projections call it.
+  Returns nil for values outside the vocabulary.
+  """
+  def canonical_response_state("accepted"), do: "accepted"
+  def canonical_response_state(state) when state in ~w(pending proposed tentative), do: "pending"
+  def canonical_response_state(state) when state in ~w(declined withdrawn), do: "declined"
+  def canonical_response_state(_), do: nil
+
+  @doc "True when the stored state is canonically pending (invited, unanswered)."
+  def pending_state?(state), do: canonical_response_state(state) == "pending"
+
+  @doc "True when the stored state is canonically accepted (going)."
+  def accepted_state?(state), do: canonical_response_state(state) == "accepted"
 
   schema "plan_participants" do
     field :role, :string, default: "participant"

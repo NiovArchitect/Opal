@@ -594,14 +594,24 @@ defmodule OpalCore.SocialFlow.Repair11Test do
     assert count == 1
   end
 
-  test "center taps without a decision_id still create (nothing to dedupe on)" do
+  # Repair #18 (Division A, F18-06) supersedes the R11 contract this
+  # test pinned ("without a decision_id there is nothing to dedupe on"):
+  # that gap is exactly what minted the walk's duplicate Center rows.
+  # Identity is now the normalized dedupe key, so identical taps dedupe
+  # even with no decision_id - and different intents still create.
+  test "center taps without a decision_id dedupe on identical intent (R18)" do
     assert {:ok, plan1, _} =
              SocialFlow.create_tentative_plan_from_center(alex(), %{title: "Solo dinner"})
 
     assert {:ok, plan2, _} =
              SocialFlow.create_tentative_plan_from_center(alex(), %{title: "Solo dinner"})
 
-    assert plan1.id != plan2.id
+    assert plan1.id == plan2.id
+
+    assert {:ok, plan3, _} =
+             SocialFlow.create_tentative_plan_from_center(alex(), %{title: "Solo lunch"})
+
+    assert plan3.id != plan1.id
   end
 
   # --- Phase 3 attack list: sinister-user gates ---

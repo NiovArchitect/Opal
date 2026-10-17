@@ -54,6 +54,14 @@ export type ConversationSummary = {
     execution_detail?: string | null;
     pending_change?: boolean;
     public?: boolean;
+    /** Repair #18 - attendance contract fields (present only when the
+     * backend counter has participant rows; absence is honest). */
+    going_count?: number | null;
+    interested_count?: number | null;
+    total_count?: number | null;
+    viewer_state?: string | null;
+    /** Repair #18 - F18-03 conflict object, or null when no overlap. */
+    conflict?: PlanConflictContract;
   } | null;
 };
 
@@ -661,9 +669,31 @@ async function request<T>(
   if (!res.ok) {
     const err = new Error(
       humanError(data.error_code, data.message || res.statusText),
-    ) as Error & { code?: string; status?: number };
+    ) as Error & {
+      code?: string;
+      status?: number;
+      sent?: boolean;
+      retryable?: boolean;
+      clientAction?: string;
+      serverMessage?: string;
+      errors?: Record<string, string[]>;
+    };
     err.code = data.error_code;
     err.status = res.status;
+    // Repair #18 - carry the backend's per-field validation errors
+    // (the 422 shape: errors: { title: ["can't be blank"] }) so callers
+    // can show the server's own message inline instead of inventing one.
+    if (data.errors && typeof data.errors === "object" && !Array.isArray(data.errors)) {
+      err.errors = data.errors as Record<string, string[]>;
+    }
+    // Repair #18 (A-web) - carry the backend's explicit send outcome
+    // (the throttle shape: sent:false, retryable:true,
+    // client_action:"retry_send") so callers can distinguish a
+    // not-sent send from a generic failure instead of guessing.
+    if (typeof data.sent === "boolean") err.sent = data.sent;
+    if (typeof data.retryable === "boolean") err.retryable = data.retryable;
+    if (typeof data.client_action === "string") err.clientAction = data.client_action;
+    if (typeof data.message === "string") err.serverMessage = data.message;
     throw err;
   }
   return data as T;
@@ -3642,12 +3672,54 @@ export async function listCelebrations(bearer?: string) {
   });
 }
 
+/**
+ * Repair #18 (A-web) - true when an error is the backend's explicit
+ * throttled-send rejection (429, error_code "rate_limited", sent:false,
+ * retryable:true, client_action "retry_send"). The send did NOT store
+ * anything; the caller must surface "not sent, tap to retry" and keep
+ * the user's words, never treat it as a generic failure.
+ */
+export function isRateLimitedSendError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as {
+    code?: unknown;
+    status?: unknown;
+    sent?: unknown;
+    retryable?: unknown;
+    clientAction?: unknown;
+  };
+  return (
+    e.code === "rate_limited" ||
+    (e.sent === false && e.retryable === true && e.clientAction === "retry_send")
+  );
+}
+
+/** Repair #18 - the backend plan conflict object (plan payloads). */
+export type PlanConflictContract = {
+  with_plan_id?: string | null;
+  title?: string | null;
+  time_label?: string | null;
+} | null;
+
+/** Repair #18 - the ONE attendance counter, as carried by plan payloads. */
+export type PlanAttendanceContract = {
+  going_count?: number | null;
+  interested_count?: number | null;
+  total_count?: number | null;
+  viewer_state?: string | null;
+};
+
 /** Paste W6 Phase 5 — Center now-strip day window (linked calendar only). */
 export type CalendarTodayEvent = {
   id?: string | null;
   title?: string | null;
   start_at?: string | null;
   end_at?: string | null;
+  /** Repair #18 (F18-09) - plan events carry who/where end to end. */
+  who?: string[] | null;
+  where?: string | null;
+  plan_id?: string | null;
+  source?: string | null;
 };
 
 export async function fetchCalendarToday(bearer?: string) {
@@ -3895,6 +3967,12 @@ export async function startOpalNewChat(bearer?: string) {
  *             the prior session is retained in the list)
  *   POST   /api/v1/product/opal/conversations/:id/switch   (body {})
  *          -> { ok, conversation }   (makes :id active, returns it with messages)
+ *   PATCH  /api/v1/product/opal/conversations/:id   (body { title })
+ *          -> { ok, conversation: OpalChatSessionSummary }   (rename; the
+ *             returned summary is the sessions-list shape, so callers
+ *             re-render header + list from it with no second fetch.
+ *             404 not_found for foreign/unknown ids; 422 invalid with
+ *             errors.title messages for blank or over-120-char titles)
  *   POST   /api/v1/product/opal/conversation/messages
  *          body { body, conversation_id, client_context? } -> { messages }
  *   POST   /api/v1/product/opal/conversation/clear
@@ -3912,7 +3990,40 @@ export type OpalChatSessionSummary = {
   last_message_preview?: string | null;
   inserted_at?: string | null;
   updated_at?: string | null;
+  /** Repair #17 backend list contract: true for the one active session. */
+  active?: boolean | null;
 };
+
+/**
+ * Repair #18 (A-web) - post coarse, user-granted device coords to the
+ * EXISTING Center location ingest the backend reads
+ * (POST /api/v1/product/opal/location, CenterLocationController ->
+ * Center.DeviceLocation, stored as PlanningContext "device_coords").
+ * OpalContext.assemble_location and Oracle's :current_location kind
+ * read those stored rows; the Center message payload itself carries
+ * no location fields. Callers must only call this with coords from a
+ * granted fix (the cached deviceLocation values) - never on spec.
+ */
+export async function postOpalLocation(
+  coords: { lat: number; lon: number; accuracy_m?: number },
+  bearer?: string,
+) {
+  return request<{ ok: boolean; origin_source?: string; coarsened?: boolean }>(
+    "/api/v1/product/opal/location",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        lat: coords.lat,
+        lon: coords.lon,
+        origin_source: "device",
+        ...(typeof coords.accuracy_m === "number" && coords.accuracy_m > 0
+          ? { accuracy_m: coords.accuracy_m }
+          : {}),
+      }),
+    },
+  );
+}
 
 export async function listOpalChatSessions(bearer?: string) {
   return request<{ conversations: OpalChatSessionSummary[] }>(
@@ -3930,6 +4041,43 @@ export async function createOpalChatSession(bearer?: string) {
       body: JSON.stringify({}),
     },
   );
+}
+
+/**
+ * Repair #18 - rename ONE Opal session. The backend trims the title and
+ * rejects blank or over-120-character titles with a 422 whose
+ * errors.title messages ride on the thrown error (see request()).
+ * On success the returned conversation is the sessions-list summary
+ * for that chat - the caller renders from it directly.
+ */
+export async function patchOpalConversationTitle(
+  sessionId: string,
+  title: string,
+  bearer?: string,
+) {
+  return request<{ ok: boolean; conversation: OpalChatSessionSummary }>(
+    `/api/v1/product/opal/conversations/${encodeURIComponent(sessionId)}`,
+    {
+      method: "PATCH",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ title }),
+    },
+  );
+}
+
+/**
+ * Repair #18 - the server's own title validation message from a rename
+ * rejection (422 errors.title), or null when the error carries none.
+ * Callers show this verbatim inline; they never invent a substitute.
+ */
+export function opalConversationTitleError(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const errors = (error as { errors?: unknown }).errors;
+  if (!errors || typeof errors !== "object") return null;
+  const titleErrors = (errors as { title?: unknown }).title;
+  if (!Array.isArray(titleErrors)) return null;
+  const first = titleErrors.find((t): t is string => typeof t === "string" && t !== "");
+  return first ?? null;
 }
 
 /** Switch the active Opal session to :id and load it (with its messages). */
@@ -4049,6 +4197,13 @@ export type OpalPlanContract = {
   exact_spot_after_join?: boolean;
   repeated_from_plan_id?: string;
   created_at?: string;
+  /** Repair #18 - attendance contract (absent when no participant rows). */
+  going_count?: number | null;
+  interested_count?: number | null;
+  total_count?: number | null;
+  viewer_state?: string | null;
+  /** Repair #18 - F18-03 conflict object, or null when no overlap. */
+  conflict?: PlanConflictContract;
 };
 
 /**

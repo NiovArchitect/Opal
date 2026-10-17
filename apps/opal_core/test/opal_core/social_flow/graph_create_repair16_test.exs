@@ -309,11 +309,28 @@ defmodule OpalCore.SocialFlow.GraphCreateRepair16Test do
       assert replay2.id == first.id
       assert plan_count_for(owner.id) == 1
 
-      # A different key is a genuinely new draft -> a second plan.
-      assert {:ok, second, _, false} =
+      # Repair #18 (Division A, F18-06) supersedes the R16 rule that a
+      # fresh key alone makes a new plan: identity is the dedupe key
+      # (owner + participants + venue + subject + day), so a fresh flow
+      # key carrying an IDENTICAL intent returns the survivor as
+      # deduplicated. A genuinely new plan must say so (force_new, or a
+      # Repeat source_plan_id).
+      assert {:ok, same_intent, _, true} =
                SocialFlow.create_plan_from_graph_create(
                  owner.id,
                  base_draft(%{"idempotency_key" => "gc-#{Ecto.UUID.generate()}"})
+               )
+
+      assert same_intent.id == first.id
+      assert plan_count_for(owner.id) == 1
+
+      assert {:ok, second, _, false} =
+               SocialFlow.create_plan_from_graph_create(
+                 owner.id,
+                 base_draft(%{
+                   "idempotency_key" => "gc-#{Ecto.UUID.generate()}",
+                   "force_new" => true
+                 })
                )
 
       refute second.id == first.id

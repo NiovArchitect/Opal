@@ -27,6 +27,7 @@ import {
   type GraphParticipationBacking,
 } from "./graphParticipation";
 import { resolveCardWhen, resolveHomeStories } from "./socialAuthority";
+import { TopLayer } from "./TopLayer";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const HOME_SCROLL_KEY = "opal.home.scroll.v1";
@@ -1048,6 +1049,13 @@ export function GraphSocialHome({
   const [localSaved, setLocalSaved] = useState<Set<string>>(() => new Set());
   const [gateNote, setGateNote] = useState<string | null>(null);
   const [composeChooserOpen, setComposeChooserOpen] = useState(false);
+  // Repair #18: the Post | Story chooser renders through TopLayer at the
+  // cell's anchor coordinates - never inside the overflow:hidden stories
+  // rail, where it was clipped to invisibility (F18-04).
+  const [composeChooserAnchor, setComposeChooserAnchor] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -1316,6 +1324,8 @@ export function GraphSocialHome({
           aria-label="Stories"
         >
           <div className="gsh-stories-rail" data-testid="gsh-stories-rail">
+            {/* Repair #18: the cell is a plain button with NO interactive
+                descendants; the chooser is its sibling in TopLayer. */}
             <button
               type="button"
               className="gsh-story-cell gsh-story-self"
@@ -1323,7 +1333,13 @@ export function GraphSocialHome({
               data-mode="active"
               aria-label="Your Story, Add"
               aria-expanded={composeChooserOpen}
-              onClick={() => {
+              aria-haspopup="menu"
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setComposeChooserAnchor({
+                  top: rect.bottom + 6,
+                  left: rect.left + rect.width / 2,
+                });
                 persistScrollThen();
                 setComposeChooserOpen((o) => !o);
               }}
@@ -1336,13 +1352,22 @@ export function GraphSocialHome({
               </span>
               <span className="gsh-story-name">Your story</span>
               <span className="gsh-story-when gsh-story-add-label">Add</span>
-              {composeChooserOpen ? (
+            </button>
+            {composeChooserOpen ? (
+              <TopLayer band="sheet">
                 <div
                   className="gsh-compose-chooser"
                   role="menu"
                   data-testid="gsh-compose-chooser"
                   aria-label="Compose"
-                  onClick={(e) => e.stopPropagation()}
+                  style={
+                    composeChooserAnchor
+                      ? {
+                          top: composeChooserAnchor.top,
+                          left: composeChooserAnchor.left,
+                        }
+                      : undefined
+                  }
                 >
                   <button
                     type="button"
@@ -1371,8 +1396,8 @@ export function GraphSocialHome({
                     Story
                   </button>
                 </div>
-              ) : null}
-            </button>
+              </TopLayer>
+            ) : null}
             {homeStories.map((s) => (
               <button
                 key={s.id}

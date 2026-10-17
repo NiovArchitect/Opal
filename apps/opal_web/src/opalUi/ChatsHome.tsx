@@ -31,6 +31,11 @@ export type ChatsHomeRow = {
     planId?: string;
     /** Colored plan pill tone (founder screenshot A). */
     tone?: PlanPillTone;
+    /** Repair #18 - attendance line from the backend contract only
+     * (e.g. "3 of 4 going"); absent when the plan carries no counts. */
+    attendanceLabel?: string | null;
+    /** Repair #18 - conflict line from the backend contract only. */
+    conflictLabel?: string | null;
   };
   /**
    * Optional canonical relationship label only when proven (Follow ≠ Connection).
@@ -633,6 +638,22 @@ export function ChatsHome({
                         </span>
                       ) : null}
                     </span>
+                    {pill?.attendanceLabel ? (
+                      <span
+                        className="chats-home-plan-attendance"
+                        data-testid="chat-plan-attendance"
+                      >
+                        {pill.attendanceLabel}
+                      </span>
+                    ) : null}
+                    {pill?.conflictLabel ? (
+                      <span
+                        className="chats-home-plan-conflict"
+                        data-testid="chat-plan-conflict"
+                      >
+                        {pill.conflictLabel}
+                      </span>
+                    ) : null}
                     {r.contextLine ? (
                       <span className="chats-home-context">{r.contextLine}</span>
                     ) : null}

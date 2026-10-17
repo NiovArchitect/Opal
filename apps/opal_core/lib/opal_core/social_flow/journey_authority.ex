@@ -96,7 +96,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   def journey_eligible?(_), do: false
 
   @doc "Participant cannot make it — does not cancel the whole Journey."
-  def cant_make_it(plan_id, user_id, opts \\ %{}) when is_binary(plan_id) and is_binary(user_id) do
+  def cant_make_it(plan_id, user_id, opts \\ %{})
+      when is_binary(plan_id) and is_binary(user_id) do
     note = Map.get(stringify(opts), "note")
 
     with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
@@ -112,6 +113,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
           authority_source: "cant_make_it"
         })
         |> Repo.update()
+
+      # Repair #18: a decline moves the shared count for everyone too.
+      _ = fanout_attendance(plan)
 
       _ =
         Publisher.record(%{
@@ -165,8 +169,16 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
                 :ok <- assert_expected_revision(plan, c) do
              material? = material?(c)
              attrs = %{}
-             attrs = if Map.has_key?(c, "time_label"), do: Map.put(attrs, :time_label, c["time_label"]), else: attrs
-             attrs = if Map.has_key?(c, "location"), do: Map.put(attrs, :location, c["location"]), else: attrs
+
+             attrs =
+               if Map.has_key?(c, "time_label"),
+                 do: Map.put(attrs, :time_label, c["time_label"]),
+                 else: attrs
+
+             attrs =
+               if Map.has_key?(c, "location"),
+                 do: Map.put(attrs, :location, c["location"]),
+                 else: attrs
 
              attrs =
                if Map.has_key?(c, "start_at") do
@@ -223,13 +235,15 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
              if material? do
                now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-               # Mark other accepted participants as tentative pending reconfirm
+               # Mark other accepted participants as pending reconfirm
+               # (Repair #18: canonical vocabulary - "pending", not the
+               # legacy "tentative" spelling).
                from(pp in PlanParticipant,
                  where:
                    pp.plan_id == ^plan.id and pp.user_id != ^user_id and
                      pp.response_state == "accepted"
                )
-               |> Repo.update_all(set: [response_state: "tentative", updated_at: now])
+               |> Repo.update_all(set: [response_state: "pending", updated_at: now])
              end
 
              _ =
@@ -274,10 +288,17 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
         {:ok, body}
 
-      {:error, :not_found} -> {:error, :not_found}
-      {:error, :forbidden} -> {:error, :forbidden}
-      {:error, :stale_revision} -> {:error, :stale_revision}
-      {:error, reason} -> {:error, reason}
+      {:error, :not_found} ->
+        {:error, :not_found}
+
+      {:error, :forbidden} ->
+        {:error, :forbidden}
+
+      {:error, :stale_revision} ->
+        {:error, :stale_revision}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -374,7 +395,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
               {:ok, _} =
                 pp
                 |> PlanParticipant.changeset(%{
-                  response_state: "proposed",
+                  response_state: "pending",
                   responded_at: now,
                   authority_source: "journey_add_people"
                 })
@@ -388,7 +409,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
                 plan_id: plan.id,
                 user_id: uid,
                 role: "participant",
-                response_state: "proposed",
+                response_state: "pending",
                 responded_at: now,
                 authority_source: "journey_add_people"
               })
@@ -464,6 +485,11 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       counts = participation_counts(plan.id)
       eligible? = journey_eligible?(plan)
 
+      # Repair #18: an RSVP change must reach every member's surfaces, not
+      # only the actor's HTTP response - fan the shared projection out on
+      # the existing inbox:plan broadcast (counts recomputed per viewer).
+      _ = fanout_attendance(plan)
+
       _ =
         Publisher.record(%{
           event_type: "graph.participant_going",
@@ -497,6 +523,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
          "journey_available" => eligible?,
          "going_count" => counts.going,
          "interested_count" => counts.interested,
+         "total_count" => counts.total,
          "lock_in_label" => plan.time_label,
          "participation_phase" =>
            cond do
@@ -534,18 +561,91 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   defp going_accept_allowed?(_), do: {:error, :invalid_participant_state}
 
-  @doc "Aggregate Going / interested from PlanParticipant rows (server truth)."
+  @doc """
+  Aggregate Going / interested from PlanParticipant rows (server truth).
+
+  Repair #18 (Division A): THE one counter. Every surface that shows
+  "X of Y going" reads these numbers - nobody recounts privately.
+
+  Canonical vocabulary (PlanParticipant.canonical_response_state/1):
+  going = accepted rows; interested = pending rows (legacy "proposed" /
+  "tentative" rows are pending); total = ALL participant rows, declined
+  included, so a decline moves going down without shrinking the party.
+  Pending NEVER inflates going, whoever it belongs to.
+  """
   def participation_counts(plan_id) when is_binary(plan_id) do
     rows =
       from(p in PlanParticipant, where: p.plan_id == ^plan_id, select: p.response_state)
       |> Repo.all()
 
-    going = Enum.count(rows, &(&1 == "accepted"))
-    interested = Enum.count(rows, &(&1 in ~w(proposed tentative)))
+    going = Enum.count(rows, &PlanParticipant.accepted_state?/1)
+    interested = Enum.count(rows, &PlanParticipant.pending_state?/1)
     %{going: going, interested: interested, total: length(rows)}
   end
 
   def participation_counts(_), do: %{going: 0, interested: 0, total: 0}
+
+  @doc """
+  Viewer-scoped counts: participation_counts/1 plus the viewer's own
+  canonical response_state ("viewer_state", nil when the viewer has no
+  participant row). The viewer's own pending row is what makes a surface
+  an action state for that viewer; it still never counts toward going.
+  """
+  def participation_counts(plan_id, viewer_user_id)
+      when is_binary(plan_id) and is_binary(viewer_user_id) do
+    counts = participation_counts(plan_id)
+
+    viewer_state =
+      case get_participant(plan_id, viewer_user_id) do
+        %PlanParticipant{} = pp -> PlanParticipant.canonical_response_state(pp.response_state)
+        _ -> nil
+      end
+
+    Map.merge(counts, %{pending: counts.interested, viewer_state: viewer_state})
+  end
+
+  def participation_counts(_, _),
+    do: Map.merge(participation_counts(nil), %{pending: 0, viewer_state: nil})
+
+  @doc """
+  The attendance contract for projections (string keys, explicit fields):
+  going_count / interested_count / total_count, plus viewer_state when a
+  viewer is given. A plan with NO participant rows yields %{} - absence
+  is honest: surfaces must render no count rather than invent one.
+  """
+  def attendance_contract(plan_id, viewer_user_id \\ nil)
+
+  def attendance_contract(plan_id, viewer_user_id)
+      when is_binary(plan_id) and is_binary(viewer_user_id) do
+    counts = participation_counts(plan_id, viewer_user_id)
+
+    if counts.total > 0 do
+      %{
+        "going_count" => counts.going,
+        "interested_count" => counts.interested,
+        "total_count" => counts.total,
+        "viewer_state" => counts.viewer_state
+      }
+    else
+      %{}
+    end
+  end
+
+  def attendance_contract(plan_id, _) when is_binary(plan_id) do
+    counts = participation_counts(plan_id)
+
+    if counts.total > 0 do
+      %{
+        "going_count" => counts.going,
+        "interested_count" => counts.interested,
+        "total_count" => counts.total
+      }
+    else
+      %{}
+    end
+  end
+
+  def attendance_contract(_, _), do: %{}
 
   @doc """
   True when an existing SharedPlan is grounded enough to present I'm going
@@ -590,7 +690,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   defp reconfirm_allowed?(%SharedPlan{status: "changed"}, %PlanParticipant{} = pp) do
     cond do
-      pp.response_state in ~w(tentative accepted) -> :ok
+      pp.response_state in ~w(tentative pending accepted) -> :ok
       pp.role in @lead_roles -> :ok
       pp.response_state == "withdrawn" -> {:error, :stale_invitation}
       true -> {:error, :not_pending_reconfirm}
@@ -598,7 +698,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   end
 
   defp reconfirm_allowed?(_plan, %PlanParticipant{response_state: state})
-       when state in ~w(proposed tentative accepted),
+       when state in ~w(proposed tentative pending accepted),
        do: :ok
 
   defp reconfirm_allowed?(_plan, %PlanParticipant{response_state: "withdrawn"}),
@@ -625,7 +725,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
          :ok <- require_lead(plan, actor_user_id),
          :ok <- ensure_plan_access(plan, peer_user_id),
          %PlanParticipant{} = peer <- get_participant(plan.id, peer_user_id),
-         true <- peer.response_state in ~w(accepted tentative) do
+         true <- peer.response_state in ~w(accepted tentative pending) do
       actor = get_participant(plan.id, actor_user_id)
 
       {:ok, _} =
@@ -647,6 +747,19 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       {:error, _} = e -> e
     end
   end
+
+  # Repair #18: rebroadcast the shared plan projection after a participant
+  # change, reusing the one fanout every surface already consumes. The
+  # stored alignment supplies the plan fields; the counts are recomputed
+  # from PlanParticipant rows inside the projection, per viewer.
+  defp fanout_attendance(%SharedPlan{conversation_id: cid, alignment: alignment})
+       when is_binary(cid) and cid != "" and is_map(alignment) do
+    OpalCore.Messaging.Inbox.fanout_plan(cid, alignment)
+  rescue
+    _ -> :ok
+  end
+
+  defp fanout_attendance(_), do: :ok
 
   # --- projection ---
 
@@ -682,7 +795,10 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       "viewer" => %{
         "user_id" => user_id,
         "role" => (me && me.role) || "participant",
-        "response_state" => (me && me.response_state) || "proposed",
+        # Repair #18: canonical vocabulary out - one translation site
+        # (PlanParticipant.canonical_response_state/1), never per-surface.
+        "response_state" =>
+          (me && PlanParticipant.canonical_response_state(me.response_state)) || "pending",
         "is_lead" => me != nil and me.role in @lead_roles and me.role == "lead",
         "is_co_lead" => me != nil and me.role == "co_lead",
         "can_manage" => me != nil and me.role in @lead_roles
@@ -694,7 +810,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
           %{
             "user_id" => pp.user_id,
             "role" => pp.role,
-            "response_state" => pp.response_state,
+            "response_state" =>
+              PlanParticipant.canonical_response_state(pp.response_state) || pp.response_state,
             "interested_soft" => false,
             "committed" => pp.response_state == "accepted"
           }
@@ -702,9 +819,14 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       "leave" => leave,
       "navigation" => maps,
       "reservation" => reservation,
-      "requires_reconfirmation" => plan.status == "changed" and me != nil and me.response_state == "tentative",
+      "requires_reconfirmation" =>
+        plan.status == "changed" and me != nil and
+          PlanParticipant.pending_state?(me.response_state),
       "figma" => %{"journey" => "254:280", "reference" => "201:9"}
     }
+    # Repair #18: the ONE counter rides this projection too - same
+    # going/total pair every other surface renders ({} when no rows).
+    |> Map.merge(attendance_contract(plan.id, user_id))
   end
 
   # --- leave / maps / reservation ---
@@ -811,7 +933,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       "plan_id" => plan.id,
       "party_size" =>
         from(pp in PlanParticipant,
-          where: pp.plan_id == ^plan.id and pp.response_state in ^~w(accepted tentative proposed)
+          where:
+            pp.plan_id == ^plan.id and
+              pp.response_state in ^~w(accepted tentative proposed pending)
         )
         |> Repo.aggregate(:count, :id)
         |> max(1),
@@ -825,6 +949,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   defp create_journey_plan(a) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
     start_at =
       case parse_dt(a["start_at"]) do
         {:ok, dt} -> dt
@@ -858,7 +983,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   defp ensure_lead(%SharedPlan{} = plan, user_id) do
     case get_participant(plan.id, user_id) do
-      %PlanParticipant{role: "lead"} -> :ok
+      %PlanParticipant{role: "lead"} ->
+        :ok
+
       %PlanParticipant{} = pp ->
         if plan.created_by_user_id == user_id do
           pp |> PlanParticipant.changeset(%{role: "lead"}) |> Repo.update()
@@ -899,13 +1026,19 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     Repo.get_by(PlanParticipant, plan_id: plan_id, user_id: user_id)
   end
 
-  defp role_for(%SharedPlan{created_by_user_id: creator}, user_id) when creator == user_id, do: "lead"
+  defp role_for(%SharedPlan{created_by_user_id: creator}, user_id) when creator == user_id,
+    do: "lead"
+
   defp role_for(_, _), do: "participant"
 
   defp require_lead(%SharedPlan{} = plan, user_id) do
     case get_participant(plan.id, user_id) do
-      %PlanParticipant{role: role} when role in @lead_roles -> :ok
-      %PlanParticipant{} -> {:error, :forbidden}
+      %PlanParticipant{role: role} when role in @lead_roles ->
+        :ok
+
+      %PlanParticipant{} ->
+        {:error, :forbidden}
+
       nil ->
         if plan.created_by_user_id == user_id, do: :ok, else: {:error, :forbidden}
     end
@@ -935,7 +1068,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   defp ensure_plan_access(%SharedPlan{} = plan, user_id) when is_binary(user_id) do
     case get_participant(plan.id, user_id) do
-      %PlanParticipant{} -> :ok
+      %PlanParticipant{} ->
+        :ok
+
       nil ->
         if plan.created_by_user_id == user_id, do: :ok, else: {:error, :forbidden}
     end
@@ -955,7 +1090,9 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   defp ensure_plan_access_or_conversation_peer(%SharedPlan{} = plan, user_id),
     do: ensure_plan_access(plan, user_id)
 
-  defp format_when(%SharedPlan{time_label: tl}) when is_binary(tl) and tl != "", do: ensure_ampm(tl)
+  defp format_when(%SharedPlan{time_label: tl}) when is_binary(tl) and tl != "",
+    do: ensure_ampm(tl)
+
   defp format_when(%SharedPlan{start_at: %DateTime{} = dt}), do: format_ampm(dt)
   defp format_when(_), do: nil
 
@@ -974,7 +1111,10 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     # Use calendar formatting with AM/PM
     h = dt.hour
     m = dt.minute |> Integer.to_string() |> String.pad_leading(2, "0")
-    {h12, mer} = if h >= 12, do: {rem(h + 11, 12) + 1, "PM"}, else: {if(h == 0, do: 12, else: h), "AM"}
+
+    {h12, mer} =
+      if h >= 12, do: {rem(h + 11, 12) + 1, "PM"}, else: {if(h == 0, do: 12, else: h), "AM"}
+
     "#{h12}:#{m} #{mer}"
   end
 

@@ -9,15 +9,24 @@ import {
   createOpalChatSession,
   getOpalChatSession,
   getOpalConversation,
+  isRateLimitedSendError,
   listOpalChatSessions,
   listRelationships,
+  opalConversationTitleError,
+  patchOpalConversationTitle,
+  postOpalLocation,
   postOpalMessage,
   postOpalSessionMessage,
   startOpalNewChat,
   type OpalChatMessage,
   type OpalChatSessionSummary,
 } from "../api/productClient";
-import { OpalChatSessionsDrawer } from "./OpalChatSessionsDrawer";
+import { readCachedDeviceCoords } from "../device/deviceLocation";
+import {
+  OpalChatSessionsDrawer,
+  distinctSessionLabels,
+  sessionRowLabel,
+} from "./OpalChatSessionsDrawer";
 import { ProfileGapAsk } from "./ProfileGapAsk";
 import {
   LISTENING_COPY,
@@ -48,9 +57,26 @@ const EMPTY_COPY = "Say hello to Opal";
 /** Pass 2 memory intelligence LOCKED — no "Remember something" consumer chip. */
 const CHIPS = ["Plan something", "What's coming up?"] as const;
 const SEND_FAIL = "Couldn't send. Tap to retry";
+/** Repair #18 - the backend throttle shape (429, sent:false) rendered honestly. */
+const SEND_THROTTLED = "Not sent - tap to retry";
 const LOAD_FAIL = "Couldn't load conversation";
 const MAX_BODY = 2000;
 const MAX_LINES = 5;
+/**
+ * Repair #18 - provider poll bounds. The poll exists only while the
+ * LATEST Opal message is queued/running; it backs off, caps out, and
+ * dies with the view. Before this it ticked every 1.8s forever, armed
+ * by any stale queued message in history, and each tick was a switch
+ * POST (the 47x storm).
+ */
+export const POLL_FIRST_DELAY_MS = 1800;
+export const POLL_MAX_DELAY_MS = 15_000;
+export const POLL_MAX_ATTEMPTS = 20;
+export const POLL_MAX_DURATION_MS = 90_000;
+
+export function pollDelayMs(attempt: number): number {
+  return Math.min(POLL_FIRST_DELAY_MS * 2 ** Math.max(0, attempt), POLL_MAX_DELAY_MS);
+}
 
 type PlaceOption = {
   id?: string;
@@ -68,7 +94,17 @@ type LocalMsg = {
   body: string;
   inserted_at?: string | null;
   status?: "pending" | "sent" | "failed";
+  /** Repair #18 - why a send failed: "throttled" is the backend's
+   * explicit not-sent shape; anything else is a generic failure. */
+  failure?: "throttled" | "generic";
   metadata?: Record<string, unknown> | null;
+};
+
+/** Per-chat working state (Repair #18, G-IA4): draft + scroll, keyed by chat id. */
+type PerChatState = {
+  draft: string;
+  scrollTop: number | null;
+  stick: boolean;
 };
 
 type Props = {
@@ -83,6 +119,14 @@ type Props = {
    * When set, auto-send once after conversation hydrate (one intelligence path).
    */
   initialMessage?: string | null;
+  /**
+   * Repair #18 — when true, `initialMessage` is a SEED, not a send: it
+   * lands as a composer draft and nothing is posted. With
+   * `initialChatIntent="new"` the draft lands in a NEW chat (the rest
+   * composer's chips path); the previous chat is untouched.
+   */
+  seedAsDraft?: boolean;
+  initialChatIntent?: "new" | "current";
 };
 
 function MeridianGlobeMark({ size = 24 }: { size?: number }) {
@@ -261,6 +305,8 @@ export function OpalCenterChat({
   userId,
   onPlanCreated,
   initialMessage = null,
+  seedAsDraft = false,
+  initialChatIntent = "current",
 }: Props) {
   const voiceUserId = resolveVoiceUserId(userId);
   const [messages, setMessages] = useState<LocalMsg[]>([]);
@@ -323,6 +369,95 @@ export function OpalCenterChat({
     setActiveSessionIdState(id);
   }, []);
   const NEAR_BOTTOM_PX = 96;
+  // Repair #18 (G-IA2) - the open chat's own title, from the backend
+  // conversation contract (auto-title from the first user message).
+  const [conversationTitle, setConversationTitle] = useState<string | null>(null);
+  // Repair #18 (G-IA3) - inline rename of the open chat. The draft is
+  // local ONLY while editing; the displayed title changes solely from
+  // the summary the rename endpoint returns, never from the draft.
+  const [renaming, setRenaming] = useState(false);
+  const [renameDraft, setRenameDraft] = useState("");
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [renameSaving, setRenameSaving] = useState(false);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  // Repair #18 (G-IA4) - per-chat draft + scroll, keyed by conversation id.
+  const perChatRef = useRef<Map<string, PerChatState>>(new Map());
+  const draftRef = useRef("");
+  // Repair #18 - provider poll bookkeeping: one bounded session per
+  // latest-queued message, never re-armed by stale history.
+  const pollRef = useRef<{ key: string; attempts: number; startedAt: number } | null>(null);
+  const [viewVisible, setViewVisible] = useState(
+    () => typeof document === "undefined" || !document.hidden,
+  );
+  // Repair #18 - location ingest is best-effort and throttled per mount.
+  const lastLocationPostRef = useRef(0);
+
+  const chatStateKey = useCallback(
+    () =>
+      activeSessionIdRef.current || currentConversationIdRef.current || "legacy",
+    [],
+  );
+
+  /** Snapshot the viewed chat's draft + scroll under its own key. */
+  const saveChatState = useCallback(() => {
+    const key = chatStateKey();
+    const el = threadRef.current;
+    perChatRef.current.set(key, {
+      draft: draftRef.current,
+      scrollTop: el ? el.scrollTop : null,
+      stick: stickToBottomRef.current,
+    });
+  }, [chatStateKey]);
+
+  /** Restore a chat's own draft (scroll is restored after paint). */
+  const restoreChatDraft = useCallback((key: string) => {
+    const saved = perChatRef.current.get(key);
+    const next = saved?.draft ?? "";
+    draftRef.current = next;
+    setDraft(next);
+    return saved ?? null;
+  }, []);
+
+  /** Restore a chat's scroll position once its messages have painted. */
+  const restoreChatScroll = useCallback(
+    (saved: PerChatState | null) => {
+      const apply = () => {
+        const el = threadRef.current;
+        if (!el) return;
+        if (saved && saved.stick === false && typeof saved.scrollTop === "number") {
+          stickToBottomRef.current = false;
+          el.scrollTop = saved.scrollTop;
+          setShowJump(distanceFromBottom(el) > NEAR_BOTTOM_PX);
+        } else {
+          stickToBottomRef.current = true;
+        }
+      };
+      requestAnimationFrame(() => requestAnimationFrame(apply));
+      window.setTimeout(apply, 90);
+    },
+    [],
+  );
+
+  // Keep the draft mirror + the viewed chat's saved draft in sync with
+  // every composer change, whichever path set it (typing, mic, retry).
+  useEffect(() => {
+    draftRef.current = draft;
+    const key = chatStateKey();
+    const prev = perChatRef.current.get(key);
+    perChatRef.current.set(key, {
+      draft,
+      scrollTop: prev?.scrollTop ?? null,
+      stick: prev?.stick ?? true,
+    });
+  }, [draft, chatStateKey]);
+
+  // Polling stops when the view is hidden; it resumes only if the
+  // latest turn is still genuinely waiting when the view returns.
+  useEffect(() => {
+    const onVis = () => setViewVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   // Repair #17: plans surface ONLY from backend plan metadata
   // (planFromOpalMetadata in the send path). The former founder-seed local
@@ -353,6 +488,10 @@ export function OpalCenterChat({
     if (force) jumpLockUntilRef.current = Date.now() + 1600;
     const pin = () => {
       if (gen !== scrollPinGenRef.current) return;
+      // Repair #18 - a scheduled pin must not fight a later user scroll
+      // or a restored per-chat scroll position: stick is re-checked at
+      // pin time, not only when the pin was scheduled.
+      if (!force && !stickToBottomRef.current) return;
       const node = threadRef.current;
       if (!node) return;
       // Only scroll the thread itself — scrollIntoView can move a parent and leave
@@ -390,7 +529,9 @@ export function OpalCenterChat({
     const near = isNearBottom(el);
     stickToBottomRef.current = near;
     setShowJump(!near);
-  }, []);
+    // Repair #18 (G-IA4) - remember where this chat was left.
+    saveChatState();
+  }, [saveChatState]);
 
   // Test / harness hook: force history-read position without fighting stick lock.
   useEffect(() => {
@@ -429,6 +570,9 @@ export function OpalCenterChat({
       if (gen !== loadGen.current) return;
       const convId = res.conversation?.id ? String(res.conversation.id) : null;
       currentConversationIdRef.current = convId;
+      setConversationTitle(
+        typeof res.conversation?.title === "string" ? res.conversation.title : null,
+      );
       // If the sessions list already arrived and knows this conversation,
       // it is the active session — sends then route to its session path.
       if (
@@ -464,21 +608,60 @@ export function OpalCenterChat({
     };
   }, [load]);
 
-  // Poll while a provider action is queued/running so RESULTS_READY options appear.
+  // Repair #18 - bounded provider poll so RESULTS_READY options appear.
+  //
+  // Rules (the storm fix):
+  // - Arms ONLY when the LATEST Opal message is queued/running. A stale
+  //   queued/running entry buried in history never arms it.
+  // - Reads go through the read-only GET conversation endpoint, NEVER
+  //   the switch POST. A switch is a deliberate user action only.
+  // - Backoff (1.8s doubling to a 15s ceiling), a hard attempt cap, and
+  //   a hard duration cap - after which the working indicator stays
+  //   honest but the network goes quiet.
+  // - Load-generation + chat-key guard: a fetch that resolves after a
+  //   chat switch is dropped, never painted over the viewed chat.
+  // - Stops when the view is hidden or the component unmounts (the
+  //   effect cleanup clears the pending timer).
   useEffect(() => {
-    const waiting = messages.some(
-      (m) =>
-        m.role === "opal" &&
-        (m.metadata?.action_state === "queued" || m.metadata?.action_state === "running"),
-    );
-    if (!waiting) return;
-    const t = window.setInterval(() => {
+    const latestOpal = [...messages].reverse().find((m) => m.role === "opal");
+    const waiting =
+      latestOpal?.metadata?.action_state === "queued" ||
+      latestOpal?.metadata?.action_state === "running";
+    if (!waiting || !latestOpal) {
+      pollRef.current = null;
+      return;
+    }
+    if (!viewVisible) return;
+    const key = latestOpal.id || latestOpal.key;
+    if (!pollRef.current || pollRef.current.key !== key) {
+      pollRef.current = { key, attempts: 0, startedAt: Date.now() };
+    }
+    const session = pollRef.current;
+    if (
+      session.attempts >= POLL_MAX_ATTEMPTS ||
+      Date.now() - session.startedAt >= POLL_MAX_DURATION_MS
+    ) {
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
       void (async () => {
+        session.attempts += 1;
+        const gen = loadGen.current;
+        const chatKey = chatStateKey();
         try {
-          const activeId = activeSessionIdRef.current;
-          const res = activeId
-            ? await getOpalChatSession(activeId, bearer)
-            : await getOpalConversation(bearer);
+          const res = await getOpalConversation(bearer);
+          if (cancelled) return;
+          // A stale fetch must NEVER paint a previous chat over this one.
+          if (gen !== loadGen.current || chatKey !== chatStateKey()) return;
+          const convId = res.conversation?.id ? String(res.conversation.id) : null;
+          if (
+            convId &&
+            currentConversationIdRef.current &&
+            convId !== currentConversationIdRef.current
+          ) {
+            return;
+          }
           const list = Array.isArray(res.conversation?.messages)
             ? res.conversation.messages.map(fromServer)
             : [];
@@ -487,9 +670,12 @@ export function OpalCenterChat({
           /* keep prior messages */
         }
       })();
-    }, 1800);
-    return () => window.clearInterval(t);
-  }, [messages, bearer]);
+    }, pollDelayMs(session.attempts));
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [messages, bearer, viewVisible, chatStateKey]);
 
   useEffect(() => {
     setVoiceModeState(getVoiceMode(resolveVoiceUserId(userId)));
@@ -577,6 +763,28 @@ export function OpalCenterChat({
     setLoadError(false);
 
     try {
+      // Repair #18 (location) - when the user has granted location, the
+      // cached device fix exists (deviceLocation only caches after a
+      // real granted fix). Post it through the EXISTING Center location
+      // ingest the backend reads (POST /opal/location -> DeviceLocation
+      // -> OpalContext location slice) before the send, throttled, so
+      // the grounded answer has its raw material. Not granted: no cache,
+      // nothing is sent, and the backend's honest answer stands. The
+      // message payload itself never carries coordinates.
+      const cachedCoords = readCachedDeviceCoords();
+      if (cachedCoords && Date.now() - lastLocationPostRef.current > 60_000) {
+        lastLocationPostRef.current = Date.now();
+        void postOpalLocation(
+          {
+            lat: cachedCoords.lat,
+            lon: cachedCoords.lng,
+            accuracy_m: cachedCoords.accuracy,
+          },
+          bearer,
+        ).catch(() => {
+          /* Best-effort: the Center works without coords. */
+        });
+      }
       const fit = readFitSliceForOpal(userId);
       const activeId = activeSessionIdRef.current;
       const res = activeId
@@ -589,6 +797,12 @@ export function OpalCenterChat({
         : fit
           ? await postOpalMessage(body, bearer, { clientContext: { fit } })
           : await postOpalMessage(body, bearer);
+      // A retry that finally lands clears the restored composer copy of
+      // the same words (failure restoration put them back there).
+      if (draftRef.current.trim() === body) {
+        draftRef.current = "";
+        setDraft("");
+      }
       const rawMsgs = Array.isArray(res.messages) ? res.messages : [];
       const serverMsgs = rawMsgs.map(fromServer);
       setMessages((prev) => {
@@ -605,16 +819,36 @@ export function OpalCenterChat({
           break;
         }
       }
-    } catch {
+    } catch (err) {
       // Repair #17: a failed Center send is an honest failure state — never
       // a locally fabricated Opal reply or plan (former seed-mode fallback).
+      // Repair #18: the backend throttle rejection is explicit and
+      // distinguishable (429, sent:false, retryable:true). It renders as
+      // "Not sent - tap to retry" and the user's words go back into the
+      // composer (when it is empty) - never silently eaten.
+      const throttled = isRateLimitedSendError(err);
+      if (!draftRef.current.trim()) {
+        draftRef.current = body;
+        setDraft(body);
+      }
       setMessages((prev) => {
         const exists = prev.some((m) => m.key === optimisticKey);
         if (!exists) {
-          return [...prev, { key: optimisticKey, role: "user", body, status: "failed" }];
+          return [
+            ...prev,
+            {
+              key: optimisticKey,
+              role: "user",
+              body,
+              status: "failed",
+              failure: throttled ? "throttled" : "generic",
+            },
+          ];
         }
         return prev.map((m) =>
-          m.key === optimisticKey ? { ...m, status: "failed" } : m,
+          m.key === optimisticKey
+            ? { ...m, status: "failed", failure: throttled ? "throttled" : "generic" }
+            : m,
         );
       });
     }
@@ -687,13 +921,19 @@ export function OpalCenterChat({
     setQueuedCount(0);
     setSending(false);
     setMessages([]);
+    draftRef.current = "";
     setDraft("");
     stickToBottomRef.current = true;
     setShowJump(false);
     setMenuOpen(false);
     setClearConfirm(false);
     setClearError(false);
+    setRenaming(false);
+    setRenameDraft("");
+    setRenameError(null);
+    setRenameSaving(false);
     spokenIds.current = new Set();
+    pollRef.current = null;
   }, []);
 
   /**
@@ -727,38 +967,52 @@ export function OpalCenterChat({
   const selectSession = useCallback(
     async (id: string) => {
       setSessionsOpen(false);
+      // Repair #18 - re-opening the ACTIVE chat is zero calls: it is
+      // already on screen, with its draft and scroll untouched.
       if (id === activeSessionIdRef.current) return;
       // A pending rest-composer seed belongs to the chat it was typed in.
       initialSentRef.current = true;
+      // Repair #18 (G-IA4) - park the viewed chat's draft + scroll first.
+      saveChatState();
       const gen = ++loadGen.current;
       setLoading(true);
       setLoadError(false);
       try {
+        // Exactly ONE switch call per deliberate user action.
         const res = await getOpalChatSession(id, bearer);
         if (gen !== loadGen.current) return;
         const list = Array.isArray(res.conversation?.messages)
           ? res.conversation.messages.map(fromServer)
           : [];
+        resetLocalChatState();
         for (const m of list) {
           if (m.role === "opal" && m.id) spokenIds.current.add(m.id);
         }
-        resetLocalChatState();
         setMessages(list);
         setActiveSession(id);
         currentConversationIdRef.current = id;
+        setConversationTitle(
+          typeof res.conversation?.title === "string" ? res.conversation.title : null,
+        );
         hydrated.current = true;
+        // Restore THIS chat's own draft + scroll position.
+        const saved = restoreChatDraft(id);
+        restoreChatScroll(saved);
       } catch {
         if (gen === loadGen.current) setLoadError(true);
       } finally {
         if (gen === loadGen.current) setLoading(false);
       }
     },
-    [bearer, resetLocalChatState, setActiveSession],
+    [bearer, resetLocalChatState, setActiveSession, saveChatState, restoreChatDraft, restoreChatScroll],
   );
 
   const onNewChat = useCallback(async () => {
     setMenuOpen(false);
     setSessionsOpen(false);
+    // Repair #18 (G-IA4/G-IA7) - the current chat is kept, with its
+    // draft and scroll parked under its own key before we leave it.
+    saveChatState();
     if (sessionsModeRef.current) {
       try {
         const res = await createOpalChatSession(bearer);
@@ -767,6 +1021,9 @@ export function OpalCenterChat({
         if (conv?.id) {
           setActiveSession(conv.id);
           currentConversationIdRef.current = conv.id;
+          setConversationTitle(
+            typeof conv.title === "string" ? conv.title : null,
+          );
           const summary: OpalChatSessionSummary = {
             id: conv.id,
             title: conv.title ?? null,
@@ -783,6 +1040,7 @@ export function OpalCenterChat({
           const list = Array.isArray(conv.messages) ? conv.messages.map(fromServer) : [];
           setMessages(list);
           hydrated.current = true;
+          restoreChatDraft(conv.id);
         }
       } catch {
         /* keep the current chat on failure — never fake a new one */
@@ -792,10 +1050,11 @@ export function OpalCenterChat({
     try {
       await startOpalNewChat(bearer);
       resetLocalChatState();
+      setConversationTitle(null);
     } catch {
       /* keep prior messages on failure */
     }
-  }, [bearer, resetLocalChatState, setActiveSession]);
+  }, [bearer, resetLocalChatState, setActiveSession, saveChatState, restoreChatDraft]);
 
   /** Clear step 1 — arm the plain-language confirm bar (no delete yet). */
   const onClearConversation = useCallback(() => {
@@ -821,22 +1080,128 @@ export function OpalCenterChat({
       } else {
         await clearOpalConversation(bearer);
       }
+      // The cleared chat's parked draft/scroll go with its messages.
+      perChatRef.current.delete(chatStateKey());
       resetLocalChatState();
+      setConversationTitle(null);
     } catch {
       // Honest failure: the chat is NOT cleared and the confirm stays up.
       setClearError(true);
     }
-  }, [bearer, resetLocalChatState]);
+  }, [bearer, resetLocalChatState, chatStateKey]);
+
+  // Repair #18 (G-IA3) - rename the open chat, inline in the header.
+  useEffect(() => {
+    if (!renaming) return;
+    renameInputRef.current?.focus();
+    renameInputRef.current?.select();
+  }, [renaming]);
+
+  const startRename = useCallback(() => {
+    const id = activeSessionIdRef.current || currentConversationIdRef.current;
+    if (!id) return;
+    const summaryTitle = sessionsRef.current?.find((s) => s.id === id)?.title;
+    const current =
+      typeof summaryTitle === "string" && summaryTitle.trim()
+        ? summaryTitle
+        : conversationTitle || "";
+    setRenameDraft(current);
+    setRenameError(null);
+    setRenaming(true);
+  }, [conversationTitle]);
+
+  const cancelRename = useCallback(() => {
+    // Nothing was written: the header and the list keep the title the
+    // server already holds, and the draft is discarded.
+    setRenaming(false);
+    setRenameDraft("");
+    setRenameError(null);
+  }, []);
+
+  const saveRename = useCallback(async () => {
+    const id = activeSessionIdRef.current || currentConversationIdRef.current;
+    if (!id || renameSaving) return;
+    const trimmed = renameDraft.trim();
+    if (!trimmed) {
+      // Blocked client-side, editor stays open with the words intact.
+      setRenameError("Title can't be blank");
+      return;
+    }
+    setRenameSaving(true);
+    setRenameError(null);
+    try {
+      const res = await patchOpalConversationTitle(id, trimmed, bearer);
+      const returned = res.conversation;
+      if (returned && returned.id) {
+        // Re-render from the RETURNED summary only: it replaces this
+        // chat's entry in the one sessions list the header title and
+        // the chats list both consume, and it is the header's title
+        // source when no list entry drives it. No second fetch.
+        if (sessionsRef.current) {
+          sessionsRef.current = sessionsRef.current.some((s) => s.id === returned.id)
+            ? sessionsRef.current.map((s) => (s.id === returned.id ? returned : s))
+            : [returned, ...sessionsRef.current];
+          setSessions(sessionsRef.current);
+        }
+        setConversationTitle(
+          typeof returned.title === "string" ? returned.title : null,
+        );
+      }
+      setRenaming(false);
+      setRenameDraft("");
+    } catch (err) {
+      // The server did not accept this title: the editor stays open
+      // with the text intact, its message shows inline (the 422 field
+      // message when the server sent one), and the old title stands
+      // everywhere - header, list, and destination pill.
+      const serverMessage = opalConversationTitleError(err);
+      setRenameError(
+        serverMessage
+          ? /^[a-z]/.test(serverMessage)
+            ? `Title ${serverMessage}`
+            : serverMessage
+          : "Could not rename this chat. Try again.",
+      );
+    } finally {
+      setRenameSaving(false);
+    }
+  }, [bearer, renameDraft, renameSaving]);
 
   // One intelligence path: rest composer / chips hand utterance here once hydrated.
+  // Repair #18: when the parent marks the seed as a draft (seedAsDraft),
+  // the seed is NEVER auto-sent. With intent "new" it first creates a
+  // real new chat and lands there as that chat's draft; the previous
+  // chat keeps its messages, draft, and place in the list.
+  const seedHandledRef = useRef(false);
   useEffect(() => {
     if (loading || loadError || sending) return;
     if (initialSentRef.current) return;
     const seed = (initialMessageRef.current || "").trim();
     if (!seed) return;
+    if (!seedAsDraft) {
+      initialSentRef.current = true;
+      void sendBody(seed);
+      return;
+    }
+    if (seedHandledRef.current) return;
+    seedHandledRef.current = true;
     initialSentRef.current = true;
-    void sendBody(seed);
-  }, [loading, loadError, sending, sendBody]);
+    void (async () => {
+      if (initialChatIntent === "new" && sessionsModeRef.current) {
+        await onNewChat();
+      }
+      draftRef.current = seed;
+      setDraft(seed);
+      const key = chatStateKey();
+      const prev = perChatRef.current.get(key);
+      perChatRef.current.set(key, {
+        draft: seed,
+        scrollTop: prev?.scrollTop ?? null,
+        stick: prev?.stick ?? true,
+      });
+      requestAnimationFrame(() => inputRef.current?.focus());
+    })();
+  }, [loading, loadError, sending, sendBody, seedAsDraft, initialChatIntent, onNewChat, chatStateKey]);
 
   const onSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -997,6 +1362,28 @@ export function OpalCenterChat({
       (m.metadata?.action_state === "queued" || m.metadata?.action_state === "running"),
   );
 
+  // Repair #18 (G-IA2/G-IA6) - the open chat's identity: its distinct
+  // list label when sessions are known (title, else preview, else a
+  // date fallback), else the loaded conversation's own title. Rename
+  // renders now that the title-update endpoint is in the contract
+  // (PATCH /opal/conversations/:id), and only when a real conversation
+  // id is known - a rename control that writes nothing is banned.
+  const activeChatTitle = (() => {
+    if (sessions && activeSessionId) {
+      const label = distinctSessionLabels(sessions).get(activeSessionId);
+      if (label) return label;
+    }
+    const own = (conversationTitle || "").trim();
+    if (own) return own;
+    if (activeSessionId && sessions) {
+      const summary = sessions.find((s) => s.id === activeSessionId);
+      if (summary) return sessionRowLabel(summary);
+    }
+    return "New chat";
+  })();
+
+  const renameTargetId = activeSessionId || currentConversationIdRef.current;
+
   return (
     <section className="opal-center-chat" data-testid="opal-center-chat">
       <header className="opal-center-chat-header">
@@ -1022,7 +1409,105 @@ export function OpalCenterChat({
             }}
           />
         </div>
+        <div className="opal-center-chat-title-zone">
+          {renaming ? (
+            <form
+              className="opal-center-chat-rename"
+              data-testid="center-chat-rename"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void saveRename();
+              }}
+            >
+              <div className="opal-center-chat-rename-row">
+                <input
+                  ref={renameInputRef}
+                  className="opal-center-chat-rename-input"
+                  data-testid="center-chat-rename-input"
+                  type="text"
+                  value={renameDraft}
+                  maxLength={120}
+                  aria-label="Chat title"
+                  aria-invalid={renameError ? "true" : undefined}
+                  onChange={(e) => setRenameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      cancelRename();
+                    }
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="opal-center-chat-rename-save"
+                  data-testid="center-chat-rename-save"
+                  disabled={renameSaving}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="opal-center-chat-rename-cancel"
+                  data-testid="center-chat-rename-cancel"
+                  onClick={cancelRename}
+                >
+                  Cancel
+                </button>
+              </div>
+              {renameError ? (
+                <p
+                  className="opal-center-chat-rename-error"
+                  data-testid="center-chat-rename-error"
+                  role="alert"
+                >
+                  {renameError}
+                </p>
+              ) : null}
+            </form>
+          ) : (
+            <>
+              <h2
+                className="opal-center-chat-title"
+                data-testid="center-chat-title"
+                onClick={renameTargetId ? startRename : undefined}
+              >
+                {activeChatTitle}
+              </h2>
+              {renameTargetId ? (
+                <button
+                  type="button"
+                  className="opal-center-chat-rename-btn"
+                  data-testid="center-chat-rename-button"
+                  aria-label={`Rename chat: ${activeChatTitle}`}
+                  onClick={startRename}
+                >
+                  Edit
+                </button>
+              ) : null}
+            </>
+          )}
+        </div>
         <div className="opal-center-chat-header-actions">
+          <button
+            type="button"
+            className="opal-center-chat-chats-btn"
+            data-testid="center-chats-button"
+            onClick={() => {
+              setMenuOpen(false);
+              setSessionsOpen(true);
+              if (sessions === null) void refreshSessions();
+            }}
+          >
+            Chats
+          </button>
+          <button
+            type="button"
+            className="opal-center-chat-new-btn"
+            data-testid="center-new-chat"
+            onClick={() => void onNewChat()}
+          >
+            New chat
+          </button>
           <button
             type="button"
             className="opal-center-chat-menu-toggle"
@@ -1274,9 +1759,10 @@ export function OpalCenterChat({
                         type="button"
                         className="opal-center-chat-send-error"
                         data-testid="opal-center-chat-send-error"
+                        data-failure={m.failure || "generic"}
                         onClick={() => void sendBody(m.body, m.key)}
                       >
-                        {SEND_FAIL}
+                        {m.failure === "throttled" ? SEND_THROTTLED : SEND_FAIL}
                       </button>
                     ) : null}
                   </div>
@@ -1352,6 +1838,14 @@ export function OpalCenterChat({
           {voiceHint}
         </p>
       ) : null}
+
+      <div
+        className="opal-center-destination-pill"
+        data-testid="center-destination-pill"
+        role="status"
+      >
+        In: {activeChatTitle}
+      </div>
 
       <form
         className={`opal-composer opal-center-v2-composer opal-center-chat-composer${

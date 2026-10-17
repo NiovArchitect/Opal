@@ -30,6 +30,9 @@ export type LiveGraph = LiveGraphCard;
 type Props = {
   onOpenGraph: (cardId: string) => void;
   onCreateGraph?: () => void;
+  /** Repair #18: story creation entry from Graphs - opens the same
+   * TopLayer StoryCreateFlow as Home/social and profile. */
+  onCreateStory?: () => void;
   /** Paste W4 5.3 — New menu: plan / trip / idea. */
   onCreatePlan?: () => void;
   onCreateTrip?: () => void;
@@ -67,6 +70,7 @@ const GRAPH_SCROLL_KEY = "opal.graphs.scroll.v1";
 
 export function GraphsHome({
   onOpenGraph,
+  onCreateStory,
   onCreateGraph,
   onCreatePlan,
   onCreateTrip,
@@ -161,6 +165,18 @@ export function GraphsHome({
         <header className="graphs-home-top">
           <div className="graphs-home-title-row">
             <h1 className="chats-home-title">Your Graphs</h1>
+            {onCreateStory ? (
+              <button
+                type="button"
+                className="graphs-create-new"
+                data-testid="graphs-create-story"
+                aria-label="Add to story"
+                title="Add to story"
+                onClick={onCreateStory}
+              >
+                <span className="graphs-create-new-label">Story</span>
+              </button>
+            ) : null}
             <button
               type="button"
               className="graphs-create-new"
@@ -329,6 +345,16 @@ export function GraphsHome({
                 </div>
                 <p className="graphs-card-place">{g.whenLine}</p>
                 <p className="graphs-card-meta">{g.signalLine}</p>
+                {g.attendanceLabel ? (
+                  <p className="graphs-card-meta" data-testid="graphs-plan-attendance">
+                    {g.attendanceLabel}
+                  </p>
+                ) : null}
+                {g.conflictLabel ? (
+                  <p className="graphs-card-meta" data-testid="graphs-plan-conflict">
+                    {g.conflictLabel}
+                  </p>
+                ) : null}
                 {upcoming.length || openLoop ? (
                   <div
                     className="graphs-card-temporal"

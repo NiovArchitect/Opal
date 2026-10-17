@@ -27,6 +27,55 @@ defmodule OpalCore.OpalConversationsTest do
     assert {:ok, ^c_a} = OpalConversations.get_conversation_for_user(alex(), c_a.id)
   end
 
+  test "rename_conversation: owner renames, non-owner and invalid titles rejected" do
+    assert {:ok, c} = OpalConversations.get_or_create_conversation(alex())
+
+    # Owner renames: title is trimmed and persisted; the sessions list
+    # (the shape the rename response mirrors) reflects it.
+    assert {:ok, renamed} =
+             OpalConversations.rename_conversation(alex(), c.id, "  Weekend plans  ")
+
+    assert renamed.title == "Weekend plans"
+    assert {:ok, reloaded} = OpalConversations.get_conversation_for_user(alex(), c.id)
+    assert reloaded.title == "Weekend plans"
+
+    summary = OpalConversations.session_summary(alex(), c.id)
+    assert summary["id"] == c.id
+    assert summary["title"] == "Weekend plans"
+    assert summary["active"] == true
+    assert summary["message_count"] == 0
+    refute Map.has_key?(summary, "messages")
+    assert Enum.find(OpalConversations.list_sessions(alex()), &(&1["id"] == c.id)) == summary
+
+    # Non-owner cannot rename, and existence is not revealed.
+    assert {:error, :not_found} =
+             OpalConversations.rename_conversation(jordan(), c.id, "Stolen")
+
+    assert {:ok, still} = OpalConversations.get_conversation_for_user(alex(), c.id)
+    assert still.title == "Weekend plans"
+
+    # Empty / whitespace-only, overlong, and non-string titles rejected.
+    assert {:error, :empty_title} = OpalConversations.rename_conversation(alex(), c.id, "   ")
+    assert {:error, :empty_title} = OpalConversations.rename_conversation(alex(), c.id, "")
+
+    assert {:error, :title_too_long} =
+             OpalConversations.rename_conversation(
+               alex(),
+               c.id,
+               String.duplicate("x", OpalCore.OpalConversations.OpalConversation.max_title() + 1)
+             )
+
+    assert {:error, :invalid_title} = OpalConversations.rename_conversation(alex(), c.id, nil)
+    assert {:error, :invalid_title} = OpalConversations.rename_conversation(alex(), c.id, 42)
+
+    # Unknown id handled as not_found; a rejected rename never writes.
+    assert {:error, :not_found} =
+             OpalConversations.rename_conversation(alex(), Ecto.UUID.generate(), "Nope")
+
+    assert {:ok, unchanged} = OpalConversations.get_conversation_for_user(alex(), c.id)
+    assert unchanged.title == "Weekend plans"
+  end
+
   test "create_user_message validates empty and length; posts OC-4 response" do
     assert {:error, :empty_body} = OpalConversations.create_user_message(alex(), "   ")
 
@@ -76,6 +125,7 @@ defmodule OpalCore.OpalConversationsTest do
     for key <- ~w(user taste temporal social message relationships trust_tier financial fit) do
       assert Map.has_key?(snap, key), "missing context key #{key}"
     end
+
     assert is_map(snap["relationships"])
     assert snap["trust_tier"] in ~w(new known trusted inner_circle)
     assert snap["fit"] == nil

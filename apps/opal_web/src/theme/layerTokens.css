@@ -1,0 +1,43 @@
+/*
+ * Repair #18 - THE layer registry (track-layering section 5, C1 section 6).
+ *
+ * This is the ONLY place z-index values are defined for the web client.
+ * Every other stylesheet references these tokens; a numeric z-index
+ * literal anywhere else is a defect (enforced by
+ * src/opalUi/repair18Layering.test.ts for migrated surfaces).
+ *
+ * Token VALUES stay on the R17 canon scale for this wave - Division C
+ * re-skins values later without touching a single component.
+ *
+ *   content     in-flow and sticky in-scroll surfaces (strips, cards)
+ *   raised      raised cards inside the content band
+ *   chrome      sticky chrome: headers, composers
+ *   thread-strip the Next Together strip band inside the thread
+ *   sheet-low   sheet band, lower edge (58 on the old scale)
+ *   sheet       sheets: contact sheet, plan composer, pickers
+ *   sheet-high  sheet band, upper edge (70 on the old scale)
+ *   flow        full-screen create / view flows (story create, viewer)
+ *   modal       modal destinations above flows
+ *   system      system notes, dev badge, error surfaces
+ */
+:root {
+  --layer-content: 0;
+  --layer-raised: 10;
+  --layer-chrome: 30;
+  --layer-thread-strip: 40;
+  --layer-sheet-low: 58;
+  --layer-sheet: 65;
+  --layer-sheet-high: 70;
+  --layer-flow: 80;
+  --layer-modal: 100;
+  --layer-system: 110;
+}
+
+/*
+ * The TopLayer portal host generates no box of its own: its children
+ * render exactly as if they were direct children of <body>, each
+ * carrying its own registry token for z-index.
+ */
+.opal-top-layer {
+  display: contents;
+}

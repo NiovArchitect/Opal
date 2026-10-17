@@ -37,21 +37,25 @@ describe("Repair #17 W3 — story composer top layer", () => {
     });
     const flow = document.querySelector('[data-testid="story-create-flow"]');
     expect(flow).not.toBeNull();
-    // Portal contract: the composer is a direct child of <body> — it cannot
-    // be trapped under the Home/social stacking context again.
-    expect(flow?.parentElement).toBe(document.body);
+    // Portal contract (Repair #18): the composer mounts through the ONE
+    // TopLayer portal - the TopLayer host is a direct child of <body>, so
+    // the flow cannot be trapped under the Home/social stacking context.
+    const topLayer = flow?.parentElement;
+    expect(topLayer?.getAttribute("data-top-layer")).toBe("portal-body");
+    expect(topLayer?.parentElement).toBe(document.body);
+    expect(topLayer?.getAttribute("data-top-layer-band")).toBe("flow");
     expect(host.contains(flow)).toBe(false);
     expect(flow?.getAttribute("data-top-layer")).toBe("portal-body");
     await act(async () => reactRoot.unmount());
     host.remove();
   });
 
-  it("story-create CSS layer rules still put it above viewer + dock", () => {
+  it("story-create CSS uses the layer registry token, never a literal", () => {
     const css = read("styles.css");
-    expect(css).toMatch(/\.story-create-flow \{[^}]*z-index: 80/);
-    expect(css).toMatch(
-      /html\.opal-native-host \.story-create-flow \{[^}]*z-index: 10060 !important/,
-    );
+    expect(css).toMatch(/\.story-create-flow \{[^}]*z-index: var\(--layer-flow\)/);
+    // The native-host 10060 magic number is gone - the registry token
+    // already sits in the flow band above the dock.
+    expect(css).not.toMatch(/z-index: 10060/);
   });
 });
 
@@ -165,7 +169,55 @@ describe("Repair #17 W3 — one status source for list and thread", () => {
     expect(reality).toMatch(
       /pending_proposal_by_user_id: text\(raw\.pending_proposal_by_user_id\)/,
     );
-    expect(reality).toMatch(/planProjectionSurfaceState\(plan\)/);
+    // Repair #18: canonicalGraphFromChat calls the derivation WITH the
+    // viewer id - the R17 viewer-less call (asserted here before) could
+    // never resolve someone else's proposal to action on this surface.
+    expect(reality).toMatch(/planProjectionSurfaceState\(plan, viewerUserId\)/);
+    expect(reality).not.toMatch(/planProjectionSurfaceState\(plan\)/);
+    const app = read("OpalApp.tsx");
+    expect(app).toMatch(
+      /canonicalGraphFromChat\(chat, session\?\.display_name \|\| null, session\?\.user_id\)/,
+    );
+  });
+
+  it("canonicalGraphFromChat resolves action for the viewer from the same projection", async () => {
+    const { canonicalGraphFromChat } = await import("./graphReality");
+    const { clientPlanFields } = await import("./graphReality");
+    const projection = clientPlanFields(
+      {
+        lineage_id: "plan-1",
+        conversation_id: "conv-1",
+        when_label: "Thursday - 7:30 PM",
+        place: "Juniper & Ivy",
+        execution_label: "Reservation approved",
+        upcoming_ready: true,
+        temporal_state: "future",
+        canonical_start_at: "2999-09-29T19:30:00Z",
+        timezone: "America/Los_Angeles",
+        pending_change: true,
+        pending_proposal_by_user_id: "user-maya",
+        going_count: 3,
+        total_count: 4,
+        viewer_state: "pending",
+      },
+      "conv-1",
+    );
+    const chat = {
+      id: "conv-1",
+      name: "Chanelle",
+      preview: "",
+      time: "",
+      planProjection: projection,
+      peers: [{ id: "user-maya", display_name: "Maya" }],
+    } as never;
+    const graph = canonicalGraphFromChat(chat, "Me", "user-me");
+    expect(graph?.state).toBe("action");
+    expect(graph?.goingCount).toBe(3);
+    expect(graph?.totalCount).toBe(4);
+    expect(graph?.viewerState).toBe("pending");
+    // The proposer's own view of the same projection stays forming.
+    const proposerGraph = canonicalGraphFromChat(chat, "Maya", "user-maya");
+    expect(proposerGraph?.state).toBe("forming");
   });
 });
 

@@ -14,11 +14,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   alias OpalCore.Messages
   alias OpalCore.Messaging.Message
   alias OpalCore.Repo
+
   alias OpalCore.SocialFlow.{
     ActivityIntent,
     CandidateProvider,
     DateTimeChange,
     PlaceIdentity,
+    PlanParticipant,
     PlanRevision,
     PlanStateArbitration,
     PlanTransition,
@@ -45,11 +47,16 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   def consequential?(body) when is_binary(body) do
     text = normalize(body)
+    # Repair #18 (Division A): a schedule-change request naming a
+    # new time ("let's change dinner to 8 PM", "move dinner to 8")
+    # is consequential - it must sync the fold, or the change is
+    # silently dropped on the message path (track-revision H4).
     text != "" and not trivial?(text) and not SeedFixtureLeak.seed_fixture_body?(body) and
-      Regex.match?(
-        ~r/tomorrow|\bmeet\b|after\s+\d|let'?s do|lets do|make it\s+\d|\bwhere\b|\bconfirm\b/,
-        text
-      )
+      (Regex.match?(
+         ~r/tomorrow|\bmeet\b|after\s+\d|let'?s do|lets do|make it\s+\d|\bwhere\b|\bconfirm\b/,
+         text
+       ) or
+         Regex.match?(~r/\b(?:change|move|switch|shift|reschedule)\b[^.]*\bto\b/, text))
   end
 
   def consequential?(_), do: false
@@ -106,7 +113,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   Replay one final call utterance through the same fold as a chat message.
   The spoken text is not inserted as a chat message.
   """
-  def record_voice_utterance(conversation_id, attrs) when is_binary(conversation_id) and is_map(attrs) do
+  def record_voice_utterance(conversation_id, attrs)
+      when is_binary(conversation_id) and is_map(attrs) do
     action = %{
       "kind" => "voice_utterance",
       "actor_user_id" => attrs["speaker_user_id"],
@@ -183,10 +191,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         order_by: [asc: m.server_seq]
       )
       |> Repo.all()
-      |> Enum.reject(&(SmokeResidue.smoke_body?(&1.body) or SeedFixtureLeak.seed_fixture_body?(&1.body)))
+      |> Enum.reject(
+        &(SmokeResidue.smoke_body?(&1.body) or SeedFixtureLeak.seed_fixture_body?(&1.body))
+      )
 
     members = Messages.member_user_ids(conversation_id)
     actions = actions_from_plan(plan)
+
     state =
       fold(messages, members, actions)
       |> freeze_plan_set_event(plan && plan.alignment)
@@ -194,10 +205,107 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       |> surface_pending_revision(plan)
 
     if plan_material?(state) do
-      _ = upsert_plan(conversation_id, state, List.first(members))
+      # Repair #18: the fold-born plan's creator is deterministic - the
+      # earliest speaking member (the plan initiator), never List.first
+      # of an unordered member query (which made lead authority a coin
+      # flip on fold-born plans, track-revision H3). Participant rows
+      # for every member are written inside upsert_plan (plan truth).
+      _ = upsert_plan(conversation_id, state, members, plan_initiator(messages, members))
+      _ = reconcile_duplicate_plans(conversation_id)
     end
 
     state
+  end
+
+  defp plan_initiator(messages, members) do
+    first_speaker =
+      Enum.find_value(messages, fn message ->
+        sender = message_actor(message)
+        if is_binary(sender) and sender in members, do: sender
+      end)
+
+    first_speaker || members |> Enum.sort() |> List.first()
+  end
+
+  # Repair #18 (Division A, F18-06): wire the reconcile discipline into
+  # the fold, scoped to TRUE duplicates - active plans in this
+  # conversation whose dedupe identity matches (same participants,
+  # venue and day per PlanIdentity). Distinct plans in one conversation
+  # stay lawful; only same-intent rivals are cancelled, through
+  # PlanTransition, with merged_into stamps (no deletion).
+  defp reconcile_duplicate_plans(conversation_id) do
+    active =
+      from(p in SharedPlan,
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at]
+      )
+      |> Repo.all()
+
+    if length(active) < 2 do
+      :noop
+    else
+      components_by_id =
+        Map.new(active, fn plan ->
+          participant_ids =
+            case get_in(plan.alignment || %{}, ["participants", "value"]) do
+              ids when is_list(ids) -> Enum.filter(ids, &is_binary/1)
+              _ -> OpalCore.SocialFlow.plan_participant_ids(plan)
+            end
+
+          {plan.id,
+           OpalCore.SocialFlow.PlanIdentity.components(
+             plan.created_by_user_id,
+             participant_ids,
+             plan
+           )}
+        end)
+
+      {survivors, losers} =
+        Enum.reduce(active, {[], []}, fn plan, {keep, drop} ->
+          components = components_by_id[plan.id]
+
+          if Enum.any?(keep, fn kept ->
+               OpalCore.SocialFlow.PlanIdentity.components_match?(
+                 components,
+                 components_by_id[kept.id]
+               )
+             end) do
+            {keep, drop ++ [plan]}
+          else
+            {keep ++ [plan], drop}
+          end
+        end)
+
+      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+      Enum.each(losers, fn loser ->
+        survivor =
+          Enum.find(survivors, fn kept ->
+            OpalCore.SocialFlow.PlanIdentity.components_match?(
+              components_by_id[loser.id],
+              components_by_id[kept.id]
+            )
+          end)
+
+        alignment =
+          (loser.alignment || %{})
+          |> Map.put("merged_into", survivor && survivor.id)
+          |> Map.put("superseded_by", survivor && survivor.id)
+          |> Map.put("reconcile_reason", "duplicate_intent")
+          |> Map.put("reconciled_at", DateTime.to_iso8601(now))
+
+        _ =
+          loser
+          |> SharedPlan.changeset(%{status: "cancelled", cancelled_at: now, alignment: alignment})
+          |> PlanTransition.guard_changeset(:plan, :cancel)
+          |> Repo.update()
+      end)
+
+      :ok
+    end
+  rescue
+    _ -> :noop
   end
 
   @doc """
@@ -207,6 +315,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     existing = previous && previous["plan_set_event"]
 
     cond do
+      # Repair #18 (Division A, F18-02): a schedule_change explicit
+      # action newer than the frozen event REGENERATES the summary from
+      # the current folded lines - the frozen first summary must not
+      # outrank an accepted revision. (The pinned freeze behavior for
+      # states without a schedule_change action is unchanged.)
+      regenerated = regenerated_set_event(state, existing) ->
+        Map.put(state, "plan_set_event", regenerated)
+
       is_map(existing) and is_binary(existing["summary"]) and existing["summary"] != "" ->
         Map.put(state, "plan_set_event", existing)
 
@@ -223,6 +339,46 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   def freeze_plan_set_event(state, _), do: state
+
+  # The regenerated summary for a state carrying a schedule_change
+  # action the stored event has not absorbed yet; nil otherwise.
+  defp regenerated_set_event(state, existing) do
+    actions = state["explicit_actions"] || []
+
+    latest_change =
+      actions
+      |> Enum.filter(&(&1["kind"] == "schedule_change" and is_binary(&1["revision_id"])))
+      |> List.last()
+
+    cond do
+      is_nil(latest_change) ->
+        nil
+
+      is_map(existing) and
+          existing["regenerated_from_revision_id"] == latest_change["revision_id"] ->
+        nil
+
+      true ->
+        lines =
+          state["plan_lines"] ||
+            [
+              get_in(state, ["date", "value"]),
+              get_in(state, ["exact_time", "value"]),
+              get_in(state, ["place", "value"])
+            ]
+            |> Enum.filter(&(is_binary(&1) and &1 != ""))
+
+        if lines == [] do
+          nil
+        else
+          %{
+            "summary" => Enum.join(lines, " · "),
+            "at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+            "regenerated_from_revision_id" => latest_change["revision_id"]
+          }
+        end
+    end
+  end
 
   # Repair #17 (W4-1) — a live PlanRevision proposal is part of the current
   # truth of the thread. The fold is built from messages + explicit actions,
@@ -312,7 +468,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     Repo.transaction(fn ->
       active =
         from(p in SharedPlan,
-          where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+          where:
+            p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
           order_by: [desc: p.updated_at, desc: p.inserted_at],
           lock: "FOR UPDATE"
         )
@@ -374,7 +531,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       if value in @activities do
         _ = sync_conversation(conversation_id)
 
-        with :ok <- append_action(conversation_id, action("activity_lock", user_id, value, "user_stated")) do
+        with :ok <-
+               append_action(
+                 conversation_id,
+                 action("activity_lock", user_id, value, "user_stated")
+               ) do
           {:ok, sync_conversation(conversation_id)}
         end
       else
@@ -389,7 +550,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       exact = state["exact_time"] || %{}
 
       if exact["state"] in ["candidate", "constrained", "agreed"] and is_binary(exact["value"]) do
-        with :ok <- append_action(conversation_id, action("exact_time_lock", user_id, exact["value"], "locked")) do
+        with :ok <-
+               append_action(
+                 conversation_id,
+                 action("exact_time_lock", user_id, exact["value"], "locked")
+               ) do
           {:ok, sync_conversation(conversation_id)}
         end
       else
@@ -429,7 +594,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
           if field_state(state, "place") == "locked" do
             {:error, :place_locked}
           else
-            with :ok <- append_action(conversation_id, action("place_propose", user_id, resolved, "proposed")) do
+            with :ok <-
+                   append_action(
+                     conversation_id,
+                     action("place_propose", user_id, resolved, "proposed")
+                   ) do
               {:ok, sync_conversation(conversation_id)}
             end
           end
@@ -452,7 +621,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       down == "" ->
         :unknown
 
-      offered_name = Enum.find_value(offered, fn o -> if String.downcase(o["name"] || "") == down, do: o["name"] end) ->
+      offered_name =
+          Enum.find_value(offered, fn o ->
+            if String.downcase(o["name"] || "") == down, do: o["name"]
+          end) ->
         {:ok, offered_name}
 
       in_plan = in_plan_place_name(state, down) ->
@@ -496,7 +668,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
           {:error, :cannot_confirm_own_proposal}
 
         true ->
-          with :ok <- append_action(conversation_id, action("place_confirm", user_id, value, "agreed")) do
+          with :ok <-
+                 append_action(conversation_id, action("place_confirm", user_id, value, "agreed")) do
             {:ok, sync_conversation(conversation_id)}
           end
       end
@@ -510,7 +683,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       if field_state(state, "place") in ["candidate", "conflicted"] do
         value = get_in(state, ["place", "value"])
 
-        with :ok <- append_action(conversation_id, action("place_decline", user_id, value, "revoked")) do
+        with :ok <-
+               append_action(conversation_id, action("place_decline", user_id, value, "revoked")) do
           {:ok, sync_conversation(conversation_id)}
         end
       else
@@ -526,7 +700,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       if field_state(state, "place") == "locked" do
         value = get_in(state, ["place", "value"])
 
-        with :ok <- append_action(conversation_id, action("place_reopen", user_id, value, "revoked")) do
+        with :ok <-
+               append_action(conversation_id, action("place_reopen", user_id, value, "revoked")) do
           {:ok, sync_conversation(conversation_id)}
         end
       else
@@ -608,11 +783,20 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
 
-      if state["commitment"] in ["aligned", "execution_ready"] and field in ["exact_time", "activity", "place"] do
+      if state["commitment"] in ["aligned", "execution_ready"] and
+           field in ["exact_time", "activity", "place"] do
         with :ok <-
-               append_action(conversation_id, action("change_propose", user_id, value, "proposed") |> Map.put("field", field)) do
+               append_action(
+                 conversation_id,
+                 action("change_propose", user_id, value, "proposed") |> Map.put("field", field)
+               ) do
           state = sync_conversation(conversation_id)
           maybe_record_chat_proposal(conversation_id, state)
+          # Repair #18 (unification): a committed time change proposed
+          # through the fold ALSO exists as a PlanRevision - the one
+          # pending-change record every surface reads. The fold's
+          # change_proposal is its projection, not a second system.
+          mirror_fold_proposal(conversation_id, user_id, field, value)
           {:ok, state}
         end
       else
@@ -621,7 +805,77 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  def accept_committed_change(conversation_id, user_id, proposal_id \\ nil) when is_binary(conversation_id) do
+  # Create the System A record for a fold time proposal when a real
+  # approver exists. Failures are non-fatal to the fold path: the fold
+  # proposal remains, and the accept mirror settles revisions anyway.
+  defp mirror_fold_proposal(conversation_id, user_id, field, value)
+       when field in ["exact_time", "datetime"] do
+    members = Messages.member_user_ids(conversation_id)
+
+    with %SharedPlan{} = plan <- active_plan_for_conversation(conversation_id),
+         true <- length(members) > 1,
+         :ok <- ensure_no_pending_revision(plan.id, value) do
+      _ =
+        OpalCore.SocialFlow.propose_revision(%{
+          plan_id: plan.id,
+          proposed_by_user_id: user_id,
+          changes: %{"time_label" => value},
+          trace_id: "fold-proposal-mirror"
+        })
+
+      :ok
+    else
+      _ -> :ok
+    end
+  rescue
+    _ -> :ok
+  end
+
+  defp mirror_fold_proposal(_, _, _, _), do: :ok
+
+  defp ensure_no_pending_revision(plan_id, value) do
+    pending =
+      from(r in PlanRevision,
+        where: r.plan_id == ^plan_id and r.status == "proposed",
+        select: r.proposed_changes
+      )
+      |> Repo.all()
+
+    if Enum.any?(pending, &((&1 || %{})["time_label"] == value)),
+      do: {:error, :already_pending},
+      else: :ok
+  end
+
+  # Settle the System A record after a fold accept: the acceptance is
+  # recorded through PlanRevision + PlanTransition on the plan row
+  # (SocialFlow.record_fold_change_acceptance/1), with the plan's
+  # post-sync canonical label as the accepted value.
+  defp mirror_fold_accept(conversation_id, user_id, proposal) do
+    if proposal["field"] in ["exact_time", "datetime"] do
+      value =
+        case active_plan_for_conversation(conversation_id) do
+          %SharedPlan{time_label: label} when is_binary(label) and label != "" -> label
+          _ -> proposal["value"]
+        end
+
+      _ =
+        OpalCore.SocialFlow.record_fold_change_acceptance(%{
+          conversation_id: conversation_id,
+          user_id: user_id,
+          value: value,
+          trace_id: "fold-accept-mirror"
+        })
+
+      :ok
+    else
+      :ok
+    end
+  rescue
+    _ -> :ok
+  end
+
+  def accept_committed_change(conversation_id, user_id, proposal_id \\ nil)
+      when is_binary(conversation_id) do
     with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
       proposal = state["change_proposal"]
@@ -648,7 +902,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
                  append_action(
                    conversation_id,
                    action("change_accept", user_id, proposal["value"], "agreed")
-                   |> Map.merge(%{"field" => proposal["field"], "proposal_id" => proposal["proposal_id"]})
+                   |> Map.merge(%{
+                     "field" => proposal["field"],
+                     "proposal_id" => proposal["proposal_id"]
+                   })
                  ) do
             state = sync_conversation(conversation_id)
 
@@ -658,6 +915,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
               |> Map.put("accepted_by_user_id", user_id)
               |> Map.put("accepted_plan_version", state["plan_version"])
             )
+
+            # Repair #18 (unification): the fold accept lands on the
+            # plan row through the revision authority, atomically.
+            mirror_fold_accept(conversation_id, user_id, proposal)
 
             deliver_alignment(conversation_id, state)
             {:ok, state}
@@ -674,14 +935,45 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       if is_map(proposal) do
         value = proposal["current"]
 
-        with :ok <- append_action(conversation_id, action("change_keep", user_id, value, "locked")) do
+        with :ok <-
+               append_action(conversation_id, action("change_keep", user_id, value, "locked")) do
           OpalCore.Calls.Outcomes.record_keep(conversation_id, proposal, user_id)
+          # Repair #18 (unification): keeping the current plan settles
+          # the mirrored PlanRevision too - reject it when this user is
+          # a required approver, so no pending record outlives the keep.
+          settle_revision_on_keep(conversation_id, user_id)
           {:ok, sync_conversation(conversation_id)}
         end
       else
         {:error, :nothing_to_confirm}
       end
     end
+  end
+
+  defp settle_revision_on_keep(conversation_id, user_id) do
+    with %SharedPlan{} = plan <- active_plan_for_conversation(conversation_id),
+         %PlanRevision{} = revision <-
+           from(r in PlanRevision,
+             where: r.plan_id == ^plan.id and r.status == "proposed",
+             order_by: [desc: r.inserted_at],
+             limit: 1
+           )
+           |> Repo.one(),
+         true <- user_id in (revision.required_approvals || []) do
+      _ =
+        OpalCore.SocialFlow.respond_to_revision(%{
+          revision_id: revision.id,
+          user_id: user_id,
+          decision: "reject",
+          trace_id: "fold-keep-mirror"
+        })
+
+      :ok
+    else
+      _ -> :ok
+    end
+  rescue
+    _ -> :ok
   end
 
   @doc """
@@ -697,7 +989,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         value = get_in(state, ["place", "value"])
 
         with :ok <-
-               append_action(conversation_id, action("reservation_authorize", user_id, value, "proposed")) do
+               append_action(
+                 conversation_id,
+                 action("reservation_authorize", user_id, value, "proposed")
+               ) do
           {:ok, sync_conversation(conversation_id)}
         end
       else
@@ -726,7 +1021,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp member?(conversation_id, user_id) do
-    if user_id in Messages.member_user_ids(conversation_id), do: :ok, else: {:error, :not_a_member}
+    if user_id in Messages.member_user_ids(conversation_id),
+      do: :ok,
+      else: {:error, :not_a_member}
   end
 
   defp apply_message(state, message) do
@@ -761,6 +1058,45 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       "reference_on" => "2026-09-27"
     }
 
+    if confirmation_replay?(state, text) do
+      # Repair #18 (Division A): a confirmer's own "confirm 8 PM" is a
+      # confirmation OF the pending proposal, not a fresh proposal by
+      # the confirmer. Replaying it as a datetime change resurrected a
+      # pending change_proposal after the revision was accepted (the
+      # fold replays every message on every sync).
+      state
+    else
+      note_datetime_change_interpreted(state, text, id, actor, context)
+    end
+  end
+
+  defp confirmation_replay?(state, text) do
+    proposal = state["change_proposal"]
+
+    is_map(proposal) and
+      Regex.match?(~r/\A\s*(confirm|confirmed|yes|yeah|yep|ok|okay|sure)\b/, text) and
+      confirmation_clock_matches?(proposal, text)
+  end
+
+  defp confirmation_clock_matches?(proposal, text) do
+    text_clock = OpalCore.SocialFlow.PlanIdentity.parse_clock(text)
+
+    cond do
+      is_nil(text_clock) ->
+        true
+
+      true ->
+        proposal_clock =
+          OpalCore.SocialFlow.PlanIdentity.parse_clock(proposal["value"] || "") ||
+            OpalCore.SocialFlow.PlanIdentity.parse_clock(
+              get_in(proposal, ["exact_time", "value"]) || ""
+            )
+
+        is_nil(proposal_clock) or proposal_clock == text_clock
+    end
+  end
+
+  defp note_datetime_change_interpreted(state, text, id, actor, context) do
     case DateTimeChange.interpret(text, context, scoped: false) do
       :none ->
         state
@@ -777,7 +1113,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp apply_datetime_change(state, change, id, actor) do
-    direct? = not committed_plan?(state) or (not DateTimeChange.confirmation_required?(state) and actor == DateTimeChange.holder_id(state))
+    direct? =
+      not committed_plan?(state) or
+        (not DateTimeChange.confirmation_required?(state) and
+           actor == DateTimeChange.holder_id(state))
 
     if direct? do
       state
@@ -812,7 +1151,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     }
   end
 
-  defp put_parsed_date(state, %{"date" => %{"value" => value} = date}, id) when is_binary(value) do
+  defp put_parsed_date(state, %{"date" => %{"value" => value} = date}, id)
+       when is_binary(value) do
     put_field(state, "date", "candidate", value, id, %{
       "resolved_on" => date["resolved_on"],
       "timezone" => date["timezone"] || DateTimeChange.timezone(),
@@ -822,7 +1162,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   defp put_parsed_date(state, _, _), do: state
 
-  defp put_parsed_time(state, %{"exact_time" => %{"state" => "unknown"}}, _id), do: clear_exact(state)
+  defp put_parsed_time(state, %{"exact_time" => %{"state" => "unknown"}}, _id),
+    do: clear_exact(state)
 
   defp put_parsed_time(state, %{"exact_time" => %{"value" => value, "state" => field_state}}, id)
        when is_binary(value) do
@@ -838,7 +1179,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   defp put_parsed_time(state, _, _), do: state
 
-  defp put_parsed_window(state, %{"time_window" => %{"value" => value} = window}, id) when is_binary(value) do
+  defp put_parsed_window(state, %{"time_window" => %{"value" => value} = window}, id)
+       when is_binary(value) do
     put_field(state, "time_window", "constrained", value, id, %{
       "start" => window["start"],
       "end" => window["end"],
@@ -916,7 +1258,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp accept_date(state, text, id) do
-    if field_state(state, "date") == "candidate" and Regex.match?(~r/\b(yes|yeah|works|sure|ok)\b/, text) do
+    if field_state(state, "date") == "candidate" and
+         Regex.match?(~r/\b(yes|yeah|works|sure|ok)\b/, text) do
       put_field(state, "date", "locked", "tomorrow", id)
     else
       state
@@ -1026,7 +1369,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp apply_action(state, %{"kind" => "change_propose", "field" => "datetime", "proposal_id" => proposal_id} = action)
+  defp apply_action(
+         state,
+         %{"kind" => "change_propose", "field" => "datetime", "proposal_id" => proposal_id} =
+           action
+       )
        when is_binary(proposal_id) do
     previous = state["change_proposal"]
 
@@ -1063,7 +1410,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     |> put_change_proposal(proposal)
   end
 
-  defp apply_action(state, %{"kind" => "change_propose", "field" => "datetime", "value" => value} = action)
+  defp apply_action(
+         state,
+         %{"kind" => "change_propose", "field" => "datetime", "value" => value} = action
+       )
        when is_binary(value) do
     context = %{
       "exact_time" => get_in(state, ["exact_time", "value"]),
@@ -1090,12 +1440,16 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp apply_action(state, %{"kind" => "change_propose", "field" => field, "value" => value} = action)
+  defp apply_action(
+         state,
+         %{"kind" => "change_propose", "field" => field, "value" => value} = action
+       )
        when is_binary(field) and is_binary(value) do
     put_change_proposal(state, field, value, action["actor_user_id"])
   end
 
-  defp apply_action(state, %{"kind" => "delegate_datetime", "actor_user_id" => holder}) when is_binary(holder) do
+  defp apply_action(state, %{"kind" => "delegate_datetime", "actor_user_id" => holder})
+       when is_binary(holder) do
     Map.put(state, "decision_rights", %{
       "datetime" => %{
         "mode" => "delegated",
@@ -1124,7 +1478,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       is_binary(action["proposal_id"]) and action["proposal_id"] != proposal["proposal_id"] ->
         state
 
-      is_integer(proposal["base_plan_version"]) and proposal["base_plan_version"] != (state["plan_version"] || 0) ->
+      is_integer(proposal["base_plan_version"]) and
+          proposal["base_plan_version"] != (state["plan_version"] || 0) ->
         put_change_proposal(state, Map.put(proposal, "status", "stale"))
 
       proposal["proposed_by_user_id"] == actor ->
@@ -1138,7 +1493,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp apply_action(state, %{"kind" => "exact_time_lock", "value" => value} = action) when is_binary(value) do
+  defp apply_action(state, %{"kind" => "exact_time_lock", "value" => value} = action)
+       when is_binary(value) do
     previous = get_in(state, ["exact_time", "value"])
 
     next =
@@ -1152,7 +1508,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     if previous in [nil, value], do: next, else: clear_execution(next)
   end
 
-  defp apply_action(state, %{"kind" => "activity_lock", "value" => value} = action) when is_binary(value) do
+  defp apply_action(state, %{"kind" => "activity_lock", "value" => value} = action)
+       when is_binary(value) do
     case ActivityIntent.compile_freeform(value) do
       nil ->
         state
@@ -1188,7 +1545,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   # are nominate_place/3 (pipeline-validated), the restore script, and
   # in-plan replays. Replay therefore trusts a plausible name verbatim and
   # normalizes only when the value is a catalog mention.
-  defp apply_action(state, %{"kind" => "place_propose", "value" => value} = action) when is_binary(value) do
+  defp apply_action(state, %{"kind" => "place_propose", "value" => value} = action)
+       when is_binary(value) do
     case place_name_from_value(value) do
       nil ->
         state
@@ -1202,7 +1560,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp apply_action(state, %{"kind" => "place_confirm", "actor_user_id" => actor}) when is_binary(actor) do
+  defp apply_action(state, %{"kind" => "place_confirm", "actor_user_id" => actor})
+       when is_binary(actor) do
     proposed_by = get_in(state, ["place", "proposed_by_user_id"])
     value = get_in(state, ["place", "value"])
 
@@ -1214,7 +1573,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp apply_action(state, %{"kind" => "place_decline"}) do
-    if field_state(state, "place") in ["candidate", "conflicted"], do: clear_place(state), else: state
+    if field_state(state, "place") in ["candidate", "conflicted"],
+      do: clear_place(state),
+      else: state
   end
 
   defp apply_action(state, %{"kind" => "place_reopen"}) do
@@ -1229,7 +1590,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   # was locked once already (or synthesized from a locked stored place), so
   # replay restores it verbatim for any plausible name. A locked place must
   # stay locked because it was confirmed, not because its name is catalogued.
-  defp apply_action(state, %{"kind" => "place_lock", "value" => value} = action) when is_binary(value) do
+  defp apply_action(state, %{"kind" => "place_lock", "value" => value} = action)
+       when is_binary(value) do
     case place_name_from_value(value) do
       nil -> state
       name -> lock_place(state, name, nil, action["actor_user_id"], "restored")
@@ -1256,13 +1618,17 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
     case next["change_proposal"] do
       proposal when is_map(proposal) ->
-        Map.put(next, "change_proposal", Map.merge(proposal, %{
-          "source_type" => "call_transcript",
-          "source_call_id" => action["source_call_id"],
-          "source_segment_id" => action["source_segment_id"],
-          "speaker_user_id" => action["actor_user_id"],
-          "confidence" => action["confidence"]
-        }))
+        Map.put(
+          next,
+          "change_proposal",
+          Map.merge(proposal, %{
+            "source_type" => "call_transcript",
+            "source_call_id" => action["source_call_id"],
+            "source_segment_id" => action["source_segment_id"],
+            "speaker_user_id" => action["actor_user_id"],
+            "confidence" => action["confidence"]
+          })
+        )
 
       _ ->
         next
@@ -1320,7 +1686,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       current["state"] == "candidate" and current["value"] == name and other? ->
         lock_place(state, name, source, actor, "both_selected")
 
-      current["state"] == "candidate" and is_binary(current["value"]) and current["value"] != name and other? ->
+      current["state"] == "candidate" and is_binary(current["value"]) and current["value"] != name and
+          other? ->
         conflict_place(state, current, name, source, actor)
 
       true ->
@@ -1336,12 +1703,17 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp other_proposer?(current, actor) do
-    is_binary(actor) and is_binary(current["proposed_by_user_id"]) and actor != current["proposed_by_user_id"]
+    is_binary(actor) and is_binary(current["proposed_by_user_id"]) and
+      actor != current["proposed_by_user_id"]
   end
 
   defp conflict_place(state, current, name, source, actor) do
     proposals = [
-      %{"actor_user_id" => current["proposed_by_user_id"], "value" => current["value"], "truth" => "proposed"},
+      %{
+        "actor_user_id" => current["proposed_by_user_id"],
+        "value" => current["value"],
+        "truth" => "proposed"
+      },
       %{"actor_user_id" => actor, "value" => name, "truth" => "proposed"}
     ]
 
@@ -1396,7 +1768,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   defp lock_place(state, name, source, actor, how) do
     proposals = get_in(state, ["place", "proposals"]) || []
     origin = Enum.find(proposals, &(&1["value"] == name))
-    proposed_by = (origin && origin["actor_user_id"]) || get_in(state, ["place", "proposed_by_user_id"]) || actor
+
+    proposed_by =
+      (origin && origin["actor_user_id"]) || get_in(state, ["place", "proposed_by_user_id"]) ||
+        actor
 
     put_field(state, "place", "locked", name, source, %{
       "explicit" => true,
@@ -1429,13 +1804,20 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     members = get_in(state, ["participants", "value"]) || []
     complete? = members != [] and Enum.all?(members, &(&1 in authorized))
 
-    put_field(state, "execution", if(complete?, do: "agreed", else: "candidate"), "reservation_not_sent", nil, %{
-      "explicit" => true,
-      "truth" => if(complete?, do: "agreed", else: "proposed"),
-      "authorized_by" => authorized,
-      "needs_confirm" => not complete?,
-      "executed" => false
-    })
+    put_field(
+      state,
+      "execution",
+      if(complete?, do: "agreed", else: "candidate"),
+      "reservation_not_sent",
+      nil,
+      %{
+        "explicit" => true,
+        "truth" => if(complete?, do: "agreed", else: "proposed"),
+        "authorized_by" => authorized,
+        "needs_confirm" => not complete?,
+        "executed" => false
+      }
+    )
   end
 
   defp present(state) do
@@ -1459,9 +1841,15 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       end
 
     cond do
-      exact["state"] == "candidate" and exact["needs_confirm"] == true and is_binary(exact["value"]) ->
-        when_label = [date_label, "at", exact["value"]] |> Enum.reject(&is_nil/1) |> Enum.join(" ")
-        held = if place["state"] == "locked" and is_binary(place["value"]), do: "#{place["value"]} stays set", else: nil
+      exact["state"] == "candidate" and exact["needs_confirm"] == true and
+          is_binary(exact["value"]) ->
+        when_label =
+          [date_label, "at", exact["value"]] |> Enum.reject(&is_nil/1) |> Enum.join(" ")
+
+        held =
+          if place["state"] == "locked" and is_binary(place["value"]),
+            do: "#{place["value"]} stays set",
+            else: nil
 
         state
         |> Map.put("prompt", "Confirm #{when_label}?")
@@ -1494,11 +1882,15 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       exact["state"] == "locked" and place["state"] == "locked" and is_binary(place["value"]) ->
         place_done =
           if is_binary(date_label),
-            do: "#{String.capitalize(date_label)} at #{exact["value"]} · #{place["value"]} is set ✓",
+            do:
+              "#{String.capitalize(date_label)} at #{exact["value"]} · #{place["value"]} is set ✓",
             else: "#{exact["value"]} · #{place["value"]} is set ✓"
 
         execution_state = field_state(state, "execution")
-        lines = [date_label && String.capitalize(date_label), exact["value"], place["value"]] |> Enum.reject(&is_nil/1)
+
+        lines =
+          [date_label && String.capitalize(date_label), exact["value"], place["value"]]
+          |> Enum.reject(&is_nil/1)
 
         {commitment, prompt, detail} =
           case execution_state do
@@ -1526,19 +1918,33 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         |> Map.put("proposed_by_user_id", place["proposed_by_user_id"])
 
       exact["state"] == "locked" and place["state"] in [nil, "unknown"] and
-          CandidateProvider.recommend(activity || "", get_in(state, ["participants", "value"]) || [], state, %{}) !=
+          CandidateProvider.recommend(
+            activity || "",
+            get_in(state, ["participants", "value"]) || [],
+            state,
+            %{}
+          ) !=
             [] ->
         candidates =
-          CandidateProvider.recommend(activity || "", get_in(state, ["participants", "value"]) || [], state, %{})
+          CandidateProvider.recommend(
+            activity || "",
+            get_in(state, ["participants", "value"]) || [],
+            state,
+            %{}
+          )
 
         state
         |> Map.put("completion", done)
-        |> Map.put("prompt", "Shared catalog options. Curated list only. No live travel, availability, or trend.")
+        |> Map.put(
+          "prompt",
+          "Shared catalog options. Curated list only. No live travel, availability, or trend."
+        )
         |> Map.put("next", "place")
         |> Map.put("activity_changeable", field_state(state, "activity") == "locked")
         |> Map.put("candidates", candidates)
 
-      exact["state"] == "locked" and place["state"] in [nil, "unknown"] and field_state(state, "activity") == "locked" ->
+      exact["state"] == "locked" and place["state"] in [nil, "unknown"] and
+          field_state(state, "activity") == "locked" ->
         execution_type = get_in(state, ["activity", "execution_type"])
         label = get_in(state, ["activity", "value"]) || "This"
 
@@ -1559,7 +1965,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         |> Map.put("completion", done)
         |> Map.put("prompt", "What kind of meetup?")
         |> Map.put("next", "activity")
-        |> Map.put("activity_choices", ["Coffee", "Dinner", "Drinks", "Something active", "Somewhere quiet"])
+        |> Map.put("activity_choices", [
+          "Coffee",
+          "Dinner",
+          "Drinks",
+          "Something active",
+          "Somewhere quiet"
+        ])
 
       true ->
         state
@@ -1723,7 +2135,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     |> clear_execution()
   end
 
-  defp apply_accepted_change(state, %{"field" => "activity", "value" => value} = proposal, _accepter)
+  defp apply_accepted_change(
+         state,
+         %{"field" => "activity", "value" => value} = proposal,
+         _accepter
+       )
        when is_binary(value) do
     state
     |> apply_action(%{
@@ -1738,7 +2154,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     state |> clear_place() |> clear_execution()
   end
 
-  defp apply_accepted_change(state, %{"field" => "place", "value" => value, "proposed_by_user_id" => proposer}, accepter)
+  defp apply_accepted_change(
+         state,
+         %{"field" => "place", "value" => value, "proposed_by_user_id" => proposer},
+         accepter
+       )
        when is_binary(value) do
     name = CandidateProvider.catalog_match(value) || value
 
@@ -1820,7 +2240,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     value = current["value"]
 
     if current["state"] == "locked" and is_binary(value) and String.downcase(value) in @activities do
-      actions ++ [synth_action("activity_lock", actor, String.downcase(value), "user_stated", iso)]
+      actions ++
+        [synth_action("activity_lock", actor, String.downcase(value), "user_stated", iso)]
     else
       actions
     end
@@ -1890,7 +2311,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   defp duplicate_action?(
          %{"kind" => kind, "actor_user_id" => actor, "value" => value},
          %{"kind" => kind, "actor_user_id" => actor, "value" => value}
-       ), do: true
+       ),
+       do: true
 
   defp duplicate_action?(_, _), do: false
 
@@ -1934,7 +2356,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     previous_state = get_in(plan.alignment || %{}, ["activity", "state"])
     normalized = value |> to_string() |> String.downcase()
 
-    if previous_state == "locked" and is_binary(previous) and String.downcase(previous) != normalized and
+    if previous_state == "locked" and is_binary(previous) and
+         String.downcase(previous) != normalized and
          action["actor_user_id"] do
       "alignment.activity_changed"
     else
@@ -1942,7 +2365,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp alignment_event_type(plan, %{"kind" => "place_propose", "value" => value, "actor_user_id" => actor}) do
+  defp alignment_event_type(plan, %{
+         "kind" => "place_propose",
+         "value" => value,
+         "actor_user_id" => actor
+       }) do
     place = get_in(plan.alignment || %{}, ["place"]) || %{}
 
     if place["state"] in ["candidate", "conflicted"] and place["value"] not in [nil, value] and
@@ -1956,7 +2383,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   defp alignment_event_type(_plan, %{"kind" => "place_confirm"}), do: "alignment.place_confirmed"
   defp alignment_event_type(_plan, %{"kind" => "place_reopen"}), do: "alignment.place_changed"
   defp alignment_event_type(_plan, %{"kind" => "place_decline"}), do: "alignment.place_changed"
-  defp alignment_event_type(_plan, %{"kind" => "reservation_authorize"}), do: "execution.reservation_authorized"
+
+  defp alignment_event_type(_plan, %{"kind" => "reservation_authorize"}),
+    do: "execution.reservation_authorized"
+
   defp alignment_event_type(_plan, %{"kind" => "exact_time_lock"}), do: "alignment.time_locked"
   defp alignment_event_type(_plan, %{"kind" => "change_propose"}), do: "alignment.change_proposed"
   defp alignment_event_type(_plan, %{"kind" => "change_accept"}), do: "alignment.change_accepted"
@@ -1984,7 +2414,12 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
-  defp upsert_plan(conversation_id, state, user_id) do
+  defp upsert_plan(conversation_id, state, member_ids, initiator_id \\ nil)
+       when is_list(member_ids) do
+    # Repair #18: the creator is the deterministic initiator when the
+    # caller can name one (earliest speaking member); the member-list
+    # head is only the fallback when no member has spoken yet.
+    user_id = initiator_id || List.first(member_ids)
     exact = state["exact_time"] || %{}
     date = state["date"] || %{}
     status = if exact["state"] == "locked", do: "agreed", else: "tentative"
@@ -2007,16 +2442,54 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
     case active_plan_for_conversation(conversation_id) do
       nil when is_binary(user_id) ->
-        # Insert: the fold owns the new row; "Meetup" is the fold's placeholder
-        # title until a real title is set by a plan-creation path.
+        # Insert: the fold owns the new row.
         # Gyroscope (R13): the fold births via the gate — a locked fold
         # births agreed, an unlocked fold births tentative.
+        # Repair #18: no bare "Meetup" placeholder - the title is a
+        # descriptive fallback from the folded place/activity/people,
+        # the row carries real PlanParticipant rows (initiator is lead),
+        # and the dedupe identity is stamped at birth like every other
+        # creation path.
         create_action = if status == "agreed", do: :create_agreed, else: :create
 
-        %SharedPlan{}
-        |> SharedPlan.changeset(Map.put(attrs, :title, "Meetup"))
-        |> PlanTransition.guard_changeset(:plan, create_action)
-        |> Repo.insert()
+        attrs =
+          attrs
+          |> Map.put(:title, fold_plan_title(state, user_id))
+          |> Map.update(:alignment, state, fn alignment ->
+            components =
+              OpalCore.SocialFlow.PlanIdentity.components(
+                user_id,
+                member_ids,
+                %{
+                  "title" => fold_plan_title(state, user_id),
+                  "location" => get_in(state, ["place", "value"]),
+                  "time_label" => folded_time_label
+                }
+              )
+
+            Map.put(
+              alignment,
+              "dedupe",
+              Map.put(components, "key", OpalCore.SocialFlow.PlanIdentity.dedupe_key(components))
+            )
+          end)
+
+        case %SharedPlan{}
+             |> SharedPlan.changeset(attrs)
+             |> PlanTransition.guard_changeset(:plan, create_action)
+             |> Repo.insert() do
+          {:ok, plan} = ok ->
+            # Repair #18 (Division A): a fold-born plan gets participant
+            # ROWS for every conversation member - before this, the fold
+            # wrote only the alignment JSON participant list, so the one
+            # counter had nothing to count for fold-born plans (walk DB:
+            # the Saturday Crew plan had 0 participant rows).
+            _ = ensure_fold_participants(plan, member_ids, user_id)
+            ok
+
+          other ->
+            other
+        end
 
       %SharedPlan{} = plan ->
         prev_version = get_in(plan.alignment || %{}, ["plan_version"]) || 0
@@ -2033,6 +2506,10 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         case plan |> SharedPlan.changeset(update_attrs) |> Repo.update() do
           {:ok, updated} = ok ->
             maybe_invalidate_stale_tft(updated.id, prev_version, new_version)
+            # Repair #18: members who joined the conversation after the
+            # plan was born get a row too; existing rows are never touched
+            # (their response state is row-owned authority, like the title).
+            _ = ensure_fold_participants(updated, member_ids, user_id)
             ok
 
           other ->
@@ -2044,6 +2521,77 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end
   end
 
+  # Repair #18 (Division A): participant materialization for fold-born
+  # plans. Same door semantics as create_tentative_plan_from_conversation:
+  # the creating member (first member, the fold's created_by) is the lead
+  # and accepted; every other member starts pending in the canonical
+  # vocabulary. Existing rows win - a sync never rewrites an RSVP.
+  defp ensure_fold_participants(%SharedPlan{} = plan, member_ids, creator_user_id)
+       when is_list(member_ids) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    for uid <- Enum.uniq(member_ids), is_binary(uid) do
+      case Repo.get_by(PlanParticipant, plan_id: plan.id, user_id: uid) do
+        %PlanParticipant{} ->
+          :ok
+
+        nil ->
+          lead? = uid == creator_user_id
+
+          %PlanParticipant{}
+          |> PlanParticipant.changeset(%{
+            plan_id: plan.id,
+            user_id: uid,
+            role: if(lead?, do: "lead", else: "participant"),
+            response_state: if(lead?, do: "accepted", else: "pending"),
+            responded_at: if(lead?, do: now, else: nil),
+            authority_source: "alignment_fold"
+          })
+          |> Repo.insert()
+      end
+    end
+
+    :ok
+  end
+
+  defp ensure_fold_participants(_, _, _), do: :ok
+
+
+  # Descriptive fallback title for a fold-born plan: the folded place
+  # when known, else the activity, else the other people's names -
+  # never a bare placeholder and never a schedule fragment.
+  defp fold_plan_title(state, owner_id) do
+    place = get_in(state, ["place", "value"])
+    activity = get_in(state, ["activity", "value"])
+
+    others =
+      (get_in(state, ["participants", "value"]) || [])
+      |> Enum.filter(&(is_binary(&1) and &1 != owner_id))
+      |> Enum.map(fn uid ->
+        case Repo.get(OpalCore.Accounts.User, uid) do
+          %OpalCore.Accounts.User{display_name: name} when is_binary(name) and name != "" ->
+            name
+
+          %OpalCore.Accounts.User{handle: handle} when is_binary(handle) and handle != "" ->
+            handle
+
+          _ ->
+            nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    cond do
+      is_binary(place) and String.trim(place) != "" ->
+        String.trim(place)
+
+      is_binary(activity) and activity not in ["", "unknown"] ->
+        OpalCore.SocialFlow.PlanIdentity.human_title(%{what: activity, who: others})
+
+      true ->
+        OpalCore.SocialFlow.PlanIdentity.human_title(%{who: others})
+    end
+  end
   # F12-02c — the revision chain is the schedule authority. A "schedule_change"
   # explicit action (appended by change_plan_schedule/1 and the revision-accept
   # path) carries the verbatim accepted value. When it is the newest
@@ -2086,7 +2634,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   defp maybe_invalidate_stale_tft(plan_id, prev_version, new_version)
        when is_binary(plan_id) and is_integer(prev_version) and is_integer(new_version) and
               new_version > prev_version do
-    _ = TemporalFollowThrough.invalidate_plan_version(plan_id, to_string(prev_version), "rescheduled")
+    _ =
+      TemporalFollowThrough.invalidate_plan_version(
+        plan_id,
+        to_string(prev_version),
+        "rescheduled"
+      )
+
     :ok
   end
 
@@ -2114,15 +2668,22 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp put_field(state, key, field_state, value, source, extras \\ %{}) do
-    Map.put(state, key, Map.merge(%{
-      "state" => field_state,
-      "value" => value,
-      "source_message_id" => source,
-      "needs_confirm" => false,
-      "explicit" => true,
-      "truth" => truth_for(field_state),
-      "schema_version" => @schema_version
-    }, extras))
+    Map.put(
+      state,
+      key,
+      Map.merge(
+        %{
+          "state" => field_state,
+          "value" => value,
+          "source_message_id" => source,
+          "needs_confirm" => false,
+          "explicit" => true,
+          "truth" => truth_for(field_state),
+          "schema_version" => @schema_version
+        },
+        extras
+      )
+    )
   end
 
   defp truth_for("locked"), do: "locked"
@@ -2201,13 +2762,22 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       |> Enum.reverse()
 
     name = Enum.join(tokens, " ")
-    following = rest |> String.trim() |> String.split(~r/\s+/, trim: true) |> Enum.at(length(tokens))
+
+    following =
+      rest |> String.trim() |> String.split(~r/\s+/, trim: true) |> Enum.at(length(tokens))
 
     cond do
-      tokens == [] -> nil
-      not plausible_place_name?(name) -> nil
-      length(tokens) == 1 and is_binary(following) and String.downcase(following) in @speech_verbs -> nil
-      true -> name
+      tokens == [] ->
+        nil
+
+      not plausible_place_name?(name) ->
+        nil
+
+      length(tokens) == 1 and is_binary(following) and String.downcase(following) in @speech_verbs ->
+        nil
+
+      true ->
+        name
     end
   end
 
@@ -2216,6 +2786,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp event_at(%{inserted_at: %DateTime{} = dt}, _index), do: DateTime.to_unix(dt, :microsecond)
+
   defp event_at(%{"at" => at}, _index) when is_binary(at) do
     case DateTime.from_iso8601(at) do
       {:ok, dt, _} -> DateTime.to_unix(dt, :microsecond)

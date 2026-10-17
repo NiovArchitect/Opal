@@ -146,6 +146,7 @@ defmodule OpalCore.OpalContextTest do
              :financial,
              :fit,
              :group_tastes,
+             :location,
              :message,
              :preferences,
              :relationships,
@@ -155,6 +156,11 @@ defmodule OpalCore.OpalContextTest do
              :trust_tier,
              :user
            ]
+
+    # Repair #18 (A-center) - the location slice is always present; with
+    # nothing stored it honestly reports no city and no device fix.
+    assert ctx.location.current_city == nil
+    assert ctx.location.device.present == false
 
     assert ctx.user.id == alex()
     assert is_list(ctx.conversation_history)
@@ -194,6 +200,7 @@ defmodule OpalCore.OpalContextTest do
              :financial,
              :fit,
              :group_tastes,
+             :location,
              :message,
              :preferences,
              :relationships,

@@ -7,6 +7,7 @@
  */
 
 import { formatPastPlanWhen, parsePlanInstant } from "./historyTime";
+import { conflictLineFromContract } from "./planCardContract";
 
 export type PlanView = {
   commitment?: string | null;
@@ -370,6 +371,36 @@ export function planConsequenceLabel(input: {
   }
   const when = (input.whenLabel || "").replace(/\bTuesday\b/g, "Tue").replace(/ · /g, " ");
   return ["Ready", when, input.place || ""].filter(Boolean).join(" · ");
+}
+
+/**
+ * Repair #18 - the ONE attendance label. Built only from the backend
+ * attendance contract fields (going_count / total_count, plus the time
+ * label the projection carries). Returns null when the contract is
+ * absent: surfaces render NOTHING rather than a fixture count.
+ */
+export function planAttendanceLabel(input: {
+  goingCount?: number | null;
+  totalCount?: number | null;
+  timeLabel?: string | null;
+  conflict?: {
+    with_plan_id?: string | null;
+    title?: string | null;
+    time_label?: string | null;
+  } | null;
+}): string | null {
+  const { goingCount, totalCount } = input;
+  if (typeof goingCount !== "number" || typeof totalCount !== "number") {
+    return null;
+  }
+  const parts = [`${goingCount} of ${totalCount} going`];
+  const time = (input.timeLabel || "").trim();
+  if (time) parts.push(time);
+  // Coordinator merge (R18): the conflict arrives as the backend OBJECT;
+  // the line is formatted by the one formatter every card uses.
+  const conflict = conflictLineFromContract({ conflict: input.conflict });
+  if (conflict) parts.push(conflict);
+  return parts.join(" - ");
 }
 
 export function selectHeaderPlan(lines: string[] | null | undefined): {

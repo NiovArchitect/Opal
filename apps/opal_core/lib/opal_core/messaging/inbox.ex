@@ -132,11 +132,18 @@ defmodule OpalCore.Messaging.Inbox do
     }
   end
 
-  def fanout_plan(conversation_id, alignment) when is_binary(conversation_id) and is_map(alignment) do
+  def fanout_plan(conversation_id, alignment)
+      when is_binary(conversation_id) and is_map(alignment) do
     members = Messages.member_user_ids(conversation_id)
-    projection = HomeProjection.from_alignment(alignment, conversation_id, length(members))
 
     Enum.each(members, fn user_id ->
+      # Repair #18: the projection is per-viewer now (viewer_state differs
+      # per member); the counts are identical for everyone by construction.
+      projection =
+        HomeProjection.from_alignment(alignment, conversation_id, length(members),
+          viewer_id: user_id
+        )
+
       Endpoint.broadcast("user:#{user_id}", "inbox:plan", %{
         "event_id" => Ecto.UUID.generate(),
         "event" => "plan.projected",

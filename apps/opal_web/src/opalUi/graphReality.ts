@@ -55,6 +55,16 @@ export type CanonicalGraph = {
   directionsQuery: string;
   pendingChange?: boolean;
   pendingProposalLabel?: string | null;
+  /** Repair #18: attendance from the ONE backend contract - never derived here. */
+  goingCount?: number | null;
+  totalCount?: number | null;
+  interestedCount?: number | null;
+  viewerState?: string | null;
+  conflict?: {
+    with_plan_id?: string | null;
+    title?: string | null;
+    time_label?: string | null;
+  } | null;
 };
 
 /** Past Graph Detail must not foreground leave-by / travel / Open directions. */
@@ -258,12 +268,34 @@ export function clientPlanFields(
         : undefined,
     past_shared_reality: raw.past_shared_reality === true,
     occurrence_state: text(raw.occurrence_state),
+    // Repair #18 - attendance + conflict ride the projection untouched.
+    // The client never computes either: counts come from the backend's
+    // one counter, the conflict object from the F18-03 gate. Absent
+    // fields stay absent (no participant rows means no counts, ever).
+    going_count: typeof raw.going_count === "number" ? raw.going_count : null,
+    interested_count:
+      typeof raw.interested_count === "number" ? raw.interested_count : null,
+    total_count: typeof raw.total_count === "number" ? raw.total_count : null,
+    viewer_state: text(raw.viewer_state),
+    conflict:
+      raw.conflict && typeof raw.conflict === "object"
+        ? {
+            with_plan_id: text(
+              (raw.conflict as Record<string, unknown>).with_plan_id,
+            ),
+            title: text((raw.conflict as Record<string, unknown>).title),
+            time_label: text(
+              (raw.conflict as Record<string, unknown>).time_label,
+            ),
+          }
+        : null,
   };
 }
 
 export function canonicalGraphFromChat(
   chat: ChatPreview,
   viewerName: string | null,
+  viewerUserId?: string | null,
 ): CanonicalGraph | null {
   const plan = chat.planProjection;
   if (!plan || (!plan.place && !plan.when_label)) return null;
@@ -274,8 +306,10 @@ export function canonicalGraphFromChat(
     .map((name) => name?.trim() || "")
     .filter((name, index, all) => name && all.indexOf(name) === index);
   const pendingChange = plan.pending_change === true;
-  // Repair #17: same shared projection derivation as chat list / Graphs.
-  const state = planProjectionSurfaceState(plan);
+  // Repair #18: the shared projection derivation WITH the viewer id - the
+  // R17 viewer-less call could never resolve someone else's pending
+  // proposal to action here, so this surface diverged from list/thread.
+  const state = planProjectionSurfaceState(plan, viewerUserId);
   // M-03: past plans use relative history voice; future keeps absolute when_label.
   const pastInstant =
     state === "past" || plan.temporal_state === "past"
@@ -311,6 +345,11 @@ export function canonicalGraphFromChat(
       pendingChange,
       changeProposalValue: plan.pending_proposal_value,
     }),
+    goingCount: plan.going_count ?? null,
+    totalCount: plan.total_count ?? null,
+    interestedCount: plan.interested_count ?? null,
+    viewerState: plan.viewer_state ?? null,
+    conflict: plan.conflict ?? null,
   };
 }
 

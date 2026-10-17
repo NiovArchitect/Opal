@@ -88,6 +88,52 @@ defmodule OpalCoreWeb.OpalConversationController do
   end
 
   @doc """
+  Repair #18 (G-IA3) - rename one of the caller's own Opal sessions.
+  Foreign/unknown ids → 404. The response carries the updated session
+  summary in the same shape the sessions list uses, so the client can
+  re-render without a second fetch.
+  """
+  def rename_session(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalConversations.rename_conversation(user_id, id, Map.get(params, "title")) do
+      {:ok, conversation} ->
+        json(conn, %{
+          "ok" => true,
+          "conversation" => OpalConversations.session_summary(user_id, conversation)
+        })
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, :empty_title} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid", "errors" => %{"title" => ["can't be blank"]}})
+
+      {:error, :title_too_long} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid",
+          "errors" => %{
+            "title" => [
+              "should be at most #{OpalCore.OpalConversations.OpalConversation.max_title()} character(s)"
+            ]
+          }
+        })
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+
+      {:error, _} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid", "errors" => %{"title" => ["is invalid"]}})
+    end
+  end
+
+  @doc """
   New Chat — clear visible Center history + transient planning.
   SharedPlans / Graph / human chats are preserved.
   """
@@ -183,7 +229,10 @@ defmodule OpalCoreWeb.OpalConversationController do
       {:error, :invalid_body} ->
         conn
         |> put_status(422)
-        |> json(%{"error_code" => "invalid", "errors" => %{"body" => ["must be valid UTF-8 text"]}})
+        |> json(%{
+          "error_code" => "invalid",
+          "errors" => %{"body" => ["must be valid UTF-8 text"]}
+        })
 
       {:error, :body_too_long} ->
         conn
@@ -196,9 +245,17 @@ defmodule OpalCoreWeb.OpalConversationController do
         })
 
       {:error, :rate_limited} ->
+        # Repair #18 (A-center) - same explicit not-sent shape as the
+        # human-thread send path: nothing was stored, tap to retry.
         conn
         |> put_status(429)
-        |> json(%{"error_code" => "rate_limited", "message" => "Too many messages. Try again shortly."})
+        |> json(%{
+          "error_code" => "rate_limited",
+          "message" => "Too many messages. Your message was not sent - try again shortly.",
+          "sent" => false,
+          "retryable" => true,
+          "client_action" => "retry_send"
+        })
 
       {:error, %Ecto.Changeset{} = cs} ->
         unprocessable(conn, cs)
@@ -300,7 +357,8 @@ defmodule OpalCoreWeb.OpalConversationController do
         |> put_status(422)
         |> json(%{
           "error_code" => "unsupported_audience",
-          "message" => "Plans are visible only to the people in them - that audience isn't available for a plan."
+          "message" =>
+            "Plans are visible only to the people in them - that audience isn't available for a plan."
         })
 
       {:error, :invalid_media} ->

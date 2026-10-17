@@ -1,7 +1,8 @@
 /**
  * Chats list composition — prefer-real / seed-off law (Pass 1).
  *
- * Seed on → founder plan-pill rows remapped onto live conversation ids.
+ * Seed on → live rows only (Repair #18: fixture rows are never painted;
+ * plan pills come from the backend projection on the live row).
  * Seed off → live rows only (never seed-chat-* as current social state).
  *
  * Repair #17 — seed content is DATA, not behavior. A fixture row that did
@@ -12,10 +13,8 @@
  * Diagnostics land on window.__opalSeedPipeline + console only — never UI.
  */
 import type { ChatsHomeRow } from "./ChatsHome";
-import {
-  FOUNDER_CHATS_PLAN_PILL_ROWS,
-  remapFounderChatRowsToLive,
-} from "./founderChatsPlanPills";
+/* Repair #18: fixture rows are no longer imported here - seed mode
+ * composes from live rows only (see composeChatsList). */
 import { isFounderSeedEnabled } from "./founderGraphSeed";
 import {
   mergeChatRowsWithCreated,
@@ -120,26 +119,18 @@ export function composeChatsList(opts: {
   }
 
   if (seedOn) {
-    const fixtureRows = FOUNDER_CHATS_PLAN_PILL_ROWS;
-    const remapped = remapFounderChatRowsToLive(
-      fixtureRows,
-      liveRows.map((r) => ({
-        id: r.id,
-        name: r.name,
-        kind: r.kind,
-        memberCount: r.memberCount,
-      })),
-    );
-    // Repair #17: only fixture rows bound to a REAL conversation id may be
-    // painted. Unbound rows still carry seed-chat-* ids — painting them
-    // would put an unreachable scripted fixture on the open path.
-    const boundRows = remapped.filter((r) => !isSeedChatRowId(r.id));
-    const rows = mergeChatRowsWithCreated(boundRows, created);
+    // Repair #18 (F18-01/02): seed mode NO LONGER paints fixture rows.
+    // The list renders the live rows - whose plan pills are derived in
+    // OpalApp from the backend projection (attendance contract) - in
+    // seed mode exactly as in production. Fixture chrome may supply
+    // names and avatars elsewhere, but never a row, a count, or a state:
+    // a conversation with no projection renders no pill.
+    const rows = mergeChatRowsWithCreated(liveRows, created);
     const diagnostics: FounderChatComposeDiagnostics = {
       seedEnabled: true,
       liveRows: liveRows.length,
-      fixtureRows: fixtureRows.length,
-      composedRows: boundRows.length,
+      fixtureRows: 0,
+      composedRows: liveRows.length,
       paintedRows: rows.length,
       hardFallback: false,
       path: "physical_compose",

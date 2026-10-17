@@ -10,6 +10,14 @@ export type DayStripEvent = {
   title: string;
   startMs: number;
   endMs: number;
+  /**
+   * Repair #18 (F18-09) - who/where from the backend NowStrip contract
+   * (participant display names excluding the viewer, and the plan's
+   * place). Carried, never derived here. Empty who / null where render
+   * nothing extra - a solo plan's node is its title alone.
+   */
+  who?: string[];
+  where?: string | null;
 };
 
 export type DayStripNode = {
@@ -17,7 +25,19 @@ export type DayStripNode = {
   time: string;
   label: string;
   kind: "now" | "open" | "event" | "accepted";
+  /** Repair #18 - "with {names} - {place}", each part omitted when unknown. */
+  detail?: string | null;
 };
+
+/** Second line for a strip node, built ONLY from contract who/where. */
+export function dayStripDetail(event: Pick<DayStripEvent, "who" | "where">): string | null {
+  const names = (event.who || []).map((n) => (n || "").trim()).filter(Boolean);
+  const place = (event.where || "").trim();
+  const parts: string[] = [];
+  if (names.length) parts.push(`with ${names.join(", ")}`);
+  if (place) parts.push(place);
+  return parts.length ? parts.join(" - ") : null;
+}
 
 /** Provenance for the strip — never confuse sample with linked calendar. */
 export type DayStripSource = "calendar" | "plans" | "none" | "sample";
@@ -90,12 +110,17 @@ export function composeNowStrip(opts: {
       time: "Now",
       label: current ? current.title : "Open",
       kind: "now",
+      // Only present when the contract actually carries who/where.
+      ...(current && dayStripDetail(current)
+        ? { detail: dayStripDetail(current) }
+        : {}),
     },
     ...upcoming.map((e) => ({
       id: e.id,
       time: formatStripTime(e.startMs),
       label: e.title,
       kind: "event" as const,
+      ...(dayStripDetail(e) ? { detail: dayStripDetail(e) } : {}),
     })),
   ];
 
@@ -204,6 +229,8 @@ export function normalizeDayStripEvents(
     title?: string | null;
     start_at?: string | null;
     end_at?: string | null;
+    who?: string[] | null;
+    where?: string | null;
   }>,
 ): DayStripEvent[] {
   const out: DayStripEvent[] = [];
@@ -218,6 +245,12 @@ export function normalizeDayStripEvents(
       title,
       startMs,
       endMs,
+      // Repair #18 - who/where ride through untouched from the contract;
+      // calendar rows without them simply carry none.
+      who: Array.isArray(row.who)
+        ? row.who.filter((n): n is string => typeof n === "string" && n.trim() !== "")
+        : undefined,
+      where: typeof row.where === "string" && row.where.trim() ? row.where.trim() : null,
     });
   }
   return out.sort((a, b) => a.startMs - b.startMs);

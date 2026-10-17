@@ -385,7 +385,7 @@ defmodule OpalCoreWeb.ConversationController do
         error(conn, 403, "blocked", "This connection is blocked")
 
       {:error, :rate_limited} ->
-        error_rate_limited(conn, 60, "Too many messages. Wait a moment, then try again.")
+        error_rate_limited(conn, 60, "Too many messages. Your message was not sent - wait a moment, then tap to retry.")
 
       {:error, reason} ->
         error(conn, 422, "message_failed", inspect(reason))
@@ -721,6 +721,11 @@ defmodule OpalCoreWeb.ConversationController do
     |> json(%{"error_code" => code, "message" => message})
   end
 
+  # Repair #18 (A-center) - a throttled send is explicit and
+  # distinguishable from every other failure: the message was NOT
+  # stored ("sent" => false) and the client can surface a tap-to-retry
+  # affordance ("retryable" => true, "client_action" => "retry_send")
+  # instead of silently dropping the user's words.
   defp error_rate_limited(conn, retry_after_sec, message) do
     conn
     |> put_resp_header("retry-after", Integer.to_string(retry_after_sec))
@@ -728,7 +733,10 @@ defmodule OpalCoreWeb.ConversationController do
     |> json(%{
       "error_code" => "rate_limited",
       "message" => message,
-      "retry_after" => retry_after_sec
+      "retry_after" => retry_after_sec,
+      "sent" => false,
+      "retryable" => true,
+      "client_action" => "retry_send"
     })
   end
 end

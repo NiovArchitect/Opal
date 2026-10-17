@@ -44,9 +44,14 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     speaker_count = length(speakers)
 
     what = extract_activity(bodies)
-    when_label = extract_when(bodies)
+    # Repair #18 (Division A, F18-02): the current plan row outranks
+    # first-match history extraction. After an accepted revision, the
+    # earliest clock in the thread ("I can do 7:30") must not beat the
+    # plan's accepted time - the bottom-of-screen copy reads the plan.
+    plan_override = current_plan_override(messages)
+    when_label = plan_override["when"] || extract_when(bodies)
     pt = place_truth(bodies)
-    where_label = pt["display"]
+    where_label = plan_override["where"] || pt["display"]
     gaps = consequential_gaps(stage, what, when_label, where_label, speaker_count)
     sufficiency = sufficiency(stage, gaps, what, when_label, where_label)
     ui_job = ui_job(stage, sufficiency, gaps)
@@ -97,6 +102,44 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
 
   def from_messages(_, stage), do: from_messages([], stage)
 
+  # The accepted plan state for this conversation, when the messages
+  # carry a conversation_id and the plan row shows a revision-backed
+  # schedule (a current_revision_id or a schedule_change action). Pure
+  # history extraction remains the fallback for plan-less threads.
+  defp current_plan_override(messages) do
+    conversation_id =
+      Enum.find_value(messages, fn m ->
+        Map.get(m, :conversation_id) || Map.get(m, "conversation_id")
+      end)
+
+    if is_binary(conversation_id) do
+      case OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(conversation_id) do
+        %OpalCore.SocialFlow.SharedPlan{} = plan ->
+          actions = get_in(plan.alignment || %{}, ["explicit_actions"]) || []
+
+          revised? =
+            is_binary(plan.current_revision_id) or
+              Enum.any?(actions, &(&1["kind"] == "schedule_change"))
+
+          if revised? and is_binary(plan.time_label) and plan.time_label != "" do
+            %{
+              "when" => plan.time_label,
+              "where" => if(is_binary(plan.location) and plan.location != "", do: plan.location)
+            }
+          else
+            %{}
+          end
+
+        _ ->
+          %{}
+      end
+    else
+      %{}
+    end
+  rescue
+    _ -> %{}
+  end
+
   # --- Extraction (evidence-only; no new intelligence) ---
 
   defp extract_activity(bodies) do
@@ -106,15 +149,32 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       Regex.match?(~r/\bfacetime\b|\bzoom\b|\bvideo\s*call\b|\bphone\s*call\b/i, text) ->
         "FaceTime"
 
-      Regex.match?(~r/\bstudy\b/i, text) -> "Study together"
-      Regex.match?(~r/\bcoffee\b/i, text) -> "Coffee"
-      Regex.match?(~r/\bdinner\b/i, text) -> "Dinner"
-      Regex.match?(~r/\blunch\b/i, text) -> "Lunch"
-      Regex.match?(~r/\bdrinks?\b/i, text) -> "Drinks"
-      Regex.match?(~r/\bpickup\b/i, text) -> "Pickup"
-      Regex.match?(~r/\bbirthday\b/i, text) -> "Birthday"
-      Regex.match?(~r/\bmeet\b/i, text) -> "Meet up"
-      true -> nil
+      Regex.match?(~r/\bstudy\b/i, text) ->
+        "Study together"
+
+      Regex.match?(~r/\bcoffee\b/i, text) ->
+        "Coffee"
+
+      Regex.match?(~r/\bdinner\b/i, text) ->
+        "Dinner"
+
+      Regex.match?(~r/\blunch\b/i, text) ->
+        "Lunch"
+
+      Regex.match?(~r/\bdrinks?\b/i, text) ->
+        "Drinks"
+
+      Regex.match?(~r/\bpickup\b/i, text) ->
+        "Pickup"
+
+      Regex.match?(~r/\bbirthday\b/i, text) ->
+        "Birthday"
+
+      Regex.match?(~r/\bmeet\b/i, text) ->
+        "Meet up"
+
+      true ->
+        nil
     end
   end
 
@@ -266,7 +326,8 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
       Regex.match?(~r/\b(at (my|our|maya'?s|jordan'?s) place|at home|dinner at)\b/i, text)
 
     whose_home_open? =
-      home? and Regex.match?(~r/\bwhose place\b|\bstill (figuring|deciding) (where|whose)\b/i, text)
+      home? and
+        Regex.match?(~r/\bwhose place\b|\bstill (figuring|deciding) (where|whose)\b/i, text)
 
     cond do
       is_binary(venue) ->
@@ -313,7 +374,8 @@ defmodule OpalCore.SocialFlow.SharedRealityPresentation do
     end
   end
 
-  def place_truth(_), do: %{"level" => "unresolved", "display" => nil, "gap_label" => "Place still open"}
+  def place_truth(_),
+    do: %{"level" => "unresolved", "display" => nil, "gap_label" => "Place still open"}
 
   defp normalize_time(raw) do
     t = String.trim(raw)

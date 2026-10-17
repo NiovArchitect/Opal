@@ -28,6 +28,8 @@ import {
 } from "./activityCapabilities";
 import { GraphConvoyPanel } from "./GraphConvoyPanel";
 import type { TravelState } from "./journeyPresence";
+import { planStateAttr } from "../theme/planStateColors";
+import { conflictLineFromContract } from "./planCardContract";
 
 export type GraphSegment = {
   id: string;
@@ -102,24 +104,20 @@ type Props = {
   conversationId?: string | null;
 };
 
-function parseWhenParts(
-  detail?: string,
-  opts?: { inventDefaults?: boolean },
-): { dayKicker: string; timeLabel: string } {
-  // e.g. "Juniper & Ivy · Saturday · 7:30 PM" or "Tonight · 7:30 PM · with Chanelle"
-  // Paste W5 — never invent day/time for forming/pending plans.
-  // F12-49: inventDefaults is opt-IN (default false) — only the known ready
-  // fixture passes true explicitly.
-  const invent = opts?.inventDefaults === true;
+function parseWhenParts(detail?: string): { dayKicker: string; timeLabel: string } {
+  // e.g. a place, day and time joined by middle dots in one detail string.
+  // Repair #18: NEVER invent a day or time. A part that is not in the
+  // contract string renders as honest absence, not a fabricated fallback.
   const parts = (detail || "").split("·").map((p) => p.trim()).filter(Boolean);
-  const timePart =
-    parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || (invent ? "7:30 PM" : "");
+  const timePart = parts.find((p) => /\d{1,2}:\d{2}\s*(AM|PM)/i.test(p)) || "";
   const dayPart =
     parts.find((p) =>
       /tonight|tomorrow|this weekend|next week|saturday|sunday|monday|tuesday|wednesday|thursday|friday/i.test(
         p,
       ),
-    ) || (invent ? "Tonight" : parts[0] || "Forming");
+    ) ||
+    parts[0] ||
+    "Forming";
   return { dayKicker: dayPart, timeLabel: timePart };
 }
 
@@ -174,18 +172,14 @@ export function GraphDetailSheet({
     if (card?.detail) {
       return withWho && !/with /i.test(card.detail) ? `${card.detail} · ${withWho}` : card.detail;
     }
-    // Only invent Tonight · 7:30 for known ready fixture — never for forming/idea.
-    if (cardId === "seed-chanelle-juniper") {
-      return withWho ? `Tonight · 7:30 PM · ${withWho}` : "Tonight · 7:30 PM";
-    }
+    // Repair #18: no invented when-line for any card, fixture included.
+    // A card without a contract detail renders the honest absence below.
     // F12-01/F12-45: a when-line is a time — never a person's name, never blank.
     // createdPlan.when is the user-entered time; without it the honest label applies.
     if (createdPlan?.when) return createdPlan.when;
     return "Time to be set";
   })();
-  const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine, {
-    inventDefaults: !createdPlan && cardId === "seed-chanelle-juniper",
-  });
+  const { dayKicker, timeLabel } = parseWhenParts(card?.detail || whenLine);
   const chrome = GRAPH_AUTHORITY_CHROME[cardId];
   /** Fixture Ready Graph  -  production would use domain state; never invent Reserved booking. */
   const isReadyFixture =
@@ -201,6 +195,12 @@ export function GraphDetailSheet({
         : cardId === "seed-near-rooftop"
           ? "Idea"
           : "Forming";
+  // Repair #18: the fixture pill carries the SAME data-plan-state the
+  // canonical branch renders, derived through the one state-color module -
+  // never a bare span with no state color.
+  const fixturePlanState = planStateAttr(
+    statusLabel === "Aligned" ? "ready" : statusLabel,
+  );
   const countdown = happeningInLabel(card?.startsAt, Date.now(), {
     endsAt: card?.endsAt,
     tripDateRange: card?.tripDateRange,
@@ -225,7 +225,7 @@ export function GraphDetailSheet({
     card?.alignmentSteps?.find((s) => /leave/i.test(s.primary))?.primary || "";
   const travelTruth =
     card?.alignmentSteps?.find((s) => /min|drive|from you/i.test(s.secondary))?.secondary || "";
-  const leaveByDisplay = leaveTruth ? leaveTruth.replace(/^Leave\s*~?\s*/i, "") || "6:55 PM" : "";
+  const leaveByDisplay = leaveTruth ? leaveTruth.replace(/^Leave\s*~?\s*/i, "") : "";
   const whenLineResolved = createdOverlay?.whenLine || (!createdPlan ? chrome?.whenLine : null) || whenLine;
   const stateLine = createdOverlay?.signalLine || (!createdPlan ? chrome?.signalLine : null);
 
@@ -365,6 +365,21 @@ export function GraphDetailSheet({
           <p className="graph-exec-line" data-testid="graph-detail-who">
             {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}
           </p>
+          {/* Repair #18: attendance renders ONLY from the backend contract
+              fields on the projection - absent contract, no count. */}
+          {typeof canonical.goingCount === "number" &&
+          typeof canonical.totalCount === "number" ? (
+            <p
+              className="graph-exec-line"
+              data-testid="graph-detail-attendance"
+              data-viewer-state={canonical.viewerState || undefined}
+            >
+              {canonical.goingCount} of {canonical.totalCount} going
+              {conflictLineFromContract({ conflict: canonical.conflict })
+                ? ` - ${conflictLineFromContract({ conflict: canonical.conflict })}`
+                : ""}
+            </p>
+          ) : null}
           {leadName ? (
             <p
               className="graph-exec-line graph-detail-lead"
@@ -538,6 +553,7 @@ export function GraphDetailSheet({
       data-graph-id={cardId}
       data-entry-source={entrySource}
       data-lineage-card={cardId}
+      data-plan-state={fixturePlanState}
       data-duplicate-projection="0"
       role="dialog"
       aria-modal="true"
@@ -568,7 +584,11 @@ export function GraphDetailSheet({
         <h1 className="social-dest-title" data-testid="graph-detail-title">
           {placeTitle || "Graph"}
         </h1>
-        <span className="graph-ready-pill" data-testid="graph-ready-status">
+        <span
+          className={`graph-ready-pill graphs-status-${fixturePlanState}`}
+          data-testid="graph-ready-status"
+          data-plan-state={fixturePlanState}
+        >
           {statusLabel}
         </span>
       </div>
@@ -598,23 +618,33 @@ export function GraphDetailSheet({
       (!createdPlan &&
         (/juniper/i.test(placeTitle) || cardId === "seed-chanelle-juniper")) ? (
         <>
+          {/* Repair #18 (F18-01): this fixture branch carries no attendance
+              contract and no real participant rows, so the panel is handed
+              neither counts nor a roster - it renders no count and no
+              roster here rather than the old fixture count of 4 of 4.
+              Attendance renders only in the canonical branch above, from
+              the contract fields on the projection. */}
           <GraphConvoyPanel
             graphId={cardId}
             graphName={placeTitle || "Juniper & Ivy"}
-            ledBy={card?.person || "Chanelle"}
-            partySize={4}
-            reservationLabel={`${timeLabel} · Table for 4`}
+            ledBy={leadName || card?.person || undefined}
             onBroadcastArrival={onBroadcastArrival}
             onBroadcastEta={onBroadcastEta}
           />
           <section className="graph-journey-block" data-testid="graph-execution-card">
             <p className="graph-ready-kicker">Leave by</p>
-            <p className="graph-exec-line" data-testid="graph-leave-by">
-              {leaveByDisplay || "6:55 PM"}
-            </p>
-            <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
-              {/min/i.test(travelTruth) ? travelTruth : "9 min away"}
-            </p>
+            {/* Repair #18: no invented leave-by or travel times - a line
+                renders only when the contract carries the value. */}
+            {leaveByDisplay ? (
+              <p className="graph-exec-line" data-testid="graph-leave-by">
+                {leaveByDisplay}
+              </p>
+            ) : null}
+            {/min/i.test(travelTruth) ? (
+              <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+                {travelTruth}
+              </p>
+            ) : null}
             <p className="graph-exec-line" data-testid="graph-provider-truth" data-reservation="not_confirmed">
               {/ready/i.test(tableTruth) ? "Table looks open" : tableTruth}
             </p>
@@ -640,12 +670,16 @@ export function GraphDetailSheet({
       ) : (
         <section className="graph-journey-block" data-testid="graph-execution-card">
           <p className="graph-ready-kicker">Leave by</p>
-          <p className="graph-exec-line" data-testid="graph-leave-by">
-            {leaveByDisplay || "6:55 PM"}
-          </p>
-          <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
-            {/min/i.test(travelTruth) ? travelTruth : "9 min away"}
-          </p>
+          {leaveByDisplay ? (
+            <p className="graph-exec-line" data-testid="graph-leave-by">
+              {leaveByDisplay}
+            </p>
+          ) : null}
+          {/min/i.test(travelTruth) ? (
+            <p className="graph-exec-line" data-testid="graph-travel-estimate" data-traffic-aware="false">
+              {travelTruth}
+            </p>
+          ) : null}
           <button
             type="button"
             className="graph-open-directions"

@@ -42,7 +42,7 @@
     --plan-state-pill-text-on-vivid: #ffffff;
     /* W5 aliases kept for gradual callers */
     --plan-state-confirmed: var(--plan-state-happening);
-    --plan-state-pending: var(--plan-state-ready);
+    --plan-state-pending: var(--plan-state-action); /* Repair #18: pending awaiting the viewer is action (canon) - the old gold mapping contradicted the [data-plan-state] blocks below. */
     --plan-state-idea: var(--plan-state-forming);
   }
 

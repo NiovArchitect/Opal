@@ -9,6 +9,9 @@ import {
   applyStoredAppearanceTheme,
   installAppearanceSystemListener,
 } from "./theme/appearanceTheme";
+/* Repair #18: the layer registry loads FIRST - every other stylesheet
+ * references its --layer-* tokens and defines no z-index values. */
+import "./theme/layerTokens.css";
 import "./styles.css";
 import "./theme/technicolorProduction.css";
 /**

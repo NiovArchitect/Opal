@@ -29,6 +29,9 @@ export type LiveGraphCard = {
   person?: string;
   startsAt?: string | null;
   who?: string[];
+  /** Repair #18 - contract-rendered lines (backend counts/conflict only). */
+  attendanceLabel?: string | null;
+  conflictLabel?: string | null;
 };
 
 export type ComposedGraphCard = {
@@ -40,6 +43,8 @@ export type ComposedGraphCard = {
   person: string;
   who?: string[];
   real: boolean;
+  attendanceLabel?: string | null;
+  conflictLabel?: string | null;
 };
 
 export type GraphsHydrationMode =

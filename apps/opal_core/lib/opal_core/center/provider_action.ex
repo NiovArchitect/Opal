@@ -21,6 +21,7 @@ defmodule OpalCore.Center.ProviderAction do
     destination = attrs[:destination] || attrs["destination"]
     planning = attrs[:planning_snapshot] || attrs["planning_snapshot"] || %{}
     plan_id = attrs[:plan_id] || attrs["plan_id"] || planning["plan_id"]
+
     search_mode =
       attrs[:search_mode] || attrs["search_mode"] || planning["search_mode"] || "discovery"
 
@@ -43,8 +44,9 @@ defmodule OpalCore.Center.ProviderAction do
 
     device_origin? = is_number(origin_lat) and is_number(origin_lon)
 
-    exact? = search_mode in ["exact_entity", "exact"] and is_binary(requested_venue) and
-               String.trim(requested_venue) != ""
+    exact? =
+      search_mode in ["exact_entity", "exact"] and is_binary(requested_venue) and
+        String.trim(requested_venue) != ""
 
     dest_ok? =
       exact? or (is_binary(destination) and String.trim(destination) != "")
@@ -175,7 +177,8 @@ defmodule OpalCore.Center.ProviderAction do
     existing = planning["plan_id"]
 
     cond do
-      is_binary(existing) and existing != "" and match?(%SharedPlan{}, Repo.get(SharedPlan, existing)) ->
+      is_binary(existing) and existing != "" and
+          match?(%SharedPlan{}, Repo.get(SharedPlan, existing)) ->
         {:ok, existing, planning}
 
       true ->
@@ -183,14 +186,20 @@ defmodule OpalCore.Center.ProviderAction do
         dest = planning["destination"] || "somewhere"
         when_s = planning["when"] || planning["when_resolved"] || "soon"
         who_label = format_who_label(who)
-        title = String.trim("Dinner #{when_s}#{if who_label, do: " with #{who_label}", else: ""}")
+        # Repair #18 (Division A, F18-06): no schedule baked into the
+        # title (the day lives in time_label), and the planning context
+        # is passed through as dedupe context (who + when + destination)
+        # so this path stops relying solely on the 15-minute sticky id.
+        title = String.trim("Dinner#{if who_label, do: " with #{who_label}", else: ""}")
 
         case SocialFlow.create_tentative_plan_from_center(user_id, %{
                "title" => title,
                "location" => dest,
                "place" => dest,
                "area" => dest,
-               "time_label" => when_s
+               "time_label" => when_s,
+               "subject_who" => who_label,
+               "decision_id" => planning["opportunity_fingerprint"] || planning["decision_id"]
              }) do
           {:ok, plan, _} ->
             {:ok, plan.id, Map.put(planning, "plan_id", plan.id)}
@@ -403,7 +412,8 @@ defmodule OpalCore.Center.ProviderAction do
     # Repair #11 — exact-entity jobs must resolve via Gateway.resolve_exact_entity,
     # never discovery. The named-venue intent is an exact-entity request; returning
     # discovery substitutes for it is forbidden.
-    exact_query? = mode == "exact_entity" and is_binary(requested) and String.trim(requested) != ""
+    exact_query? =
+      mode == "exact_entity" and is_binary(requested) and String.trim(requested) != ""
 
     result =
       if exact_query? do
@@ -449,7 +459,9 @@ defmodule OpalCore.Center.ProviderAction do
           |> Enum.filter(fn c -> is_binary(c["name"]) and c["name"] != "" end)
           |> then(fn list ->
             # Exact mode: never pad with unrelated alternatives.
-            if result["search_mode"] == "exact_entity", do: Enum.take(list, 1), else: Enum.take(list, 3)
+            if result["search_mode"] == "exact_entity",
+              do: Enum.take(list, 1),
+              else: Enum.take(list, 3)
           end)
 
         finish_ready(job, Map.put(result, "candidates", cands))
@@ -565,7 +577,9 @@ defmodule OpalCore.Center.ProviderAction do
     cands = result["candidates"] || []
     geo = job.search_geography || "there"
     requested = job.request["requested_venue_name"]
-    exact? = result["search_mode"] == "exact_entity" or job.request["search_mode"] == "exact_entity"
+
+    exact? =
+      result["search_mode"] == "exact_entity" or job.request["search_mode"] == "exact_entity"
 
     body =
       cond do
@@ -694,7 +708,12 @@ defmodule OpalCore.Center.ProviderAction do
 
     dist =
       if request["origin_source"] == "device" and is_number(lat) and is_number(lon) do
-        OpalCore.Center.DeviceLocation.distance_label(lat, lon, candidate["lat"], candidate["lon"])
+        OpalCore.Center.DeviceLocation.distance_label(
+          lat,
+          lon,
+          candidate["lat"],
+          candidate["lon"]
+        )
       else
         nil
       end

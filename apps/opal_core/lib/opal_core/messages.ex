@@ -10,6 +10,7 @@ defmodule OpalCore.Messages do
   alias OpalCore.Messaging.{Conversation, ConversationMember, Message}
   alias OpalCore.Repo
   alias OpalCore.Events.Publisher
+
   alias OpalCore.SocialFlow.{
     ConversationAlignment,
     HomeProjection,
@@ -30,15 +31,22 @@ defmodule OpalCore.Messages do
     client_message_id = fetch_attr!(attrs, :client_message_id)
 
     with :ok <- ensure_member(conversation_id, sender_user_id),
-         :ok <- ensure_not_blocked_in_conversation(conversation_id, sender_user_id),
-         :ok <- ensure_message_rate_limit(sender_user_id),
-         :ok <- ensure_spam_throttle(sender_user_id, conversation_id) do
+         :ok <- ensure_not_blocked_in_conversation(conversation_id, sender_user_id) do
+      # Repair #18 (A-center) - idempotency BEFORE the throttles: a client
+      # re-send of a message the server already stored (same
+      # client_message_id) returns the stored row and consumes no rate or
+      # spam budget. Previously the throttles ran first, so a retry after
+      # a throttle rejection could be throttled again on a message that
+      # was already safely stored - the user's words lost silently.
       case get_by_client_id(conversation_id, client_message_id) do
         %Message{} = existing ->
           {:ok, existing, :idempotent}
 
         nil ->
-          insert_message(attrs, conversation_id, sender_user_id, client_message_id)
+          with :ok <- ensure_message_rate_limit(sender_user_id),
+               :ok <- ensure_spam_throttle(sender_user_id, conversation_id) do
+            insert_message(attrs, conversation_id, sender_user_id, client_message_id)
+          end
       end
     end
   end
@@ -55,6 +63,15 @@ defmodule OpalCore.Messages do
   end
 
   # Phase 3.3 — >10 messages to non-contacts in 5 min → throttle.
+  #
+  # Repair #18 (A-center) - the bucket is scoped per conversation, not
+  # per user globally. The global bucket counted a user's ordinary
+  # messages across every thread toward one 10-in-5-minutes cap, so
+  # normal multi-thread use (the founder's walk) throttled a legitimate
+  # first message in a thread he had barely touched. Per conversation,
+  # a normal single send in a fresh thread always passes (count 1 of
+  # 10), while a genuine burst into one non-contact thread still
+  # throttles at the same threshold.
   defp ensure_spam_throttle(user_id, conversation_id) do
     peer_ids =
       from(cm in ConversationMember,
@@ -70,7 +87,9 @@ defmodule OpalCore.Messages do
       end)
 
     if non_contact? do
-      case OpalCore.SocialFlow.RateLimitBucket.hit("spam:#{user_id}", "non_contact_message",
+      case OpalCore.SocialFlow.RateLimitBucket.hit(
+             "spam:#{user_id}:#{conversation_id}",
+             "non_contact_message",
              max: 10,
              window_sec: 300
            ) do
@@ -176,7 +195,10 @@ defmodule OpalCore.Messages do
         "last_read_server_seq" => last_read,
         "unread_count" => unread_count,
         "notifications_muted" => (membership && membership.notifications_muted) || false,
-        "plan_projection" => HomeProjection.from_alignment(plan_alignment, cid, member_count)
+        # Repair #18: viewer-scoped so the card carries viewer_state (the
+        # viewer's own canonical response state) beside the one counter.
+        "plan_projection" =>
+          HomeProjection.from_alignment(plan_alignment, cid, member_count, viewer_id: user_id)
       }
     end)
     |> Enum.sort_by(& &1["updated_at"], :desc)
@@ -455,9 +477,9 @@ defmodule OpalCore.Messages do
   def create_group_conversation(creator_user_id, member_user_ids, opts \\ [])
       when is_binary(creator_user_id) and is_list(member_user_ids) do
     members =
-      ([creator_user_id | member_user_ids]
-       |> Enum.filter(&is_binary/1)
-       |> Enum.uniq())
+      [creator_user_id | member_user_ids]
+      |> Enum.filter(&is_binary/1)
+      |> Enum.uniq()
 
     n = length(members)
 

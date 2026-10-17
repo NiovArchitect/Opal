@@ -11,7 +11,11 @@ defmodule OpalCore.Oracle do
 
   alias OpalCore.Accounts.User
   alias OpalCore.Calendar, as: OpalCalendar
+  alias OpalCore.Center.DeviceLocation
   alias OpalCore.Center.PlanContextPatch
+  alias OpalCore.Center.PlanningContext
+  alias OpalCore.Intelligence.TravelMode
+  alias OpalCore.Intelligence.TravelState
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
@@ -62,6 +66,13 @@ defmodule OpalCore.Oracle do
 
       private_fact_probe?(lower) ->
         :private_fact_probe
+
+      # Repair #18 (A-center) - self-location: "what city am I in?" /
+      # "where am I?" answered from location the product actually holds
+      # (TravelState.current_city, a user-stated city, or a fresh device
+      # fix), never the generic chat deflection.
+      current_location?(lower) ->
+        :current_location
 
       saturday_plans?(lower) ->
         :saturday_plans
@@ -174,6 +185,17 @@ defmodule OpalCore.Oracle do
     )
   end
 
+  # Repair #18 (A-center) - self-location question shapes. "Where am I
+  # supposed to be" is a plans question, not a location question, so the
+  # bare "where am I" shape excludes supposed/going/meant continuations.
+  defp current_location?(lower) do
+    Regex.match?(~r/\bwhat\s+(city|town)\s+am\s+i\b/i, lower) or
+      Regex.match?(~r/\bwhich\s+city\s+am\s+i\b/i, lower) or
+      Regex.match?(~r/\bwhat'?s\s+my\s+(current\s+)?(city|location)\b/i, lower) or
+      Regex.match?(~r/\bmy\s+current\s+(city|location)\b/i, lower) or
+      Regex.match?(~r/\bwhere\s+am\s+i\b(?!\s+(supposed|going|meant|headed))/i, lower)
+  end
+
   defp saturday_plans?(lower) do
     Regex.match?(~r/\b(what\s+am\s+i\s+doing|what'?s\s+on|any\s+plans?)\b.*\bsaturday\b/i, lower) or
       Regex.match?(~r/\bsaturday\b.*\b(plans?|doing|schedule)\b/i, lower)
@@ -261,6 +283,57 @@ defmodule OpalCore.Oracle do
   defp render(:private_fact_probe, _user_id, _text, _ctx) do
     # Never confirm or deny owner-scoped celebration / contact private facts.
     {@private_refuse, ["privacy_boundary"]}
+  end
+
+  # Repair #18 (A-center) - grounded self-location answer. Sources, in
+  # order: the assembled context location slice (TravelState.current_city),
+  # the live TravelState row, then a city the user stated in chat (stored
+  # as a PlanningContext extra). A fresh device fix without a city name
+  # is answered honestly as coords-only. Nothing held at all gets the
+  # honest needs-location answer - never a deflection, never an invented
+  # city.
+  defp render(:current_location, user_id, _text, ctx) do
+    case current_city(user_id, ctx) do
+      {:ok, city, source} ->
+        {"You're in #{city}.", [source]}
+
+      :coords_only ->
+        {"I can see a location shared from your device, but I don't have a city name for it yet. Tell me the city you're in and I'll answer from that.",
+         ["device_location:coords_only"]}
+
+      :none ->
+        {"I don't have your current location yet. Share your location from your device, or tell me the city you're in, and I'll answer from that.",
+         ["location:unknown"]}
+    end
+  end
+
+  defp current_city(user_id, ctx) do
+    ctx_city = get_in_ctx(ctx, [:location, :current_city])
+
+    cond do
+      is_binary(ctx_city) and String.trim(ctx_city) != "" ->
+        {:ok, String.trim(ctx_city), "travel_state:current_city"}
+
+      true ->
+        case TravelMode.active_state(user_id) do
+          %TravelState{current_city: city} when is_binary(city) and city != "" ->
+            {:ok, city, "travel_state:current_city"}
+
+          _ ->
+            stated = PlanningContext.get_for_user(user_id)["stated_city"]
+
+            cond do
+              is_binary(stated) and String.trim(stated) != "" ->
+                {:ok, String.trim(stated), "planning_context:stated_city"}
+
+              true ->
+                case DeviceLocation.get_for_user(user_id) do
+                  {:ok, _coords} -> :coords_only
+                  :none -> :none
+                end
+            end
+        end
+    end
   end
 
   defp render(:saturday_plans, user_id, _text, ctx) do

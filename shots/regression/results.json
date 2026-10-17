@@ -1,0 +1,254 @@
+{
+  "suite": "repair18-founder-regression",
+  "api_base": "http://127.0.0.1:4000",
+  "seed_mode": true,
+  "run_tag": "rmvcz4ykmbk",
+  "at": "2026-10-17T22:35:13.368Z",
+  "results": [
+    {
+      "id": "FR-18-01",
+      "title": "Duplicate forming plans for the same intent; opening a conversation mints a plan",
+      "theme": "duplicates",
+      "class": "A",
+      "surfaces": [
+        "Graphs",
+        "Center",
+        "human threads",
+        "GET /opal/plans"
+      ],
+      "status": "FAIL",
+      "checks": 7,
+      "failures": [
+        {
+          "surface": "human thread open (messages + alignment read)",
+          "message": "opening a conversation must create zero plans (expected 0, got 1)"
+        },
+        {
+          "surface": "POST /opal/plans (dedupe)",
+          "message": "re-creating the same intent must return the existing plan, not a second row (expected \"77517601-5f13-46e1-9855-2552b6ffc72a\", got \"99ca44e2-9df4-42ce-832a-61ba8fcbf322\")"
+        },
+        {
+          "surface": "GET /opal/plans (Graphs read-back)",
+          "message": "the same dinner intent across all creation paths must be exactly one plan; found 3: 2ca362db-352e-4ac0-8269-5c309fc1528c, 99ca44e2-9df4-42ce-832a-61ba8fcbf322, 77517601-5f13-46e1-9855-2552b6ffc72a (expected 1, got 3)"
+        }
+      ],
+      "notes": [],
+      "ms": 9245
+    },
+    {
+      "id": "FR-18-02",
+      "title": "Double-booking never flagged; change with several candidates picks one silently",
+      "theme": "double-booking",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "Graphs",
+        "calendar",
+        "POST /opal/plans",
+        "GET /opal/plans"
+      ],
+      "status": "FAIL",
+      "checks": 9,
+      "failures": [
+        {
+          "surface": "POST /opal/plans response",
+          "message": "creating an overlapping plan must surface a double-booking flag in the create response"
+        },
+        {
+          "surface": "GET /opal/plans (Graphs surface)",
+          "message": "Alpha plan entry must carry the double-booking flag on the listing surface"
+        },
+        {
+          "surface": "GET /opal/plans (Graphs surface)",
+          "message": "Beta plan entry must carry the double-booking flag on the listing surface"
+        }
+      ],
+      "notes": [],
+      "ms": 2316
+    },
+    {
+      "id": "FR-18-03",
+      "title": "Center never actually thought: template deflection, llm_called false, stale entities",
+      "theme": "intelligence",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/conversation",
+        "POST /opal/conversation/messages"
+      ],
+      "status": "FAIL",
+      "checks": 21,
+      "failures": [
+        {
+          "surface": "GET /opal/conversation (stored reply)",
+          "message": "reply to \"what city am I currently in?\" must not be the literal template deflection; got: Tell me more — I can help you plan or check what's coming up."
+        },
+        {
+          "surface": "GET /opal/conversation (stored reply)",
+          "message": "stored reply metadata must record real engagement (llm_called / draft_source); got llm_called=false draft_source=\"template\""
+        },
+        {
+          "surface": "GET /opal/conversation (stored reply)",
+          "message": "stored reply metadata must record real engagement (llm_called / draft_source); got llm_called=false draft_source=\"template\""
+        },
+        {
+          "surface": "GET /opal/conversation (stored reply)",
+          "message": "reply to \"what is two plus two?\" must not be the literal template deflection; got: Tell me more — I can help you plan or check what's coming up."
+        },
+        {
+          "surface": "GET /opal/conversation (stored reply)",
+          "message": "stored reply metadata must record real engagement (llm_called / draft_source); got llm_called=false draft_source=\"template\""
+        },
+        {
+          "surface": "Center reply (no location grant)",
+          "message": "without a location grant the city answer must honestly say location is unknown (or answer from real context); got: Tell me more — I can help you plan or check what's coming up."
+        },
+        {
+          "surface": "Center reply (location grant: San Diego)",
+          "message": "with a San Diego location grant the answer must name San Diego; got: Tell me more — I can help you plan or check what's coming up."
+        },
+        {
+          "surface": "Center reply (location grant: San Diego)",
+          "message": "the granted city answer must not be the template deflection"
+        },
+        {
+          "surface": "Center reply (location grant: Los Angeles)",
+          "message": "with a Los Angeles location grant the answer must name Los Angeles; got: Tell me more — I can help you plan or check what's coming up."
+        },
+        {
+          "surface": "Center reply (location grant: Los Angeles)",
+          "message": "the granted city answer must not be the template deflection"
+        }
+      ],
+      "notes": [],
+      "ms": 4753
+    },
+    {
+      "id": "FR-18-04",
+      "title": "Attendance disagreed with itself: graph 4 of 4, chat 3 of 4, chat never updated",
+      "theme": "attendance",
+      "class": "A",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment",
+        "GET /journeys/:id"
+      ],
+      "status": "FAIL",
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "GET /opal/plans (Graphs)",
+          "message": "before RSVP change: surface output carries no attendance count at all (backend ground truth is 2 of 6)"
+        },
+        {
+          "surface": "GET /conversations plan_projection (Chats list)",
+          "message": "before RSVP change: surface output carries no attendance count at all (backend ground truth is 2 of 6)"
+        },
+        {
+          "surface": "GET /conversations/:id/alignment (thread)",
+          "message": "before RSVP change: surface output carries no attendance count at all (backend ground truth is 2 of 6)"
+        },
+        {
+          "surface": "GET /opal/plans (Graphs)",
+          "message": "after RSVP change: surface output carries no attendance count at all (backend ground truth is 3 of 6)"
+        },
+        {
+          "surface": "GET /conversations plan_projection (Chats list)",
+          "message": "after RSVP change: surface output carries no attendance count at all (backend ground truth is 3 of 6)"
+        },
+        {
+          "surface": "GET /conversations/:id/alignment (thread)",
+          "message": "after RSVP change: surface output carries no attendance count at all (backend ground truth is 3 of 6)"
+        }
+      ],
+      "notes": [
+        "setup via founder graph commitment seed: plan=3b616c53-d43a-46f6-a232-92c6cc77e56d going=2 interested=4"
+      ],
+      "ms": 2449
+    },
+    {
+      "id": "FR-18-05",
+      "title": "Center chat switching went insane: 47 switches, chats blended, one giant thread",
+      "theme": "chat-sessions",
+      "class": "A",
+      "surfaces": [
+        "POST /opal/conversations/:id/switch",
+        "GET /opal/conversations",
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 72,
+      "failures": [],
+      "notes": [],
+      "ms": 6342
+    },
+    {
+      "id": "FR-18-06",
+      "title": "Revision read-back: a confirmed change to 8 PM must read 8 PM on every surface",
+      "theme": "revision",
+      "class": "A",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/messages (signals, chronology)",
+        "GET /calendar/today"
+      ],
+      "status": "FAIL",
+      "checks": 32,
+      "failures": [
+        {
+          "surface": "GET /conversations/:id/alignment (pending state)",
+          "message": "fresh pair: a visible pending change must exist on the thread alignment output; pending keys found: none"
+        },
+        {
+          "surface": "GET /opal/plans (before confirm)",
+          "message": "fresh pair: until the other party confirms, the plan must still read 7:30 PM on the listing; got time_label=\"8:00 PM\""
+        },
+        {
+          "surface": "GET /opal/plans (confirmer, Graphs)",
+          "message": "fresh pair after confirm: confirmer's plan listing must read 8:00 PM; got time_label=undefined"
+        },
+        {
+          "surface": "GET /conversations plan_projection (proposer, Chats list)",
+          "message": "fresh pair after confirm: proposer's chats-list projection must read 8:00 PM"
+        },
+        {
+          "surface": "GET /conversations plan_projection (confirmer, Chats list)",
+          "message": "fresh pair after confirm: confirmer's chats-list projection must read 8:00 PM"
+        },
+        {
+          "surface": "GET /conversations/:id/messages (signals + chronology)",
+          "message": "fresh pair after confirm: thread signals/chronology (the bottom-of-screen copy) must not present 7:30 PM as the plan's current time"
+        },
+        {
+          "surface": "GET /opal/plans (confirmer, Graphs)",
+          "message": "fresh pair after unrelated message: confirmer's plan listing must read 8:00 PM; got time_label=undefined"
+        },
+        {
+          "surface": "GET /conversations plan_projection (proposer, Chats list)",
+          "message": "fresh pair after unrelated message: proposer's chats-list projection must read 8:00 PM"
+        },
+        {
+          "surface": "GET /conversations plan_projection (confirmer, Chats list)",
+          "message": "fresh pair after unrelated message: confirmer's chats-list projection must read 8:00 PM"
+        },
+        {
+          "surface": "GET /conversations/:id/messages (signals + chronology)",
+          "message": "fresh pair after unrelated message: thread signals/chronology (the bottom-of-screen copy) must not present 7:30 PM as the plan's current time"
+        }
+      ],
+      "notes": [
+        "walk pair: plan under test: 9485ab95-80b6-4bde-b27d-470278b99992 (Juniper and Ivy / Thursday 7:30 PM)",
+        "walk pair: proposer's change send was throttled (429) - the throttle variant; flow cannot proceed on this account pair",
+        "re-running the flow on a fresh account pair (seed/throttle isolation)",
+        "fresh pair: plan under test: b4638148-cb5f-46e7-bb4b-548b0db6032c (Meetup / Thursday 7:30 PM)",
+        "fresh pair after confirm: plan does not project into the calendar/today window on this stack; Now strip leg not assertable for a Thursday-labelled plan outside the window",
+        "fresh pair after unrelated message: plan does not project into the calendar/today window on this stack; Now strip leg not assertable for a Thursday-labelled plan outside the window"
+      ],
+      "ms": 7443
+    }
+  ]
+}

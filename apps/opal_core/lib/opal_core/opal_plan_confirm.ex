@@ -32,13 +32,38 @@ defmodule OpalCore.OpalPlanConfirm do
     time_label = when_s
     location = if plan_type == "virtual", do: "Online", else: what
 
+    # Repair #18: pass the decision context through - the resolved
+    # subject id (when the who resolves inside the user's own contacts)
+    # and any decision_id the caller carried - so the Center create can
+    # dedupe and persist the subject instead of dropping both.
+    subject_user_id =
+      case resolve_peer(user_id, who, context) do
+        {:ok, peer_id} -> peer_id
+        _ -> nil
+      end
+
+    decision_id = present(entities[:decision_id] || entities["decision_id"])
+
     # Default: owner-private Center plan. Subject person stays subject only.
     if share? do
       case resolve_peer(user_id, who, context) do
         {:ok, _peer_id} ->
           # Explicit share still creates Center-owned plan first; human projection
           # is a separate authority path (not auto message).
-          create_center_private(user_id, title, location, time_label, what, when_s, who, plan_type, meeting_link, entities)
+          create_center_private(
+            user_id,
+            title,
+            location,
+            time_label,
+            what,
+            when_s,
+            who,
+            plan_type,
+            meeting_link,
+            entities,
+            subject_user_id,
+            decision_id
+          )
 
         {:error, :no_peer} ->
           {:error, :need_who}
@@ -47,11 +72,37 @@ defmodule OpalCore.OpalPlanConfirm do
           {:error, reason}
       end
     else
-      create_center_private(user_id, title, location, time_label, what, when_s, who, plan_type, meeting_link, entities)
+      create_center_private(
+        user_id,
+        title,
+        location,
+        time_label,
+        what,
+        when_s,
+        who,
+        plan_type,
+        meeting_link,
+        entities,
+        subject_user_id,
+        decision_id
+      )
     end
   end
 
-  defp create_center_private(user_id, title, location, time_label, what, when_s, who, plan_type, meeting_link, entities) do
+  defp create_center_private(
+         user_id,
+         title,
+         location,
+         time_label,
+         what,
+         when_s,
+         who,
+         plan_type,
+         meeting_link,
+         entities,
+         subject_user_id,
+         decision_id
+       ) do
     case SocialFlow.create_tentative_plan_from_center(user_id, %{
            "title" => title,
            "place" => location,
@@ -59,7 +110,9 @@ defmodule OpalCore.OpalPlanConfirm do
            "time_label" => time_label || "Open window",
            "plan_type" => plan_type,
            "meeting_link" => meeting_link,
-           "subject_who" => who
+           "subject_who" => who,
+           "subject_user_id" => subject_user_id,
+           "decision_id" => decision_id
          }) do
       {:ok, plan, _participants} ->
         _ = maybe_persist_usual_link(user_id, meeting_link, entities)
@@ -126,7 +179,9 @@ defmodule OpalCore.OpalPlanConfirm do
 
   defp normalize_plan_type(entities) do
     case entities[:plan_type] || entities["plan_type"] do
-      t when t in ["virtual", :virtual] -> "virtual"
+      t when t in ["virtual", :virtual] ->
+        "virtual"
+
       _ ->
         if MeetingLinks.sanitize(entities[:meeting_link] || entities["meeting_link"]),
           do: "virtual",
@@ -243,7 +298,13 @@ defmodule OpalCore.OpalPlanConfirm do
   # to a stranger, and the lookup must not leak user existence.
 
   # Paste W4 Phase 1 — echo user `what` words; never invent Movie/Hurricane titles.
-  defp build_title(what, when_s, who) do
+  # Repair #18 (Division A, F18-06 title hygiene): the schedule is NOT
+  # baked into the title - `when_s` lives in time_label / start_at where
+  # it can move. The old "{what} {when} with {who}" baking froze the
+  # creation-time day into every surface that renders the title, and
+  # fragment variation (same intent, different fragments per turn) is
+  # what minted the duplicate rows.
+  defp build_title(what, _when_s, who) do
     echoed = title_case_user_words(what)
 
     with_who =
@@ -252,8 +313,7 @@ defmodule OpalCore.OpalPlanConfirm do
         _ -> ""
       end
 
-    when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
-    String.trim("#{echoed}#{when_bit}#{with_who}")
+    String.trim("#{echoed}#{with_who}")
   end
 
   defp title_case_user_words(nil), do: "Plans"

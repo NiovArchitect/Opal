@@ -69,11 +69,17 @@ defmodule OpalCore.Intelligence.Executor do
               update_log(bumped, "ok", result, bumped.attempts + 1)
 
             {:error, reason2} ->
-              Logger.error("intelligence.executor.failed decision=#{decision.id} reason=#{inspect(reason2)}")
+              Logger.error(
+                "intelligence.executor.failed decision=#{decision.id} reason=#{inspect(reason2)}"
+              )
+
               update_log(bumped, "failed", %{"error" => inspect(reason2)}, bumped.attempts + 1)
           end
         else
-          Logger.error("intelligence.executor.failed decision=#{decision.id} reason=#{inspect(reason)}")
+          Logger.error(
+            "intelligence.executor.failed decision=#{decision.id} reason=#{inspect(reason)}"
+          )
+
           update_log(log, "failed", %{"error" => inspect(reason)}, log.attempts + 1)
         end
     end
@@ -118,7 +124,8 @@ defmodule OpalCore.Intelligence.Executor do
     message = d.payload["message"]
 
     cond do
-      action == "respond.thread" and is_binary(conversation_id) and is_binary(message) and message != "" ->
+      action == "respond.thread" and is_binary(conversation_id) and is_binary(message) and
+          message != "" ->
         post_opal_message(conversation_id, message, d.id)
 
       true ->
@@ -262,54 +269,126 @@ defmodule OpalCore.Intelligence.Executor do
         {:ok, Map.put(base, "note", "no new #{kind} extracted; no state changed")}
 
       true ->
-        case active_plan(conversation_id) do
-          nil ->
+        case schedule_target(d, conversation_id, user_id) do
+          {:ambiguous, candidates} ->
+            # Repair #18 (Division A, F18-03): with 2+ live candidates
+            # the change asks which one - explicitly, with the list -
+            # and writes nothing.
+            names =
+              Enum.map_join(candidates, ", ", fn c ->
+                "#{c["title"]} (#{c["time_label"] || "no time set"})"
+              end)
+
+            notify(
+              conversation_id,
+              d.id,
+              "Which plan did you mean: #{names}? Nothing was changed yet.",
+              Map.merge(base, %{
+                "ambiguous" => true,
+                "candidates" => candidates,
+                "no_state_change" => true
+              })
+            )
+
+          {:ok, plan} ->
+            run_schedule_change_on_plan(
+              d,
+              kind,
+              new_value,
+              change_fn,
+              plan,
+              conversation_id,
+              user_id,
+              base
+            )
+
+          :no_plan ->
             notify(
               conversation_id,
               d.id,
               "There's no active plan in this conversation to change.",
               Map.put(base, "no_active_plan", true)
             )
-
-          plan ->
-            case change_fn.(%{
-                   plan_id: plan.id,
-                   user_id: user_id,
-                   new_value: new_value,
-                   trace_id: d.id
-                 }) do
-              {:ok, %{plan: _updated}} ->
-                notify(
-                  conversation_id,
-                  d.id,
-                  "Done — moved to #{new_value}.",
-                  Map.merge(base, %{"plan_id" => plan.id, "changed" => true, "new_value" => new_value})
-                )
-
-              # Repair #17 (W4-1) — a non-lead participant cannot edit the
-              # plan directly, but their change request is not a dead end:
-              # it becomes a real revision proposal through the same
-              # machinery apply_nl_schedule_change/1 uses, and the copy
-              # states the truth — proposed, other party notified, awaiting
-              # THEIR confirmation; the plan has NOT moved yet. The old path
-              # stopped at :not_authorized, so the founder's "confirm 8 PM"
-              # later found nothing pending and nothing ever changed.
-              {:error, :not_authorized} when kind == "time" ->
-                propose_time_revision(d, plan, user_id, new_value, conversation_id, base)
-
-              {:error, reason} ->
-                notify(
-                  conversation_id,
-                  d.id,
-                  "I couldn't change the #{kind} (#{human_reason(reason)}). Nothing was changed.",
-                  Map.merge(base, %{"plan_id" => plan.id, "error" => inspect(reason)})
-                )
-            end
         end
     end
   end
 
   defp do_execute(%Decision{action: action}), do: {:error, {:unknown_action, action}}
+
+  # Repair #18: resolve the schedule-change target. The utterance's own
+  # reference (payload plan_ref, else the body) is scored against the
+  # user's active plans via SocialFlow.resolve_plan_candidates/2 - the
+  # Center resolver's discipline. A tie at the top is ambiguous; a
+  # unique named plan wins over the thread's newest plan; no reference
+  # (or a reference matching only the thread plan) keeps the legacy
+  # thread-context target.
+  defp schedule_target(d, conversation_id, user_id) do
+    active = active_plan(conversation_id)
+    ref = d.payload["plan_ref"] || d.payload["body"] || ""
+    words = OpalCore.SocialFlow.plan_ref_words(to_string(ref))
+
+    candidates =
+      if words == [], do: [], else: OpalCore.SocialFlow.resolve_plan_candidates(user_id, words)
+
+    case candidates do
+      [] ->
+        if active, do: {:ok, active}, else: :no_plan
+
+      [%{"score" => top} | _] = all ->
+        tied = Enum.filter(all, &(&1["score"] == top))
+
+        cond do
+          length(tied) > 1 ->
+            {:ambiguous, Enum.take(tied, 5)}
+
+          active && hd(tied)["plan_id"] == active.id ->
+            {:ok, active}
+
+          true ->
+            case OpalCore.Repo.get(OpalCore.SocialFlow.SharedPlan, hd(tied)["plan_id"]) do
+              %OpalCore.SocialFlow.SharedPlan{} = plan -> {:ok, plan}
+              nil -> if active, do: {:ok, active}, else: :no_plan
+            end
+        end
+    end
+  end
+
+  defp run_schedule_change_on_plan(
+         d,
+         kind,
+         new_value,
+         change_fn,
+         plan,
+         conversation_id,
+         user_id,
+         base
+       ) do
+    case change_fn.(%{
+           plan_id: plan.id,
+           user_id: user_id,
+           new_value: new_value,
+           trace_id: d.id
+         }) do
+      {:ok, %{plan: _updated}} ->
+        notify(
+          conversation_id,
+          d.id,
+          "Done — moved to #{new_value}.",
+          Map.merge(base, %{"plan_id" => plan.id, "changed" => true, "new_value" => new_value})
+        )
+
+      {:error, :not_authorized} when kind == "time" ->
+        propose_time_revision(d, plan, user_id, new_value, conversation_id, base)
+
+      {:error, reason} ->
+        notify(
+          conversation_id,
+          d.id,
+          "I couldn't change the #{kind} (#{human_reason(reason)}). Nothing was changed.",
+          Map.merge(base, %{"plan_id" => plan.id, "error" => inspect(reason)})
+        )
+    end
+  end
 
   # Repair #17 (W4-1) — non-lead time change → revision proposal + truthful
   # proposing copy. Never claims the change is done; the current time stays
@@ -501,7 +580,9 @@ defmodule OpalCore.Intelligence.Executor do
   defp proposal_phrasing?(body) when is_binary(body), do: Regex.match?(@proposal_cancel_re, body)
   defp proposal_phrasing?(_), do: false
 
-  defp whole_plan_phrasing?(body) when is_binary(body), do: Regex.match?(@whole_plan_cancel_re, body)
+  defp whole_plan_phrasing?(body) when is_binary(body),
+    do: Regex.match?(@whole_plan_cancel_re, body)
+
   defp whole_plan_phrasing?(_), do: false
 
   defp reject_phrasing?(body) when is_binary(body), do: Regex.match?(@reject_re, body)
@@ -551,7 +632,9 @@ defmodule OpalCore.Intelligence.Executor do
         {:ok, Map.merge(meta, posted)}
 
       {:error, reason} ->
-        Logger.warning("intelligence.notify_failed decision=#{decision_id} reason=#{inspect(reason)}")
+        Logger.warning(
+          "intelligence.notify_failed decision=#{decision_id} reason=#{inspect(reason)}"
+        )
 
         {:ok,
          Map.merge(meta, %{

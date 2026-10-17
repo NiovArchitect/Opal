@@ -31,7 +31,10 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeedTest do
     assert payload["production_fixture_leak"] == false
     assert payload["parallel_shared_plan"] == false
     assert payload["shared_plan_duplicated"] == false
-    assert payload["viewer_response_state"] in ~w(tentative proposed)
+    # Repair #18: canonical vocabulary - interested is "pending" now.
+    assert payload["viewer_response_state"] == "pending"
+    assert payload["viewer_state"] == "pending"
+    assert payload["total_count"] == 6
     assert payload["going_count"] == 2
     assert payload["interested_count"] == 4
     assert payload["participation_phase"] == "lock_in"

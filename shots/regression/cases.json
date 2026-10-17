@@ -1,0 +1,1001 @@
+{
+  "generated_from": "coordination/repair18/regression-catalog.md",
+  "count": 82,
+  "cases": [
+    {
+      "id": "FR-05-01",
+      "title": "Center send leaked into a human chat; Center plan bounced him into Chats",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "Graphs"
+      ],
+      "class": "A - PROMOTE",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-01",
+      "title": "Messages appeared, moved, then vanished after leaving and re-entering a thread; Opal suggestions vanished too (F01, F02)",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Human threads (Chanelle",
+        "Maya)",
+        "seed mode"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-01",
+      "title": "Center painted \"Done. X is on your Graph.\" replies that were fabricated, even when the send failed (F17-01 second responder)",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-01",
+      "title": "Fixture rows painted as if real: \"Sadeil + 3 are here\", \"Maya is on the way - 8 min\", sample ideas, hollow error states, seed banner missing on some shells (F12-12, F12-57, F12-09, F17 filed-open Home fixtures, F14-17)",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Home",
+        "Chats list",
+        "Graphs",
+        "Calls",
+        "Trip canvas",
+        "all early-return shells"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-13-01",
+      "title": "Fake success on dead plans: proposing or accepting a change on a cancelled/completed plan \"worked\"; accepting an old superseded revision silently rolled the plan back (F13-01, F13-02, F12-62)",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Human thread",
+        "Center",
+        "signal cards"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-15-01",
+      "title": "Story share announced \"shared\" before the backend answered; \"Post\" never persisted at all - it wrote to state nobody read (F15-05, F15-08)",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Home Post flow",
+        "story composer",
+        "Home feed"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-02",
+      "title": "Opal claimed things that never happened: free-floating \"Locked in!\", reminders it cannot set, bookings it never made (F14-03 stale-claim contract, F13-12, F13-04 fictional Graph confirm destination)",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "surfaces": [
+        "Center",
+        "human threads"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-03",
+      "title": "\"Cancel\" behaved like a sentiment, not a state change; no authority check, no participant handling (F04)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Human thread",
+        "Graphs",
+        "Timeline"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-04",
+      "title": "Confirming repeatedly dead-ended; the plan never advanced and the UI kept asking (F05, H2)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Human thread",
+        "Center",
+        "signal cards"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-02",
+      "title": "\"Change dinner to 8 PM\" produced copy but the plan never moved - or moved, then reverted to Thursday 7:30 on other surfaces (F12-02, F12-02c, F12-13, R6 time-correction dead, F17-07, F18-02)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Human thread",
+        "Center",
+        "Next Together strip",
+        "Graphs",
+        "Timeline",
+        "calendar"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-02",
+      "title": "Change-time phrasing failed silently: verb not immediately followed by the clock matched nothing; \"8pm\" normalized to \"8: PM\" (F17-07 sub-defects)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Human thread",
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-13-02",
+      "title": "\"Cancel the dinner plan\" and \"cancel all plans\" started a creation flow; \"move dinner to Saturday\" dead-ended (F13-05, F13-08)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center",
+        "human thread"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-14-01",
+      "title": "\"Any upcoming plans?\" created a plan instead of answering (F14-02; noted unfixed in R13)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-03",
+      "title": "A days-old or cancelled plan_id in context hijacked unrelated utterances (F12-13, F12-53)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center",
+        "human thread"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-04",
+      "title": "A change proposal sat at \"Waiting on one response.\" forever (F12-58; R11 W4 expiry partial)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "proposal history"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-05",
+      "title": "Double-accept / repeated opportunity taps created two plans or re-formed a pending plan (R11 W3, R6 re-walk \"repeated opportunity taps\")",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "Graphs"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-18-01",
+      "title": "Eight duplicate forming plans for the same intent; merely opening a conversation minted a plan (F18-06)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Graphs",
+        "Center",
+        "human threads"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-18-02",
+      "title": "Double-booking was never flagged; \"change dinner to 8 PM\" with several candidate plans picked one silently (F18-03)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "Graphs",
+        "calendar"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-05",
+      "title": "Garbage or invented schedules persisted: labels with no time signal stored verbatim; \"Saturday after 10\" invented PM; parse defaults invented (F12-54, F12-49, F13-06)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "plan cards"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-06-01",
+      "title": "Plan leadership was invisible - nobody could tell who leads or controls a plan (R6 re-walk; R11 Layer D; FL-R6-PASS non-organizer protection)",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "surfaces": [
+        "Journey / graph detail",
+        "human thread"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-06-02",
+      "title": "A generic Friday dinner inherited Maya; a birthday inherited Coronado and Night Hawk (R6 re-walk, FL-R8-01, R5 stale-WHO)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-08-01",
+      "title": "An explicit time was softened: \"The Henry, Sunday 10 AM\" became 7:30 (FL-R8-02)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-10-01",
+      "title": "Center kept re-engaging an old person/topic after he changed subject: \"Remind me what Opal can do\" got a Maya nudge; direct questions got \"You mentioned X earlier\" (F06, FL-R10-01, F13-10, F17-08 partial)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-03",
+      "title": "Opal asked \"food, outdoors, or nightlife?\", he typed \"Food\", and it lost continuity and re-engaged Maya (F17-08)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-04",
+      "title": "A bare \"yes\" resurrected a dead flow: \"Done. Nighthawk with Maya is set up\" when he never asked (F17-09; also R5 double \"set this up?\", F13-07 \"yes\" twice made two plans)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-05",
+      "title": "A NEW request was answered as an update: \"Schedule a date night with Chanelle tonight 5 PM\" got \"Updated - tonight 5 PM. Same plan, same people.\" and no completion (F17-10)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-09-01",
+      "title": "A stuck search captured the thread: Chanelle messages triggered venue searches; \"cancel the search\" was ignored; stale results painted after New Chat (FL-R9-01, FL-R9-04, FL-R9-05, FL-R8-03)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-09-02",
+      "title": "Recall answered the wrong topic: a Maya/birthday question got the sticky Henry venue (FL-R9-08; F14-12 Maya-trigger recall)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-13-03",
+      "title": "\"Who's coming?\" and \"Where is dinner?\" dead-ended at \"Tell me more\" (F13-11; F12-04a \"where is The Henry\" incoherence; F12-31 birthday copy claimed a private thread)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-18-03",
+      "title": "Center never actually thought: \"what city am I currently in?\" got a template deflection, both replies were stored templates with llm_called false, and stale entities (who=Maya, what=Nighthawk) hijacked the parse (F18-08)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-06",
+      "title": "Extraction invented people and places: \"The Henry in Coronado on Sunday at 10 AM\" surfaced Henry, Coronado and \"AM\" as people; \"Los Angeles\" truncated to \"Los\"; the same search job ran twice on case variants (F12-30, F12-40, F12-42, F12-43)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-07",
+      "title": "Plans created in Center were invisible in Graphs, Timeline and the peer's chat (F12-06, F12-07)",
+      "theme": "Center routing, sticky context, continuity",
+      "surfaces": [
+        "Center",
+        "Graphs",
+        "Timeline",
+        "human thread"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-07-01",
+      "title": "\"Find Nighthawk in Coronado\" returned Crown Bistro / Night & Day Cafe / Clayton's - anything but the real Night Hawk, 1315 Orange Ave (R6 re-walk, FL-R7-001, F12-03)",
+      "theme": "Venue search and provider honesty",
+      "surfaces": [
+        "Center",
+        "plan detail"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-07-02",
+      "title": "\"Find three Mediterranean restaurants\" returned the same exact-venue leftovers and invented a day: \"Got it - Friday night in Coronado\", \"dinner Friday Friday\" (FL-R7-002, FL-R7-007, FL-R7-008, FL-R10-05)",
+      "theme": "Venue search and provider honesty",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-06",
+      "title": "\"Dave & Busters near me\" was blocked because the name was not perfect and no locality was given (F17-11)",
+      "theme": "Venue search and provider honesty",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-10-02",
+      "title": "Unresolved venues: The Henry Geoapify lookup never resolved - the product must stay honest, keep the requested identity, and never fabricate a match (FL-R10-04, FL-R9-03 partial, F15-11 generic place-lock)",
+      "theme": "Venue search and provider honesty",
+      "surfaces": [
+        "Center",
+        "plan detail"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-08",
+      "title": "\"Near me\" never worked: no coords left the client, GPS coords 422'd or were silently dropped on write, and a hardcoded travel_minutes: 18 was persisted as if computed (F07, FL-R10-06, F12-11 a-f, F12-41, F12-63)",
+      "theme": "Location",
+      "surfaces": [
+        "Center",
+        "mobile conversation screen",
+        "web location sheet"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-09",
+      "title": "\"Three things near me\" without permission must ask honestly; with coords it must actually search (F07 residual, F12-11d, F12-11e)",
+      "theme": "Location",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-18-04",
+      "title": "Attendance disagreed with itself: graph said 4 of 4 going, chat said 3 of 4, and the chat never updated (F18-01)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Graphs detail",
+        "Chats list pill",
+        "thread header",
+        "thread"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-07",
+      "title": "\"All the colors are the same\" and the chat-log color did not change when the status changed inside the thread (F17-05, walk item 4; re-found as F18-07)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Chats list",
+        "thread",
+        "Graphs",
+        "thread filament",
+        "graph detail pill"
+      ],
+      "class": "A+P",
+      "automatable": true,
+      "phone_checklist": "also"
+    },
+    {
+      "id": "FR-12-10",
+      "title": "The Next Together strip kept showing 7:30 after the plan moved to 8:00, rendered duplicates, and the Center Now card showed a time with no who and no where (F12-08, F12-32, F18-09)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Next Together strip",
+        "thread",
+        "Center Now strip"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-08",
+      "title": "The Center header strip showed fixture times \"3:30 / 7:30\" instead of his real day (F17-12, walk item 13)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Center Now strip"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-07-03",
+      "title": "Chat - plan - Back landed on Graphs instead of back in the chat (FL-R7-004)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Human thread",
+        "graph detail"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-07-04",
+      "title": "New messages appeared above older ones in a human thread (FL-R7-005)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Human threads"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-06",
+      "title": "Plan signals never arrived: proposal and revision broadcasts were dropped by the channel filter for every user (R11 H1); broadcasts could also fire before commit, painting ghost plans (R11 W2)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Human threads",
+        "signal cards"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-11",
+      "title": "\"Schedule date night\" stalled after creation: no calendar entry, no restaurant proposal, no next steps; chat-born plans got none of it either (F12-05, F16-11)",
+      "theme": "Cross-surface consistency and projections",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "calendar",
+        "Home coming-up"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-05-02",
+      "title": "Keyboard sat wrong: huge gap above the keyboard, dock stole space, composer under the dock mark (R5 board; R10 phone checklist; Reality Repair KEYBOARD_SAFE = PARTIAL)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Center",
+        "human thread composer",
+        "native WKWebView shell"
+      ],
+      "class": "P - physical iPhone keyboard/OS geometry is device-only; automated geometry pre-check required before the phone run",
+      "automatable": false,
+      "phone_checklist": "only"
+    },
+    {
+      "id": "FR-07-05",
+      "title": "Multiline text escaped the composer shell (FL-R7-003, R6 re-walk)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Center composer",
+        "native host"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-09-03",
+      "title": "Scroll misbehaved three ways: forced to bottom on every update; Jump-to-latest clicked and snapped back to the top; late send timers re-pinned after reading history (FL-R9-06, FL-R10-02, FL-R10-03)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Center thread"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-08-02",
+      "title": "Things rendered behind other things: graph detail painted under chat chrome; the story composer sat behind the whole social screen; the Next Together card rendered over / behind thread content (FL-R8-07, F17-03, F17-06c, F18-05)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Graph detail",
+        "Home story composer",
+        "thread"
+      ],
+      "class": "A+P",
+      "automatable": true,
+      "phone_checklist": "also"
+    },
+    {
+      "id": "FR-17-09",
+      "title": "Chat-list pill text hung outside its pill: \"farmers market plus coast\" and \"coast\" outside the pill (F17-04)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Chats list",
+        "Calls list",
+        "Graphs labels"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-10",
+      "title": "The composer had a stray arrow inside it and typed text clashed under the voice button (F17-06 a/b)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Thread and Center composers"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-07",
+      "title": "The \"Confirm\" button overflowed the right edge of the message area on his phone (F03)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Human thread",
+        "phone viewport"
+      ],
+      "class": "P - needs the founder's phone screenshot to identify which candidate defect it is; guessing at CSS is prohibited by the R11 ledger itself",
+      "automatable": false,
+      "phone_checklist": "only"
+    },
+    {
+      "id": "FR-06-03",
+      "title": "Visual artifacts on the plan-detail / graph surface (R6 re-walk FAIL, R11 \"graph visual artifacts remain BLOCKED\")",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Graph detail",
+        "phone"
+      ],
+      "class": "P - original finding is ambiguous (see coordinator-call section); requires a founder screenshot",
+      "automatable": false,
+      "phone_checklist": "only"
+    },
+    {
+      "id": "FR-12-12",
+      "title": "Rendering polish failures he screenshotted: times with no AM/PM, \"What is taking shape\" grammar, blank time lines on dateless plans, word-boundary wrapping breaks (F12-10, F12-01, F12-45, F12-15)",
+      "theme": "Composer, scroll, layering, visual containment",
+      "surfaces": [
+        "Center strip",
+        "shells",
+        "plan cards"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-11",
+      "title": "\"If I wanted to clear the chat with Opal how come it's not clearing - we should have new chats the same way Muse has\" (F17-13; earlier FL-R9-07 no escape from a contaminated thread)",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-18-05",
+      "title": "Center chat switching went insane: 47 conversation switches in one session, chats blended into each other, one giant 135-message thread held everything (F18-08 IA + thrash)",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-08-03",
+      "title": "Center blocked after the first send; double-tapping Send duplicated the message and re-ran the pipeline (FL-R8-04, F13-09)",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "surfaces": [
+        "Center"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-13",
+      "title": "Switching accounts leaked the other account's plans and travel state through globally-keyed local storage; a name lookup could attach a plan to a same-named stranger on another account (F12-51, F12-52, F12-56)",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "surfaces": [
+        "Web client storage",
+        "Center",
+        "plan creation"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-15-02",
+      "title": "His verification code could not be autofilled - iOS never offered it; the code had to be typed by hand (F15-01)",
+      "theme": "Onboarding, OTP, permissions",
+      "surfaces": [
+        "Web fr07 OTP inside the native shell; native OTP screen"
+      ],
+      "class": "P - real carrier SMS + iOS autofill suggestion is device-only; automated attribute/visibility assertions are a required pre-check",
+      "automatable": false,
+      "phone_checklist": "only"
+    },
+    {
+      "id": "FR-16-01",
+      "title": "\"Skip for now\" on phone verification was a dead control for every real user - it only answered \"Phone verification is required\" (F16-05)",
+      "theme": "Onboarding, OTP, permissions",
+      "surfaces": [
+        "Onboarding fr06"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-16-02",
+      "title": "Unreachable onboarding screens (fr08-fr10) duplicated live asks and one promised a photo upload that does not exist; a deleted orphan flow (ActivationFlow) duplicated the real one (F16-06, F16-07)",
+      "theme": "Onboarding, OTP, permissions",
+      "surfaces": [
+        "Onboarding"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-16-03",
+      "title": "PermissionBootstrap forced all three permission decisions before any payoff - Continue was gated on every row (F16-08)",
+      "theme": "Onboarding, OTP, permissions",
+      "surfaces": [
+        "Onboarding permissions"
+      ],
+      "class": "A+P - the real OS permission prompt result is device behavior; the gating/persistence logic is automated",
+      "automatable": true,
+      "phone_checklist": "also"
+    },
+    {
+      "id": "FR-15-03",
+      "title": "Close-circle stories reached NOBODY - the default audience's eligibility was literally author == viewer (F15-02)",
+      "theme": "Stories, posts, graph-create durability",
+      "surfaces": [
+        "Home stories",
+        "story viewer"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-15-04",
+      "title": "Stories broke on real inputs: a string ttl crashed with a 500, a non-positive ttl \"succeeded\" born-expired, real captured media (data: URLs) silently rendered as nothing, captions could not be added (F15-03, F15-04, F15-06, F15-07, F16-17)",
+      "theme": "Stories, posts, graph-create durability",
+      "surfaces": [
+        "Story create",
+        "story viewer",
+        "Home"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-15-05",
+      "title": "Publish accepted ANY media ids - nonexistent ones, and other users' media, whose bytes then served to your audience; empty posts persisted; the form was prefilled with fiction (F15-09, F15-10, F16-03 graph-mode prefill)",
+      "theme": "Stories, posts, graph-create durability",
+      "surfaces": [
+        "Post flow",
+        "Graph create flow",
+        "Home"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-16-04",
+      "title": "Graph-create completions (\"Add to graph\", Repeat, plan-from-chat) vanished on navigation - same write-only-state disease as the Post bug (F16-01, F16-02)",
+      "theme": "Stories, posts, graph-create durability",
+      "surfaces": [
+        "Graph create flow",
+        "Graphs tab"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-18-06",
+      "title": "The story composer was buried - not reachable from the home / social entry point (F18-04)",
+      "theme": "Stories, posts, graph-create durability",
+      "surfaces": [
+        "Home",
+        "social surfaces",
+        "story composer"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-13-04",
+      "title": "Settings lied: the YOU screen showed a fabricated \"1 active session\" and \"No active blocks\"; two whole settings screens were dead (one note, zero controls, unreachable) (F13-13, F13-14; F15-14 connected-sources; F17 walk item 14 hub search + \"last checked\")",
+      "theme": "Settings, profile, proactivity",
+      "surfaces": [
+        "YOU hub and every settings screen"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-16-05",
+      "title": "Profile facts were all-or-nothing at onboarding; the ask-once mechanism existed but could never fire in a real flow (F15-16, F16-10)",
+      "theme": "Settings, profile, proactivity",
+      "surfaces": [
+        "Center (birthday flow)",
+        "celebrations surface"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-16-06",
+      "title": "Proactive machinery was dead or lying: two mechanisms had zero production producers, Home \"recent changes\" was permanently empty, TFT loop kinds never fired, and proactive opt-out silently never saved (F15-12, F16-12, F16-13, F16-14, F16-15, F16-16)",
+      "theme": "Settings, profile, proactivity",
+      "surfaces": [
+        "Home",
+        "PlanCompletion pipeline",
+        "YOU settings"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-14-02",
+      "title": "The product only understood HIS circle and HIS places: person extraction knew only Maya/Jordan/Chanelle/Alex, place extraction only 7 venues (F14-06, F14-07)",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "surfaces": [
+        "Center",
+        "human threads"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-14-03",
+      "title": "New users saw the founder's friends and the founder's copy: a who-picker fabricated 9 people with founder-circle avatars; trip templates, fallbacks and defaults named Chanelle, Maya, Jordan, Juniper & Ivy (F14-08 to F14-12; also F14-15 first-run \"Sadeil\" persona - design-frozen, see coordinator section)",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "surfaces": [
+        "Who picker",
+        "trips canvas",
+        "call surfaces",
+        "Center curate",
+        "onboarding"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-14-04",
+      "title": "Coordination behaved differently (or was untested) across relationship types; family was one flat type (F14-13, F15-15)",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "surfaces": [
+        "All coordination surfaces"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-11-08",
+      "title": "Structural disease behind half the ledger: two authority systems mutated the same plan rows, expiry fields nothing read, LLM output could become state, nil/junk ids crashed public entry points with 500s (R11 W1, W4, W5; F12-59, F12-61, F16-04, F13 gyroscope)",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "surfaces": [
+        "Backend authority",
+        "all plan surfaces"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-14-05",
+      "title": "The founder seed itself was corrupt: transposed stable ids renamed Alex to \"Nina\" and collided on the unique handle (F14-05); seed re-runs also re-fired repeatedly in one session (F18 Mac evidence: 5 seed POSTs in one walk)",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "surfaces": [
+        "Seed provisioning (the walk path itself)"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-12",
+      "title": "Tests themselves failed depending on the time of day - quiet-hours gates read the real wall clock, so the suite went red in the 22:00-08:00 Pacific window (F17-02, walk item 1)",
+      "theme": "Clock, bucketing, misc rendering truth",
+      "surfaces": [
+        "Test suite / notification path"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-12-14",
+      "title": "Dateless plans were bucketed to \"next week\"; a missing graph rendered a hollow sheet; load errors showed raw exception text (F12-47, F12-46, F12-44)",
+      "theme": "Clock, bucketing, misc rendering truth",
+      "surfaces": [
+        "Graphs",
+        "plan buckets",
+        "error states"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-14-06",
+      "title": "Every voice / listen / transcribe path CRASHED on a non-macOS host because an unguarded launchctl call raised instead of returning \"disabled\" (F14-01)",
+      "theme": "Clock, bucketing, misc rendering truth",
+      "surfaces": [
+        "Voice",
+        "calls"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no"
+    },
+    {
+      "id": "FR-17-13",
+      "title": "Splash 1 carried no canon logo text - just a character crop with stray text fragments (F17-14, walk item 16; splash-2 boundary law)",
+      "theme": "Splash, brand, character, TestFlight",
+      "surfaces": [
+        "Splash 1 (both web paths)",
+        "Promise page (splash 2)"
+      ],
+      "class": "A+P - lockup correctness is also a founder visual judgment",
+      "automatable": true,
+      "phone_checklist": "also"
+    },
+    {
+      "id": "FR-17-14",
+      "title": "The Center character read as a static image; presence states could stick on listening/processing forever (F17-15, walk item 15)",
+      "theme": "Splash, brand, character, TestFlight",
+      "surfaces": [
+        "Center character"
+      ],
+      "class": "A+P - \"feels alive\" is a founder visual judgment; state derivation is automated",
+      "automatable": true,
+      "phone_checklist": "also"
+    },
+    {
+      "id": "FR-17-15",
+      "title": "TestFlight was blocked repo-side: expo-notifications undeclared, no testflight profile (F17-16, walk item 17)",
+      "theme": "Splash, brand, character, TestFlight",
+      "surfaces": [
+        "Mobile build config"
+      ],
+      "class": "A for the repo-side assertions; P for the upload/install/smoke steps - they require the founder's Apple account and physical phone",
+      "automatable": true,
+      "phone_checklist": "no"
+    }
+  ]
+}

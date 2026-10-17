@@ -24,6 +24,10 @@ import {
   uploadSocialMomentMedia,
 } from "../api/productClient";
 import {
+  attendanceLineFromContract,
+  conflictLineFromContract,
+} from "./planCardContract";
+import {
   FOUNDER_HOME_FEED,
   FOUNDER_LIVE_FEED,
   FOUNDER_STORIES,
@@ -703,6 +707,9 @@ export type DurablePlanGraphCard = {
   person: string;
   startsAt: string | null;
   who?: string[];
+  /** Repair #18 - contract-rendered lines (backend counts/conflict only). */
+  attendanceLabel?: string | null;
+  conflictLabel?: string | null;
 };
 
 /** Map a SharedPlan contract (GET /opal/plans) to a Graphs live card. */
@@ -727,6 +734,10 @@ export function productionPlanToGraphCard(plan: OpalPlanContract): DurablePlanGr
     person: plan.organizer_name || "",
     startsAt: null,
     who,
+    // Repair #18 - the plan payload IS the contract that carries the
+    // attendance counter and the conflict object; format, never derive.
+    attendanceLabel: attendanceLineFromContract(plan),
+    conflictLabel: conflictLineFromContract(plan),
   };
 }
 

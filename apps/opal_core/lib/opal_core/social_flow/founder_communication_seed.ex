@@ -16,6 +16,7 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   alias OpalCore.Messages
   alias OpalCore.Messaging.{Conversation, ConversationMember}
   alias OpalCore.Repo
+  alias OpalCore.SocialFlow.{JourneyAuthority, PlanParticipant, SharedPlan}
 
   # Stable UUIDs — Jordan/Maya reuse Fixtures synthetic IDs when present in seeds.
   @chanelle_id "f0c4a4e1-1111-4111-8111-c4a4e1100001"
@@ -82,6 +83,7 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
 
     group = ensure_saturday_crew!(viewer_user_id, peers)
     seed_group_messages!(group.conversation_id, peers)
+    juniper_plan = ensure_juniper_plan!(group.conversation_id, group.member_ids, viewer_user_id)
 
     {:ok,
      %{
@@ -100,6 +102,13 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
          "label" => @group_label,
          "member_ids" => group.member_ids,
          "origin" => to_string(group.origin)
+       },
+       "group_plan" => %{
+         "shared_plan_id" => juniper_plan.id,
+         "conversation_id" => group.conversation_id,
+         "going_count" => JourneyAuthority.participation_counts(juniper_plan.id).going,
+         "total_count" => JourneyAuthority.participation_counts(juniper_plan.id).total,
+         "via" => "SharedPlan+PlanParticipant"
        },
        "parallel_chat_owner" => false,
        "via" => "Messages",
@@ -188,7 +197,13 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   end
 
   defp seed_direct_messages!(:sabrina, conversation_id, viewer_id, peer_id) do
-    seed_msg(conversation_id, peer_id, "founder-sabrina-1", "Okay this place just opened two blocks away")
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-sabrina-1",
+      "Okay this place just opened two blocks away"
+    )
+
     seed_msg(conversation_id, viewer_id, "founder-sabrina-2", "Send it")
     seed_msg(conversation_id, peer_id, "founder-sabrina-3", "Sent a photo")
   end
@@ -200,9 +215,113 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   end
 
   defp seed_group_messages!(conversation_id, peers) do
-    seed_msg(conversation_id, peers.maya.id, "founder-group-maya-1", "Table for four at Juniper Saturday?")
+    seed_msg(
+      conversation_id,
+      peers.maya.id,
+      "founder-group-maya-1",
+      "Table for four at Juniper Saturday?"
+    )
+
     seed_msg(conversation_id, peers.jordan.id, "founder-group-jordan-1", "I can make 7:30")
     seed_msg(conversation_id, peers.chanelle.id, "founder-group-chanelle-1", "I'm in.")
+  end
+
+  # Repair #18 (Division A): the Juniper crew scenario gets REAL plan rows.
+  # Before this, the seed wrote attendance talk ("Table for four", "I can
+  # make 7:30", "I'm in.") with no SharedPlan and no PlanParticipant rows,
+  # so every surface invented its own going number (walk evidence: ZERO
+  # participant rows DB-wide). The three attendance messages are the RSVP
+  # evidence; the group creator (viewer) convened the crew, so all four
+  # members materialize as accepted participants of one agreed plan.
+  # Idempotent: an existing active plan is reused and only MISSING
+  # participant rows are inserted - an existing RSVP is never rewritten.
+  defp ensure_juniper_plan!(conversation_id, member_ids, viewer_user_id) do
+    plan =
+      case from(p in SharedPlan,
+             where:
+               p.conversation_id == ^conversation_id and
+                 p.status in ^~w(tentative agreed changed),
+             order_by: [desc: p.updated_at, desc: p.inserted_at],
+             limit: 1
+           )
+           |> Repo.one() do
+        %SharedPlan{} = existing ->
+          existing
+
+        nil ->
+          {:ok, created} =
+            %SharedPlan{}
+            |> SharedPlan.changeset(%{
+              conversation_id: conversation_id,
+              title: "Meetup",
+              status: "agreed",
+              location: "Juniper",
+              time_label: "Saturday · 7:30 PM",
+              timezone: "America/Los_Angeles",
+              created_by_user_id: viewer_user_id,
+              source: "conversation",
+              alignment: juniper_alignment(member_ids)
+            })
+            |> Repo.insert()
+
+          # The fold reads lineage_id as the plan id; stamp it now that
+          # the row exists so projections resolve this plan directly.
+          {:ok, stamped} =
+            created
+            |> SharedPlan.changeset(%{
+              alignment: Map.put(created.alignment, "lineage_id", created.id)
+            })
+            |> Repo.update()
+
+          stamped
+      end
+
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    for uid <- Enum.uniq(member_ids), is_binary(uid) do
+      case Repo.get_by(PlanParticipant, plan_id: plan.id, user_id: uid) do
+        %PlanParticipant{} ->
+          :ok
+
+        nil ->
+          %PlanParticipant{}
+          |> PlanParticipant.changeset(%{
+            plan_id: plan.id,
+            user_id: uid,
+            role: if(uid == viewer_user_id, do: "lead", else: "participant"),
+            response_state: "accepted",
+            responded_at: now,
+            authority_source: "founder_communication_seed"
+          })
+          |> Repo.insert!()
+      end
+    end
+
+    plan
+  end
+
+  # Alignment in the fold's field shape, grounded in the seeded messages:
+  # Maya's Juniper/Saturday proposal, Jordan's 7:30, Chanelle's "I'm in."
+  defp juniper_alignment(member_ids) do
+    locked = fn value ->
+      %{"state" => "locked", "value" => value, "truth" => "locked", "explicit" => true}
+    end
+
+    %{
+      "schema_version" => 1,
+      "participants" => locked.(member_ids),
+      "activity" => %{
+        "state" => "candidate",
+        "value" => "Dinner",
+        "truth" => "candidate",
+        "explicit" => true
+      },
+      "date" => locked.("Saturday"),
+      "exact_time" => locked.("7:30 PM"),
+      "place" => locked.("Juniper"),
+      "commitment" => "aligned",
+      "plan_version" => 1
+    }
   end
 
   defp seed_msg(conversation_id, sender_user_id, client_message_id, body) do

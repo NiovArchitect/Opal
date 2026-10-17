@@ -132,6 +132,7 @@ import {
   nextPlanKicker,
   nextTogetherEligible,
   pastPlanKicker,
+  planAttendanceLabel,
   planConsequenceLabel,
   planHistory,
   planProjectionSurfaceState,
@@ -141,6 +142,10 @@ import {
   type ParticipantMode,
 } from "./opalUi/nextPlan";
 import { formatPastPlanWhen, parsePlanInstant } from "./opalUi/historyTime";
+import {
+  attendanceLineFromContract,
+  conflictLineFromContract,
+} from "./opalUi/planCardContract";
 import {
   graphPendingStatusLabel,
   shouldShowReservationAuth,
@@ -276,8 +281,8 @@ import {
   type PlanComposerResult,
   type PlanComposerSeed,
 } from "./opalUi/PlanComposer";
-import { TimelineAdjustSheet } from "./opalUi/TimelineAdjustSheet";
-import type { TimelineItem } from "./opalUi/GraphsTemporalTimeline";
+import { TopLayer } from "./opalUi/TopLayer";
+/* Repair #18: TimelineItem was only used by the cut TimelineAdjustSheet. */
 import {
   ownerVisiblePhone,
   readPersonContactMeta,
@@ -820,7 +825,6 @@ export function OpalApp() {
   /** Paste W 2.2 — thread avatar → compact contact surface. */
   const [contactProfileOpen, setContactProfileOpen] = useState(false);
   /** Paste W 3.6 — Graphs timeline Adjust sheet. */
-  const [timelineAdjustItem, setTimelineAdjustItem] = useState<TimelineItem | null>(null);
   /* PASTE_W_ATTACH_OUTSIDE_DISMISS */
   useEffect(() => {
     if (!attachMenuOpen) return;
@@ -3792,7 +3796,9 @@ export function OpalApp() {
     const chat = chats.find(
       (row) => row.planProjection?.lineage_id === planId || row.id === planId,
     );
-    const graph = chat ? canonicalGraphFromChat(chat, session?.display_name || null) : null;
+    const graph = chat
+      ? canonicalGraphFromChat(chat, session?.display_name || null, session?.user_id)
+      : null;
     const returnChatId = entry === "chats" ? activeChatId : null;
     if (activeChatId && entry !== "chats") {
       productRealtime.leaveConversation(activeChatId);
@@ -4225,6 +4231,15 @@ export function OpalApp() {
         ),
     });
     const headerPlanIsPast = headerPlanState === "past" || temporalState === "past";
+    // Repair #18: surfaces that carry a data-plan-state render the ONE
+    // projection derivation (with the viewer id) whenever the projection
+    // exists - never a hand-built or label-derived state.
+    const stripPlanState = activeChat.planProjection
+      ? planProjectionSurfaceState(activeChat.planProjection, session?.user_id)
+      : headerPlanState;
+    const filamentPlanState = activeChat.planProjection
+      ? planProjectionSurfaceState(activeChat.planProjection, session?.user_id)
+      : undefined;
     // PAST_STRAND_FIND_A_TIME_DOMINANT = 0 — past plans do not keep Find a time as primary CTA.
     const strandIsPast =
       headerPlanIsPast ||
@@ -4768,39 +4783,10 @@ export function OpalApp() {
         </div>
         <ConnectionHint state={connectionState} />
 
-        {/* Next / Last together — opens authoritative plan (same as next-plan-strip). */}
-        {!headerPlan && activeChat.signalLabel ? (
-          <button
-            type="button"
-            className="next-together-strip"
-            data-testid="next-together"
-            data-destination="graph-detail"
-            onClick={() => {
-              const planId =
-                chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
-                alignment?.lineage_id ||
-                (activeChat as { planConsequence?: { planId?: string } }).planConsequence?.planId ||
-                (/juniper|crew/i.test(
-                  founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
-                )
-                  ? "seed-chanelle-juniper"
-                  : null);
-              if (planId) {
-                openGraphDetail(String(planId), "chats");
-                return;
-              }
-              // Fallback: scroll to in-thread plan filament when no lineage yet.
-              document
-                .querySelector(
-                  '[data-testid="next-plan-strip"], [data-testid="opal-moment"], .opal-resolution, .thread',
-                )
-                ?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }}
-          >
-            <span className="next-together-kicker">{PRODUCT_COPY.nextTogether}</span>
-            <span className="next-together-line">{activeChat.signalLabel}</span>
-          </button>
-        ) : null}
+        {/* Repair #18 (F18-05): exactly ONE Next Together strip exists -
+            the next-plan strip inside the thread below. The duplicate
+            strip that lived here was display:none in the structured
+            layout (a dead control) and is deleted, not hidden. */}
 
         {/* Signature Shared Reality object (Figma 4:2)  -  domain content, not sample Chanelle. */}
         {primary.kind === "set" ? (
@@ -5030,7 +5016,7 @@ export function OpalApp() {
               className="next-plan-strip"
               data-testid="next-plan-strip"
               data-participant-mode={planMode}
-              data-plan-state={headerPlanState}
+              data-plan-state={stripPlanState}
               data-plan-id={
                 chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
                 alignment?.lineage_id ||
@@ -5077,6 +5063,16 @@ export function OpalApp() {
                   : ""}
                 {headerPlanIsPast ? " · Together" : ""}
               </span>
+              {attendanceLineFromContract(activeChat.planProjection) ? (
+                <span className="next-plan-attendance" data-testid="next-plan-attendance">
+                  {attendanceLineFromContract(activeChat.planProjection)}
+                </span>
+              ) : null}
+              {conflictLineFromContract(activeChat.planProjection) ? (
+                <span className="next-plan-conflict" data-testid="next-plan-conflict">
+                  {conflictLineFromContract(activeChat.planProjection)}
+                </span>
+              ) : null}
             </button>
           ) : null}
           {threadItems.map((item) =>
@@ -5164,14 +5160,10 @@ export function OpalApp() {
                     data-execution-id={m.executionId}
                     data-trip-memories={tripMemories ? "true" : undefined}
                     data-plan-state={
-                      (activeChatId && confirmedTimesByChatId[activeChatId]) ||
-                      /locked|confirmed|✓/i.test(filamentLabel)
-                        ? "locked"
-                        : /waiting|pending/i.test(filamentLabel)
-                          ? "pending"
-                          : /lined this up|forming|idea/i.test(filamentLabel)
-                            ? "forming"
-                            : undefined
+                      // Repair #18: the filament consumes the projection
+                      // state - it NEVER derives state by regex on label
+                      // text (the old locked/pending/forming text match).
+                      filamentPlanState
                     }
                   >
                     {tripMemories ? (
@@ -8787,10 +8779,24 @@ export function OpalApp() {
                         pendingProposalValue: c.planProjection.pending_proposal_value,
                         canonicalStartAt: c.planProjection.canonical_start_at,
                       });
+                      // Repair #18: when the backend attendance contract is
+                      // present, the pill label IS the contract count (plus
+                      // the projection time label and any conflict line) -
+                      // the same numbers every other surface renders.
+                      const attendanceLabel = planAttendanceLabel({
+                        goingCount: c.planProjection.going_count,
+                        totalCount: c.planProjection.total_count,
+                        timeLabel: c.planProjection.when_label,
+                        conflict: c.planProjection.conflict,
+                      });
                       return {
                         state,
-                        label,
+                        label: attendanceLabel || label,
                         planId: c.planProjection.lineage_id || c.id,
+                        // Repair #18 - rendered from the contract fields
+                        // only; the client never counts or compares.
+                        attendanceLabel: attendanceLineFromContract(c.planProjection),
+                        conflictLabel: conflictLineFromContract(c.planProjection),
                         tone: inferPlanPillTone(
                           [label, c.planProjection.place, c.planProjection.when_label]
                             .filter(Boolean)
@@ -9132,6 +9138,7 @@ export function OpalApp() {
         ) : null}
         {opalAmbientOpen ? null : tab === "graphs" ? (
           <GraphsHome
+            onCreateStory={() => setStoryCreateOpen(true)}
             createdPlans={createdPlanSurfaces}
             listError={loadError}
             onRetryList={() => {
@@ -9184,6 +9191,9 @@ export function OpalApp() {
                   person: chat.name || "",
                   startsAt: plan.canonical_start_at || null,
                   who: chat.name ? [chat.name] : undefined,
+                  // Repair #18 - contract lines only, never local math.
+                  attendanceLabel: attendanceLineFromContract(plan),
+                  conflictLabel: conflictLineFromContract(plan),
                 },
               ];
               }),
@@ -9215,7 +9225,6 @@ export function OpalApp() {
                   : "Open Chats to message the group.",
               );
             }}
-            onAdjustTimelineItem={(item) => setTimelineAdjustItem(item)}
             onStartPlanning={(g) => {
               openPlanComposer({
                 id: g.id,
@@ -9238,61 +9247,11 @@ export function OpalApp() {
             onCreateGraph={() => openPlanComposer(null)}
           />
         ) : null}
-        {timelineAdjustItem ? (
-          <TimelineAdjustSheet
-            item={timelineAdjustItem}
-            onClose={() => setTimelineAdjustItem(null)}
-            onSaveTime={(timeLabel) => {
-              setCallsGateNote(
-                timeLabel
-                  ? `Suggested time · ${timeLabel} (others still need to confirm).`
-                  : null,
-              );
-            }}
-            onSaveVenue={(venue) => {
-              setCallsGateNote(
-                venue
-                  ? `Suggested venue · ${venue} (others still need to confirm).`
-                  : null,
-              );
-            }}
-            onAddPeople={() => {
-              setTimelineAdjustItem(null);
-              setActivityOpen(false);
-              setNewCallOpen(false);
-              setSearchInitialMode("People");
-              setSearchContext("add_members");
-              setSearchOpen(true);
-            }}
-            onMessage={() => {
-              const item = timelineAdjustItem;
-              setTimelineAdjustItem(null);
-              const who = item.who.map((w) => w.toLowerCase());
-              const chat =
-                chats.find((c) =>
-                  who.some(
-                    (w) =>
-                      w &&
-                      w !== "you" &&
-                      (c.name || "").toLowerCase().includes(w),
-                  ),
-                ) ||
-                (item.conversationId
-                  ? chats.find((c) => c.id === item.conversationId)
-                  : undefined);
-              if (chat) {
-                void openChat(chat.id);
-                return;
-              }
-              setTab("chats");
-              setCallsGateNote(
-                item.who.length
-                  ? `Find ${item.who.filter((w) => w !== "You").join(", ")} in Chats to message.`
-                  : "Open Chats to message the group.",
-              );
-            }}
-          />
-        ) : null}
+        {/* Repair #18 (BS-1): TimelineAdjustSheet is CUT. Its Save buttons
+            made no API call - they set local state and claimed success.
+            Time and venue changes go through the chat propose/confirm
+            flow; the timeline Adjust action now opens the plan detail
+            (GraphsHome fallback) instead of a fake save sheet. */}
         {opalAmbientOpen ? null : tab === "you" ? (
           <YouPane
             onReplayIntro={() => setShowFirstRun(true)}
@@ -9314,6 +9273,7 @@ export function OpalApp() {
             }}
             onFindPeople={() => setFindPeopleOpen(true)}
             onOpenLives={() => setLivesGoLiveOpen(true)}
+            onCreateStory={() => setStoryCreateOpen(true)}
             onProfileSaved={(user) => {
               setSession((prev) => {
                 if (!prev) return prev;
@@ -9631,6 +9591,7 @@ export function OpalApp() {
       ) : null}
 
       {graphDetailCardId ? (
+        <TopLayer band="sheet">
         <GraphDetailSheet
           cardId={graphDetailCardId}
           reality={canonicalGraph}
@@ -9742,6 +9703,7 @@ export function OpalApp() {
           }}
           /* 618:758 has no Commit/Enter Journey CTA  -  Journey stays a separate surface */
         />
+        </TopLayer>
       ) : null}
 
       {activeJourney ? (
@@ -12214,6 +12176,7 @@ function YouPane({
   onSignOut,
   onFindPeople,
   onOpenLives,
+  onCreateStory,
   onProfileSaved,
   readReceipts,
   messageNotifications,
@@ -12225,6 +12188,9 @@ function YouPane({
   onFindPeople?: () => void;
   /** Founder-seed Lives affordance — opens LivesGoLivePanel without query flag. */
   onOpenLives?: () => void;
+  /** Repair #18: story creation entry from the profile surface - opens the
+   * same TopLayer StoryCreateFlow as Home/social and Graphs. */
+  onCreateStory?: () => void;
   onProfileSaved?: (user: { display_name: string; handle: string }) => void;
   readReceipts?: boolean;
   messageNotifications?: boolean;
@@ -12378,6 +12344,22 @@ function YouPane({
                 <span className="you-hub-row-copy">
                   <strong>Grow Your Circle</strong>
                   <span>Invite people you know - connect your world</span>
+                </span>
+                <span className="you-hub-chevron" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {section.id === "world" && session && onCreateStory && !youSearching ? (
+              <button
+                type="button"
+                className="you-hub-row"
+                data-testid="you-create-story"
+                onClick={onCreateStory}
+              >
+                <span className="you-hub-row-copy">
+                  <strong>Add to story</strong>
+                  <span>Share a temporary story with your people</span>
                 </span>
                 <span className="you-hub-chevron" aria-hidden>
                   ›

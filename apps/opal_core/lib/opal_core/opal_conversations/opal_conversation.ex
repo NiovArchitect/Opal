@@ -16,6 +16,11 @@ defmodule OpalCore.OpalConversations.OpalConversation do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @max_title 120
+
+  @doc "The one title length limit for an Opal conversation."
+  def max_title, do: @max_title
+
   schema "opal_conversations" do
     field :user_id, :binary_id
     field :title, :string
@@ -33,7 +38,7 @@ defmodule OpalCore.OpalConversations.OpalConversation do
     |> validate_required([:user_id])
     |> unique_constraint(:user_id, name: :opal_conversations_active_user_uidx)
     |> update_change(:title, &trim_or_nil/1)
-    |> validate_length(:title, max: 120)
+    |> validate_length(:title, max: @max_title)
   end
 
   @doc "Query for the user's single active (non-archived) Opal session."
@@ -76,7 +81,7 @@ defmodule OpalCore.OpalConversations.OpalConversation do
     |> String.trim()
     |> case do
       "" -> nil
-      t -> String.slice(t, 0, 120)
+      t -> String.slice(t, 0, @max_title)
     end
   end
 

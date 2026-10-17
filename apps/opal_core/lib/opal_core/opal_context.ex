@@ -33,7 +33,7 @@ defmodule OpalCore.OpalContext do
   @fit_activity_cap 6
   @fit_activities ~w(walk run yoga strength outdoors rest)
   @fit_goals ~w(move_more recover stay_active)
-  @context_keys ~w(user taste temporal social message relationships trust_tier financial fit group_tastes conversation_history preferences)a
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial fit group_tastes conversation_history preferences location)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
@@ -78,7 +78,13 @@ defmodule OpalCore.OpalContext do
           group_tastes: GroupTastes.context_slices_for(user_id),
           # Short-term memory — prior Opal Center turns (not the inbound text)
           conversation_history: assemble_conversation_history(user_id),
-          preferences: prefs
+          preferences: prefs,
+          # Repair #18 (A-center) - location the product actually holds,
+          # read fresh on every Center turn: the travel state's current
+          # city and whether a fresh coarse device fix is on file. The
+          # city is only ever what a stored row says - never inferred
+          # from coordinates here.
+          location: assemble_location(user_id)
         }
 
         {:ok, context}
@@ -88,6 +94,48 @@ defmodule OpalCore.OpalContext do
   def assemble(_, _, _), do: {:error, :invalid}
 
   def context_keys, do: @context_keys
+
+  # Repair #18 (A-center) - the Center location slice.
+  #
+  # Contract for the web worker: the client sends coarse device coords via
+  # the existing location ingest (POST /api/v1/product/opal/location,
+  # stored by Center.DeviceLocation as PlanningContext extra
+  # "device_coords" = %{"lat", "lon", "origin_source", "updated_at"}), and
+  # may send a city via the travel ingest (POST /api/v1/product/travel/ingest
+  # with "city" + "timezone", stored on travel_states.current_city). This
+  # slice - and Oracle's :current_location kind - READ those stored rows;
+  # the message payload itself carries no location fields.
+  defp assemble_location(user_id) do
+    alias OpalCore.Center.DeviceLocation
+    alias OpalCore.Intelligence.{TravelMode, TravelState}
+
+    {city, travel_active?} =
+      case TravelMode.active_state(user_id) do
+        %TravelState{current_city: city} when is_binary(city) and city != "" ->
+          {city, true}
+
+        %TravelState{} ->
+          {nil, true}
+
+        _ ->
+          {nil, false}
+      end
+
+    device =
+      case DeviceLocation.get_for_user(user_id) do
+        {:ok, coords} ->
+          %{
+            present: true,
+            origin_source: coords["origin_source"],
+            updated_at: coords["updated_at"]
+          }
+
+        :none ->
+          %{present: false, origin_source: nil, updated_at: nil}
+      end
+
+    %{current_city: city, travel_active: travel_active?, device: device}
+  end
 
   defp assemble_user(%User{} = user, prefs) do
     %{

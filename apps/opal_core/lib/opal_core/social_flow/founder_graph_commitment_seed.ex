@@ -46,7 +46,7 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
 
   @doc """
   Idempotent. Ensures SharedPlan lineage for Home Graph commitment walk.
-  Viewer starts as tentative (interested) so I'm going can accept current user only.
+  Viewer starts as pending (interested) so I'm going can accept current user only.
   Baseline: 2 going · 4 interested (viewer included in interested).
   """
   def ensure!(viewer_user_id, opts \\ []) when is_binary(viewer_user_id) do
@@ -99,13 +99,13 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
       if viewer_user_id in going_ids do
         interested_pool
       else
-        ([viewer_user_id | interested_pool] |> Enum.uniq() |> Enum.take(4))
+        [viewer_user_id | interested_pool] |> Enum.uniq() |> Enum.take(4)
       end
 
     ensure_participants!(plan, jordan.id, going_ids, interested_ids)
 
     me = Repo.get_by(PlanParticipant, plan_id: plan.id, user_id: viewer_user_id)
-    counts = JourneyAuthority.participation_counts(plan.id)
+    counts = JourneyAuthority.participation_counts(plan.id, viewer_user_id)
     eligible? = JourneyAuthority.journey_eligible?(plan)
     commitment? = JourneyAuthority.commitment_phase?(plan)
 
@@ -128,9 +128,14 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
        "time_label" => plan.time_label,
        "lock_in_label" => @lock_in_label,
        "status" => plan.status,
-       "viewer_response_state" => (me && me.response_state) || "proposed",
+       # Repair #18: canonical vocabulary out (accepted / pending /
+       # declined) - the seed no longer speaks "proposed" / "tentative".
+       "viewer_response_state" =>
+         (me && PlanParticipant.canonical_response_state(me.response_state)) || "pending",
+       "viewer_state" => counts.viewer_state,
        "going_count" => counts.going,
        "interested_count" => counts.interested,
+       "total_count" => counts.total,
        "commitment_phase" => commitment?,
        "journey_available" => eligible?,
        "participation_phase" => phase,
@@ -193,7 +198,9 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
 
   defp ensure_member!(conversation_id, user_id) do
     case Repo.get_by(ConversationMember, conversation_id: conversation_id, user_id: user_id) do
-      %ConversationMember{} -> :ok
+      %ConversationMember{} ->
+        :ok
+
       nil ->
         %ConversationMember{}
         |> ConversationMember.changeset(%{conversation_id: conversation_id, user_id: user_id})
@@ -247,7 +254,13 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
     for uid <- going_ids do
-      upsert_participant!(plan.id, uid, "accepted", if(uid == jordan_id, do: "lead", else: "participant"), now)
+      upsert_participant!(
+        plan.id,
+        uid,
+        "accepted",
+        if(uid == jordan_id, do: "lead", else: "participant"),
+        now
+      )
     end
 
     for uid <- interested_ids do
@@ -256,12 +269,12 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
           :ok
 
         %PlanParticipant{} = pp ->
-          if pp.response_state in ~w(proposed tentative) do
+          if PlanParticipant.pending_state?(pp.response_state) do
             :ok
           else
             pp
             |> PlanParticipant.changeset(%{
-              response_state: "tentative",
+              response_state: "pending",
               responded_at: now,
               authority_source: "founder_graph_commitment_seed"
             })
@@ -274,7 +287,7 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
             plan_id: plan.id,
             user_id: uid,
             role: "participant",
-            response_state: "tentative",
+            response_state: "pending",
             responded_at: now,
             authority_source: "founder_graph_commitment_seed"
           })

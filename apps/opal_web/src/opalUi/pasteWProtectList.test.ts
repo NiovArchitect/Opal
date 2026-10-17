@@ -33,8 +33,9 @@ describe("Paste W Phase 6 protect list", () => {
 
   it("6.2 Sabrina Live nearby → Watch live", () => {
     const sabrina = FOUNDER_CHATS_PLAN_PILL_ROWS.find((r) => r.name === "Sabrina");
-    expect(sabrina?.planConsequence?.label).toBe("Live nearby");
-    expect(sabrina?.planConsequence?.tone).toBe("live");
+    // Repair #18: the fixture row no longer carries a literal plan pill -
+    // "Live nearby" can only arrive from a live projection, never a fixture.
+    expect(sabrina?.planConsequence).toBeUndefined();
 
     const app = read("OpalApp.tsx");
     expect(app).toMatch(/Watch live/);

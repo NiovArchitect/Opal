@@ -111,7 +111,10 @@ describe("founder physical closeout", () => {
   it("Story viewer / create sit above product chrome on native", () => {
     const css = read("styles.css");
     expect(css).toMatch(/story-viewer[\s\S]*?z-index:\s*10050/);
-    expect(css).toMatch(/story-create-flow[\s\S]*?z-index:\s*10060/);
+    // Repair #18: story create carries the layer registry flow token -
+    // the native 10060 magic number is retired.
+    expect(css).toMatch(/story-create-flow \{[^}]*z-index: var\(--layer-flow\)/);
+    expect(css).not.toMatch(/z-index:\s*10060/);
   });
 
   it("iOS AppIcon is wired in Expo app.json and asset exists", () => {

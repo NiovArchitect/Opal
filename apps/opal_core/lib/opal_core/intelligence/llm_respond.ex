@@ -3,7 +3,11 @@ defmodule OpalCore.Intelligence.LlmRespond do
   Draft Opal's in-thread reply via LLM. Templates remain the floor.
 
   On disable/API failure returns `{:disabled, _}` / `{:error, _}` so the
-  Reasoner keeps the template message and logs `llm_unavailable_using_templates`.
+  caller keeps the template message. Repair #18 (A-center): the fallback
+  is never silent - `draft_or_template/2` logs a loud
+  `llm_unavailable_using_templates` warning line naming the provider and
+  the reason class (never a key value) whenever the provider is disabled
+  or errors, so a walk log can prove which path produced each reply.
   Never synthesizes fake model text.
   """
 
@@ -70,17 +74,43 @@ defmodule OpalCore.Intelligence.LlmRespond do
         trimmed = String.trim(text)
 
         if trimmed == "" do
+          log_llm_unavailable(:empty_content)
           {template, "template"}
         else
           {trimmed, "llm"}
         end
 
+      {:disabled, reason} ->
+        log_llm_unavailable(reason)
+        {template, "template"}
+
+      {:error, reason} ->
+        log_llm_unavailable(reason)
+        {template, "template"}
+
       _ ->
+        log_llm_unavailable(:unexpected_result)
         {template, "template"}
     end
   end
 
   def draft_or_template(_, _), do: {"", "template"}
+
+  # Repair #18 (A-center) - the loud fallback line. Reason class only:
+  # the readiness reason atom when the provider is disabled, otherwise
+  # the provider error class. Never a key, prompt, or response body.
+  defp log_llm_unavailable(failure) do
+    reason =
+      case LlmAdapter.readiness() do
+        {:disabled, readiness_reason} -> readiness_reason
+        :ready -> failure
+      end
+
+    Logger.warning(
+      "llm_unavailable_using_templates provider=#{LlmAdapter.provider_name()} " <>
+        "reason=#{inspect(reason)} caller=llm_respond.draft_or_template"
+    )
+  end
 
   defp do_generate(ctx, opts) do
     temperature = Keyword.get(opts, :temperature, 0.5)

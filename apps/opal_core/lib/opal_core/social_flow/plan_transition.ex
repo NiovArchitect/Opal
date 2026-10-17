@@ -83,6 +83,12 @@ defmodule OpalCore.SocialFlow.PlanTransition do
     {:plan, "changed", :change} => "changed",
     {:plan, "changed", :cancel} => "cancelled",
     {:plan, "changed", :complete} => "completed",
+    # Repair #18 (Division A, F18-06) - stale tentative plans gain the
+    # gated terminal handling proposals already had: :expire is legal
+    # ONLY from tentative (agreed/changed are commitments and never
+    # auto-expire), and :revive is the stated recovery path back.
+    {:plan, "tentative", :expire} => "expired",
+    {:plan, "expired", :revive} => "tentative",
     # --- proposal ---
     {:proposal, nil, :create} => "visible",
     {:proposal, "proposed", :approve} => "approved_for_coordination",
@@ -106,7 +112,7 @@ defmodule OpalCore.SocialFlow.PlanTransition do
   }
 
   @terminal %{
-    plan: ~w(cancelled completed),
+    plan: ~w(cancelled completed expired),
     proposal: ~w(dismissed expired superseded converted),
     revision: ~w(accepted rejected expired superseded)
   }

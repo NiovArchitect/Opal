@@ -344,6 +344,12 @@ export function OpalCenterLifeGraph({
    * Rest composer, chips, nudges, and mic enter Talk-to-Opal orchestration
    * (OpalConversations → Intent → Response → DeepSeek when ready).
    * Decision Intelligence nearby_now is no longer the free-text brain.
+   *
+   * Repair #18 — a rest entry is a SEED FOR A NEW CHAT, never an
+   * auto-send into whichever chat is active: OpalCenterChat receives
+   * it with seedAsDraft + initialChatIntent="new", creates a fresh
+   * chat, and leaves the seed sitting in that chat's composer. The
+   * user presses Send. The previous chat is untouched.
    */
   function openChatWith(text?: string) {
     const q = (text ?? query).trim();
@@ -585,6 +591,8 @@ export function OpalCenterLifeGraph({
           bearer={bearer}
           userId={userId}
           initialMessage={chatSeed}
+          seedAsDraft
+          initialChatIntent="new"
         />
       ) : (
         <>
@@ -1118,6 +1126,16 @@ export function OpalCenterLifeGraph({
         </p>
       ) : null}
 
+      {phase === "rest" ? (
+        <div
+          className="opal-center-destination-pill"
+          data-testid="center-destination-pill"
+          role="status"
+        >
+          New chat
+        </div>
+      ) : null}
+
       <div className="opal-composer opal-center-v2-composer" data-figma-node="1094:146">
         <button
           type="button"
@@ -1256,6 +1274,14 @@ function LifeGraphStrip({
             <span className="opal-life-graph-dot" aria-hidden />
             <span className="opal-life-graph-time">{n.time}</span>
             <span className="opal-life-graph-label">{n.label}</span>
+            {n.detail ? (
+              <span
+                className="opal-life-graph-detail"
+                data-testid="now-node-detail"
+              >
+                {n.detail}
+              </span>
+            ) : null}
           </div>
         ))}
       </div>

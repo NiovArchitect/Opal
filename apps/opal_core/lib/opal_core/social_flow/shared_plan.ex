@@ -7,7 +7,9 @@ defmodule OpalCore.SocialFlow.SharedPlan do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @statuses ~w(tentative agreed changed cancelled completed)
+  # Repair #18 (Division A): "expired" is the gated terminal status for
+  # stale tentative plans (PlanTransition :expire, tentative only).
+  @statuses ~w(tentative agreed changed cancelled completed expired)
   @sources ~w(conversation trip_leg center)
   @plan_types ~w(in_person virtual)
 
@@ -161,6 +163,14 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "completed_at" => dt(p.completed_at)
     }
 
+    # Repair #18 (Division A): the dedupe identity stamped at creation is
+    # part of the contract so surfaces can group/merge on intent, not id.
+    base =
+      case Map.get(p.alignment || %{}, "dedupe") do
+        %{"key" => key} when is_binary(key) -> Map.put(base, "dedupe_key", key)
+        _ -> base
+      end
+
     # Repair #16 (W1): graph-create plans carry draft fields in alignment
     # (caption / media / audience / join prefs / repeat provenance / who
     # label). Surface them on the canonical contract so the durable record
@@ -216,7 +226,9 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     moment = p.start_at || DateTime.utc_now()
     label = OpalCore.Relationships.Behavior.local_time_label(moment, viewer_tz)
     peer_tz = Keyword.get(opts, :peer_timezone)
-    peer_label = if is_binary(peer_tz), do: OpalCore.Relationships.Behavior.local_time_label(moment, peer_tz)
+
+    peer_label =
+      if is_binary(peer_tz), do: OpalCore.Relationships.Behavior.local_time_label(moment, peer_tz)
 
     local_times =
       %{"viewer" => label}

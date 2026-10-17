@@ -42,6 +42,12 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
         {:plan, "changed", :change, "changed"},
         {:plan, "changed", :cancel, "cancelled"},
         {:plan, "changed", :complete, "completed"},
+        # Repair #18 (Division A, F18-06): stale tentative expiry is a
+        # deliberate gate widening - tentative only (agreed/changed are
+        # commitments and never expire), with :revive as the stated
+        # recovery path from the terminal expired status.
+        {:plan, "tentative", :expire, "expired"},
+        {:plan, "expired", :revive, "tentative"},
         {:proposal, nil, :create, "visible"},
         {:proposal, "proposed", :approve, "approved_for_coordination"},
         {:proposal, "visible", :approve, "approved_for_coordination"},

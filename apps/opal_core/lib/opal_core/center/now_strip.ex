@@ -15,36 +15,51 @@ defmodule OpalCore.Center.NowStrip do
   projection). Events are read from the plan row itself (title) joined
   with its active commitment (start/end), so a reschedule moves the strip
   with the plan. No commitments in the window → an honest empty list.
+
+  Repair #18 (Division A, F18-09): each event also carries who and
+  where, read from the real plan record — participant display names
+  from PlanParticipant rows (falling back to the plan's stored
+  who_label / subject_who for Center plans), and the venue from the
+  plan's location or the commitment's place label (virtual plans read
+  "Online"). The owner is never listed as their own companion; a solo
+  plan's who is an empty list and the surface renders nothing extra.
   """
 
   import Ecto.Query
 
+  alias OpalCore.Accounts.User
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.OpalCalendar.Commitment
+  alias OpalCore.SocialFlow.PlanParticipant
   alias OpalCore.SocialFlow.SharedPlan
 
   @doc """
   Live plan events for `user_id` whose start falls in `[from_at, to_at]`,
   ascending by start. Each event: %{"id", "title", "start_at", "end_at",
-  "source" => "plan", "plan_id"}. Cancelled/completed plans and
-  superseded/cancelled commitments never appear.
+  "source" => "plan", "plan_id", "who" => [display names], "where"}.
+  Cancelled/completed plans and superseded/cancelled commitments never
+  appear.
   """
   def plan_events(user_id, %DateTime{} = from_at, %DateTime{} = to_at)
       when is_binary(user_id) do
-    from(c in Commitment,
-      join: p in SharedPlan,
-      on: p.id == c.shared_plan_id,
-      where:
-        c.owner_user_id == ^user_id and c.status == "active" and
-          is_nil(c.superseded_by_id) and is_nil(c.cancelled_at) and
-          p.status in ^["tentative", "agreed", "changed"] and
-          c.start_at >= ^from_at and c.start_at <= ^to_at,
-      order_by: [asc: c.start_at],
-      limit: 20,
-      select: {c, p}
-    )
-    |> Repo.all()
-    |> Enum.map(fn {%Commitment{} = c, %SharedPlan{} = p} ->
+    rows =
+      from(c in Commitment,
+        join: p in SharedPlan,
+        on: p.id == c.shared_plan_id,
+        where:
+          c.owner_user_id == ^user_id and c.status == "active" and
+            is_nil(c.superseded_by_id) and is_nil(c.cancelled_at) and
+            p.status in ^["tentative", "agreed", "changed"] and
+            c.start_at >= ^from_at and c.start_at <= ^to_at,
+        order_by: [asc: c.start_at],
+        limit: 20,
+        select: {c, p}
+      )
+      |> Repo.all()
+
+    who_by_plan = who_by_plan(rows, user_id)
+
+    Enum.map(rows, fn {%Commitment{} = c, %SharedPlan{} = p} ->
       %{
         "id" => p.id,
         "plan_id" => p.id,
@@ -52,12 +67,77 @@ defmodule OpalCore.Center.NowStrip do
         "start_at" => DateTime.to_iso8601(c.start_at),
         "end_at" => c.end_at && DateTime.to_iso8601(c.end_at),
         "time_label" => p.time_label,
-        "source" => "plan"
+        "source" => "plan",
+        "who" => Map.get(who_by_plan, p.id, []),
+        "where" => plan_where(p, c)
       }
     end)
   end
 
   def plan_events(_, _, _), do: []
+
+  # Participant display names per plan, excluding the strip's owner.
+  # Fallbacks (only when a plan has no participant rows at all): the
+  # stored who_label / subject_who in the plan's alignment - the Center
+  # subject persisted at creation (Repair #18), never an invention.
+  defp who_by_plan(rows, owner_id) do
+    plan_ids = rows |> Enum.map(fn {_c, p} -> p.id end) |> Enum.uniq()
+
+    names_by_plan =
+      from(pp in PlanParticipant,
+        join: u in User,
+        on: u.id == pp.user_id,
+        where: pp.plan_id in ^plan_ids and pp.user_id != ^owner_id,
+        order_by: [asc: pp.inserted_at],
+        select: {pp.plan_id, u.display_name, u.handle}
+      )
+      |> Repo.all()
+      |> Enum.group_by(
+        fn {plan_id, _name, _handle} -> plan_id end,
+        fn {_plan_id, name, handle} -> present_name(name) || present_name(handle) end
+      )
+      |> Map.new(fn {plan_id, names} -> {plan_id, Enum.reject(names, &is_nil/1)} end)
+
+    Map.new(rows, fn {_c, p} ->
+      who =
+        case Map.get(names_by_plan, p.id, []) do
+          [] -> alignment_who(p)
+          names -> names
+        end
+
+      {p.id, who}
+    end)
+  end
+
+  defp alignment_who(%SharedPlan{alignment: alignment}) when is_map(alignment) do
+    cond do
+      is_binary(alignment["who_label"]) and alignment["who_label"] != "" ->
+        [alignment["who_label"]]
+
+      is_binary(alignment["subject_who"]) and alignment["subject_who"] != "" ->
+        [alignment["subject_who"]]
+
+      true ->
+        []
+    end
+  end
+
+  defp alignment_who(_), do: []
+
+  defp plan_where(%SharedPlan{plan_type: "virtual"}, _c), do: "Online"
+
+  defp plan_where(%SharedPlan{location: location}, _c)
+       when is_binary(location) and location != "",
+       do: location
+
+  defp plan_where(_p, %Commitment{place_label: label})
+       when is_binary(label) and label != "",
+       do: label
+
+  defp plan_where(_, _), do: nil
+
+  defp present_name(name) when is_binary(name) and name != "", do: name
+  defp present_name(_), do: nil
 
   defp plan_title(%SharedPlan{title: title}, _c)
        when is_binary(title) and title != "",

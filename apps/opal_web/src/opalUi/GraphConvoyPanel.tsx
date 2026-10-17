@@ -1,31 +1,54 @@
 /**
- * Graph detail — I'm on the way + geometric ETA + convoy.
+ * Graph detail - I'm on the way + geometric ETA + convoy.
  * Location share is opt-in per graph. Broadcast via LiveExperience when wired.
+ *
+ * Repair #18 (F18-01): attendance renders ONLY from the backend contract
+ * counts handed to this panel (goingCount / totalCount, the same fields the
+ * canonical GraphDetailSheet branch renders). This panel never counts a
+ * roster, never defaults to a fixture roster, and never invents a party
+ * size: absent contract counts render no count at all, and absent real
+ * participants render no roster at all (honest absence).
  */
 import React, { useEffect, useMemo, useState } from "react";
 import {
   bestTimeToLeave,
-  buildJuniperConvoyFixture,
-  FOUNDER_ORIGIN_FIXTURE,
   formatClock,
   geometricEta,
-  JUNIPER_VENUE,
-  juniperReservationTonight,
   sortConvoyByArrival,
   youdArrive,
   type ConvoyMember,
   type LatLng,
 } from "./graphConvoyEta";
+import { planAttendanceLabel } from "./nextPlan";
 import type { TravelState } from "./journeyPresence";
 
 type Props = {
   graphId: string;
   graphName: string;
+  /** Real organizer/lead display name when a surface actually carries one. */
   ledBy?: string;
-  partySize?: number;
+  /**
+   * The ONE attendance contract, from the plan projection. Both counts
+   * must be present for a count line to render; otherwise no count.
+   */
+  goingCount?: number | null;
+  totalCount?: number | null;
+  viewerState?: string | null;
+  /**
+   * Real plan participant display names from the contract/projection.
+   * When present (and no travel members are supplied) these are the
+   * roster: names and avatar initials only, no invented travel status.
+   */
+  participants?: string[] | null;
+  /** Reservation copy only when a real surface carries it. */
   reservationLabel?: string;
+  /** Real reservation instant (ISO) for the best-time-to-leave line. */
+  reservationAt?: string | null;
+  /** Real destination coordinates; the ETA section stays off without them. */
   venue?: LatLng;
+  /** Real origin coordinates; the ETA section stays off without them. */
   origin?: LatLng;
+  /** Real travel-presence rows when a caller actually has them. */
   initialMembers?: ConvoyMember[];
   /** Push arrival_state via conversation LiveExperience. */
   onBroadcastArrival?: (state: TravelState) => void | Promise<void>;
@@ -39,11 +62,15 @@ type Props = {
 export function GraphConvoyPanel({
   graphId,
   graphName,
-  ledBy = "Chanelle",
-  partySize = 4,
+  ledBy,
+  goingCount,
+  totalCount,
+  viewerState,
+  participants,
   reservationLabel,
-  venue = JUNIPER_VENUE,
-  origin = FOUNDER_ORIGIN_FIXTURE,
+  reservationAt,
+  venue,
+  origin,
   initialMembers,
   onBroadcastArrival,
   onBroadcastEta,
@@ -52,20 +79,36 @@ export function GraphConvoyPanel({
   const [myState, setMyState] = useState<TravelState>("not_started");
   const [onTheWayAt, setOnTheWayAt] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
-  const [members, setMembers] = useState<ConvoyMember[]>(
-    () => initialMembers || buildJuniperConvoyFixture(),
-  );
+  const [members, setMembers] = useState<ConvoyMember[]>(() => initialMembers || []);
 
-  const reservation = useMemo(() => juniperReservationTonight(now), [now]);
-  const eta = useMemo(() => geometricEta(origin, venue), [origin, venue]);
-  const leaveBy = useMemo(
-    () => bestTimeToLeave(reservation, eta.durationMinutes),
-    [reservation, eta.durationMinutes],
+  // Attendance comes from the contract or nowhere. It is never derived
+  // from the roster below (travel state is not an RSVP).
+  const attendanceLabel = planAttendanceLabel({ goingCount, totalCount });
+  const participantNames = useMemo(
+    () => (participants || []).map((name) => name.trim()).filter(Boolean),
+    [participants],
   );
-  const arriveAt = useMemo(() => youdArrive(now, eta.durationMinutes), [now, eta.durationMinutes]);
-  const goingCount = members.filter((m) => m.travelState !== "left").length;
-  const reservationCopy =
-    reservationLabel || `${formatClock(reservation)} · Table for ${partySize}`;
+  const hasTravelRows = members.length > 0;
+  const rosterNames = hasTravelRows ? members.map((m) => m.displayName) : participantNames;
+
+  const eta = useMemo(
+    () => (venue && origin ? geometricEta(origin, venue) : null),
+    [origin, venue],
+  );
+  const reservation = useMemo(() => {
+    if (!reservationAt) return null;
+    const parsed = new Date(reservationAt);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }, [reservationAt]);
+  const leaveBy = useMemo(
+    () =>
+      reservation && eta ? bestTimeToLeave(reservation, eta.durationMinutes) : null,
+    [reservation, eta],
+  );
+  const arriveAt = useMemo(
+    () => (eta ? youdArrive(now, eta.durationMinutes) : null),
+    [now, eta],
+  );
 
   // Refresh clock / ETA every 2 minutes while en route.
   useEffect(() => {
@@ -78,27 +121,29 @@ export function GraphConvoyPanel({
 
   // Broadcast geometric ETA while sharing + en route.
   useEffect(() => {
-    if (myState !== "on_the_way" || !shareEta) return;
+    if (myState !== "on_the_way" || !shareEta || !eta || !arriveAt) return;
     const label = `Arrives ${formatClock(arriveAt)}`;
     void onBroadcastEta?.({
       arrivalWindowLabel: label,
       durationMinutes: eta.durationMinutes,
     });
-  }, [myState, shareEta, arriveAt, eta.durationMinutes, onBroadcastEta, now]);
+  }, [myState, shareEta, arriveAt, eta, onBroadcastEta, now]);
 
   const convoyRows = useMemo(() => {
+    if (!hasTravelRows) return [];
     const self: ConvoyMember = {
       userId: "self",
       displayName: "You",
       travelState: myState,
       shareMode: shareEta ? "eta" : "none",
-      arrivesAt: myState === "on_the_way" && shareEta ? arriveAt.toISOString() : null,
-      minutesAway: myState === "on_the_way" && shareEta ? eta.durationMinutes : null,
+      arrivesAt:
+        myState === "on_the_way" && shareEta && arriveAt ? arriveAt.toISOString() : null,
+      minutesAway: myState === "on_the_way" && shareEta && eta ? eta.durationMinutes : null,
       arrivedAt: myState === "arrived" ? onTheWayAt : null,
       avatarTone: "#00E5FF",
     };
     return sortConvoyByArrival([...members.filter((m) => m.userId !== "self"), self], now);
-  }, [members, myState, shareEta, arriveAt, eta.durationMinutes, onTheWayAt, now]);
+  }, [members, hasTravelRows, myState, shareEta, arriveAt, eta, onTheWayAt, now]);
 
   const markOnTheWay = () => {
     const ts = new Date().toISOString();
@@ -117,25 +162,40 @@ export function GraphConvoyPanel({
       data-traffic-aware="false"
     >
       <div className="graph-convoy-lead">
-        <p className="graph-convoy-led-by" data-testid="graph-convoy-led-by">
-          Led by {ledBy}
-        </p>
-        <div className="graph-convoy-who" data-testid="graph-convoy-who">
-          <div className="graph-convoy-avatars" aria-hidden>
-            {members.slice(0, 4).map((m) => (
+        {ledBy ? (
+          <p className="graph-convoy-led-by" data-testid="graph-convoy-led-by">
+            Led by {ledBy}
+          </p>
+        ) : null}
+        {attendanceLabel || rosterNames.length ? (
+          <div className="graph-convoy-who" data-testid="graph-convoy-who">
+            {rosterNames.length ? (
+              <div className="graph-convoy-avatars" aria-hidden>
+                {rosterNames.slice(0, 4).map((name, index) => {
+                  const member = hasTravelRows ? members[index] : undefined;
+                  return (
+                    <span
+                      key={`${name}-${index}`}
+                      className="graph-convoy-avatar"
+                      style={member?.avatarTone ? { background: member.avatarTone } : undefined}
+                    >
+                      {name.slice(0, 1)}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
+            {attendanceLabel ? (
               <span
-                key={m.userId}
-                className="graph-convoy-avatar"
-                style={m.avatarTone ? { background: m.avatarTone } : undefined}
+                className="graph-convoy-going-count"
+                data-testid="graph-convoy-going-count"
+                data-viewer-state={viewerState || undefined}
               >
-                {m.displayName.slice(0, 1)}
+                {attendanceLabel}
               </span>
-            ))}
+            ) : null}
           </div>
-          <span className="graph-convoy-going-count">
-            {Math.min(goingCount, partySize)} of {partySize} going
-          </span>
-        </div>
+        ) : null}
       </div>
 
       <button
@@ -159,41 +219,64 @@ export function GraphConvoyPanel({
         <span>Share my ETA for this event</span>
       </label>
 
-      <div className="graph-eta-section" data-testid="graph-eta-section">
-        <p className="graph-ready-kicker">Your ETA</p>
-        <p className="graph-exec-line" data-testid="graph-your-eta">
-          ~{eta.durationMinutes} min · geometric estimate
-        </p>
-        <p className="gsh-meta" data-testid="graph-eta-honesty">
-          Distance-based estimate - not live traffic.
-        </p>
-        <p className="graph-exec-line" data-testid="graph-best-leave">
-          Best time to leave · {formatClock(leaveBy)}
-        </p>
-        <p className="graph-exec-line" data-testid="graph-reservation">
-          Reservation · {reservationCopy}
-        </p>
-        <p className="graph-exec-line" data-testid="graph-youd-arrive">
-          You&apos;d arrive · {formatClock(arriveAt)}
-        </p>
-      </div>
+      {eta && arriveAt ? (
+        <div className="graph-eta-section" data-testid="graph-eta-section">
+          <p className="graph-ready-kicker">Your ETA</p>
+          <p className="graph-exec-line" data-testid="graph-your-eta">
+            ~{eta.durationMinutes} min · geometric estimate
+          </p>
+          <p className="gsh-meta" data-testid="graph-eta-honesty">
+            Distance-based estimate - not live traffic.
+          </p>
+          {leaveBy ? (
+            <p className="graph-exec-line" data-testid="graph-best-leave">
+              Best time to leave · {formatClock(leaveBy)}
+            </p>
+          ) : null}
+          {reservationLabel ? (
+            <p className="graph-exec-line" data-testid="graph-reservation">
+              Reservation · {reservationLabel}
+            </p>
+          ) : null}
+          <p className="graph-exec-line" data-testid="graph-youd-arrive">
+            You&apos;d arrive · {formatClock(arriveAt)}
+          </p>
+        </div>
+      ) : null}
 
-      <div className="graph-convoy-list" data-testid="graph-convoy-list">
-        <p className="graph-ready-kicker">Convoy</p>
-        <ul>
-          {convoyRows.map((row) => (
-            <li
-              key={row.userId}
-              className="graph-convoy-row"
-              data-testid={`graph-convoy-row-${row.userId}`}
-              data-travel-state={row.travelState}
-              data-location={row.location}
-            >
-              {row.line}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {hasTravelRows ? (
+        <div className="graph-convoy-list" data-testid="graph-convoy-list">
+          <p className="graph-ready-kicker">Convoy</p>
+          <ul>
+            {convoyRows.map((row) => (
+              <li
+                key={row.userId}
+                className="graph-convoy-row"
+                data-testid={`graph-convoy-row-${row.userId}`}
+                data-travel-state={row.travelState}
+                data-location={row.location}
+              >
+                {row.line}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : participantNames.length ? (
+        <div className="graph-convoy-list" data-testid="graph-convoy-list">
+          <p className="graph-ready-kicker">Convoy</p>
+          <ul>
+            {participantNames.map((name, index) => (
+              <li
+                key={`${name}-${index}`}
+                className="graph-convoy-row"
+                data-testid={`graph-convoy-row-participant-${index}`}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <p className="gsh-meta graph-convoy-graph-name" data-testid="graph-convoy-name">
         {graphName}

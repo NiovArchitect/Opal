@@ -34,6 +34,77 @@ export function sessionRowLabel(s: OpalChatSessionSummary): string {
   return "New chat";
 }
 
+/** Date-based fallback for a session with no title and no messages. */
+export function sessionFallbackTitle(s: OpalChatSessionSummary): string {
+  const iso = s.inserted_at || s.updated_at;
+  if (iso) {
+    const d = new Date(iso);
+    if (!Number.isNaN(d.getTime())) {
+      try {
+        const day = new Intl.DateTimeFormat(undefined, {
+          month: "short",
+          day: "numeric",
+        }).format(d);
+        return `Chat on ${day}`;
+      } catch {
+        /* fall through to the generic label */
+      }
+    }
+  }
+  return "New chat";
+}
+
+function sessionFallbackTitleWithTime(s: OpalChatSessionSummary): string {
+  const base = sessionFallbackTitle(s);
+  if (base === "New chat") return base;
+  const iso = s.inserted_at || s.updated_at;
+  if (!iso) return base;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return base;
+  try {
+    const time = new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(d);
+    return `${base} at ${time}`;
+  } catch {
+    return base;
+  }
+}
+
+/**
+ * Repair #18 (G-IA6) - a label for EVERY session in the list, distinct
+ * within that list. Title wins, then the session's own last-message
+ * preview, then a creation-date fallback. Identical labels get a time
+ * suffix, then a short id suffix, so no two rows ever read the same.
+ * Used by the chat list and by the open chat's header title.
+ */
+export function distinctSessionLabels(
+  sessions: OpalChatSessionSummary[],
+): Map<string, string> {
+  const labels = new Map<string, string>();
+  const used = new Map<string, number>();
+  for (const s of sessions) {
+    let label = sessionRowLabel(s);
+    if (label === "New chat") label = sessionFallbackTitle(s);
+    const seen = used.get(label) ?? 0;
+    used.set(label, seen + 1);
+    if (seen > 0) {
+      const withTime =
+        label === sessionFallbackTitle(s) || label === "New chat"
+          ? sessionFallbackTitleWithTime(s)
+          : label;
+      label =
+        withTime !== label && !used.has(withTime)
+          ? withTime
+          : `${label} (${s.id.slice(0, 4)})`;
+      used.set(label, (used.get(label) ?? 0) + 1);
+    }
+    labels.set(s.id, label);
+  }
+  return labels;
+}
+
 /** Short local date/time for a session row; empty string when unknown. */
 export function sessionRowTime(s: OpalChatSessionSummary): string {
   const iso = s.updated_at || s.inserted_at;
@@ -71,6 +142,7 @@ export function OpalChatSessionsDrawer({
     const tb = Date.parse(b.updated_at || b.inserted_at || "") || 0;
     return tb - ta;
   });
+  const labels = distinctSessionLabels(rows);
 
   return (
     <div
@@ -82,7 +154,7 @@ export function OpalChatSessionsDrawer({
     >
       <div className="opal-center-sessions-card">
         <header className="opal-center-sessions-top">
-          <h2>Your chats</h2>
+          <h2>Chats</h2>
           <button
             type="button"
             data-testid="opal-center-sessions-close"
@@ -101,6 +173,9 @@ export function OpalChatSessionsDrawer({
         >
           New chat
         </button>
+        <p className="opal-center-sessions-note" data-testid="opal-center-sessions-keep-note">
+          Your current chat stays in the list.
+        </p>
 
         {sessions === null && !loadFailed ? (
           <p className="opal-center-sessions-note" data-testid="opal-center-sessions-loading" role="status">
@@ -143,7 +218,9 @@ export function OpalChatSessionsDrawer({
                     aria-current={isActive ? "true" : undefined}
                     onClick={() => onSelect(s.id)}
                   >
-                    <span className="opal-center-sessions-row-label">{sessionRowLabel(s)}</span>
+                    <span className="opal-center-sessions-row-label">
+                      {labels.get(s.id) || sessionRowLabel(s)}
+                    </span>
                     {time ? (
                       <span className="opal-center-sessions-row-time">{time}</span>
                     ) : null}

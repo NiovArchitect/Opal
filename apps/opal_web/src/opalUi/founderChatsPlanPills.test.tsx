@@ -24,7 +24,7 @@ describe("founder chats plan pills (screenshot A)", () => {
     expect(inferPlanPillTone("Live nearby")).toBe("live");
   });
 
-  it("renders five fixture rows with correct pill tones", async () => {
+  it("renders five fixture rows with NO plan pills (Repair #18)", async () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
@@ -34,16 +34,11 @@ describe("founder chats plan pills (screenshot A)", () => {
       );
     });
 
+    // Fixture chrome supplies names and relationship labels only. A plan
+    // pill exists only when a live projection supplied the consequence.
     const pills = host.querySelectorAll('[data-testid="chat-plan-pill"]');
-    expect(pills.length).toBe(5);
-    expect(pills[0]?.getAttribute("data-plan-tone")).toBe("dinner");
-    expect(pills[0]?.textContent).toContain("Juniper & Ivy · 7:30 PM");
-    expect(pills[1]?.getAttribute("data-plan-tone")).toBe("activity");
-    expect(pills[1]?.textContent).toContain("Farmers market + coast");
-    expect(pills[2]?.getAttribute("data-plan-tone")).toBe("dinner");
-    expect(pills[2]?.textContent).toContain("3 of 4 going");
-    expect(pills[3]?.getAttribute("data-plan-tone")).toBe("live");
-    expect(pills[4]?.getAttribute("data-plan-tone")).toBe("trip");
+    expect(pills.length).toBe(0);
+    expect(FOUNDER_CHATS_PLAN_PILL_ROWS.every((r) => !r.planConsequence)).toBe(true);
 
     const connections = [...host.querySelectorAll('[data-testid="chat-connection-label"]')].map(
       (el) => el.textContent,
@@ -68,10 +63,25 @@ describe("founder chats plan pills (screenshot A)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
+    // The pill under test is a projection-derived row (the shape OpalApp
+    // builds from the backend attendance contract), not fixture data.
+    const liveRows = FOUNDER_CHATS_PLAN_PILL_ROWS.map((r) =>
+      r.name === "Chanelle"
+        ? {
+            ...r,
+            planConsequence: {
+              state: "ready" as const,
+              label: "3 of 4 going",
+              planId: "seed-chanelle-juniper",
+              tone: "dinner" as const,
+            },
+          }
+        : r,
+    );
     await act(async () => {
       root.render(
         <ChatsHome
-          rows={FOUNDER_CHATS_PLAN_PILL_ROWS}
+          rows={liveRows}
           onOpenChat={onOpenChat}
           onOpenPlan={onOpenPlan}
         />,
@@ -82,6 +92,7 @@ describe("founder chats plan pills (screenshot A)", () => {
       '[data-testid="chat-plan-pill"][data-plan-id="seed-chanelle-juniper"]',
     ) as HTMLElement;
     expect(pill).toBeTruthy();
+    expect(pill.textContent).toContain("3 of 4 going");
     await act(async () => {
       pill.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
     });
@@ -141,7 +152,8 @@ describe("founder chats plan pills (screenshot A)", () => {
       "live-sabrina",
       "live-alex",
     ]);
-    expect(remapped[0]?.planConsequence?.label).toContain("Juniper");
+    // Repair #18: the remap never carries a plan consequence.
+    expect(remapped.every((r) => !r.planConsequence)).toBe(true);
     // Seed list chrome wins — live preview must not overwrite approved copy.
     expect(remapped[0]?.preview).toBe("Perfect. I'll grab a table.");
     expect(remapped[0]?.id).toBe("live-chanelle");
