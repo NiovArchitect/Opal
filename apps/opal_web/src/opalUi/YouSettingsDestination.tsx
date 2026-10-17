@@ -79,11 +79,9 @@ export type YouSettingKey =
   | "privacy"
   | "feed-discovery"
   | "location-travel"
-  | "engagement"
   | "calls-assist"
   | "notifications"
   | "linked-devices"
-  | "safety"
   | "spending"
   | "fit"
   | "appearance"
@@ -112,11 +110,9 @@ export const YOU_SETTING_FIGMA: Record<YouSettingKey, string> = {
   privacy: "618:1524",
   "feed-discovery": "618:1801",
   "location-travel": "618:1591",
-  engagement: "618:1868",
   "calls-assist": "618:1733",
   notifications: "618:1935",
   "linked-devices": "618:2003",
-  safety: "618:2060",
   spending: "618:1662",
   fit: "618:1662",
   appearance: "618:1344",
@@ -173,7 +169,7 @@ type ScreenDef = {
 const SCREENS: Record<YouSettingKey, ScreenDef> = {
   "edit-profile": {
     title: "Edit profile",
-    lede: "Your identity. Social preferences and permissions stay in their own settings.",
+    lede: "Your name and handle.",
     rows: [
       { kind: "field", id: "name", label: "Name", value: "", placeholder: "Your name" },
       { kind: "field", id: "username", label: "Username", value: "", placeholder: "@handle" },
@@ -188,7 +184,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "identity-note",
-        text: "Phone number is verified identity and is changed through account security.",
+        text: "Phone number changes under Account & security.",
       },
       { kind: "action", id: "save", title: "Save profile" },
     ],
@@ -238,7 +234,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "privacy-law",
-        text: "Private Opal location use is separate from what another person can see. Trust & Privacy under What Opal remembers is live today.",
+        text: "Opal's location use is separate from what others can see.",
       },
     ],
   },
@@ -288,7 +284,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "feed-law",
-        text: "Exact location is never exposed by this setting. Location precision is governed separately.",
+        text: "Exact location is never shared from here.",
       },
     ],
   },
@@ -352,56 +348,6 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
     ],
   },
-  engagement: {
-    title: "Engagement",
-    lede: "Keep social feedback useful without turning relationships into scores.",
-    rows: [
-      {
-        kind: "toggle",
-        blockedReason: "Needs SocialMoment engagement preference fields.",
-        id: "like-counts",
-        title: "Public like counts",
-        subtitle: "Show like counts on public eligible content.",
-        defaultOn: true,
-      },
-      {
-        kind: "toggle",
-        blockedReason: "Needs SocialMoment engagement preference fields.",
-        id: "view-counts",
-        title: "Public view counts",
-        subtitle: "Show view counts where the creator allows them.",
-        defaultOn: true,
-      },
-      {
-        kind: "toggle",
-        blockedReason: "Repost permission flag not on content schema yet.",
-        id: "reposts",
-        title: "Allow reposts",
-        subtitle: "Let eligible content be reposted inside its original visibility rules.",
-        defaultOn: true,
-      },
-      {
-        kind: "nav",
-        id: "comments",
-        title: "Comments",
-        subtitle: "Choose who may comment on content you publish.",
-        blockedReason: "Comment audience picker needs content ACL API.",
-      },
-      {
-        kind: "toggle",
-        blockedReason: "Already private by product law - no toggle surface yet.",
-        id: "private-history",
-        title: "Private shared history",
-        subtitle: "Connection counts stay private and never become a public score.",
-        defaultOn: true,
-      },
-      {
-        kind: "note",
-        id: "engagement-law",
-        text: "Likes, views and messages can shape ranking, but never create permission, Connection or Graph membership.",
-      },
-    ],
-  },
   "calls-assist": {
     title: "Calls & Opal Assist",
     lede: "Choose how Opal can help during calls.",
@@ -410,7 +356,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "toggle",
         id: "assist",
         title: "Opal Assist on calls",
-        subtitle: "Allow Assist on future calls. You can still pause Assist on a private call without changing this setting.",
+        subtitle: "Allow Assist on future calls. You can still pause it on any private call.",
         defaultOn: false,
       },
       {
@@ -447,7 +393,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "assist-law",
-        text: "Opal never speaks as you, sends for you, or posts a Memory from a call. Assist only listens when you allow it.",
+        text: "Opal never speaks as you or posts a Memory from a call. Assist only listens when allowed.",
       },
     ],
   },
@@ -466,7 +412,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
         kind: "toggle",
         id: "read-receipts",
         title: "Read receipts",
-        subtitle: "Let people know when you have seen a message. Unread still works if this is off.",
+        subtitle: "Show when you have seen a message. Unread counts still work when off.",
         defaultOn: true,
       },
       {
@@ -504,13 +450,13 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "notif-law",
-        text: "Messages & calls and Read receipts save for this account.",
+        text: "These save for this account.",
       },
     ],
   },
   "linked-devices": {
     title: "Linked devices",
-    lede: "Use Opal Graph on another device without exposing private credentials.",
+    lede: "Use Opal on another device safely.",
     rows: [
       {
         kind: "nav",
@@ -529,7 +475,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "device-note",
-        text: "This phone is your active session. Sign in on web with the same phone number when you need another device.",
+        text: "This phone is your active session. Sign in on web with the same phone number to add a device.",
       },
       {
         kind: "nav",
@@ -540,52 +486,6 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       },
     ],
   },
-  safety: {
-    title: "Safety",
-    lede: "Quiet controls for the rare moments when someone should not have access to you.",
-    rows: [
-      {
-        kind: "nav",
-        id: "blocked",
-        title: "Blocked people",
-        subtitle: "Cannot message, call, or join your Graphs",
-        blockedReason: "Block list UI needs TrustSafety block list endpoint wired.",
-      },
-      {
-        kind: "nav",
-        id: "muted",
-        title: "Muted people",
-        subtitle: "Still connected - quieter in your feed",
-        blockedReason: "Mute list UI needs conversation mute roster.",
-      },
-      {
-        kind: "nav",
-        id: "reported",
-        title: "Reported content",
-        subtitle: "Things you flagged for review",
-        blockedReason: "Report history surface not built.",
-      },
-      {
-        kind: "nav",
-        id: "unknown",
-        title: "Unknown contact requests",
-        subtitle: "Who can reach you cold",
-        blockedReason: "Cold-contact policy API not shipped.",
-      },
-      {
-        kind: "nav",
-        id: "location-safety",
-        title: "Location safety",
-        subtitle: "Exact share and live location limits",
-        blockedReason: "Depends on live-location session API.",
-      },
-      {
-        kind: "note",
-        id: "safety-note",
-        text: "Safety tools are yours to use quietly. Blocking is private to the other person.",
-      },
-    ],
-  },
   appearance: {
     title: "Appearance",
     lede: "Dark is Opal’s strongest look. Light keeps the same accents on pearl surfaces.",
@@ -593,7 +493,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "appearance-theme",
-        text: "System follows this device. Your choice saves on this phone and applies immediately.",
+        text: "System follows this device. Your choice saves here and applies immediately.",
       },
     ],
   },
@@ -648,7 +548,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "fit-prefs-note",
-        text: "Choose what Opal may use for activity and wellness suggestions. Nothing is shared until you turn sharing on and save.",
+        text: "Activity and wellness picks. Sharing stays off until you turn it on.",
       },
     ],
   },
@@ -694,18 +594,18 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "account-law",
-        text: "Account changes stay private. Delete is nested and confirmed - never one tap. Name and username save from Edit profile.",
+        text: "Delete is nested and confirmed - never one tap.",
       },
     ],
   },
   "delete-account": {
     title: "Delete account",
-    lede: "This cannot be hidden behind a generic button or accidental tap.",
+    lede: "Take your time. This is permanent.",
     rows: [
       {
         kind: "note",
         id: "delete-warning",
-        text: "This permanently removes your account.\nYour published content, relationship edges and account access will be handled according to the deletion policy. Active provider obligations must be resolved first.",
+        text: "This permanently removes your account. Content and relationships are handled under the deletion policy. Active provider obligations must be resolved first.",
       },
       {
         kind: "note",
@@ -857,7 +757,7 @@ export function YouSettingsDestination({
         ? "aqua"
         : setting === "spending"
           ? "gold"
-          : setting === "fit" || setting === "engagement" || setting === "safety" || setting === "delete-account"
+          : setting === "fit" || setting === "delete-account"
             ? "coral"
             : setting === "notifications"
               ? "magenta"
@@ -1295,8 +1195,7 @@ export function GraphingStandingPermissionSection({ session }: WhatOpalCanDoProp
     >
       <h3 className="section-label">Opal Graphing</h3>
       <p className="you-settings-note" data-testid="opal-graphing-standing-note">
-        How Opal may use call moments you allow. This doesn’t unlock deeper memory.
-        How you label a relationship never turns this on by itself.
+        How Opal may use call moments you allow. This never unlocks deeper memory.
       </p>
 
       <div className="you-settings-row" data-testid="opal-graphing-global-pause">
@@ -1414,42 +1313,40 @@ export function YouAccessControlSection() {
     >
       <h3 className="section-label">What Opal may access</h3>
       <p className="you-settings-note" data-testid="you-access-law">
-        These controls decide what Opal may notice. Letting Opal act for you is managed under
-        Calls & Opal Assist.
+        What Opal may notice. Acting for you is under Calls & Opal Assist.
       </p>
       <div className="you-consent-rows">
         <div className="you-settings-row" data-testid="you-access-row-remembers">
           <div className="you-settings-row-copy">
             <strong>Things already stored</strong>
-            <span>Transparency and correction for facts Opal already holds. Forget anytime below.</span>
+            <span>Facts Opal holds. Forget anytime.</span>
           </div>
           <span className="you-settings-row-value">On</span>
         </div>
         <div className="you-settings-row" data-testid="you-access-row-celebrations">
           <div className="you-settings-row-copy">
             <strong>Celebrations you save</strong>
-            <span>Dates you choose to store. Delete a celebration to revoke that Access.</span>
+            <span>Dates you store. Deleting revokes access.</span>
           </div>
           <span className="you-settings-row-value">On</span>
         </div>
         <div className="you-settings-row" data-testid="you-access-row-relationship-types">
           <div className="you-settings-row-copy">
             <strong>Relationship types you set</strong>
-            <span>How you label people (partner, friend, family…). Change or clear below.</span>
+            <span>Your labels for people. Change or clear anytime.</span>
           </div>
           <span className="you-settings-row-value">On</span>
         </div>
         <div className="you-settings-row" data-testid="you-access-row-trust">
           <div className="you-settings-row-copy">
             <strong>Trust tier with Opal</strong>
-            <span>Gates sensitive comfort settings. Revoke complete trust anytime below.</span>
+            <span>Gates sensitive settings. Revoke anytime.</span>
           </div>
           <span className="you-settings-row-value">On</span>
         </div>
       </div>
       <p className="you-settings-note" data-testid="you-access-pass2-hold">
-        Deeper conversation and relationship understanding aren’t available yet. They stay off
-        until you choose to allow them.
+        Deeper understanding stays off until you allow it.
       </p>
     </section>
   );
@@ -1588,7 +1485,7 @@ export function WhatOpalCanDoSection({ session }: WhatOpalCanDoProps) {
     >
       <h3 className="section-label">What Opal can do for you</h3>
       <p className="you-settings-note" data-testid="action-authority-ladder">
-        What Opal may do for you. Separate from Assist on calls. You grant and revoke.
+        What Opal may do for you. You grant and revoke.
       </p>
       <div className="you-consent-rows">
         {ACT_ON_BEHALF_CAPABILITIES.map((cap) => {
@@ -1739,7 +1636,8 @@ export function FitPreferencesSection({ session }: FitPreferencesSectionProps) {
     <div className="you-hub-spending you-settings-spending" data-testid="fit-prefs-section">
       <h5 className="you-spending-label">Activity preferences</h5>
       <p className="you-trust-copy">
-        Tell Opal what moves you. Sharing is off until you turn it on.
+        What Opal may use for activity suggestions. Nothing is shared until you turn sharing on
+        and save.
       </p>
       <div className="you-settings-row" data-testid="fit-share-row">
         <div className="you-settings-row-copy">
@@ -1955,7 +1853,7 @@ export function SpendingComfortSection({ session }: SpendingComfortProps) {
         </p>
       ) : (
         <>
-          <p className="you-trust-copy">This helps me suggest places that fit your life.</p>
+          <p className="you-trust-copy">Suggests places that fit your life.</p>
           <div className="you-spending-options" data-testid="spending-level-picker">
             {COMFORT_LEVEL_OPTIONS.map((opt) => (
               <button
@@ -2250,8 +2148,7 @@ export function WhatOpalRemembersSection({
       <h3 className="section-label">What Opal remembers</h3>
       {!loaded ? null : facts.length === 0 ? (
         <p className="you-memory-empty" data-testid="memory-empty">
-          Opal doesn&apos;t remember anything yet. As you make plans, Opal learns your preferences
-          here.
+          Nothing stored yet. Preferences land here as you plan.
         </p>
       ) : (
         <div className="you-consent-rows you-memory-rows">
@@ -2284,7 +2181,7 @@ export function WhatOpalRemembersSection({
         <h4 className="section-sublabel">People</h4>
         {!loaded ? null : contacts.length === 0 ? (
           <p className="you-memory-empty" data-testid="people-empty">
-            People you connect with will show up here so you can tell Opal how you know them.
+            People you connect with show up here.
           </p>
         ) : (
           <div className="you-consent-rows you-people-rows">

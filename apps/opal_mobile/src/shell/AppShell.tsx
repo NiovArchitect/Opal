@@ -135,8 +135,6 @@ export function AppShell({
           <YouScreen
             displayName={displayName}
             handle={undefined}
-            deviceCount={1}
-            blockCount={0}
             onFindPeople={() => setFindPeopleOpen(true)}
             onSignOut={onSignOut}
           />

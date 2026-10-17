@@ -257,7 +257,7 @@ describe("WhatOpalRemembersSection", () => {
     await flush();
 
     const empty = container.querySelector('[data-testid="memory-empty"]');
-    expect(empty?.textContent).toMatch(/doesn.t remember anything yet/i);
+    expect(empty?.textContent).toMatch(/nothing stored yet/i);
   });
 
   it("Forget deletes and removes the row", async () => {

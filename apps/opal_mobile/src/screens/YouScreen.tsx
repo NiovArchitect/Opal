@@ -4,8 +4,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 type Props = {
   displayName: string;
   handle?: string;
-  deviceCount?: number;
-  blockCount?: number;
   familyPresent?: boolean;
   onSignOut?: () => void;
   onFindPeople?: () => void;
@@ -14,8 +12,6 @@ type Props = {
 export function YouScreen({
   displayName,
   handle,
-  deviceCount = 1,
-  blockCount = 0,
   familyPresent,
   onSignOut,
   onFindPeople,
@@ -45,7 +41,8 @@ export function YouScreen({
       ) : null}
       <View style={styles.card}>
         <Text style={styles.label}>Devices</Text>
-        <Text style={styles.value}>{deviceCount} active session(s)</Text>
+        <Text style={styles.value}>This phone</Text>
+        <Text style={styles.meta}>Active session</Text>
       </View>
       <View style={styles.card}>
         <Text style={styles.label}>Privacy</Text>
@@ -53,10 +50,8 @@ export function YouScreen({
       </View>
       <View style={styles.card}>
         <Text style={styles.label}>Safety</Text>
-        <Text style={styles.value}>
-          {blockCount > 0 ? `${blockCount} blocked contact(s)` : "No active blocks"}
-        </Text>
-        <Text style={styles.meta}>No behavior scores</Text>
+        <Text style={styles.value}>Quiet safety controls</Text>
+        <Text style={styles.meta}>Blocking stays private</Text>
       </View>
       {familyPresent ? (
         <View style={styles.card}>
