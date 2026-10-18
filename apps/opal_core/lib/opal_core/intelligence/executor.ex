@@ -179,7 +179,41 @@ defmodule OpalCore.Intelligence.Executor do
           notify(conversation_id, d.id, msg, Map.put(base, "confirmed", true))
 
         {:error, :no_pending_revision} ->
-          notify(conversation_id, d.id, "There's nothing pending to confirm.", base)
+          # Repair #18 residuals (R-2): System A holds no proposed
+          # revision, but the pending change may live in the alignment
+          # fold (a chat proposal this executor never converted - its
+          # own propose turn can be blocked by an ambiguous schedule
+          # target elsewhere in the account), or the fold may already
+          # have applied this very confirmation on replay with no
+          # System A record behind it. Settle through the fold's own
+          # authorities before telling the user nothing is pending:
+          # accept_committed_change applies a still-pending fold
+          # proposal (and mirrors it into the revision chain);
+          # settle_fold_confirmed_change reports whether the revision
+          # chain already records an acceptance the fold applied.
+          case fold_confirm_fallback(conversation_id, user_id, decision, body) do
+            :settled ->
+              msg =
+                case active_plan(conversation_id) do
+                  %SharedPlan{time_label: label, title: title}
+                  when is_binary(label) and label != "" ->
+                    if decision == "reject" do
+                      "Noted. I won't lock that in."
+                    else
+                      "Confirmed — #{title || "the plan"} is now at #{label}."
+                    end
+
+                  _ ->
+                    if decision == "reject",
+                      do: "Noted. I won't lock that in.",
+                      else: "Confirmed."
+                end
+
+              notify(conversation_id, d.id, msg, Map.put(base, "confirmed", true))
+
+            :nothing ->
+              notify(conversation_id, d.id, "There's nothing pending to confirm.", base)
+          end
 
         {:error, reason} ->
           notify(
@@ -314,6 +348,68 @@ defmodule OpalCore.Intelligence.Executor do
   end
 
   defp do_execute(%Decision{action: action}), do: {:error, {:unknown_action, action}}
+
+  # The fold-side settlement for a plan.confirm with no proposed
+  # PlanRevision (Repair #18 residuals R-2). :settled when a pending
+  # fold change was applied/kept, or when the revision chain already
+  # records the fold acceptance the sync path settled (the settle
+  # check never writes - a confirm with nothing behind it must stay
+  # an honest "nothing pending"); :nothing when no surface holds
+  # anything for this confirmation to settle.
+  defp fold_confirm_fallback(conversation_id, user_id, "accept", body) do
+    alias OpalCore.SocialFlow.ConversationAlignment
+
+    # A confirmation settles a change to a plan that EXISTS. With no
+    # plan row there is nothing to confirm - and the fold entry points
+    # below must not be called at all: their opening sync materializes
+    # a plan from forming fold state, so a bare "I'm in" on a planless
+    # thread (e.g. a seeded attendance thread whose plan the seed
+    # itself is about to write) would birth a fold plan with default
+    # pending participants and shadow the real one.
+    if is_nil(ConversationAlignment.active_plan_for_conversation(conversation_id)) do
+      :nothing
+    else
+      fold_confirm_accept(conversation_id, user_id, body)
+    end
+  end
+
+  defp fold_confirm_fallback(conversation_id, user_id, "reject", _body) do
+    alias OpalCore.SocialFlow.ConversationAlignment
+
+    # Same no-plan gate as the accept branch: keep_committed_plan's
+    # opening sync would materialize a plan on a planless thread.
+    if is_nil(ConversationAlignment.active_plan_for_conversation(conversation_id)) do
+      :nothing
+    else
+      case ConversationAlignment.keep_committed_plan(conversation_id, user_id) do
+        {:ok, _state} -> :settled
+        _ -> :nothing
+      end
+    end
+  end
+
+  defp fold_confirm_fallback(_, _, _, _), do: :nothing
+
+  defp fold_confirm_accept(conversation_id, user_id, body) do
+    alias OpalCore.SocialFlow.ConversationAlignment
+
+    case ConversationAlignment.accept_committed_change(conversation_id, user_id) do
+      {:ok, _state} ->
+        :settled
+
+      _ ->
+        clock_hint = OpalCore.SocialFlow.PlanIdentity.parse_clock(body || "")
+
+        case OpalCore.SocialFlow.settle_fold_confirmed_change(
+               conversation_id,
+               user_id,
+               clock_hint
+             ) do
+          :already_settled -> :settled
+          _ -> :nothing
+        end
+    end
+  end
 
   # Repair #18: resolve the schedule-change target. The utterance's own
   # reference (payload plan_ref, else the body) is scored against the

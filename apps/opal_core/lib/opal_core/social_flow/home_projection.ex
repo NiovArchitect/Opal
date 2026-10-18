@@ -107,6 +107,79 @@ defmodule OpalCore.SocialFlow.HomeProjection do
 
   def from_alignment(_, _, _, _), do: nil
 
+  @doc """
+  Repair #18 residuals (R-4b) - card resolution for plan shapes the
+  fold alignment cannot qualify. A plan born outside the fold (the
+  founder graph-commitment seed, a Center/graph create shared into a
+  thread) carries a stored alignment with no locked exact_time / place
+  fields, so from_alignment/4 returns nil and the chats list rendered
+  NO card at all - no attendance, no conflict, no time - while the
+  plan row itself holds every fact. When the conversation's active
+  plan row has real PlanParticipant rows, the card is built from the
+  row: when from its canonical time_label, place from its location,
+  and the ONE attendance counter + conflict merged exactly as
+  maybe_put_plan_truth/4 merges them for fold-backed cards. A plan
+  with no participant rows still yields nil - absence stays honest.
+  """
+  @spec from_plan_row(SharedPlan.t() | nil, String.t(), non_neg_integer(), keyword()) ::
+          map() | nil
+  def from_plan_row(plan, conversation_id, member_count, opts \\ [])
+
+  def from_plan_row(%SharedPlan{} = plan, conversation_id, member_count, opts)
+      when is_binary(conversation_id) and is_integer(member_count) do
+    viewer_id = Keyword.get(opts, :viewer_id)
+    contract = JourneyAuthority.attendance_contract(plan.id, viewer_id)
+
+    if contract == %{} do
+      nil
+    else
+      alignment = plan.alignment || %{}
+      plan_type = alignment["plan_type"] || plan.plan_type || "in_person"
+      meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(alignment["meeting_link"])
+
+      past? =
+        match?(%DateTime{}, plan.start_at) and
+          DateTime.compare(plan.start_at, DateTime.utc_now()) == :lt
+
+      %{
+        "lineage_id" => plan.id,
+        "conversation_id" => conversation_id,
+        "plan_version" => alignment["plan_version"],
+        "visibility" => "participants",
+        "participant_mode" => participant_mode(member_count),
+        "kicker" => if(past?, do: "Earlier together", else: "Plan set ✓"),
+        "when_label" => plan.time_label,
+        "place" => if(plan_type == "virtual", do: "Online", else: plan.location),
+        "place_identity" => nil,
+        "activity" => get_in(alignment, ["activity", "value"]),
+        "timezone" => plan.timezone || DateTimeChange.timezone(),
+        "plan_type" => plan_type,
+        "meeting_link" => meeting_link,
+        "online" => plan_type == "virtual",
+        "execution_label" => nil,
+        "execution_detail" => nil,
+        "pending_change" => false,
+        "public" => false,
+        "share" => "explicit_only",
+        "temporal_state" => if(past?, do: "past", else: "future"),
+        "canonical_start_at" =>
+          if(match?(%DateTime{}, plan.start_at), do: DateTime.to_iso8601(plan.start_at)),
+        "next_together_eligible" => not past?,
+        "upcoming_ready" => not past?,
+        "future_execution_actionable" => not past?,
+        "past_shared_reality" => past?,
+        "occurrence_state" => if(past?, do: "past", else: "upcoming"),
+        "memory_label" => false
+      }
+      |> Map.merge(contract)
+      |> Map.put("conflict", OpalCore.SocialFlow.plan_conflict(plan))
+    end
+  rescue
+    _ -> nil
+  end
+
+  def from_plan_row(_, _, _, _), do: nil
+
   # --- Repair #18: attendance (the one counter, carried - never derived) ---
   # --- and the F18-03 conflict (the one detector, carried - never re-derived)
 

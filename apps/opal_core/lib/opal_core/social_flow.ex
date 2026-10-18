@@ -1320,7 +1320,15 @@ defmodule OpalCore.SocialFlow do
         {%{status: "cancelled", cancelled_at: now, current_revision_id: rev.id},
          "#{plan.title} was cancelled."}
       else
-        time_label = changes["time_label"] || changes["new_value"] || plan.time_label
+        # Repair #18 residuals (R-2b): a revision can carry a raw
+        # fragment ("8 PM") from natural-language extraction. The
+        # accept writes the canonical label, like every schedule
+        # write (see canonical_time_label/2).
+        time_label =
+          canonical_time_label(
+            plan,
+            changes["time_label"] || changes["new_value"] || plan.time_label
+          )
 
         # F12-02c (gyroscope) — project the accepted change into the fold's
         # explicit action log, same as change_plan_schedule/1, so the next
@@ -1506,6 +1514,15 @@ defmodule OpalCore.SocialFlow do
             |> Repo.one()
 
           with %SharedPlan{} = plan <- plan do
+            # Repair #18 residuals (R-2b): the fold's post-sync value
+            # can be the raw spoken fragment ("8 PM"). The mirror must
+            # write the canonical label - the same resolution
+            # apply_locked_revision/5 and change_plan_schedule/1 use -
+            # never the fragment, or every listing reads the fragment
+            # back forever (schedule_authority_label keeps the action
+            # value verbatim on later fold upserts).
+            value = canonical_time_label(plan, value)
+
             # Settle any open System A proposals for this plan: the fold
             # accept IS their resolution (never leave a second pending
             # representation of the same change behind).
@@ -1592,6 +1609,70 @@ defmodule OpalCore.SocialFlow do
   end
 
   def record_fold_change_acceptance(_), do: {:error, :invalid}
+
+  @doc """
+  Repair #18 residuals (R-2) - settle a chat confirmation the fold
+  already applied but the revision chain never recorded.
+
+  The human thread's confirmation is a chat message. The fold applies
+  it on replay (ConversationAlignment's confirmation settlement), so
+  the plan row already reads the new time - but when the intelligence
+  executor's own confirm finds no proposed PlanRevision (its propose
+  turn was blocked, e.g. by an ambiguous schedule target), System A
+  has no record of the acceptance and the two systems diverge again
+  on the next read. This entry answers whether that gap exists -
+  CHECK ONLY, it never writes. Recording a fold acceptance is the
+  sync path's job (ConversationAlignment.settle_fold_acceptance/2
+  records the fold's own settled_change marker through
+  record_fold_change_acceptance/1), and every chat turn syncs before
+  the executor runs, so by the time a confirm reaches here the
+  marker-driven record either exists or no fold acceptance ever
+  happened. A writing settle here could not tell those apart: it
+  happily "settled" a plan's own untouched clock, so a bare
+  "I confirm" with nothing pending fabricated a confirmation and a
+  revision row (Repair #13 sinister law: fake confirmations are
+  refused honestly). Returns :already_settled when the chain
+  already records the plan's current (confirmed) clock, and
+  :nothing otherwise - no record, nothing to settle.
+  """
+  def settle_fold_confirmed_change(conversation_id, user_id, clock_hint \\ nil)
+      when is_binary(conversation_id) and is_binary(user_id) do
+    plan = latest_plan(conversation_id)
+    plan_clock = plan && PlanIdentity.parse_clock(plan.time_label || "")
+
+    cond do
+      not match?(%SharedPlan{}, plan) ->
+        :nothing
+
+      not is_nil(clock_hint) and plan_clock != clock_hint ->
+        :nothing
+
+      is_nil(plan_clock) ->
+        :nothing
+
+      accepted_revision_records?(plan) ->
+        :already_settled
+
+      true ->
+        :nothing
+    end
+  end
+
+  defp accepted_revision_records?(%SharedPlan{current_revision_id: revision_id} = plan)
+       when is_binary(revision_id) do
+    case Repo.get(PlanRevision, revision_id) do
+      %PlanRevision{status: "accepted"} = rev ->
+        changes = rev.proposed_changes || %{}
+
+        PlanIdentity.parse_clock(changes["time_label"] || changes["new_value"] || "") ==
+          PlanIdentity.parse_clock(plan.time_label || "")
+
+      _ ->
+        false
+    end
+  end
+
+  defp accepted_revision_records?(_), do: false
 
   @doc """
   Lead/organizer-only immediate cancellation of a shared plan.
@@ -2200,6 +2281,16 @@ defmodule OpalCore.SocialFlow do
            with %SharedPlan{} = plan <- plan,
                 :ok <- ensure_plan_access(plan, user_id),
                 :ok <- validate_schedule_label(value) do
+             # Verbatim authority: this is the schedule-write entry
+             # whose callers compose the label (lead direct edits,
+             # the Center's clock corrections) and whose contract is
+             # the round-trip - the stored label and the broadcast
+             # new_value read back exactly what the caller composed
+             # (Repair #11/#12 law). Canonical resolution of raw
+             # fragments lives on the revision-accept paths
+             # (apply_locked_revision, record_fold_change_acceptance),
+             # never here.
+
              cond do
                not plan_lead?(plan, user_id) ->
                  Repo.rollback(:not_authorized)
@@ -2805,7 +2896,109 @@ defmodule OpalCore.SocialFlow do
   # the conflict gate is required to surface on, including the proactive
   # case where canonical times landed without a new user action (seed,
   # fold): reading the plan shows the overlap.
-  defp plan_payload(%SharedPlan{} = plan) do
+  @doc """
+  The ONE canonical schedule label for a plan (Repair #18 residuals
+  R-2b). Untouched plans read day-aware with a normalized clock -
+  "tomorrow 8:00 PM", "Thursday 7:30 PM". Change paths used to write
+  whatever fragment arrived ("8 PM") verbatim into time_label, so a
+  revised plan read differently from an untouched one on every
+  surface. Every schedule write (revision accept, lead direct edit,
+  fold-accept mirror) resolves through here:
+
+  - the clock is normalized to "H:MM AM/PM" form;
+  - the day part comes from the value itself when it names one
+    (today / tomorrow / a weekday), preserved in the form it was
+    written - including the "Day at Time" joiner untouched plans
+    carry ("Friday at 9:00 PM"). A value naming no day stays
+    day-less: an accepted revision's proposed label is the
+    authoritative write, and the fold paths hand in labels that
+    already carry their day, so no day is ever inherited from the
+    plan's previous label here;
+  - a value with no parseable clock is returned unchanged (windows
+    and day-only labels are lawful labels, not fragments to invent
+    a clock for).
+  """
+  def canonical_time_label(%SharedPlan{}, value) when is_binary(value) do
+    case canonical_clock_label(value) do
+      nil ->
+        value
+
+      clock ->
+        case day_part(value) do
+          nil ->
+            clock
+
+          day ->
+            if Regex.match?(~r/\bat\s+\d/i, value) do
+              day <> " at " <> clock
+            else
+              day <> " " <> clock
+            end
+        end
+    end
+  end
+
+  def canonical_time_label(_, value), do: value
+
+  defp canonical_clock_label(value) do
+    case Regex.run(~r/(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i, value) do
+      [_, hour, minute, meridiem] ->
+        minute = if minute in [nil, ""], do: "00", else: minute
+        "#{String.to_integer(hour)}:#{minute} #{String.upcase(meridiem)}"
+
+      _ ->
+        case PlanIdentity.parse_clock(value) do
+          nil ->
+            nil
+
+          <<h24::binary-size(2), ":", mm::binary>> ->
+            h = String.to_integer(h24)
+
+            cond do
+              h == 0 -> "12:#{mm} AM"
+              h < 12 -> "#{h}:#{mm} AM"
+              h == 12 -> "12:#{mm} PM"
+              true -> "#{h - 12}:#{mm} PM"
+            end
+
+          _ ->
+            nil
+        end
+    end
+  end
+
+  # The day token as written - full ("Thursday") or abbreviated
+  # ("Sat") - preserved verbatim in form, because untouched plans
+  # carry both and a revision must not silently restyle the day.
+  @day_token_re ~r/\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun)\b/i
+
+  defp day_part(text) when is_binary(text) do
+    case Regex.run(@day_token_re, text) do
+      [_, token] ->
+        down = String.downcase(token)
+
+        if down in ["tomorrow", "today"] do
+          down
+        else
+          String.capitalize(token)
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp day_part(_), do: nil
+
+  @doc """
+  The ONE plan projection output: the contract every surface renders,
+  on read paths AND on creation responses alike (Repair #18 residuals
+  R-1: a create response built from SharedPlan.to_contract/1 alone
+  silently dropped the conflict object, the attendance contract and
+  the lead identity the listing carries, so the creating surface never
+  saw a double-booking flag the listing would have shown).
+  """
+  def plan_payload(%SharedPlan{} = plan) do
     plan
     |> SharedPlan.to_contract()
     |> Map.put("lead_user_id", lead_user_id(plan))

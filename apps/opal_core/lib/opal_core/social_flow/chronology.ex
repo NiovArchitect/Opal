@@ -14,6 +14,7 @@ defmodule OpalCore.SocialFlow.Chronology do
 
   alias OpalCore.Messaging.ConversationMember
   alias OpalCore.Repo
+
   alias OpalCore.SocialFlow.{
     ConversationMomentBridge,
     GroupComposition,
@@ -60,6 +61,7 @@ defmodule OpalCore.SocialFlow.Chronology do
     maybe_record_composition_moments(conversation_id, message, composition, messages)
     maybe_record_shared_reality(conversation_id, message, messages)
     maybe_record_venue_fit(conversation_id, message, composition)
+    maybe_record_revision_moment(conversation_id, message)
 
     :ok
   rescue
@@ -68,10 +70,107 @@ defmodule OpalCore.SocialFlow.Chronology do
 
   def record_after_message(_), do: :ok
 
+  # Repair #18 residuals (R-2c) - an accepted schedule revision is a
+  # consequential transition, but the evidence-based recorders above
+  # can never see it: they diff message-evidence projections, and a
+  # confirmed change ("let's change dinner to 8 PM" / "confirm 8 PM")
+  # does not move the evidence projection (the new time is not even
+  # an extractable start candidate). The causal record therefore
+  # stopped at the ORIGINAL time - the newest chronology entry kept
+  # headlining 7:30 after the plan had been revised to 8:00. When
+  # the conversation's plan carries an accepted revision (or a
+  # schedule_change action) whose clock differs from the last
+  # recorded time reality, record the revision as the time_resolved
+  # moment it is, from the plan row - the authority for the plan's
+  # current time. Idempotent per revision.
+  defp maybe_record_revision_moment(conversation_id, message) do
+    plan = OpalCore.SocialFlow.ConversationAlignment.active_plan_for_conversation(conversation_id)
+
+    with %OpalCore.SocialFlow.SharedPlan{} = plan <- plan,
+         true <- revision_settled?(plan),
+         label when is_binary(label) and label != "" <- plan.time_label,
+         clock when is_binary(clock) <-
+           OpalCore.SocialFlow.PlanIdentity.parse_clock(label),
+         true <- clock != last_recorded_time_clock(conversation_id) do
+      detail =
+        [label, plan.location]
+        |> Enum.filter(&(is_binary(&1) and &1 != ""))
+        |> Enum.join(" · ")
+
+      insert_if_new(%{
+        conversation_id: conversation_id,
+        kind: "time_resolved",
+        lifecycle_stage: "set",
+        label: "#{label} became the time.",
+        detail: detail,
+        privacy_class: "shared_progress",
+        visibility: "shared",
+        viewer_user_id: nil,
+        evidence_message_id: message.id,
+        source_message_ids: [message.id],
+        after_server_seq: message.server_seq,
+        created_from: "revision_authority",
+        composition_snapshot: %{
+          "dimension" => "when",
+          "new_value" => label,
+          "when" => label,
+          "where" => plan.location
+        },
+        idempotency_key: "chrono-#{conversation_id}-revision-#{plan.current_revision_id || clock}"
+      })
+    else
+      _ -> :ok
+    end
+  rescue
+    _ -> :ok
+  end
+
+  defp revision_settled?(%{current_revision_id: revision_id} = plan)
+       when is_binary(revision_id) do
+    match?(
+      %OpalCore.SocialFlow.PlanRevision{status: "accepted"},
+      Repo.get(OpalCore.SocialFlow.PlanRevision, revision_id)
+    ) or schedule_change_recorded?(plan)
+  end
+
+  defp revision_settled?(plan), do: schedule_change_recorded?(plan)
+
+  defp schedule_change_recorded?(plan) do
+    actions = (plan.alignment || %{})["explicit_actions"] || []
+    Enum.any?(actions, &(&1["kind"] == "schedule_change"))
+  end
+
+  # The clock of the newest recorded time reality (a time_resolved
+  # moment's snapshot), so a revision moment is written only when the
+  # plan's settled time actually moved past what history last said.
+  defp last_recorded_time_clock(conversation_id) do
+    from(m in OpalChronologyMoment,
+      where: m.conversation_id == ^conversation_id and m.kind == "time_resolved",
+      order_by: [desc: m.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
+    |> case do
+      nil ->
+        nil
+
+      moment ->
+        contract = OpalChronologyMoment.to_contract(moment)
+        snapshot = contract["composition_snapshot"] || %{}
+
+        OpalCore.SocialFlow.PlanIdentity.parse_clock(
+          snapshot["when"] || snapshot["new_value"] || contract["label"] || ""
+        )
+    end
+  rescue
+    _ -> nil
+  end
+
   @doc """
   Explicit consequential write (membership add/remove, Extend shortlist, etc.).
   """
-  def record_consequential(conversation_id, attrs) when is_binary(conversation_id) and is_map(attrs) do
+  def record_consequential(conversation_id, attrs)
+      when is_binary(conversation_id) and is_map(attrs) do
     kind = to_string(Map.get(attrs, :kind) || Map.get(attrs, "kind") || "shared_reality")
 
     if kind in @consequential_kinds or String.starts_with?(kind, "private_") do
@@ -91,7 +190,8 @@ defmodule OpalCore.SocialFlow.Chronology do
           Map.get(attrs, :source_message_ids) || Map.get(attrs, "source_message_ids") || [],
         after_server_seq:
           Map.get(attrs, :after_server_seq) || Map.get(attrs, "after_server_seq") || 0,
-        created_from: Map.get(attrs, :created_from) || Map.get(attrs, "created_from") || "explicit",
+        created_from:
+          Map.get(attrs, :created_from) || Map.get(attrs, "created_from") || "explicit",
         composition_snapshot:
           Map.get(attrs, :composition_snapshot) || Map.get(attrs, "composition_snapshot") || %{},
         idempotency_key:
@@ -162,22 +262,22 @@ defmodule OpalCore.SocialFlow.Chronology do
     if OpalCore.SocialFlow.SeedFixtureLeak.label_supported_by_messages?(label, bodies) do
       composition = GroupComposition.compose(conversation_id, messages)
 
-    insert_if_new(%{
-      conversation_id: conversation_id,
-      kind: moment["kind"] || "plan_forming",
-      lifecycle_stage: stage,
-      label: label,
-      detail: nil,
-      privacy_class: "shared_progress",
-      visibility: "shared",
-      viewer_user_id: nil,
-      evidence_message_id: evid,
-      source_message_ids: moment["source_message_ids"] || [],
-      after_server_seq: seq,
-      created_from: moment["created_from"] || "conversation_evidence",
-      composition_snapshot: strip_ids(composition),
-      idempotency_key: key
-    })
+      insert_if_new(%{
+        conversation_id: conversation_id,
+        kind: moment["kind"] || "plan_forming",
+        lifecycle_stage: stage,
+        label: label,
+        detail: nil,
+        privacy_class: "shared_progress",
+        visibility: "shared",
+        viewer_user_id: nil,
+        evidence_message_id: evid,
+        source_message_ids: moment["source_message_ids"] || [],
+        after_server_seq: seq,
+        created_from: moment["created_from"] || "conversation_evidence",
+        composition_snapshot: strip_ids(composition),
+        idempotency_key: key
+      })
     else
       {:ok, nil, :unsupported_label}
     end
@@ -234,21 +334,22 @@ defmodule OpalCore.SocialFlow.Chronology do
 
     Enum.each(maybe, fn attrs ->
       label = attrs[:label] || attrs["label"] || ""
+
       if OpalCore.SocialFlow.SeedFixtureLeak.label_supported_by_messages?(label, bodies) do
-      insert_if_new(
-        Map.merge(attrs, %{
-          conversation_id: conversation_id,
-          privacy_class: "shared_progress",
-          visibility: "shared",
-          viewer_user_id: nil,
-          evidence_message_id: message.id,
-          source_message_ids: [message.id],
-          after_server_seq: message.server_seq,
-          created_from: "group_composition",
-          composition_snapshot: strip_ids(composition),
-          lifecycle_stage: "still_open"
-        })
-      )
+        insert_if_new(
+          Map.merge(attrs, %{
+            conversation_id: conversation_id,
+            privacy_class: "shared_progress",
+            visibility: "shared",
+            viewer_user_id: nil,
+            evidence_message_id: message.id,
+            source_message_ids: [message.id],
+            after_server_seq: message.server_seq,
+            created_from: "group_composition",
+            composition_snapshot: strip_ids(composition),
+            lifecycle_stage: "still_open"
+          })
+        )
       end
     end)
   end
@@ -337,6 +438,7 @@ defmodule OpalCore.SocialFlow.Chronology do
     before_msgs = Enum.reject(after_msgs, fn m -> m.id == message.id end)
 
     after_r = SocialReality.project(after_msgs, project_stage(after_msgs))
+
     before_r =
       if before_msgs == [] do
         empty_reality()
@@ -520,7 +622,9 @@ defmodule OpalCore.SocialFlow.Chronology do
   defp normalize_dim(other), do: other
 
   defp insert_if_new(attrs) do
-    case Repo.get_by(OpalChronologyMoment, idempotency_key: attrs[:idempotency_key] || attrs["idempotency_key"]) do
+    case Repo.get_by(OpalChronologyMoment,
+           idempotency_key: attrs[:idempotency_key] || attrs["idempotency_key"]
+         ) do
       %OpalChronologyMoment{} = existing ->
         {:ok, existing, :idempotent}
 

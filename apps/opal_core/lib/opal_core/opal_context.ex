@@ -81,9 +81,11 @@ defmodule OpalCore.OpalContext do
           preferences: prefs,
           # Repair #18 (A-center) - location the product actually holds,
           # read fresh on every Center turn: the travel state's current
-          # city and whether a fresh coarse device fix is on file. The
-          # city is only ever what a stored row says - never inferred
-          # from coordinates here.
+          # city and whether a fresh coarse device fix is on file.
+          # Repair #18 residuals (R-3b): a granted fix also contributes
+          # its coarse resolved city (DeviceLocation.city_for_coords) -
+          # a fix the product cannot name a city for could never answer
+          # the city question it was granted for.
           location: assemble_location(user_id)
         }
 
@@ -127,12 +129,20 @@ defmodule OpalCore.OpalContext do
           %{
             present: true,
             origin_source: coords["origin_source"],
-            updated_at: coords["updated_at"]
+            updated_at: coords["updated_at"],
+            # Repair #18 residuals (R-3b): the coarse city the granted
+            # fix resolves to, so the assembled slice can actually
+            # answer "what city am I in?" from the grant itself.
+            city: DeviceLocation.city_for_coords(coords)
           }
 
         :none ->
-          %{present: false, origin_source: nil, updated_at: nil}
+          %{present: false, origin_source: nil, updated_at: nil, city: nil}
       end
+
+    # A granted device fix is a location the product holds: when no
+    # travel city is on file, the fix's city IS the current city.
+    city = city || device.city
 
     %{current_city: city, travel_active: travel_active?, device: device}
   end

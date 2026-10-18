@@ -61,11 +61,17 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   def consequential?(_), do: false
 
-  def fold(messages, member_ids, actions \\ [])
+  def fold(messages, member_ids, actions \\ [], opts \\ [])
+
+  def fold(messages, member_ids, actions, opts)
       when is_list(messages) and is_list(member_ids) and is_list(actions) do
     base = %{
       "schema_version" => @schema_version,
       "plan_timezone" => DateTimeChange.timezone(),
+      # Repair #18 residuals (R-2a): the plan row's current clock,
+      # seeded by sync_locked only (pure folds pass nothing and keep
+      # pure formation semantics). Internal: stripped before return.
+      "plan_row_clock" => Keyword.get(opts, :plan_row_clock),
       "plan_version" => 0,
       "participants" => field("locked", member_ids, nil),
       "activity" => field("unknown", nil, nil),
@@ -102,11 +108,76 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     end)
     |> Map.put("explicit_actions", actions)
     |> present()
+    |> Map.delete("plan_row_clock")
   end
 
   def sync_conversation(conversation_id) when is_binary(conversation_id) do
     {:ok, state} = Repo.transaction(fn -> sync_locked(conversation_id) end)
-    state
+
+    # Repair #18 residuals (R-2b): a chat confirmation the fold applied
+    # during this replay must land in the revision chain (the ONE
+    # change system), not only in fold state - otherwise the plan
+    # row's schedule authority (the last recorded schedule_change)
+    # vetoes the thread's own newest agreement on every later sync,
+    # and System A never learns the change was accepted. The fold
+    # marks message-driven acceptances in state["settled_change"];
+    # the settlement is recorded here, AFTER the sync transaction
+    # commits (record_fold_change_acceptance opens its own), and is
+    # idempotent: once the chain carries a schedule_change at the
+    # settled clock, later replays skip it. The marker is internal
+    # bookkeeping and is stripped from the returned state.
+    settle_fold_acceptance(conversation_id, state)
+
+    Map.delete(state, "settled_change")
+  end
+
+  defp settle_fold_acceptance(conversation_id, state) do
+    marker = state["settled_change"]
+
+    exact_clock =
+      OpalCore.SocialFlow.PlanIdentity.parse_clock(get_in(state, ["exact_time", "value"]) || "")
+
+    newest_action_clock =
+      (state["explicit_actions"] || [])
+      |> Enum.filter(&(&1["kind"] == "schedule_change"))
+      |> List.last()
+      |> case do
+        %{"value" => value} -> OpalCore.SocialFlow.PlanIdentity.parse_clock(value || "")
+        _ -> nil
+      end
+
+    cond do
+      not is_map(marker) ->
+        :ok
+
+      # The acceptance is no longer the thread's current agreement
+      # (a later message or action moved the time again) - the
+      # newer state owns the schedule; record nothing.
+      is_nil(marker["clock"]) or marker["clock"] != exact_clock ->
+        :ok
+
+      # The revision chain already carries this settlement.
+      newest_action_clock == marker["clock"] ->
+        :ok
+
+      true ->
+        label =
+          [get_in(state, ["date", "value"]), get_in(state, ["exact_time", "value"])]
+          |> Enum.filter(&(is_binary(&1) and &1 != ""))
+          |> Enum.join(" ")
+
+        _ =
+          OpalCore.SocialFlow.record_fold_change_acceptance(%{
+            conversation_id: conversation_id,
+            user_id: marker["actor_user_id"],
+            value: label,
+            trace_id: "fold-sync-settle"
+          })
+
+        :ok
+    end
+  rescue
+    _ -> :ok
   end
 
   @doc """
@@ -198,11 +269,19 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     members = Messages.member_user_ids(conversation_id)
     actions = actions_from_plan(plan)
 
+    # Repair #18 residuals (R-2a): seed the plan row's current clock
+    # so the fold can tell a revision (a change against the row's
+    # committed time) from formation refinement (see
+    # existing_time_change?/3).
+    row_clock =
+      plan && OpalCore.SocialFlow.PlanIdentity.parse_clock(plan.time_label || "")
+
     state =
-      fold(messages, members, actions)
+      fold(messages, members, actions, plan_row_clock: row_clock)
       |> freeze_plan_set_event(plan && plan.alignment)
       |> PlaceIdentity.attach_resolved(plan && plan.alignment)
       |> surface_pending_revision(plan)
+      |> surface_attendance(plan)
 
     if plan_material?(state) do
       # Repair #18: the fold-born plan's creator is deterministic - the
@@ -438,6 +517,61 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp surface_pending_revision(state, _), do: state
+
+  # Repair #18 residuals (R-2): exactly ONE pending representation may
+  # be PRESENTED on the thread alignment surface. The PlanRevision row
+  # is the record of authority for a pending change; the fold's
+  # change_proposal for the same change is its projection (the
+  # unification law from Division A). The dedupe is presentation-only
+  # and lives in the HTTP alignment presenter
+  # (ConversationController): the sync state itself keeps both keys,
+  # because fold consumers (keep_committed_plan,
+  # accept_committed_change, the call-outcome paths) act on the fold
+  # proposal - hiding it here made a live proposal unanswerable.
+
+  @doc """
+  Presentation dedupe for the thread alignment surface (Repair #18
+  residuals R-2): when a proposed PlanRevision and the fold's
+  change_proposal name the same clock, they are ONE pending change -
+  the revision is the record of authority and the fold proposal is
+  its projection, so the projection is not presented alongside it.
+  Sync state itself is untouched (fold consumers act on the
+  proposal); a fold proposal naming a different clock is a
+  different pending change and stays.
+  """
+  def dedupe_pending_presentation(state) when is_map(state) do
+    pending = state["pending_revision"]
+    proposal = state["change_proposal"]
+
+    revision_clock =
+      if is_map(pending) do
+        OpalCore.SocialFlow.PlanIdentity.parse_clock(pending["proposed_time_label"] || "")
+      end
+
+    if is_map(proposal) and not is_nil(revision_clock) and
+         proposal_clock(proposal) == revision_clock do
+      Map.delete(state, "change_proposal")
+    else
+      state
+    end
+  end
+
+  def dedupe_pending_presentation(state), do: state
+
+  # Repair #18 residuals (R-4c) - the thread alignment output carries
+  # the ONE attendance counter for the conversation's plan, merged
+  # from JourneyAuthority.attendance_contract/1 exactly as the plan
+  # payload and the chats-list card merge it. The founder read the
+  # wrong count IN the thread; a thread surface with no count at all
+  # left the chat free to disagree with the graph forever. No
+  # participant rows -> no fields (absence stays honest).
+  defp surface_attendance(state, %SharedPlan{} = plan) when is_map(state) do
+    Map.merge(state, OpalCore.SocialFlow.JourneyAuthority.attendance_contract(plan.id))
+  rescue
+    _ -> state
+  end
+
+  defp surface_attendance(state, _), do: state
 
   @doc """
   Multiple SharedPlans per conversation are lawful (new lineage / residue).
@@ -1064,10 +1198,47 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       # the confirmer. Replaying it as a datetime change resurrected a
       # pending change_proposal after the revision was accepted (the
       # fold replays every message on every sync).
-      state
+      #
+      # Repair #18 residuals (R-2): skipping interpretation is only
+      # half of the settlement - the confirmation must APPLY the
+      # pending proposal inside the fold itself. The human thread's
+      # confirm travels as this chat message; the System A revision
+      # accept (when the intelligence executor fires) mirrors the same
+      # settlement, but when the executor cannot fire (an ambiguous
+      # schedule target elsewhere in the account), nothing else ever
+      # applied the change, and every surface kept reading the old
+      # time. A confirmation from anyone but the proposer applies the
+      # proposal exactly the way a change_accept action does; the
+      # proposer's own "confirm" settles nothing (it still needs the
+      # other party).
+      proposal = state["change_proposal"]
+
+      if is_map(proposal) and is_binary(actor) and actor != proposal["proposed_by_user_id"] do
+        state
+        |> apply_accepted_change(proposal, actor)
+        |> Map.delete("change_proposal")
+        |> Map.update("plan_version", 1, &(&1 + 1))
+        |> mark_fold_settlement(actor)
+      else
+        state
+      end
     else
       note_datetime_change_interpreted(state, text, id, actor, context)
     end
+  end
+
+  # Repair #18 residuals (R-2b): stamp a message-driven acceptance so
+  # sync_conversation can land it in the revision chain after the
+  # fold (see settle_fold_acceptance/2). Only chat confirmations mark
+  # this - explicit change_accept actions keep their existing mirror
+  # path (accept_committed_change), so no acceptance is recorded
+  # twice.
+  defp mark_fold_settlement(state, actor) do
+    Map.put(state, "settled_change", %{
+      "clock" =>
+        OpalCore.SocialFlow.PlanIdentity.parse_clock(get_in(state, ["exact_time", "value"]) || ""),
+      "actor_user_id" => actor
+    })
   end
 
   defp confirmation_replay?(state, text) do
@@ -1108,23 +1279,134 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         if committed_plan?(state), do: Map.put(state, "clarify", prompt), else: state
 
       {:change, change} ->
-        apply_datetime_change(state, change, id, actor)
+        cond do
+          # Repair #18 residuals (R-2): a second party restating the
+          # pending proposal's own time ("8 PM works for me") is
+          # seconding it - that settles the proposal the same way an
+          # explicit confirmation does, instead of re-proposing it.
+          seconding_pending_proposal?(state, change, actor) ->
+            proposal = state["change_proposal"]
+
+            state
+            |> apply_accepted_change(proposal, actor)
+            |> Map.delete("change_proposal")
+            |> Map.update("plan_version", 1, &(&1 + 1))
+            |> mark_fold_settlement(actor)
+
+          true ->
+            apply_datetime_change(state, change, id, actor)
+        end
     end
   end
 
-  defp apply_datetime_change(state, change, id, actor) do
-    direct? =
-      not committed_plan?(state) or
-        (not DateTimeChange.confirmation_required?(state) and
-           actor == DateTimeChange.holder_id(state))
+  defp seconding_pending_proposal?(state, change, actor) do
+    proposal = state["change_proposal"]
 
-    if direct? do
-      state
-      |> put_parsed_date(change, id)
-      |> put_parsed_time(change, id)
-      |> put_parsed_window(change, id)
-    else
-      put_change_proposal(state, datetime_proposal(state, change, actor))
+    is_map(proposal) and is_binary(actor) and actor != proposal["proposed_by_user_id"] and
+      same_clock?(
+        proposal_clock(proposal),
+        OpalCore.SocialFlow.PlanIdentity.parse_clock(
+          get_in(change, ["exact_time", "value"]) || ""
+        )
+      )
+  end
+
+  defp proposal_clock(proposal) do
+    OpalCore.SocialFlow.PlanIdentity.parse_clock(proposal["value"] || "") ||
+      OpalCore.SocialFlow.PlanIdentity.parse_clock(
+        get_in(proposal, ["exact_time", "value"]) || ""
+      )
+  end
+
+  defp same_clock?(a, b), do: not is_nil(a) and not is_nil(b) and a == b
+
+  defp apply_datetime_change(state, change, id, actor) do
+    cond do
+      # Repair #18 residuals (R-2a): moving the plan ROW's committed
+      # time is a REVISION, not formation. The old gate keyed only on
+      # committed_plan?/1 (exact_time locked AND place locked), so in
+      # the common shape - time agreed in plain language, place still
+      # a candidate - a spoken "let's change dinner to 8 PM" silently
+      # overwrote the plan row's canonical time_label through
+      # upsert_plan before anyone confirmed. Now: a change targeting
+      # the row's current clock (seeded by sync_locked - see
+      # existing_time_change?/3) lands as a change_proposal, pending
+      # living there only, until the other party confirms.
+      # First-time setting, same-time restatement, solo threads,
+      # formation refinement against no row, and a delegated
+      # datetime holder acting inside their rights keep the direct
+      # path.
+      existing_time_change?(state, change, actor) ->
+        put_change_proposal(state, datetime_proposal(state, change, actor))
+
+      not committed_plan?(state) or
+          (not DateTimeChange.confirmation_required?(state) and
+             actor == DateTimeChange.holder_id(state)) ->
+        state
+        |> put_parsed_date(change, id)
+        |> put_parsed_time(change, id)
+        |> put_parsed_window(change, id)
+
+      true ->
+        put_change_proposal(state, datetime_proposal(state, change, actor))
+    end
+  end
+
+  # True when `change` would move an exact_time the fold already
+  # holds (to a different clock) in a conversation with more than one
+  # participant, and the actor does not hold delegated datetime
+  # rights that make the change theirs alone to make.
+  # True when `change` would move the plan ROW's committed time.
+  # The fold is pure formation logic: refining a candidate time while
+  # a plan is still being negotiated is formation, and the fold's own
+  # semantics encode that. A revision exists only against a schedule
+  # a plan row already carries - sync_locked seeds the row's current
+  # clock into the fold as "plan_row_clock", and a change is gated
+  # when it targets exactly that clock (the fold's current exact_time
+  # IS the row's time, restated by the forming messages) with a
+  # different one, in a multi-party thread, by an actor without
+  # delegated datetime rights. Pure folds (no row) never gate.
+  defp existing_time_change?(state, change, actor) do
+    current = get_in(state, ["exact_time", "value"])
+
+    new_clock =
+      OpalCore.SocialFlow.PlanIdentity.parse_clock(get_in(change, ["exact_time", "value"]) || "")
+
+    current_clock = OpalCore.SocialFlow.PlanIdentity.parse_clock(current || "")
+    row_clock = state["plan_row_clock"]
+
+    cond do
+      not is_binary(row_clock) ->
+        false
+
+      not is_binary(current) or current == "" ->
+        false
+
+      is_nil(new_clock) or is_nil(current_clock) ->
+        false
+
+      current_clock != row_clock ->
+        false
+
+      new_clock == current_clock ->
+        false
+
+      solo_thread?(state) ->
+        false
+
+      actor == DateTimeChange.holder_id(state) and
+          not DateTimeChange.confirmation_required?(state) ->
+        false
+
+      true ->
+        true
+    end
+  end
+
+  defp solo_thread?(state) do
+    case get_in(state, ["participants", "value"]) do
+      participants when is_list(participants) -> length(participants) <= 1
+      _ -> false
     end
   end
 
@@ -1304,6 +1586,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         # Committed plans (locked time + place) always propose — same law as
         # apply_datetime_change/4. Execution agreement is not required; a prior
         # time accept may have cleared reservation without unlocking the plan.
+        # (Repair #18 residuals note: the R-2a proposal gate deliberately
+        # does NOT extend here - "make it X" is the fold's formation
+        # retarget and reopens the time even after a lock, per the
+        # fold's established semantics; revision proposals arrive via
+        # interpreted datetime changes against the plan row's time.)
         cond do
           committed_plan?(state) and previous != label ->
             put_change_proposal(state, "exact_time", label, actor || id)
@@ -1657,6 +1944,17 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       "schedule_change_revision_id" => action["revision_id"]
     })
     |> Map.update("plan_version", 1, &(&1 + 1))
+    # Repair #18 residuals (R-2d): an accepted revision SETTLES the
+    # historical proposal it recorded - permanently. Actions replay
+    # chronologically, so a change_proposal present at this point
+    # predates the acceptance; if it names the accepted change (same
+    # clock, or no parseable clock of its own), it is retired here.
+    # Without this, a re-fold after any later message re-derived the
+    # already-accepted proposal from the original propose message
+    # and the alignment resurrected a pending change that no longer
+    # existed. A genuinely newer proposal is created by a later
+    # message, after this action replays, and survives.
+    |> settle_proposal_for_accepted_change(value)
   end
 
   defp apply_action(
@@ -1674,6 +1972,26 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp apply_action(state, _action), do: state
+
+  defp settle_proposal_for_accepted_change(state, accepted_value) do
+    proposal = state["change_proposal"]
+    accepted_clock = OpalCore.SocialFlow.PlanIdentity.parse_clock(accepted_value || "")
+
+    cond do
+      not is_map(proposal) ->
+        state
+
+      is_nil(accepted_clock) ->
+        state
+
+      true ->
+        case proposal_clock(proposal) do
+          nil -> Map.delete(state, "change_proposal")
+          clock when clock == accepted_clock -> Map.delete(state, "change_proposal")
+          _ -> state
+        end
+    end
+  end
 
   defp propose_place(state, name, source, actor) do
     current = state["place"] || %{}
@@ -2556,7 +2874,6 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   defp ensure_fold_participants(_, _, _), do: :ok
 
-
   # Descriptive fallback title for a fold-born plan: the folded place
   # when known, else the activity, else the other people's names -
   # never a bare placeholder and never a schedule fragment.
@@ -2592,6 +2909,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         OpalCore.SocialFlow.PlanIdentity.human_title(%{who: others})
     end
   end
+
   # F12-02c — the revision chain is the schedule authority. A "schedule_change"
   # explicit action (appended by change_plan_schedule/1 and the revision-accept
   # path) carries the verbatim accepted value. When it is the newest

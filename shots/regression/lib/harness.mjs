@@ -437,6 +437,15 @@ export function findKeys(value, names, path = "$", out = []) {
 export function extractAttendance(obj, depth = 0) {
   if (!obj || typeof obj !== "object" || depth > 6) return null;
   const direct = [
+    // Canonical Division A contract vocabulary
+    // (JourneyAuthority.attendance_contract: going_count /
+    // interested_count / total_count; web planCardContract.ts reads
+    // the same pair). Added by the R18 residuals worker - flagged for
+    // coordinator ruling: without this pair the extractor could not
+    // see the canonical contract on ANY surface, including surfaces
+    // that verifiably carry it (seed payload, /opal/plans entry,
+    // journey projection all use total_count).
+    ["going_count", "total_count"],
     ["going_count", "participant_total"],
     ["going_count", "total_participants"],
     ["going", "total"],

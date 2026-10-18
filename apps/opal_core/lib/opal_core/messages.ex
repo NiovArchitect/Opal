@@ -176,7 +176,8 @@ defmodule OpalCore.Messages do
 
       # Multiple SharedPlans per conversation are lawful (history + new tentative).
       # Never Repo.one/0 without limit — that 500s the Chats list.
-      plan_alignment = current_plan_alignment(cid)
+      current_plan = current_plan(cid)
+      plan_alignment = current_plan && current_plan.alignment
 
       %{
         "id" => conversation.id,
@@ -198,19 +199,19 @@ defmodule OpalCore.Messages do
         # Repair #18: viewer-scoped so the card carries viewer_state (the
         # viewer's own canonical response state) beside the one counter.
         "plan_projection" =>
-          HomeProjection.from_alignment(plan_alignment, cid, member_count, viewer_id: user_id)
+          HomeProjection.from_alignment(plan_alignment, cid, member_count, viewer_id: user_id) ||
+            HomeProjection.from_plan_row(current_plan, cid, member_count, viewer_id: user_id)
       }
     end)
     |> Enum.sort_by(& &1["updated_at"], :desc)
   end
 
   # Prefer the newest active plan for list projection; cancelled/completed stay in history.
-  defp current_plan_alignment(conversation_id) do
+  defp current_plan(conversation_id) do
     from(p in SharedPlan,
       where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
       order_by: [desc: p.updated_at, desc: p.inserted_at],
-      limit: 1,
-      select: p.alignment
+      limit: 1
     )
     |> Repo.one()
   end

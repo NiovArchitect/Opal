@@ -63,7 +63,7 @@ defmodule OpalCore.Center.DeviceLocation do
       false ->
         cond do
           not (is_number(lat) and lat >= -90 and lat <= 90 and is_number(lon) and lon >= -180 and
-                 lon <= 180) ->
+                   lon <= 180) ->
             {:error, :invalid_coords}
 
           true ->
@@ -108,22 +108,142 @@ defmodule OpalCore.Center.DeviceLocation do
   (`:none`) — a fresh grant re-establishes them.
   """
   def get_for_user(user_id) when is_binary(user_id) do
-    planning = PlanningContext.get_for_user(user_id)
+    # Repair #18 residuals (R-3b) - the grant is PER-USER, but it is
+    # stored on the planning_context of whichever Center conversation
+    # was active when it landed. Reading only the currently-active
+    # conversation made the write and the read disagree the moment the
+    # user started a new chat (the granting conversation is archived,
+    # its coords orphaned, and the city question answered "no
+    # location" in the same session). Read across ALL of the user's
+    # Center conversations, newest fix first; the 24h freshness window
+    # still applies to whichever fix wins.
+    user_id
+    |> all_planning_contexts()
+    |> Enum.find_value(:none, fn planning ->
+      case planning["device_coords"] do
+        %{"lat" => lat, "lon" => lon} = coords when is_number(lat) and is_number(lon) ->
+          if stale?(coords["updated_at"]), do: nil, else: {:ok, coords}
 
-    case planning["device_coords"] do
-      %{"lat" => lat, "lon" => lon} = coords when is_number(lat) and is_number(lon) ->
-        if stale?(coords["updated_at"]) do
-          :none
-        else
-          {:ok, coords}
-        end
-
-      _ ->
-        :none
-    end
+        _ ->
+          nil
+      end
+    end)
   end
 
   def get_for_user(_), do: :none
+
+  # Every planning context the user has, active conversation first,
+  # then archived sessions newest-first (a fix granted in a chat that
+  # has since been archived is still the user's latest grant).
+  defp all_planning_contexts(user_id) do
+    import Ecto.Query
+
+    from(c in OpalCore.OpalConversations.OpalConversation,
+      where: c.user_id == ^user_id,
+      order_by: [
+        asc: fragment("CASE WHEN ? IS NULL THEN 0 ELSE 1 END", c.archived_at),
+        desc: c.updated_at,
+        desc: c.inserted_at
+      ],
+      select: c.planning_context
+    )
+    |> OpalCore.Repo.all()
+    |> Enum.map(fn
+      ctx when is_map(ctx) ->
+        Map.new(ctx, fn
+          {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+          {k, v} -> {to_string(k), v}
+        end)
+
+      _ ->
+        %{}
+    end)
+  rescue
+    _ -> [PlanningContext.get_for_user(user_id)]
+  end
+
+  @doc """
+  Coarse city name for validated coords, or nil when no source can
+  name one honestly. Sources, in order: the Geoapify reverse geocode
+  when its key is configured (the same provider the places pipeline
+  uses), then the built-in metro gazetteer (nearest centroid within
+  75 km - a coarse fix only ever names the metro it falls in, never a
+  street-level claim). Nil keeps the caller on the honest
+  coords-only answer.
+  """
+  def city_for_coords(%{"lat" => lat, "lon" => lon}) when is_number(lat) and is_number(lon) do
+    geoapify_city(lat, lon) || gazetteer_city(lat, lon)
+  end
+
+  def city_for_coords(_), do: nil
+
+  defp geoapify_city(lat, lon) do
+    key = Application.get_env(:opal_core, :geoapify_api_key)
+
+    if is_binary(key) and key != "" do
+      url =
+        "https://api.geoapify.com/v1/geocode/reverse?lat=#{lat}&lon=#{lon}&format=json&apiKey=#{key}"
+
+      case Req.get(url, receive_timeout: 3_000) do
+        {:ok, %{status: 200, body: %{"results" => [first | _]}}} ->
+          first["city"] || first["county"] || first["state"]
+
+        _ ->
+          nil
+      end
+    end
+  rescue
+    _ -> nil
+  end
+
+  # Coarse metro centroids (city, lat, lon). Deliberately short: the
+  # product's home metros plus major US metros a coarse fix plausibly
+  # lands in. A fix outside every radius names no city rather than
+  # guessing the nearest one hundreds of kilometres away.
+  @gazetteer [
+    {"San Diego", 32.716, -117.161},
+    {"Oceanside", 33.196, -117.380},
+    {"Los Angeles", 34.052, -118.244},
+    {"San Francisco", 37.775, -122.419},
+    {"San Jose", 37.339, -121.895},
+    {"Sacramento", 38.582, -121.494},
+    {"Fresno", 36.738, -119.787},
+    {"Phoenix", 33.448, -112.074},
+    {"Tucson", 32.222, -110.975},
+    {"Las Vegas", 36.170, -115.140},
+    {"Denver", 39.739, -104.990},
+    {"Salt Lake City", 40.761, -111.891},
+    {"Portland", 45.515, -122.679},
+    {"Seattle", 47.606, -122.332},
+    {"Austin", 30.267, -97.743},
+    {"Dallas", 32.777, -96.797},
+    {"Houston", 29.760, -95.370},
+    {"San Antonio", 29.424, -98.494},
+    {"Chicago", 41.878, -87.630},
+    {"Minneapolis", 44.978, -93.265},
+    {"Atlanta", 33.749, -84.388},
+    {"Miami", 25.762, -80.192},
+    {"Orlando", 28.538, -81.379},
+    {"Tampa", 27.951, -82.457},
+    {"New York", 40.713, -74.006},
+    {"Boston", 42.360, -71.059},
+    {"Washington", 38.907, -77.037},
+    {"Philadelphia", 39.953, -75.165},
+    {"Nashville", 36.163, -86.782},
+    {"Charlotte", 35.227, -80.843}
+  ]
+
+  defp gazetteer_city(lat, lon) do
+    @gazetteer
+    |> Enum.map(fn {city, clat, clon} -> {city, haversine_km(lat, lon, clat, clon)} end)
+    |> Enum.filter(fn {_city, km} -> is_number(km) and km <= 75.0 end)
+    |> Enum.sort_by(fn {_city, km} -> km end)
+    |> List.first()
+    |> case do
+      {city, _km} -> city
+      _ -> nil
+    end
+  end
 
   @doc """
   Store validated coarse coords for a user. `coords` must already be

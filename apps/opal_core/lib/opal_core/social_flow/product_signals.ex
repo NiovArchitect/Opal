@@ -139,6 +139,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       messages
       |> Enum.filter(fn m ->
         body = m.body || ""
+
         not SmokeResidue.smoke_body?(body) and
           not OpalCore.SocialFlow.SeedFixtureLeak.seed_fixture_body?(body) and
           String.trim(body) != ""
@@ -148,7 +149,12 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       {:ok, []}
     else
       member_count = member_count(conversation_id)
-      composition = GroupComposition.compose(conversation_id, social)
+
+      composition =
+        conversation_id
+        |> GroupComposition.compose(social)
+        |> reconcile_composition_with_settled_plan(conversation_id)
+
       evidence_stage = classify_evidence_stage(social)
       stage = elevate_to_set_if_authorized(conversation_id, social, evidence_stage)
       signals = stage_to_signals(stage, social, member_count, evidence_stage, composition)
@@ -162,6 +168,115 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       select: count(cm.id)
     )
     |> Repo.one() || 0
+  end
+
+  # Repair #18 residuals (R-2c) - the live thread signal is
+  # current-state copy, recomputed on read. GroupComposition derives
+  # its "when" from raw message evidence (the start candidates people
+  # mentioned while negotiating); that evidence cannot supersede
+  # itself - a confirmed change to "8 PM" never even becomes a
+  # candidate (the extractor only sees colon forms), so the signal
+  # kept presenting the ORIGINAL 7:30 as the group's strongest common
+  # start after the plan had been revised to 8:00. Once the
+  # conversation's plan carries an accepted schedule (the revision
+  # chain recorded it, or a schedule_change action stands in the
+  # stored alignment), the plan row is the authority for the plan's
+  # current time and the composition's when reads from the row.
+  # Threads still negotiating keep the evidence read untouched.
+  defp reconcile_composition_with_settled_plan(composition, conversation_id) do
+    with label when is_binary(label) <- settled_plan_label(conversation_id),
+         start when is_binary(start) <- composition_start_for(label) do
+      day =
+        composition_day_for(label) || get_in(composition, ["when", "day"])
+
+      when_map =
+        Map.merge(composition["when"] || %{}, %{
+          "day" => day,
+          "strongest_common_start" => start,
+          "start_candidates" => [start],
+          "window_note" => "Strongest common start around #{start}"
+        })
+
+      composition
+      |> Map.put("when", when_map)
+      |> then(fn c -> Map.put(c, "human_surface", GroupComposition.human_surface(c)) end)
+    else
+      _ -> composition
+    end
+  rescue
+    _ -> composition
+  end
+
+  defp settled_plan_label(conversation_id) do
+    plan =
+      from(p in OpalCore.SocialFlow.SharedPlan,
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at],
+        limit: 1
+      )
+      |> Repo.one()
+
+    cond do
+      not match?(%OpalCore.SocialFlow.SharedPlan{}, plan) ->
+        nil
+
+      not is_binary(plan.time_label) or plan.time_label == "" ->
+        nil
+
+      accepted_revision?(plan) or schedule_change_recorded?(plan) ->
+        plan.time_label
+
+      true ->
+        nil
+    end
+  rescue
+    _ -> nil
+  end
+
+  defp accepted_revision?(%{current_revision_id: revision_id}) when is_binary(revision_id) do
+    match?(
+      %OpalCore.SocialFlow.PlanRevision{status: "accepted"},
+      Repo.get(OpalCore.SocialFlow.PlanRevision, revision_id)
+    )
+  end
+
+  defp accepted_revision?(_), do: false
+
+  defp schedule_change_recorded?(plan) do
+    actions = (plan.alignment || %{})["explicit_actions"] || []
+    Enum.any?(actions, &(&1["kind"] == "schedule_change"))
+  end
+
+  # The composition's clock convention is 12-hour without meridiem
+  # ("7:30"); the plan label's canonical clock ("8:00 PM") converts
+  # to the same convention so the when_line reads consistently.
+  defp composition_start_for(label) do
+    case OpalCore.SocialFlow.PlanIdentity.parse_clock(label || "") do
+      <<h::binary-size(2), ":", mm::binary>> ->
+        h24 = String.to_integer(h)
+
+        h12 =
+          cond do
+            h24 == 0 -> 12
+            h24 > 12 -> h24 - 12
+            true -> h24
+          end
+
+        "#{h12}:#{mm}"
+
+      _ ->
+        nil
+    end
+  end
+
+  defp composition_day_for(label) do
+    Enum.find_value(
+      ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday),
+      fn day ->
+        if Regex.match?(~r/\b#{day}\b/i, label || ""), do: day
+      end
+    )
   end
 
   # Evidence-only recognition. Never returns :set — that requires AlignmentAuthority.
@@ -234,6 +349,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
     # path aligned with tests/bridge — no dual next_gap owner.
     reality = SocialReality.project(messages, stage)
     source_ids = source_message_ids_for(stage, messages)
+
     moments =
       chronological_moments(messages)
       |> maybe_append_set_moment(stage, evidence_stage, messages, sample)
@@ -300,7 +416,8 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       "member_count" => member_count,
       "speaker_count" => length(speakers),
       "affirmative_count" => length(affirm_ids),
-      "composition" => composition["composition"] || if(member_count >= 3, do: "group", else: "dyad"),
+      "composition" =>
+        composition["composition"] || if(member_count >= 3, do: "group", else: "dyad"),
       "partial_group?" =>
         member_count >= 3 and is_integer(who["required_pending_count"]) and
           who["required_pending_count"] > 0,
@@ -496,6 +613,7 @@ defmodule OpalCore.SocialFlow.ProductSignals do
       messages
       |> Enum.filter(fn m ->
         body = m.body || ""
+
         not SmokeResidue.smoke_body?(body) and
           not OpalCore.SocialFlow.SeedFixtureLeak.seed_fixture_body?(body) and
           String.trim(body) != ""

@@ -26,6 +26,9 @@ defmodule OpalCore.Oracle do
   alias OpalCore.Wallets.WalletTransaction
 
   @kinds [
+    :current_location,
+    :capabilities,
+    :arithmetic,
     :saturday_plans,
     :day_plans,
     :last_saw,
@@ -73,6 +76,16 @@ defmodule OpalCore.Oracle do
       # fix), never the generic chat deflection.
       current_location?(lower) ->
         :current_location
+
+      # Repair #18 residuals (R-3) - two more grounded kinds, so a
+      # factual turn never falls through to the chat deflection when
+      # no LLM provider is engaged: what Opal itself can do (product
+      # truth), and simple arithmetic (computed, never invented).
+      capabilities?(lower) ->
+        :capabilities
+
+      arithmetic(lower) != nil ->
+        :arithmetic
 
       saturday_plans?(lower) ->
         :saturday_plans
@@ -307,6 +320,23 @@ defmodule OpalCore.Oracle do
     end
   end
 
+  # Repair #18 residuals (R-3) - grounded capabilities: what Opal can
+  # actually do in this product today (plan, check the Graph, find
+  # places, keep plans with people). The same truth render_chat's
+  # capability branch serves; here it is a first-class grounded
+  # answer so its metadata records the grounded path.
+  defp render(:capabilities, _user_id, _text, _ctx) do
+    {"I can help you plan what's next, check what's coming up on your Graph, find places, and keep plans with people you care about. What do you want to do?",
+     ["capabilities"]}
+  end
+
+  defp render(:arithmetic, _user_id, text, _ctx) do
+    case arithmetic(String.downcase(text)) do
+      {expr, result} -> {"#{expr} is #{result}.", ["arithmetic"]}
+      _ -> {"I couldn't work that one out. Try it with plain numbers.", ["arithmetic"]}
+    end
+  end
+
   defp current_city(user_id, ctx) do
     ctx_city = get_in_ctx(ctx, [:location, :current_city])
 
@@ -328,13 +358,145 @@ defmodule OpalCore.Oracle do
 
               true ->
                 case DeviceLocation.get_for_user(user_id) do
-                  {:ok, _coords} -> :coords_only
-                  :none -> :none
+                  {:ok, coords} ->
+                    # Repair #18 residuals (R-3b): a granted fix must
+                    # be ANSWERABLE - resolve the coarse city from
+                    # the coords instead of stopping at coords-only
+                    # whenever a source can name the metro honestly.
+                    case DeviceLocation.city_for_coords(coords) do
+                      city when is_binary(city) and city != "" ->
+                        {:ok, city, "device_location:city"}
+
+                      _ ->
+                        :coords_only
+                    end
+
+                  :none ->
+                    :none
                 end
             end
         end
     end
   end
+
+  defp capabilities?(lower) do
+    Regex.match?(
+      ~r/\bwhat\s+can\s+you\s+help\b|\bhow\s+can\s+you\s+help\b|\bwhat\s+can\s+you\s+do\b|\bwhat\s+do\s+you\s+do\b|\bhow\s+can\s+you\s+help\s+me\b/i,
+      lower
+    )
+  end
+
+  # Simple two-operand arithmetic, digits or English number words:
+  # "what is two plus two?", "12 times 3", "what's 10 divided by 4?".
+  # Returns {display_expression, display_result} or nil. Division by
+  # zero and anything with more than two operands is not arithmetic
+  # for this purpose - it falls through to the normal paths.
+  @number_words %{
+    "zero" => 0,
+    "one" => 1,
+    "two" => 2,
+    "three" => 3,
+    "four" => 4,
+    "five" => 5,
+    "six" => 6,
+    "seven" => 7,
+    "eight" => 8,
+    "nine" => 9,
+    "ten" => 10,
+    "eleven" => 11,
+    "twelve" => 12,
+    "thirteen" => 13,
+    "fourteen" => 14,
+    "fifteen" => 15,
+    "sixteen" => 16,
+    "seventeen" => 17,
+    "eighteen" => 18,
+    "nineteen" => 19,
+    "twenty" => 20
+  }
+
+  defp arithmetic(lower) when is_binary(lower) do
+    cleaned =
+      lower
+      |> String.replace(~r/[?!.]/, "")
+      |> String.replace(~r/^\s*(what'?s|what\s+is|calculate|compute|solve)\s+/, "")
+      |> String.trim()
+
+    ops = [
+      {"plus", :+},
+      {"+", :+},
+      {"minus", :-},
+      {"-", :-},
+      {"times", :*},
+      {"multiplied by", :*},
+      {"x", :*},
+      {"*", :*},
+      {"divided by", :/},
+      {"/", :/}
+    ]
+
+    Enum.find_value(ops, fn {token, op} ->
+      parts = String.split(cleaned, token)
+
+      case parts do
+        [left, right] ->
+          with a when is_number(a) <- parse_operand(left),
+               b when is_number(b) <- parse_operand(right),
+               {:ok, result} <- compute(op, a, b) do
+            {"#{format_number(a)} #{op_word(op)} #{format_number(b)}", format_number(result)}
+          else
+            _ -> nil
+          end
+
+        _ ->
+          nil
+      end
+    end)
+  end
+
+  defp arithmetic(_), do: nil
+
+  defp parse_operand(text) do
+    text = String.trim(text)
+
+    cond do
+      Map.has_key?(@number_words, text) ->
+        @number_words[text]
+
+      Regex.match?(~r/^\d+(\.\d+)?$/, text) ->
+        case Float.parse(text) do
+          {n, ""} -> if n == trunc(n), do: trunc(n), else: n
+          _ -> nil
+        end
+
+      true ->
+        nil
+    end
+  end
+
+  defp compute(:+, a, b), do: {:ok, a + b}
+  defp compute(:-, a, b), do: {:ok, a - b}
+  defp compute(:*, a, b), do: {:ok, a * b}
+  defp compute(:/, _a, 0), do: :error
+  defp compute(:/, a, b), do: {:ok, a / b}
+  defp compute(_, _, _), do: :error
+
+  defp op_word(:+), do: "plus"
+  defp op_word(:-), do: "minus"
+  defp op_word(:*), do: "times"
+  defp op_word(:/), do: "divided by"
+
+  defp format_number(n) when is_integer(n), do: Integer.to_string(n)
+
+  defp format_number(n) when is_float(n) do
+    if n == trunc(n) do
+      Integer.to_string(trunc(n))
+    else
+      n |> Float.round(4) |> Float.to_string()
+    end
+  end
+
+  defp format_number(n), do: to_string(n)
 
   defp render(:saturday_plans, user_id, _text, ctx) do
     tz = timezone(ctx)
@@ -367,8 +529,7 @@ defmodule OpalCore.Oracle do
             label = format_local_date(at, timezone(ctx))
             title_bit = if is_binary(title) and title != "", do: " (#{title})", else: ""
 
-            {"You last saw #{first_name(person)} on #{label}#{title_bit}.",
-             [source]}
+            {"You last saw #{first_name(person)} on #{label}#{title_bit}.", [source]}
 
           _ ->
             {"I don't have a last hang with #{first_name(person)} on record yet.", []}
@@ -433,8 +594,7 @@ defmodule OpalCore.Oracle do
 
     case stale do
       [] ->
-        {"Nobody's jumping out as overdue right now. Want me to watch someone specifically?",
-         []}
+        {"Nobody's jumping out as overdue right now. Want me to watch someone specifically?", []}
 
       list ->
         names =
@@ -666,8 +826,7 @@ defmodule OpalCore.Oracle do
          ["plan_place"]}
 
       {:error, :no_match} ->
-        {"I don't see a plan by that name on your Graph. Which one do you mean?",
-         ["plan_place"]}
+        {"I don't see a plan by that name on your Graph. Which one do you mean?", ["plan_place"]}
     end
   end
 
@@ -943,7 +1102,9 @@ defmodule OpalCore.Oracle do
              ~r/\b(?:see|saw|with|hang(?:ing)?\s+with|meet|met|talk(?:ed)?\s+to|dinner\s+with|lunch\s+with|coffee\s+with)\s+([A-Z][a-zA-Z']+)/,
              text
            ) do
-        [_, name] -> name
+        [_, name] ->
+          name
+
         _ ->
           case Regex.run(~r/\b([A-Z][a-zA-Z']+)\b/, text) do
             [_, name] ->
@@ -961,7 +1122,11 @@ defmodule OpalCore.Oracle do
     lower = String.downcase(text)
 
     cond do
-      m = Regex.run(~r/\b(?:status of the|how's the|how is the)\s+([a-z][a-z\s]+?)\s+trip\b/i, lower) ->
+      m =
+          Regex.run(
+            ~r/\b(?:status of the|how's the|how is the)\s+([a-z][a-z\s]+?)\s+trip\b/i,
+            lower
+          ) ->
         Enum.at(m, 1) |> String.trim()
 
       m = Regex.run(~r/\b([a-z][a-z]+)\s+trip\b/i, lower) ->
@@ -1023,7 +1188,8 @@ defmodule OpalCore.Oracle do
         lower
       )
 
-    hit? and (topic == "" or String.contains?(lower, topic) or topic in ~w(venue place spot restaurant))
+    hit? and
+      (topic == "" or String.contains?(lower, topic) or topic in ~w(venue place spot restaurant))
   end
 
   defp venue_body?(_, _), do: false

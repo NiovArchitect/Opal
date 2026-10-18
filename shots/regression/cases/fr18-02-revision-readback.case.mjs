@@ -223,14 +223,31 @@ export default {
         }
 
         const msgs = await h.getHumanMessages(P, convId);
-        const liveCopy = {
-          signals: msgs.json.signals || [],
-          chronology: msgs.json.chronology || [],
-        };
+        // Signals are LIVE current-state copy: once the revision is
+        // accepted, the old time must not appear there at all.
         assert.check(
-          "GET /conversations/:id/messages (signals + chronology)",
-          !surfaceReadsTime(liveCopy, OLD_TIME),
-          `${label} ${phase}: thread signals/chronology (the bottom-of-screen copy) must not present ${OLD_TIME} PM as the plan's current time`,
+          "GET /conversations/:id/messages (signals)",
+          !surfaceReadsTime({ signals: msgs.json.signals || [] }, OLD_TIME),
+          `${label} ${phase}: thread signals (the bottom-of-screen copy) must not present ${OLD_TIME} PM as the plan's current time`,
+        );
+        // Chronology is DURABLE HISTORY (coordinator ruling, Repair
+        // #18): a past-tense moment recording that 7:30 PM once became
+        // the time is lawful history and must never be rewritten to
+        // pass a scan. What must hold is that the LATEST time_resolved
+        // moment records the accepted time.
+        const resolvedMoments = (msgs.json.chronology || []).filter((m) =>
+          JSON.stringify(m).includes("time_resolved"),
+        );
+        const latestResolved = resolvedMoments[resolvedMoments.length - 1];
+        const latestResolvedText = latestResolved
+          ? latestResolved.label || JSON.stringify(latestResolved)
+          : "";
+        assert.check(
+          "GET /conversations/:id/messages (chronology, latest time_resolved)",
+          !!latestResolved &&
+            latestResolvedText.includes(NEW_TIME) &&
+            !latestResolvedText.includes(OLD_TIME),
+          `${label} ${phase}: the latest time_resolved chronology moment must record ${NEW_TIME} PM; got ${JSON.stringify(latestResolvedText)} (older history moments may lawfully mention ${OLD_TIME} PM in the past tense)`,
         );
 
         const today = await h.calendarToday(P);

@@ -173,19 +173,19 @@ defmodule OpalCore.Center.ActionOrchestrator do
               raw_text
             )
 
+          # F12-13/F12-53 — the sticky plan_id is only actionable while
+          # fresh and the plan is still active. A bare is_binary check let
+          # days-old or cancelled plan_ids hijack unrelated utterances.
+          # Repair #17 (W4-4) — a NEW plan request ("Schedule a date
+          # night with Chanelle tonight at 5 PM…") carries its own when,
+          # but it is not a correction of the sticky plan. It must create
+          # a new plan, never be answered "Updated — Same plan, same
+          # people." Bare clock corrections ("tonight 8 PM") carry no
+          # new-plan verb and still route here.
           (Map.has_key?(patch, "when") or Map.has_key?(patch, "when_time")) and
-              # F12-13/F12-53 — the sticky plan_id is only actionable while
-              # fresh and the plan is still active. A bare is_binary check let
-              # days-old or cancelled plan_ids hijack unrelated utterances.
-              PlanningContext.plan_id_active?(planning) and
-              # Repair #17 (W4-4) — a NEW plan request ("Schedule a date
-              # night with Chanelle tonight at 5 PM…") carries its own when,
-              # but it is not a correction of the sticky plan. It must create
-              # a new plan, never be answered "Updated — Same plan, same
-              # people." Bare clock corrections ("tonight 8 PM") carry no
-              # new-plan verb and still route here.
-              not new_plan_request?(intent, raw_text) and
-              not Regex.match?(@select_option_re, raw_text) and
+            PlanningContext.plan_id_active?(planning) and
+            not new_plan_request?(intent, raw_text) and
+            not Regex.match?(@select_option_re, raw_text) and
               patch["conversation_act"] not in ["challenge_prior_action", "challenge_question"] ->
             handle_when_correction(user_id, intent, planning, prior, patch)
 
@@ -322,10 +322,17 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
     date_iso =
       cond do
-        match?(%Date{}, when_s) -> Date.to_iso8601(when_s)
-        is_binary(when_s) and String.match?(when_s, ~r/^\d{4}-\d{2}-\d{2}/) -> String.slice(when_s, 0, 10)
-        is_binary(when_s) -> PlanningContext.resolve_when(when_s)
-        true -> nil
+        match?(%Date{}, when_s) ->
+          Date.to_iso8601(when_s)
+
+        is_binary(when_s) and String.match?(when_s, ~r/^\d{4}-\d{2}-\d{2}/) ->
+          String.slice(when_s, 0, 10)
+
+        is_binary(when_s) ->
+          PlanningContext.resolve_when(when_s)
+
+        true ->
+          nil
       end
 
     with true <- is_binary(date_iso) and String.match?(date_iso, ~r/^\d{4}-\d{2}-\d{2}/),
@@ -420,7 +427,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
         "discovery_request" => "__clear__",
         "cuisine" => "__clear__",
         "destination" =>
-          if(is_binary(planning["plan_id"]), do: planning["destination"] || "__clear__", else: "__clear__"),
+          if(is_binary(planning["plan_id"]),
+            do: planning["destination"] || "__clear__",
+            else: "__clear__"
+          ),
         "provider_parked" => true
       })
       |> Map.put("venue_cancelled", true)
@@ -503,7 +513,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
         "search_mode" => "exact_entity",
         "requested_venue_name" => name,
         "requested_venue_locality" =>
-          if(is_binary(locality) and String.trim(locality) != "", do: String.trim(locality), else: "__clear__"),
+          if(is_binary(locality) and String.trim(locality) != "",
+            do: String.trim(locality),
+            else: "__clear__"
+          ),
         "venue" => name,
         "category" => patch["category"] || "restaurant",
         "wants_restaurant" => true,
@@ -529,7 +542,8 @@ defmodule OpalCore.Center.ActionOrchestrator do
     atom = intent[:intent] || intent["intent"]
 
     restaurant_this_turn? =
-      (is_binary(patch["requested_venue_name"]) and patch["requested_venue_name"] not in ["", "__clear__"]) or
+      (is_binary(patch["requested_venue_name"]) and
+         patch["requested_venue_name"] not in ["", "__clear__"]) or
         patch["discovery_request"] == true or
         match?(%{name: _}, PlanContextPatch.extract_exact_venue(raw_text)) or
         match?(%{destination: _}, PlanContextPatch.extract_discovery_request(raw_text)) or
@@ -803,7 +817,10 @@ defmodule OpalCore.Center.ActionOrchestrator do
   defp recall_prior_copy(planning, raw) when is_map(planning) do
     raw_l = String.downcase(to_string(raw || ""))
     who = planning["who"] || planning["primary_person"]
-    who_s = who |> List.wrap() |> Enum.map(&to_string/1) |> Enum.filter(&(&1 != "")) |> Enum.join(" ")
+
+    who_s =
+      who |> List.wrap() |> Enum.map(&to_string/1) |> Enum.filter(&(&1 != "")) |> Enum.join(" ")
+
     who_l = String.downcase(who_s)
 
     mentions_who? =
@@ -885,8 +902,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
          %{"planning_context" => planning, "conversation_owns_routing" => true}}
 
       {:error, :not_authorized} ->
-        {intent_without_search(intent),
-         "I can't cancel that one — you're not the organizer.",
+        {intent_without_search(intent), "I can't cancel that one — you're not the organizer.",
          %{"planning_context" => planning, "conversation_owns_routing" => true}}
 
       {:error, :already_cancelled} ->
@@ -894,8 +910,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
          %{"planning_context" => planning, "conversation_owns_routing" => true}}
 
       {:error, _} ->
-        {intent_without_search(intent),
-         "I couldn't cancel that just now. Try again in a moment.",
+        {intent_without_search(intent), "I couldn't cancel that just now. Try again in a moment.",
          %{"planning_context" => planning, "conversation_owns_routing" => true}}
     end
   end
@@ -1085,7 +1100,9 @@ defmodule OpalCore.Center.ActionOrchestrator do
         {:ok, plans} ->
           scored =
             plans
-            |> Enum.filter(fn p -> to_string(p["status"] || "") in ~w(agreed changed tentative) end)
+            |> Enum.filter(fn p ->
+              to_string(p["status"] || "") in ~w(agreed changed tentative)
+            end)
             |> Enum.map(fn p ->
               title = String.downcase(to_string(p["title"] || ""))
               {p, Enum.count(words, &String.contains?(title, &1))}
@@ -1311,6 +1328,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
     restore_when = Map.get(patch, "when") || explicit["when"] || planning["when"] || prior["when"]
 
     current_time = planning["when_time"] || prior["when_time"]
+
     mismatched_time? =
       is_binary(restore_time) and is_binary(current_time) and
         normalize_ampm(restore_time) != normalize_ampm(current_time)
@@ -1562,7 +1580,12 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
               extras =
                 if is_binary(planning["opportunity_fingerprint"]),
-                  do: Map.put(extras, "opportunity_fingerprint", planning["opportunity_fingerprint"]),
+                  do:
+                    Map.put(
+                      extras,
+                      "opportunity_fingerprint",
+                      planning["opportunity_fingerprint"]
+                    ),
                   else: extras
 
               _ = PlanningContext.merge(user_id, extras, %{})
@@ -1932,7 +1955,25 @@ defmodule OpalCore.Center.ActionOrchestrator do
     if question_turn?(intent, raw_text) do
       atomize(enriched)
     else
-      Map.merge(atomize(enriched), string_to_atom_map(planning))
+      # Repair #18 residuals (R-3a) - provider routing is a PER-TURN
+      # decision from this turn's intent + live provider readiness.
+      # The stored planning_context carries "provider_parked" (set by
+      # clear_transient and every parked conversational turn); merging
+      # it over this turn's entities made the park sticky for the
+      # life of the conversation - a conversation whose stored context
+      # predates a routing fix kept the old routing forever. The
+      # stored flags stay in the context as telemetry; they are never
+      # routing inputs for a later turn. This turn's own orchestrator
+      # branch re-decides parking and stamps its own entities.
+      planning_entities =
+        planning
+        |> Map.delete("provider_parked")
+        |> Map.delete("conversation_owns_routing")
+        |> string_to_atom_map()
+        |> Map.delete(:provider_parked)
+        |> Map.delete(:conversation_owns_routing)
+
+      Map.merge(atomize(enriched), planning_entities)
     end
   end
 
@@ -1993,8 +2034,6 @@ defmodule OpalCore.Center.ActionOrchestrator do
   defp format_who(who) when is_binary(who), do: " with #{who}"
   defp format_who([n | _]) when is_binary(n), do: " with #{n}"
   defp format_who(_), do: ""
-
-
 
   defp atomize(map) when is_map(map) do
     Map.new(map, fn

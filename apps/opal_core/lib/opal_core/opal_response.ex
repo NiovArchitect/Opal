@@ -71,22 +71,41 @@ defmodule OpalCore.OpalResponse do
           template =
             case intent do
               :oracle ->
-              # Paste J — grounded answers from real data; never invent.
-              render_oracle(entities, context_map, intent_map)
+                # Paste J — grounded answers from real data; never invent.
+                render_oracle(entities, context_map, intent_map)
 
-            :plan_create ->
+              :plan_create ->
                 render_plan_create(Map.put(entities, :raw_text, raw), context_map)
 
-              :plan_confirm -> render_plan_confirm(entities, context_map)
-              :plan_modify -> render_plan_modify(entities, context_map)
-              :remember -> render_remember(entities, context_map)
-              :recall -> render_recall(entities, context_map)
-              :named_venue -> render_named_venue(entities, context_map)
-              :recommend -> render_recommend(entities, context_map)
-              :coordinate -> render_coordinate(entities, context_map)
-              :check_status -> render_check_status(entities, context_map)
-              :chat -> render_chat(entities, context_map, intent_map)
-              _ -> nil
+              :plan_confirm ->
+                render_plan_confirm(entities, context_map)
+
+              :plan_modify ->
+                render_plan_modify(entities, context_map)
+
+              :remember ->
+                render_remember(entities, context_map)
+
+              :recall ->
+                render_recall(entities, context_map)
+
+              :named_venue ->
+                render_named_venue(entities, context_map)
+
+              :recommend ->
+                render_recommend(entities, context_map)
+
+              :coordinate ->
+                render_coordinate(entities, context_map)
+
+              :check_status ->
+                render_check_status(entities, context_map)
+
+              :chat ->
+                render_chat(entities, context_map, intent_map)
+
+              _ ->
+                nil
             end
 
           # Action-boundary + plan commit path stay template-only.
@@ -102,7 +121,29 @@ defmodule OpalCore.OpalResponse do
             # rows (Oracle.answer); the LLM must never rewrite them, per
             # Oracle's documented template-only contract. :recall likewise
             # quotes stored memories verbatim.
-            i when i in [:plan_create, :plan_confirm, :plan_modify, :coordinate, :named_venue, :oracle, :recall] ->
+            # Repair #18 residuals (R-3a): an oracle answer is a
+            # GROUNDED answer from real rows - render_oracle records
+            # draft_source "grounded" when Oracle actually answered.
+            # Stamping it "template" made every grounded Center answer
+            # indistinguishable from the deflection in the stored
+            # metadata (the founder's llm_called=false evidence).
+            :oracle ->
+              if Process.get(@draft_meta_key) do
+                template
+              else
+                put_draft_meta(template_meta())
+                template
+              end
+
+            i
+            when i in [
+                   :plan_create,
+                   :plan_confirm,
+                   :plan_modify,
+                   :coordinate,
+                   :named_venue,
+                   :recall
+                 ] ->
               put_draft_meta(template_meta())
               template
 
@@ -293,6 +334,7 @@ defmodule OpalCore.OpalResponse do
     meeting_link = entity(entities, :meeting_link)
     virtual? = plan_type == "virtual" or plan_type == :virtual
     raw = entity(entities, :raw_text) || ""
+
     affirmed? =
       entity(entities, :nudge_affirmed) == true or entity(entities, :user_affirmed) == true or
         OpalCore.Center.PlanContextPatch.nudge_affirmed?(raw)
@@ -310,6 +352,7 @@ defmodule OpalCore.OpalResponse do
       # Avoid "dinner Friday Friday" when what already carries the day.
       what_s = to_string(what || "")
       when_part = to_string(when_s || "")
+
       lead_core =
         cond do
           when_part == "" -> what_s
@@ -492,7 +535,8 @@ defmodule OpalCore.OpalResponse do
     # Graph confirm action. This renders in the unified chat pipeline, so
     # the actionable retry phrasing routes back through it.
     cond do
-      found? and is_binary(new_when) and new_when != "" and action in ["move", "reschedule", "change"] ->
+      found? and is_binary(new_when) and new_when != "" and
+          action in ["move", "reschedule", "change"] ->
         "Say the day and time — like \"move #{plan_ref} to Saturday at 8 PM\" — and I'll update it."
 
       found? and action == "cancel" ->
@@ -943,9 +987,15 @@ defmodule OpalCore.OpalResponse do
     cleaned = Enum.reject(names, &(is_nil(&1) or &1 == ""))
 
     case cleaned do
-      [] -> "all"
-      [a] -> a
-      [a, b] -> "#{a} and #{b}"
+      [] ->
+        "all"
+
+      [a] ->
+        a
+
+      [a, b] ->
+        "#{a} and #{b}"
+
       many ->
         {lead, [last]} = Enum.split(many, -1)
         Enum.join(lead, ", ") <> ", and " <> last
@@ -1115,6 +1165,7 @@ defmodule OpalCore.OpalResponse do
     match =
       Enum.find(contacts, fn c ->
         name = contact_name(c) || ""
+
         String.contains?(String.downcase(name), person_l) or
           String.contains?(person_l, String.downcase(first_name(name)))
       end)
@@ -1137,6 +1188,7 @@ defmodule OpalCore.OpalResponse do
     match =
       Enum.find(contacts, fn c ->
         name = contact_name(c) || ""
+
         String.contains?(String.downcase(name), person_l) or
           String.contains?(person_l, String.downcase(first_name(name)))
       end)
@@ -1302,6 +1354,7 @@ defmodule OpalCore.OpalResponse do
 
   defp recent_mentioned_name(context) do
     history = get_in_ctx(context, [:conversation_history]) || []
+
     known =
       (get_in_ctx(context, [:social, :frequent_contacts]) || [])
       |> Enum.map(fn c -> c[:display_name] || c["display_name"] end)
@@ -1480,6 +1533,7 @@ defmodule OpalCore.OpalResponse do
 
   defp render_oracle(entities, context, intent_map) do
     user_id = get_in_ctx(context, [:user, :id])
+
     question =
       entity(entities, :question) ||
         intent_map[:raw_text] || intent_map["raw_text"] ||
@@ -1488,6 +1542,17 @@ defmodule OpalCore.OpalResponse do
     if is_binary(user_id) and question != "" do
       case Oracle.answer(user_id, question, context) do
         {:ok, %{text: text}} when is_binary(text) and text != "" ->
+          # Grounded path (Repair #18 residuals R-3a): record the
+          # engagement honestly - this reply came from real data /
+          # computation, not from the template floor and not from
+          # the LLM.
+          put_draft_meta(%{
+            "draft_source" => "grounded",
+            "llm_called" => false,
+            "llm_provider" => LlmAdapter.provider_name(),
+            "model" => LlmAdapter.model_name()
+          })
+
           text
 
         :not_oracle ->
@@ -1500,6 +1565,4 @@ defmodule OpalCore.OpalResponse do
       "Tell me more — I can help with plans, people, or what's coming up."
     end
   end
-
-
 end

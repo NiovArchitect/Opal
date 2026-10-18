@@ -13,7 +13,7 @@ defmodule OpalCoreWeb.OpalConversationController do
   alias OpalCore.OpalConversations
   alias OpalCore.OpalConversations.OpalMessage
   alias OpalCore.SocialFlow
-  alias OpalCore.SocialFlow.{PlanParticipant, SharedPlan}
+  alias OpalCore.SocialFlow.PlanParticipant
 
   def show(conn, _params) do
     user_id = conn.assigns.current_user_id
@@ -291,7 +291,7 @@ defmodule OpalCoreWeb.OpalConversationController do
         conn
         |> put_status(201)
         |> json(%{
-          "plan" => SharedPlan.to_contract(plan),
+          "plan" => SocialFlow.plan_payload(plan),
           "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
           "completion" => %{
             "steps" => completion.steps,
@@ -337,7 +337,7 @@ defmodule OpalCoreWeb.OpalConversationController do
         conn
         |> put_status(201)
         |> json(%{
-          "plan" => SharedPlan.to_contract(plan),
+          "plan" => SocialFlow.plan_payload(plan),
           "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
           "deduplicated" => deduplicated,
           "completion" => %{

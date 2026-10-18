@@ -30,7 +30,12 @@ defmodule OpalCoreWeb.ConversationController do
     user_id = conn.assigns.current_user_id
 
     if user_id in OpalCore.Messages.member_user_ids(conversation_id) do
-      json(conn, %{"alignment" => ConversationAlignment.sync_conversation(conversation_id)})
+      alignment =
+        conversation_id
+        |> ConversationAlignment.sync_conversation()
+        |> ConversationAlignment.dedupe_pending_presentation()
+
+      json(conn, %{"alignment" => alignment})
     else
       conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
     end
@@ -385,7 +390,11 @@ defmodule OpalCoreWeb.ConversationController do
         error(conn, 403, "blocked", "This connection is blocked")
 
       {:error, :rate_limited} ->
-        error_rate_limited(conn, 60, "Too many messages. Your message was not sent - wait a moment, then tap to retry.")
+        error_rate_limited(
+          conn,
+          60,
+          "Too many messages. Your message was not sent - wait a moment, then tap to retry."
+        )
 
       {:error, reason} ->
         error(conn, 422, "message_failed", inspect(reason))
@@ -560,7 +569,7 @@ defmodule OpalCoreWeb.ConversationController do
         conn
         |> put_status(201)
         |> json(%{
-          "plan" => SharedPlan.to_contract(plan),
+          "plan" => SocialFlow.plan_payload(plan),
           "participants" => Enum.map(participants, &PlanParticipant.to_contract/1),
           "message" => "Plan created — invite the group to confirm."
         })
