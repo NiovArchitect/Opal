@@ -140,3 +140,61 @@ Center, chats and the call thread as on every other surface, and a
 redesign that changes every hue still has to pass the same geometry
 law - strict containment, one stacking order, tapped surfaces
 surface, nothing trapped.
+
+## Design-system law additions (founder, 2026-10-18 03:45 PDT)
+
+The Layout Contract gained L8 (presence discipline), L9 (color
+continuity), and L10 (motion has meaning) — see
+`apps/opal_web/src/theme/layoutContract.css`. This stage is their
+rendered enforcement. Three evidence requirements are added to every
+full run, in BOTH modes:
+
+1. **Dynamic-asset enter/exit evidence.** For every asset in the L8
+   registry (Next Together strip, Check-availability pill, proposal
+   cards, check-in ask cards, care-missed surface, proactive
+   suggestion cards, Center presence states, completion step panels,
+   story rings / live badges), the run captures the surface in the
+   trigger-true state AND in the trigger-false state. The asset must be
+   present in the first and ABSENT — not dimmed, not collapsed, not
+   half-hidden behind another element — in the second. A capture
+   showing a dynamic asset with no live reason is a FAIL of the whole
+   pack ("no debris" rule).
+2. **Entity color-continuity evidence.** For at least one plan and one
+   person, the run captures the entity's state color / accent on at
+   least TWO surfaces (e.g. chats list + thread, graphs list + graph
+   detail) and asserts the computed color values match exactly across
+   surfaces and across modes (luminance may differ per mode tokens;
+   the semantic token must be the same). A plan whose color identity
+   changes between screens fails.
+3. **Motion-meaning spot check.** Presence/color transitions observed
+   during the run must each correspond to a real state change in the
+   run's API record (a plan stage transition, a proposal decision, an
+   ask answered). Decorative motion with no state change behind it is
+   recorded as a note for the founder's judgment; a looping attention
+   animation on a rest surface is a FAIL under the QUIET law.
+
+These additions run against the integrated shell first on the Mac
+preview stack; until that run exists they are PENDING-RUN in
+`shots/repair18/COMPLAINT_LEDGER.md` (sweep (a) extension), never
+pre-claimed.
+
+## Journey completeness gate (founder, 2026-10-18 03:46 PDT)
+
+Layout Contract L11: every asset declares its journey (entry, action,
+goal, landing). This stage enforces it on the real path:
+
+4. **Per-page journey audit.** For every page/surface in the run, each
+   visible tappable asset is exercised and its flow traced to its
+   declared landing (per the L11 registry in `layoutContract.css`).
+   The audit records, per asset: entry surface, taps taken, terminal
+   state reached, and the read-back (the effect visible on the landing
+   surface or in the API record). An asset whose flow dead-ends, loops
+   without reaching its goal, hands off to nothing, or lands somewhere
+   other than declared is classified **FALSE** under the
+   full-true-functionality law and fails the pack. Ambient assets are
+   audited for the one tap they declare (e.g. the Next Together strip
+   lands on the plan it names) and must take no others.
+
+Status: PENDING-RUN with the rest of the integrated-shell rendered
+evidence (see `shots/repair18/COMPLAINT_LEDGER.md`, sweeps (a)/(b)
+extension), never pre-claimed.

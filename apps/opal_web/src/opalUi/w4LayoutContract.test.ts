@@ -30,8 +30,8 @@ describe("W4 Layout Contract", () => {
   const styles = read("styles.css");
   const app = read("OpalApp.tsx");
 
-  it("the contract is named and complete (L1-L7)", () => {
-    for (const id of ["L1", "L2", "L3", "L4", "L5", "L6", "L7"]) {
+  it("the contract is named and complete (L1-L11)", () => {
+    for (const id of ["L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "L11"]) {
       expect(contract).toContain(id);
     }
     const main = read("main.tsx");

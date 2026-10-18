@@ -45,6 +45,122 @@
  *    card, strip, or sheet whose state it acts on - never as a free
  *    floating element above or behind another surface.
  *
+ * --- DESIGN-SYSTEM LAW (founder, 2026-10-18 03:45 PDT) ---
+ * "Certain assets should be dynamic - appear and disappear - color coded
+ * for continuity, for the user flow and understanding."
+ *
+ * L8 PRESENCE DISCIPLINE (dynamic assets appear and disappear on truth).
+ *    A contextual/transient asset renders ONLY while its declared live
+ *    trigger condition is true. It enters when the condition becomes
+ *    true, exits when the condition ends, and transitions cleanly
+ *    between the two. It never lingers as background debris, never sits
+ *    half-hidden behind another asset (the Walk #4 specimens: a "Check
+ *    availability" pill and a card fragment stuck behind surfaces), and
+ *    never renders "just in case". An asset whose trigger is not
+ *    currently true does not render - not dimmed, not collapsed, ABSENT.
+ *    Static permanence is reserved for true navigation and identity
+ *    elements only (dock, wordmark, the user's own chrome).
+ *    DECLARED DYNAMIC ASSETS AND THEIR LIVE TRIGGERS (the registry; a
+ *    new dynamic asset ships only by adding its row here):
+ *      - Next Together strip: a plan projection for this thread has an
+ *        upcoming plan. Exits when the plan passes, is cancelled, or the
+ *        thread's projection no longer carries it.
+ *      - "Check availability" pill: an availability ask for the current
+ *        proposal is outstanding AND actionable by this viewer. Exits
+ *        the moment the ask is answered, superseded, or withdrawn.
+ *      - Plan proposal / change-proposal cards: a proposal is pending
+ *        decision by someone. Exits on accept, decline, or expiry.
+ *      - Check-in ask cards (sweep) and care-missed surfaces: an open
+ *        ask / an unsurfaced miss exists for this viewer. Exit on
+ *        answer, close, or the single permitted surfacing.
+ *      - Proactive suggestion cards: the gate stack (opt-in, budget,
+ *        quiet hours, cadence) approves AND the suggestion is
+ *        unanswered. Dismissal is permanent; exit is silent.
+ *      - Center presence states (listening / thinking / speaking): the
+ *        conversation engine is in exactly that state right now. A
+ *        presence state that outlives its engine state is a defect
+ *        (FR-17-14).
+ *      - Plan completion step panels (join, food handoff): the step is
+ *        present in the plan's completion record AND actionable. Exits
+ *        when the step reaches its terminal state.
+ *      - Story rings / live badges: the story is unexpired / the stream
+ *        is live. Exit at expiry / stream end.
+ *      - Dev seed chip: seed/dev mode only (`opal_dev=1`). It is a
+ *        test instrument, never a product asset; in any founder-facing
+ *        capture it appears only as the badge-law verification mark.
+ * L9 COLOR CONTINUITY (one color language, whole flow). State color
+ *    derives from the ONE state token source and the ONE plan
+ *    projection on every surface - a plan in `ready` is the same ready
+ *    color in the list, the thread, the strip, and the detail sheet,
+ *    and it keeps that identity as it moves through its stages
+ *    (forming -> action -> ready -> happening -> past). Entity accents
+ *    (a person's avatar tint, a plan's state ring) are assigned from
+ *    the entity's stable identity via the token palette and are never
+ *    re-randomized or re-derived per surface. Dark and light modes
+ *    preserve the coding exactly; a mode may change luminance, never
+ *    meaning. Understanding never resets between screens.
+ * L10 MOTION HAS MEANING. Appear/disappear transitions and color shifts
+ *    signal REAL state changes only: a plan becoming ready announces
+ *    itself through its presence/color shift; a card that arrives is a
+ *    thing that just became true. Motion is never decorative noise.
+ *    The QUIET law caps frequency and intensity: no loops competing for
+ *    attention, no pulses without a state change behind them, and
+ *    reduced-motion preferences are a build gate, not a setting.
+ *
+ * L11 JOURNEY COMPLETENESS (founder, 2026-10-18 03:46 PDT: "Assets on
+ *    every page have an end-to-end flow, journey, and goal if
+ *    necessary"). Every asset on every page declares its journey role:
+ *    what brings the user to it, what it does, what it COMPLETES (its
+ *    goal), and where the user lands when the journey ends. An asset
+ *    that cannot name its journey and its goal does not ship. Journeys
+ *    terminate in user outcomes, not shrugs: a plan aligned, a person
+ *    reached, a step completed, or an honest handoff completed (the B2
+ *    food handoff lands the user at the real ordering surface with the
+ *    order composed). An asset that opens a flow it cannot finish - a
+ *    dead end, a broken handoff, a loop with no goal, a CTA into
+ *    nothing - is FALSE under the full-true-functionality law and fails
+ *    the pack. An asset with legitimately no goal (pure ambient
+ *    information) must justify itself under the every-asset-benefits
+ *    rule and take no taps it cannot honor.
+ *    DECLARED JOURNEYS (principal assets; new assets add their row):
+ *      - Dock destinations (Home / Center / Chats / Graphs / YOU):
+ *        entry = user intent to switch context; goal = the destination
+ *        surface fully usable; landing = that surface. Pure navigation
+ *        - its journey is the switch itself, completed on arrival.
+ *      - "Talk to Opal" (Center entry): entry = user wants something
+ *        done; goal = a real session where a request becomes a plan, an
+ *        answer, or an honest cannot-do; landing = the session, with
+ *        the outcome readable in it.
+ *      - Plan card primary action (per state): entry = the plan needs
+ *        this viewer; goal = the state advances (confirmed, aligned,
+ *        joined, completed) and reads back on every surface; landing =
+ *        the same card showing the new state.
+ *      - Join step (virtual plans): entry = plan is happening; goal =
+ *        the user lands in the real meeting via the stored link;
+ *        landing = the external meeting surface. No link = honest
+ *        link-missing state, never an invented URL.
+ *      - Food handoff step: entry = virtual meal plan completing;
+ *        goal = each person lands at the real ordering surface with
+ *        their order composed; landing = the provider surface. The
+ *        journey honestly ends at handoff - Opal never claims the
+ *        order itself.
+ *      - Check-in ask card: entry = a sweep asked this viewer; goal =
+ *        the answer stored and visible in the organizer's summary;
+ *        landing = the card's answered state. Decline is also a
+ *        completed journey (permanent, unchased).
+ *      - Care check-in control: entry = today's rotation turn; goal =
+ *        the check-in recorded in the ledger, miss prevented or
+ *        surfaced once to the set; landing = the rotation view showing
+ *        the recorded state.
+ *      - Story composer entry: entry = user has a moment to share;
+ *        goal = the story persists and reaches its real audience;
+ *        landing = the published story in the rail. (The Walk #4
+ *        specimen: an entry that opened a clipped chooser to nothing
+ *        was a journey violation before it was a layout bug.)
+ *      - Next Together strip: ambient information with a tap journey -
+ *        tap lands on the plan it names, in the state it showed. It
+ *        takes no other taps.
+ *
  * Enforcement: src/opalUi/w4LayoutContract.test.ts (static audit) plus
  * the rendered Playwright proof in shots/repair18/walk4/ (hit tests,
  * bounding-box overlap, and truncation checks on the served build).
