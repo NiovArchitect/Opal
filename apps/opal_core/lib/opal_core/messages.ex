@@ -660,6 +660,17 @@ defmodule OpalCore.Messages do
               {:error, :pipeline_rescue}
           end
 
+        # Repair #18 residuals #2 - by now every synchronous
+        # acceptance path for this turn has run (the fold sync in
+        # publish_message_accepted/1, the intelligence pipeline, and
+        # the acceptance paths' own chronology hooks). If any of them
+        # settled a revision, its time_resolved moment must exist
+        # before this turn returns, anchored at THIS message - never
+        # waiting for a later message to run the recorder, which made
+        # the read-after-confirm stale by one message
+        # (FR-18-02-revision). Idempotent per revision.
+        _ = OpalCore.SocialFlow.Chronology.record_revision_moment(message)
+
         {:ok, message, :created}
 
       {:error, :idempotent_race} ->

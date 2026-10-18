@@ -70,6 +70,58 @@ defmodule OpalCore.SocialFlow.Chronology do
 
   def record_after_message(_), do: :ok
 
+  @doc """
+  Repair #18 residuals #2 - record an accepted revision's
+  time_resolved moment NOW, synchronously, anchored at the given
+  message.
+
+  record_after_message/1 runs BEFORE the alignment sync that settles
+  a confirmation (Messages.publish_message_accepted/1), so on the
+  very turn that accepts a change the revision check saw the plan
+  still unsettled and wrote nothing; the moment only appeared when a
+  LATER message happened to run the recorder - the read-after-confirm
+  was stale by one message (FR-18-02-revision live replay #3). The
+  acceptance paths call this once the revision has settled, inside
+  the same turn, so a read issued immediately after the confirm is
+  deterministic. Idempotent per revision (see
+  maybe_record_revision_moment/2), so repeat calls write nothing new.
+  """
+  def record_revision_moment(%Message{} = message) do
+    maybe_record_revision_moment(message.conversation_id, message)
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  def record_revision_moment(_), do: :ok
+
+  @doc """
+  Same as record_revision_moment/1, for acceptance paths that settle
+  a revision outside a message turn (a fold accept, a revision
+  response). Anchors at the conversation's latest message; a
+  conversation with no messages has no evidence to anchor to, so
+  nothing is written.
+  """
+  def record_revision_moment_for_conversation(conversation_id)
+      when is_binary(conversation_id) do
+    message =
+      from(m in Message,
+        where: m.conversation_id == ^conversation_id,
+        order_by: [desc: m.server_seq],
+        limit: 1
+      )
+      |> Repo.one()
+
+    case message do
+      %Message{} = latest -> record_revision_moment(latest)
+      _ -> :ok
+    end
+  rescue
+    _ -> :ok
+  end
+
+  def record_revision_moment_for_conversation(_), do: :ok
+
   # Repair #18 residuals (R-2c) - an accepted schedule revision is a
   # consequential transition, but the evidence-based recorders above
   # can never see it: they diff message-evidence projections, and a

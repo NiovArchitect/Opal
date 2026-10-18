@@ -1233,6 +1233,15 @@ defmodule OpalCore.SocialFlow do
         _ = record_recent_change_for_revision(plan, revision)
         _ = FollowThroughProducers.complete_open_questions(revision.id)
 
+        # Repair #18 residuals #2 - same-turn chronology for the
+        # accepted revision, as in record_fold_change_acceptance/1:
+        # the thread's latest time_resolved must name the new time
+        # before any later message runs the recorder.
+        _ =
+          OpalCore.SocialFlow.Chronology.record_revision_moment_for_conversation(
+            plan.conversation_id
+          )
+
         {:ok, %{plan: plan, revision: revision, signal: signal}}
 
       {:ok, {:silent, revision}} ->
@@ -1501,110 +1510,132 @@ defmodule OpalCore.SocialFlow do
       true ->
         now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-        Repo.transaction(fn ->
-          plan =
-            from(p in SharedPlan,
-              where:
-                p.conversation_id == ^conversation_id and
-                  p.status in ^~w(tentative agreed changed),
-              order_by: [desc: p.updated_at, desc: p.inserted_at],
-              limit: 1,
-              lock: "FOR UPDATE"
-            )
-            |> Repo.one()
-
-          with %SharedPlan{} = plan <- plan do
-            # Repair #18 residuals (R-2b): the fold's post-sync value
-            # can be the raw spoken fragment ("8 PM"). The mirror must
-            # write the canonical label - the same resolution
-            # apply_locked_revision/5 and change_plan_schedule/1 use -
-            # never the fragment, or every listing reads the fragment
-            # back forever (schedule_authority_label keeps the action
-            # value verbatim on later fold upserts).
-            value = canonical_time_label(plan, value)
-
-            # Settle any open System A proposals for this plan: the fold
-            # accept IS their resolution (never leave a second pending
-            # representation of the same change behind).
-            superseded_ids =
-              from(r in PlanRevision,
-                where: r.plan_id == ^plan.id and r.status == "proposed",
-                select: r.id
+        result =
+          Repo.transaction(fn ->
+            plan =
+              from(p in SharedPlan,
+                where:
+                  p.conversation_id == ^conversation_id and
+                    p.status in ^~w(tentative agreed changed),
+                order_by: [desc: p.updated_at, desc: p.inserted_at],
+                limit: 1,
+                lock: "FOR UPDATE"
               )
-              |> Repo.all()
+              |> Repo.one()
 
-            if superseded_ids != [] do
-              from(r in PlanRevision, where: r.id in ^superseded_ids)
-              |> Repo.update_all(set: [status: "superseded", updated_at: now])
+            with %SharedPlan{} = plan <- plan do
+              # Repair #18 residuals (R-2b): the fold's post-sync value
+              # can be the raw spoken fragment ("8 PM"). The mirror must
+              # write the canonical label - the same resolution
+              # apply_locked_revision/5 and change_plan_schedule/1 use -
+              # never the fragment, or every listing reads the fragment
+              # back forever (schedule_authority_label keeps the action
+              # value verbatim on later fold upserts).
+              value = canonical_time_label(plan, value)
 
-              from(s in Signal, where: s.revision_id in ^superseded_ids and s.status == "visible")
-              |> Repo.update_all(set: [status: "superseded", updated_at: now])
-            end
+              # Settle any open System A proposals for this plan: the fold
+              # accept IS their resolution (never leave a second pending
+              # representation of the same change behind).
+              superseded_ids =
+                from(r in PlanRevision,
+                  where: r.plan_id == ^plan.id and r.status == "proposed",
+                  select: r.id
+                )
+                |> Repo.all()
 
-            {:ok, revision} =
-              %PlanRevision{}
-              |> PlanRevision.changeset(%{
-                plan_id: plan.id,
-                proposed_by_user_id: user_id,
-                prior_revision_id: plan.current_revision_id,
-                proposed_changes: %{
+              if superseded_ids != [] do
+                from(r in PlanRevision, where: r.id in ^superseded_ids)
+                |> Repo.update_all(set: [status: "superseded", updated_at: now])
+
+                from(s in Signal,
+                  where: s.revision_id in ^superseded_ids and s.status == "visible"
+                )
+                |> Repo.update_all(set: [status: "superseded", updated_at: now])
+              end
+
+              {:ok, revision} =
+                %PlanRevision{}
+                |> PlanRevision.changeset(%{
+                  plan_id: plan.id,
+                  proposed_by_user_id: user_id,
+                  prior_revision_id: plan.current_revision_id,
+                  proposed_changes: %{
+                    "kind" => "schedule_change",
+                    "field" => "time_label",
+                    "time_label" => value,
+                    "new_value" => value,
+                    "source" => "alignment_fold"
+                  },
+                  status: "accepted",
+                  accepted_at: now,
+                  required_approvals: [user_id],
+                  approvals: %{user_id => "accept"}
+                })
+                |> PlanTransition.guard_changeset(:revision, :accept_direct)
+                |> Repo.insert()
+
+              alignment =
+                (plan.alignment || %{})
+                |> append_explicit_action(%{
                   "kind" => "schedule_change",
+                  "actor_user_id" => user_id,
                   "field" => "time_label",
-                  "time_label" => value,
-                  "new_value" => value,
-                  "source" => "alignment_fold"
-                },
-                status: "accepted",
-                accepted_at: now,
-                required_approvals: [user_id],
-                approvals: %{user_id => "accept"}
-              })
-              |> PlanTransition.guard_changeset(:revision, :accept_direct)
-              |> Repo.insert()
+                  "value" => value,
+                  "truth" => "locked",
+                  "explicit" => true,
+                  "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+                  "revision_id" => revision.id,
+                  "at" => DateTime.to_iso8601(now)
+                })
+                |> sync_stored_schedule(plan, value, revision.id, now)
 
-            alignment =
-              (plan.alignment || %{})
-              |> append_explicit_action(%{
-                "kind" => "schedule_change",
-                "actor_user_id" => user_id,
-                "field" => "time_label",
-                "value" => value,
-                "truth" => "locked",
-                "explicit" => true,
-                "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
-                "revision_id" => revision.id,
-                "at" => DateTime.to_iso8601(now)
-              })
-              |> sync_stored_schedule(plan, value, revision.id, now)
+              {:ok, plan} =
+                plan
+                |> SharedPlan.changeset(%{
+                  status: PlanTransition.target_for(:plan, plan.status, :change) || plan.status,
+                  time_label: value,
+                  start_at: resolved_start_at(plan, value, %{}),
+                  current_revision_id: revision.id,
+                  alignment: alignment
+                })
+                |> PlanTransition.guard_changeset(:plan, :change)
+                |> Repo.update()
 
-            {:ok, plan} =
-              plan
-              |> SharedPlan.changeset(%{
-                status: PlanTransition.target_for(:plan, plan.status, :change) || plan.status,
-                time_label: value,
-                start_at: resolved_start_at(plan, value, %{}),
-                current_revision_id: revision.id,
-                alignment: alignment
-              })
-              |> PlanTransition.guard_changeset(:plan, :change)
-              |> Repo.update()
+              audit!(
+                plan.conversation_id,
+                plan.id,
+                user_id,
+                "revision.accepted",
+                %{"revision_id" => revision.id},
+                trace
+              )
 
-            audit!(
-              plan.conversation_id,
-              plan.id,
-              user_id,
-              "revision.accepted",
-              %{"revision_id" => revision.id},
-              trace
-            )
+              _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
 
-            _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan, plan_version: 2)
+              %{plan: plan, revision: revision}
+            else
+              nil -> Repo.rollback(:no_active_plan)
+            end
+          end)
 
-            %{plan: plan, revision: revision}
-          else
-            nil -> Repo.rollback(:no_active_plan)
-          end
-        end)
+        # Repair #18 residuals #2 - the acceptance has settled inside
+        # this transaction; record its chronology moment in the same
+        # turn (post-commit), so a messages read issued immediately
+        # after the confirm already names the new time as the latest
+        # time_resolved instead of waiting for a later message to run
+        # the recorder (FR-18-02-revision).
+        case result do
+          {:ok, _} ->
+            _ =
+              OpalCore.SocialFlow.Chronology.record_revision_moment_for_conversation(
+                conversation_id
+              )
+
+            result
+
+          _ ->
+            result
+        end
     end
   end
 
@@ -2108,8 +2139,10 @@ defmodule OpalCore.SocialFlow do
   F12-06/F12-07 — owner-scoped plan listing (backs GET /api/v1/product/opal/plans).
 
   Returns the user's SharedPlans — including conversation-less Center plans
-  (source "center") that every conversation-scoped read path excludes — newest
-  first. Ownership = created_by_user_id OR a PlanParticipant row for the user.
+  (source "center") that every conversation-scoped read path excludes,
+  commitment tier first (agreed/changed ahead of tentative), then newest
+  first within a tier. Ownership = created_by_user_id OR a PlanParticipant
+  row for the user.
   Cancelled plans are excluded by default; pass `status: :all` for history.
 
   This is the one owner-scoped plan query feeding the Graphs/Timeline
@@ -2127,7 +2160,24 @@ defmodule OpalCore.SocialFlow do
     q =
       from(p in SharedPlan,
         where: p.created_by_user_id == ^user_id or p.id in ^participant_plan_ids,
-        order_by: [desc: p.updated_at, desc: p.inserted_at],
+        # Repair #18 residuals #2 (FR-18-04, law F18-06) - status tier
+        # FIRST, using the codebase's own commitment rank (the same
+        # agreed > changed > tentative ranking sort_survivor_first/1
+        # applies): a commitment must never fall outside the 100-row
+        # window because newer tentative noise crowded it out. The
+        # cap may only ever hide noise, never a commitment. Within a
+        # tier the existing recency ordering is unchanged. Cancelled
+        # and expired stay excluded by the status filter below (or,
+        # with status: :all, sort last as non-commitments).
+        order_by: [
+          desc:
+            fragment(
+              "CASE ? WHEN 'agreed' THEN 3 WHEN 'changed' THEN 2 WHEN 'tentative' THEN 1 ELSE 0 END",
+              p.status
+            ),
+          desc: p.updated_at,
+          desc: p.inserted_at
+        ],
         limit: 100
       )
 
