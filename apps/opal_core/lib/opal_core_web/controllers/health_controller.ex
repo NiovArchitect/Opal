@@ -21,6 +21,11 @@ defmodule OpalCoreWeb.HealthController do
       "schema_version" => "0.1.0",
       "db" => if(db_ok?, do: "up", else: "down"),
       "sentry_configured" => OpalCore.Observability.Sentry.configured?(),
+      # Repair #18 BS-5: configured? only means a DSN string exists.
+      # sentry_reporting is the delivery truth ("not_configured" |
+      # "not_wired" | "delivering") so a set DSN can no longer read
+      # as healthy while reports go nowhere.
+      "sentry_reporting" => to_string(OpalCore.Observability.Sentry.reporting_status()),
       "phone_verify_mode" =>
         to_string(OpalCore.SocialFlow.PhoneVerification.Provider.mode())
     })

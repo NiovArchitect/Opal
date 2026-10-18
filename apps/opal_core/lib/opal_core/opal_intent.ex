@@ -386,11 +386,51 @@ defmodule OpalCore.OpalIntent do
             _ -> nil
           end
 
+        # B1: separate ACTIVITY from PLACE TYPE. "Video dinner with
+        # Maya" is a dinner (what) held virtually (plan_type) - the
+        # provider word is neither. When the text names both an
+        # activity and a virtual marker, the activity wins the what;
+        # the provider word becomes meeting_provider.
+        {what, meeting_provider} =
+          if virtual? do
+            activity = virtual_activity(norm)
+
+            provider =
+              OpalCore.SocialFlow.MeetingLinks.provider_from_text(norm.original) ||
+                OpalCore.SocialFlow.MeetingLinks.provider_for(
+                  OpalCore.SocialFlow.MeetingLinks.extract_from_text(norm.original)
+                )
+
+            cond do
+              is_binary(activity) and
+                  (is_nil(what) or
+                     String.downcase(what) in [
+                       "zoom",
+                       "google meet",
+                       "teams",
+                       "facetime",
+                       "video call",
+                       "online meeting",
+                       "virtual",
+                       "virtual meeting",
+                       "virtual call"
+                     ]) ->
+                {activity, provider}
+
+              true ->
+                {what, provider}
+            end
+          else
+            {what, nil}
+          end
+
         when_s = extract_when(norm)
         who = extract_who(norm, names)
         # Never invent a URL — only keep a pasted http(s) link.
         meeting_link = OpalCore.SocialFlow.MeetingLinks.extract_from_text(norm.original)
         plan_type = if virtual? or meeting_link, do: "virtual", else: "in_person"
+
+        {food_at_home?, food_question?} = food_at_home_signal(norm, plan_type)
 
         entities =
           %{
@@ -401,6 +441,17 @@ defmodule OpalCore.OpalIntent do
           }
           |> then(fn e ->
             if meeting_link, do: Map.put(e, :meeting_link, meeting_link), else: e
+          end)
+          |> then(fn e ->
+            e
+            |> then(fn x ->
+              if meeting_provider, do: Map.put(x, :meeting_provider, meeting_provider), else: x
+            end)
+            |> then(fn x ->
+              if food_at_home?,
+                do: x |> Map.put(:food_at_home, true) |> Map.put(:food_question, food_question?),
+                else: x
+            end)
           end)
 
         conf =
@@ -425,7 +476,68 @@ defmodule OpalCore.OpalIntent do
       match_phrase?(norm, ~r/\bfacetime\b/i) or
       match_phrase?(norm, ~r/\bvideo\s+call\b/i) or
       match_phrase?(norm, ~r/\bvirtual\s+(meeting|call|hangout)\b/i) or
-      match_phrase?(norm, ~r/\bonline\s+(meeting|call)\b/i)
+      match_phrase?(norm, ~r/\bonline\s+(meeting|call)\b/i) or
+      # B1: an activity word carrying a virtual marker - "video
+      # dinner", "online game night", "virtual coffee".
+      match_phrase?(
+        norm,
+        ~r/\b(?:video|online|virtual)\s+(?:dinner|lunch|breakfast|brunch|coffee|game|hangout|date|watch|movie|book|class|lesson|workout|drinks?)\b/i
+      ) or
+      # Repair #18 (B2) \u2014 at-home markers: "dinner at home" names a
+      # plan whose place is the room, not a venue (same virtual class).
+      at_home_virtual?(norm)
+  end
+
+  # The activity named alongside a virtual marker, in the user's own
+  # words ("dinner" in "video dinner"), or nil.
+  defp virtual_activity(norm) do
+    text = norm.original || ""
+
+    case Regex.run(
+           ~r/\b(?:video|online|virtual)?\s*(dinner|lunch|breakfast|brunch|coffee|game\s+night|watch\s+party|movie\s+night|book\s+club|class|lesson|workout|drinks|hangout|date\s+night)\b/i,
+           text
+         ) do
+      [_, activity] -> String.trim(activity)
+      _ -> nil
+    end
+  end
+
+  defp at_home_virtual?(norm) do
+    text = norm.original || ""
+
+    activity =
+      Regex.match?(
+        ~r/\b(dinner|lunch|brunch|breakfast|supper|game\s+night|movie\s+night|watch\s+party|hangout)\b/i,
+        text
+      )
+
+    marker =
+      Regex.match?(~r/\bvirtual\b/i, text) or Regex.match?(~r/\bonline\b/i, text) or
+        Regex.match?(~r/\bat\s+home\b/i, text)
+
+    activity and marker
+  end
+
+  # Repair #18 (B2, §2.2 Trigger A) — food-at-home signal: a food word
+  # co-occurring with a virtual plan. The question form ("can Opal sort
+  # food for everyone at their own homes?") is flagged separately: the
+  # step is suggested and accepted in-turn, never auto-composed silently.
+  defp food_at_home_signal(norm, plan_type) do
+    text = norm.original || ""
+
+    food? =
+      plan_type == "virtual" and
+        Regex.match?(
+          ~r/\b(food|order|orders|ordering|delivered|delivery|takeout|takeaway|eat|dinner|lunch|brunch|breakfast|supper|sushi|pizza)\b/i,
+          text
+        )
+
+    question? =
+      food? and
+        (String.contains?(text, "?") or
+           Regex.match?(~r/\b(can|could|would)\s+(opal|you)\b/i, text))
+
+    {food?, question?}
   end
 
   defp virtual_what(norm) do

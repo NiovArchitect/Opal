@@ -362,10 +362,15 @@ export function makeCtx(config, sessions, assert) {
       });
       return { status: r.status, json: r.json, conversationId: r.json.conversation_id || r.json.id || null };
     },
-    async postHumanMessage(client, conversationId, body) {
+    async postHumanMessage(client, conversationId, body, opts = {}) {
       const r = await client.post(
         `/conversations/${encodeURIComponent(conversationId)}/messages`,
-        { body },
+        {
+          body,
+          ...(opts.clientMessageId
+            ? { client_message_id: opts.clientMessageId }
+            : {}),
+        },
       );
       return { status: r.status, json: r.json, message: r.json.message || null };
     },
@@ -387,6 +392,55 @@ export function makeCtx(config, sessions, assert) {
         attrs,
       );
       return { status: r.status, json: r.json, plan: r.json.plan || null, participants: r.json.participants || [] };
+    },
+    /** Provision a fresh synthetic user and open a direct
+     * conversation with them - a plan-free thread for journey legs.
+     * Returns null when synthetic provisioning is not in use. */
+    async freshDirectConversation(client, phone, name) {
+      const third = await freshSyntheticClient(config, phone, name);
+      if (!third) return null;
+      const me = await third.get("/session");
+      const userId = me.json?.user?.id || me.json?.session?.user_id || me.json?.user_id || null;
+      if (!userId) return null;
+      const direct = await this.ensureDirect(client, userId);
+      return { conversationId: direct.conversationId, client: third, userId };
+    },
+    /** Birth (or load) the conversation's journey plan via the
+     * activate path - journey plans are born agreed, which is what
+     * makes them journey-eligible on GET /journeys/:id. */
+    async activateJourney(client, attrs) {
+      const r = await client.post(`/journeys/activate`, attrs);
+      return { status: r.status, json: r.json, journey: r.json.journey || null };
+    },
+    /** Participant "I'm going" RSVP on an existing plan. */
+    async acceptGoing(client, planId) {
+      const r = await client.post(
+        `/journeys/${encodeURIComponent(planId)}/accept-going`,
+        {},
+      );
+      return { status: r.status, json: r.json };
+    },
+    /** Journey projection - the API output the graph detail renders. */
+    async getJourney(client, planId) {
+      const r = await client.get(`/journeys/${encodeURIComponent(planId)}`);
+      return { status: r.status, json: r.json, journey: r.json.journey || r.json };
+    },
+    /** B1: convert a plan's place type (propose for shared, direct for
+     *  solo). Returns the raw response: { plan, revision, applied }. */
+    async convertPlaceType(client, planId, body) {
+      const r = await client.post(
+        `/journeys/${encodeURIComponent(planId)}/convert-place-type`,
+        body,
+      );
+      return { status: r.status, json: r.json, plan: r.json.plan || null, revision: r.json.revision || null, applied: r.json.applied };
+    },
+    /** B1: respond to a plan revision through the real HTTP path. */
+    async respondRevision(client, planId, revisionId, decision) {
+      const r = await client.post(
+        `/journeys/${encodeURIComponent(planId)}/revisions/${encodeURIComponent(revisionId)}/respond`,
+        { decision },
+      );
+      return { status: r.status, json: r.json };
     },
     /** Center Now strip - the API output the Center header renders. */
     async calendarToday(client) {

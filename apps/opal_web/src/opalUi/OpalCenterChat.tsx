@@ -28,6 +28,8 @@ import {
   sessionRowLabel,
 } from "./OpalChatSessionsDrawer";
 import { ProfileGapAsk } from "./ProfileGapAsk";
+import { CheckinAskCard } from "./CheckinAskCard";
+import { CheckinSummaryCard } from "./CheckinSummary";
 import {
   LISTENING_COPY,
   MIC_BLOCKED_COPY,
@@ -1803,6 +1805,33 @@ export function OpalCenterChat({
           bearer={bearer}
         />
       ) : null}
+
+      {/* Repair #18 B3 — check-in sweep cards ride the OpalMessage
+          metadata (source checkin_sweep): a member's private ask
+          card, and the organizer's live summary card. Both render
+          the server projection; neither derives sweep state. */}
+      {(() => {
+        // One card per distinct sweep in this thread: a member can
+        // hold open asks from more than one circle at once, and
+        // rendering only the latest would hide the earlier asks.
+        const bySweep = new Map<string, string | undefined>();
+        for (const m of messages) {
+          if (
+            m.metadata?.source === "checkin_sweep" &&
+            typeof m.metadata?.sweep_id === "string"
+          ) {
+            bySweep.set(String(m.metadata.sweep_id), m.metadata?.kind as string | undefined);
+          }
+        }
+        if (bySweep.size === 0) return null;
+        return [...bySweep.entries()].map(([sweepId, kind]) =>
+          kind === "ask" ? (
+            <CheckinAskCard key={sweepId} sweepId={sweepId} bearer={bearer} />
+          ) : (
+            <CheckinSummaryCard key={sweepId} sweepId={sweepId} bearer={bearer} />
+          ),
+        );
+      })()}
 
       {showJump ? (
         <button

@@ -31,6 +31,10 @@ export type ChatPreview = {
     visibility: "participants";
     participant_mode: "solo" | "dyad" | "group" | string;
     kicker: string;
+    /** Repair #18 (W4-04): the plan row's current title, carried on
+     *  the projection so chats list / thread read an edit back from
+     *  the same source as every other surface. */
+    title?: string | null;
     when_label?: string | null;
     place?: string | null;
     activity?: string | null;
@@ -38,6 +42,51 @@ export type ChatPreview = {
     plan_type?: "in_person" | "virtual" | string | null;
     meeting_link?: string | null;
     online?: boolean;
+    /** B1: the backend's ONE explicit place projection
+     * (SharedPlan.place_projection). Clients render this object;
+     * they never re-derive place type from the location string. */
+    place_projection?: {
+      kind?: "physical" | "virtual" | string | null;
+      label?: string | null;
+      meeting_provider?: string | null;
+      meeting_link?: string | null;
+      join_available?: boolean;
+      directions_available?: boolean;
+    } | null;
+    meeting_provider?: string | null;
+    join_available?: boolean;
+    directions_available?: boolean;
+    /** Repair #18 (B2) — the plan completion record, rendered verbatim
+     * from the backend's one projection. Surfaces never re-derive join
+     * or food state from anything else. Food recipient entries arrive
+     * privacy-sanitized from the server (no household keys, no private
+     * alternate restaurant, and no address field exists at all). */
+    completion?: {
+      driven_at?: string | null;
+      steps: Array<{
+        id: string;
+        status: string;
+        copy?: string;
+        host?: string | null;
+        restaurant_name?: string | null;
+        target_offset_minutes?: number;
+        rollup?: {
+          households_total: number;
+          households_confirmed: number;
+          confirmed_by: string[];
+          label: string;
+        };
+        recipients?: Array<{
+          user_id: string;
+          items: string[];
+          items_state: string;
+          handoff_state: string;
+          provider_choice?: string | null;
+          handed_off_at?: string | null;
+          self_confirmed_at?: string | null;
+        }>;
+      }>;
+    } | null;
     execution_label?: string | null;
     execution_detail?: string | null;
     pending_change?: boolean;

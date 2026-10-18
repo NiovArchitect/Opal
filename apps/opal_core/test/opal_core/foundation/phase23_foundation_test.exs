@@ -203,15 +203,19 @@ defmodule OpalCore.Foundation.Phase23FoundationTest do
     assert {:error, :blocked} = OpalCore.Messages.ensure_direct_conversation(bob_id, alice_id)
   end
 
-  test "3.4 structured logger + Sentry stub + health 200", %{conn: conn} do
+  test "3.4 structured logger + Sentry honest no-op + health 200", %{conn: conn} do
     assert :ok = StructuredLogger.log("test.event", %{"foo" => "bar"})
-    assert {:ok, :skipped} = Sentry.capture(%RuntimeError{message: "probe"})
+    # Repair #18 BS-5: capture never claims success — no SDK is linked
+    # and nothing is delivered, so the honest result is an error tuple.
+    assert {:error, :not_configured} = Sentry.capture(%RuntimeError{message: "probe"})
     refute Sentry.configured?()
+    refute Sentry.delivery_available?()
 
     conn = get(conn, "/health")
     body = json_response(conn, 200)
     assert body["status"] == "ok"
     assert body["db"] == "up"
+    assert body["sentry_reporting"] == "not_configured"
   end
 
   test "2.1 Onboarding rate window is 3600 seconds" do

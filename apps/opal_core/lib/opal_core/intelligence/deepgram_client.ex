@@ -11,8 +11,16 @@ defmodule OpalCore.Intelligence.DeepgramClient do
   `detect_language=true`; we pin en-US for predictable confidence on the current tier.
   Diarization: `diarize=true` for multi-speaker segments.
 
-  When `DEEPGRAM_API_KEY` is unset, returns a canned diarized transcript with `stub: true`
-  so the intelligence pipeline is testable end-to-end (see BLOCKED.md).
+  HONESTY (Repair #18, BS-4): when `DEEPGRAM_API_KEY` is unset,
+  `transcribe_batch/2` returns `{:disabled, "transcription not configured"}`.
+  It NEVER returns invented speech. The previous canned-transcript stub
+  (a fixed sentence about locking in a named restaurant for Saturday,
+  at a fabricated 0.92 confidence) was persisted by AudioIngestor as a
+  real `voice_transcript` message body — fabricated user speech stored
+  as real — and has been removed outright.
+  Tests inject a provider-shaped response through the
+  `:deepgram_http_fun` transport seam (app env), never through the
+  product path.
   """
 
   require Logger
@@ -20,7 +28,14 @@ defmodule OpalCore.Intelligence.DeepgramClient do
   @batch_url ~c"https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&language=en-US"
   @confidence_floor 0.6
 
-  @doc "Batch transcribe audio binary. Returns {:ok, result} | {:error, reason}."
+  @doc """
+  Batch transcribe audio binary.
+
+  Returns `{:ok, result}` only for a real provider response,
+  `{:disabled, reason}` when no Deepgram key is configured, and
+  `{:error, reason}` for transport/provider failures. There is no
+  canned, stub, or caller-supplied transcript path.
+  """
   def transcribe_batch(audio, opts \\ [])
 
   def transcribe_batch(audio, opts) when is_binary(audio) do
@@ -31,7 +46,7 @@ defmodule OpalCore.Intelligence.DeepgramClient do
         request_batch(key, audio, content_type)
 
       _ ->
-        {:ok, stub_transcript(opts)}
+        {:disabled, "transcription not configured"}
     end
   end
 
@@ -64,28 +79,55 @@ defmodule OpalCore.Intelligence.DeepgramClient do
   end
 
   defp request_batch(key, audio, content_type) do
-    _ = Application.ensure_all_started(:inets)
-    _ = Application.ensure_all_started(:ssl)
-
     headers = [
-      {~c"authorization", String.to_charlist("Token " <> key)},
-      {~c"content-type", String.to_charlist(content_type)}
+      {"authorization", "Token " <> key},
+      {"content-type", content_type}
     ]
 
-    request = {@batch_url, headers, String.to_charlist(content_type), audio}
-
-    case :httpc.request(:post, request, [timeout: 60_000, connect_timeout: 8_000], body_format: :binary) do
-      {:ok, {{_, 200, _}, _, response}} ->
-        parsed = Jason.decode!(io_to_bin(response))
+    case http_post(headers, audio, content_type) do
+      {:ok, 200, response} ->
+        parsed = Jason.decode!(response)
         {:ok, normalize_response(parsed, stub: false)}
 
-      {:ok, {{_, status, _}, _, response}} ->
-        Logger.warning("deepgram.batch_failed status=#{status} body=#{String.slice(io_to_bin(response), 0, 200)}")
+      {:ok, status, response} ->
+        Logger.warning("deepgram.batch_failed status=#{status} body=#{String.slice(response, 0, 200)}")
         {:error, {:http_status, status}}
 
       {:error, reason} ->
         Logger.warning("deepgram.batch_error reason=#{inspect(reason)}")
         {:error, reason}
+    end
+  end
+
+  # Transport seam: tests set `:deepgram_http_fun` (app env) to a
+  # fun.(url, headers, audio, content_type) -> {:ok, status, body} |
+  # {:error, reason} returning a provider-shaped response. Production
+  # always takes the :httpc branch. This mirrors the
+  # :phone_verify_http_client / :apns_http_fun seams elsewhere.
+  defp http_post(headers, audio, content_type) do
+    case Application.get_env(:opal_core, :deepgram_http_fun) do
+      fun when is_function(fun, 4) ->
+        case fun.(List.to_string(@batch_url), headers, audio, content_type) do
+          {:ok, status, body} when is_integer(status) -> {:ok, status, io_to_bin(body)}
+          {:error, _} = err -> err
+          other -> {:error, {:unexpected_transport_result, other}}
+        end
+
+      _ ->
+        _ = Application.ensure_all_started(:inets)
+        _ = Application.ensure_all_started(:ssl)
+
+        charlist_headers =
+          Enum.map(headers, fn {k, v} -> {String.to_charlist(k), String.to_charlist(v)} end)
+
+        request = {@batch_url, charlist_headers, String.to_charlist(content_type), audio}
+
+        case :httpc.request(:post, request, [timeout: 60_000, connect_timeout: 8_000],
+               body_format: :binary
+             ) do
+          {:ok, {{_, status, _}, _, response}} -> {:ok, status, io_to_bin(response)}
+          {:error, reason} -> {:error, reason}
+        end
     end
   end
 
@@ -146,28 +188,6 @@ defmodule OpalCore.Intelligence.DeepgramClient do
   end
 
   defp estimate_confidence(_), do: 0.85
-
-  defp stub_transcript(opts) do
-    forced = Keyword.get(opts, :stub_transcript)
-    confidence = Keyword.get(opts, :stub_confidence, 0.92)
-
-    transcript =
-      cond do
-        is_binary(forced) and forced != "" -> forced
-        true -> "Yes, let's lock in Juniper for Saturday."
-      end
-
-    %{
-      transcript: transcript,
-      confidence: confidence,
-      segments: [
-        %{"speaker" => 0, "text" => transcript, "start" => 0.0, "end" => 2.4}
-      ],
-      language: "en-US",
-      stub: true,
-      raw_provider: "deepgram_stub"
-    }
-  end
 
   defp api_key do
     System.get_env("DEEPGRAM_API_KEY") ||

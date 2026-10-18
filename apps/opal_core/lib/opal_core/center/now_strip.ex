@@ -58,6 +58,7 @@ defmodule OpalCore.Center.NowStrip do
       |> Repo.all()
 
     who_by_plan = who_by_plan(rows, user_id)
+    pod_label_by_plan = pod_label_by_plan(rows, user_id)
 
     Enum.map(rows, fn {%Commitment{} = c, %SharedPlan{} = p} ->
       %{
@@ -69,12 +70,42 @@ defmodule OpalCore.Center.NowStrip do
         "time_label" => p.time_label,
         "source" => "plan",
         "who" => Map.get(who_by_plan, p.id, []),
-        "where" => plan_where(p, c)
+        "where" => plan_where(p, c),
+        # Repair #18 B5a: when the plan's participant set is exactly an
+        # active pod's member set, the event names the pod context.
+        "context_label" => Map.get(pod_label_by_plan, p.id)
       }
     end)
   end
 
   def plan_events(_, _, _), do: []
+
+  # Pod context label per plan: the viewer's primary pod label when the
+  # plan's participant set (owner included) equals the pod's active
+  # member set. Read from declared pod records only.
+  defp pod_label_by_plan(rows, user_id) do
+    case OpalCore.SocialFlow.Households.primary_pod(user_id) do
+      %OpalCore.SocialFlow.Household{} = pod ->
+        members = OpalCore.SocialFlow.Households.active_member_ids(pod.id) |> MapSet.new()
+        plan_ids = rows |> Enum.map(fn {_c, p} -> p.id end) |> Enum.uniq()
+
+        sets =
+          from(pp in PlanParticipant,
+            where: pp.plan_id in ^plan_ids,
+            select: {pp.plan_id, pp.user_id}
+          )
+          |> Repo.all()
+          |> Enum.group_by(fn {pid, _} -> pid end, fn {_, uid} -> uid end)
+
+        Map.new(rows, fn {_c, p} ->
+          set = Map.get(sets, p.id, []) |> MapSet.new() |> MapSet.put(user_id)
+          {p.id, if(MapSet.equal?(set, members), do: pod.label, else: nil)}
+        end)
+
+      _ ->
+        %{}
+    end
+  end
 
   # Participant display names per plan, excluding the strip's owner.
   # Fallbacks (only when a plan has no participant rows at all): the

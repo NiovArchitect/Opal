@@ -45,6 +45,14 @@ defmodule OpalCore.SocialFlow.Execution.PlanLifecycle do
     a = stringify(attrs)
     now = a["now"] || DateTime.utc_now()
 
+    # B1 (A2): travel phases are physical-only. A virtual plan (place
+    # type carried under the explicit "place_kind" key - NOT the
+    # activity key "plan_type", see SharedPlan's collision note) never
+    # emits departure_approaching or in_transit: before start it is
+    # upcoming, at start occurring, after the window completed - the
+    # same phase names and colors as physical for every other phase.
+    virtual? = a["place_kind"] == "virtual"
+
     phase =
       cond do
         a["cancelled"] == true ->
@@ -56,11 +64,15 @@ defmodule OpalCore.SocialFlow.Execution.PlanLifecycle do
         a["human_reports_completed"] == true or past_occurrence?(a, now) ->
           "completed"
 
-        a["in_transit"] == true or a["navigation_started"] == true or
-            a["directions_started"] == true ->
+        virtual? and during_plan?(a, now) ->
+          "occurring"
+
+        not virtual? and
+            (a["in_transit"] == true or a["navigation_started"] == true or
+               a["directions_started"] == true) ->
           if during_plan?(a, now), do: "occurring", else: "in_transit"
 
-        departure_window?(a, now) ->
+        not virtual? and departure_window?(a, now) ->
           "departure_approaching"
 
         a["set"] == true and upcoming?(a, now) ->

@@ -35,21 +35,41 @@ defmodule OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter do
     end
   end
 
-  @impl true
-  def check_challenge(provider_reference, code, _context)
-      when is_binary(provider_reference) and is_binary(code) do
-    with {:ok, cfg} <- config(),
-         {:ok, body} <- http_check(cfg, provider_reference, code) do
-      status = Map.get(body, "status") || Map.get(body, :status)
+  @doc """
+  Behaviour check (Repair #18, BS-17).
 
-      case status do
-        "approved" -> :ok
-        "pending" -> {:error, :invalid_code}
-        "canceled" -> {:error, :challenge_inactive}
-        _ -> {:error, :invalid_code}
-      end
+  Twilio Verify's VerificationCheck API identifies the challenge by
+  To (E.164) + Code — a Verification SID alone cannot be checked. The
+  old implementation therefore ALWAYS returned
+  `{:error, :use_check_with_e164}`: a dead behaviour path that any
+  caller through `Provider.check_challenge/3` would hit on every code.
+
+  The coherent contract now: callers pass the E.164 in `context`
+  (`:e164`, `"e164"`, `:phone`, or `:identifier_raw`) and this performs
+  the same real VerificationCheck as `check_by_e164/2`. Without an
+  E.164 it returns `{:error, :e164_required}`, naming exactly what is
+  missing — it never pretends to have checked a code it did not check.
+  """
+  @impl true
+  def check_challenge(provider_reference, code, context)
+      when is_binary(provider_reference) and is_binary(code) do
+    case e164_from_context(context) do
+      e164 when is_binary(e164) and e164 != "" ->
+        check_by_e164(e164, code)
+
+      _ ->
+        Logger.warning("phone_verify.check_missing_e164")
+        {:error, :e164_required}
     end
   end
+
+  defp e164_from_context(context) when is_map(context) do
+    Map.get(context, :e164) || Map.get(context, "e164") || Map.get(context, :phone) ||
+      Map.get(context, "phone") || Map.get(context, :identifier_raw) ||
+      Map.get(context, "identifier_raw")
+  end
+
+  defp e164_from_context(_), do: nil
 
   defp config do
     sid = System.get_env("OPAL_TWILIO_ACCOUNT_SID")
@@ -73,12 +93,6 @@ defmodule OpalCore.SocialFlow.PhoneVerification.TwilioVerifyAdapter do
 
     body = URI.encode_query(%{"To" => e164, "Channel" => "sms"})
     request(:post, url, body, cfg)
-  end
-
-  defp http_check(_cfg, _provider_reference, _code) do
-    # Twilio Verify check is by To + Code on the Service, not Verification SID alone.
-    # Use check_by_e164/2 from Onboarding production path.
-    {:error, :use_check_with_e164}
   end
 
   @doc "Check by E.164 + code (Twilio Verify Check API)."

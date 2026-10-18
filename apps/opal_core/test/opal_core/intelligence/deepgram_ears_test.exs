@@ -7,13 +7,24 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
   alias OpalCore.Repo
 
   setup do
-    # Force stub path regardless of host DEEPGRAM_API_KEY
+    # Repair #18 BS-4: the canned-transcript stub is GONE. These tests
+    # run the real client against a provider-shaped response injected
+    # through the :deepgram_http_fun transport seam, with a (fake) key
+    # present so configured?/0 is true.
     prior = System.get_env("DEEPGRAM_API_KEY")
-    System.delete_env("DEEPGRAM_API_KEY")
-    Application.put_env(:opal_core, :deepgram_api_key, nil)
+    prior_app_key = Application.get_env(:opal_core, :deepgram_api_key)
+    prior_fun = Application.get_env(:opal_core, :deepgram_http_fun)
+
+    System.put_env("DEEPGRAM_API_KEY", "test-key-not-real")
+    Application.delete_env(:opal_core, :deepgram_api_key)
 
     on_exit(fn ->
-      if prior, do: System.put_env("DEEPGRAM_API_KEY", prior), else: System.delete_env("DEEPGRAM_API_KEY")
+      if prior,
+        do: System.put_env("DEEPGRAM_API_KEY", prior),
+        else: System.delete_env("DEEPGRAM_API_KEY")
+
+      restore_app(:deepgram_api_key, prior_app_key)
+      restore_app(:deepgram_http_fun, prior_fun)
     end)
 
     user =
@@ -46,12 +57,48 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
     %{user: user, peer: peer, conversation: conv}
   end
 
-  test "DeepgramClient stub returns canned transcript with stub:true" do
+  defp restore_app(key, nil), do: Application.delete_env(:opal_core, key)
+  defp restore_app(key, val), do: Application.put_env(:opal_core, key, val)
+
+  # Install a provider-shaped Deepgram response at the transport seam.
+  defp stub_provider(transcript, confidence) do
+    body =
+      Jason.encode!(%{
+        "results" => %{
+          "channels" => [
+            %{
+              "alternatives" => [
+                %{"transcript" => transcript, "confidence" => confidence, "words" => []}
+              ]
+            }
+          ]
+        }
+      })
+
+    Application.put_env(:opal_core, :deepgram_http_fun, fn _url, _headers, _audio, _ct ->
+      {:ok, 200, body}
+    end)
+  end
+
+  test "DeepgramClient returns the provider transcript (no canned text anywhere)" do
+    stub_provider("The provider heard this", 0.93)
+
     assert {:ok, result} = DeepgramClient.transcribe_batch(<<1, 2, 3, 4>>)
-    assert result.stub == true
-    assert is_binary(result.transcript)
-    assert result.transcript != ""
+    assert result.stub == false
+    assert result.transcript == "The provider heard this"
+    refute result.transcript =~ "Juniper"
     assert is_list(result.segments)
+  end
+
+  test "DeepgramClient unkeyed is an honest disabled, never a canned transcript" do
+    System.delete_env("DEEPGRAM_API_KEY")
+    Application.put_env(:opal_core, :deepgram_api_key, nil)
+    Application.delete_env(:opal_core, :deepgram_http_fun)
+
+    assert {:disabled, "transcription not configured"} =
+             DeepgramClient.transcribe_batch(<<1, 2, 3, 4>>)
+
+    refute DeepgramClient.configured?()
   end
 
   test "stream_interface documents the live-call seam" do
@@ -61,14 +108,14 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
   end
 
   test "AudioIngestor voice → message + pipeline", %{user: user, conversation: conv} do
+    stub_provider("Yes let's lock it in", 0.95)
+
     assert {:ok, result} =
              AudioIngestor.ingest_voice_message(<<9, 9, 9>>, conv.id, user.id,
-               stub_transcript: "Yes let's lock it in",
-               stub_confidence: 0.95,
                duration_ms: 1200
              )
 
-    assert result.stub == true
+    assert result.stub == false
     assert result.transcription_uncertain == false
     assert result.message.message_type == "voice_transcript"
     assert result.message.body =~ "lock"
@@ -76,11 +123,10 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
   end
 
   test "low confidence triggers transcription_uncertain", %{user: user, conversation: conv} do
+    stub_provider("mumble something about dinner", 0.3)
+
     assert {:ok, result} =
-             AudioIngestor.ingest_voice_message(<<1>>, conv.id, user.id,
-               stub_transcript: "mumble something about dinner",
-               stub_confidence: 0.3
-             )
+             AudioIngestor.ingest_voice_message(<<1>>, conv.id, user.id, [])
 
     assert result.transcription_uncertain == true
     assert get_in(result.event.payload, ["transcription_uncertain"]) == true
@@ -97,6 +143,8 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
   end
 
   test "call transcription resolves speaker labels", %{user: user, peer: peer, conversation: conv} do
+    stub_provider("Dinner on Saturday sounds good", 0.9)
+
     assert {:ok, result} =
              CallTranscription.after_call_ended(%{
                call_id: Ecto.UUID.generate(),
@@ -107,6 +155,8 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
              })
 
     assert result.transcribed == true
+    assert result.stub == false
+
     assert Enum.all?(result.segments, fn s ->
              is_binary(s["speaker_label"]) and not String.contains?(s["speaker_label"], "Speaker")
            end)

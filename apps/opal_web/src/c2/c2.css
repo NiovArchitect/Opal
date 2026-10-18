@@ -1,0 +1,298 @@
+/*
+ * Repair #18 - Division C2 - foundation component styles.
+ * Every value comes from theme/c2Tokens.css. No raw hex, no raw
+ * z-index, no raw radius in this file (C2 section 2.6 law).
+ */
+
+/* Page ground follows the mode on the C2 path. This file is UNLAYERED
+ * on purpose for these two rules: the layered token sheet cannot beat
+ * the legacy unlayered body background in styles.css, so the ground is
+ * applied here, from the token, keyed on the boot-stamped attribute. */
+html[data-mode="dark"] body,
+html[data-mode="dark"] #root {
+  background: var(--canvas-stage);
+}
+html[data-mode="light"] body,
+html[data-mode="light"] #root {
+  background: var(--canvas);
+}
+
+.c2-mark {
+  color: var(--ink-1);
+  flex: none;
+}
+.c2-wordmark {
+  display: inline-flex;
+  color: var(--ink-1);
+}
+.c2-wordmark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.c2-lockup-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-1);
+}
+.c2-lockup-hero {
+  display: inline-flex;
+  justify-content: center;
+}
+.c2-loop--hero {
+  animation: c2-breath var(--motion-breath) ease-in-out infinite alternate;
+}
+@keyframes c2-breath {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.015);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c2-loop--hero {
+    animation: none;
+  }
+  .c2-plan-card {
+    transition: none;
+  }
+}
+
+/* Current Lines pattern (section 2.3): quiet converging linework,
+ * inline SVG so the stroke resolves from the mode token. */
+.c2-pattern-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---- Splashes (sections 4 and 5) ---- */
+.c2-splash {
+  position: relative;
+  min-height: 100dvh;
+  background: var(--canvas-stage);
+  color: var(--ink-1);
+  font: var(--type-body);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.c2-splash-column {
+  position: relative;
+  width: 100%;
+  max-width: var(--content-max);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px var(--gutter) calc(16px + env(safe-area-inset-bottom, 0px));
+}
+.c2-splash-hero {
+  margin-top: 6dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.c2-splash-wordmark {
+  margin-top: 10px;
+}
+.c2-splash-headline {
+  font: var(--type-display);
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin: 28px 0 0;
+}
+.c2-splash-subline {
+  font: var(--type-callout);
+  color: var(--ink-2);
+  text-align: center;
+  margin: 10px 0 0;
+}
+.c2-splash-actions {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 24px;
+}
+.c2-btn-primary {
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--primary-stage-fill);
+  color: var(--primary-stage-ink);
+  font: var(--type-headline);
+  cursor: pointer;
+  width: 100%;
+}
+.c2-btn-primary:active {
+  background: var(--accent-press);
+}
+.c2-btn-text {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-1);
+  font: var(--type-callout);
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+.c2-splash-gradient-headline {
+  font: var(--type-display);
+  text-align: center;
+  margin: 22px 0 0;
+  background: var(--grad-current);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.c2-kicker {
+  font: var(--type-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--ink-2);
+  margin: 10px 0 0;
+}
+.c2-splash-lines {
+  font: var(--type-callout);
+  color: var(--ink-2);
+  text-align: center;
+  margin: 12px 0 0;
+}
+.c2-splash-lines p {
+  margin: 2px 0;
+}
+.c2-chip-row {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  margin-top: 4dvh;
+}
+.c2-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-1);
+  color: var(--ink-1);
+  border: 1px solid var(--line-1);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: var(--type-callout);
+  box-shadow: var(--shadow-card);
+}
+.c2-chip-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-1);
+}
+.c2-convergence {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 10px;
+}
+.c2-happening-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 2px solid var(--state-happening);
+  box-shadow: 0 0 0 6px var(--state-happening-ring);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-1);
+}
+.c2-splash-card-wrap {
+  width: 100%;
+}
+
+/* ---- Reference plan card (C1 section 4 grammar, tokens only) ---- */
+.c2-plan-card {
+  background: var(--surface-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  color: var(--ink-1);
+  font: var(--type-body);
+  transition: border-color var(--motion-settle), background var(--motion-settle);
+  text-align: left;
+}
+.c2-plan-card-top {
+  display: flex;
+  align-items: center;
+}
+.c2-state-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: var(--type-pill);
+  border: 1px solid;
+}
+.c2-state-pill[data-plan-state="forming"] {
+  background: var(--state-forming-tint);
+  border-color: var(--state-forming);
+  border-style: dashed;
+  color: var(--state-forming-ink);
+}
+.c2-state-pill[data-plan-state="action"] {
+  background: var(--state-action-tint);
+  border-color: var(--state-action);
+  border-left-width: 3px;
+  color: var(--state-action-ink);
+}
+.c2-state-pill[data-plan-state="ready"] {
+  background: var(--state-ready-tint);
+  border-color: var(--state-ready);
+  color: var(--state-ready-ink);
+}
+.c2-state-pill[data-plan-state="happening"] {
+  background: var(--state-happening-tint);
+  border-color: var(--state-happening);
+  color: var(--state-happening-ink);
+}
+.c2-state-pill[data-plan-state="past"] {
+  background: var(--state-past-tint);
+  border-color: var(--state-past);
+  color: var(--state-past-ink);
+}
+.c2-plan-title {
+  font: var(--type-headline);
+  color: var(--ink-1);
+  margin: 10px 0 0;
+}
+.c2-plan-when,
+.c2-plan-where,
+.c2-plan-attendance {
+  font: var(--type-callout);
+  color: var(--ink-2);
+  margin: 4px 0 0;
+}
+.c2-plan-primary {
+  margin-top: 12px;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-button);
+  background: var(--surface-2);
+  color: var(--ink-1);
+  font: var(--type-callout);
+  font-weight: 650;
+  cursor: pointer;
+}

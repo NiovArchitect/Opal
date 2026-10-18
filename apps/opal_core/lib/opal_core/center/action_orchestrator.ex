@@ -159,6 +159,22 @@ defmodule OpalCore.Center.ActionOrchestrator do
           plan_cancel_turn?(intent, patch, raw_text) ->
             handle_plan_cancel(user_id, intent, planning, patch, raw_text)
 
+          # Repair #18 (B3) — a check-in sweep ask armed the outstanding
+          # slot (only when it was free; a sweep never evicts a live
+          # planning question). The member's next Center message is
+          # consumed as their private sweep answer by the Checkin
+          # context, never classified as plan talk. Same precedence as
+          # the Repair #17 outstanding branch, checked first because
+          # the kind routes to a different consumer.
+          checkin_answer_turn?(prior, raw_text) ->
+            handle_checkin_answer(
+              user_id,
+              intent,
+              planning,
+              PlanningContext.outstanding_question(prior),
+              raw_text
+            )
+
           # Repair #17 (W4-2) — an outstanding question Opal asked consumes
           # the user's next message as its answer, in flow. This branch runs
           # before the sticky-plan correction, the provider search, and the
@@ -600,7 +616,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
     # Repair #12 (F12-11d): the near-me intercept OPENS when device coords
     # exist — a real nearby search starts and owns the turn (bypasses the
     # parked path below). Without coords it stays an honest gate.
-    if near_me_phrasing?(raw_text) and
+    if near_me_phrasing?(raw_text) and not virtual_intent?(intent, planning) and
          act not in ["switch_topic", "recall_prior_task", "show_history", "switch_task_birthday"] do
       case DeviceLocation.get_for_user(user_id) do
         {:ok, coords} ->
@@ -940,6 +956,50 @@ defmodule OpalCore.Center.ActionOrchestrator do
   end
 
   defp new_plan_request?(_, _), do: false
+
+  # Repair #18 (B3) — the outstanding slot holds a check-in sweep ask
+  # when its kind is checkin_sweep. The answer guards are the shared
+  # Repair #17 ones: short, not a question, no new-plan command.
+  defp checkin_answer_turn?(prior, raw_text) do
+    case PlanningContext.outstanding_question(prior) do
+      %{"kind" => "checkin_sweep"} = q -> PlanningContext.answer_to_outstanding?(q, raw_text)
+      _ -> false
+    end
+  end
+
+  # Consume the reply as the member's sweep answer. The Checkin
+  # context owns the write (verbatim free_text, okay unstated, or a
+  # pass for skip-shaped text); this branch only routes and replies.
+  # The answer is never admitted to memory or plan extraction.
+  defp handle_checkin_answer(user_id, intent, planning, q, raw_text) do
+    answer = String.trim(raw_text)
+
+    passed? =
+      case OpalCore.SocialFlow.Checkin.consume_text_answer(user_id, q["sweep_id"], answer) do
+        {:ok, %{status: "passed"}} -> true
+        {:ok, _row} -> false
+        _ -> false
+      end
+
+    planning2 = Map.delete(planning, "outstanding_question")
+    {:ok, planning2} = PlanningContext.put(user_id, planning2)
+
+    override =
+      if passed? do
+        "No problem - I will not ask again about this check-in."
+      else
+        "Got it - I passed that along privately for the check-in."
+      end
+
+    meta = %{
+      "action_state" => "checkin_answered",
+      "outstanding_question_kind" => "checkin_sweep",
+      "planning_context" => planning2,
+      "conversation_owns_routing" => true
+    }
+
+    {intent_without_search(intent), override, meta}
+  end
 
   # Repair #17 (W4-2) — the outstanding question (recorded when Opal asked
   # it, on the prior turn's planning context) consumes this turn as its
@@ -1444,10 +1504,23 @@ defmodule OpalCore.Center.ActionOrchestrator do
   # phrasing with restaurant cues, no typed destination. Opens the
   # device-anchored search when coords exist; otherwise falls through to the
   # normal QuestionEconomy path (which asks "where?").
+  # B1 (A5/A11): near-me and places search are physical-only. A
+  # virtual intent (planning context or this turn's intent carries
+  # plan_type virtual) never opens a device-coords search and never
+  # prompts for location.
+  defp virtual_intent?(intent, planning) do
+    planning["plan_type"] == "virtual" or
+      get_in(intent || %{}, [:entities, :plan_type]) == "virtual" or
+      get_in(intent || %{}, ["entities", "plan_type"]) == "virtual"
+  rescue
+    _ -> planning["plan_type"] == "virtual"
+  end
+
   defp maybe_near_me_device_search(user_id, raw_text, intent, planning) do
     dest = planning["requested_venue_locality"] || planning["destination"]
 
-    if near_me_phrasing?(raw_text) and not is_binary(dest) do
+    if near_me_phrasing?(raw_text) and not virtual_intent?(intent, planning) and
+         not is_binary(dest) do
       case DeviceLocation.get_for_user(user_id) do
         {:ok, coords} -> {:near_me, start_near_me_search(user_id, intent, planning, coords)}
         :none -> :not_near_me

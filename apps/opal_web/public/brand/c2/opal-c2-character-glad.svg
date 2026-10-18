@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 124" role="img" aria-label="Opal">
+<title>Opal</title>
+<defs><linearGradient id="cur" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#2DD4BF"/><stop offset="0.25" stop-color="#818CF8"/>
+<stop offset="0.5" stop-color="#C084FC"/><stop offset="0.75" stop-color="#F0ABFC"/>
+<stop offset="1" stop-color="#FBBF24"/></linearGradient></defs>
+<path d="M50 20 C72 20 86 40 86 64 C86 92 71 110 50 110 C29 110 14 92 14 64 C14 40 28 20 50 20 Z" fill="#FBF5EC"/>
+<!-- inlaid Current line: follows the fold, 6% of body width -->
+<path d="M50 20 C72 20 86 40 86 64 C86 92 71 110 50 110 C29 110 14 92 14 64 C14 40 28 20 50 20 Z" fill="none" stroke="url(#cur)" stroke-width="3" opacity="0.9"/>
+<path d="M50 21 C41 8 59 2 55 14 C53 19 47 20 50 21 Z" fill="none" stroke="url(#cur)" stroke-width="4" stroke-linecap="round" opacity="1"/>
+<path d="M32.5 51 Q38 44.5 43.5 51" fill="none" stroke="#1C1917" stroke-width="3.4" stroke-linecap="round"/>
+<path d="M56.5 51 Q62 44.5 67.5 51" fill="none" stroke="#1C1917" stroke-width="3.4" stroke-linecap="round"/>
+<path d="M42 61 Q50 71 58 61 Q50 65 42 61 Z" fill="#1C1917"/>
+</svg>

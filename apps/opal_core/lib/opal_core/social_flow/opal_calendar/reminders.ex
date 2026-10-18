@@ -36,8 +36,16 @@ defmodule OpalCore.SocialFlow.OpalCalendar.Reminders do
         []
       end
 
+    # B1 (A12): leave_by is physical-only, structurally - a virtual
+    # commitment (metadata plan_type, stamped at projection time)
+    # never acquires a travel buffer or a leave-by reminder, whatever
+    # travel_minutes a caller passes.
+    virtual_commitment? =
+      get_in(c, ["metadata", "plan_type"]) == "virtual" or
+        get_in(c, [:metadata, "plan_type"]) == "virtual"
+
     leave =
-      if match?(%DateTime{}, start_at) and is_number(travel) do
+      if match?(%DateTime{}, start_at) and is_number(travel) and not virtual_commitment? do
         [
           %{
             "kind" => "leave_by",

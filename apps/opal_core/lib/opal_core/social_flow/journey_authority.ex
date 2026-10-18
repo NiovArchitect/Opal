@@ -166,6 +166,16 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
            with %SharedPlan{} = plan <- plan,
                 :ok <- ensure_plan_access(plan, user_id),
                 :ok <- require_lead(plan, user_id),
+                # B1: place type is NOT a material field here - a
+                # plan_type key that would change the type is refused
+                # honestly and routed to the one conversion writer
+                # (SocialFlow.convert_plan_place_type/1), never
+                # silently dropped or half-applied.
+                :ok <-
+                  if(Map.has_key?(c, "plan_type") and c["plan_type"] != plan.plan_type,
+                    do: {:error, :use_convert_place_type},
+                    else: :ok
+                  ),
                 :ok <- assert_expected_revision(plan, c) do
              material? = material?(c)
              attrs = %{}
@@ -768,8 +778,21 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       from(pp in PlanParticipant, where: pp.plan_id == ^plan.id)
       |> Repo.all()
 
-    leave = compute_leave(plan, opts)
-    maps = maps_links(plan)
+    # B1 (A1): a virtual plan has no travel. Leave-by and maps links
+    # are honestly unavailable (with the reason named), NO provider
+    # estimate is burned against the string "Online", and the surface
+    # gets a join block instead of directions to a non-place.
+    virtual? = SharedPlan.virtual?(plan)
+
+    leave =
+      if virtual?,
+        do: %{"available" => false, "reason" => "virtual_no_travel", "fabricated" => false},
+        else: compute_leave(plan, opts)
+
+    maps =
+      if virtual?,
+        do: %{"available" => false, "reason" => "virtual_join_instead"},
+        else: maps_links(plan)
     reservation = reservation_truth(plan)
     me = Enum.find(participants, &(&1.user_id == user_id))
     lead = Enum.find(participants, &(&1.role == "lead")) || hd_or_nil(participants)
@@ -788,6 +811,22 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       "title" => plan.title,
       "status" => plan.status,
       "place" => plan.location,
+      # B1: the explicit place projection + (virtual only) the join
+      # block - the honest handoff to the plan's room. The join is
+      # never Opal's native Calls stack in R18 and never a fabricated
+      # URL: url is the plan's stored link or nil (add-link state).
+      "place_projection" => SharedPlan.place_projection(plan),
+      "join" =>
+        if virtual? do
+          link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+
+          %{
+            "available" => is_binary(link),
+            "url" => link,
+            "provider" => SharedPlan.place_projection(plan)["meeting_provider"],
+            "label" => if(is_binary(link), do: "Join", else: "Add a meeting link")
+          }
+        end,
       "when_label" => format_when(plan),
       "start_at" => iso(plan.start_at),
       "current_revision_id" => plan.current_revision_id,
@@ -956,16 +995,40 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
         _ -> DateTime.add(now, 8 * 3600, :second)
       end
 
+    # B1: the journey-activate birth path honors the explicit place
+    # type like every other create path (the graph-create F14-04 drop
+    # must not repeat here). The type wins over any venue string: a
+    # virtual journey plan is born virtual, located "Online", with its
+    # link sanitized and the alignment mirror stamped by the one
+    # lawful writer.
+    plan_type = if a["plan_type"] == "virtual", do: "virtual", else: "in_person"
+    meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(a["meeting_link"])
+
+    location =
+      if plan_type == "virtual",
+        do: "Online",
+        else: a["location"] || a["place"]
+
+    alignment =
+      OpalCore.SocialFlow.stamp_place_mirror(%{}, %{
+        "plan_type" => plan_type,
+        "meeting_link" => meeting_link,
+        "meeting_provider" => a["meeting_provider"]
+      })
+
     %SharedPlan{}
     |> SharedPlan.changeset(%{
       conversation_id: a["conversation_id"],
       title: a["title"] || "Journey",
       status: "agreed",
-      location: a["location"] || a["place"],
+      plan_type: plan_type,
+      location: location,
+      meeting_link: meeting_link,
       time_label: a["time_label"] || a["when_label"],
       start_at: start_at,
       timezone: a["timezone"] || "America/Los_Angeles",
-      created_by_user_id: a["user_id"]
+      created_by_user_id: a["user_id"],
+      alignment: alignment
     })
     # Gyroscope (R13): Journey plans are born agreed, via the gate.
     |> PlanTransition.guard_changeset(:plan, :create_agreed)

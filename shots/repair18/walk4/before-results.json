@@ -1,0 +1,129 @@
+{
+ "results": [
+  {
+   "id": "W4-05/add-story-chooser",
+   "status": "FAIL",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":-24,\"y\":259,\"w\":132,\"h\":100},\"position\":\"fixed\",\"zIndex\":\"65\",\"display\":\"flex\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"gsh-compose-chooser\"}"
+  },
+  {
+   "id": "W4-05/add-story-composer",
+   "status": "PASS",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":844},\"position\":\"fixed\",\"zIndex\":\"80\",\"display\":\"block\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"\"}"
+  },
+  {
+   "id": "W4-05/story-open-home",
+   "status": "PASS",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":844},\"position\":\"fixed\",\"zIndex\":\"10050\",\"display\":\"block\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"story-viewer-nav\"}"
+  },
+  {
+   "id": "W4-03/graphs-cards",
+   "status": "FAIL",
+   "detail": "5 clipped: graphs-card-plan-juniper-1,graphs-card-plan-juniper-1,graphs-card-seed-chanelle-juniper,graphs-card-seed-alex-graph-gallery,graphs-card-seed-maya-graph-coast"
+  },
+  {
+   "id": "W4-05/story-from-graphs",
+   "status": "PASS",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":844},\"position\":\"fixed\",\"zIndex\":\"80\",\"display\":\"block\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"\"}"
+  },
+  {
+   "id": "W4-05/graph-detail-open",
+   "status": "PASS",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":844},\"position\":\"fixed\",\"zIndex\":\"70\",\"display\":\"block\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"graph-ready-kicker\"}"
+  },
+  {
+   "id": "W4-05/grow-your-circle",
+   "status": "FAIL",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":505},\"position\":\"relative\",\"zIndex\":\"1\",\"display\":\"grid\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"btn primary\"}"
+  },
+  {
+   "id": "W4-05/add-story-you",
+   "status": "PASS",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":844},\"position\":\"fixed\",\"zIndex\":\"80\",\"display\":\"block\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"\"}"
+  },
+  {
+   "id": "W4-05/go-live",
+   "status": "FAIL",
+   "detail": "{\"exists\":true,\"rect\":{\"x\":0,\"y\":0,\"w\":390,\"h\":625},\"position\":\"relative\",\"zIndex\":\"1\",\"display\":\"grid\",\"visibility\":\"visible\",\"centerHit\":true,\"hitDesc\":\"lives-precision-note\"}"
+  }
+ ],
+ "cardAudit": [
+  {
+   "id": "graphs-card-plan-juniper-1",
+   "title": "Juniper & Ivy",
+   "cardRect": {
+    "x": 80,
+    "w": 282,
+    "h": 92
+   },
+   "btnScrollH": 199,
+   "btnClientH": 90,
+   "cardOverflow": "hidden",
+   "clippedLines": []
+  },
+  {
+   "id": "graphs-card-plan-juniper-1",
+   "title": "Juniper & Ivy",
+   "cardRect": {
+    "x": 80,
+    "w": 282,
+    "h": 92
+   },
+   "btnScrollH": 102,
+   "btnClientH": 90,
+   "cardOverflow": "hidden",
+   "clippedLines": []
+  },
+  {
+   "id": "graphs-card-seed-chanelle-juniper",
+   "title": "Juniper & Ivy",
+   "cardRect": {
+    "x": 80,
+    "w": 282,
+    "h": 92
+   },
+   "btnScrollH": 178,
+   "btnClientH": 90,
+   "cardOverflow": "hidden",
+   "clippedLines": []
+  },
+  {
+   "id": "graphs-card-seed-alex-graph-gallery",
+   "title": "Mexico City",
+   "cardRect": {
+    "x": 80,
+    "w": 282,
+    "h": 92
+   },
+   "btnScrollH": 157,
+   "btnClientH": 90,
+   "cardOverflow": "hidden",
+   "clippedLines": []
+  },
+  {
+   "id": "graphs-card-seed-maya-graph-coast",
+   "title": "Farmers market + coast",
+   "cardRect": {
+    "x": 80,
+    "w": 282,
+    "h": 92
+   },
+   "btnScrollH": 136,
+   "btnClientH": 90,
+   "cardOverflow": "hidden",
+   "clippedLines": []
+  },
+  {
+   "id": "graphs-card-seed-near-rooftop",
+   "title": "Rooftop Jazz",
+   "cardRect": {
+    "x": 80,
+    "w": 282,
+    "h": 92
+   },
+   "btnScrollH": 90,
+   "btnClientH": 90,
+   "cardOverflow": "hidden",
+   "clippedLines": []
+  }
+ ]
+}

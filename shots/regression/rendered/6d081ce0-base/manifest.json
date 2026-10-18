@@ -1,0 +1,779 @@
+{
+  "stage": "rendered-surface-pass",
+  "buildTag": "6d081ce0-base",
+  "webBase": "http://127.0.0.1:5373",
+  "apiBase": "http://127.0.0.1:4300",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "startedAt": "2026-10-18T08:33:13.667Z",
+  "finishedAt": "2026-10-18T08:47:44.365Z",
+  "surfaces": [
+    {
+      "surface": "splash-1",
+      "title": "Splash 1",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "splash-1-dark.png",
+      "at": "2026-10-18T08:33:19.393Z",
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": []
+    },
+    {
+      "surface": "splash-2",
+      "title": "Splash 2 / onboarding entry (Promise)",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "splash-2-dark.png",
+      "at": "2026-10-18T08:33:25.586Z",
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": []
+    },
+    {
+      "surface": "home-social",
+      "title": "Home / social",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "home-social-dark.png",
+      "at": "2026-10-18T08:33:42.411Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "home-social",
+          "message": "text clipped by an ancestor/fixed box: \"Alex\" (gsh-story-name, client 64x18 vs scroll 64x18, clipped by gsh-stories-rail)"
+        },
+        {
+          "surface": "home-social",
+          "message": "text clipped by an ancestor/fixed box: \"GRAPH\" (gsh-story-pulse-story-alex, client 36x10 vs scroll 36x11, clipped by gsh-stories-rail)"
+        }
+      ],
+      "notes": [
+        "home-social (dark): decorative/chrome element bleeds past the viewport edge (gsh-ambient-field gsh-ambient-signal, left=-90 right=180) - not a content failure; visible in the screenshot",
+        "home-social (dark): decorative/chrome element bleeds past the viewport edge (gsh-ambient-field gsh-ambient-possibility, left=235 right=495) - not a content failure; visible in the screenshot",
+        "home-social (dark): decorative/chrome element bleeds past the viewport edge (gsh-ambient-field gsh-ambient-live-warmth, left=-120 right=170) - not a content failure; visible in the screenshot",
+        "home-social (dark): decorative/chrome element bleeds past the viewport edge (gsh-card-media-btn gsh-mem-slide, left=363 right=699) - not a content failure; visible in the screenshot"
+      ]
+    },
+    {
+      "surface": "center-rest",
+      "title": "Center rest",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "center-rest-dark.png",
+      "at": "2026-10-18T08:33:45.116Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 14,
+      "failures": [
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Talk to Opal\" (opal-center-talk-to-opal, client 366x44 vs scroll 366x44, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Nearby now\" (opal-center-chip-nearby, client 95x30 vs scroll 95x30, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"What's next?\" (opal-center-chip-whats-next, client 99x30 vs scroll 99x30, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Tonight ideas\" (opal-center-chip-tonight, client 103x30 vs scroll 103x30, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Your graph shows only what matters. Ask naturally or tap a m\" (opal-center-v2-footnote, client 366x34 vs scroll 366x34, clipped by opal-center-scroll)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "surface": "center-chat",
+      "title": "Center chat (Talk to Opal)",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "center-chat-dark.png",
+      "at": "2026-10-18T08:33:46.598Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 9,
+      "failures": [
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-home is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-chats is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-opal is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-graphs is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-you is trapped under opal-center-life-graph on this surface"
+        }
+      ],
+      "notes": [
+        "center-chat (dark): ellipsis-truncated text \"New chat\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "chats-list",
+      "title": "Chats list",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "chats-list-dark.png",
+      "at": "2026-10-18T08:35:54.907Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "chats-list",
+          "message": "text clipped by an ancestor/fixed box: \"I'm free after 10\" (chats-home-preview chats-preview-unread, client 252x18 vs scroll 252x18, clipped by chats-home)"
+        },
+        {
+          "surface": "chats-list",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (chat-plan-attendance, client 252x17 vs scroll 252x17, clipped by chats-home)"
+        }
+      ],
+      "notes": [
+        "chats-list (dark): decorative/chrome element bleeds past the viewport edge (comm-sticky-chrome, left=-12 right=402) - not a content failure; visible in the screenshot",
+        "chats-list (dark): ellipsis-truncated text \"2 of 6 going - Saturday · Oceanside\" - design judgment, screenshot decides",
+        "chats-list (dark): ellipsis-truncated text \"4 of 4 going - Saturday · 7:30 PM\" - design judgment, screenshot decides",
+        "chats-list (dark): ellipsis-truncated text \"Direct connection\" - design judgment, screenshot decides",
+        "chats-list (dark): ellipsis-truncated text \"1 of 2 going - tomorrow after 10 PM\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "thread",
+      "title": "Thread (human conversation with plan)",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "thread-dark.png",
+      "at": "2026-10-18T08:38:02.505Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "thread",
+          "message": "Thread (human conversation with plan) failed to load (ready selector [data-testid=\"member-conversation\"] never appeared)"
+        },
+        {
+          "surface": "thread",
+          "message": "text clipped by an ancestor/fixed box: \"I'm free after 10\" (chats-home-preview chats-preview-unread, client 252x18 vs scroll 252x18, clipped by chats-home)"
+        },
+        {
+          "surface": "thread",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (chat-plan-attendance, client 252x17 vs scroll 252x17, clipped by chats-home)"
+        }
+      ],
+      "notes": [
+        "thread (dark): decorative/chrome element bleeds past the viewport edge (comm-sticky-chrome, left=-12 right=402) - not a content failure; visible in the screenshot",
+        "thread (dark): ellipsis-truncated text \"2 of 6 going - Saturday · Oceanside\" - design judgment, screenshot decides",
+        "thread (dark): ellipsis-truncated text \"4 of 4 going - Saturday · 7:30 PM\" - design judgment, screenshot decides",
+        "thread (dark): ellipsis-truncated text \"Direct connection\" - design judgment, screenshot decides",
+        "thread (dark): ellipsis-truncated text \"1 of 2 going - tomorrow after 10 PM\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "plan-detail",
+      "title": "Plan detail (from thread Next Together strip)",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "plan-detail-dark.png",
+      "at": "2026-10-18T08:40:09.000Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "plan-detail",
+          "message": "Plan detail (from thread Next Together strip) failed to load (ready selector [data-testid=\"graph-detail-sheet\"] never appeared)"
+        },
+        {
+          "surface": "plan-detail",
+          "message": "text clipped by an ancestor/fixed box: \"I'm free after 10\" (chats-home-preview chats-preview-unread, client 252x18 vs scroll 252x18, clipped by chats-home)"
+        },
+        {
+          "surface": "plan-detail",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (chat-plan-attendance, client 252x17 vs scroll 252x17, clipped by chats-home)"
+        }
+      ],
+      "notes": [
+        "plan-detail (dark): decorative/chrome element bleeds past the viewport edge (comm-sticky-chrome, left=-12 right=402) - not a content failure; visible in the screenshot",
+        "plan-detail (dark): ellipsis-truncated text \"2 of 6 going - Saturday · Oceanside\" - design judgment, screenshot decides",
+        "plan-detail (dark): ellipsis-truncated text \"4 of 4 going - Saturday · 7:30 PM\" - design judgment, screenshot decides",
+        "plan-detail (dark): ellipsis-truncated text \"Direct connection\" - design judgment, screenshot decides",
+        "plan-detail (dark): ellipsis-truncated text \"1 of 2 going - tomorrow after 10 PM\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "graphs-list",
+      "title": "Graphs list",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "graphs-list-dark.png",
+      "at": "2026-10-18T08:40:12.657Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 15,
+      "failures": [
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"2 of 6 going - 4 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-1d832486-6b0c-4c83-b057-c2c022275e7d)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"4 of 4 going\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-5e6f2ff6-4a88-45df-bd37-c5df69c01372)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"Farmers market + coast · Saturday · after 10\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"Open: Coast if clear, still open\" (graphs-card-open-loop-ef78b734-2ffe-427a-9769-c84a4305539f, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"Juniper & Ivy · Sat · 7:30\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-seed-chanelle-juniper)"
+        }
+      ],
+      "notes": [
+        "graphs-list (dark): ellipsis-truncated text \"Oceanside Farmers Market\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "graph-detail",
+      "title": "Graph detail (from Graphs list card)",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "graph-detail-dark.png",
+      "at": "2026-10-18T08:40:15.798Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 15,
+      "failures": [
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"2 of 6 going - 4 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-1d832486-6b0c-4c83-b057-c2c022275e7d)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"4 of 4 going\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-5e6f2ff6-4a88-45df-bd37-c5df69c01372)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"Farmers market + coast · Saturday · after 10\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"Open: Coast if clear, still open\" (graphs-card-open-loop-ef78b734-2ffe-427a-9769-c84a4305539f, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"Juniper & Ivy · Sat · 7:30\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-seed-chanelle-juniper)"
+        }
+      ],
+      "notes": [
+        "graph-detail (dark): decorative/chrome element bleeds past the viewport edge (social-dest-brand ogsn-graph-detail-head, left=-8 right=398) - not a content failure; visible in the screenshot",
+        "graph-detail (dark): ellipsis-truncated text \"Oceanside Farmers Market\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "you-hub",
+      "title": "YOU hub",
+      "mode": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "you-hub-dark.png",
+      "at": "2026-10-18T08:40:19.163Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 12,
+      "failures": [
+        {
+          "surface": "you-hub",
+          "message": "text clipped by an ancestor/fixed box: \"How Opal Helps\" (you-hub-section-label, client 350x15 vs scroll 350x15, clipped by you-hub-pane)"
+        },
+        {
+          "surface": "you-hub",
+          "message": "text clipped by an ancestor/fixed box: \"Calls & Opal Assist\" (strong, client 181x22 vs scroll 181x22, clipped by you-hub-pane)"
+        },
+        {
+          "surface": "you-hub",
+          "message": "text clipped by an ancestor/fixed box: \"How Opal can help during calls\" (span, client 181x17 vs scroll 181x17, clipped by you-hub-pane)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "surface": "splash-1",
+      "title": "Splash 1",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "splash-1-light.png",
+      "at": "2026-10-18T08:40:26.223Z",
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": []
+    },
+    {
+      "surface": "splash-2",
+      "title": "Splash 2 / onboarding entry (Promise)",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "splash-2-light.png",
+      "at": "2026-10-18T08:40:34.109Z",
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": []
+    },
+    {
+      "surface": "home-social",
+      "title": "Home / social",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "home-social-light.png",
+      "at": "2026-10-18T08:41:00.016Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "home-social",
+          "message": "text clipped by an ancestor/fixed box: \"Alex\" (gsh-story-name, client 64x18 vs scroll 64x18, clipped by gsh-stories-rail)"
+        },
+        {
+          "surface": "home-social",
+          "message": "text clipped by an ancestor/fixed box: \"GRAPH\" (gsh-story-pulse-story-alex, client 36x10 vs scroll 36x11, clipped by gsh-stories-rail)"
+        }
+      ],
+      "notes": [
+        "home-social (light): decorative/chrome element bleeds past the viewport edge (gsh-ambient-field gsh-ambient-signal, left=-90 right=180) - not a content failure; visible in the screenshot",
+        "home-social (light): decorative/chrome element bleeds past the viewport edge (gsh-ambient-field gsh-ambient-possibility, left=235 right=495) - not a content failure; visible in the screenshot",
+        "home-social (light): decorative/chrome element bleeds past the viewport edge (gsh-ambient-field gsh-ambient-live-warmth, left=-120 right=170) - not a content failure; visible in the screenshot",
+        "home-social (light): decorative/chrome element bleeds past the viewport edge (gsh-card-media-btn gsh-mem-slide, left=363 right=699) - not a content failure; visible in the screenshot"
+      ]
+    },
+    {
+      "surface": "center-rest",
+      "title": "Center rest",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "center-rest-light.png",
+      "at": "2026-10-18T08:41:03.617Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 14,
+      "failures": [
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Talk to Opal\" (opal-center-talk-to-opal, client 366x44 vs scroll 366x44, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Nearby now\" (opal-center-chip-nearby, client 95x30 vs scroll 95x30, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"What's next?\" (opal-center-chip-whats-next, client 99x30 vs scroll 99x30, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Tonight ideas\" (opal-center-chip-tonight, client 103x30 vs scroll 103x30, clipped by opal-center-scroll)"
+        },
+        {
+          "surface": "center-rest",
+          "message": "text clipped by an ancestor/fixed box: \"Your graph shows only what matters. Ask naturally or tap a m\" (opal-center-v2-footnote, client 366x34 vs scroll 366x34, clipped by opal-center-scroll)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "surface": "center-chat",
+      "title": "Center chat (Talk to Opal)",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "center-chat-light.png",
+      "at": "2026-10-18T08:41:05.973Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 9,
+      "failures": [
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-home is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-chats is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-opal is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-graphs is trapped under opal-center-life-graph on this surface"
+        },
+        {
+          "surface": "center-chat",
+          "message": "dock control dock-you is trapped under opal-center-life-graph on this surface"
+        }
+      ],
+      "notes": [
+        "center-chat (light): ellipsis-truncated text \"New chat\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "chats-list",
+      "title": "Chats list",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "chats-list-light.png",
+      "at": "2026-10-18T08:43:16.082Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "chats-list",
+          "message": "text clipped by an ancestor/fixed box: \"I'm free after 10\" (chats-home-preview chats-preview-unread, client 252x18 vs scroll 252x18, clipped by chats-home)"
+        },
+        {
+          "surface": "chats-list",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (chat-plan-attendance, client 252x17 vs scroll 252x17, clipped by chats-home)"
+        }
+      ],
+      "notes": [
+        "chats-list (light): decorative/chrome element bleeds past the viewport edge (comm-sticky-chrome, left=-12 right=402) - not a content failure; visible in the screenshot",
+        "chats-list (light): ellipsis-truncated text \"2 of 6 going - Saturday · Oceanside\" - design judgment, screenshot decides",
+        "chats-list (light): ellipsis-truncated text \"4 of 4 going - Saturday · 7:30 PM\" - design judgment, screenshot decides",
+        "chats-list (light): ellipsis-truncated text \"Direct connection\" - design judgment, screenshot decides",
+        "chats-list (light): ellipsis-truncated text \"1 of 2 going - tomorrow after 10 PM\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "thread",
+      "title": "Thread (human conversation with plan)",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "thread-light.png",
+      "at": "2026-10-18T08:45:23.077Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "thread",
+          "message": "Thread (human conversation with plan) failed to load (ready selector [data-testid=\"member-conversation\"] never appeared)"
+        },
+        {
+          "surface": "thread",
+          "message": "text clipped by an ancestor/fixed box: \"I'm free after 10\" (chats-home-preview chats-preview-unread, client 252x18 vs scroll 252x18, clipped by chats-home)"
+        },
+        {
+          "surface": "thread",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (chat-plan-attendance, client 252x17 vs scroll 252x17, clipped by chats-home)"
+        }
+      ],
+      "notes": [
+        "thread (light): decorative/chrome element bleeds past the viewport edge (comm-sticky-chrome, left=-12 right=402) - not a content failure; visible in the screenshot",
+        "thread (light): ellipsis-truncated text \"2 of 6 going - Saturday · Oceanside\" - design judgment, screenshot decides",
+        "thread (light): ellipsis-truncated text \"4 of 4 going - Saturday · 7:30 PM\" - design judgment, screenshot decides",
+        "thread (light): ellipsis-truncated text \"Direct connection\" - design judgment, screenshot decides",
+        "thread (light): ellipsis-truncated text \"1 of 2 going - tomorrow after 10 PM\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "plan-detail",
+      "title": "Plan detail (from thread Next Together strip)",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "plan-detail-light.png",
+      "at": "2026-10-18T08:47:31.134Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 11,
+      "failures": [
+        {
+          "surface": "plan-detail",
+          "message": "Plan detail (from thread Next Together strip) failed to load (ready selector [data-testid=\"graph-detail-sheet\"] never appeared)"
+        },
+        {
+          "surface": "plan-detail",
+          "message": "text clipped by an ancestor/fixed box: \"I'm free after 10\" (chats-home-preview chats-preview-unread, client 252x18 vs scroll 252x18, clipped by chats-home)"
+        },
+        {
+          "surface": "plan-detail",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (chat-plan-attendance, client 252x17 vs scroll 252x17, clipped by chats-home)"
+        }
+      ],
+      "notes": [
+        "plan-detail (light): decorative/chrome element bleeds past the viewport edge (comm-sticky-chrome, left=-12 right=402) - not a content failure; visible in the screenshot",
+        "plan-detail (light): ellipsis-truncated text \"2 of 6 going - Saturday · Oceanside\" - design judgment, screenshot decides",
+        "plan-detail (light): ellipsis-truncated text \"4 of 4 going - Saturday · 7:30 PM\" - design judgment, screenshot decides",
+        "plan-detail (light): ellipsis-truncated text \"Direct connection\" - design judgment, screenshot decides",
+        "plan-detail (light): ellipsis-truncated text \"1 of 2 going - tomorrow after 10 PM\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "graphs-list",
+      "title": "Graphs list",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "graphs-list-light.png",
+      "at": "2026-10-18T08:47:36.388Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 15,
+      "failures": [
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"2 of 6 going - 4 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-1d832486-6b0c-4c83-b057-c2c022275e7d)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"4 of 4 going\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-5e6f2ff6-4a88-45df-bd37-c5df69c01372)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"Farmers market + coast · Saturday · after 10\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"Open: Coast if clear, still open\" (graphs-card-open-loop-ef78b734-2ffe-427a-9769-c84a4305539f, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graphs-list",
+          "message": "text clipped by an ancestor/fixed box: \"Juniper & Ivy · Sat · 7:30\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-seed-chanelle-juniper)"
+        }
+      ],
+      "notes": [
+        "graphs-list (light): ellipsis-truncated text \"Oceanside Farmers Market\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "graph-detail",
+      "title": "Graph detail (from Graphs list card)",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "graph-detail-light.png",
+      "at": "2026-10-18T08:47:40.255Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 15,
+      "failures": [
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"2 of 6 going - 4 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-1d832486-6b0c-4c83-b057-c2c022275e7d)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"4 of 4 going\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-5e6f2ff6-4a88-45df-bd37-c5df69c01372)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"1 of 2 going - 1 interested\" (graphs-plan-attendance, client 250x15 vs scroll 250x15, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"Farmers market + coast · Saturday · after 10\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"Open: Coast if clear, still open\" (graphs-card-open-loop-ef78b734-2ffe-427a-9769-c84a4305539f, client 250x17 vs scroll 250x17, clipped by graphs-card-ef78b734-2ffe-427a-9769-c84a4305539f)"
+        },
+        {
+          "surface": "graph-detail",
+          "message": "text clipped by an ancestor/fixed box: \"Juniper & Ivy · Sat · 7:30\" (graphs-card-upcoming, client 250x17 vs scroll 250x17, clipped by graphs-card-seed-chanelle-juniper)"
+        }
+      ],
+      "notes": [
+        "graph-detail (light): decorative/chrome element bleeds past the viewport edge (social-dest-brand ogsn-graph-detail-head, left=-8 right=398) - not a content failure; visible in the screenshot",
+        "graph-detail (light): ellipsis-truncated text \"Oceanside Farmers Market\" - design judgment, screenshot decides"
+      ]
+    },
+    {
+      "surface": "you-hub",
+      "title": "YOU hub",
+      "mode": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "file": "you-hub-light.png",
+      "at": "2026-10-18T08:47:44.226Z",
+      "status": "FAIL",
+      "buildRef": {
+        "seedChip": "seed · 8f17e3e",
+        "gitHead": "8f17e3e"
+      },
+      "checks": 12,
+      "failures": [
+        {
+          "surface": "you-hub",
+          "message": "text clipped by an ancestor/fixed box: \"How Opal Helps\" (you-hub-section-label, client 350x15 vs scroll 350x15, clipped by you-hub-pane)"
+        },
+        {
+          "surface": "you-hub",
+          "message": "text clipped by an ancestor/fixed box: \"Calls & Opal Assist\" (strong, client 181x22 vs scroll 181x22, clipped by you-hub-pane)"
+        },
+        {
+          "surface": "you-hub",
+          "message": "text clipped by an ancestor/fixed box: \"How Opal can help during calls\" (span, client 181x17 vs scroll 181x17, clipped by you-hub-pane)"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "summary": {
+    "total": 22,
+    "pass": 4,
+    "fail": 18
+  }
+}

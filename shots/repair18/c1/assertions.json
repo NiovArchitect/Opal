@@ -1,0 +1,146 @@
+[
+  {
+    "surface": "center",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [],
+    "clippedTitles": [],
+    "cardCount": 0
+  },
+  {
+    "surface": "centerlist",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [],
+    "clippedTitles": [],
+    "cardCount": 0
+  },
+  {
+    "surface": "centerchat",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 1
+  },
+  {
+    "surface": "chats",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true,
+      true,
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 3
+  },
+  {
+    "surface": "thread",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true,
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 2
+  },
+  {
+    "surface": "states",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 4
+  },
+  {
+    "surface": "sheet",
+    "mode": "dark",
+    "overflowX": false,
+    "cardCentersOwned": [
+      false
+    ],
+    "clippedTitles": [],
+    "cardCount": 1
+  },
+  {
+    "surface": "center",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [],
+    "clippedTitles": [],
+    "cardCount": 0
+  },
+  {
+    "surface": "centerlist",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [],
+    "clippedTitles": [],
+    "cardCount": 0
+  },
+  {
+    "surface": "centerchat",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 1
+  },
+  {
+    "surface": "chats",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true,
+      true,
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 3
+  },
+  {
+    "surface": "thread",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true,
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 2
+  },
+  {
+    "surface": "states",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "clippedTitles": [],
+    "cardCount": 4
+  },
+  {
+    "surface": "sheet",
+    "mode": "light",
+    "overflowX": false,
+    "cardCentersOwned": [
+      false
+    ],
+    "clippedTitles": [],
+    "cardCount": 1
+  }
+]

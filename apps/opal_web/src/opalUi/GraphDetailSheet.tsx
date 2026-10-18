@@ -27,6 +27,12 @@ import {
   inferActivityCapabilities,
 } from "./activityCapabilities";
 import { GraphConvoyPanel } from "./GraphConvoyPanel";
+import { PlanEditControls } from "./PlanEditControls";
+import { completionStep, FoodStepPanel } from "./FoodStepPanel";
+import { CheckinCircleRow } from "./CheckinCircleRow";
+import { CheckinSummaryCard } from "./CheckinSummary";
+import { TopLayer } from "./TopLayer";
+import type { OpalPlanContract } from "../api/productClient";
 import type { TravelState } from "./journeyPresence";
 import { planStateAttr } from "../theme/planStateColors";
 import { conflictLineFromContract } from "./planCardContract";
@@ -102,6 +108,38 @@ type Props = {
     durationMinutes: number;
   }) => void | Promise<void>;
   conversationId?: string | null;
+  /**
+   * Repair #18 (W4-04) - end-to-end plan editing on this detail
+   * surface. The descriptor is built from the durable plan payload
+   * (GET /opal/plans): the real plan id, its current title/location/
+   * caption, and the backend's own can_edit authority for this
+   * viewer. Absent for fixture cards - a fixture has no plan row to
+   * edit, so no affordance is rendered for it.
+   */
+  planEdit?: {
+    planId: string;
+    title: string;
+    location?: string | null;
+    caption?: string | null;
+    online?: boolean;
+    canEdit: boolean;
+  } | null;
+  editBearer?: string;
+  /** Called with the RETURNED plan payload after a successful edit. */
+  onPlanEdited?: (plan: OpalPlanContract) => void;
+  /**
+   * Repair #18 wiring (B2/B3) - the durable plan payload for THIS
+   * card, from the same list payload the edit descriptor comes from.
+   * The food panel mounts only when its completion record carries a
+   * food step; the check-in circle row mounts for the plan source.
+   * Absent for fixture cards - a fixture has no plan row, so neither
+   * mount renders for it.
+   */
+  foodPlan?: OpalPlanContract | null;
+  foodViewerUserId?: string | null;
+  /** Re-read after a food action; the detail re-renders from the
+   *  returned plan payload. */
+  onFoodChanged?: () => void;
 };
 
 function parseWhenParts(detail?: string): { dayKicker: string; timeLabel: string } {
@@ -151,6 +189,12 @@ export function GraphDetailSheet({
   leadName = null,
   onBroadcastArrival,
   onBroadcastEta,
+  planEdit = null,
+  editBearer,
+  onPlanEdited,
+  foodPlan = null,
+  foodViewerUserId = null,
+  onFoodChanged,
 }: Props) {
   // Paste W5 Phase 4 — created/composer plans win over stale seed idea chrome.
   const createdPlan = findCreatedPlanForCard(cardId, loadCreatedPlans());
@@ -230,6 +274,7 @@ export function GraphDetailSheet({
   const stateLine = createdOverlay?.signalLine || (!createdPlan ? chrome?.signalLine : null);
 
   const [note, setNote] = React.useState<string | null>(null);
+  const [checkinSummaryId, setCheckinSummaryId] = React.useState<string | null>(null);
   void onJoinSegment;
   void onSaveIdea;
   void onEnterJourney;
@@ -322,6 +367,18 @@ export function GraphDetailSheet({
             {STATUS_WORD[canonical.state]}
           </span>
         </div>
+        {planEdit && planEdit.planId === canonical.planId ? (
+          <PlanEditControls
+            planId={planEdit.planId}
+            title={planEdit.title}
+            location={planEdit.location}
+            caption={planEdit.caption}
+            online={planEdit.online}
+            canEdit={planEdit.canEdit}
+            bearer={editBearer}
+            onEdited={onPlanEdited}
+          />
+        ) : null}
         {past ? (
           <p className="social-dest-lede" data-testid="graph-detail-past-kicker">
             Earlier together
@@ -350,11 +407,9 @@ export function GraphDetailSheet({
           <p
             className="graph-exec-line"
             data-testid="graph-detail-place"
-            data-online={
-              canonical.place.name === "Online" || canonical.activity === "virtual" ? "1" : "0"
-            }
+            data-online={canonical.online ? "1" : "0"}
           >
-            {canonical.place.name === "Online" ? (
+            {canonical.online ? (
               <>
                 <span aria-hidden>📹</span> Online
               </>
@@ -362,6 +417,36 @@ export function GraphDetailSheet({
               [canonical.place.name, canonical.place.area].filter(Boolean).join(" · ")
             )}
           </p>
+          {/* B1: the virtual affordance comes from the place
+              projection kind (canonical.online / joinAvailable),
+              never from comparing the place name to "Online". Join is
+              an honest handoff to the plan's own stored link - never
+              a fake in-app call. */}
+          {!past && canonical.online && canonical.joinAvailable && canonical.meetingLink ? (
+            <p className="graph-exec-line" data-testid="graph-detail-join">
+              <span
+                role="link"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(canonical.meetingLink!, "_blank", "noopener,noreferrer");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(canonical.meetingLink!, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                Join
+              </span>
+            </p>
+          ) : !past && canonical.online ? (
+            <p className="graph-exec-line" data-testid="graph-detail-add-link">
+              Add a meeting link when you have one
+            </p>
+          ) : null}
           <p className="graph-exec-line" data-testid="graph-detail-who">
             {canonical.participants.length ? canonical.participants.join(" · ") : "Participants"}
           </p>
@@ -405,6 +490,34 @@ export function GraphDetailSheet({
             </p>
           ) : null}
         </section>
+
+        {/* Repair #18 wiring (B2): the food panel mounts ONLY when
+            this plan's completion record carries a food step; the
+            panel renders that projection verbatim. */}
+        {foodPlan && foodPlan.id === canonical.planId && completionStep(foodPlan.completion as Parameters<typeof completionStep>[0], "food") ? (
+          <section className="graph-shared-block" data-testid="graph-detail-food">
+            <FoodStepPanel
+              planId={foodPlan.id}
+              completion={foodPlan.completion as Parameters<typeof FoodStepPanel>[0]["completion"]}
+              viewerUserId={foodViewerUserId ?? ""}
+              meetingLink={foodPlan.meeting_link ?? null}
+              onChanged={onFoodChanged}
+            />
+          </section>
+        ) : null}
+
+        {/* Repair #18 wiring (B3, design section 7): the circle row
+            for plan sources lives on the plan's detail surface. */}
+        {foodPlan && foodPlan.id === canonical.planId ? (
+          <section className="graph-shared-block" data-testid="graph-detail-checkin">
+            <p className="graph-ready-kicker">Check in</p>
+            <CheckinCircleRow
+              source={{ source_kind: "plan", source_ref_id: canonical.planId }}
+              bearer={editBearer}
+              onOpenSummary={(id) => setCheckinSummaryId(id)}
+            />
+          </section>
+        ) : null}
 
         {showTravel ? (
           <>
@@ -488,6 +601,22 @@ export function GraphDetailSheet({
           <p className="gsh-gate-note" role="status" data-testid="graph-detail-note">
             {note}
           </p>
+        ) : null}
+
+        {checkinSummaryId ? (
+          <TopLayer band="sheet">
+            <div
+              className="checkin-summary-sheet"
+              data-testid="graph-detail-checkin-summary"
+              role="dialog"
+              aria-label="Check-in summary"
+            >
+              <CheckinSummaryCard sweepId={checkinSummaryId} bearer={editBearer} />
+              <button type="button" onClick={() => setCheckinSummaryId(null)}>
+                Close
+              </button>
+            </div>
+          </TopLayer>
         ) : null}
       </div>
     );

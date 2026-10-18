@@ -120,6 +120,73 @@ defmodule OpalCore.MessagesTest do
              })
   end
 
+  # Repair #18 (W4-01) — send dedupe: cross-account keys and the
+  # no-key rapid-duplicate window.
+  describe "W4-01 send dedupe" do
+    test "another sender reusing a client_message_id gets a conflict, never a replay" do
+      attrs = %{
+        conversation_id: Fixtures.conv_alex_jordan_id(),
+        sender_user_id: Fixtures.user_alex_id(),
+        client_message_id: "cm-shared-key",
+        message_type: "text",
+        body: "alex's words"
+      }
+
+      assert {:ok, _m1, :created} = Messages.accept_message(attrs)
+
+      assert {:error, :idempotency_conflict} =
+               Messages.accept_message(%{
+                 attrs
+                 | sender_user_id: Fixtures.user_jordan_id(),
+                   body: "jordan's words"
+               })
+
+      assert Repo.aggregate(Message, :count) == 1
+    end
+
+    test "keyless identical rapid sends collapse to the original delivery" do
+      attrs = %{
+        conversation_id: Fixtures.conv_alex_jordan_id(),
+        sender_user_id: Fixtures.user_alex_id(),
+        message_type: "text",
+        body: "same words, no key"
+      }
+
+      assert {:ok, m1, :created} = Messages.accept_message(attrs)
+      assert {:ok, m2, :idempotent} = Messages.accept_message(attrs)
+      assert m1.id == m2.id
+      assert Repo.aggregate(Message, :count) == 1
+    end
+
+    test "keyless sends with different bodies both create" do
+      base = %{
+        conversation_id: Fixtures.conv_alex_jordan_id(),
+        sender_user_id: Fixtures.user_alex_id(),
+        message_type: "text"
+      }
+
+      assert {:ok, _, :created} = Messages.accept_message(Map.put(base, :body, "first"))
+      assert {:ok, _, :created} = Messages.accept_message(Map.put(base, :body, "second"))
+      assert Repo.aggregate(Message, :count) == 2
+    end
+
+    test "the same words from a different sender are not a duplicate" do
+      base = %{
+        conversation_id: Fixtures.conv_alex_jordan_id(),
+        message_type: "text",
+        body: "identical words"
+      }
+
+      assert {:ok, _, :created} =
+               Messages.accept_message(Map.put(base, :sender_user_id, Fixtures.user_alex_id()))
+
+      assert {:ok, _, :created} =
+               Messages.accept_message(Map.put(base, :sender_user_id, Fixtures.user_jordan_id()))
+
+      assert Repo.aggregate(Message, :count) == 2
+    end
+  end
+
   test "list_conversations tolerates multiple SharedPlans on one conversation" do
     alias OpalCore.SocialFlow
     cid = Fixtures.conv_alex_jordan_id()

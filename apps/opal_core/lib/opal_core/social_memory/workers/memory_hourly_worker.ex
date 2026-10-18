@@ -49,6 +49,12 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
         _ = refresh_patterns(account_id)
         _ = detect_routine_breaks(account_id)
         _ = surface_for_account(account_id)
+        # Repair #18 B5: pod supply suggestion + solo check-in rhythm
+        # ride this existing hourly path — no new worker, no new cron.
+        # Both producers are fully gated inside their own modules
+        # (consent, budget, rhythm) and treat denial as a silent skip.
+        _ = OpalCore.SocialFlow.Households.maybe_surface_supply(account_id)
+        _ = OpalCore.Intelligence.ProactiveConversation.maybe_initiate_solo_check_in(account_id)
       end)
     end
 
@@ -242,7 +248,13 @@ defmodule OpalCore.SocialMemory.Workers.MemoryHourlyWorker do
 
   def surface_for_account(account_id) do
     scoped = SocialMemory.for_account(account_id)
-    candidates = SocialMemory.surface_nudges(scoped)
+
+    # Repair #18 B5b: solo bias is a ranking input only — it reorders
+    # the batch that was already going to be produced, never filters
+    # it and never changes its size.
+    candidates =
+      SocialMemory.surface_nudges(scoped)
+      |> OpalCore.SocialFlow.HouseholdContext.order_candidates(account_id)
     today = Date.utc_today()
 
     already_today =

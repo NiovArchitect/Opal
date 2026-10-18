@@ -3,7 +3,11 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   Proactive thread initiation (Paste C Phase 3).
 
   PRODUCT LAW (founder-tunable flags marked below — do not loosen without approval):
-  - Closed trigger list only: temporal_anchor_3d | presence_open_loop | routine_streak_broken
+  - Closed trigger list only: temporal_anchor_3d | presence_open_loop | routine_streak_broken | checkin_sweep | solo_check_in
+    (checkin_sweep added by Repair #18 B3 - outbound sweep suggestion only,
+    see SocialFlow.CheckinSuggestion. solo_check_in added by Repair #18
+    Division B track B5b as a named law change: one new trigger, cadence
+    carried by its caller, riding this module's gate stack unchanged)
   - Max 1 proactive thread per account per day (founder-tunable)
   - Owner must have messaged Opal in last 7 days (never cold-start)
   - Quiet hours: never before 8am or after 10pm owner timezone (default America/Los_Angeles)
@@ -27,7 +31,7 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   @quiet_end 22
   @default_tz "America/Los_Angeles"
 
-  @allowed_triggers ~w(temporal_anchor_3d presence_open_loop routine_streak_broken)
+  @allowed_triggers ~w(temporal_anchor_3d presence_open_loop routine_streak_broken checkin_sweep solo_check_in)
 
   def allowed_triggers, do: @allowed_triggers
 
@@ -132,6 +136,76 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
   end
 
   def maybe_initiate_temporal_anchor(_, _, _), do: {:error, :invalid}
+
+  # --- Repair #18 (B5b) — solo check-in rhythm caller -------------------
+  #
+  # Opal checks in with a user who is in a solo context (derived
+  # read-time predicate in HouseholdContext: no pod, nobody held for
+  # them yet) — at most once per 7 days. Gate order is the law:
+  #   1. opt-in FIRST, before any other work (a user who never opted
+  #      in gets exactly nothing — no thread, no Center row, no budget
+  #      slot, no log row);
+  #   2. solo predicate (checked by the caller of the rhythm, here, so
+  #      a non-solo user is never even attempted);
+  #   3. the 7-day rhythm gate on ProactiveThreadLog;
+  #   4. everything inside maybe_initiate/5 unchanged (opt-out wins,
+  #      7-day activity, quiet hours, 1/day cap, AttentionBudget).
+  # Copy speaks about plans and openings, never about the user's
+  # state; banned framings live in the track's copy law and are
+  # asserted by string scan in the acceptance case.
+
+  @solo_rhythm_days 7
+  @solo_reason "Checking in - no plans on the horizon, want to find something or someone?"
+
+  @doc """
+  Attempt the solo check-in rhythm for an account. Returns
+  `{:ok, result}` | `{:suppressed, reason}` where reason is one of
+  `:proactive_threads_not_enabled` (checked first), `:not_solo`,
+  `:rhythm_window`, or any `maybe_initiate/5` suppression.
+  """
+  def maybe_initiate_solo_check_in(account_id, opts \\ [])
+
+  def maybe_initiate_solo_check_in(account_id, opts) when is_binary(account_id) do
+    cond do
+      not threads_enabled?(account_id) ->
+        {:suppressed, :proactive_threads_not_enabled}
+
+      not OpalCore.SocialFlow.HouseholdContext.solo?(account_id) ->
+        {:suppressed, :not_solo}
+
+      solo_rhythm_recent?(account_id) ->
+        {:suppressed, :rhythm_window}
+
+      true ->
+        maybe_initiate(
+          account_id,
+          "solo_check_in",
+          account_id,
+          @solo_reason,
+          Keyword.put(opts, :provenance, "stated")
+        )
+        |> case do
+          {:ok, %{log: log}} -> {:ok, %{status: "initiated", log_id: log.id}}
+          other -> other
+        end
+    end
+  end
+
+  def maybe_initiate_solo_check_in(_, _), do: {:error, :invalid}
+
+  @doc "The solo check-in reason copy (single source; copy-law scanned in tests)."
+  def solo_reason_copy, do: @solo_reason
+
+  defp solo_rhythm_recent?(account_id) do
+    since = DateTime.add(Clock.utc_now(), -@solo_rhythm_days * 86_400, :second)
+
+    from(l in ProactiveThreadLog,
+      where:
+        l.account_id == ^account_id and l.trigger_type == "solo_check_in" and
+          l.opened_at > ^since
+    )
+    |> Repo.exists?()
+  end
 
   defp already_initiated_for_plan?(account_id, plan_id) do
     from(l in ProactiveThreadLog,
@@ -260,7 +334,13 @@ defmodule OpalCore.Intelligence.ProactiveConversation do
     )
   end
 
-  defp opted_out?(account_id) do
+  @doc """
+  True when the account has permanently opted out of proactive
+  threads. Public read for gate stacks that must check the opt-out
+  without initiating anything (Repair #18 B3 in-context suggestion);
+  the gate logic itself is unchanged.
+  """
+  def opted_out?(account_id) do
     case Repo.query("SELECT proactive_opt_out FROM users WHERE id = $1", [
            Ecto.UUID.dump!(account_id)
          ]) do

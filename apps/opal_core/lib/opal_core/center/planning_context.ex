@@ -393,7 +393,24 @@ defmodule OpalCore.Center.PlanningContext do
       "category" => e[:category] || e["category"],
       "quality_intent" => e[:quality_intent] || e["quality_intent"],
       "wants_restaurant" => e[:wants_restaurant] || e["wants_restaurant"],
-      "plan_id" => e[:plan_id] || e["plan_id"]
+      "plan_id" => e[:plan_id] || e["plan_id"],
+      # B1 (A5): place type is a first-class, durable planning key -
+      # a Center conversation that settles "make it a video call"
+      # records it here, or the decision is silently dropped between
+      # turns (the F12-63 allowlist lesson). Values normalized to the
+      # plan_type enum; the link sanitized, never invented.
+      "plan_type" =>
+        case e[:plan_type] || e["plan_type"] do
+          t when t in ["virtual", :virtual] -> "virtual"
+          t when t in ["in_person", :in_person] -> "in_person"
+          _ -> nil
+        end,
+      "meeting_link" =>
+        OpalCore.SocialFlow.MeetingLinks.sanitize(e[:meeting_link] || e["meeting_link"]),
+      "meeting_provider" =>
+        OpalCore.SocialFlow.MeetingLinks.normalize_provider(
+          e[:meeting_provider] || e["meeting_provider"]
+        )
     }
     |> Enum.reject(fn {_k, v} -> is_nil(v) or v == "" or v == [] end)
     |> Map.new()

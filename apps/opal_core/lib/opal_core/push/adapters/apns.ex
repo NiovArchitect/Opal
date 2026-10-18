@@ -36,10 +36,17 @@ defmodule OpalCore.Push.Adapters.APNS do
     present?(key_id) and present?(team_id) and present?(bundle) and present?(auth)
   end
 
-  # Real client structure — JWT + HTTP/2 POST to api.push.apple.com.
+  # Real client structure — JWT + POST to api.push.apple.com.
   # Live delivery is gated on credentials; without them we never claim sent.
+  #
+  # HONESTY (Repair #18, BS-6): this path must NEVER raise into the
+  # caller. Two raise vectors existed: (1) `opts["env"]` on the keyword
+  # opts every real caller passes raised ArgumentError before anything
+  # else ran; (2) jwt/0 raised when credentials were present but no
+  # :apns_jwt_fun was configured, crashing the DeliverPushWorker Oban
+  # job. Both now degrade to plain error tuples.
   defp deliver(token, payload, opts) do
-    env = opts[:env] || opts["env"] || "sandbox"
+    env = opt(opts, :env) || opt(opts, "env") || "sandbox"
     host = if env == "production", do: "api.push.apple.com", else: "api.sandbox.push.apple.com"
     bundle = cred(:bundle_id) || System.get_env("APNS_BUNDLE_ID")
     title = payload[:title] || payload["title"] || ""
@@ -55,39 +62,77 @@ defmodule OpalCore.Push.Adapters.APNS do
 
     body_json = Jason.encode!(Map.merge(aps, stringify_data(data)))
 
-    headers = [
-      {"apns-topic", bundle},
-      {"apns-push-type", "alert"},
-      {"authorization", "bearer #{jwt()}"},
-      {"content-type", "application/json"}
-    ]
+    case jwt() do
+      {:error, _} = err ->
+        err
 
-    url = "https://#{host}/3/device/#{token}"
+      {:ok, token_jwt} ->
+        headers = [
+          {"apns-topic", bundle},
+          {"apns-push-type", "alert"},
+          {"authorization", "bearer #{token_jwt}"},
+          {"content-type", "application/json"}
+        ]
 
-    case http_post(url, body_json, headers) do
-      {:ok, %{status: status}} when status in 200..299 ->
-        Logger.info("push.apns sent status=#{status} token_suffix=#{suffix(token)}")
-        {:ok, :sent}
+        url = "https://#{host}/3/device/#{token}"
 
-      {:ok, %{status: status, body: resp}} ->
-        Logger.warning("push.apns rejected status=#{status} body=#{inspect(resp)}")
-        {:error, {:apns_rejected, status}}
+        case http_post(url, body_json, headers) do
+          {:ok, %{status: status}} when status in 200..299 ->
+            Logger.info("push.apns sent status=#{status} token_suffix=#{suffix(token)}")
+            {:ok, :sent}
 
-      {:error, reason} ->
-        Logger.warning("push.apns transport_error reason=#{inspect(reason)}")
-        {:error, reason}
+          {:ok, %{status: status, body: resp}} ->
+            Logger.warning("push.apns rejected status=#{status} body=#{inspect(resp)}")
+            {:error, {:apns_rejected, status}}
+
+          {:error, reason} ->
+            Logger.warning("push.apns transport_error reason=#{inspect(reason)}")
+            {:error, reason}
+        end
     end
   end
 
+  # ES256 JWT provider seam (:apns_jwt_fun app env). Absent signer is a
+  # configuration gap, reported as {:error, :jwt_not_configured} —
+  # never a raise and never a forged token.
   defp jwt do
-    # Structure reserved for ES256 JWT (key_id / team_id / auth_key).
-    # Without a full JOSE dependency wired, live path returns a clear error
-    # rather than a forged token — credentials_present? already gates entry.
     case Application.get_env(:opal_core, :apns_jwt_fun) do
-      fun when is_function(fun, 0) -> fun.()
-      _ -> raise "APNs JWT provider not configured (set :apns_jwt_fun or wire JOSE)"
+      fun when is_function(fun, 0) ->
+        case fun.() do
+          token when is_binary(token) and token != "" -> {:ok, token}
+          _ -> {:error, :jwt_not_configured}
+        end
+
+      _ ->
+        Logger.warning("push.apns jwt_not_configured — set :apns_jwt_fun or wire JOSE")
+        {:error, :jwt_not_configured}
     end
+  rescue
+    e ->
+      Logger.warning("push.apns jwt_provider_failed reason=#{Exception.message(e)}")
+      {:error, :jwt_not_configured}
   end
+
+  # Safe opt read for keyword lists and maps alike; never raises.
+  # (Keyword.get/3 itself raises on string keys and on non-keyword
+  # lists, so normalize to a string-keyed map first.)
+  defp opt(opts, key) do
+    opts
+    |> normalize_opts()
+    |> Map.get(to_string(key))
+  end
+
+  defp normalize_opts(opts) when is_list(opts) do
+    opts
+    |> Enum.filter(&match?({_, _}, &1))
+    |> Map.new(fn {k, v} -> {to_string(k), v} end)
+  end
+
+  defp normalize_opts(opts) when is_map(opts) do
+    Map.new(opts, fn {k, v} -> {to_string(k), v} end)
+  end
+
+  defp normalize_opts(_), do: %{}
 
   defp http_post(url, body, headers) do
     case Application.get_env(:opal_core, :apns_http_fun) do

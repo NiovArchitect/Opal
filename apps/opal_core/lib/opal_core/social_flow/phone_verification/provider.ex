@@ -72,6 +72,12 @@ defmodule OpalCore.SocialFlow.PhoneVerification.Provider do
 
   For synthetic mode, `challenge_ref` may be unused when digest verification
   is done in Onboarding; adapters may still implement check for symmetry.
+
+  Production contract (Repair #18, BS-17): Twilio Verify checks are by
+  E.164 + code, so in `:production_sms` mode `context` MUST carry the
+  number under `:e164` / `"e164"` (or `:phone` / `:identifier_raw`).
+  Without one the adapter returns `{:error, :e164_required}` — an
+  explicit missing-input answer, never a performed check.
   """
   def check_challenge(provider_reference, code, context \\ %{})
       when is_binary(provider_reference) and is_binary(code) and is_map(context) do

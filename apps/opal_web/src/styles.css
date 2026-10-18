@@ -3383,7 +3383,8 @@ button.plan-card-btn:focus-visible {
 .find-people-overlay {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  /* L1/L2: registry token only; the surface mounts through TopLayer. */
+  z-index: var(--layer-sheet);
   display: grid;
   place-items: end center;
   background: rgba(3, 4, 8, 0.72);
@@ -3394,6 +3395,9 @@ button.plan-card-btn:focus-visible {
   width: min(440px, 100%);
   max-height: min(88dvh, 720px);
   overflow: auto;
+  /* W4-05: the sheet is an always-dark lumen card; its text must not
+   * inherit the light YOU pane's dark ink (the title was unreadable). */
+  color: #f4f7fa;
   padding: 18px 16px 20px;
   padding-bottom: calc(20px + var(--opal-primary-viewport-inset, 0px));
   border-radius: 20px 20px 16px 16px;
@@ -10660,7 +10664,11 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   /* Keep status pill inside stage: card must not exceed remaining content width. */
   width: min(282px, calc(100% - (var(--graph-card-x) - var(--graphs-home-pad-x)) - 8px));
   max-width: 100%;
-  height: 92px;
+  /* W4-03 / Layout Contract L3: cards SIZE TO CONTENT. This was a fixed
+   * 92px height with overflow:hidden - the attendance line, temporal
+   * lines, and the Start planning action were truncated by the card's
+   * own box (rendered proof: content 136-178px in a 90px box). */
+  min-height: 92px;
   border-radius: 18px;
   /* Paste W6 3c — You-settings gold standard: void fill + electric gradient border */
   border: 1.5px solid transparent;
@@ -10687,7 +10695,8 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
 }
 .graphs-home-card-btn {
   width: 100%;
-  height: 100%;
+  /* L3: content-driven height (was height:100% of a fixed 92px card). */
+  height: auto;
   border: 0;
   background: transparent;
   color: inherit;
@@ -12435,7 +12444,8 @@ button.gsh-cx-history:focus-visible {
 }
 /* STORY-01 immersive  -  no dock clearance pad; full-bleed over shell */
 .story-viewer.story-viewer-357-418 {
-  position: fixed; top: 0; bottom: 0; z-index: 72; background: #050816;
+  /* L1/L2: registry token only; the viewer mounts through TopLayer. */
+  position: fixed; top: 0; bottom: 0; z-index: var(--layer-flow); background: #050816;
   overflow: hidden; padding: 0;
   transform: translateX(-50%);
 }
@@ -18840,7 +18850,12 @@ html.opal-native-host .ogsn-graph-detail-head {
   background: rgba(5, 8, 22, 0.92);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  margin: 0 -20px 8px;
+  /* Repair #18 (W4-04 layout integrity): the native-host sheet's side
+     padding is 12px (see the native-host .ogsn-graph-detail rule), so
+     the full-bleed head margin must be -12px; at -20px the head bled
+     8px past the sheet box AND the viewport on both sides (caught by
+     the class-level containment audit, both modes). */
+  margin: 0 -12px 8px;
   padding: 4px 12px;
 }
 /* Freeze Graph detail composition — do not add extra safe pad beyond prior closeout */
@@ -24200,7 +24215,8 @@ html.opal-native-host body:has([data-testid="member-conversation"] .composer-618
 .lives-go-live-overlay {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  /* L1/L2: registry token only; the surface mounts through TopLayer. */
+  z-index: var(--layer-sheet);
   display: grid;
   place-items: center;
   background: rgba(3, 4, 8, 0.78);
@@ -24243,3 +24259,22 @@ html.opal-native-host body:has([data-testid="member-conversation"] .composer-618
 .lives-go-live[data-live-state="active"] h2 {
   margin: 0 0 6px;
 }
+
+/* Repair #18 (W4-04) - plan edit controls on the detail surface. */
+.plan-edit { margin: 10px 0 4px; }
+.plan-edit-title { font-weight: 600; margin: 0 0 6px; }
+.plan-edit-open {
+  background: none; border: 1px solid var(--line, rgba(127,127,160,.4));
+  border-radius: 999px; padding: 5px 14px; font: inherit; cursor: pointer;
+}
+.plan-edit-form { display: grid; gap: 8px; max-width: 420px; }
+.plan-edit-field { display: grid; gap: 3px; font-size: 13px; }
+.plan-edit-field input {
+  font: inherit; padding: 8px 10px; border-radius: 10px;
+  border: 1px solid var(--line, rgba(127,127,160,.4));
+  background: var(--panel, transparent); color: inherit;
+  box-sizing: border-box; max-width: 100%;
+}
+.plan-edit-error { color: var(--signal-needs-attention, #ff5964); margin: 0; font-size: 13px; }
+.plan-edit-actions { display: flex; gap: 8px; }
+.plan-edit-actions button:disabled, .plan-edit-field input:disabled { opacity: .55; }

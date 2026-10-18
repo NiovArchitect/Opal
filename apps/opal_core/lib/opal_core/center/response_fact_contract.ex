@@ -24,6 +24,7 @@ defmodule OpalCore.Center.ResponseFactContract do
     {text, repairs} = repair_surprise(text, c, repairs)
     {text, repairs} = enforce_one_question(text, repairs)
     {text, repairs} = repair_false_travel_claim(text, c, meta, repairs)
+    {text, repairs} = repair_food_order_claim(text, meta, repairs)
 
     {String.trim(text), repairs}
   end
@@ -134,6 +135,35 @@ defmodule OpalCore.Center.ResponseFactContract do
         |> String.trim()
 
       {repaired, [:false_travel_dependency | repairs]}
+    else
+      {text, repairs}
+    end
+  end
+
+  # Repair #18 (B2) — food-order claims are a forbidden invention class,
+  # alongside booking: Opal has NO ordering integration, so no draft may
+  # state or imply an order was placed/confirmed or is being delivered.
+  # There is no meta state that licenses such a claim in B2 (a person's
+  # self-report is rendered from the food step, never phrased by the LLM
+  # as a provider fact), so the claim sentences are always stripped.
+  @food_order_claim ~r/\b(order\s+(is\s+)?(placed|confirmed)|confirmed\s+order|we\s+ordered|opal\s+ordered|out\s+for\s+delivery|on\s+its\s+way|order\s+#)/i
+
+  @doc "True when draft text claims a food order exists / is confirmed / is en route."
+  def invented_food_order?(text) when is_binary(text),
+    do: Regex.match?(@food_order_claim, text)
+
+  def invented_food_order?(_), do: false
+
+  defp repair_food_order_claim(text, _meta, repairs) do
+    if invented_food_order?(text) do
+      repaired =
+        text
+        |> String.split(~r/(?<=[.!?])\s+/)
+        |> Enum.reject(&Regex.match?(@food_order_claim, &1))
+        |> Enum.join(" ")
+        |> String.trim()
+
+      {repaired, [:invented_food_order | repairs]}
     else
       {text, repairs}
     end

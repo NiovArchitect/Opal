@@ -1,0 +1,937 @@
+/*
+ * Repair #18 - Division C2 - shell surface styles (track-c2 sections
+ * 3, 6, 7, 8, 9, 10, 11). Every value comes from theme/c2Tokens.css or
+ * theme/layerTokens.css. No raw hex, no raw z-index, no raw radius in
+ * this file (A1 audit). Scoped under .c2s so the R17 face never sees it.
+ */
+
+@layer c2 {
+  .c2s-root {
+    position: fixed;
+    inset: 0;
+    background: var(--canvas);
+    color: var(--ink-1);
+    font: var(--type-body);
+    overflow: hidden;
+  }
+  .c2s-column {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .c2s-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 var(--gutter) var(--dock-clearance);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ---------- headers (section 11) ---------- */
+  .c2s-header {
+    height: var(--header-h);
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0 var(--gutter);
+    background: var(--canvas);
+    border-bottom: 1px solid var(--line-1);
+    z-index: var(--layer-chrome);
+  }
+  .c2s-header-title {
+    font: var(--type-title);
+    color: var(--ink-1);
+    margin: 0;
+  }
+  .c2s-icon-btn {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border: 0;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink-1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    font-size: 19px;
+  }
+  .c2s-icon-btn:active {
+    background: var(--line-1);
+  }
+  .c2s-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--accent-1);
+    color: var(--accent-1-ink);
+    font: var(--type-pill);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .c2s-avatar {
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-1);
+    font-weight: 650;
+    overflow: hidden;
+    flex: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: var(--surface-2);
+  }
+  .c2s-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ---------- dock (section 9) ---------- */
+  .c2s-dock {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    height: var(--dock-h);
+    border-radius: var(--radius-sheet);
+    background: var(--surface-1);
+    border: 1px solid var(--line-1);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: stretch;
+    z-index: var(--layer-dock);
+  }
+  .c2s-dock-slot {
+    flex: 1;
+    min-width: 56px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    font: var(--type-caption);
+    position: relative;
+  }
+  .c2s-dock-slot .c2s-dock-glyph {
+    font-size: 22px;
+    line-height: 1;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .c2s-dock-slot[data-active="1"] {
+    color: var(--ink-1);
+  }
+  .c2s-dock-slot[data-active="1"]::after {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--accent-1);
+    position: absolute;
+    bottom: 5px;
+  }
+  .c2s-dock-center {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .c2s-dock-center-disc {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    background: var(--accent-quiet);
+    border: 1px solid var(--line-1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-1);
+    margin-top: -18px;
+  }
+  .c2s-dock-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 22px);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--accent-1);
+    color: var(--accent-1-ink);
+    font: var(--type-pill);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- dev seed chip (section 11) ---------- */
+  .c2s-dev-chip {
+    position: fixed;
+    left: 12px;
+    bottom: calc(var(--dock-clearance) + 8px);
+    z-index: var(--layer-system);
+    pointer-events: none;
+    background: var(--surface-2);
+    border: 1px solid var(--line-1);
+    color: var(--ink-2);
+    border-radius: var(--radius-well);
+    padding: 4px 8px;
+    font: var(--type-caption);
+  }
+  .c2s-dev-chip .c2s-sha {
+    font-family: ui-monospace, monospace;
+  }
+
+  /* ---------- sheets and flows (sections 3.2, 7.2) ---------- */
+  .c2s-scrim {
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    backdrop-filter: blur(8px);
+    z-index: var(--layer-sheet);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .c2s-sheet {
+    width: 100%;
+    max-width: var(--content-max);
+    background: var(--surface-1);
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+    padding: var(--space-5) var(--gutter) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+    animation: c2s-sheet-in var(--motion-sheet);
+  }
+  @keyframes c2s-sheet-in {
+    from {
+      transform: translateY(24px);
+      opacity: 0.4;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  .c2s-sheet-title {
+    font: var(--type-headline);
+    margin: 0 0 var(--space-3);
+    color: var(--ink-1);
+  }
+  .c2s-sheet-row {
+    width: 100%;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 0;
+    background: transparent;
+    color: var(--ink-1);
+    font: var(--type-body);
+    text-align: left;
+    cursor: pointer;
+    padding: var(--space-2) 0;
+  }
+  .c2s-sheet-row small {
+    display: block;
+    color: var(--ink-2);
+    font: var(--type-callout);
+  }
+  .c2s-flow {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-flow);
+    background: var(--canvas-stage);
+    color: var(--ink-1);
+    overflow-y: auto;
+  }
+
+  /* ---------- story rail (section 7.2) ---------- */
+  .c2s-rail {
+    display: flex;
+    gap: var(--space-4);
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: var(--space-4) 0 var(--space-2);
+    scrollbar-width: none;
+  }
+  .c2s-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .c2s-story-cell {
+    width: 76px;
+    flex: none;
+    text-align: center;
+  }
+  .c2s-story-avatar-btn {
+    width: 76px;
+    height: 76px;
+    border-radius: 999px;
+    border: 0;
+    padding: 3px;
+    cursor: pointer;
+    background: var(--line-1);
+    position: relative;
+  }
+  .c2s-story-avatar-btn[data-ring="unseen"] {
+    background: var(--grad-current);
+  }
+  .c2s-story-avatar-btn[data-ring="happening"] {
+    background: var(--state-happening);
+  }
+  .c2s-story-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--surface-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 22px;
+    font-weight: 650;
+    color: var(--ink-1);
+  }
+  .c2s-story-avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .c2s-story-plus {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--accent-1);
+    color: var(--accent-1-ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: 2px solid var(--canvas);
+  }
+  .c2s-story-name {
+    font: var(--type-callout);
+    color: var(--ink-1);
+    margin: 6px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .c2s-story-sub {
+    font: var(--type-caption);
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  /* ---------- feed + generic cards (section 7.3) ---------- */
+  .c2s-feed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-top: var(--space-3);
+  }
+  .c2s-card {
+    background: var(--surface-1);
+    border: 1px solid var(--line-1);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-4);
+  }
+  .c2s-card-title {
+    font: var(--type-headline);
+    color: var(--ink-1);
+    margin: 0 0 4px;
+    overflow-wrap: break-word;
+  }
+  .c2s-card-line {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    margin: 0;
+    overflow-wrap: break-word;
+  }
+  .c2s-media-well {
+    background: var(--surface-2);
+    border-radius: var(--radius-well);
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: var(--space-3);
+  }
+  .c2s-media-well img {
+    width: 100%;
+    display: block;
+  }
+  .c2s-card-action {
+    margin-top: var(--space-3);
+    border: 1px solid var(--line-2);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    border-radius: var(--radius-button);
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    font: var(--type-body);
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  /* Plan cards size to content: titles and lines wrap, never clip
+   * (Walk #4 law). Applied on top of the core card classes. */
+  .c2s-root .c2-plan-card {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .c2s-root .c2-plan-title,
+  .c2s-root .c2-plan-when,
+  .c2s-root .c2-plan-where,
+  .c2s-root .c2-plan-attendance {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: break-word;
+  }
+
+  /* ---------- empty / error (section 3.4) ---------- */
+  .c2s-empty {
+    text-align: center;
+    padding: 48px var(--space-5);
+    color: var(--ink-2);
+  }
+  .c2s-empty h2 {
+    font: var(--type-headline);
+    color: var(--ink-1);
+    margin: var(--space-3) 0 4px;
+  }
+  .c2s-empty p {
+    font: var(--type-callout);
+    margin: 0 0 var(--space-4);
+  }
+
+  /* ---------- buttons ---------- */
+  .c2s-btn-primary {
+    width: 100%;
+    min-height: 52px;
+    border: 0;
+    border-radius: var(--radius-button);
+    background: var(--primary-fill);
+    color: var(--primary-ink);
+    font: var(--type-body);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .c2s-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .c2s-btn-quiet {
+    border: 0;
+    border-radius: var(--radius-button);
+    background: var(--accent-quiet);
+    color: var(--ink-1);
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    font: var(--type-body);
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .c2s-btn-text {
+    border: 0;
+    background: transparent;
+    color: var(--ink-1);
+    min-height: 44px;
+    font: var(--type-body);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .c2s-btn-danger-text {
+    border: 0;
+    background: transparent;
+    color: var(--state-action-ink);
+    min-height: 44px;
+    font: var(--type-body);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ---------- Graphs (section 8) ---------- */
+  .c2s-lens-row {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    flex-wrap: wrap;
+  }
+  .c2s-lens-chip {
+    border: 1px solid var(--line-1);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    border-radius: 999px;
+    min-height: 36px;
+    padding: 0 var(--space-3);
+    font: var(--type-callout);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .c2s-lens-chip[data-active="1"] {
+    background: var(--accent-quiet);
+    color: var(--ink-1);
+    border-color: var(--accent-1);
+  }
+  .c2s-group-title {
+    font: var(--type-caption);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--line-1);
+    padding-bottom: var(--space-2);
+    margin: var(--space-5) 0 var(--space-3);
+  }
+  .c2s-group-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .c2s-completion-row {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin-top: var(--space-2);
+  }
+
+  /* ---------- destination (Graph Detail, section 8.2) ---------- */
+  .c2s-destination {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-destination);
+    background: var(--canvas);
+    color: var(--ink-1);
+    overflow-y: auto;
+  }
+  .c2s-detail-section {
+    padding: var(--space-4) var(--gutter) 0;
+  }
+  .c2s-detail-kicker {
+    font: var(--type-caption);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 var(--space-2);
+  }
+  .c2s-who-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 52px;
+  }
+  .c2s-who-row .c2s-who-name {
+    flex: 1;
+    font: var(--type-body);
+    font-weight: 600;
+  }
+  .c2s-who-row .c2s-who-resp {
+    font: var(--type-callout);
+    color: var(--ink-2);
+  }
+
+  /* ---------- YOU hub + settings (section 10) ---------- */
+  .c2s-profile-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) 0 var(--space-4);
+  }
+  .c2s-profile-head h1 {
+    font: var(--type-title);
+    margin: 0;
+  }
+  .c2s-profile-head p {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    margin: 2px 0 0;
+  }
+  .c2s-search {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--line-1);
+    border-radius: var(--radius-well);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    font: var(--type-body);
+    padding: 0 var(--space-4);
+    box-sizing: border-box;
+  }
+  .c2s-search::placeholder {
+    color: var(--ink-3);
+  }
+  .c2s-group-label {
+    font: var(--type-caption);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: var(--space-5) 0 var(--space-2);
+  }
+  .c2s-row-block {
+    background: var(--surface-1);
+    border: 1px solid var(--line-1);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .c2s-row {
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 0;
+    border-bottom: 1px solid var(--line-1);
+    background: transparent;
+    color: var(--ink-1);
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .c2s-row:last-child {
+    border-bottom: 0;
+  }
+  .c2s-row .c2s-row-main {
+    flex: 1;
+  }
+  .c2s-row .c2s-row-title {
+    font: var(--type-body);
+    font-weight: 650;
+    display: block;
+  }
+  .c2s-row .c2s-row-sub {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    display: block;
+  }
+  .c2s-row .c2s-row-value {
+    font: var(--type-callout);
+    color: var(--ink-2);
+  }
+  .c2s-row[data-highlight="1"] {
+    background: var(--accent-quiet);
+  }
+  .c2s-lede {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    margin: 0 0 var(--space-4);
+  }
+  .c2s-note {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    padding: var(--space-3) var(--space-4);
+    margin: 0;
+  }
+  .c2s-error-line {
+    font: var(--type-callout);
+    color: var(--state-action-ink);
+    margin: var(--space-2) 0 0;
+  }
+  .c2s-saving-line {
+    font: var(--type-caption);
+    color: var(--ink-3);
+    margin: var(--space-2) 0 0;
+  }
+
+  /* Toggle: renders the PROJECTED value only; it never flips locally
+   * (section 10.2 toggle truth). */
+  .c2s-toggle {
+    width: 52px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    background: var(--surface-2);
+    position: relative;
+    cursor: pointer;
+    flex: none;
+    padding: 0;
+  }
+  .c2s-toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--ink-3);
+    transition: left var(--motion-tab);
+  }
+  .c2s-toggle[data-on="1"] {
+    background: var(--accent-1);
+    border-color: var(--accent-1);
+  }
+  .c2s-toggle[data-on="1"]::after {
+    left: 23px;
+    background: var(--accent-1-ink);
+  }
+  .c2s-segmented {
+    display: flex;
+    background: var(--surface-2);
+    border: 1px solid var(--line-1);
+    border-radius: var(--radius-well);
+    padding: 3px;
+    gap: 3px;
+  }
+  .c2s-segmented button {
+    flex: 1;
+    min-height: 40px;
+    border: 0;
+    border-radius: var(--radius-min);
+    background: transparent;
+    color: var(--ink-2);
+    font: var(--type-callout);
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .c2s-segmented button[data-active="1"] {
+    background: var(--surface-1);
+    color: var(--ink-1);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* ---------- onboarding entry (section 6) ---------- */
+  .c2s-entry {
+    background: var(--canvas);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .c2s-entry-top {
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--gutter);
+  }
+  .c2s-entry-step {
+    font: var(--type-callout);
+    color: var(--ink-2);
+  }
+  .c2s-entry-body {
+    padding: var(--space-5) var(--gutter);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    flex: 1;
+  }
+  .c2s-entry-body h1 {
+    font: var(--type-title);
+    margin: 0;
+  }
+  .c2s-entry-body > p {
+    font: var(--type-body);
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .c2s-field {
+    width: 100%;
+    min-height: 52px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-well);
+    background: var(--surface-1);
+    color: var(--ink-1);
+    font: var(--type-body);
+    padding: 0 var(--space-4);
+    box-sizing: border-box;
+  }
+  .c2s-field::placeholder {
+    color: var(--ink-3);
+  }
+  .c2s-caption {
+    font: var(--type-caption);
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .c2s-code-row {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .c2s-code-box {
+    flex: 1;
+    min-height: 56px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-well);
+    background: var(--surface-1);
+    color: var(--ink-1);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ---------- story viewer (section 7.2) ---------- */
+  .c2s-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-flow);
+    background: var(--canvas-stage);
+    color: var(--ink-1);
+    display: flex;
+    flex-direction: column;
+  }
+  .c2s-viewer-progress {
+    display: flex;
+    gap: 4px;
+    padding: var(--space-3) var(--space-4) 0;
+  }
+  .c2s-viewer-seg {
+    flex: 1;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--line-2);
+    overflow: hidden;
+  }
+  .c2s-viewer-seg[data-done="1"] {
+    background: var(--grad-current);
+  }
+  .c2s-viewer-media {
+    flex: 1;
+    background: var(--surface-2);
+    margin: var(--space-3);
+    border-radius: var(--radius-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-2);
+    font: var(--type-callout);
+    text-align: center;
+    padding: var(--space-4);
+  }
+
+  /* ---------- Center landing (entry point only; C1 owns internals) --- */
+  .c2s-center-rest {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    text-align: center;
+    padding: var(--space-5);
+    background: var(--canvas-stage);
+    position: relative;
+    overflow: hidden;
+  }
+  .c2s-center-rest h1 {
+    font: var(--type-title);
+    margin: 0;
+  }
+  .c2s-center-rest p {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    margin: 0;
+    max-width: 300px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .c2s-sheet {
+      animation: none;
+    }
+    .c2s-toggle::after {
+      transition: none;
+    }
+  }
+
+  /* ---------- integration wiring: C1 hosts (Repair #18 wiring) ----------
+   * DOCK-TRAP STRUCTURE (Layout Contract, wiring task 8): the dock is
+   * an in-flow sibling AFTER <main> in the shell column and paints at
+   * --layer-dock. Route content can therefore cover it only if a
+   * surface escapes its slot box or carries a band at/above the dock.
+   * The C1 hosts are structurally contained: the host is exactly its
+   * route slot (flex 1, min-height 0, overflow hidden), and the C1
+   * surface inside it is re-boxed from its standalone 100dvh height
+   * to the slot, scrolling internally. No C1 in-flow element carries
+   * a layer token above --layer-chrome; the only C1 surfaces above
+   * the dock are TopLayer portals (sheet band and up), which own the
+   * screen by law. The legacy Center life-graph layer
+   * (opal-center-life-graph, the base-build trap) is never mounted on
+   * the shell path. */
+  .c2s-c1-host {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--canvas);
+    color: var(--ink-1);
+  }
+  .c2s-c1-host .c1-surface {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    overflow-y: auto;
+  }
+  .c2s-c1-host-bar {
+    flex: none;
+    padding: var(--space-2) var(--gutter) 0;
+  }
+  .c2s-c1-thread-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .c2s-c1-checkin-bar {
+    flex: none;
+    border-top: 1px solid var(--line-1);
+    background: var(--canvas);
+    padding: var(--space-3) var(--gutter);
+    max-height: 40%;
+    overflow-y: auto;
+  }
+  .c2s-c1-circles {
+    flex: none;
+    border-top: 1px solid var(--line-1);
+    background: var(--canvas);
+    padding: var(--space-3) var(--gutter);
+    max-height: 38%;
+    overflow-y: auto;
+  }
+  .c2s-c1-circles-title {
+    font: var(--type-callout);
+    color: var(--ink-1);
+    margin: 0 0 var(--space-2);
+  }
+  .c2s-c1-circle {
+    margin-bottom: var(--space-3);
+  }
+  .c2s-c1-circle-label {
+    font: var(--type-caption);
+    color: var(--ink-2);
+    margin: 0 0 var(--space-1);
+    text-transform: capitalize;
+  }
+}

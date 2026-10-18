@@ -1,6 +1,6 @@
 {
-  "generated_from": "coordination/repair18/regression-catalog.md",
-  "count": 82,
+  "generated_from": "coordination/repair18/regression-catalog.md + cases/*.case.mjs + rendered/cases/*.case.mjs",
+  "count": 105,
   "cases": [
     {
       "id": "FR-05-01",
@@ -996,6 +996,390 @@
       "class": "A for the repo-side assertions; P for the upload/install/smoke steps - they require the founder's Apple account and physical phone",
       "automatable": true,
       "phone_checklist": "no"
+    },
+    {
+      "id": "B1-S1",
+      "title": "Create virtual plan end to end: explicit place type, honest join, no physical machinery",
+      "theme": "virtual-place",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /opal/plans",
+        "POST /opal/plans/graph-create",
+        "GET /opal/plans",
+        "GET /journeys/:id",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "B1-S2",
+      "title": "Convert physical dinner to virtual (propose, hold, accept) and back, venue restored",
+      "theme": "virtual-place",
+      "surfaces": [
+        "POST /journeys/:id/convert-place-type",
+        "POST /journeys/:id/revisions/:revision_id/respond",
+        "GET /opal/plans",
+        "GET /journeys/:id",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "B1-S3",
+      "title": "Virtual and physical plans at the same stage agree on every surface; only the affordance differs",
+      "theme": "virtual-place",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /journeys/:id",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment",
+        "GET /calendar/today (NowStrip)"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "B1-S4",
+      "title": "Physical plans unchanged: in_person defaults, maps/leave intact, completion machinery intact, plus the additive place object",
+      "theme": "virtual-place",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /opal/plans",
+        "POST /opal/plans/graph-create",
+        "GET /journeys/:id",
+        "GET /opal/plans"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "B1-S5",
+      "title": "Refusals and honesty: no split physical+virtual record, terminal/cross-account/bogus conversions refused, no fabricated URL",
+      "theme": "virtual-place",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /journeys/:id/convert-place-type",
+        "GET /opal/plans",
+        "POST /journeys/activate",
+        "GET /journeys/:id"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-02-revision",
+      "title": "Revision read-back: a confirmed change to 8 PM must read 8 PM on every surface",
+      "theme": "revision",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/messages (signals, chronology)",
+        "GET /calendar/today"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-B2-01",
+      "title": "Virtual dinner completes at home: join + per-person food handoff, no physical steps, no fake order",
+      "theme": "home-completion",
+      "surfaces": [
+        "GET /opal/plans",
+        "plan contract completion",
+        "food step endpoints",
+        "Center"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-B2-02",
+      "title": "Food step honesty: handoff only, no fabricated order/confirmation/status, no slug-guessed store URL",
+      "theme": "home-completion-honesty",
+      "surfaces": [
+        "food capability matrix",
+        "food handoff endpoint",
+        "GET /opal/plans"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-B2-03",
+      "title": "Solo at-home shape, standup gets no food step, physical completion unchanged, zero addresses anywhere",
+      "theme": "home-completion",
+      "surfaces": [
+        "GET /opal/plans",
+        "plan contract completion"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-B4",
+      "title": "Care rotation: siblings rotate a daily parent check-in; a miss surfaces once to exactly the set",
+      "theme": "care-rotation",
+      "surfaces": [
+        "POST /care-rotations",
+        "GET /care-rotations/:id",
+        "POST /care-rotations/:id/check-ins/:key/complete",
+        "POST /care-rotations/:id/check-ins/:key/pass",
+        "GET /attention"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-B5A",
+      "title": "Household pod: declared + accepted only; supply plan and home defaults serve the whole pod",
+      "theme": "household-pod",
+      "surfaces": [
+        "POST /households",
+        "GET /households/:id",
+        "POST /households/:id/accept",
+        "GET /context",
+        "GET /attention",
+        "POST /plans/from-context",
+        "GET /opal/plans"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-B5B",
+      "title": "Solo context: silence without opt-in; a 7-day check-in rhythm with it; bias exits with the first contact",
+      "theme": "solo-context",
+      "surfaces": [
+        "GET /context",
+        "POST /context/proactive-opt-in",
+        "GET /opal/conversation",
+        "GET /attention",
+        "GET /context/suggestion-order"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-W4-01a",
+      "title": "W4-01a: 'Schedule 7 am church at Awaken' in a dinner thread creates a new plan (or ASKs) - never a change_proposal on dinner",
+      "theme": "send-intent",
+      "surfaces": [
+        "GET /conversations/:id/alignment",
+        "GET /opal/plans",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/messages",
+        "GET /calendar/today"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-W4-01b",
+      "title": "W4-01b: rapid duplicate sends (same key x5, no-key identical x5, cross-account key collision) apply state exactly once",
+      "theme": "send-intent",
+      "surfaces": [
+        "POST /conversations/:id/messages",
+        "GET /conversations/:id/messages",
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-18-W4-01c",
+      "title": "W4-01c: Division A revision guards hold; two-candidate ambiguity and the 'Schedule dinner' smuggle ASK with named candidates",
+      "theme": "send-intent",
+      "surfaces": [
+        "POST /conversations/:id/messages",
+        "GET /conversations/:id/alignment",
+        "GET /opal/plans",
+        "GET /conversations (plan_projection)"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-B3-01",
+      "title": "Check-in sweep: family circle, answers roll into one summary, unanswered stays visible",
+      "theme": "checkin-sweep",
+      "surfaces": [
+        "POST /checkins",
+        "GET /checkins/:id (organizer summary)",
+        "GET /checkins/:id (member view)",
+        "POST /checkins/:id/respond",
+        "POST /checkins/:id/withdraw",
+        "POST /checkins/:id/close",
+        "GET /checkins/for-source",
+        "GET /opal/conversation (member ask card)"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-B3-02",
+      "title": "Check-in sweep: group circle marker, group replies never count, nag attack re-notifies nobody",
+      "theme": "checkin-sweep",
+      "surfaces": [
+        "POST /conversations/group",
+        "POST /checkins (conversation source)",
+        "GET /conversations/:id/messages (marker)",
+        "POST /conversations/:id/messages (group reply)",
+        "GET /checkins/:id (organizer summary)",
+        "GET /opal/conversation (ask count under nag attack)",
+        "GET /checkins/for-source (suggestion gate, opt-in off)"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "FR-B3-03",
+      "title": "Check-in sweep: plan participants source, frozen plan label, one open sweep per plan",
+      "theme": "checkin-sweep",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /checkins (plan source)",
+        "GET /checkins/:id (organizer summary)",
+        "POST /checkins/:id/respond",
+        "GET /checkins/for-source (plan)"
+      ],
+      "class": "B",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "W4-04a",
+      "title": "Plan title edit read back on every surface in both parties' sessions (3 varied shapes)",
+      "theme": "plan-editing",
+      "surfaces": [
+        "PATCH /opal/plans/:id",
+        "GET /opal/plans (plan detail / plans list / Graphs)",
+        "GET /conversations (chats-list projection)",
+        "GET /conversations/:id/alignment (thread)",
+        "GET /calendar/today (home / NowStrip)"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "W4-04b",
+      "title": "Plan edit authority: non-participant and non-lead participant edits rejected, title unchanged",
+      "theme": "plan-editing",
+      "surfaces": [
+        "PATCH /opal/plans/:id",
+        "GET /opal/plans"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "W4-04c",
+      "title": "Plan edit input contract: blank/whitespace/over-length rejected, schedule fields refused, terminal plans uneditable, racing revision uncorrupted, duplicate saves idempotent",
+      "theme": "plan-editing",
+      "surfaces": [
+        "PATCH /opal/plans/:id",
+        "GET /opal/plans",
+        "POST /conversations/:id/messages (revision proposal)"
+      ],
+      "class": "A",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "api",
+      "source": "case-file"
+    },
+    {
+      "id": "W4-02",
+      "title": "Thread composition: Next Together overlap, pill over bubbles, banner through header, clipped fragment",
+      "theme": "rendered-layering",
+      "surfaces": [
+        "thread",
+        "Next Together strip",
+        "thread header"
+      ],
+      "class": "R (rendered)",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "rendered",
+      "source": "case-file"
+    },
+    {
+      "id": "W4-03",
+      "title": "Card integrity: attendance line cut off, title losing its first letter, stray background shape",
+      "theme": "rendered-card-integrity",
+      "surfaces": [
+        "Graphs list",
+        "graph detail",
+        "Home plan cards"
+      ],
+      "class": "R (rendered)",
+      "automatable": true,
+      "phone_checklist": "no",
+      "stage": "rendered",
+      "source": "case-file"
     }
   ]
 }

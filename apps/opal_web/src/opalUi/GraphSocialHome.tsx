@@ -1336,9 +1336,19 @@ export function GraphSocialHome({
               aria-haspopup="menu"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
+                // Layout Contract L6 (W4-05): anchored popovers are
+                // viewport-contained. The chooser is 132px wide and
+                // centered on the anchor; the first story cell sits at
+                // the viewport's left edge, so an unclamped center put
+                // half the menu off-screen ("ost" / "tory" - the labels
+                // themselves clipped). Clamp the center so the full
+                // menu always renders inside the viewport.
+                const halfMenu = 76;
+                const vw = typeof window !== "undefined" ? window.innerWidth : 390;
+                const center = rect.left + rect.width / 2;
                 setComposeChooserAnchor({
                   top: rect.bottom + 6,
-                  left: rect.left + rect.width / 2,
+                  left: Math.min(Math.max(center, halfMenu + 8), Math.max(halfMenu + 8, vw - halfMenu - 8)),
                 });
                 persistScrollThen();
                 setComposeChooserOpen((o) => !o);

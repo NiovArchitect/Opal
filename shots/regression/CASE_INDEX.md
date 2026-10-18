@@ -2,7 +2,7 @@
 
 Generated from the regression catalog by lib/generate-case-index.mjs. Do not edit by hand.
 
-Total permanent cases: 82. Automatable at the real path: 78. Phone-checklist only: 4.
+Total permanent cases: 105. Automatable at the real path: 101. Phone-checklist only: 4.
 
 | Case | Title (founder symptom, short) | Theme | Automatable | Phone checklist |
 |---|---|---|---|---|
@@ -88,5 +88,28 @@ Total permanent cases: 82. Automatable at the real path: 78. Phone-checklist onl
 | FR-17-13 | Splash 1 carried no canon logo text - just a character crop with stray text fragments (F17-14, walk item 16; splash-2 boundary law) | Splash, brand, character, TestFlight | yes | also |
 | FR-17-14 | The Center character read as a static image; presence states could stick on listening/processing forever (F17-15, walk item 15) | Splash, brand, character, TestFlight | yes | also |
 | FR-17-15 | TestFlight was blocked repo-side: expo-notifications undeclared, no testflight profile (F17-16, walk item 17) | Splash, brand, character, TestFlight | yes | no |
+| B1-S1 | Create virtual plan end to end: explicit place type, honest join, no physical machinery | virtual-place | yes | no |
+| B1-S2 | Convert physical dinner to virtual (propose, hold, accept) and back, venue restored | virtual-place | yes | no |
+| B1-S3 | Virtual and physical plans at the same stage agree on every surface; only the affordance differs | virtual-place | yes | no |
+| B1-S4 | Physical plans unchanged: in_person defaults, maps/leave intact, completion machinery intact, plus the additive place object | virtual-place | yes | no |
+| B1-S5 | Refusals and honesty: no split physical+virtual record, terminal/cross-account/bogus conversions refused, no fabricated URL | virtual-place | yes | no |
+| FR-18-02-revision | Revision read-back: a confirmed change to 8 PM must read 8 PM on every surface | revision | yes | no |
+| FR-18-B2-01 | Virtual dinner completes at home: join + per-person food handoff, no physical steps, no fake order | home-completion | yes | no |
+| FR-18-B2-02 | Food step honesty: handoff only, no fabricated order/confirmation/status, no slug-guessed store URL | home-completion-honesty | yes | no |
+| FR-18-B2-03 | Solo at-home shape, standup gets no food step, physical completion unchanged, zero addresses anywhere | home-completion | yes | no |
+| FR-18-B4 | Care rotation: siblings rotate a daily parent check-in; a miss surfaces once to exactly the set | care-rotation | yes | no |
+| FR-18-B5A | Household pod: declared + accepted only; supply plan and home defaults serve the whole pod | household-pod | yes | no |
+| FR-18-B5B | Solo context: silence without opt-in; a 7-day check-in rhythm with it; bias exits with the first contact | solo-context | yes | no |
+| FR-18-W4-01a | W4-01a: 'Schedule 7 am church at Awaken' in a dinner thread creates a new plan (or ASKs) - never a change_proposal on dinner | send-intent | yes | no |
+| FR-18-W4-01b | W4-01b: rapid duplicate sends (same key x5, no-key identical x5, cross-account key collision) apply state exactly once | send-intent | yes | no |
+| FR-18-W4-01c | W4-01c: Division A revision guards hold; two-candidate ambiguity and the 'Schedule dinner' smuggle ASK with named candidates | send-intent | yes | no |
+| FR-B3-01 | Check-in sweep: family circle, answers roll into one summary, unanswered stays visible | checkin-sweep | yes | no |
+| FR-B3-02 | Check-in sweep: group circle marker, group replies never count, nag attack re-notifies nobody | checkin-sweep | yes | no |
+| FR-B3-03 | Check-in sweep: plan participants source, frozen plan label, one open sweep per plan | checkin-sweep | yes | no |
+| W4-04a | Plan title edit read back on every surface in both parties' sessions (3 varied shapes) | plan-editing | yes | no |
+| W4-04b | Plan edit authority: non-participant and non-lead participant edits rejected, title unchanged | plan-editing | yes | no |
+| W4-04c | Plan edit input contract: blank/whitespace/over-length rejected, schedule fields refused, terminal plans uneditable, racing revision uncorrupted, duplicate saves idempotent | plan-editing | yes | no |
+| W4-02 | Thread composition: Next Together overlap, pill over bubbles, banner through header, clipped fragment | rendered-layering | yes | no |
+| W4-03 | Card integrity: attendance line cut off, title losing its first letter, stray background shape | rendered-card-integrity | yes | no |
 
 Phone-checklist only cases stay on the founder phone checklist by name in the handover; they are never silently dropped from the suite.

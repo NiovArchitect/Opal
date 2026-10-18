@@ -82,6 +82,14 @@ defmodule OpalCoreWeb.MessageController do
       {:error, :not_a_member} ->
         error(conn, 403, "not_a_member", "User is not a conversation member")
 
+      {:error, :idempotency_conflict} ->
+        error(
+          conn,
+          409,
+          "idempotency_conflict",
+          "That send key was already used by another sender in this conversation"
+        )
+
       {:error, :conversation_not_found} ->
         error(conn, 404, "conversation_not_found", "Conversation not found")
 

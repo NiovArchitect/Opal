@@ -1,0 +1,172 @@
+{
+ "app": "member-conversation",
+ "header": {
+  "x": 0,
+  "y": 0,
+  "w": 390,
+  "h": 72,
+  "bottom": 72,
+  "right": 390,
+  "position": "absolute",
+  "z": "30",
+  "bg": "rgb(5, 8, 22)",
+  "overflow": "visible"
+ },
+ "thread": {
+  "x": 0,
+  "y": 72,
+  "w": 390,
+  "h": 612,
+  "bottom": 684,
+  "right": 390,
+  "position": "absolute",
+  "z": "10",
+  "bg": "rgb(5, 8, 22)",
+  "overflow": "hidden auto"
+ },
+ "strip": {
+  "x": 14,
+  "y": 66,
+  "w": 362,
+  "h": 67,
+  "bottom": 133,
+  "right": 376,
+  "position": "relative",
+  "z": "10",
+  "bg": "rgb(8, 16, 28)",
+  "overflow": "visible"
+ },
+ "stripHit": "next-plan-summary",
+ "stripText": "NEXT TOGETHERSaturday · 7:30 PM · Juniper & Ivy ✓3 of 4 going",
+ "alignmentCard": null,
+ "reservation": null,
+ "reservationHit": null,
+ "resBtn": null,
+ "resBtnHit": null,
+ "bubbles": [
+  {
+   "x": 14,
+   "y": 297,
+   "w": 32,
+   "h": 32,
+   "bottom": 329,
+   "right": 46,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(0, 0, 0, 0)",
+   "overflow": "visible"
+  },
+  {
+   "x": 54,
+   "y": 225,
+   "w": 54,
+   "h": 15,
+   "bottom": 240,
+   "right": 108,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(0, 0, 0, 0)",
+   "overflow": "hidden"
+  },
+  {
+   "x": 54,
+   "y": 243,
+   "w": 256,
+   "h": 86,
+   "bottom": 329,
+   "right": 310,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(139, 92, 246, 0.18)",
+   "overflow": "visible"
+  },
+  {
+   "x": 184,
+   "y": 363,
+   "w": 192,
+   "h": 64,
+   "bottom": 427,
+   "right": 376,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(0, 229, 255, 0.18)",
+   "overflow": "visible"
+  },
+  {
+   "x": 14,
+   "y": 494,
+   "w": 32,
+   "h": 32,
+   "bottom": 526,
+   "right": 46,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(0, 0, 0, 0)",
+   "overflow": "visible"
+  },
+  {
+   "x": 54,
+   "y": 443,
+   "w": 54,
+   "h": 15,
+   "bottom": 458,
+   "right": 108,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(0, 0, 0, 0)",
+   "overflow": "hidden"
+  },
+  {
+   "x": 54,
+   "y": 461,
+   "w": 196,
+   "h": 64,
+   "bottom": 526,
+   "right": 250,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(139, 92, 246, 0.18)",
+   "overflow": "visible"
+  },
+  {
+   "x": 168,
+   "y": 560,
+   "w": 208,
+   "h": 64,
+   "bottom": 624,
+   "right": 376,
+   "position": "static",
+   "z": "auto",
+   "bg": "rgba(0, 229, 255, 0.18)",
+   "overflow": "visible"
+  }
+ ],
+ "stripVsBubble0": {
+  "x": 32,
+  "y": 0,
+  "area": 0
+ },
+ "resVsBubble": [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null
+ ],
+ "composer": {
+  "x": 20,
+  "y": 700,
+  "w": 350,
+  "h": 54,
+  "bottom": 754,
+  "right": 370,
+  "position": "absolute",
+  "z": "40",
+  "bg": "rgba(0, 0, 0, 0)",
+  "overflow": "visible"
+ },
+ "bodyText": "Chanelle\n\nFiancée\n\n···\nChanelle\nTrying to reconnect…\nNEXT TOGETHER\nSaturday · 7:30 PM · Juniper & Ivy ✓\n3 of 4 going\nConfirm 7:30\nCH\nChanelle\n\nDinner Saturday at Juniper & Ivy?\n\n7:58 PM\n\nYes! 7:30 works for me.\n\n7:59 PM\nCH\nChanelle\n\nPerfect. I'll grab a table.\n\n8:00 PM\n\nCan't wait. See you there.\n\n8:01 PM\nSent\n+\nMessage\nHome\nChats\n6\nGraphs\nYou"
+}

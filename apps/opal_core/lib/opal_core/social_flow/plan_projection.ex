@@ -34,6 +34,10 @@ defmodule OpalCore.SocialFlow.PlanProjection do
   # the single store (shared_plans / social_flow_proposals / plan_revisions)
   # directly — no per-surface shadow copies exist. Audit notes live in
   # shots/repair13/GYROSCOPE.md ("Projection coherence audit").
+  # Added 2026-10-17 (B1): conversation_controller.ex reads the single
+  # store to attach SharedPlan.place_projection/1 (the ONE explicit place
+  # projection) to the thread alignment payload — audited: it renders the
+  # row through that single projection and derives nothing itself.
   @read_files ~w(
     lib/opal_core/artifacts.ex
     lib/opal_core/celebration_curation.ex
@@ -47,11 +51,14 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/oracle.ex
     lib/opal_core/social_flow.ex
     lib/opal_core/social_flow/attention_center.ex
+    lib/opal_core/social_flow/checkin.ex
     lib/opal_core/social_flow/conversation_alignment.ex
     lib/opal_core/social_flow/follow_through.ex
     lib/opal_core/social_flow/founder_communication_seed.ex
     lib/opal_core/social_flow/founder_graph_commitment_seed.ex
     lib/opal_core/social_flow/home_projection.ex
+    lib/opal_core/social_flow/household_context.ex
+    lib/opal_core/social_flow/households.ex
     lib/opal_core/social_flow/journey_authority.ex
     lib/opal_core/social_flow/meaning.ex
     lib/opal_core/social_flow/plan_agreement_taste_bridge.ex
@@ -60,6 +67,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/temporal_habit_miner.ex
     lib/opal_core/social_flow/temporal_habit_miner_worker.ex
     lib/opal_core/trips.ex
+    lib/opal_core_web/controllers/conversation_controller.ex
     lib/opal_core_web/controllers/plan_execution_controller.ex
   )
 
@@ -98,6 +106,10 @@ defmodule OpalCore.SocialFlow.PlanProjection do
          "counter (going/total/viewer_state from PlanParticipant rows via " <>
          "JourneyAuthority.attendance_contract/2) and the F18-03 conflict " <>
          "object via SocialFlow.plan_conflict/1 for plan-backed cards"},
+      {OpalCore.SocialFlow.HouseholdContext, :suggestion_candidates, 1,
+       "Repair #18 B5: suggestion candidate shapes derived read-time from the single plan store"},
+      {OpalCore.SocialFlow.Households, :open_supply_plan?, 2,
+       "Repair #18 B5: open pod supply plan read from the single plan store"},
       {OpalCore.Center.PlanningContext, :get_for_user, 1, "center in-flight planning state"},
       {OpalCore.Center.NowStrip, :plan_events, 3,
        "Center header strip: live plan commitments in window (Repair #17 W4-6)"},

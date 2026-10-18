@@ -430,7 +430,14 @@ defmodule OpalCore.SocialFlow.PlanStateArbitration do
         "directions_started" => a["directions_started"] == true,
         "in_transit" => a["in_transit"] == true,
         "human_reports_completed" => a["human_reports_completed"] == true,
-        "plan_type" => a["plan_type"] || get_in(a, ["activity", "value"])
+        "plan_type" => a["plan_type"] || get_in(a, ["activity", "value"]),
+        # B1 (A2): place type travels under its own key. The fold's
+        # plan_type mirror IS the place type here (alignment maps are
+        # stamped by SocialFlow.stamp_place_mirror/2); when the fold
+        # carries none, the activity value must never be mistaken for
+        # a place type, so only the mirror counts.
+        "place_kind" =>
+          if(a["plan_type"] in ~w(in_person virtual), do: a["plan_type"], else: nil)
       }
 
     case PlanLifecycle.phase(attrs) do

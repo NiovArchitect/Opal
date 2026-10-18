@@ -32,6 +32,7 @@ defmodule OpalCore.SocialFlow.PlanTransition do
   | Entity | Writer | Action |
   |---|---|---|
   | plan | SocialFlow.cancel_plan/1 | :cancel |
+  | plan | SocialFlow.edit_plan_details/1 | :edit |
   | plan | SocialFlow.apply_locked_revision/6 (accept path) | :change / :cancel |
   | plan | SocialFlow.change_plan_schedule/1 | :change |
   | plan | SocialFlow.create_shared_plan* / create_tentative_plan_from_* | :create |
@@ -83,6 +84,18 @@ defmodule OpalCore.SocialFlow.PlanTransition do
     {:plan, "changed", :change} => "changed",
     {:plan, "changed", :cancel} => "cancelled",
     {:plan, "changed", :complete} => "completed",
+    # Repair #18 (Walk #4, W4-04) - end-to-end plan editing: :edit is a
+    # STATUS-PRESERVING mutation (title / location / caption - never
+    # schedule fields, which stay revision-owned). It is legal exactly
+    # from the live statuses; cancelled / completed / expired have no
+    # :edit entry, so a terminal plan's details are history, not
+    # editable - the same terminal law :change already obeys. Because
+    # an edit writes no status, guard_changeset/3 has nothing to check;
+    # edit_plan_details/1 consults transition/3 directly and refuses on
+    # {:error, :illegal_transition}.
+    {:plan, "tentative", :edit} => "tentative",
+    {:plan, "agreed", :edit} => "agreed",
+    {:plan, "changed", :edit} => "changed",
     # Repair #18 (Division A, F18-06) - stale tentative plans gain the
     # gated terminal handling proposals already had: :expire is legal
     # ONLY from tentative (agreed/changed are commitments and never

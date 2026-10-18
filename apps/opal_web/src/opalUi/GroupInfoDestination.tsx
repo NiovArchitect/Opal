@@ -4,6 +4,7 @@
  * Conversation membership ≠ Graph / plan leadership.
  */
 import React from "react";
+import { CheckinCircleRow } from "./CheckinCircleRow";
 
 export type GroupInfoMember = {
   id: string;
@@ -27,6 +28,10 @@ type Props = {
   onOpenSharedGraph?: () => void;
   /** Existing About affordance → per-person memory (no new header button). */
   onOpenPersonMemory?: (member: GroupInfoMember) => void;
+  /** Repair #18 B3 — conversation id enabling the check-in row. */
+  conversationId?: string | null;
+  bearer?: string;
+  onOpenCheckinSummary?: (sweepId: string) => void;
 };
 
 export function GroupInfoDestination({
@@ -40,6 +45,9 @@ export function GroupInfoDestination({
   leaveBlockedReason,
   onOpenSharedGraph,
   onOpenPersonMemory,
+  conversationId,
+  bearer,
+  onOpenCheckinSummary,
 }: Props) {
   return (
     <div
@@ -98,6 +106,14 @@ export function GroupInfoDestination({
           </li>
         ))}
       </ul>
+
+      {conversationId ? (
+        <CheckinCircleRow
+          source={{ source_kind: "conversation", source_ref_id: conversationId }}
+          bearer={bearer}
+          onOpenSummary={onOpenCheckinSummary}
+        />
+      ) : null}
 
       <button
         type="button"

@@ -1,7 +1,90 @@
 defmodule OpalCoreWeb.JourneyController do
   use OpalCoreWeb, :controller
 
+  alias OpalCore.SocialFlow
   alias OpalCore.SocialFlow.JourneyAuthority
+  alias OpalCore.SocialFlow.PlanRevision
+
+  @doc """
+  B1 - convert this plan's place type (physical <-> virtual).
+
+  Solo plans apply directly; shared plans return applied: false with
+  the proposed revision - the plan does not move until the other
+  participants accept through the respond endpoint. The response is
+  the plan_payload (the one projection) plus the revision contract.
+  """
+  def convert_place_type(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case SocialFlow.convert_plan_place_type(%{
+           plan_id: id,
+           user_id: user_id,
+           to_plan_type: params["to_plan_type"] || params["plan_type"],
+           meeting_link: params["meeting_link"],
+           meeting_provider: params["meeting_provider"],
+           trace_id: params["trace_id"]
+         }) do
+      {:ok, %{plan: plan, revision: revision, applied: applied}} ->
+        json(conn, %{
+          "plan" => SocialFlow.plan_payload(plan),
+          "revision" => revision && PlanRevision.to_contract(revision),
+          "applied" => applied
+        })
+
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+
+      {:error, reason} when reason in [:forbidden, :not_a_member, :not_authorized] ->
+        conn |> put_status(:forbidden) |> json(%{"error" => to_string(reason)})
+
+      {:error, reason} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  @doc """
+  B1 - respond to a plan revision over HTTP (the revision channel
+  already offered this over the socket; the conversion accept path
+  needs the same action on the REST surface the clients use).
+  """
+  def respond_revision(conn, %{"id" => id, "revision_id" => revision_id} = params) do
+    user_id = conn.assigns.current_user_id
+    decision = params["decision"]
+
+    if decision in ["accept", "reject"] do
+      case SocialFlow.respond_to_revision(%{
+             revision_id: revision_id,
+             user_id: user_id,
+             decision: decision,
+             trace_id: params["trace_id"]
+           }) do
+        {:ok, %{plan: plan, revision: revision}} ->
+          json(conn, %{
+            "plan" => SocialFlow.plan_payload(plan),
+            "revision" => PlanRevision.to_contract(revision),
+            "applied" => true
+          })
+
+        {:ok, %PlanRevision{} = revision} ->
+          json(conn, %{
+            "plan_id" => id,
+            "revision" => PlanRevision.to_contract(revision),
+            "applied" => revision.status == "accepted"
+          })
+
+        {:error, :not_found} ->
+          conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+
+        {:error, reason} when reason in [:forbidden, :not_a_member, :not_authorized] ->
+          conn |> put_status(:forbidden) |> json(%{"error" => to_string(reason)})
+
+        {:error, reason} ->
+          conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+      end
+    else
+      conn |> put_status(:unprocessable_entity) |> json(%{"error" => "invalid_decision"})
+    end
+  end
 
   def activate(conn, params) do
     user_id = conn.assigns.current_user_id

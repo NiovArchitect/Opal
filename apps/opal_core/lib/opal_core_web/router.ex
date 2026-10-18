@@ -213,6 +213,20 @@ defmodule OpalCoreWeb.Router do
     post("/plans/:id/execution/authorize", PlanExecutionController, :authorize)
     post("/plans/:id/execution", PlanExecutionController, :execute)
 
+    # Repair #18 (B2) — at-home food step: compose a group order list +
+    # per-person honest handoff. Never places an order (see FoodHandoff).
+    get("/opal/food/capability", FoodStepController, :capability)
+    get("/opal/plans/:id/food", FoodStepController, :show)
+    post("/opal/plans/:id/food/items", FoodStepController, :items)
+    post("/opal/plans/:id/food/household", FoodStepController, :household)
+    post("/opal/plans/:id/food/handoff", FoodStepController, :handoff)
+    post("/opal/plans/:id/food/self-confirm", FoodStepController, :self_confirm)
+    post("/opal/plans/:id/food/not-ordering", FoodStepController, :not_ordering)
+    post("/opal/plans/:id/food/could-not-deliver", FoodStepController, :could_not_deliver)
+    post("/opal/plans/:id/food/restaurant", FoodStepController, :restaurant)
+    post("/opal/plans/:id/food/composed", FoodStepController, :composed)
+    post("/opal/plans/:id/food/answer-ask", FoodStepController, :answer_ask)
+
     # Track A6.1 — Attention Center projection (AttentionAuthority → bell)
     get("/attention", AttentionCenterController, :show)
     post("/attention/ingest", AttentionCenterController, :ingest)
@@ -255,6 +269,9 @@ defmodule OpalCoreWeb.Router do
     post("/journeys/:id/add-people", JourneyController, :add_people)
     post("/journeys/:id/assign-co-lead", JourneyController, :assign_co_lead)
     post("/journeys/:id/handoff-lead", JourneyController, :handoff_lead)
+    # Repair #18 Division B (B1) - place-type conversion + revision respond
+    post("/journeys/:id/convert-place-type", JourneyController, :convert_place_type)
+    post("/journeys/:id/revisions/:revision_id/respond", JourneyController, :respond_revision)
 
     # Phase 4C — trip HTTP API (shared social adventure; not outing Journey)
     post("/trips", TripController, :create)
@@ -333,6 +350,16 @@ defmodule OpalCoreWeb.Router do
     post("/profile-gaps/answer", ProfileGapController, :answer)
     post("/profile-gaps/skip", ProfileGapController, :skip)
 
+    # Repair #18 B3 — circle check-in sweep: session-scoped create /
+    # read / respond / close / withdraw + in-context suggestion surface.
+    post("/checkins", CheckinController, :create)
+    get("/checkins/for-source", CheckinController, :for_source)
+    post("/checkins/suggest-dismiss", CheckinController, :dismiss_suggestion)
+    get("/checkins/:id", CheckinController, :show)
+    post("/checkins/:id/respond", CheckinController, :respond)
+    post("/checkins/:id/close", CheckinController, :close)
+    post("/checkins/:id/withdraw", CheckinController, :withdraw)
+
     # Phase RU-1 — relationship types (how you know each person)
     get("/relationships", RelationshipController, :index)
     put("/relationships/:contact_user_id", RelationshipController, :upsert)
@@ -379,6 +406,43 @@ defmodule OpalCoreWeb.Router do
     post("/reminders", ReminderController, :create)
     post("/reminders/:id/cancel", ReminderController, :cancel)
 
+    # Repair #18 Division B (B4) — care rotation primitive
+    get("/care-rotations", CareRotationController, :index)
+    post("/care-rotations", CareRotationController, :create)
+    get("/care-rotations/:id", CareRotationController, :show)
+    post("/care-rotations/:id/accept", CareRotationController, :accept)
+    post("/care-rotations/:id/decline", CareRotationController, :decline)
+    post("/care-rotations/:id/members/:user_id/remove", CareRotationController, :remove_member)
+    post("/care-rotations/:id/pause", CareRotationController, :pause)
+    post("/care-rotations/:id/resume", CareRotationController, :resume)
+    post("/care-rotations/:id/end", CareRotationController, :end_rotation)
+    post("/care-rotations/:id/subject-link", CareRotationController, :propose_subject_link)
+    post("/care-rotations/:id/subject-link/accept", CareRotationController, :accept_subject_link)
+    post("/care-rotations/:id/subject-visible", CareRotationController, :set_subject_visible)
+
+    post(
+      "/care-rotations/:id/check-ins/:occurrence_key/complete",
+      CareRotationController,
+      :complete_check_in
+    )
+
+    post("/care-rotations/:id/check-ins/:occurrence_key/pass", CareRotationController, :pass_check_in)
+
+    # Repair #18 Division B (B5) — household pod + planning contexts
+    get("/households", HouseholdController, :index)
+    post("/households", HouseholdController, :create)
+    get("/households/:id", HouseholdController, :show)
+    post("/households/:id/accept", HouseholdController, :accept)
+    post("/households/:id/decline", HouseholdController, :decline)
+    post("/households/:id/leave", HouseholdController, :leave)
+    post("/households/:id/primary", HouseholdController, :primary)
+    post("/households/:id/supply-plan/accept", HouseholdController, :accept_supply)
+    post("/households/:id/supply-plan/dismiss", HouseholdController, :dismiss_supply)
+    post("/plans/from-context", HouseholdController, :create_plan_from_context)
+    get("/context", HouseholdController, :context)
+    get("/context/suggestion-order", HouseholdController, :suggestion_order)
+    post("/context/proactive-opt-in", HouseholdController, :proactive_opt_in)
+
     # Paste G Phase 9 — shareable plan/trip HTML artifacts
     post("/artifacts", ArtifactController, :create)
 
@@ -406,6 +470,9 @@ defmodule OpalCoreWeb.Router do
     # F12-06/F12-07 — owner-scoped plan listing (incl. conversation-less Center
     # plans) for Graphs/Timeline projections.
     get("/opal/plans", OpalConversationController, :list_plans)
+    # Repair #18 (Walk #4, W4-04) - edit one plan's title / core details
+    # (lead-only, through the PlanTransition :edit gate).
+    patch("/opal/plans/:id", OpalConversationController, :edit_plan)
     # Repair #16 (W1) — durable GraphCreateFlow completion (non-post graph
     # drafts) through the same SharedPlan authority as Center plans.
     post("/opal/plans/graph-create", OpalConversationController, :create_graph_plan)
@@ -490,5 +557,10 @@ defmodule OpalCoreWeb.Router do
     get("/dev/events", DevProbeController, :events)
     post("/dev/events/reset", DevProbeController, :reset_events)
     get("/dev/client-info", DevProbeController, :client_info)
+    # Repair #18 staging seams (dev_auth only)
+    post("/dev/clock", DevProbeController, :set_clock)
+    post("/dev/temporal-tick", DevProbeController, :temporal_tick)
+    post("/dev/context-sweep", DevProbeController, :context_sweep)
+    post("/dev/maturity", DevProbeController, :set_maturity)
   end
 end

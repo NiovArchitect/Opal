@@ -60,6 +60,12 @@ export type CanonicalGraph = {
   totalCount?: number | null;
   interestedCount?: number | null;
   viewerState?: string | null;
+  /** B1: place affordances from the projection - kind decides Join
+   * vs Directions, never the place name string. */
+  online?: boolean;
+  meetingLink?: string | null;
+  meetingProvider?: string | null;
+  joinAvailable?: boolean;
   conflict?: {
     with_plan_id?: string | null;
     title?: string | null;
@@ -231,16 +237,36 @@ export function clientPlanFields(
 ): ChatPreview["planProjection"] {
   if (!raw) return null;
   const text = (value: unknown) => (typeof value === "string" ? value : null);
-  const planType = text(raw.plan_type) || (raw.online === true ? "virtual" : null);
-  const meetingLink = sanitizeMeetingLink(text(raw.meeting_link));
+  // B1: when the payload carries the explicit place projection
+  // object, it is the authority for kind/link/affordances - the flat
+  // fields are the fallback for older payloads only.
+  const placeObj =
+    raw.place_projection && typeof raw.place_projection === "object"
+      ? (raw.place_projection as Record<string, unknown>)
+      : raw.place && typeof raw.place === "object"
+        ? (raw.place as Record<string, unknown>)
+        : null;
+  const placeKind = placeObj ? text(placeObj.kind) : null;
+  const planType =
+    (placeKind === "virtual"
+      ? "virtual"
+      : placeKind === "physical"
+        ? "in_person"
+        : null) ||
+    text(raw.plan_type) ||
+    (raw.online === true ? "virtual" : null);
+  const meetingLink = sanitizeMeetingLink(
+    text(placeObj?.meeting_link) || text(raw.meeting_link),
+  );
   const online = planType === "virtual" || raw.online === true;
-  const place = online ? "Online" : text(raw.place);
+  const place = online ? "Online" : text(placeObj?.label) || text(raw.place);
   return {
     lineage_id: text(raw.lineage_id),
     conversation_id: text(raw.conversation_id) || conversationId,
     visibility: "participants",
     participant_mode: typeof raw.participant_mode === "string" ? raw.participant_mode : "dyad",
     kicker: typeof raw.kicker === "string" ? raw.kicker : "Plan set ✓",
+    title: text(raw.title),
     when_label: text(raw.when_label),
     place,
     activity: text(raw.activity),
@@ -248,6 +274,31 @@ export function clientPlanFields(
     plan_type: planType,
     meeting_link: meetingLink,
     online,
+    place_projection: placeObj
+      ? {
+          kind: placeKind,
+          label: text(placeObj.label),
+          meeting_provider: text(placeObj.meeting_provider),
+          meeting_link: meetingLink,
+          join_available: placeObj.join_available === true,
+          directions_available: placeObj.directions_available === true,
+        }
+      : null,
+    meeting_provider: text(placeObj?.meeting_provider) || text(raw.meeting_provider),
+    join_available:
+      typeof placeObj?.join_available === "boolean"
+        ? placeObj.join_available
+        : online && !!meetingLink,
+    directions_available:
+      typeof placeObj?.directions_available === "boolean"
+        ? placeObj.directions_available
+        : !online,
+    // Repair #18 (B2) — completion record passes through untouched from
+    // the contract; the panel renders it, never re-derives it.
+    completion:
+      raw.completion && typeof raw.completion === "object"
+        ? (raw.completion as NonNullable<ChatPreview["planProjection"]>["completion"])
+        : null,
     execution_label: text(raw.execution_label),
     execution_detail: text(raw.execution_detail),
     pending_change: raw.pending_change === true,
@@ -350,6 +401,12 @@ export function canonicalGraphFromChat(
     interestedCount: plan.interested_count ?? null,
     viewerState: plan.viewer_state ?? null,
     conflict: plan.conflict ?? null,
+    online: plan.online === true || plan.plan_type === "virtual",
+    meetingLink: plan.meeting_link ?? null,
+    meetingProvider: plan.meeting_provider ?? plan.place_projection?.meeting_provider ?? null,
+    joinAvailable:
+      plan.join_available === true ||
+      (plan.online === true && typeof plan.meeting_link === "string" && plan.meeting_link !== ""),
   };
 }
 

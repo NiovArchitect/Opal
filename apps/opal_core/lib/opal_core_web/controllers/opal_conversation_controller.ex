@@ -421,6 +421,147 @@ defmodule OpalCoreWeb.OpalConversationController do
     end
   end
 
+  @doc """
+  Repair #18 (Walk #4, W4-04) — edit ONE plan's title / core details.
+
+  PATCH /api/v1/product/opal/plans/:id with any of
+  `{title, location, caption}`. The write flows through
+  SocialFlow.edit_plan_details/1 (PlanTransition :edit gate, lead-only
+  authority, validated inputs, one atomic row write). The response
+  carries the updated plan in the SAME plan_payload shape the listing
+  uses, so the client re-renders from it with no second fetch — the
+  conversation-rename precedent. Unknown or foreign plan ids → 404
+  (existence is never revealed across accounts); a participant
+  without lead rights → 403 not_authorized; schedule-bearing fields
+  → 422 schedule_field_requires_revision (schedule changes are
+  revisions, not edits); terminal plans → 422 invalid_status.
+  """
+  def edit_plan(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    changes =
+      Map.take(params, [
+        "title",
+        "location",
+        "caption",
+        "time_label",
+        "date_label",
+        "start_at",
+        "end_at"
+      ])
+
+    result =
+      SocialFlow.edit_plan_details(%{
+        plan_id: id,
+        user_id: user_id,
+        changes: changes,
+        trace_id: "trace-plan-edit-1"
+      })
+
+    case result do
+      {:ok, %{plan: plan}} ->
+        json(conn, %{"ok" => true, "plan" => SocialFlow.plan_payload(plan)})
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, :not_a_member} ->
+        not_found(conn)
+
+      {:error, :not_authorized} ->
+        conn
+        |> put_status(403)
+        |> json(%{
+          "error_code" => "not_authorized",
+          "message" => "Only the plan's lead can edit its details."
+        })
+
+      {:error, :empty_title} ->
+        field_error(conn, "title", "can't be blank")
+
+      {:error, :title_too_long} ->
+        field_error(
+          conn,
+          "title",
+          "should be at most #{SocialFlow.plan_edit_title_max()} character(s)"
+        )
+
+      {:error, :invalid_title} ->
+        field_error(conn, "title", "is invalid")
+
+      {:error, :empty_location} ->
+        field_error(conn, "location", "can't be blank")
+
+      {:error, :location_too_long} ->
+        field_error(
+          conn,
+          "location",
+          "should be at most #{SocialFlow.plan_edit_location_max()} character(s)"
+        )
+
+      {:error, :invalid_location} ->
+        field_error(conn, "location", "is invalid")
+
+      {:error, :location_not_editable} ->
+        field_error(conn, "location", "can't be changed for an online plan")
+
+      {:error, :caption_too_long} ->
+        field_error(
+          conn,
+          "caption",
+          "should be at most #{SocialFlow.plan_edit_caption_max()} character(s)"
+        )
+
+      {:error, :invalid_caption} ->
+        field_error(conn, "caption", "is invalid")
+
+      {:error, :schedule_field_requires_revision} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "schedule_field_requires_revision",
+          "message" =>
+            "Changing when a plan happens is a revision, not an edit - propose the new time so the plan's people can confirm it."
+        })
+
+      {:error, :invalid_status} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid_status",
+          "message" => "A finished or cancelled plan can't be edited."
+        })
+
+      {:error, :no_changes} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "no_changes",
+          "message" => "Nothing to change - send a title, location or caption."
+        })
+
+      {:error, :unknown_field} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "unknown_field",
+          "message" => "Only title, location and caption can be edited here."
+        })
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  defp field_error(conn, field, message) do
+    conn
+    |> put_status(422)
+    |> json(%{"error_code" => "invalid", "errors" => %{field => [message]}})
+  end
+
   defp not_found(conn) do
     conn |> put_status(404) |> json(%{"error_code" => "not_found"})
   end

@@ -72,10 +72,47 @@ if (cases.length === 0) {
   process.exit(2);
 }
 
+// Integration extension (2026-10-18, coordinator ruling - decided once):
+// the catalog parser only understands FR-NN-NN rows, so whole case
+// families whose ids differ (B1-S*, FR-18-B2-*, FR-B3-*, FR-18-W4-*,
+// W4-04*, W4-02/W4-03 rendered) were silently dropped from the index
+// while their executable case files sat in the suite. The index is
+// now the UNION: catalog rows keep their registry metadata; every
+// executable case file on disk (API stage + rendered stage) that the
+// catalog did not produce is merged in from its module exports. A
+// case file with a run() is automatable by construction; it can
+// never fall out of the index again.
+const known = new Set(cases.map((c) => c.id));
+for (const [stage, dir] of [
+  ["api", path.join(suiteDir, "cases")],
+  ["rendered", path.join(suiteDir, "rendered", "cases")],
+]) {
+  if (!fs.existsSync(dir)) continue;
+  for (const f of fs.readdirSync(dir).sort()) {
+    if (!f.endsWith(".case.mjs")) continue;
+    const mod = (await import(path.join(dir, f))).default;
+    if (!mod || !mod.id || known.has(mod.id)) continue;
+    known.add(mod.id);
+    const cls = (mod.class || "A").trim();
+    const phone = cls.includes("P");
+    cases.push({
+      id: mod.id,
+      title: (mod.title || mod.id).trim(),
+      theme: mod.theme || (stage === "rendered" ? "rendered" : "-"),
+      surfaces: Array.isArray(mod.surfaces) ? mod.surfaces : [],
+      class: cls,
+      automatable: typeof mod.run === "function",
+      phone_checklist: phone ? "also" : "no",
+      stage,
+      source: "case-file",
+    });
+  }
+}
+
 fs.writeFileSync(
   path.join(suiteDir, "cases.json"),
   JSON.stringify(
-    { generated_from: "coordination/repair18/regression-catalog.md", count: cases.length, cases },
+    { generated_from: "coordination/repair18/regression-catalog.md + cases/*.case.mjs + rendered/cases/*.case.mjs", count: cases.length, cases },
     null,
     2,
   ) + "\n",

@@ -77,6 +77,19 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "kicker" => if(past_shared? or past?, do: "Earlier together", else: "Plan set ✓"),
         "when_label" => when_label,
         "place" => place_value,
+        # B1: the explicit place projection object, same shape as
+        # SharedPlan.place_projection/1 - surfaces render this and
+        # never re-derive kind from the label string.
+        "place_projection" => %{
+          "kind" => plan_type,
+          "label" => place_value,
+          "meeting_provider" =>
+            OpalCore.SocialFlow.MeetingLinks.normalize_provider(alignment["meeting_provider"]) ||
+              OpalCore.SocialFlow.MeetingLinks.provider_for(meeting_link),
+          "meeting_link" => if(plan_type == "virtual", do: meeting_link),
+          "join_available" => plan_type == "virtual" and is_binary(meeting_link),
+          "directions_available" => plan_type != "virtual" and is_binary(place["value"])
+        },
         "place_identity" => place_identity_for(alignment, place),
         "activity" => get_in(alignment, ["activity", "value"]),
         "timezone" => get_in(alignment, ["date", "timezone"]) || DateTimeChange.timezone(),
@@ -134,8 +147,13 @@ defmodule OpalCore.SocialFlow.HomeProjection do
       nil
     else
       alignment = plan.alignment || %{}
-      plan_type = alignment["plan_type"] || plan.plan_type || "in_person"
-      meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(alignment["meeting_link"])
+      # B1: the COLUMN is the authority - the mirror is a fallback
+      # only when the row somehow carries none (it always does).
+      plan_type = plan.plan_type || alignment["plan_type"] || "in_person"
+
+      meeting_link =
+        OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link) ||
+          OpalCore.SocialFlow.MeetingLinks.sanitize(alignment["meeting_link"])
 
       past? =
         match?(%DateTime{}, plan.start_at) and
@@ -148,8 +166,16 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         "visibility" => "participants",
         "participant_mode" => participant_mode(member_count),
         "kicker" => if(past?, do: "Earlier together", else: "Plan set ✓"),
+        # Repair #18 (Walk #4, W4-04): the plan's title, read from the
+        # plan row - the one title source every surface shares, so an
+        # edit lands here the moment it lands on the row.
+        "title" => plan.title,
         "when_label" => plan.time_label,
         "place" => if(plan_type == "virtual", do: "Online", else: plan.location),
+        # B1: row-backed cards carry the row's own place projection -
+        # literally SharedPlan.place_projection/1, so this surface
+        # cannot diverge from the contract.
+        "place_projection" => SharedPlan.place_projection(plan),
         "place_identity" => nil,
         "activity" => get_in(alignment, ["activity", "value"]),
         "timezone" => plan.timezone || DateTimeChange.timezone(),
@@ -189,6 +215,10 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         card
         |> Map.merge(JourneyAuthority.attendance_contract(plan.id, viewer_id))
         |> Map.put("conflict", OpalCore.SocialFlow.plan_conflict(plan))
+        # Repair #18 (Walk #4, W4-04): fold-backed cards carry the plan
+        # row's current title too - an edited title reads back here,
+        # never a fold-frozen copy.
+        |> Map.put("title", plan.title)
 
       _ ->
         card
@@ -266,6 +296,11 @@ defmodule OpalCore.SocialFlow.HomeProjection do
     persisted = place["identity"] || alignment["place_identity"]
 
     cond do
+      # B1 (A9): "Online" is not a place - never run it through the
+      # physical PlaceIdentity pipeline.
+      alignment["plan_type"] == "virtual" ->
+        nil
+
       PlaceIdentity.high_confidence?(persisted) ->
         PlaceIdentity.for_surface(persisted)
 

@@ -1,4 +1,22 @@
 defmodule OpalCore.SocialFlow.SharedPlan do
+  @moduledoc """
+  The plan row - and, for place type, the ONE authority.
+
+  Repair #18 Division B (B1, virtual place as first-class): the
+  `plan_type` COLUMN on this row is the only authority for whether a
+  plan's place is physical ("in_person") or virtual ("virtual").
+  `alignment["plan_type"]` is a mirror for fold-based readers, written
+  ONLY by `OpalCore.SocialFlow.stamp_place_mirror/2` - never by hand at
+  call sites. No reader may re-derive place type from the location
+  string ("Online"), from the activity, or from any other field; use
+  `virtual?/1` and `place_projection/1`.
+
+  Naming collision, documented not renamed (Division A stability): the
+  execution layer's `plan_type` key in attrs maps means the ACTIVITY
+  (dinner / concert / park). Place type travels through those layers
+  under the explicit key "place_kind" (same "in_person" / "virtual"
+  values). This schema's `plan_type` is always the PLACE type.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -23,6 +41,12 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     field :time_label, :string
     field :plan_type, :string, default: "in_person"
     field :meeting_link, :string
+    # B1 (additive): provider LABEL for a virtual plan's room (zoom /
+    # google_meet / teams / facetime / other) and the stamp of the last
+    # place-type conversion. Both nullable; nil for never-labelled /
+    # never-converted plans.
+    field :meeting_provider, :string
+    field :place_changed_at, :utc_datetime_usec
     field :current_revision_id, :binary_id
     field :cancelled_at, :utc_datetime_usec
     field :completed_at, :utc_datetime_usec
@@ -63,6 +87,8 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       :time_label,
       :plan_type,
       :meeting_link,
+      :meeting_provider,
+      :place_changed_at,
       :created_from_proposal_id,
       :current_revision_id,
       :created_by_user_id,
@@ -77,7 +103,9 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     |> validate_inclusion(:status, @statuses)
     |> validate_inclusion(:source, @sources)
     |> validate_inclusion(:plan_type, @plan_types)
+    |> validate_inclusion(:meeting_provider, MeetingLinks.providers())
     |> validate_meeting_link()
+    |> derive_meeting_provider()
     |> maybe_virtual_location()
     |> validate_source_shape()
     |> foreign_key_constraint(:trip_leg_id)
@@ -97,6 +125,74 @@ defmodule OpalCore.SocialFlow.SharedPlan do
         add_error(changeset, :meeting_link, "must be an http(s) URL")
     end
   end
+
+  # B1: the provider label is stored at write time (derived from the
+  # sanitized link host) so no surface ever re-parses a URL to pick a
+  # label. An explicitly supplied valid label wins; a stale label is
+  # re-derived when the link changes underneath it.
+  defp derive_meeting_provider(changeset) do
+    link = get_field(changeset, :meeting_link)
+    explicit = get_change(changeset, :meeting_provider)
+
+    cond do
+      is_binary(explicit) ->
+        changeset
+
+      not is_nil(get_change(changeset, :meeting_link)) ->
+        put_change(changeset, :meeting_provider, MeetingLinks.provider_for(link))
+
+      true ->
+        changeset
+    end
+  end
+
+  @doc "True when the plan's place is a virtual room. The ONLY type test callers may use."
+  def virtual?(%__MODULE__{plan_type: "virtual"}), do: true
+  def virtual?(%__MODULE__{}), do: false
+  def virtual?(_), do: false
+
+  @doc """
+  The ONE explicit place projection every surface renders:
+
+      %{"kind" => "physical" | "virtual",
+        "label" => location | "Online",
+        "meeting_provider" => provider | nil,
+        "meeting_link" => sanitized link | nil,   # virtual only
+        "join_available" => boolean,               # virtual AND link present
+        "directions_available" => boolean}         # physical AND location present
+
+  A physical plan's stored meeting_link (kept on the row after a
+  convert-back, for audit/revert) is NEVER projected: while the plan
+  is physical the link is dormant and no surface may act on it.
+  """
+  def place_projection(%__MODULE__{} = p) do
+    if virtual?(p) do
+      link = MeetingLinks.sanitize(p.meeting_link)
+
+      %{
+        "kind" => "virtual",
+        "label" => "Online",
+        "meeting_provider" =>
+          MeetingLinks.normalize_provider(p.meeting_provider) || MeetingLinks.provider_for(link),
+        "meeting_link" => link,
+        "join_available" => is_binary(link),
+        "directions_available" => false
+      }
+    else
+      location = if is_binary(p.location) and String.trim(p.location) != "", do: p.location
+
+      %{
+        "kind" => "physical",
+        "label" => location,
+        "meeting_provider" => nil,
+        "meeting_link" => nil,
+        "join_available" => false,
+        "directions_available" => is_binary(location)
+      }
+    end
+  end
+
+  def place_projection(_), do: nil
 
   # Virtual plans show Online, never a fake venue address.
   defp maybe_virtual_location(changeset) do
@@ -137,7 +233,11 @@ defmodule OpalCore.SocialFlow.SharedPlan do
 
   def to_contract(%__MODULE__{} = p, opts \\ []) do
     plan_type = Map.get(p, :plan_type) || "in_person"
-    meeting_link = MeetingLinks.sanitize(Map.get(p, :meeting_link))
+    place = place_projection(p)
+    # B1: the flat meeting_link key follows the projection - virtual
+    # plans expose their link; a physical plan's dormant stored link
+    # is hidden from every contract (it is audit data, not an action).
+    meeting_link = place["meeting_link"]
 
     base = %{
       "schema_version" => "0.1.0",
@@ -152,6 +252,12 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "time_label" => p.time_label,
       "plan_type" => plan_type,
       "meeting_link" => meeting_link,
+      "meeting_provider" => place["meeting_provider"],
+      "place_changed_at" => dt(Map.get(p, :place_changed_at)),
+      # B1: the explicit place projection object - the one output
+      # surfaces render for place. Flat keys above stay for old
+      # clients; new clients read this object and never re-derive.
+      "place" => place,
       "online" => plan_type == "virtual",
       "created_from_proposal_id" => p.created_from_proposal_id,
       "current_revision_id" => p.current_revision_id,
@@ -169,6 +275,25 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       case Map.get(p.alignment || %{}, "dedupe") do
         %{"key" => key} when is_binary(key) -> Map.put(base, "dedupe_key", key)
         _ -> base
+      end
+
+    # Repair #18 (B2): the completion record is a durable surface input —
+    # emit it additively whenever one exists, so every surface renders
+    # join/food state from this one projection and never re-derives it.
+    # Privacy (§4.2): the contract copy strips each food recipient's
+    # household_key (never projected across participants) and their
+    # could_not_deliver alternate restaurant name (theirs to share, not
+    # the plan's to broadcast). No address field exists to leak.
+    base =
+      case Map.get(p.alignment || %{}, "completion") do
+        %{"steps" => steps} when is_list(steps) ->
+          Map.put(base, "completion", %{
+            "steps" => Enum.map(steps, &sanitize_completion_step/1),
+            "driven_at" => get_in(p.alignment, ["completion", "driven_at"])
+          })
+
+        _ ->
+          base
       end
 
     # Repair #16 (W1): graph-create plans carry draft fields in alignment
@@ -281,6 +406,23 @@ defmodule OpalCore.SocialFlow.SharedPlan do
 
   defp virtual_location("virtual", _), do: "Online"
   defp virtual_location(_, loc), do: loc
+
+  # B2 privacy: the shared contract never carries a recipient's
+  # household grouping basis or their private alternate restaurant.
+  defp sanitize_completion_step(%{"id" => "food", "recipients" => recipients} = step)
+       when is_list(recipients) do
+    Map.put(
+      step,
+      "recipients",
+      Enum.map(recipients, fn r ->
+        r
+        |> Map.delete("household_key")
+        |> Map.put("alternate_restaurant", nil)
+      end)
+    )
+  end
+
+  defp sanitize_completion_step(step), do: step
 
   defp dt(nil), do: nil
   defp dt(%DateTime{} = d), do: DateTime.to_iso8601(d)

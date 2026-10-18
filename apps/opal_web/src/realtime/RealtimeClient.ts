@@ -1006,6 +1006,15 @@ export function normalizeSocialFlowPlan(
       canonical_start_at: text(plan.start_at),
       revision_id: text(plan.current_revision_id),
       plan_type: text(plan.plan_type),
+      // B1: a realtime-updated virtual card must keep its Join
+      // affordance - carry the link and the place projection through
+      // the socket normalization, not just plan_type/online.
+      meeting_link: text(plan.meeting_link),
+      meeting_provider: text(plan.meeting_provider),
+      place_projection:
+        plan.place && typeof plan.place === "object"
+          ? (plan.place as Record<string, unknown>)
+          : null,
       online: plan.online === true,
       timezone: text(plan.timezone),
       status: text(plan.status),

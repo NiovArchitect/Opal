@@ -51,6 +51,15 @@ defmodule OpalCore.SocialFlow.Execution.ProfileGap do
     "birthday" => %{
       dimension: "birthday",
       label: "birthday"
+    },
+    # Repair #18 B5a: the ONLY lawful inference surface for households —
+    # an ask-once prompt ("You plan with X, Y and Z a lot — are you a
+    # household?"). The ask creates nothing; skipping is permanent per
+    # this ledger's law. Auto-creating a pod from co-planning is
+    # prohibited.
+    "household" => %{
+      dimension: "household",
+      label: "household"
     }
   }
 
@@ -220,6 +229,11 @@ defmodule OpalCore.SocialFlow.Execution.ProfileGap do
       "skip_label" => "Skip",
       "asked_once" => true
     }
+  end
+
+  defp prompt_for("household", _person_name) do
+    "Quick one — you plan with the same people a lot. Are you a household? " <>
+      "Setting one up makes home plans faster. Skip is totally fine."
   end
 
   defp prompt_for("birthday", person_name) do

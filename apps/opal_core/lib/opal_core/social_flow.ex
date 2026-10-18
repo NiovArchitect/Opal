@@ -1233,6 +1233,12 @@ defmodule OpalCore.SocialFlow do
         _ = record_recent_change_for_revision(plan, revision)
         _ = FollowThroughProducers.complete_open_questions(revision.id)
 
+        # B1: an accepted place-type conversion re-drives reminders +
+        # completion post-commit, like the direct conversion writer.
+        if (revision.proposed_changes || %{})["kind"] == "place_type_change" do
+          _ = post_place_conversion_effects(plan, user_id)
+        end
+
         # Repair #18 residuals #2 - same-turn chronology for the
         # accepted revision, as in record_fold_change_acceptance/1:
         # the thread's latest time_resolved must name the new time
@@ -1265,15 +1271,25 @@ defmodule OpalCore.SocialFlow do
   defp record_recent_change_for_revision(%SharedPlan{} = plan, %PlanRevision{} = revision) do
     changes = revision.proposed_changes || %{}
 
-    if changes["kind"] == "cancel" do
-      PlanRecentChanges.record_cancelled(plan, "rev-#{revision.id}")
-    else
-      PlanRecentChanges.record_schedule_changed(
-        plan,
-        "rev-#{revision.id}",
-        "time_label",
-        plan.time_label
-      )
+    cond do
+      # B1: a place-type change is not a schedule change - recording it
+      # as one would print a false "moved to <time>" entry. The
+      # revision chain and the plan.place_type_changed audit event
+      # carry this change; the recent-change feed does not narrate it
+      # yet (named gap, B1 report).
+      changes["kind"] == "place_type_change" ->
+        :ok
+
+      changes["kind"] == "cancel" ->
+        PlanRecentChanges.record_cancelled(plan, "rev-#{revision.id}")
+
+      true ->
+        PlanRecentChanges.record_schedule_changed(
+          plan,
+          "rev-#{revision.id}",
+          "time_label",
+          plan.time_label
+        )
     end
   rescue
     _ -> :ok
@@ -1325,10 +1341,54 @@ defmodule OpalCore.SocialFlow do
     plan_action = if changes["kind"] == "cancel", do: :cancel, else: :change
 
     {plan_attrs, signal_copy} =
-      if changes["kind"] == "cancel" do
-        {%{status: "cancelled", cancelled_at: now, current_revision_id: rev.id},
-         "#{plan.title} was cancelled."}
-      else
+      cond do
+        changes["kind"] == "cancel" ->
+          {%{status: "cancelled", cancelled_at: now, current_revision_id: rev.id},
+           "#{plan.title} was cancelled."}
+
+        changes["kind"] == "place_type_change" ->
+          # B1: an accepted place-type conversion applies through the
+          # same conversion builder the direct writer uses - stash /
+          # restore, mirror stamp, explicit fold action - so the two
+          # shapes can never diverge.
+          to_type = normalize_plan_type(changes["to_plan_type"])
+
+          base =
+            place_conversion_attrs(
+              plan,
+              to_type,
+              changes["meeting_link"],
+              changes["meeting_provider"],
+              now
+            )
+
+          alignment =
+            append_explicit_action(base.alignment, %{
+              "kind" => "place_type_change",
+              "actor_user_id" => actor,
+              "field" => "plan_type",
+              "value" => to_type,
+              "truth" => "locked",
+              "explicit" => true,
+              "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+              "revision_id" => rev.id,
+              "at" => DateTime.to_iso8601(now)
+            })
+
+          plan_attrs =
+            base
+            |> Map.put(:alignment, alignment)
+            |> Map.put(:current_revision_id, rev.id)
+            |> Map.put(:status, "changed")
+
+          copy =
+            if to_type == "virtual",
+              do: "#{plan.title} moved online.",
+              else: "#{plan.title} moved in person."
+
+          {plan_attrs, copy}
+
+        true ->
         # Repair #18 residuals (R-2b): a revision can carry a raw
         # fragment ("8 PM") from natural-language extraction. The
         # accept writes the canonical label, like every schedule
@@ -1412,6 +1472,24 @@ defmodule OpalCore.SocialFlow do
       trace
     )
 
+    if changes["kind"] == "place_type_change" do
+      audit!(
+        plan.conversation_id,
+        plan.id,
+        actor,
+        "plan.place_type_changed",
+        %{
+          "revision_id" => rev.id,
+          "to" => plan.plan_type,
+          "place_changed_at" =>
+            if(match?(%DateTime{}, plan.place_changed_at),
+              do: DateTime.to_iso8601(plan.place_changed_at)
+            )
+        },
+        trace
+      )
+    end
+
     # Supersede prior calendar versions and project new active commitments —
     # never for a cancelled plan.
     unless plan.status == "cancelled" do
@@ -1475,6 +1553,385 @@ defmodule OpalCore.SocialFlow do
   end
 
   def confirm_pending_revision(_), do: {:error, :invalid}
+
+  # -------------------------------------------------------------------
+  # Repair #18 Division B (B1) - place-type conversion, the new writer
+  # -------------------------------------------------------------------
+
+  @doc """
+  B1 - convert a plan's place type: physical <-> virtual.
+
+  The lockdown day-one writer. Conversion is a MATERIAL change, so it
+  rides the PlanTransition `:change` action and the PlanRevision
+  machinery - never an attribute sneak-through:
+
+  - Solo plans (no other participants): the lead converts directly -
+    a born-accepted revision (`:accept_direct`, the schedule
+    direct-edit precedent), applied in the same transaction. A solo
+    tentative plan keeps its tentative status; an agreed/changed solo
+    plan moves through the gate to "changed".
+  - Shared plans: a proposed revision (kind "place_type_change",
+    required_approvals = the other participants). Nothing about the
+    plan's place changes on any surface until the final accept applies
+    it in `apply_locked_revision/6`.
+  - Converting to the current type is an idempotent no-op.
+  - Terminal plans (cancelled / completed / expired) refuse; trip-leg
+    plans refuse ({:error, :trip_leg_plan}) - a leg is a physical
+    movement record by definition.
+
+  Inputs (validated, explicit): plan_id, user_id, to_plan_type
+  ("virtual" | "in_person"), optional meeting_link,
+  meeting_provider, trace_id.
+
+  Returns {:ok, %{plan, revision, applied: boolean}} or {:error, _}.
+  """
+  def convert_plan_place_type(attrs) when is_map(attrs) do
+    params = stringify_keys(attrs)
+    plan_id = params["plan_id"]
+    user_id = params["user_id"]
+    to_type = params["to_plan_type"] || params["plan_type"]
+    trace = params["trace_id"] || @trace_default
+
+    cond do
+      not is_binary(plan_id) or not is_binary(user_id) ->
+        {:error, :invalid}
+
+      to_type not in ["virtual", "in_person"] ->
+        {:error, :invalid_plan_type}
+
+      true ->
+        case Repo.get(SharedPlan, plan_id) do
+          nil ->
+            {:error, :not_found}
+
+          %SharedPlan{} = plan ->
+            with :ok <- ensure_plan_access(plan, user_id) do
+              cond do
+                plan.source == "trip_leg" ->
+                  {:error, :trip_leg_plan}
+
+                PlanTransition.terminal?(:plan, plan.status) ->
+                  {:error, :invalid_status}
+
+                to_type == plan.plan_type ->
+                  {:ok, %{plan: plan, revision: nil, applied: false, noop: true}}
+
+                true ->
+                  do_convert_plan_place_type(plan, user_id, to_type, params, trace)
+              end
+            end
+        end
+    end
+  end
+
+  def convert_plan_place_type(_), do: {:error, :invalid}
+
+  defp do_convert_plan_place_type(%SharedPlan{} = plan, user_id, to_type, params, trace) do
+    changes = %{
+      "kind" => "place_type_change",
+      "from_plan_type" => plan.plan_type,
+      "to_plan_type" => to_type,
+      "meeting_link" => OpalCore.SocialFlow.MeetingLinks.sanitize(params["meeting_link"]),
+      "meeting_provider" =>
+        OpalCore.SocialFlow.MeetingLinks.normalize_provider(params["meeting_provider"])
+    }
+
+    others = plan_participant_ids(plan) -- [user_id]
+
+    if others == [] do
+      convert_place_type_direct(plan, user_id, to_type, changes, trace)
+    else
+      copy =
+        if to_type == "virtual",
+          do: "Proposed moving #{plan.title} online.",
+          else: "Proposed moving #{plan.title} in person."
+
+      case insert_revision_tx(plan, user_id, changes, others, trace, copy) do
+        {:ok, {revision, signal}} ->
+          broadcast_plan(
+            plan,
+            "social_flow:revision",
+            %{
+              "revision" => PlanRevision.to_contract(revision),
+              "signal" => Signal.to_contract(signal)
+            },
+            trace
+          )
+
+          _ = FollowThroughProducers.register_open_questions(revision, plan)
+          {:ok, %{plan: plan, revision: revision, applied: false}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+  end
+
+  # Solo direct conversion: born-accepted revision + gated plan write
+  # in one transaction, modeled on change_plan_schedule/1.
+  defp convert_place_type_direct(%SharedPlan{} = plan, user_id, to_type, changes, trace) do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
+    result =
+      Repo.transaction(fn ->
+        locked =
+          from(p in SharedPlan, where: p.id == ^plan.id, lock: "FOR UPDATE")
+          |> Repo.one()
+
+        with %SharedPlan{} = locked <- locked,
+             false <- PlanTransition.terminal?(:plan, locked.status),
+             true <- locked.plan_type != to_type do
+          # Settle any open proposals for this plan - this conversion
+          # IS their resolution (same discipline as the fold accept).
+          superseded_ids =
+            from(r in PlanRevision,
+              where: r.plan_id == ^locked.id and r.status == "proposed",
+              select: r.id
+            )
+            |> Repo.all()
+
+          if superseded_ids != [] do
+            from(r in PlanRevision, where: r.id in ^superseded_ids)
+            |> Repo.update_all(set: [status: "superseded", updated_at: now])
+
+            from(s in Signal,
+              where: s.revision_id in ^superseded_ids and s.status == "visible"
+            )
+            |> Repo.update_all(set: [status: "superseded", updated_at: now])
+          end
+
+          {:ok, revision} =
+            %PlanRevision{}
+            |> PlanRevision.changeset(%{
+              plan_id: locked.id,
+              proposed_by_user_id: user_id,
+              prior_revision_id: locked.current_revision_id,
+              proposed_changes: changes,
+              status: "accepted",
+              accepted_at: now,
+              required_approvals: [user_id],
+              approvals: %{user_id => "accept"}
+            })
+            |> PlanTransition.guard_changeset(:revision, :accept_direct)
+            |> Repo.insert()
+
+          base =
+            place_conversion_attrs(
+              locked,
+              to_type,
+              changes["meeting_link"],
+              changes["meeting_provider"],
+              now
+            )
+
+          alignment =
+            append_explicit_action(base.alignment, %{
+              "kind" => "place_type_change",
+              "actor_user_id" => user_id,
+              "field" => "plan_type",
+              "value" => to_type,
+              "truth" => "locked",
+              "explicit" => true,
+              "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+              "revision_id" => revision.id,
+              "at" => DateTime.to_iso8601(now)
+            })
+
+          plan_attrs =
+            base
+            |> Map.put(:alignment, alignment)
+            |> Map.put(:current_revision_id, revision.id)
+            |> then(fn attrs ->
+              # Solo tentative plans keep tentative (the schedule
+              # direct-edit precedent never forces a status move);
+              # committed plans move through the :change gate.
+              if locked.status == "tentative" do
+                attrs
+              else
+                Map.put(
+                  attrs,
+                  :status,
+                  PlanTransition.target_for(:plan, locked.status, :change) || locked.status
+                )
+              end
+            end)
+
+          {:ok, updated} =
+            locked
+            |> SharedPlan.changeset(plan_attrs)
+            |> PlanTransition.guard_changeset(:plan, :change)
+            |> Repo.update()
+
+          audit!(
+            updated.conversation_id,
+            updated.id,
+            user_id,
+            "plan.place_type_changed",
+            %{
+              "from" => changes["from_plan_type"],
+              "to" => to_type,
+              "revision_id" => revision.id
+            },
+            trace
+          )
+
+          _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(updated, plan_version: 2)
+
+          {updated, revision}
+        else
+          nil -> Repo.rollback(:not_found)
+          # terminal?/2 returned true - the gate refuses the move.
+          true -> Repo.rollback(:invalid_status)
+          # plan_type != to_type returned false - a concurrent writer
+          # already converted this plan inside the lock window.
+          false -> Repo.rollback(:already_converted)
+        end
+      end)
+
+    case result do
+      {:ok, {updated, revision}} ->
+        broadcast_plan(
+          updated,
+          "social_flow:plan",
+          %{"plan" => plan_payload(updated), "revision" => PlanRevision.to_contract(revision)},
+          trace
+        )
+
+        _ = post_place_conversion_effects(updated, user_id)
+        {:ok, %{plan: updated, revision: revision, applied: true}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
+  B1 - the plan attrs for a place-type conversion, shared by the
+  direct writer and the revision-accept apply so the two shapes can
+  never diverge. Pure: computes row attrs + alignment from the CURRENT
+  plan; the caller owns the transaction, the gate and the revision.
+
+  To virtual: the current physical place (location string, venue map,
+  place field-state) is stashed in alignment["suspended_place"]
+  BEFORE the changeset can overwrite location with "Online".
+  To physical: the stash is restored and cleared; a plan born virtual
+  (no stash) falls back to its title as the location label and its
+  place returns to the normal place flow - never an invented venue.
+  The stored meeting_link is RETAINED on the row in both directions
+  (audit / convert-back), but the mirror stamp drops it from the
+  alignment mirror while physical, and place_projection/1 hides it
+  from every contract.
+  """
+  def place_conversion_attrs(%SharedPlan{} = plan, to_type, meeting_link, meeting_provider, now) do
+    alignment = plan.alignment || %{}
+
+    if to_type == "virtual" do
+      suspended = %{
+        "location" => plan.location,
+        "venue" => alignment["venue"],
+        "place" => alignment["place"]
+      }
+
+      link =
+        OpalCore.SocialFlow.MeetingLinks.sanitize(meeting_link) ||
+          OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+
+      provider =
+        OpalCore.SocialFlow.MeetingLinks.normalize_provider(meeting_provider) ||
+          OpalCore.SocialFlow.MeetingLinks.provider_for(link) || plan.meeting_provider
+
+      alignment =
+        alignment
+        |> Map.put("suspended_place", suspended)
+        |> stamp_place_mirror(%{
+          "plan_type" => "virtual",
+          "meeting_link" => link,
+          "meeting_provider" => provider
+        })
+
+      %{
+        plan_type: "virtual",
+        meeting_link: link,
+        meeting_provider: provider,
+        place_changed_at: now,
+        location: "Online",
+        alignment: alignment
+      }
+    else
+      suspended = alignment["suspended_place"] || %{}
+
+      location =
+        case suspended["location"] do
+          loc when is_binary(loc) and loc != "" and loc != "Online" -> loc
+          _ -> plan.title
+        end
+
+      alignment =
+        alignment
+        |> Map.delete("suspended_place")
+        |> then(fn a ->
+          if is_map(suspended["venue"]),
+            do: Map.put(a, "venue", suspended["venue"]),
+            else: Map.delete(a, "venue")
+        end)
+        |> then(fn a ->
+          if is_map(suspended["place"]),
+            do: Map.put(a, "place", suspended["place"]),
+            else: Map.delete(a, "place")
+        end)
+        |> stamp_place_mirror(%{
+          "plan_type" => "in_person",
+          "meeting_link" => nil,
+          "meeting_provider" => nil
+        })
+
+      %{
+        plan_type: "in_person",
+        # Retained on the row (dormant) - projections hide it while
+        # the plan is physical; a later convert-to-virtual reuses it.
+        meeting_link: plan.meeting_link,
+        meeting_provider: plan.meeting_provider,
+        place_changed_at: now,
+        location: location,
+        alignment: alignment
+      }
+    end
+  end
+
+  # Post-commit conversion effects (direct writer + revision accept):
+  # reminders move to the new place type and PlanCompletion re-drives
+  # so the persisted step list matches the new place. Best-effort by
+  # design - the conversion itself already committed; a failed
+  # re-drive must never un-commit it.
+  defp post_place_conversion_effects(%SharedPlan{} = plan, actor_id) do
+    if SharedPlan.virtual?(plan) do
+      already? =
+        from(r in PlanReminder,
+          where: r.plan_id == ^plan.id and r.status == "scheduled",
+          select: r.source_lineage
+        )
+        |> Repo.all()
+        |> Enum.any?(fn lineage -> is_map(lineage) and lineage["origin"] == "virtual_join" end)
+
+      unless already?, do: maybe_schedule_virtual_join_reminder(plan, actor_id)
+    else
+      # Going physical: the join reminder must not fire for a plan
+      # people now travel to.
+      join_reminders =
+        from(r in PlanReminder, where: r.plan_id == ^plan.id and r.status == "scheduled")
+        |> Repo.all()
+        |> Enum.filter(fn r -> is_map(r.source_lineage) and r.source_lineage["origin"] == "virtual_join" end)
+
+      Enum.each(join_reminders, fn r ->
+        r |> PlanReminder.changeset(%{status: "cancelled"}) |> Repo.update()
+      end)
+    end
+
+    _ = OpalCore.SocialFlow.PlanCompletion.drive(plan.id, actor_id)
+    :ok
+  rescue
+    _ -> :ok
+  end
 
   @doc """
   Repair #18 (Division A, F18-02 unification) - ONE change system.
@@ -1863,6 +2320,341 @@ defmodule OpalCore.SocialFlow do
     })
   end
 
+  # -------------------------------------------------------------------
+  # Repair #18 (Walk #4, W4-04) - END-TO-END PLAN EDITING.
+  #
+  # Before this, a plan whose title had a typo could never be corrected:
+  # no edit path existed for a plan's title or core details from any
+  # surface. This is that path, and it obeys the same laws as every
+  # other plan mutation.
+  #
+  # EDIT CONTRACT (the whole contract - nothing else is editable here):
+  #   "title"    - the plan's label. Trimmed; empty after trim is
+  #                {:error, :empty_title}; over #{120} characters is
+  #                {:error, :title_too_long} (the conversation-rename
+  #                bound). Never silently truncated.
+  #   "location" - the plan's place label (in-person plans). Trimmed;
+  #                empty is {:error, :empty_location}; over 200 chars
+  #                is {:error, :location_too_long}. A virtual plan's
+  #                location is "Online" by model law, so attempting to
+  #                set it is {:error, :location_not_editable}.
+  #   "caption"  - the graph-create caption stored in alignment and
+  #                surfaced on the plan contract. Trimmed; over 500
+  #                chars is {:error, :caption_too_long}; an empty
+  #                string CLEARS the caption (an honest clear, named
+  #                here - not a silent drop).
+  # At least one editable field must be present, else
+  # {:error, :no_changes}. Any other key is {:error, :unknown_field}.
+  #
+  # EDIT vs REVISION boundary (crisp, enforced here - not by caller
+  # discipline): an edit NEVER touches schedule. A changes map carrying
+  # a schedule-bearing field (time_label, date_label, start_at, end_at)
+  # is refused whole with {:error, :schedule_field_requires_revision} -
+  # atomically: even a valid title in the same map is NOT applied.
+  # Schedule changes remain the revision chain's (propose_revision /
+  # lead change_plan_schedule), where the other party's confirmation
+  # lives. A title typo fix needs NO other-party confirmation: the
+  # title is the lead's label for the plan, not a term the parties
+  # agreed to - exactly like the lead's direct schedule edit being the
+  # lead's act, except a label change alters no commitment at all.
+  #
+  # AUTHORITY (tightened, documented): the existing direct-edit model
+  # (cancel_plan, change_plan_schedule) is lead-only, and the revision
+  # machinery carries schedule fields only - it has no honest route
+  # for a label change. So: lead / co_lead (created_by_user_id fallback
+  # when no lead row exists, mirroring plan_lead?/2) edits directly;
+  # a participant without lead rights gets {:error, :not_authorized};
+  # a non-participant gets {:error, :not_a_member} (the controller
+  # answers 404 - existence is never revealed across accounts, the
+  # conversation-rename precedent).
+  #
+  # GATE: the write flows through PlanTransition as :edit - legal only
+  # from tentative / agreed / changed. Terminal plans (cancelled,
+  # completed, expired) refuse with {:error, :invalid_status}: their
+  # details are history. The plan's STATUS is never changed by an edit.
+  #
+  # PROJECTION: the write lands on the one SharedPlan row inside one
+  # transaction (row lock, so an edit racing a revision proposal
+  # serializes against it and can touch only its own fields), the
+  # stored dedupe stamp is refreshed from the edited row (title and
+  # location feed the dedupe subject/venue), and after commit the edit
+  # broadcasts through broadcast_plan/4 - the single choke point that
+  # also invalidates derived projections - and records a recent-change
+  # for the plan's people. Every surface reads the corrected values
+  # from the same row: plan_payload/1 (detail, lists, Graphs),
+  # HomeProjection plan cards (chats list / thread), NowStrip (home).
+  @plan_edit_title_max 120
+  @plan_edit_location_max 200
+  @plan_edit_caption_max 500
+  @plan_edit_fields ~w(title location caption)
+  @plan_schedule_fields ~w(time_label date_label start_at end_at)
+
+  def plan_edit_title_max, do: @plan_edit_title_max
+  def plan_edit_location_max, do: @plan_edit_location_max
+  def plan_edit_caption_max, do: @plan_edit_caption_max
+
+  # F12-61 pattern: a nil/non-binary plan_id is an honest
+  # {:error, :invalid}, never a crash.
+  def edit_plan_details(%{plan_id: plan_id}) when not is_binary(plan_id),
+    do: {:error, :invalid}
+
+  def edit_plan_details(%{
+        plan_id: plan_id,
+        user_id: user_id,
+        changes: changes,
+        trace_id: trace_id
+      })
+      when is_binary(user_id) and is_map(changes) do
+    trace = trace_id || @trace_default
+    changes = stringify_keys(changes)
+
+    # A junk (non-UUID) id is a guessed id - the contract is :not_found,
+    # never a CastError crash (the get_plan_for_user/2 precedent).
+    if not match?({:ok, _}, Ecto.UUID.cast(plan_id)) do
+      {:error, :not_found}
+    else
+      case validate_plan_edit_shape(changes) do
+        {:ok, fields} -> do_edit_plan_details(plan_id, user_id, changes, fields, trace)
+        {:error, _} = err -> err
+      end
+    end
+  end
+
+  def edit_plan_details(_), do: {:error, :invalid}
+
+  # Shape first (no row needed): schedule smuggling and unknown keys
+  # are refused before any state is touched.
+  defp validate_plan_edit_shape(changes) do
+    keys = Map.keys(changes)
+
+    cond do
+      Enum.any?(keys, &(&1 in @plan_schedule_fields)) ->
+        {:error, :schedule_field_requires_revision}
+
+      Enum.any?(keys, &(&1 not in @plan_edit_fields)) ->
+        {:error, :unknown_field}
+
+      keys == [] ->
+        {:error, :no_changes}
+
+      true ->
+        {:ok, keys}
+    end
+  end
+
+  defp do_edit_plan_details(plan_id, user_id, changes, fields, trace) do
+    edit_id = Ecto.UUID.generate()
+
+    case Repo.transaction(fn ->
+           plan =
+             from(p in SharedPlan, where: p.id == ^plan_id, lock: "FOR UPDATE")
+             |> Repo.one()
+
+           with %SharedPlan{} = plan <- plan,
+                :ok <- ensure_plan_access(plan, user_id),
+                :ok <- ensure_plan_editable(plan),
+                :ok <- ensure_plan_lead(plan, user_id),
+                {:ok, values} <- validate_plan_edit_values(plan, changes) do
+             alignment =
+               (plan.alignment || %{})
+               |> put_edited_caption(values)
+               |> refresh_dedupe_stamp(plan, values)
+
+             attrs =
+               %{}
+               |> maybe_put_value(:title, values)
+               |> maybe_put_value(:location, values)
+               |> Map.put(:alignment, alignment)
+
+             {:ok, plan} =
+               plan
+               |> SharedPlan.changeset(attrs)
+               |> Repo.update()
+
+             audit!(
+               plan.conversation_id,
+               plan.id,
+               user_id,
+               "plan.details_edited",
+               %{"fields" => fields, "edit_id" => edit_id},
+               trace
+             )
+
+             case Publisher.record(%{
+                    event_type: "plan.details_edited",
+                    event_id: "plan_details_edited:#{edit_id}",
+                    aggregate_type: "shared_plan",
+                    aggregate_id: plan.id,
+                    partition_key: user_id,
+                    privacy_class: "shared_authorized",
+                    purpose: "plan_edit",
+                    actor_user_id: user_id,
+                    conversation_id: plan.conversation_id,
+                    plan_id: plan.id,
+                    payload: %{"plan_id" => plan.id, "fields" => fields}
+                  }) do
+               {:ok, _} -> :ok
+               {:error, reason} -> Repo.rollback(reason)
+             end
+
+             {plan, fields}
+           else
+             nil -> Repo.rollback(:not_found)
+             {:error, reason} -> Repo.rollback(reason)
+           end
+         end) do
+      {:ok, {plan, fields}} ->
+        broadcast_plan(
+          plan,
+          "social_flow:plan",
+          %{
+            "plan" => plan_payload(plan),
+            "details_edit" => %{"fields" => fields, "actor_user_id" => user_id}
+          },
+          trace
+        )
+
+        # Repair #16 (W4, P3) discipline: a material mutation records a
+        # recent change for the plan's people, post-commit.
+        _ = PlanRecentChanges.record_details_edited(plan, "edit-#{edit_id}", fields)
+
+        {:ok, %{plan: plan}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  # The gate decides whether this plan's status may be edited at all.
+  defp ensure_plan_editable(%SharedPlan{status: status}) do
+    case PlanTransition.transition(:plan, status, :edit) do
+      {:ok, _same_status} -> :ok
+      {:error, :illegal_transition} -> {:error, :invalid_status}
+    end
+  end
+
+  defp ensure_plan_lead(%SharedPlan{} = plan, user_id) do
+    if plan_lead?(plan, user_id), do: :ok, else: {:error, :not_authorized}
+  end
+
+  # Value contract, checked against the locked row (plan_type decides
+  # whether location is editable at all). Returns {:ok, values} where
+  # values holds ONLY the fields present in the edit, normalized.
+  defp validate_plan_edit_values(%SharedPlan{} = plan, changes) do
+    with {:ok, values} <- validate_edit_title(changes, %{}),
+         {:ok, values} <- validate_edit_location(plan, changes, values),
+         {:ok, values} <- validate_edit_caption(changes, values) do
+      {:ok, values}
+    end
+  end
+
+  defp validate_edit_title(changes, values) do
+    case Map.fetch(changes, "title") do
+      :error ->
+        {:ok, values}
+
+      {:ok, title} when is_binary(title) ->
+        trimmed = String.trim(title)
+
+        cond do
+          trimmed == "" -> {:error, :empty_title}
+          not String.valid?(trimmed) -> {:error, :invalid_title}
+          String.length(trimmed) > @plan_edit_title_max -> {:error, :title_too_long}
+          true -> {:ok, Map.put(values, "title", trimmed)}
+        end
+
+      {:ok, _} ->
+        {:error, :invalid_title}
+    end
+  end
+
+  defp validate_edit_location(%SharedPlan{} = plan, changes, values) do
+    case Map.fetch(changes, "location") do
+      :error ->
+        {:ok, values}
+
+      {:ok, _} when plan.plan_type == "virtual" ->
+        # A virtual plan's location is "Online" by model law (the
+        # changeset forces it); an edit naming a place would be a lie
+        # the row cannot hold.
+        {:error, :location_not_editable}
+
+      {:ok, location} when is_binary(location) ->
+        trimmed = String.trim(location)
+
+        cond do
+          trimmed == "" -> {:error, :empty_location}
+          not String.valid?(trimmed) -> {:error, :invalid_location}
+          String.length(trimmed) > @plan_edit_location_max -> {:error, :location_too_long}
+          true -> {:ok, Map.put(values, "location", trimmed)}
+        end
+
+      {:ok, _} ->
+        {:error, :invalid_location}
+    end
+  end
+
+  defp validate_edit_caption(changes, values) do
+    case Map.fetch(changes, "caption") do
+      :error ->
+        {:ok, values}
+
+      {:ok, caption} when is_binary(caption) ->
+        trimmed = String.trim(caption)
+
+        cond do
+          not String.valid?(trimmed) -> {:error, :invalid_caption}
+          String.length(trimmed) > @plan_edit_caption_max -> {:error, :caption_too_long}
+          # "" is kept in values as the explicit CLEAR (see contract).
+          true -> {:ok, Map.put(values, "caption", trimmed)}
+        end
+
+      {:ok, _} ->
+        {:error, :invalid_caption}
+    end
+  end
+
+  defp put_edited_caption(alignment, values) do
+    case Map.fetch(values, "caption") do
+      {:ok, ""} -> Map.delete(alignment, "caption")
+      {:ok, caption} -> Map.put(alignment, "caption", caption)
+      :error -> alignment
+    end
+  end
+
+  # Title and location feed the dedupe identity (subject / venue keys),
+  # so the stored stamp is recomputed from the EDITED row - a corrected
+  # title must not leave the old typo living on as the plan's dedupe
+  # subject. The dedupe key itself excludes the subject, so the key is
+  # stable across a rename; participants are read from the row.
+  defp refresh_dedupe_stamp(alignment, %SharedPlan{} = plan, values) do
+    if (Map.has_key?(values, "title") or Map.has_key?(values, "location")) and
+         is_map(alignment["dedupe"]) do
+      edited = %SharedPlan{
+        plan
+        | title: Map.get(values, "title", plan.title),
+          location: Map.get(values, "location", plan.location)
+      }
+
+      components = plan_dedupe_components(edited)
+
+      Map.put(
+        alignment,
+        "dedupe",
+        Map.put(components, "key", PlanIdentity.dedupe_key(components))
+      )
+    else
+      alignment
+    end
+  end
+
+  defp maybe_put_value(attrs, field, values) do
+    case Map.fetch(values, Atom.to_string(field)) do
+      {:ok, value} -> Map.put(attrs, field, value)
+      :error -> attrs
+    end
+  end
+
   @doc """
   F12-02 — the `plan.change_time` intent execution contract (peer chat + Center).
 
@@ -2195,7 +2987,14 @@ defmodule OpalCore.SocialFlow do
     # from the same one counter, when the plan has participant rows.
     {:ok,
      Enum.map(plans, fn plan ->
-       payload = plan_payload(plan)
+       payload =
+         plan
+         |> plan_payload()
+         # Repair #18 (Walk #4, W4-04): the viewer's edit authority on
+         # THIS plan, from the same lead model edit_plan_details/1
+         # enforces - surfaces render the edit affordance only when the
+         # backend says this viewer may edit, never from a local guess.
+         |> Map.put("can_edit", plan_lead?(plan, user_id))
 
        case JourneyAuthority.attendance_contract(plan.id, user_id) do
          %{"viewer_state" => viewer_state} -> Map.put(payload, "viewer_state", viewer_state)
@@ -3525,6 +4324,10 @@ defmodule OpalCore.SocialFlow do
         plan_type = normalize_plan_type(params["plan_type"])
         meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(params["meeting_link"])
 
+        meeting_provider =
+          OpalCore.SocialFlow.MeetingLinks.normalize_provider(params["meeting_provider"]) ||
+            OpalCore.SocialFlow.MeetingLinks.provider_for(meeting_link)
+
         location =
           if plan_type == "virtual" do
             "Online"
@@ -3541,18 +4344,23 @@ defmodule OpalCore.SocialFlow do
           alignment =
             %{}
             |> put_alignment("area", area)
-            |> put_alignment("plan_type", plan_type)
-            |> then(fn a ->
-              if meeting_link, do: Map.put(a, "meeting_link", meeting_link), else: a
-            end)
-            |> then(fn a ->
-              if plan_type == "virtual" do
-                Map.put(a, "place", %{"state" => "locked", "value" => "Online"})
-              else
-                a
-              end
-            end)
+            |> stamp_place_mirror(%{
+              "plan_type" => plan_type,
+              "meeting_link" => meeting_link,
+              "meeting_provider" => meeting_provider
+            })
 
+            |> then(fn a ->
+              # Repair #18 (B2) \u2014 food-at-home signal passthrough.
+              if params["food_at_home"] == true or params["food_at_home"] == "true",
+                do: Map.put(a, "food_at_home", true),
+                else: a
+            end)
+            |> then(fn a ->
+              if params["food_question"] == true or params["food_question"] == "true",
+                do: Map.put(a, "food_question", true),
+                else: a
+            end)
           # Repair #18 (Division A, F18-06): stamp the dedupe identity
           # and merge into a surviving twin instead of inserting a
           # sibling - a twin in THIS conversation, or a conversation-less
@@ -3576,7 +4384,8 @@ defmodule OpalCore.SocialFlow do
             "source" => "conversation",
             "alignment" => alignment,
             "plan_type" => plan_type,
-            "meeting_link" => meeting_link
+            "meeting_link" => meeting_link,
+            "meeting_provider" => meeting_provider
           }
 
           dedupe_survivor =
@@ -3684,6 +4493,80 @@ defmodule OpalCore.SocialFlow do
   defp normalize_plan_type(t) when t in ["virtual", :virtual], do: "virtual"
   defp normalize_plan_type(_), do: "in_person"
 
+  @doc """
+  B1 - THE mirror stamp. The `shared_plans.plan_type` column is the
+  only authority for place type (see SharedPlan); this helper is the
+  only lawful writer of the alignment mirror (`plan_type`,
+  `meeting_link`, `meeting_provider`, and the Online place for
+  virtual plans - locked only inside fold-shaped alignments; a mirror
+  must never forge fold state), so fold-fed readers (HomeProjection) can never
+  disagree with column-fed readers (to_contract, lists, Journey).
+  Every create / fold-sync / conversion path stamps through here -
+  never by hand at a call site.
+
+  `source` may be a SharedPlan or a plain map with plan_type /
+  meeting_link / meeting_provider keys (string or atom).
+  """
+  def stamp_place_mirror(alignment, source) when is_map(alignment) do
+    plan_type = normalize_plan_type(source_value(source, :plan_type))
+    link = OpalCore.SocialFlow.MeetingLinks.sanitize(source_value(source, :meeting_link))
+
+    provider =
+      OpalCore.SocialFlow.MeetingLinks.normalize_provider(
+        source_value(source, :meeting_provider)
+      ) || OpalCore.SocialFlow.MeetingLinks.provider_for(link)
+
+    alignment
+    |> Map.put("plan_type", plan_type)
+    |> then(fn a -> if link, do: Map.put(a, "meeting_link", link), else: Map.delete(a, "meeting_link") end)
+    |> then(fn a ->
+      if provider, do: Map.put(a, "meeting_provider", provider), else: Map.delete(a, "meeting_provider")
+    end)
+    |> then(fn a ->
+      if plan_type == "virtual" do
+        # The mirror place shape depends on who owns the alignment.
+        # For a FOLD-shaped alignment (the fold's own state - carries
+        # lineage/schema/actions), the locked Online place is the
+        # fold's record and the fold's restore synthesis (R15) rightly
+        # re-locks it. For a NON-fold alignment (journey-activate,
+        # graph, Center births), a locked place would make the fold
+        # ADOPT a plan it does not own on the next sync - rewriting
+        # its status/creator/roster (the B1 acceptance defect) - so
+        # the mirror carries the value only, no fold state. Readers
+        # use ["place"]["value"]; the fold synthesis requires
+        # state == "locked", which a mirror must never forge.
+        if fold_shaped?(a) do
+          Map.put(a, "place", %{"state" => "locked", "value" => "Online"})
+        else
+          Map.put(a, "place", %{"value" => "Online"})
+        end
+      else
+        case get_in(a, ["place", "value"]) do
+          "Online" -> Map.delete(a, "place")
+          _ -> a
+        end
+      end
+    end)
+  end
+
+  # An alignment is fold-shaped when it already carries the fold's own
+  # state markers (written by ConversationAlignment.upsert_plan).
+  defp fold_shaped?(alignment) when is_map(alignment) do
+    is_binary(alignment["lineage_id"]) or is_integer(alignment["schema_version"]) or
+      is_list(alignment["explicit_actions"]) or is_map(alignment["participants"])
+  end
+
+  def stamp_place_mirror(alignment, _source), do: alignment
+
+  defp source_value(%SharedPlan{} = plan, :plan_type), do: plan.plan_type
+  defp source_value(%SharedPlan{} = plan, :meeting_link), do: plan.meeting_link
+  defp source_value(%SharedPlan{} = plan, :meeting_provider), do: plan.meeting_provider
+
+  defp source_value(source, key) when is_map(source),
+    do: Map.get(source, key) || Map.get(source, Atom.to_string(key))
+
+  defp source_value(_, _), do: nil
+
   defp maybe_schedule_virtual_join_reminder(%SharedPlan{plan_type: "virtual"} = plan, user_id) do
     link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
     summary = virtual_reminder_summary(plan, link)
@@ -3743,6 +4626,357 @@ defmodule OpalCore.SocialFlow do
 
   defp maybe_schedule_virtual_join_reminder(_, _), do: :ok
 
+  # --- Repair #18 (B2) — at-home food step actions -----------------------
+  # Every action runs through the plan's existing access gate and mutates
+  # ONLY the food step inside the plan's one completion map (gyroscope:
+  # no shadow store). Recipient-scoped actions touch ONLY the caller's
+  # own recipient entry — there is deliberately no parameter by which a
+  # caller names another user; organizer actions touch only shared
+  # fields (restaurant, target offset, composed flag) and NEVER a
+  # recipient's handoff or self-confirm state. Honesty law (FoodStep /
+  # FoodHandoff): nothing here can produce an order claim.
+
+  @doc "Read the plan's food step for a participant (nil when absent)."
+  def food_step_for_user(plan_id, user_id) do
+    with {:ok, plan} <- get_plan_for_user(plan_id, user_id) do
+      {:ok, plan, food_step_of(plan)}
+    end
+  end
+
+  @doc "Add/replace the CALLER's own household item list. Any participant."
+  def food_add_items(plan_id, user_id, items) when is_list(items) do
+    mutate_food_recipient(plan_id, user_id, fn step, entry ->
+      items = items |> Enum.filter(&is_binary/1) |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == "")) |> Enum.take(50)
+      entry = %{entry | "items" => items, "items_state" => if(items == [], do: "none", else: "ready")}
+      step = OpalCore.SocialFlow.FoodStep.put_recipient(step, entry)
+      step = if step["status"] in ["suggested", "declined"], do: %{step | "status" => "composing"}, else: step
+      {step, entry}
+    end)
+  end
+
+  @doc "Declare that the caller shares a household tonight with another participant (per-plan, user-stated only)."
+  def food_declare_household(plan_id, user_id, other_user_id)
+      when is_binary(other_user_id) and other_user_id != user_id do
+    mutate_food_recipient(plan_id, user_id, fn step, entry ->
+      others = step["recipients"] || []
+      other = Enum.find(others, &(&1["user_id"] == other_user_id))
+
+      if other do
+        entry = %{entry | "household_key" => other["household_key"]}
+        {OpalCore.SocialFlow.FoodStep.put_recipient(step, entry), entry}
+      else
+        {:error, :not_a_participant}
+      end
+    end)
+  end
+
+  @doc """
+  Start the CALLER's own handoff. Returns the FoodHandoff result
+  (target URL from held data, or the honest no-rail fact). Records only
+  the handoff fact on the caller's entry — never an order claim.
+  """
+  def food_start_handoff(plan_id, user_id, params \\ %{}) do
+    with {:ok, plan} <- get_plan_for_user(plan_id, user_id),
+         %{} = step <- food_step_of(plan) || {:error, :no_food_step} do
+      entry = OpalCore.SocialFlow.FoodStep.recipient(step, user_id)
+
+      if is_nil(entry) do
+        {:error, :not_a_recipient}
+      else
+        choice = params["provider_choice"] || params[:provider_choice] || entry["provider_choice"]
+
+        prepared =
+          OpalCore.SocialFlow.Execution.FoodHandoff.prepare_handoff(%{
+            "restaurant_name" => step["restaurant_name"],
+            "restaurant_website" => step["restaurant_website"],
+            "restaurant_phone" => step["restaurant_phone"],
+            "provider_choice" => choice,
+            "items" => household_items(step, entry)
+          })
+
+        case prepared do
+          {:ok, prep} ->
+            case OpalCore.SocialFlow.Execution.FoodHandoff.start_handoff(prep,
+                   user_authorized: true
+                 ) do
+              {:ok, started} ->
+                if started["handoff_started"] == true do
+                  {:ok, _, _} =
+                    mutate_food_recipient(plan_id, user_id, fn s, e ->
+                      e = %{
+                        e
+                        | "handoff_state" => "handed_off",
+                          "handed_off_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+                          "provider_choice" => choice || e["provider_choice"]
+                      }
+
+                      {OpalCore.SocialFlow.FoodStep.put_recipient(s, e), e}
+                    end)
+                end
+
+                {:ok, started}
+
+              {:error, _} = err ->
+                err
+            end
+
+          {:error, _} = err ->
+            err
+        end
+      end
+    end
+  end
+
+  @doc "The CALLER reports their own order placed (self-report only)."
+  def food_self_confirm(plan_id, user_id) do
+    mutate_food_recipient(plan_id, user_id, fn step, entry ->
+      entry = %{
+        entry
+        | "handoff_state" => "self_confirmed_done",
+          "self_confirmed_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
+      }
+
+      {OpalCore.SocialFlow.FoodStep.put_recipient(step, entry), entry}
+    end)
+  end
+
+  @doc "The CALLER opts out of ordering for this plan."
+  def food_not_ordering(plan_id, user_id) do
+    mutate_food_recipient(plan_id, user_id, fn step, entry ->
+      entry = %{entry | "handoff_state" => "not_ordering"}
+      {OpalCore.SocialFlow.FoodStep.put_recipient(step, entry), entry}
+    end)
+  end
+
+  @doc "The CALLER reports the restaurant does not deliver to them; optionally names their own alternate (visible only to them + bare rollup state)."
+  def food_could_not_deliver(plan_id, user_id, alternate \\ nil) do
+    mutate_food_recipient(plan_id, user_id, fn step, entry ->
+      entry = %{entry | "handoff_state" => "could_not_deliver", "alternate_restaurant" => alternate}
+      {OpalCore.SocialFlow.FoodStep.put_recipient(step, entry), entry}
+    end)
+  end
+
+  @doc "Organizer-only: choose the shared restaurant (name + held website/phone from a verified candidate, or a user-supplied name labeled as such)."
+  def food_select_restaurant(plan_id, user_id, attrs) when is_map(attrs) do
+    mutate_food_shared(plan_id, user_id, fn step ->
+      name = attrs["name"] || attrs[:name]
+
+      if is_binary(name) and String.trim(name) != "" do
+        step = %{
+          step
+          | "restaurant_name" => String.trim(name),
+            "restaurant_website" => attrs["website"] || attrs[:website],
+            "restaurant_phone" => attrs["phone"] || attrs[:phone],
+            "restaurant_verified" => (attrs["verified"] || attrs[:verified]) == true,
+            "status" => if(step["status"] in ["suggested", "declined"], do: "composing", else: step["status"])
+        }
+
+        {step, step}
+      else
+        {:error, :invalid_restaurant}
+      end
+    end)
+  end
+
+  @doc "Organizer-only: mark the shared list composed and set the target offset (minutes before plan start)."
+  def food_mark_composed(plan_id, user_id, offset_minutes \\ nil) do
+    mutate_food_shared(plan_id, user_id, fn step ->
+      step = %{step | "status" => "composed"}
+
+      step =
+        if is_integer(offset_minutes),
+          do: %{step | "target_offset_minutes" => offset_minutes},
+          else: step
+
+      {step, step}
+    end)
+    |> case do
+      {:ok, _, _} = ok ->
+        _ = maybe_schedule_food_order_reminders(plan_id)
+        ok
+
+      other ->
+        other
+    end
+  end
+
+  @doc "Answer the Trigger-B ask: accept promotes suggested -> composing; decline is terminal for this plan version (ask-once)."
+  def food_answer_ask(plan_id, user_id, accept?) when is_boolean(accept?) do
+    with {:ok, plan} <- get_plan_for_user(plan_id, user_id),
+         %{} = _step <- food_step_of(plan) || {:error, :no_food_step} do
+      update_food_step(plan, fn step ->
+        if step["status"] == "suggested" do
+          %{step | "status" => if(accept?, do: "composing", else: "declined"), "asked" => true}
+        else
+          step
+        end
+      end)
+    end
+  end
+
+  defp food_step_of(%SharedPlan{} = plan) do
+    steps = get_in(plan.alignment || %{}, ["completion", "steps"]) || []
+    Enum.find(steps, &(&1["id"] == "food"))
+  end
+
+  defp household_items(step, entry) do
+    (step["recipients"] || [])
+    |> Enum.filter(&(&1["household_key"] == entry["household_key"]))
+    |> Enum.flat_map(&(&1["items"] || []))
+  end
+
+  defp mutate_food_recipient(plan_id, user_id, fun) do
+    with {:ok, plan} <- get_plan_for_user(plan_id, user_id),
+         %{} = step <- food_step_of(plan) || {:error, :no_food_step} do
+      entry = OpalCore.SocialFlow.FoodStep.recipient(step, user_id)
+
+      cond do
+        is_nil(entry) ->
+          {:error, :not_a_recipient}
+
+        plan.status in ["cancelled", "completed", "expired"] ->
+          {:error, :plan_closed}
+
+        true ->
+          case fun.(step, entry) do
+            {:error, _} = err -> err
+            {new_step, result} -> update_food_step(plan, new_step, result)
+          end
+      end
+    end
+  end
+
+  defp mutate_food_shared(plan_id, user_id, fun) do
+    with {:ok, plan} <- get_plan_for_user(plan_id, user_id),
+         %{} = step <- food_step_of(plan) || {:error, :no_food_step} do
+      cond do
+        plan.created_by_user_id != user_id ->
+          {:error, :organizer_only}
+
+        plan.status in ["cancelled", "completed", "expired"] ->
+          {:error, :plan_closed}
+
+        true ->
+          case fun.(step) do
+            {:error, _} = err -> err
+            {new_step, result} -> update_food_step(plan, new_step, result)
+          end
+      end
+    end
+  end
+
+  # Single write path for food mutations: update the step inside the one
+  # completion map, re-derive the step status from recipient facts, and
+  # persist on the plan row through the changeset.
+  defp update_food_step(%SharedPlan{} = plan, fun) when is_function(fun, 1) do
+    case food_step_of(plan) do
+      nil -> {:error, :no_food_step}
+      step -> update_food_step(plan, fun.(step), step)
+    end
+  end
+
+  defp update_food_step(%SharedPlan{} = plan, %{} = new_step, result) do
+    new_step = %{
+      new_step
+      | "status" =>
+          OpalCore.SocialFlow.FoodStep.derive_status(new_step["status"], new_step["recipients"] || [])
+    }
+
+    new_step = Map.put(new_step, "rollup", food_rollup(plan, new_step))
+
+    completion = get_in(plan.alignment || %{}, ["completion"]) || %{"steps" => []}
+
+    steps =
+      Enum.map(completion["steps"] || [], fn s ->
+        if s["id"] == "food", do: new_step, else: s
+      end)
+
+    alignment = Map.put(plan.alignment || %{}, "completion", %{completion | "steps" => steps})
+
+    case plan |> SharedPlan.changeset(%{alignment: alignment}) |> Repo.update() do
+      {:ok, updated} -> {:ok, food_step_of(updated) || new_step, result}
+      {:error, _} = err -> err
+    end
+  end
+
+  defp food_rollup(%SharedPlan{} = plan, step) do
+    ids = (step["recipients"] || []) |> Enum.map(& &1["user_id"])
+
+    names =
+      from(u in OpalCore.Accounts.User, where: u.id in ^ids, select: {u.id, u.display_name})
+      |> Repo.all()
+      |> Map.new()
+
+    OpalCore.SocialFlow.FoodStep.rollup(step["recipients"] || [], names)
+    |> Map.put("copy", rollup_copy(plan, step))
+  end
+
+  defp rollup_copy(%SharedPlan{} = plan, step) do
+    recipients = step["recipients"] || []
+
+    if length(recipients) <= 1 do
+      "Your order list is ready - you place the order with the provider"
+    else
+      name = step["restaurant_name"] || "the restaurant"
+      "Order list for #{name} - your group list. You will place the actual order with the provider."
+    end
+  end
+
+  # §3.7 — one private order reminder per recipient when the step reaches
+  # composed: scheduled at (plan start - target offset - 45 min). Honest
+  # copy only; idempotent per plan + recipient + start. Never says an
+  # order exists, is placed, or is on its way.
+  defp maybe_schedule_food_order_reminders(plan_id) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{} = plan ->
+        step = food_step_of(plan)
+
+        if step && plan.start_at do
+          offset = step["target_offset_minutes"] || 30
+          target = DateTime.add(plan.start_at, -offset * 60, :second)
+          scheduled_for = DateTime.add(target, -45 * 60, :second)
+          restaurant = step["restaurant_name"] || "your"
+
+          for entry <- step["recipients"] || [] do
+            uid = entry["user_id"]
+
+            exists? =
+              from(r in PlanReminder,
+                where:
+                  r.plan_id == ^plan.id and r.owner_user_id == ^uid and
+                    fragment("? ->> 'origin' = 'food_order'", r.source_lineage),
+                select: 1,
+                limit: 1
+              )
+              |> Repo.exists?()
+
+            unless exists? do
+              %PlanReminder{}
+              |> PlanReminder.changeset(%{
+                plan_id: plan.id,
+                owner_user_id: uid,
+                visibility: "private",
+                status: "scheduled",
+                delivery_policy: "in_app",
+                content_summary:
+                  "Time to place your #{restaurant} order for #{plan.title || "your plan"} - your list is on the plan.",
+                scheduled_for: scheduled_for,
+                source_lineage: %{"origin" => "food_order", "plan_type" => "virtual"}
+              })
+              |> Repo.insert()
+            end
+          end
+
+          :ok
+        else
+          :ok
+        end
+
+      _ ->
+        :ok
+    end
+  end
+
   defp virtual_reminder_summary(%SharedPlan{} = plan, link) do
     when_bit = plan.time_label || "soon"
     base = "Join #{plan.title || "your meeting"} · #{when_bit} · Online"
@@ -3769,6 +5003,10 @@ defmodule OpalCore.SocialFlow do
     # meeting link and no Online location.
     plan_type = normalize_plan_type(params["plan_type"])
     meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(params["meeting_link"])
+
+    meeting_provider =
+      OpalCore.SocialFlow.MeetingLinks.normalize_provider(params["meeting_provider"]) ||
+        OpalCore.SocialFlow.MeetingLinks.provider_for(meeting_link)
 
     location =
       if plan_type == "virtual" do
@@ -3848,8 +5086,17 @@ defmodule OpalCore.SocialFlow do
             |> put_alignment("area", area)
             |> put_alignment("scope", "solo")
             |> put_alignment("decision_id", decision_id)
-            |> put_alignment("plan_type", plan_type)
-            |> put_alignment("subject_who", subject_who)
+            |> then(fn a ->
+              # Repair #18 (B2) \u2014 food-at-home signal passthrough.
+              if params["food_at_home"] == true or params["food_at_home"] == "true",
+                do: Map.put(a, "food_at_home", true),
+                else: a
+            end)
+            |> then(fn a ->
+              if params["food_question"] == true or params["food_question"] == "true",
+                do: Map.put(a, "food_question", true),
+                else: a
+            end)            |> put_alignment("subject_who", subject_who)
             |> then(fn a ->
               if subject_ids != [],
                 do: Map.put(a, "participant_ids", subject_ids),
@@ -3861,16 +5108,11 @@ defmodule OpalCore.SocialFlow do
               "time_label" => time_label,
               "plan_type" => plan_type
             })
-            |> then(fn a ->
-              if meeting_link, do: Map.put(a, "meeting_link", meeting_link), else: a
-            end)
-            |> then(fn a ->
-              if plan_type == "virtual" do
-                Map.put(a, "place", %{"state" => "locked", "value" => "Online"})
-              else
-                a
-              end
-            end)
+            |> stamp_place_mirror(%{
+              "plan_type" => plan_type,
+              "meeting_link" => meeting_link,
+              "meeting_provider" => meeting_provider
+            })
             |> Map.put("center_v2", true)
 
           plan_attrs = %{
@@ -3884,7 +5126,8 @@ defmodule OpalCore.SocialFlow do
             "source" => "center",
             "alignment" => alignment,
             "plan_type" => plan_type,
-            "meeting_link" => meeting_link
+            "meeting_link" => meeting_link,
+            "meeting_provider" => meeting_provider
           }
 
           Repo.transaction(fn ->
@@ -4063,6 +5306,11 @@ defmodule OpalCore.SocialFlow do
           # survivor as deduplicated - UNLESS this is an explicit
           # Repeat (source_plan_id) or force_new, which opt out by
           # naming themselves.
+          # B1 (A7): graph create carries place type like every other
+          # create path - the dedupe identity includes it, so a virtual
+          # and a physical plan with the same title are different plans.
+          graph_plan_type = normalize_plan_type(params["plan_type"])
+
           dedupe_survivor =
             if is_nil(source_plan_id) and params["force_new"] != true do
               components =
@@ -4071,7 +5319,8 @@ defmodule OpalCore.SocialFlow do
                   "location" =>
                     present_string(params["location"] || params["place"] || params["area"]) ||
                       title,
-                  "time_label" => present_string(params["time_label"]) || "Open window"
+                  "time_label" => present_string(params["time_label"]) || "Open window",
+                  "plan_type" => graph_plan_type
                 })
 
               find_dedupe_survivor(user_id, components)
@@ -4200,8 +5449,23 @@ defmodule OpalCore.SocialFlow do
   end
 
   defp insert_graph_create_plan(user_id, params, ctx) do
+    # B1 (A7) - the R14 drop bug, fixed on this path: plan_type /
+    # meeting_link / meeting_provider are read, normalized and
+    # sanitized with the same helpers as the conversation and Center
+    # paths instead of being hard-coded to in_person / nil.
+    plan_type = normalize_plan_type(params["plan_type"])
+    meeting_link = OpalCore.SocialFlow.MeetingLinks.sanitize(params["meeting_link"])
+
+    meeting_provider =
+      OpalCore.SocialFlow.MeetingLinks.normalize_provider(params["meeting_provider"]) ||
+        OpalCore.SocialFlow.MeetingLinks.provider_for(meeting_link)
+
     location =
-      present_string(params["location"] || params["place"] || params["area"]) || ctx.title
+      if plan_type == "virtual" do
+        "Online"
+      else
+        present_string(params["location"] || params["place"] || params["area"]) || ctx.title
+      end
 
     alignment =
       %{}
@@ -4231,7 +5495,13 @@ defmodule OpalCore.SocialFlow do
       |> dedupe_alignment(user_id, ctx.participant_ids, %{
         "title" => ctx.title,
         "location" => location,
-        "time_label" => present_string(params["time_label"]) || "Open window"
+        "time_label" => present_string(params["time_label"]) || "Open window",
+        "plan_type" => plan_type
+      })
+      |> stamp_place_mirror(%{
+        "plan_type" => plan_type,
+        "meeting_link" => meeting_link,
+        "meeting_provider" => meeting_provider
       })
 
     plan_attrs = %{
@@ -4244,8 +5514,9 @@ defmodule OpalCore.SocialFlow do
       "created_by_user_id" => user_id,
       "source" => "center",
       "alignment" => alignment,
-      "plan_type" => "in_person",
-      "meeting_link" => nil
+      "plan_type" => plan_type,
+      "meeting_link" => meeting_link,
+      "meeting_provider" => meeting_provider
     }
 
     Repo.transaction(fn ->
@@ -4297,6 +5568,10 @@ defmodule OpalCore.SocialFlow do
     |> case do
       {:ok, {plan, participants}} ->
         _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
+        # B1 (A7): a virtual graph create gets the join reminder, like
+        # the conversation and Center paths.
+        _ = maybe_schedule_virtual_join_reminder(plan, user_id)
 
         audit!(
           nil,

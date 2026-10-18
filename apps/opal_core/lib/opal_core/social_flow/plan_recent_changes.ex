@@ -15,6 +15,7 @@ defmodule OpalCore.SocialFlow.PlanRecentChanges do
   | lead direct schedule edit | `SocialFlow.change_plan_schedule/1` success branch | `:schedule_changed` |
   | journey material change | `JourneyAuthority.material_change/3` committed branch | `:fields_changed` (copy built from the revision's own proposed_changes) |
   | direct cancel | `SocialFlow.cancel_plan/1` success branch | `:cancelled` |
+  | lead direct details edit (title/location/caption) | `SocialFlow.edit_plan_details/1` success branch | `:details_edited` via `record_details_edited/3` |
 
   A revision REJECT, a partial approval, and a refused/illegal mutation
   mutate nothing, so they record nothing — copy must never claim a change
@@ -107,6 +108,27 @@ defmodule OpalCore.SocialFlow.PlanRecentChanges do
       end
 
     record(plan, "rev-#{revision.id}", title, explanation)
+  end
+
+  @doc """
+  Record a lead's direct plan-details edit (Repair #18, Walk #4,
+  W4-04). Copy is built ONLY from the post-edit plan row: the title
+  named is the corrected title the row now carries, and the fields
+  named are exactly the fields the edit changed - never the old
+  values, never chat text.
+  """
+  def record_details_edited(%SharedPlan{} = plan, event_key, fields)
+      when is_binary(event_key) and is_list(fields) do
+    title = display_title(plan)
+
+    explanation =
+      cond do
+        "title" in fields -> "#{title} was renamed."
+        "location" in fields -> "#{title} will now meet at #{plan.location}."
+        true -> "#{title} was updated."
+      end
+
+    record(plan, event_key, title, explanation)
   end
 
   @doc "The plan's own people: participants + creator, else conversation members."

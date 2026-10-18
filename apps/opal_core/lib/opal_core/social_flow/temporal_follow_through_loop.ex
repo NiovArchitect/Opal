@@ -11,7 +11,7 @@ defmodule OpalCore.SocialFlow.TemporalFollowThroughLoop do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @kinds ~w(waiting_on commitment open_question execution plan_approach explicit_timed memory_silence pattern_silence)
+  @kinds ~w(waiting_on commitment open_question execution plan_approach explicit_timed memory_silence pattern_silence care_check_in)
   @statuses ~w(open completed cancelled superseded resolved)
   @maturities ~w(not_yet approaching due resolved)
   @precisions ~w(date_only datetime approximate unspecified)

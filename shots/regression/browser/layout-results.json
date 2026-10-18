@@ -1,0 +1,511 @@
+{
+  "case": "W4-04-LAYOUT",
+  "at": "2026-10-18T07:54:41.538Z",
+  "status": "PASS",
+  "checks": 10,
+  "failures": [],
+  "notes": [
+    "dark: 3 interactive elements hit-tested in active layer (div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyFriday 7:30 PMUTCFrid\"); 14 backgrounded behind the layer; 1 intersection(s) in the reviewed manifest",
+    "dark reviewed intersection: button[data-testid=graph-detail-back] \"‹\" x button[data-testid=graphs-mode-people][role=tab] \"People\" -> topmost button[data-testid=graph-detail-back] \"‹\"",
+    "light: 3 interactive elements hit-tested in active layer (div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyFriday 7:30 PMUTCFrid\"); 14 backgrounded behind the layer; 1 intersection(s) in the reviewed manifest",
+    "light reviewed intersection: button[data-testid=graph-detail-back] \"‹\" x button[data-testid=graphs-mode-people][role=tab] \"People\" -> topmost button[data-testid=graph-detail-back] \"‹\""
+  ],
+  "manifests": [
+    {
+      "surface": "graph-detail-dark",
+      "url": "http://127.0.0.1:5174/?graph=74bd1b80-33d4-4ece-8aa4-5a39f9c29b52&opal_dev=1",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "activeLayer": "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyFriday 7:30 PMUTCFrid\"",
+      "interactiveCount": 3,
+      "backgroundedCount": 14,
+      "backgrounded": [
+        "button[data-testid=graphs-create-story] \"Story\"",
+        "button[data-testid=graphs-create] \"New\"",
+        "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+        "button[data-testid=graphs-mode-timeline][role=tab] \"Timeline\"",
+        "button[data-testid=graphs-lens-all] \"All\"",
+        "button[data-testid=graphs-lens-action] \"Action\"",
+        "button[data-testid=graphs-lens-ready] \"Ready\"",
+        "button[data-testid=graphs-lens-past] \"Past\"",
+        "button[data-testid=graphs-open-74bd1b80-33d4-4ece-8aa4-5a39f9c29b52] \"Juniper & IvyReadyFriday 7:30 PMRegressi\"",
+        "button[data-testid=member-tab-home] \"Home\"",
+        "button[data-testid=member-tab-chats] \"Chats2\"",
+        "button[data-testid=member-tab-opal]",
+        "button[data-testid=member-tab-graphs] \"Graphs\"",
+        "button[data-testid=member-tab-you] \"You\""
+      ],
+      "elements": [
+        {
+          "desc": "button[data-testid=graph-detail-back] \"‹\"",
+          "rect": {
+            "left": 12,
+            "top": 14,
+            "right": 52,
+            "bottom": 54,
+            "width": 40,
+            "height": 40
+          },
+          "center": {
+            "x": 32,
+            "y": 34
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "rect": {
+            "left": 12,
+            "top": 523.53125,
+            "right": 358,
+            "bottom": 579.53125,
+            "width": 346,
+            "height": 56
+          },
+          "center": {
+            "x": 185,
+            "y": 551.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "rect": {
+            "left": 12,
+            "top": 591.53125,
+            "right": 141.984375,
+            "bottom": 635.53125,
+            "width": 129.984375,
+            "height": 44
+          },
+          "center": {
+            "x": 76.9921875,
+            "y": 613.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        }
+      ],
+      "cardBoxes": [
+        "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyFriday 7:30 PMUTCFrid\""
+      ],
+      "reviewedIntersections": [
+        {
+          "a": "button[data-testid=graph-detail-back] \"‹\"",
+          "b": "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+          "point": {
+            "x": 40,
+            "y": 50
+          },
+          "topmost": "button[data-testid=graph-detail-back] \"‹\"",
+          "kind": "modal-coverage"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "surface": "graph-detail-dark-after-edit",
+      "url": "http://127.0.0.1:5174/?graph=74bd1b80-33d4-4ece-8aa4-5a39f9c29b52&opal_dev=1",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "activeLayer": "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyDinner at Juniper rmv\"",
+      "interactiveCount": 4,
+      "backgroundedCount": 31,
+      "backgrounded": [
+        "button[data-testid=graphs-create-story] \"Story\"",
+        "button[data-testid=graphs-create] \"New\"",
+        "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+        "button[data-testid=graphs-mode-timeline][role=tab] \"Timeline\"",
+        "button[data-testid=graphs-lens-all] \"All\"",
+        "button[data-testid=graphs-lens-action] \"Action\"",
+        "button[data-testid=graphs-lens-ready] \"Ready\"",
+        "button[data-testid=graphs-lens-past] \"Past\"",
+        "button[data-testid=trip-empty-new] \"New trip\"",
+        "button[data-testid=graphs-open-74bd1b80-33d4-4ece-8aa4-5a39f9c29b52] \"Juniper & IvyReadyFriday 7:30 PMRegressi\"",
+        "button[data-testid=graphs-open-b270742e-9a5e-4e6f-ab8f-c7720a4c83af] \"Debug DinerFormingFriday 7:30 PMRegressi\"",
+        "button[data-testid=graphs-open-6466c605-e2bd-4ded-a3de-c9d8ed508f7f] \"Diner at Juniper rmvdiu2a4psFormingFrida\"",
+        "button[data-testid=graphs-open-7cc70bcd-3fdb-4a78-90be-2e6fd06c4f57] \"Regression dinner rmvdipw84tfFormingSund\"",
+        "button[data-testid=graphs-open-17425ad9-10e7-4bd2-a2cc-9051904fe473] \"Doomed dinner rmvdio0blviFormingMonday 6\"",
+        "button[data-testid=graphs-open-5fd5a375-f713-4f16-b5cc-c3941555b16b] \"Final name rmvdio0blviFormingFriday 7:30\"",
+        "button[data-testid=graphs-open-c883cfdd-4c0d-47de-8bac-921853ce4737] \"Race night dinner rmvdio0blviForming8:00\"",
+        "button[data-testid=graphs-open-5748c8b5-ab81-49ca-b083-94808e1e1a03] \"Doomed dinner rmvdih7wmw1FormingMonday 6\"",
+        "button[data-testid=graphs-open-9df9ffa2-8e6e-4222-8bfd-798f2b42822b] \"Final name rmvdih7wmw1FormingFriday 7:30\"",
+        "button[data-testid=graphs-open-70058626-2289-4eba-b767-18d8f543bccd] \"Race night dinner rmvdih7wmw1Forming8:00\"",
+        "button[data-testid=graphs-open-d40c532b-11ff-4253-8ab0-9c05792df0be] \"Shared dinner rmvdigd0ge6FormingSaturday\"",
+        "button[data-testid=graphs-open-e1c0024d-43f7-41d8-80ff-6843659929f0] \"Authority dinner rmvdigd0ge6FormingFrida\"",
+        "button[data-testid=graphs-open-a9f4db9e-11bc-4fc7-a022-23a02803948a] \"Shared dinner rmvdidynplrFormingSaturday\"",
+        "button[data-testid=graphs-open-bca582fb-5661-4acc-9446-f5cad2689794] \"Authority dinner rmvdidynplrFormingFrida\"",
+        "button[data-testid=graphs-open-e7fc7401-2f64-4987-9187-8b0b367a9ad1] \"Dinner with Chanelle rmvdib3imecFormingS\"",
+        "button[data-testid=graphs-open-000b7fd9-0c2e-4fad-80a8-9fb10b3f9486] \"Saturday Crew Hike rmvdib3imecFormingSat\"",
+        "button[data-testid=graphs-open-939cd01e-7233-4aa6-afe2-4e377b066013] \"Dinner at Juniper & Ivy rmvdib3imecFormi\"",
+        "button[data-testid=member-tab-home] \"Home\"",
+        "button[data-testid=member-tab-chats] \"Chats2\"",
+        "button[data-testid=member-tab-opal]",
+        "button[data-testid=member-tab-graphs] \"Graphs\"",
+        "button[data-testid=member-tab-you] \"You\""
+      ],
+      "elements": [
+        {
+          "desc": "button[data-testid=graph-detail-back] \"‹\"",
+          "rect": {
+            "left": 12,
+            "top": 14,
+            "right": 52,
+            "bottom": 54,
+            "width": 40,
+            "height": 40
+          },
+          "center": {
+            "x": 32,
+            "y": 34
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=plan-edit-open] \"Edit details\"",
+          "rect": {
+            "left": 12,
+            "top": 134.796875,
+            "right": 124.34375,
+            "bottom": 168.796875,
+            "width": 112.34375,
+            "height": 34
+          },
+          "center": {
+            "x": 68.171875,
+            "y": 151.796875
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "rect": {
+            "left": 12,
+            "top": 595.53125,
+            "right": 358,
+            "bottom": 651.53125,
+            "width": 346,
+            "height": 56
+          },
+          "center": {
+            "x": 185,
+            "y": 623.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "rect": {
+            "left": 12,
+            "top": 663.53125,
+            "right": 141.984375,
+            "bottom": 707.53125,
+            "width": 129.984375,
+            "height": 44
+          },
+          "center": {
+            "x": 76.9921875,
+            "y": 685.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        }
+      ],
+      "cardBoxes": [
+        "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyDinner at Juniper rmv\""
+      ],
+      "reviewedIntersections": [
+        {
+          "a": "button[data-testid=graph-detail-back] \"‹\"",
+          "b": "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+          "point": {
+            "x": 40,
+            "y": 50
+          },
+          "topmost": "button[data-testid=graph-detail-back] \"‹\"",
+          "kind": "modal-coverage"
+        },
+        {
+          "a": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "b": "button[data-testid=graphs-open-6466c605-e2bd-4ded-a3de-c9d8ed508f7f] \"Diner at Juniper rmvdiu2a4psFormingFrida\"",
+          "point": {
+            "x": 220,
+            "y": 615
+          },
+          "topmost": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "kind": "modal-coverage"
+        },
+        {
+          "a": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "b": "button[data-testid=graphs-open-7cc70bcd-3fdb-4a78-90be-2e6fd06c4f57] \"Regression dinner rmvdipw84tfFormingSund\"",
+          "point": {
+            "x": 111,
+            "y": 693
+          },
+          "topmost": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "kind": "modal-coverage"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "surface": "graph-detail-light",
+      "url": "http://127.0.0.1:5174/?graph=74bd1b80-33d4-4ece-8aa4-5a39f9c29b52&opal_dev=1",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "activeLayer": "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyFriday 7:30 PMUTCFrid\"",
+      "interactiveCount": 3,
+      "backgroundedCount": 14,
+      "backgrounded": [
+        "button[data-testid=graphs-create-story] \"Story\"",
+        "button[data-testid=graphs-create] \"New\"",
+        "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+        "button[data-testid=graphs-mode-timeline][role=tab] \"Timeline\"",
+        "button[data-testid=graphs-lens-all] \"All\"",
+        "button[data-testid=graphs-lens-action] \"Action\"",
+        "button[data-testid=graphs-lens-ready] \"Ready\"",
+        "button[data-testid=graphs-lens-past] \"Past\"",
+        "button[data-testid=graphs-open-74bd1b80-33d4-4ece-8aa4-5a39f9c29b52] \"Juniper & IvyReadyFriday 7:30 PMRegressi\"",
+        "button[data-testid=member-tab-home] \"Home\"",
+        "button[data-testid=member-tab-chats] \"Chats2\"",
+        "button[data-testid=member-tab-opal]",
+        "button[data-testid=member-tab-graphs] \"Graphs\"",
+        "button[data-testid=member-tab-you] \"You\""
+      ],
+      "elements": [
+        {
+          "desc": "button[data-testid=graph-detail-back] \"‹\"",
+          "rect": {
+            "left": 12,
+            "top": 14,
+            "right": 52,
+            "bottom": 54,
+            "width": 40,
+            "height": 40
+          },
+          "center": {
+            "x": 32,
+            "y": 34
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "rect": {
+            "left": 12,
+            "top": 523.53125,
+            "right": 358,
+            "bottom": 579.53125,
+            "width": 346,
+            "height": 56
+          },
+          "center": {
+            "x": 185,
+            "y": 551.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "rect": {
+            "left": 12,
+            "top": 591.53125,
+            "right": 141.984375,
+            "bottom": 635.53125,
+            "width": 129.984375,
+            "height": 44
+          },
+          "center": {
+            "x": 76.9921875,
+            "y": 613.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        }
+      ],
+      "cardBoxes": [
+        "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyFriday 7:30 PMUTCFrid\""
+      ],
+      "reviewedIntersections": [
+        {
+          "a": "button[data-testid=graph-detail-back] \"‹\"",
+          "b": "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+          "point": {
+            "x": 40,
+            "y": 50
+          },
+          "topmost": "button[data-testid=graph-detail-back] \"‹\"",
+          "kind": "modal-coverage"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "surface": "graph-detail-light-after-edit",
+      "url": "http://127.0.0.1:5174/?graph=74bd1b80-33d4-4ece-8aa4-5a39f9c29b52&opal_dev=1",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "activeLayer": "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyDinner at Juniper rmv\"",
+      "interactiveCount": 4,
+      "backgroundedCount": 31,
+      "backgrounded": [
+        "button[data-testid=graphs-create-story] \"Story\"",
+        "button[data-testid=graphs-create] \"New\"",
+        "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+        "button[data-testid=graphs-mode-timeline][role=tab] \"Timeline\"",
+        "button[data-testid=graphs-lens-all] \"All\"",
+        "button[data-testid=graphs-lens-action] \"Action\"",
+        "button[data-testid=graphs-lens-ready] \"Ready\"",
+        "button[data-testid=graphs-lens-past] \"Past\"",
+        "button[data-testid=trip-empty-new] \"New trip\"",
+        "button[data-testid=graphs-open-74bd1b80-33d4-4ece-8aa4-5a39f9c29b52] \"Juniper & IvyReadyFriday 7:30 PMRegressi\"",
+        "button[data-testid=graphs-open-b270742e-9a5e-4e6f-ab8f-c7720a4c83af] \"Debug DinerFormingFriday 7:30 PMRegressi\"",
+        "button[data-testid=graphs-open-6466c605-e2bd-4ded-a3de-c9d8ed508f7f] \"Diner at Juniper rmvdiu2a4psFormingFrida\"",
+        "button[data-testid=graphs-open-7cc70bcd-3fdb-4a78-90be-2e6fd06c4f57] \"Regression dinner rmvdipw84tfFormingSund\"",
+        "button[data-testid=graphs-open-17425ad9-10e7-4bd2-a2cc-9051904fe473] \"Doomed dinner rmvdio0blviFormingMonday 6\"",
+        "button[data-testid=graphs-open-5fd5a375-f713-4f16-b5cc-c3941555b16b] \"Final name rmvdio0blviFormingFriday 7:30\"",
+        "button[data-testid=graphs-open-c883cfdd-4c0d-47de-8bac-921853ce4737] \"Race night dinner rmvdio0blviForming8:00\"",
+        "button[data-testid=graphs-open-5748c8b5-ab81-49ca-b083-94808e1e1a03] \"Doomed dinner rmvdih7wmw1FormingMonday 6\"",
+        "button[data-testid=graphs-open-9df9ffa2-8e6e-4222-8bfd-798f2b42822b] \"Final name rmvdih7wmw1FormingFriday 7:30\"",
+        "button[data-testid=graphs-open-70058626-2289-4eba-b767-18d8f543bccd] \"Race night dinner rmvdih7wmw1Forming8:00\"",
+        "button[data-testid=graphs-open-d40c532b-11ff-4253-8ab0-9c05792df0be] \"Shared dinner rmvdigd0ge6FormingSaturday\"",
+        "button[data-testid=graphs-open-e1c0024d-43f7-41d8-80ff-6843659929f0] \"Authority dinner rmvdigd0ge6FormingFrida\"",
+        "button[data-testid=graphs-open-a9f4db9e-11bc-4fc7-a022-23a02803948a] \"Shared dinner rmvdidynplrFormingSaturday\"",
+        "button[data-testid=graphs-open-bca582fb-5661-4acc-9446-f5cad2689794] \"Authority dinner rmvdidynplrFormingFrida\"",
+        "button[data-testid=graphs-open-e7fc7401-2f64-4987-9187-8b0b367a9ad1] \"Dinner with Chanelle rmvdib3imecFormingS\"",
+        "button[data-testid=graphs-open-000b7fd9-0c2e-4fad-80a8-9fb10b3f9486] \"Saturday Crew Hike rmvdib3imecFormingSat\"",
+        "button[data-testid=graphs-open-939cd01e-7233-4aa6-afe2-4e377b066013] \"Dinner at Juniper & Ivy rmvdib3imecFormi\"",
+        "button[data-testid=member-tab-home] \"Home\"",
+        "button[data-testid=member-tab-chats] \"Chats2\"",
+        "button[data-testid=member-tab-opal]",
+        "button[data-testid=member-tab-graphs] \"Graphs\"",
+        "button[data-testid=member-tab-you] \"You\""
+      ],
+      "elements": [
+        {
+          "desc": "button[data-testid=graph-detail-back] \"‹\"",
+          "rect": {
+            "left": 12,
+            "top": 14,
+            "right": 52,
+            "bottom": 54,
+            "width": 40,
+            "height": 40
+          },
+          "center": {
+            "x": 32,
+            "y": 34
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=plan-edit-open] \"Edit details\"",
+          "rect": {
+            "left": 12,
+            "top": 134.796875,
+            "right": 124.34375,
+            "bottom": 168.796875,
+            "width": 112.34375,
+            "height": 34
+          },
+          "center": {
+            "x": 68.171875,
+            "y": 151.796875
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "rect": {
+            "left": 12,
+            "top": 595.53125,
+            "right": 358,
+            "bottom": 651.53125,
+            "width": 346,
+            "height": 56
+          },
+          "center": {
+            "x": 185,
+            "y": 623.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        },
+        {
+          "desc": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "rect": {
+            "left": 12,
+            "top": 663.53125,
+            "right": 141.984375,
+            "bottom": 707.53125,
+            "width": 129.984375,
+            "height": 44
+          },
+          "center": {
+            "x": 76.9921875,
+            "y": 685.53125
+          },
+          "hitTest": "self",
+          "containment": []
+        }
+      ],
+      "cardBoxes": [
+        "div[data-testid=graph-detail-sheet][role=dialog] \"‹Juniper & IvyReadyDinner at Juniper rmv\""
+      ],
+      "reviewedIntersections": [
+        {
+          "a": "button[data-testid=graph-detail-back] \"‹\"",
+          "b": "button[data-testid=graphs-mode-people][role=tab] \"People\"",
+          "point": {
+            "x": 40,
+            "y": 50
+          },
+          "topmost": "button[data-testid=graph-detail-back] \"‹\"",
+          "kind": "modal-coverage"
+        },
+        {
+          "a": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "b": "button[data-testid=graphs-open-6466c605-e2bd-4ded-a3de-c9d8ed508f7f] \"Diner at Juniper rmvdiu2a4psFormingFrida\"",
+          "point": {
+            "x": 220,
+            "y": 615
+          },
+          "topmost": "button[data-testid=graph-open-directions] \"Open directions\"",
+          "kind": "modal-coverage"
+        },
+        {
+          "a": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "b": "button[data-testid=graphs-open-7cc70bcd-3fdb-4a78-90be-2e6fd06c4f57] \"Regression dinner rmvdipw84tfFormingSund\"",
+          "point": {
+            "x": 111,
+            "y": 693
+          },
+          "topmost": "button[data-testid=graph-detail-add-people] \"Add someone\"",
+          "kind": "modal-coverage"
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

@@ -36,6 +36,8 @@ export default defineConfig({
   define: {
     __OPAL_GIT_HEAD__: JSON.stringify(OPAL_GIT_HEAD),
     __OPAL_GIT_HEAD_FULL__: JSON.stringify(OPAL_GIT_HEAD_FULL),
+    /** Repair #18 C2 shell flag (track-c2 section 3.1): served build config. */
+    __OPAL_SHELL__: JSON.stringify(process.env.VITE_OPAL_SHELL ?? ""),
   },
   server: {
     // Physical iPhone WebView loads http://<LAN>:5173. CSP/CORS cannot safely

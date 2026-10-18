@@ -15,6 +15,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FounderStoryItem } from "./founderGraphSeed";
+import { TopLayer } from "./TopLayer";
 
 const IMAGE_STORY_MS = 7000;
 
@@ -212,7 +213,11 @@ export function StoryViewer({ story, stories, onClose, onReply, onShare }: Props
     pointerOriginRef.current = null;
   };
 
+  // Layout Contract L2 (W4-05): the viewer owns the screen, so it mounts
+  // through TopLayer - never inline inside a conversation or shell root,
+  // where its layer was negotiated against the dock by file order.
   return (
+    <TopLayer band="flow">
     <div
       className="story-viewer story-viewer-357-418"
       data-testid="story-viewer"
@@ -376,5 +381,6 @@ export function StoryViewer({ story, stories, onClose, onReply, onShare }: Props
         </p>
       ) : null}
     </div>
+    </TopLayer>
   );
 }

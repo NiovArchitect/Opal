@@ -110,9 +110,15 @@ defmodule OpalCore.OpalPlanConfirm do
            "time_label" => time_label || "Open window",
            "plan_type" => plan_type,
            "meeting_link" => meeting_link,
+           "meeting_provider" =>
+             MeetingLinks.normalize_provider(entities[:meeting_provider] || entities["meeting_provider"]),
            "subject_who" => who,
            "subject_user_id" => subject_user_id,
-           "decision_id" => decision_id
+           "decision_id" => decision_id,
+           # Repair #18 (B2) — food-at-home signal passthrough (additive;
+           # absent for every non-food turn, so other creates are unchanged).
+           "food_at_home" => entities[:food_at_home] || entities["food_at_home"],
+           "food_question" => entities[:food_question] || entities["food_question"]
          }) do
       {:ok, plan, _participants} ->
         _ = maybe_persist_usual_link(user_id, meeting_link, entities)

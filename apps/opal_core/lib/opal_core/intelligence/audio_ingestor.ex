@@ -24,13 +24,15 @@ defmodule OpalCore.Intelligence.AudioIngestor do
   - `:audio_url` (optional stored URL)
   - `:duration_ms`
   - `:client_message_id`
-  - `:stub_transcript` / `:stub_confidence` (tests)
+
+  HONESTY (Repair #18, BS-4): when Deepgram is not configured this
+  returns `{:disabled, "transcription not configured"}` and persists
+  NOTHING. There is no stub/canned transcript input — a caller-supplied
+  transcript is not speech and is never accepted as one.
   """
   def ingest_voice_message(audio, conversation_id, sender_id, opts \\ [])
       when is_binary(audio) and is_binary(conversation_id) and is_binary(sender_id) do
-    dg_opts =
-      opts
-      |> Keyword.take([:content_type, :stub_transcript, :stub_confidence])
+    dg_opts = Keyword.take(opts, [:content_type])
 
     with {:ok, dg} <- DeepgramClient.transcribe_batch(audio, dg_opts),
          uncertain? <- DeepgramClient.uncertain?(dg.confidence),
@@ -50,6 +52,7 @@ defmodule OpalCore.Intelligence.AudioIngestor do
          chain: chain
        }}
     else
+      {:disabled, _} = disabled -> disabled
       {:error, _} = err -> err
       other -> {:error, other}
     end

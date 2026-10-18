@@ -1148,18 +1148,70 @@ export async function listMessages(conversationId: string, bearer?: string) {
   });
 }
 
+/**
+ * Repair #18 (W4-01) — idempotency keys for human-thread sends.
+ *
+ * Walk #4: the founder pressed send repeatedly and every press
+ * became a new stored message (5 sends, 4+ identical bubbles), because
+ * the client minted a FRESH random client_message_id per HTTP call,
+ * so the server's (conversation, key) dedupe could never fire.
+ *
+ * The key is now minted ONCE per composed message — one slot per
+ * (conversation, body) — and reused by every delivery attempt of
+ * that same composed message: double-taps while the first attempt
+ * is still in flight, and tap-to-retry after a failure, all carry
+ * the same key, so the server stores the message exactly once. The
+ * slot is released when a delivery SUCCEEDS (a later, genuinely new
+ * send of the same words is a new message with a new key) and kept
+ * when a delivery FAILS, so the honest retry reuses it.
+ */
+const pendingSendKeys = new Map<string, string>();
+
+function sendKeySlot(conversationId: string, body: string) {
+  return `${conversationId}\n${body}`;
+}
+
+export function pendingSendKey(conversationId: string, body: string): string {
+  const slot = sendKeySlot(conversationId, body);
+  let key = pendingSendKeys.get(slot);
+  if (!key) {
+    key =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? `web-${crypto.randomUUID()}`
+        : `web-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    pendingSendKeys.set(slot, key);
+  }
+  return key;
+}
+
+export function settleSendKey(conversationId: string, body: string, delivered: boolean) {
+  if (delivered) {
+    pendingSendKeys.delete(sendKeySlot(conversationId, body));
+  }
+}
+
 export async function sendMessage(conversationId: string, body: string, bearer?: string) {
-  return request<{ message: ProductMessage; signals: ProductSignal[] }>(
-    `/api/v1/product/conversations/${conversationId}/messages`,
-    {
-      method: "POST",
-      bearer: resolveBearer(bearer),
-      body: JSON.stringify({
-        body,
-        client_message_id: `web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      }),
-    },
-  );
+  const clientMessageId = pendingSendKey(conversationId, body);
+  try {
+    const res = await request<{ message: ProductMessage; signals: ProductSignal[] }>(
+      `/api/v1/product/conversations/${conversationId}/messages`,
+      {
+        method: "POST",
+        bearer: resolveBearer(bearer),
+        body: JSON.stringify({
+          body,
+          client_message_id: clientMessageId,
+        }),
+      },
+    );
+    settleSendKey(conversationId, body, true);
+    return res;
+  } catch (e) {
+    // Keep the slot: a retry of this same composed message must
+    // reuse the same key so the server can dedupe it.
+    settleSendKey(conversationId, body, false);
+    throw e;
+  }
 }
 
 /** Slice #1 — durable read cursor for unread badges. */
@@ -3869,6 +3921,224 @@ export async function skipProfileGap(personId: string, bearer?: string) {
   );
 }
 
+/**
+ * Repair #18 B3 — circle check-in sweep.
+ * Backend: CheckinController + SocialFlow.Checkin. Division C
+ * interface law: every surface renders the ONE server projection
+ * below and never re-derives the rollup. The organizer summary and
+ * the member view are distinct explicit outputs of the same GET.
+ */
+export type CheckinSourceKind =
+  | "conversation"
+  | "plan"
+  | "family_context"
+  | "relationship_set";
+
+export type CheckinSweepView = {
+  id: string;
+  source_kind: CheckinSourceKind;
+  source_ref_id: string | null;
+  source_fallback: string | null;
+  circle_label: string;
+  status: "open" | "complete" | "closed" | string;
+  prompt_theme: string | null;
+  created_at: string | null;
+  expires_at: string | null;
+  closed_at: string | null;
+  close_reason: string | null;
+  next_sweep_allowed_at: string | null;
+};
+
+export type CheckinCounts = {
+  asked_total: number;
+  answered: number;
+  declined_or_passed: number;
+  withdrawn: number;
+  not_ok: number;
+  still_waiting: number;
+  not_askable: number;
+};
+
+export type CheckinMemberRow = {
+  user_id: string;
+  display_name: string | null;
+  response_status: "asked" | "answered" | "declined" | "passed" | "withdrawn" | string;
+  okay: "ok" | "not_ok" | "unstated" | null;
+  where_text: string | null;
+  needs_text: string | null;
+  free_text: string | null;
+  shared_area: { label: string | null; lat: number | null; lon: number | null; shared_at: string | null } | null;
+  responded_at: string | null;
+  updated_at: string | null;
+  answer_source: "card" | "center_text" | null;
+  delivery_state: string;
+};
+
+export type CheckinOrganizerSummary = {
+  view: "organizer";
+  sweep: CheckinSweepView;
+  counts: CheckinCounts;
+  members: CheckinMemberRow[];
+  not_askable_names: string[];
+  not_askable_note: string | null;
+  minor_note: string | null;
+  copy: { headline: string; still_waiting_line: string };
+};
+
+export type CheckinAskCopy = {
+  title: string;
+  body: string;
+  theme_line: string | null;
+  organizer_name: string | null;
+  circle_label: string;
+  fields: {
+    okay_label: string;
+    where_label: string;
+    needs_label: string;
+    share_area_label: string;
+    share_area_subcopy: string;
+    decline_label: string;
+  };
+};
+
+export type CheckinMemberView = {
+  view: "member";
+  sweep: CheckinSweepView;
+  organizer_name: string | null;
+  ask: CheckinAskCopy;
+  my_response: {
+    status: string;
+    okay: string | null;
+    where_text: string | null;
+    needs_text: string | null;
+    free_text: string | null;
+    shared_area: CheckinMemberRow["shared_area"];
+    responded_at: string | null;
+    updated_at: string | null;
+  } | null;
+  closed_copy: string | null;
+};
+
+export type CheckinProjection = CheckinOrganizerSummary | CheckinMemberView;
+
+export type CheckinSource = {
+  source_kind: CheckinSourceKind;
+  source_ref_id?: string | null;
+  source_filter?: Record<string, unknown> | null;
+};
+
+function checkinSourceBody(source: CheckinSource) {
+  return {
+    source_kind: source.source_kind,
+    ...(source.source_ref_id ? { source_ref_id: source.source_ref_id } : {}),
+    ...(source.source_filter ? { source_filter: source.source_filter } : {}),
+  };
+}
+
+export async function createCheckin(
+  source: CheckinSource,
+  opts: { promptTheme?: string | null; expiresInHours?: number; idempotencyKey: string },
+  bearer?: string,
+) {
+  return request<{ checkin: CheckinOrganizerSummary; created?: boolean; already_open?: boolean }>(
+    "/api/v1/product/checkins",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        ...checkinSourceBody(source),
+        idempotency_key: opts.idempotencyKey,
+        ...(opts.promptTheme ? { prompt_theme: opts.promptTheme } : {}),
+        ...(opts.expiresInHours ? { expires_in_hours: opts.expiresInHours } : {}),
+      }),
+    },
+  );
+}
+
+export async function getCheckin(sweepId: string, bearer?: string) {
+  return request<{ checkin: CheckinProjection; view: string }>(
+    `/api/v1/product/checkins/${encodeURIComponent(sweepId)}`,
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+export type CheckinRespondAttrs = {
+  okay?: "ok" | "not_ok";
+  where_text?: string;
+  needs_text?: string;
+  decline?: boolean;
+  pass?: boolean;
+  share_area?: boolean;
+  lat?: number;
+  lon?: number;
+  area_label?: string;
+};
+
+export async function respondCheckin(sweepId: string, attrs: CheckinRespondAttrs, bearer?: string) {
+  return request<{ responded: boolean; checkin?: CheckinProjection }>(
+    `/api/v1/product/checkins/${encodeURIComponent(sweepId)}/respond`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(attrs),
+    },
+  );
+}
+
+export async function closeCheckin(sweepId: string, bearer?: string) {
+  return request<{ checkin: CheckinOrganizerSummary; closed: boolean }>(
+    `/api/v1/product/checkins/${encodeURIComponent(sweepId)}/close`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
+export async function withdrawCheckin(sweepId: string, bearer?: string) {
+  return request<{ withdrawn: boolean }>(
+    `/api/v1/product/checkins/${encodeURIComponent(sweepId)}/withdraw`,
+    { method: "POST", bearer: resolveBearer(bearer), body: JSON.stringify({}) },
+  );
+}
+
+export type CheckinSuggestion = {
+  kind: "checkin_sweep";
+  circle_key: string;
+  copy: string;
+  action_label: string;
+  dismissible: boolean;
+};
+
+export async function getCheckinForSource(source: CheckinSource, bearer?: string) {
+  const params = new URLSearchParams({ source_kind: source.source_kind });
+  if (source.source_ref_id) params.set("source_ref_id", source.source_ref_id);
+  // The relationship_set filter decides which circle this is; dropping
+  // it would resolve the row against the wrong (latest) family sweep.
+  if (source.source_filter) {
+    for (const [k, v] of Object.entries(source.source_filter)) {
+      if (typeof v === "string") params.set(`source_filter[${k}]`, v);
+      else if (Array.isArray(v)) {
+        v.forEach((item, i) => {
+          if (typeof item === "string") params.set(`source_filter[${k}][${i}]`, item);
+        });
+      }
+    }
+  }
+  return request<{
+    checkin: CheckinOrganizerSummary | null;
+    suggestion: CheckinSuggestion | null;
+    next_sweep_allowed_at: string | null;
+  }>(`/api/v1/product/checkins/for-source?${params.toString()}`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function dismissCheckinSuggestion(source: CheckinSource, bearer?: string) {
+  return request<{ dismissed: boolean }>("/api/v1/product/checkins/suggest-dismiss", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(checkinSourceBody(source)),
+  });
+}
+
 export async function deleteCelebration(id: string, bearer?: string) {
   return request<{ celebration: Celebration; deleted: boolean }>(
     `/api/v1/product/celebrations/${encodeURIComponent(id)}`,
@@ -4185,6 +4455,8 @@ export type OpalPlanContract = {
   title: string;
   status: string;
   location?: string | null;
+  plan_type?: string;
+  online?: boolean;
   time_label?: string | null;
   source?: string;
   created_by_user_id?: string;
@@ -4204,7 +4476,94 @@ export type OpalPlanContract = {
   viewer_state?: string | null;
   /** Repair #18 - F18-03 conflict object, or null when no overlap. */
   conflict?: PlanConflictContract;
+  /**
+   * Repair #18 (W4-04) - the viewer's edit authority on this plan, from
+   * the backend's lead model (list payloads only). Surfaces render the
+   * edit affordance only when this is true; never guessed locally.
+   */
+  can_edit?: boolean;
+  plan_type?: string | null;
+  meeting_link?: string | null;
+  online?: boolean;
+  /** Repair #18 (B2) — completion record from the one projection. */
+  completion?: {
+    driven_at?: string | null;
+    steps: Array<Record<string, unknown> & { id: string; status: string }>;
+  } | null;
 };
+
+/** Repair #18 (B2) — food step client. Handoff only: these calls compose
+ * the group's own order list and start the caller's OWN handoff. No call
+ * places an order, charges anything, or returns a confirmation. */
+export type FoodHandoffResult = {
+  state?: string;
+  handoff_url?: string | null;
+  target_kind?: string;
+  label?: string;
+  no_rail_reason?: string;
+  ordered: false;
+  provider_confirmed: false;
+  claim?: string;
+  copy?: string;
+};
+
+const foodBase = (planId: string) =>
+  `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/food`;
+
+export async function fetchFoodCapability(bearer?: string) {
+  return request<Record<string, unknown>>("/api/v1/product/opal/food/capability", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function foodAddItems(planId: string, items: string[], bearer?: string) {
+  return request<{ food_step: Record<string, unknown> }>(`${foodBase(planId)}/items`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ items }),
+  });
+}
+
+export async function foodStartHandoff(
+  planId: string,
+  providerChoice?: string | null,
+  bearer?: string,
+) {
+  return request<FoodHandoffResult>(`${foodBase(planId)}/handoff`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ provider_choice: providerChoice ?? undefined }),
+  });
+}
+
+export async function foodSelfConfirm(planId: string, bearer?: string) {
+  return request<{ food_step: Record<string, unknown> }>(`${foodBase(planId)}/self-confirm`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({}),
+  });
+}
+
+export async function foodNotOrdering(planId: string, bearer?: string) {
+  return request<{ food_step: Record<string, unknown> }>(`${foodBase(planId)}/not-ordering`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({}),
+  });
+}
+
+export async function foodCouldNotDeliver(
+  planId: string,
+  alternateRestaurant?: string | null,
+  bearer?: string,
+) {
+  return request<{ food_step: Record<string, unknown> }>(`${foodBase(planId)}/could-not-deliver`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ alternate_restaurant: alternateRestaurant ?? undefined }),
+  });
+}
 
 /**
  * Repair #16 — durable GraphCreateFlow completion (non-post graph drafts).
@@ -4255,6 +4614,73 @@ export async function listOpalPlans(bearer?: string) {
     method: "GET",
     bearer: resolveBearer(bearer),
   });
+}
+
+/**
+ * Repair #18 (W4-04) - edit ONE plan's title / core details.
+ *
+ *   PATCH /api/v1/product/opal/plans/:id
+ *         body { title?, location?, caption? }
+ *         -> { ok, plan: OpalPlanContract }   (the SAME plan_payload
+ *             shape the listing renders, so callers re-render from the
+ *             returned plan with no second fetch - the conversation
+ *             rename precedent)
+ *         404 not_found for unknown/foreign ids; 403 not_authorized
+ *         for participants without lead rights; 422 with errors.<field>
+ *         messages for blank / over-length values; 422
+ *         schedule_field_requires_revision when a schedule field is
+ *         sent (schedule changes are revisions, not edits).
+ *
+ * Only the fields the caller actually sends are included in the body:
+ * an absent field is an untouched field.
+ */
+export async function patchOpalPlan(
+  planId: string,
+  changes: { title?: string; location?: string; caption?: string },
+  bearer?: string,
+) {
+  const body: Record<string, string> = {};
+  if (typeof changes.title === "string") body.title = changes.title;
+  if (typeof changes.location === "string") body.location = changes.location;
+  if (typeof changes.caption === "string") body.caption = changes.caption;
+  return request<{ ok: boolean; plan: OpalPlanContract }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}`,
+    {
+      method: "PATCH",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+/**
+ * Repair #18 (W4-04) - the server's own message from a plan-edit
+ * rejection: the 422 field message for `field` when one was sent, else
+ * the top-level message (403 authority / schedule-boundary copy), else
+ * null. Callers show this verbatim inline; they never invent a
+ * substitute.
+ */
+export function opalPlanEditError(
+  error: unknown,
+  field: "title" | "location" | "caption" = "title",
+): string | null {
+  if (!error || typeof error !== "object") return null;
+  const errors = (error as { errors?: unknown }).errors;
+  if (errors && typeof errors === "object") {
+    const fieldErrors = (errors as Record<string, unknown>)[field];
+    if (Array.isArray(fieldErrors)) {
+      const first = fieldErrors.find(
+        (t): t is string => typeof t === "string" && t !== "",
+      );
+      if (first) return first;
+    }
+  }
+  // request() carries the backend's own message on serverMessage; the
+  // Error message itself is a humanized rewrite and is only a fallback.
+  const serverMessage = (error as { serverMessage?: unknown }).serverMessage;
+  if (typeof serverMessage === "string" && serverMessage !== "") return serverMessage;
+  const message = (error as { message?: unknown }).message;
+  return typeof message === "string" && message !== "" ? message : null;
 }
 
 /** Paste K — Lives (placed-only), stickers, venue pay. */

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createInvitation, normalizePhoneInput } from "../api/productClient";
+import { TopLayer } from "../opalUi/TopLayer";
 import { ContactSuggestPicker } from "./ContactSuggestPicker";
 import { shouldUseNativeContactsBridge } from "../nativeHostBridge";
 
@@ -174,9 +175,11 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     setStatus("Sending invitation…");
     try {
       let lastShare: string | null = null;
+      let created = 0;
       for (const person of selected) {
         if (!person.phone) {
-          setStatus(`${person.label} saved by name. Invite when their number is available.`);
+          // Name-only selection: there is nothing to send to. Skipping is
+          // honest; claiming an invitation below would not be (W4-05).
           continue;
         }
         const res = await createInvitation(
@@ -186,10 +189,20 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
           bearer,
           person.source === "manual" ? "manual" : "selected_contact",
         );
+        created += 1;
         const token = (res as { share?: { token?: string } }).share?.token;
         if (token) {
           lastShare = `${window.location.origin}/?invite=${encodeURIComponent(token)}`;
         }
+      }
+      if (created === 0) {
+        // HONEST GATE (W4-05): no invitation exists - never show the
+        // "Invitation ready" success state. Stay on confirm and say why.
+        setStatus(null);
+        setError(
+          "Nothing was sent. The selected people have no phone number yet - add a number to send an invitation.",
+        );
+        return;
       }
       setShareUrl(lastShare);
       setMode("done");
@@ -226,7 +239,13 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
     }
   };
 
+  // Layout Contract L2 (W4-05): this surface owns the screen, so it
+  // mounts through TopLayer. Rendered inline inside .app, the shell's
+  // `.app > *` rule demoted it to position:relative / z-index:1 - it
+  // painted in-flow at the top of the YOU pane, off-viewport from the
+  // tapped row ("Grow your circle" appeared to do nothing).
   return (
+    <TopLayer band="sheet">
     <div className="find-people-overlay" role="dialog" aria-modal="true" aria-labelledby="find-people-title">
       <div className="find-people-sheet lumen-card">
         <header className="find-people-header">
@@ -422,6 +441,7 @@ export function FindPeopleFlow({ open, onClose, bearer, onInvited }: Props) {
         ) : null}
       </div>
     </div>
+    </TopLayer>
   );
 }
 

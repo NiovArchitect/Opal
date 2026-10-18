@@ -20,15 +20,38 @@ defmodule OpalCore.Messages do
     TrustSafety
   }
 
+  # Repair #18 (W4-01) - no-key duplicate window: a send that carries
+  # NO client_message_id and repeats a message the same sender already
+  # stored in this conversation with an identical body inside this
+  # many seconds is a transport duplicate (double-tap / retry storm),
+  # not a new message. It returns the original delivery and applies
+  # no state twice. The window is deliberately tight: an intentional
+  # repeat of the same words seconds apart in the same thread is
+  # indistinguishable from a duplicate delivery, and the honest
+  # surface for it is the original message, once.
+  @no_key_dedupe_window_seconds 10
+
+  @doc "Seconds within which an identical no-key send collapses to the original delivery (W4-01)."
+  def no_key_dedupe_window_seconds, do: @no_key_dedupe_window_seconds
+
   @doc """
   Accepts a minimal message for a conversation member.
 
-  Idempotent on `{conversation_id, client_message_id}`.
+  Idempotent on `{conversation_id, client_message_id}` when the
+  caller supplies a key (the key is scoped to the conversation AND
+  the sender: a key another sender already used in this conversation
+  is an `{:error, :idempotency_conflict}`, never a replay of their
+  message). When NO key is supplied, an identical send by the same
+  sender in the same conversation inside the no-key dedupe window
+  collapses to the original delivery the same way. Keyless sends
+  outside that signature insert under a server-minted key.
   """
   def accept_message(attrs) when is_map(attrs) do
     conversation_id = fetch_attr!(attrs, :conversation_id)
     sender_user_id = fetch_attr!(attrs, :sender_user_id)
-    client_message_id = fetch_attr!(attrs, :client_message_id)
+
+    client_message_id =
+      Map.get(attrs, :client_message_id) || Map.get(attrs, "client_message_id")
 
     with :ok <- ensure_member(conversation_id, sender_user_id),
          :ok <- ensure_not_blocked_in_conversation(conversation_id, sender_user_id) do
@@ -38,15 +61,67 @@ defmodule OpalCore.Messages do
       # spam budget. Previously the throttles ran first, so a retry after
       # a throttle rejection could be throttled again on a message that
       # was already safely stored - the user's words lost silently.
-      case get_by_client_id(conversation_id, client_message_id) do
-        %Message{} = existing ->
+      # Repair #18 (W4-01) extends the same rule to keyless rapid
+      # duplicates and scopes the key lookup to the sender.
+      case dedupe_existing(conversation_id, sender_user_id, client_message_id, attrs) do
+        {:existing, %Message{} = existing} ->
           {:ok, existing, :idempotent}
 
-        nil ->
+        :conflict ->
+          {:error, :idempotency_conflict}
+
+        :none ->
           with :ok <- ensure_message_rate_limit(sender_user_id),
                :ok <- ensure_spam_throttle(sender_user_id, conversation_id) do
-            insert_message(attrs, conversation_id, sender_user_id, client_message_id)
+            insert_message(
+              attrs,
+              conversation_id,
+              sender_user_id,
+              client_message_id || "srv-#{Ecto.UUID.generate()}"
+            )
           end
+      end
+    end
+  end
+
+  # W4-01 dedupe lookup. With a caller key: the stored row under
+  # (conversation, key) is this sender's original delivery, another
+  # sender's row (a collision - never replayed across accounts), or
+  # nothing. Without a key: the sender's own identical message inside
+  # the rapid-duplicate window, or nothing.
+  defp dedupe_existing(conversation_id, sender_user_id, client_message_id, _attrs)
+       when is_binary(client_message_id) and client_message_id != "" do
+    case get_by_client_id(conversation_id, client_message_id) do
+      %Message{sender_user_id: ^sender_user_id} = existing -> {:existing, existing}
+      %Message{} -> :conflict
+      nil -> :none
+    end
+  end
+
+  defp dedupe_existing(conversation_id, sender_user_id, _no_key, attrs) do
+    body = Map.get(attrs, :body) || Map.get(attrs, "body") || ""
+    message_type = Map.get(attrs, :message_type) || Map.get(attrs, "message_type") || "text"
+
+    if body == "" or message_type != "text" do
+      :none
+    else
+      cutoff =
+        DateTime.utc_now()
+        |> DateTime.add(-@no_key_dedupe_window_seconds, :second)
+
+      existing =
+        from(m in Message,
+          where:
+            m.conversation_id == ^conversation_id and m.sender_user_id == ^sender_user_id and
+              m.body == ^body and m.inserted_at >= ^cutoff,
+          order_by: [desc: m.server_seq],
+          limit: 1
+        )
+        |> Repo.one()
+
+      case existing do
+        %Message{} = message -> {:existing, message}
+        nil -> :none
       end
     end
   end
@@ -207,13 +282,22 @@ defmodule OpalCore.Messages do
   end
 
   # Prefer the newest active plan for list projection; cancelled/completed stay in history.
+  # Repair #18 (W4-01): the Chats list projects the thread's fold
+  # plan, never a separate new-plan lineage the intent gate created
+  # alongside it (same preference as
+  # ConversationAlignment.active_plan_for_conversation/1) - the
+  # surfaces must agree about which plan is the thread's current one.
   defp current_plan(conversation_id) do
-    from(p in SharedPlan,
-      where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
-      order_by: [desc: p.updated_at, desc: p.inserted_at],
-      limit: 1
-    )
-    |> Repo.one()
+    plans =
+      from(p in SharedPlan,
+        where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at]
+      )
+      |> Repo.all()
+
+    Enum.find(plans, fn plan ->
+      get_in(plan.alignment || %{}, ["origin"]) != "chat_new_plan"
+    end) || List.first(plans)
   end
 
   @doc """
@@ -675,8 +759,17 @@ defmodule OpalCore.Messages do
 
       {:error, :idempotent_race} ->
         case get_by_client_id(conversation_id, client_message_id) do
-          %Message{} = existing -> {:ok, existing, :idempotent}
-          nil -> {:error, :idempotent_race_unresolved}
+          # W4-01: the race winner is only this sender's duplicate when
+          # the sender matches; another sender's row under the same key
+          # is a conflict, never a cross-account replay.
+          %Message{sender_user_id: ^sender_user_id} = existing ->
+            {:ok, existing, :idempotent}
+
+          %Message{} ->
+            {:error, :idempotency_conflict}
+
+          nil ->
+            {:error, :idempotent_race_unresolved}
         end
 
       {:error, reason} ->

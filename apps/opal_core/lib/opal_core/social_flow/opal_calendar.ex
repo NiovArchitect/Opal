@@ -51,7 +51,25 @@ defmodule OpalCore.SocialFlow.OpalCalendar do
           plan_version: version,
           participant_user_ids: participant_ids,
           created_from_alignment: true,
-          metadata: %{"projected_at" => DateTime.to_iso8601(now)}
+          # B1 (A10): place type rides the commitment metadata
+          # (additive map keys, no migration) so downstream consumers
+          # - reminders above all - can tell join from travel. The
+          # meeting link is carried only while the plan is virtual;
+          # a physical plan's dormant link never projects.
+          metadata:
+            %{"projected_at" => DateTime.to_iso8601(now)}
+            |> Map.put("plan_type", plan.plan_type || "in_person")
+            |> then(fn m ->
+              if plan.plan_type == "virtual" do
+                Map.put(
+                  m,
+                  "meeting_link",
+                  OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+                )
+              else
+                m
+              end
+            end)
         })
       end)
 

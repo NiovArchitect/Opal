@@ -26,6 +26,41 @@ defmodule OpalCore.Center.DependencyPlanner do
   def build(planning) when is_map(planning) do
     c = stringify(planning)
 
+    # B1 (A5): a virtual Center plan's room IS its destination. Venue,
+    # travel, lodging and reservation are not_applicable - never
+    # pending questions - and the one real dependency is the meeting
+    # link (resolved when a link or the user's usual link exists).
+    if c["plan_type"] == "virtual" do
+      who? = present?(c["who"] || c["primary_person"] || c["participants"])
+      when? = present?(c["when"] || c["when_resolved"])
+      link? = present?(c["meeting_link"]) or present?(c["usual_meeting_link"])
+
+      return = %{
+        "people" =>
+          cond do
+            who? -> "resolved"
+            c["solo"] == true -> "not_applicable"
+            true -> "pending"
+          end,
+        "when" => if(when?, do: "resolved", else: "pending"),
+        "destination" => "not_applicable",
+        "availability" => if(who?, do: "pending", else: "not_applicable"),
+        "venue" => "not_applicable",
+        "travel" => "not_applicable",
+        "lodging" => "not_applicable",
+        "work_conflict" => "pending",
+        "reservation" => "not_applicable",
+        "reveal_invite" => "not_applicable",
+        "meeting_link" => if(link?, do: "resolved", else: "pending")
+      }
+
+      return
+    else
+      build_physical(c)
+    end
+  end
+
+  defp build_physical(c) do
     who? = present?(c["who"] || c["primary_person"] || c["participants"])
     when? = present?(c["when"] || c["when_resolved"])
     venue? = present?(c["venue"]) and c["venue_cancelled"] != true
@@ -100,6 +135,22 @@ defmodule OpalCore.Center.DependencyPlanner do
     status = build(planning)
     c = stringify(planning)
 
+    # B1 (A5): for a virtual plan the only place-shaped dependency is
+    # the meeting link - surface it (with the existing honest ask)
+    # ahead of the physical trip order, which is all not_applicable.
+    if c["plan_type"] == "virtual" and status["meeting_link"] == "pending" and
+         status["when"] == "resolved" do
+      %{
+        "id" => "meeting_link",
+        "prompt" => "Want to use your usual meeting link, or paste one when you have it?"
+      }
+    else
+      next_after_physical(planning, status, c, just_resolved)
+    end
+  end
+
+  defp next_after_physical(planning, status, c, just_resolved) do
+
     # After venue selection, never ask destination — venue/locality already known.
     # Prefer travel only when travel is applicable; otherwise no destination prompt.
     ordered =
@@ -140,6 +191,9 @@ defmodule OpalCore.Center.DependencyPlanner do
     dest = c["destination"]
 
     cond do
+      # B1 (A5): a virtual plan's "Online" destination is not a place
+      # and never classifies as travel.
+      c["plan_type"] == "virtual" -> "local_activity"
       c["travel_required"] == true or c["wants_travel"] == true -> "destination_travel"
       multi_day?(c) -> "trip"
       is_binary(dest) and distant_destination?(dest, c) -> "destination_travel"

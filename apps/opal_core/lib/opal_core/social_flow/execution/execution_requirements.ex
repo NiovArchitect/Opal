@@ -12,18 +12,28 @@ defmodule OpalCore.SocialFlow.Execution.ExecutionRequirements do
     a = stringify(attrs)
     type = plan_type(a)
 
+    # B1 (A3): place type arrives under the explicit "place_kind" key,
+    # separate from the activity taxonomy in "plan_type" (a virtual
+    # DINNER carries plan_type "dinner" and place_kind "virtual").
+    # A virtual place never needs navigation, and a virtual dinner
+    # never needs a table reservation - there is no venue.
+    place_kind = a["place_kind"]
+    virtual_place? = place_kind == "virtual" or type in ~w(virtual call)
+
     reservation? =
-      a["reservation_needed"] == true or
-        type in ~w(dinner restaurant) or
-        a["reservation_support"] == true or
-        a["opentable_slug"] not in [nil, ""]
+      not (virtual_place? and type in ~w(dinner restaurant)) and
+        (a["reservation_needed"] == true or
+           type in ~w(dinner restaurant) or
+           a["reservation_support"] == true or
+           a["opentable_slug"] not in [nil, ""])
 
     ticket? =
       a["ticket_needed"] == true or type in ~w(concert event sports) or
         a["ticket_support"] == true
 
     navigation? =
-      a["navigation_useful"] != false and
+      not virtual_place? and
+        a["navigation_useful"] != false and
         (is_binary(a["destination"] || a["place"] || a["place_label"]) or
            type not in ~w(virtual call))
 
@@ -39,6 +49,7 @@ defmodule OpalCore.SocialFlow.Execution.ExecutionRequirements do
     {:ok,
      %{
        "plan_type" => type,
+       "place_kind" => place_kind || if(type in ~w(virtual call), do: "virtual", else: "in_person"),
        "reservation_needed" => reservation? and not park_or_house?(type, a),
        "ticket_needed" => ticket?,
        "navigation_useful" => navigation?,

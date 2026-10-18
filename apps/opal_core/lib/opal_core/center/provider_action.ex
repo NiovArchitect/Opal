@@ -51,6 +51,19 @@ defmodule OpalCore.Center.ProviderAction do
     dest_ok? =
       exact? or (is_binary(destination) and String.trim(destination) != "")
 
+    # B1 (A6): a places search for a virtual plan is a search for a
+    # non-place - refuse it at the door, whoever the caller is.
+    if is_binary(plan_id) and
+         match?(%SharedPlan{plan_type: "virtual"}, Repo.get(SharedPlan, plan_id)) do
+      {:error, :plan_is_virtual}
+    else
+      start_places_search_checked(attrs, user_id, conversation_id, destination, planning, plan_id, search_mode, requested_venue, requested_locality, origin_source, origin_lat, origin_lon, exact?, dest_ok?)
+    end
+  end
+
+  defp start_places_search_checked(attrs, user_id, conversation_id, destination, planning, plan_id, search_mode, requested_venue, requested_locality, origin_source, origin_lat, origin_lon, exact?, dest_ok?) do
+    device_origin? = is_number(origin_lat) and is_number(origin_lon)
+
     with true <- is_binary(user_id),
          true <- dest_ok? do
       geography =
@@ -199,6 +212,11 @@ defmodule OpalCore.Center.ProviderAction do
                "area" => dest,
                "time_label" => when_s,
                "subject_who" => who_label,
+               # B1 (A6): forward place type - dropping it here was the
+               # F14-04 bug pattern, live on this path.
+               "plan_type" => planning["plan_type"],
+               "meeting_link" => planning["meeting_link"],
+               "meeting_provider" => planning["meeting_provider"],
                "decision_id" => planning["opportunity_fingerprint"] || planning["decision_id"]
              }) do
           {:ok, plan, _} ->
@@ -230,7 +248,16 @@ defmodule OpalCore.Center.ProviderAction do
 
     with true <- is_binary(name) and String.trim(name) != "",
          {:ok, plan_id, planning2} <- ensure_plan(user_id, planning),
-         %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id) do
+         %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+         # B1 (A6): attaching a physical venue to a virtual plan would
+         # split the record (title/alignment claim a venue, the row
+         # claims Online). Refuse - converting back to in-person is
+         # the lawful path, then attach.
+         :ok <-
+           if(plan.plan_type == "virtual",
+             do: {:error, :plan_is_virtual},
+             else: :ok
+           ) do
       dest = planning2["destination"] || plan.location
       address = venue["address"] || venue[:address]
       location = if is_binary(address) and address != "", do: "#{name} · #{address}", else: name

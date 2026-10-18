@@ -51,6 +51,47 @@ defmodule OpalCore.SocialFlow.PlanExecution do
   """
   def readiness(plan_id, opts \\ []) when is_binary(plan_id) do
     with {:ok, plan, alignment} <- load_plan(plan_id) do
+      if OpalCore.SocialFlow.SharedPlan.virtual?(plan) do
+        # B1 (A9): a virtual plan's execution readiness is JOIN
+        # readiness - never a PlaceIdentity lookup on "Online", never
+        # a reservation claim. Link present = ready to join; link
+        # missing = needs link.
+        link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+        ready? = is_binary(link)
+
+        {:ok,
+         %{
+           "plan_id" => plan.id,
+           "conversation_id" => plan.conversation_id,
+           "plan_version" => alignment["plan_version"] || 0,
+           "settled" => true,
+           "status" => if(ready?, do: "join_ready", else: "needs_link"),
+           "place_identity" => nil,
+           "capabilities" => %{},
+           "maps_handoff_url" => nil,
+           "presentation" => %{
+             "label" => if(ready?, do: "Ready to join online", else: "Add a meeting link to join"),
+             "tone" => if(ready?, do: "join_ready", else: "needs_link"),
+             "reserve_control" => false
+           },
+           "live_booking_claimed" => false,
+           "false_reservation_success" => false,
+           "place_projection" => OpalCore.SocialFlow.SharedPlan.place_projection(plan),
+           "provider" => %{"reservation" => %{"available" => false}, "place" => %{"source" => "virtual"}}
+         }}
+      else
+        readiness_physical(plan, alignment, opts)
+      end
+    end
+  end
+
+  # The pre-B1 physical readiness body, unchanged - extracted so the
+  # virtual short-circuit above never runs its PlaceIdentity pipeline.
+  defp readiness_physical(plan, alignment, opts) do
+    _ = opts
+    begin_physical = fn -> {:ok, plan, alignment} end
+
+    with {:ok, plan, alignment} <- begin_physical.() do
       place_name = get_in(alignment, ["place", "value"])
       identity = identity_from_alignment(alignment, place_name)
       identity = maybe_synthetic_bind(identity, opts)

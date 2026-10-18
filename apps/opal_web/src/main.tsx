@@ -12,6 +12,11 @@ import {
 /* Repair #18: the layer registry loads FIRST - every other stylesheet
  * references its --layer-* tokens and defines no z-index values. */
 import "./theme/layerTokens.css";
+/* Repair #18 Division C: new design tokens + C1 surfaces. Every rule is
+ * scoped under [data-design="r18"], so the R17 fallback face is untouched
+ * when the design flag is off (C1 section 10 reversibility). */
+import "./theme/c2Tokens.css";
+import "./opalUi/c1/c1.css";
 import "./styles.css";
 import "./theme/technicolorProduction.css";
 /**
@@ -25,10 +30,43 @@ import "./theme/technicolorProduction.css";
 import "./theme/spectralTokens.css";
 /** Paste W: shared Opal composer + plan-state tokens (after Brand V4 cascade). */
 import "./theme/opalComposerTokens.css";
+/**
+ * Repair #18 C2: the global token system (@layer c2). Its semantic names
+ * are new, so the R17 face is untouched unless the C2 shell flag mounts
+ * C2 surfaces; data-mode is stamped pre-paint by public/c2-boot.js on
+ * the C2 path only.
+ */
+import "./theme/c2Tokens.css";
+import "./c2/c2.css";
+import { applyStoredC2Mode, installC2ModeSystemListener } from "./theme/c2Mode";
+import { isC2ShellEnabled } from "./theme/c2Shell";
+import { C2_ASSETS } from "./brand/c2Identity";
+/* Repair #18 / Walk #4: THE LAYOUT CONTRACT loads LAST - its containment,
+ * thread-composition, and chrome-band rules win over every earlier sheet.
+ * (Integration ruling: the contract is the integrated law; the C2 token
+ * layer loads immediately before it.) */
+import "./theme/layoutContract.css";
 
 /** Appearance before React paint — data-theme + color-scheme on <html>. */
 applyStoredAppearanceTheme();
 installAppearanceSystemListener();
+
+/** C2 mode + icon slots, C2 shell path only (fallback never reads these). */
+if (isC2ShellEnabled()) {
+  document.documentElement.setAttribute("data-shell", "c2");
+  applyStoredC2Mode();
+  installC2ModeSystemListener();
+  try {
+    const swapIcon = (selector: string, href: string) => {
+      const el = document.querySelector(selector);
+      if (el) el.setAttribute("href", href);
+    };
+    swapIcon('link[rel="apple-touch-icon"]', C2_ASSETS.appIcon180);
+    swapIcon('link[rel="icon"][sizes="48x48"]', C2_ASSETS.appIcon180);
+  } catch {
+    /* icon swap is cosmetic; never block boot */
+  }
+}
 
 /**
  * Checkpoint-specific founder URL law:

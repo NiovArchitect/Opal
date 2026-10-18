@@ -20,6 +20,7 @@ defmodule OpalCore.Center.PlanContextPatch do
     opportunity_fingerprint discovery_request
     when_time_explicit when_explicit conversation_act
     explicit_constraints
+    plan_type meeting_link meeting_provider
   )
 
   @doc """
@@ -166,6 +167,34 @@ defmodule OpalCore.Center.PlanContextPatch do
           "primary_person" => "__clear__",
           "participants" => "__clear__"
         })
+      else
+        patch
+      end
+
+    # B1 (A5): virtual markers in the utterance settle the planning
+    # context's place type durably ("video dinner", "online game
+    # night", "on Zoom", a pasted meeting link). The link is extracted
+    # and sanitized - never invented.
+    patch =
+      if Regex.match?(
+           ~r/\bvideo\s+(?:call|dinner|lunch|breakfast|coffee|chat|game|hangout|date|meeting)\b|\bonline\s+(?:dinner|lunch|breakfast|coffee|game|hangout|date|meeting|call|class|lesson)\b|\bvirtual\b|\bzoom\b|\bgoogle\s*meet\b|\bteams\b|\bfacetime\b|\bmove\b[^.]*\bonline\b/i,
+           raw
+         ) or
+           is_binary(OpalCore.SocialFlow.MeetingLinks.extract_from_text(raw)) do
+        link = OpalCore.SocialFlow.MeetingLinks.extract_from_text(raw)
+
+        patch
+        |> Map.put("plan_type", "virtual")
+        |> then(fn p ->
+          if link, do: Map.put(p, "meeting_link", link), else: p
+        end)
+        |> then(fn p ->
+          case OpalCore.SocialFlow.MeetingLinks.provider_from_text(raw) ||
+                 OpalCore.SocialFlow.MeetingLinks.provider_for(link) do
+            nil -> p
+            provider -> Map.put(p, "meeting_provider", provider)
+          end
+        end)
       else
         patch
       end

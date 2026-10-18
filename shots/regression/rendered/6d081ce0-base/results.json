@@ -1,0 +1,203 @@
+{
+  "stage": "repair18-rendered-regression",
+  "web_base": "http://127.0.0.1:5373",
+  "api_base": "http://127.0.0.1:4300",
+  "api_rewrite": "browser-context rewrite of /api to OPAL_API_BASE (Vite proxy target :4000 held by another process locally; see lib/browser.mjs)",
+  "build_tag": "6d081ce0-base",
+  "at": "2026-10-18T08:51:39.860Z",
+  "results": [
+    {
+      "id": "W4-02",
+      "title": "Thread composition: Next Together overlap, pill over bubbles, banner through header, clipped fragment",
+      "theme": "rendered-layering",
+      "class": "R (rendered)",
+      "surfaces": [
+        "thread",
+        "Next Together strip",
+        "thread header"
+      ],
+      "status": "FAIL",
+      "checks": 3,
+      "failures": [
+        {
+          "surface": "W4-02",
+          "message": "dark: member shell did not load for rendered case"
+        },
+        {
+          "surface": "light thread: load",
+          "message": "thread with a plan must load in the rendered client"
+        }
+      ],
+      "notes": [],
+      "ms": 195701,
+      "shotsDir": "/home/hatch/workspace/opal-graph/wt-reg-c-rendered/shots/regression/rendered/6d081ce0-base/cases/w4-02"
+    },
+    {
+      "id": "W4-03",
+      "title": "Card integrity: attendance line cut off, title losing its first letter, stray background shape",
+      "theme": "rendered-card-integrity",
+      "class": "R (rendered)",
+      "surfaces": [
+        "Graphs list",
+        "graph detail",
+        "Home plan cards"
+      ],
+      "status": "FAIL",
+      "checks": 80,
+      "failures": [
+        {
+          "surface": "dark graphs-list: card fits content",
+          "message": "card graphs-card-seed-chanelle-juniper clips its content: scrollHeight=178 clientHeight=90 (\"Juniper & IvyReadySaturday · 7:30 PM · ChanelleReady · leave 6:55Juniper & Ivy ·\")"
+        },
+        {
+          "surface": "dark graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-chanelle-juniper bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "dark graphs-list: card fits content",
+          "message": "card graphs-card-seed-alex-graph-gallery clips its content: scrollHeight=157 clientHeight=90 (\"Mexico CityAlignedTrip Graph · AlexMemory · stay taking shapeRooftop lights · Ne\")"
+        },
+        {
+          "surface": "dark graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-alex-graph-gallery bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "dark graphs-list: card fits content",
+          "message": "card graphs-card-seed-maya-graph-coast clips its content: scrollHeight=136 clientHeight=90 (\"Farmers market + coastFormingSaturday · after 10 · MayaForming · coast if clearF\")"
+        },
+        {
+          "surface": "dark graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-maya-graph-coast bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "dark graphs-list: card fits content",
+          "message": "card graphs-card-seed-near-rooftop clips its content: scrollHeight=134 clientHeight=90 (\"Rooftop JazzIdeaSaved idea · nearbyOpen · no one asked yetStart planning\")"
+        },
+        {
+          "surface": "dark graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-near-rooftop bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Juniper & Ivy · Sat · 7:30\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Rooftop lights · Next week\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Japan someday · Someday\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Open: Still settling the table time\" (client 250x17 vs scroll 250x17, cls=graphs-card-open-loop)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-alex-graph-gallery clips text \"Rooftop lights · Next week\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-alex-graph-gallery clips text \"Mexico City trip · Trip Graph\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-alex-graph-gallery clips text \"Open: Stay taking shape\" (client 250x17 vs scroll 250x17, cls=graphs-card-open-loop)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-maya-graph-coast clips text \"Farmers market + coast · Saturday · after 10\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-maya-graph-coast clips text \"Open: Coast if clear, still open\" (client 250x17 vs scroll 250x17, cls=graphs-card-open-loop)"
+        },
+        {
+          "surface": "dark graphs-list: full text visible",
+          "message": "card graphs-card-seed-near-rooftop clips text \"Start planning\" (client 133x42 vs scroll 133x42, cls=btn graphs-start-planning)"
+        },
+        {
+          "surface": "light graphs-list: card fits content",
+          "message": "card graphs-card-seed-chanelle-juniper clips its content: scrollHeight=178 clientHeight=90 (\"Juniper & IvyReadySaturday · 7:30 PM · ChanelleReady · leave 6:55Juniper & Ivy ·\")"
+        },
+        {
+          "surface": "light graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-chanelle-juniper bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "light graphs-list: card fits content",
+          "message": "card graphs-card-seed-alex-graph-gallery clips its content: scrollHeight=157 clientHeight=90 (\"Mexico CityAlignedTrip Graph · AlexMemory · stay taking shapeRooftop lights · Ne\")"
+        },
+        {
+          "surface": "light graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-alex-graph-gallery bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "light graphs-list: card fits content",
+          "message": "card graphs-card-seed-maya-graph-coast clips its content: scrollHeight=136 clientHeight=90 (\"Farmers market + coastFormingSaturday · after 10 · MayaForming · coast if clearF\")"
+        },
+        {
+          "surface": "light graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-maya-graph-coast bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "light graphs-list: card fits content",
+          "message": "card graphs-card-seed-near-rooftop clips its content: scrollHeight=134 clientHeight=90 (\"Rooftop JazzIdeaSaved idea · nearbyOpen · no one asked yetStart planning\")"
+        },
+        {
+          "surface": "light graphs-list: no background bleed",
+          "message": "absolutely-positioned element inside card graphs-card-seed-near-rooftop bleeds outside the card (offsets L-41 R-295 T27 B-37, cls=graphs-timeline-dot) - the stray background shape"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Juniper & Ivy · Sat · 7:30\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Rooftop lights · Next week\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Japan someday · Someday\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-chanelle-juniper clips text \"Open: Still settling the table time\" (client 250x17 vs scroll 250x17, cls=graphs-card-open-loop)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-alex-graph-gallery clips text \"Rooftop lights · Next week\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-alex-graph-gallery clips text \"Mexico City trip · Trip Graph\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-alex-graph-gallery clips text \"Open: Stay taking shape\" (client 250x17 vs scroll 250x17, cls=graphs-card-open-loop)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-maya-graph-coast clips text \"Farmers market + coast · Saturday · after 10\" (client 250x17 vs scroll 250x17, cls=graphs-card-upcoming)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-maya-graph-coast clips text \"Open: Coast if clear, still open\" (client 250x17 vs scroll 250x17, cls=graphs-card-open-loop)"
+        },
+        {
+          "surface": "light graphs-list: full text visible",
+          "message": "card graphs-card-seed-near-rooftop clips text \"Start planning\" (client 133x42 vs scroll 133x42, cls=btn graphs-start-planning)"
+        }
+      ],
+      "notes": [
+        "dark graphs-list (plan cards): no cards matched [data-testid=\"plan-shared-card\"], [data-testid=\"plan-converging-card\"] (optional selector this run)",
+        "dark: graphs-list cards measured: 10",
+        "light graphs-list (plan cards): no cards matched [data-testid=\"plan-shared-card\"], [data-testid=\"plan-converging-card\"] (optional selector this run)",
+        "light: graphs-list cards measured: 10"
+      ],
+      "ms": 39373,
+      "shotsDir": "/home/hatch/workspace/opal-graph/wt-reg-c-rendered/shots/regression/rendered/6d081ce0-base/cases/w4-03"
+    }
+  ]
+}

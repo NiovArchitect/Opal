@@ -77,7 +77,13 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
       nil ->
         {:error, :not_found}
 
-      %SharedPlan{status: "cancelled"} ->
+      %SharedPlan{status: "cancelled"} = plan ->
+        # Repair #18 (B3) - S1 signal: a cancelled plan is one of the
+        # two lawful producers of a check-in sweep suggestion. The
+        # suggestion module runs the full proactive gate stack; with
+        # the opt-in off (the default) this records a suppression and
+        # sends nothing.
+        _ = OpalCore.SocialFlow.CheckinSuggestion.maybe_suggest_for_plan(plan, :plan_cancelled)
         {:ok, %{plan_id: plan_id, steps: []}}
 
       %SharedPlan{} = plan ->
@@ -85,10 +91,13 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
           []
           |> drive_calendar(plan)
           |> drive_restaurants(plan, actor_id)
+          |> drive_join_link(plan)
+          |> drive_food(plan, actor_id)
           |> drive_ride_and_directions(plan)
           |> drive_follow_through(plan, actor_id)
           |> drive_coming_up(plan)
           |> drive_proactive_anchor(plan)
+          |> drive_checkin_suggestion(plan)
 
         persist_completion(plan, steps)
         {:ok, %{plan_id: plan.id, steps: steps}}
@@ -114,6 +123,22 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
   # option_selected / decision_id): the venue decision is made, discovery
   # would be a redundant second search.
   defp drive_restaurants(steps, %SharedPlan{} = plan, actor_id) do
+    # Repair #18 (B1 A4 + B2, integration ruling): a virtual plan NEVER
+    # enters physical discovery - its location is the literal "Online",
+    # and searching Geoapify for "Online" burns a provider job on a
+    # non-place. The step is emitted with the explicit status
+    # "skipped_virtual" (B1's presence-audit contract: the completion
+    # record states the skip; an absent step would be an ambiguous
+    # output). No provider job is ever started - B2's safety property.
+    # The food step owns restaurant selection for at-home plans.
+    if plan_type(plan) == "virtual" do
+      steps ++ [%{"id" => "restaurants", "status" => "skipped_virtual"}]
+    else
+      drive_restaurants_physical(steps, plan, actor_id)
+    end
+  end
+
+  defp drive_restaurants_physical(steps, %SharedPlan{} = plan, actor_id) do
     alignment = plan.alignment || %{}
     venue_name = get_in(alignment, ["venue", "name"])
 
@@ -122,6 +147,11 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
         alignment["option_selected"] == true or is_binary(alignment["decision_id"])
 
     cond do
+      # B1 (A4): a virtual plan has no geography - never burn a
+      # provider search on the string "Online".
+      plan_type(plan) == "virtual" ->
+        steps ++ [%{"id" => "restaurants", "status" => "skipped_virtual"}]
+
       venue_chosen? ->
         steps
 
@@ -186,7 +216,10 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
           ]
       end
 
-    if is_binary(venue_name) and String.trim(venue_name) != "" do
+    # B1 (A4): directions are physical-only. A plan converted to
+    # virtual may still carry a suspended venue in its alignment -
+    # it must never re-emit a directions offer for it.
+    if plan_type(plan) != "virtual" and is_binary(venue_name) and String.trim(venue_name) != "" do
       where =
         if is_binary(address) and address != "",
           do: "#{venue_name} · #{address}",
@@ -203,6 +236,131 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
     else
       steps
     end
+  end
+
+  # Repair #18 (B2) — the join step: the at-home plan's place is a link.
+  # Virtual plans only; absent entirely for in-person plans. Reads the
+  # sanitized link ONLY — never generates, guesses, or repairs one. The
+  # step carries the URL's host, never the full URL (the plan contract
+  # is the one source for the link itself).
+  # Integration ruling: this is the ONE join step. B1's drive_join
+  # (same step, provider-only shape) is retired into this function,
+  # which now also carries B1's "provider" field.
+  defp drive_join_link(steps, %SharedPlan{} = plan) do
+    if plan_type(plan) == "virtual" do
+      link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+
+      provider =
+        OpalCore.SocialFlow.MeetingLinks.normalize_provider(plan.meeting_provider) ||
+          OpalCore.SocialFlow.MeetingLinks.provider_for(link)
+
+      case link do
+        link when is_binary(link) ->
+          host =
+            case URI.parse(link) do
+              %URI{host: h} when is_binary(h) -> h
+              _ -> nil
+            end
+
+          steps ++
+            [%{"id" => "join", "status" => "link_ready", "host" => host, "provider" => provider}]
+
+        _ ->
+          steps ++
+            [
+              %{
+                "id" => "join",
+                "status" => "link_missing",
+                "copy" => "Add the meeting link and I will put Join on the plan for everyone.",
+                "provider" => provider
+              }
+            ]
+      end
+    else
+      steps
+    end
+  end
+
+  # Repair #18 (B2) — the food step (design §2.2/§3). Virtual plans only,
+  # trigger-gated: an explicit food signal composes; a meal-shaped plan
+  # gets ONE ask (`suggested`, ask-once per plan version); anything else
+  # gets no step at all. Recipient state from the prior completion record
+  # is carried across re-drives verbatim — re-driving never resets a
+  # person's handoff or self-report, and never promotes one either.
+  alias OpalCore.SocialFlow.FoodStep
+
+  defp drive_food(steps, %SharedPlan{} = plan, actor_id) do
+    cond do
+      plan_type(plan) != "virtual" ->
+        steps
+
+      true ->
+        prior = prior_food_step(plan)
+        trigger = if prior, do: :existing, else: FoodStep.trigger(plan)
+
+        cond do
+          trigger == :none ->
+            steps
+
+          match?(%DateTime{}, canonical_start(plan)) and
+              DateTime.compare(canonical_start(plan), DateTime.utc_now()) == :lt and
+              is_nil(prior) ->
+            steps ++ [%{"id" => "food", "status" => "skipped_past", "recipients" => []}]
+
+          true ->
+            ids = participant_ids(plan, actor_id)
+            recipients = FoodStep.merge_recipients(prior && prior["recipients"], ids)
+
+            base =
+              cond do
+                prior && prior["status"] in ["declined"] -> "declined"
+                prior -> prior["status"] || "composing"
+                trigger == :explicit -> "composing"
+                trigger in [:question, :meal_shaped] -> "suggested"
+                true -> "composing"
+              end
+
+            base =
+              if base in ["handed_off", "self_confirmed"],
+                do: "composed",
+                else: base
+
+            step = %{
+              "id" => "food",
+              "status" => FoodStep.derive_status(base, recipients),
+              "restaurant_name" => prior && prior["restaurant_name"],
+              "restaurant_website" => prior && prior["restaurant_website"],
+              "restaurant_phone" => prior && prior["restaurant_phone"],
+              "restaurant_verified" => (prior && prior["restaurant_verified"]) || false,
+              "target_offset_minutes" => (prior && prior["target_offset_minutes"]) || 30,
+              "asked" => (prior && prior["asked"]) || false,
+              "recipients" => recipients
+            }
+
+            names =
+              from(u in OpalCore.Accounts.User,
+                where: u.id in ^ids,
+                select: {u.id, u.display_name}
+              )
+              |> Repo.all()
+              |> Map.new()
+
+            step = Map.put(step, "rollup", FoodStep.rollup(recipients, names))
+
+            steps ++ [step]
+        end
+    end
+  rescue
+    e ->
+      require Logger
+
+      Logger.warning("B2 drive_food failed: #{inspect(e)}")
+      steps ++ [%{"id" => "food", "status" => "failed", "reason" => "food_drive_error"}]
+  end
+
+  defp prior_food_step(%SharedPlan{} = plan) do
+    steps = get_in(plan.alignment || %{}, ["completion", "steps"]) || []
+    Enum.find(steps, &(&1["id"] == "food"))
   end
 
   # (e) — Repair #15 (Track H): the missing TemporalFollowThrough producer.
@@ -240,7 +398,17 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
                "metadata" => %{
                  "plan_status" => plan.status,
                  "title" => plan.title,
-                 "place_unresolved" => not venue_named?(plan)
+                 # B1 (A4): for a virtual plan the place IS resolved -
+                 # it is the room. The unresolved signal is a missing
+                 # join link, never a missing venue.
+                 "place_unresolved" =>
+                   if(plan_type(plan) == "virtual",
+                     do: false,
+                     else: not venue_named?(plan)
+                   ),
+                 "join_link_missing" =>
+                   plan_type(plan) == "virtual" and
+                     is_nil(OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link))
                },
                "idempotency_key" =>
                  "plan-approach:#{plan.id}:#{version}:#{DateTime.to_unix(start)}"
@@ -358,6 +526,37 @@ defmodule OpalCore.SocialFlow.PlanCompletion do
 
   # Suppression reasons are atoms for ProactiveConversation's own gates
   # and tuples for AttentionBudget denials ({:attention_budget, reason}).
+  # (h) — Repair #18 (B3): the S1 check-in sweep suggestion. Fires
+  # only for a plan that is now virtual (the lockdown shape: the
+  # gathering just became a stay-home situation). The full gate stack
+  # lives in CheckinSuggestion; this step only reports the outcome,
+  # exactly like the proactive anchor step (g).
+  defp drive_checkin_suggestion(steps, %SharedPlan{} = plan) do
+    if plan.plan_type == "virtual" do
+      case OpalCore.SocialFlow.CheckinSuggestion.maybe_suggest_for_plan(plan, :plan_virtual) do
+        {:ok, _result} ->
+          steps ++ [%{"id" => "checkin_suggestion", "status" => "initiated"}]
+
+        {:suppressed, reason} ->
+          steps ++
+            [
+              %{
+                "id" => "checkin_suggestion",
+                "status" => "suppressed",
+                "reason" => reason_label(reason)
+              }
+            ]
+
+        _ ->
+          steps ++ [%{"id" => "checkin_suggestion", "status" => "failed"}]
+      end
+    else
+      steps
+    end
+  rescue
+    _ -> steps ++ [%{"id" => "checkin_suggestion", "status" => "failed"}]
+  end
+
   defp reason_label(reason) when is_atom(reason), do: to_string(reason)
   defp reason_label(reason), do: inspect(reason)
 

@@ -1,0 +1,255 @@
+{
+  "shots": [
+    "old-splash1-dark",
+    "old-splash2-dark",
+    "new-splash1-dark",
+    "new-splash2-dark",
+    "new-onboarding-phone-dark",
+    "new-splash1-light",
+    "new-splash2-light",
+    "new-onboarding-phone-light",
+    "new-center-dark",
+    "new-home-dark",
+    "new-home-createsheet-dark",
+    "new-graphs-dark",
+    "new-you-dark",
+    "new-center-light",
+    "new-home-light",
+    "new-home-createsheet-light",
+    "new-graphs-light",
+    "new-you-light",
+    "review-home-dark",
+    "review-graphs-dark",
+    "review-detail-dark",
+    "review-center-dark",
+    "review-you-dark",
+    "review-settings-notifications-dark",
+    "review-settings-appearance-dark",
+    "review-onboarding-dark",
+    "review-home-light",
+    "review-graphs-light",
+    "review-detail-light",
+    "review-center-light",
+    "review-you-light",
+    "review-settings-notifications-light",
+    "review-settings-appearance-light",
+    "review-onboarding-light",
+    "review-graphs-dark-grayscale",
+    "pair-splash1",
+    "pair-splash2"
+  ],
+  "assertions": [
+    {
+      "name": "splash1-enter-opal-count-dark",
+      "pass": true
+    },
+    {
+      "name": "splash2-enter-opal-count-dark",
+      "pass": true
+    },
+    {
+      "name": "splash1-enter-opal-count-light",
+      "pass": true
+    },
+    {
+      "name": "splash2-enter-opal-count-light",
+      "pass": true
+    },
+    {
+      "name": "story-chooser-hittest-dark",
+      "found": true,
+      "hitIsRow": true,
+      "inViewport": true,
+      "sheetInBody": true,
+      "pass": true
+    },
+    {
+      "name": "story-chooser-hittest-light",
+      "found": true,
+      "hitIsRow": true,
+      "inViewport": true,
+      "sheetInBody": true,
+      "pass": true
+    },
+    {
+      "name": "graphs-no-truncation",
+      "pass": true,
+      "cardsChecked": 5,
+      "detail": [
+        {
+          "cardClipped": false,
+          "fields": {
+            ".c2-plan-title": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Dinner at Juniper and Ivy with everyone from the old neighborhood crew plus two visiting cousins"
+            },
+            ".c2-plan-when": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Fri, Oct 23 at 8:00 PM"
+            },
+            ".c2-plan-where": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Juniper and Ivy, North Park, the long table by the window near the kitchen pass"
+            },
+            ".c2-plan-attendance": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "2 of 5 going"
+            }
+          }
+        },
+        {
+          "cardClipped": false,
+          "fields": {
+            ".c2-plan-title": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Beach walk and coffee after"
+            },
+            ".c2-plan-when": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Time not set yet."
+            },
+            ".c2-plan-where": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Oceanside Pier"
+            }
+          }
+        },
+        {
+          "cardClipped": false,
+          "fields": {
+            ".c2-plan-title": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Sunday reset brunch"
+            },
+            ".c2-plan-when": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Sun, Oct 25 at 11:00 AM"
+            },
+            ".c2-plan-attendance": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "1 of 3 going"
+            }
+          }
+        },
+        {
+          "cardClipped": false,
+          "fields": {
+            ".c2-plan-title": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Rooftop Jazz"
+            },
+            ".c2-plan-when": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Tonight at 8 PM"
+            },
+            ".c2-plan-where": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Zilker Park Rooftop"
+            },
+            ".c2-plan-attendance": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "12 going"
+            }
+          }
+        },
+        {
+          "cardClipped": false,
+          "fields": {
+            ".c2-plan-title": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Dinner at Juniper and Ivy"
+            },
+            ".c2-plan-when": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Thu, Oct 22 at 7:30 PM"
+            },
+            ".c2-plan-where": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "Juniper and Ivy, North Park"
+            },
+            ".c2-plan-attendance": {
+              "clippedY": false,
+              "clippedX": false,
+              "text": "3 of 4 going"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "brightness": [
+    {
+      "label": "night-splash1",
+      "meanLightnessPct": 15.2,
+      "pctPixelsAbove17": 11.4,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "label": "night-splash2",
+      "meanLightnessPct": 14.6,
+      "pctPixelsAbove17": 12.2,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "label": "night-onboarding-phone",
+      "meanLightnessPct": 14.1,
+      "pctPixelsAbove17": 8.2,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "label": "night-center",
+      "meanLightnessPct": 9.7,
+      "pctPixelsAbove17": 4.4,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "label": "night-home",
+      "meanLightnessPct": 9.5,
+      "pctPixelsAbove17": 3.7,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "label": "night-graphs",
+      "meanLightnessPct": 9.8,
+      "pctPixelsAbove17": 6,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "label": "night-you",
+      "meanLightnessPct": 13.4,
+      "pctPixelsAbove17": 9.6,
+      "sampledPixels": 82290,
+      "width": 390,
+      "height": 844
+    }
+  ]
+}

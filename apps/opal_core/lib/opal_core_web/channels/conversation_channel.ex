@@ -152,6 +152,17 @@ defmodule OpalCoreWeb.ConversationChannel do
             push(socket, "message:failed", fail)
             {:reply, {:error, fail}, socket}
 
+          {:error, :idempotency_conflict} ->
+            fail =
+              error_envelope(
+                "idempotency_conflict",
+                "That send key was already used by another sender in this conversation",
+                trace_id
+              )
+
+            push(socket, "message:failed", fail)
+            {:reply, {:error, fail}, socket}
+
           {:error, reason} ->
             fail = error_envelope("message_failed", inspect(reason), trace_id)
             push(socket, "message:failed", fail)

@@ -56,6 +56,10 @@ defmodule OpalCore.Intelligence.CallTranscription do
       content_type: Map.get(attrs, :content_type) || Map.get(attrs, "content_type") || "audio/wav"
     ]
 
+    # Repair #18 BS-4: an unconfigured Deepgram returns
+    # {:disabled, "transcription not configured"} from transcribe_batch,
+    # which this `with` passes through untouched — no fabricated
+    # transcript is ingested or surfaced as a key moment.
     with {:ok, dg} <- DeepgramClient.transcribe_batch(audio, opts),
          resolved <- resolve_speakers(dg.segments, attrs),
          {:ok, event} <- ingest_call_event(call_id, dg, resolved, attrs),

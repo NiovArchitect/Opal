@@ -32,6 +32,9 @@ function calendarPreview(date: string, time: string): string {
   return `${weekdays[utc.getUTCDay()]} · ${months[month - 1]} ${day} · ${hour12}:${minute} ${suffix}`;
 }
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
+import { C2Splash1 } from "./onboarding/C2Splash1";
+import { C2Splash2 } from "./onboarding/C2Splash2";
+import { isC2ShellEnabled } from "./theme/c2Shell";
 import { MeetOpalConversation } from "./onboarding/MeetOpalConversation";
 import { PermissionBootstrapPage } from "./onboarding/PermissionBootstrapPage";
 import { readHolyShitEnabled } from "./onboarding/holyShitGate";
@@ -107,6 +110,7 @@ import {
   loadProfile,
   setMemoryAccessToken,
   sendMessage,
+  pendingSendKey,
   sendVoiceMessage,
   shareAvailabilityWindows,
   signOut,
@@ -737,6 +741,13 @@ export function OpalApp() {
     null,
   );
   const [draft, setDraft] = useState("");
+  // Repair #18 (W4-01): in-flight send lock. While a send from the
+  // composer is unresolved, further submit attempts are ignored (and
+  // the send button is disabled) instead of stacking duplicate
+  // bubbles; the ref mirrors the state so the guard holds inside
+  // the same tick, before React re-renders.
+  const [sendInFlight, setSendInFlight] = useState(false);
+  const sendInFlightRef = useRef(false);
   const [threads, setThreads] = useState<Record<string, Message[]>>({});
   const threadsRef = useRef<Record<string, Message[]>>({});
   threadsRef.current = threads;
@@ -3489,6 +3500,20 @@ export function OpalApp() {
   const send = async () => {
     const body = draft.trim();
     if (!body || !activeChatId) return;
+    // Repair #18 (W4-01): the in-flight lock. A second press while
+    // this send is unresolved is a no-op here (and the composer
+    // button is disabled) - Walk #4's five identical bubbles came
+    // from five unguarded sends. If a send does race through on
+    // another path, the product client still reuses one
+    // idempotency key per composed message, so the server stores
+    // it exactly once.
+    if (sendInFlightRef.current) return;
+    sendInFlightRef.current = true;
+    setSendInFlight(true);
+    const releaseSendLock = () => {
+      sendInFlightRef.current = false;
+      setSendInFlight(false);
+    };
     if (session) {
       try {
         // Repair #17: ONE send path — the real network path, always.
@@ -3558,6 +3583,7 @@ export function OpalApp() {
           ),
         );
         setDraft("");
+        releaseSendLock();
         return;
       } catch (e) {
         setLoadError((e as Error).message || "Send failed");
@@ -3566,6 +3592,12 @@ export function OpalApp() {
           from: "me",
           body,
           time: "Now",
+          // Repair #18 (W4-01): the failed bubble carries the SAME
+          // idempotency key the failed delivery used; the
+          // Failed · Retry tap re-sends through sendMessage, which
+          // reuses that key for this composed message, so a retry
+          // can never store a second copy.
+          clientMessageId: pendingSendKey(activeChatId, body),
           senderUserId: session.user_id,
           humanSpeaker: true,
           senderDisplayName: session.display_name || "You",
@@ -3576,6 +3608,7 @@ export function OpalApp() {
           [activeChatId]: [...(prev[activeChatId] ?? []), failed],
         }));
         setDraft("");
+        releaseSendLock();
         return;
       }
     }
@@ -3600,6 +3633,7 @@ export function OpalApp() {
       ),
     );
     setDraft("");
+    releaseSendLock();
   };
 
   /**
@@ -4692,6 +4726,8 @@ export function OpalApp() {
         ) : null}
         {groupInfoOpen && !personMemoryTarget ? (
           <GroupInfoDestination
+            conversationId={activeChatId || undefined}
+            bearer={session?.access_token}
             groupName={activeChat.name}
             members={(() => {
               // F12-12: members from the authoritative peer roster — never hardcoded names.
@@ -4781,7 +4817,6 @@ export function OpalApp() {
               ? activeChat.contextLine
               : `with ${activeChat.name}`}
         </div>
-        <ConnectionHint state={connectionState} />
 
         {/* Repair #18 (F18-05): exactly ONE Next Together strip exists -
             the next-plan strip inside the thread below. The duplicate
@@ -4870,7 +4905,433 @@ export function OpalApp() {
           aria-live="polite"
           data-plan-inline={planSettled && !proposalPending && !planDetailOpen ? "collapsed" : "open"}
         >
-          {/* Journey CTAs: first scroll child — never overlays header/messages.
+          {/* Layout Contract L4 (W4-02): the thread is ONE flow
+              column. Banner, Next Together strip, and the reservation
+              consequence render here, in flow, in this order - never
+              as bare children of the sealed conversation root, where
+              they painted at the root top and bled through the
+              transparent header over the bubbles. */}
+          <ConnectionHint state={connectionState} />
+          {headerPlan ? (
+            <button
+              type="button"
+              key={stripPlanKey || activeChatId || "next-plan-strip"}
+              className="next-plan-strip"
+              data-testid="next-plan-strip"
+              data-participant-mode={planMode}
+              data-plan-state={stripPlanState}
+              data-plan-id={
+                chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+                alignment?.lineage_id ||
+                activeChatId ||
+                undefined
+              }
+              data-destination="graph-detail"
+              onClick={() => {
+                const planId =
+                  chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
+                  alignment?.lineage_id ||
+                  (/juniper|crew/i.test(
+                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
+                  )
+                    ? "seed-chanelle-juniper"
+                    : null);
+                if (planId) {
+                  openGraphDetail(planId, "chats");
+                  return;
+                }
+                const label = activeChat.signalLabel || headerPlan?.summary || "";
+                if (isAlexTripGraphTarget(label) || isAlexTripGraphTarget(activeChatId)) {
+                  openAlexTripCanvas();
+                  return;
+                }
+                setCallsGateNote(
+                  label
+                    ? `Open Graphs to see more on: ${label}`
+                    : "Plan detail isn't linked yet - open Graphs to browse.",
+                );
+                setTab("graphs");
+              }}
+            >
+              <span className="next-plan-kicker">
+                {headerPlanIsPast
+                  ? pastPlanKicker(planMode)
+                  : nextPlanKicker(planMode, headerPlan.summary)}
+              </span>
+              <span className="next-plan-summary">
+                {headerPlan.summary}
+                {headerPlanIsPast ? "" : " ✓"}
+                {!headerPlanIsPast && headerPlan.moreCount > 0
+                  ? ` · +${headerPlan.moreCount} upcoming`
+                  : ""}
+                {headerPlanIsPast ? " · Together" : ""}
+              </span>
+              {attendanceLineFromContract(activeChat.planProjection) ? (
+                <span className="next-plan-attendance" data-testid="next-plan-attendance">
+                  {attendanceLineFromContract(activeChat.planProjection)}
+                </span>
+              ) : null}
+              {conflictLineFromContract(activeChat.planProjection) ? (
+                <span className="next-plan-conflict" data-testid="next-plan-conflict">
+                  {conflictLineFromContract(activeChat.planProjection)}
+                </span>
+              ) : null}
+            </button>
+          ) : null}
+
+        {/* Pass 20  -  execution as Reality consequence, not a booking dashboard.
+            DEVELOPMENT / SYNTHETIC PROOF  -  live restaurant booking not claimed. */}
+        {reservationReady || reservationUx.phase !== "idle" ? (
+          <ReservationExperience
+            state={
+              reservationUx.phase === "idle" && reservationReady
+                ? reduceExecutionUx(reservationUx, {
+                    type: "PLACE_SELECTED",
+                    placeName: reality.where || "this place",
+                    whenLabel: reality.when,
+                    partySize: reservationPartySize,
+                  })
+                : reservationUx
+            }
+            onSelectSlot={(slotId: string) => {
+              setReservationUx((s) => {
+                const next = reduceExecutionUx(s, { type: "SELECT_SLOT", slotId });
+                // P0-31-02: slot tap must also ground WHEN on moment-seeded Reality when present
+                if (momentSeed && next.selectedSlotLabel) {
+                  const applied = applyWhenToSeed(momentSeed, next.selectedSlotLabel, {
+                    slotId: next.selectedSlotId || slotId,
+                  });
+                  if (applied.changed) setMomentSeed(applied.seed);
+                }
+                return next;
+              });
+            }}
+            onDismissAuth={() =>
+              setReservationUx((s) => {
+                if (s.phase === "cancel_confirm") {
+                  return reduceExecutionUx(s, {
+                    type: "SERVER_EXECUTION",
+                    status: "confirmed",
+                    executionId: s.executionId,
+                    slotLabel: s.selectedSlotLabel,
+                    placeName: s.placeName,
+                    partySize: s.partySize,
+                    sharedSafeSummary: s.sharedSafeSummary,
+                  });
+                }
+                return reduceExecutionUx(s, { type: "DISMISS_AUTHORIZE" });
+              })
+            }
+            onPrimary={async () => {
+              const phase =
+                reservationUx.phase === "idle" && reservationReady
+                  ? "place_selected"
+                  : reservationUx.phase;
+              const ux =
+                reservationUx.phase === "idle" && reservationReady
+                  ? reduceExecutionUx(reservationUx, {
+                      type: "PLACE_SELECTED",
+                      placeName: reality.where || "this place",
+                      whenLabel: reality.when,
+                      partySize: reservationPartySize,
+                    })
+                  : reservationUx;
+
+              if (phase === "place_selected" || ux.primaryCta === "check_availability") {
+                setReservationUx(reduceExecutionUx(ux, { type: "CHECK_AVAILABILITY" }));
+                try {
+                  const placeId =
+                    momentSeed?.providerPlaceId ||
+                    `rest-${(reality.where || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+                  if (session?.access_token && apiConfigured()) {
+                    const avail = await checkReservationAvailability(
+                      {
+                        provider_place_id: placeId,
+                        party_size: reservationPartySize,
+                        slot_label: reality.when || "7:30 PM",
+                        place_display_name: reality.where || undefined,
+                      },
+                      session.access_token,
+                    );
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "AVAILABILITY_RESULT",
+                        available: avail.available,
+                        slots: avail.slots || [],
+                      }),
+                    );
+                  } else {
+                    // Offline / fixture: synthetic presentation only
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "AVAILABILITY_RESULT",
+                        available: true,
+                        slots: [
+                          {
+                            slot_id: "slot-local-730",
+                            label: reality.when || "Thursday · 7:30 PM",
+                          },
+                          {
+                            slot_id: "slot-local-745",
+                            label: (reality.when || "Thursday · 7:30 PM").replace(
+                              "7:30",
+                              "7:45",
+                            ),
+                          },
+                        ],
+                      }),
+                    );
+                  }
+                } catch {
+                  setReservationUx((s) =>
+                    reduceExecutionUx(s, {
+                      type: "SERVER_EXECUTION",
+                      status: "failed",
+                      slotLabel: reality.when,
+                      placeName: reality.where,
+                    }),
+                  );
+                }
+                return;
+              }
+
+              if (ux.primaryCta === "reserve_slot" || phase === "available") {
+                setReservationUx((s) => reduceExecutionUx(s, { type: "OPEN_AUTHORIZE" }));
+                return;
+              }
+
+              if (ux.primaryCta === "confirm_reservation" || phase === "authorize") {
+                if (reservationBusyRef.current || ux.confirmPending) return;
+                reservationBusyRef.current = true;
+                setReservationUx((s) => reduceExecutionUx(s, { type: "CONFIRM_TAP" }));
+                try {
+                  const placeId =
+                    momentSeed?.providerPlaceId ||
+                    `rest-${(ux.placeName || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+                  if (session?.access_token && apiConfigured()) {
+                    const realityKey =
+                      momentSeed?.realitySeedId || activeChatId || undefined;
+                    const authRes = await authorizeReservation(
+                      {
+                        provider_place_id: placeId,
+                        place_display_name:
+                          momentSeed?.placeCandidateName ||
+                          ux.placeName ||
+                          reality.where ||
+                          undefined,
+                        party_size: ux.partySize,
+                        slot_label:
+                          ux.selectedSlotLabel ||
+                          momentSeed?.when ||
+                          reality.when ||
+                          undefined,
+                        slot_id: ux.selectedSlotId || undefined,
+                        reality_id: realityKey,
+                        explicit_confirm: true,
+                      },
+                      session.access_token,
+                    );
+                    setReservationAuth(authRes.authorization);
+                    const booked = await requestReservation(
+                      {
+                        authorization: authRes.authorization,
+                        provider_place_id: placeId,
+                        place_display_name:
+                          momentSeed?.placeCandidateName || ux.placeName || reality.where,
+                        party_size: ux.partySize,
+                        slot_id: ux.selectedSlotId,
+                        slot_label:
+                          ux.selectedSlotLabel || momentSeed?.when || reality.when,
+                        reality_id: realityKey,
+                        source_moment_id: momentSeed?.momentId,
+                        lineage: momentSeed
+                          ? {
+                              moment_id: momentSeed.momentId,
+                              reality_seed_id: momentSeed.realitySeedId,
+                              moment_author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
+                              causal_chain: [
+                                {
+                                  moment_id: momentSeed.momentId,
+                                  author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
+                                  hop: 0,
+                                  evidence: {
+                                    seeded_reality_from_moment: true,
+                                    place_remained_to_transaction: true,
+                                  },
+                                },
+                              ],
+                            }
+                          : undefined,
+                        idempotency_key: `web-${momentSeed?.realitySeedId || activeChatId}-${placeId}-${ux.selectedSlotId || "slot"}-${authRes.authorization?.authorization_id || "a"}`,
+                      },
+                      session.access_token,
+                    );
+                    if (booked.status === "payment_authorization_required") {
+                      setReservationUx((s) =>
+                        reduceExecutionUx(s, {
+                          type: "SERVER_EXECUTION",
+                          status: "failed",
+                          paymentRequired: true,
+                        }),
+                      );
+                      applyReservationToReality({
+                        status: "payment_authorization_required",
+                        executionId: booked.execution?.execution_id,
+                        placeDisplayName: momentSeed?.placeCandidateName,
+                        slotLabel: momentSeed?.when,
+                        liveClaimed: false,
+                      });
+                    } else {
+                      const ex = booked.execution;
+                      setReservationUx((s) =>
+                        reduceExecutionUx(s, {
+                          type: "SERVER_EXECUTION",
+                          status: ex?.status || "failed",
+                          executionId: ex?.execution_id,
+                          slotLabel: ex?.slot_label || ux.selectedSlotLabel,
+                          placeName: ex?.place_display_name || ux.placeName,
+                          partySize: ex?.party_size || ux.partySize,
+                          sharedSafeSummary: ex?.shared_safe_summary || null,
+                          bookedByName: session.display_name || null,
+                        }),
+                      );
+                      applyReservationToReality({
+                        status: ex?.status || "failed",
+                        executionId: ex?.execution_id,
+                        placeDisplayName:
+                          momentSeed?.placeCandidateName ||
+                          ex?.place_display_name ||
+                          ux.placeName,
+                        slotLabel:
+                          momentSeed?.when ||
+                          ex?.slot_label ||
+                          ux.selectedSlotLabel,
+                        liveClaimed: Boolean(ex?.live_claimed),
+                      });
+                    }
+                  } else {
+                    // Local synthetic confirm (dev proof without API)  -  same Reality lineage
+                    const execId = `local-${momentSeed?.realitySeedId || "seed"}-${ux.selectedSlotId || "slot"}`;
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "SERVER_EXECUTION",
+                        status: "confirmed",
+                        executionId: execId,
+                        slotLabel: s.selectedSlotLabel || momentSeed?.when || reality.when,
+                        placeName:
+                          momentSeed?.placeCandidateName || s.placeName || reality.where,
+                        partySize: s.partySize,
+                        sharedSafeSummary: `${momentSeed?.placeCandidateName || s.placeName || "Place"} is reserved for ${s.selectedSlotLabel || momentSeed?.when || reality.when}.`,
+                        bookedByName: session?.display_name || "You",
+                      }),
+                    );
+                    applyReservationToReality({
+                      status: "confirmed",
+                      executionId: execId,
+                      placeDisplayName: momentSeed?.placeCandidateName,
+                      slotLabel: momentSeed?.when || ux.selectedSlotLabel,
+                      liveClaimed: false,
+                    });
+                  }
+                } catch {
+                  setReservationUx((s) =>
+                    reduceExecutionUx(s, {
+                      type: "SERVER_EXECUTION",
+                      status: "failed",
+                      slotLabel: s.selectedSlotLabel,
+                      placeName: s.placeName,
+                    }),
+                  );
+                  applyReservationToReality({
+                    status: "failed",
+                    executionId: `fail-${momentSeed?.realitySeedId || "seed"}`,
+                    placeDisplayName: momentSeed?.placeCandidateName,
+                    slotLabel: momentSeed?.when,
+                    liveClaimed: false,
+                  });
+                } finally {
+                  reservationBusyRef.current = false;
+                }
+                return;
+              }
+
+              if (ux.primaryCta === "cancel_reservation" || phase === "confirmed") {
+                setReservationUx((s) => reduceExecutionUx(s, { type: "OPEN_CANCEL" }));
+                return;
+              }
+
+              if (ux.primaryCta === "confirm_cancel" || phase === "cancel_confirm") {
+                try {
+                  if (ux.executionId && session?.access_token && apiConfigured()) {
+                    const cancelled = await cancelReservation(
+                      ux.executionId,
+                      session.access_token,
+                    );
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "SERVER_EXECUTION",
+                        status: cancelled.execution?.status || "cancelled",
+                        executionId: cancelled.execution?.execution_id || s.executionId,
+                        slotLabel: s.selectedSlotLabel,
+                        placeName: s.placeName,
+                        partySize: s.partySize,
+                      }),
+                    );
+                  } else {
+                    setReservationUx((s) =>
+                      reduceExecutionUx(s, {
+                        type: "SERVER_EXECUTION",
+                        status: "cancelled",
+                        executionId: s.executionId,
+                        slotLabel: s.selectedSlotLabel,
+                        placeName: s.placeName,
+                      }),
+                    );
+                  }
+                } catch {
+                  /* keep prior */
+                }
+                return;
+              }
+
+              if (ux.primaryCta === "recheck") {
+                setReservationUx((s) =>
+                  reduceExecutionUx(s, {
+                    type: "PLACE_SELECTED",
+                    placeName: s.placeName || reality.where || "place",
+                    whenLabel: s.whenLabel || reality.when,
+                    partySize: s.partySize,
+                  }),
+                );
+                return;
+              }
+
+              if (ux.primaryCta === "resolve_drift") {
+                // Surface only  -  changing Reality never auto-updates booking
+                return;
+              }
+            }}
+            onSecondary={() => {
+              if (reservationUx.primaryCta === "try_alt_slot" || reservationUx.slots[1]) {
+                const alt = reservationUx.slots.find(
+                  (s) => s.slotId !== reservationUx.selectedSlotId,
+                );
+                if (alt) {
+                  setReservationUx((s) =>
+                    reduceExecutionUx(s, { type: "SELECT_SLOT", slotId: alt.slotId }),
+                  );
+                }
+              } else if (reservationUx.secondaryCta === "choose_another_place") {
+                setFindPlaceOpen(true);
+                setReservationUx(emptyExecutionUx());
+              }
+            }}
+          />
+        ) : null}
+          {/* Journey CTAs: in-flow thread child AFTER the Next Together
+              strip and the reservation consequence (Layout Contract L4/L7 -
+              plan actions live with the plan surfaces, never as a floating
+              pill above the card).
               PAST_STRAND_FIND_A_TIME_DOMINANT = 0 */}
           <div
             className="journey-cta-row"
@@ -5009,72 +5470,6 @@ export function OpalApp() {
             ) : null}
           </div>
 
-          {headerPlan ? (
-            <button
-              type="button"
-              key={stripPlanKey || activeChatId || "next-plan-strip"}
-              className="next-plan-strip"
-              data-testid="next-plan-strip"
-              data-participant-mode={planMode}
-              data-plan-state={stripPlanState}
-              data-plan-id={
-                chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
-                alignment?.lineage_id ||
-                activeChatId ||
-                undefined
-              }
-              data-destination="graph-detail"
-              onClick={() => {
-                const planId =
-                  chats.find((chat) => chat.id === activeChatId)?.planProjection?.lineage_id ||
-                  alignment?.lineage_id ||
-                  (/juniper|crew/i.test(
-                    founderSeedDisplayNameForId(activeChat.id) || activeChat.name,
-                  )
-                    ? "seed-chanelle-juniper"
-                    : null);
-                if (planId) {
-                  openGraphDetail(planId, "chats");
-                  return;
-                }
-                const label = activeChat.signalLabel || headerPlan?.summary || "";
-                if (isAlexTripGraphTarget(label) || isAlexTripGraphTarget(activeChatId)) {
-                  openAlexTripCanvas();
-                  return;
-                }
-                setCallsGateNote(
-                  label
-                    ? `Open Graphs to see more on: ${label}`
-                    : "Plan detail isn't linked yet - open Graphs to browse.",
-                );
-                setTab("graphs");
-              }}
-            >
-              <span className="next-plan-kicker">
-                {headerPlanIsPast
-                  ? pastPlanKicker(planMode)
-                  : nextPlanKicker(planMode, headerPlan.summary)}
-              </span>
-              <span className="next-plan-summary">
-                {headerPlan.summary}
-                {headerPlanIsPast ? "" : " ✓"}
-                {!headerPlanIsPast && headerPlan.moreCount > 0
-                  ? ` · +${headerPlan.moreCount} upcoming`
-                  : ""}
-                {headerPlanIsPast ? " · Together" : ""}
-              </span>
-              {attendanceLineFromContract(activeChat.planProjection) ? (
-                <span className="next-plan-attendance" data-testid="next-plan-attendance">
-                  {attendanceLineFromContract(activeChat.planProjection)}
-                </span>
-              ) : null}
-              {conflictLineFromContract(activeChat.planProjection) ? (
-                <span className="next-plan-conflict" data-testid="next-plan-conflict">
-                  {conflictLineFromContract(activeChat.planProjection)}
-                </span>
-              ) : null}
-            </button>
-          ) : null}
           {threadItems.map((item) =>
             // F12-32: the strip already renders this generation — one render per plan.
             item.kind === "plan-set" && stripCoversPlanSet ? null : item.kind === "plan-set" ? (
@@ -6490,355 +6885,6 @@ export function OpalApp() {
           </section>
         ) : null}
 
-        {/* Pass 20  -  execution as Reality consequence, not a booking dashboard.
-            DEVELOPMENT / SYNTHETIC PROOF  -  live restaurant booking not claimed. */}
-        {reservationReady || reservationUx.phase !== "idle" ? (
-          <ReservationExperience
-            state={
-              reservationUx.phase === "idle" && reservationReady
-                ? reduceExecutionUx(reservationUx, {
-                    type: "PLACE_SELECTED",
-                    placeName: reality.where || "this place",
-                    whenLabel: reality.when,
-                    partySize: reservationPartySize,
-                  })
-                : reservationUx
-            }
-            onSelectSlot={(slotId: string) => {
-              setReservationUx((s) => {
-                const next = reduceExecutionUx(s, { type: "SELECT_SLOT", slotId });
-                // P0-31-02: slot tap must also ground WHEN on moment-seeded Reality when present
-                if (momentSeed && next.selectedSlotLabel) {
-                  const applied = applyWhenToSeed(momentSeed, next.selectedSlotLabel, {
-                    slotId: next.selectedSlotId || slotId,
-                  });
-                  if (applied.changed) setMomentSeed(applied.seed);
-                }
-                return next;
-              });
-            }}
-            onDismissAuth={() =>
-              setReservationUx((s) => {
-                if (s.phase === "cancel_confirm") {
-                  return reduceExecutionUx(s, {
-                    type: "SERVER_EXECUTION",
-                    status: "confirmed",
-                    executionId: s.executionId,
-                    slotLabel: s.selectedSlotLabel,
-                    placeName: s.placeName,
-                    partySize: s.partySize,
-                    sharedSafeSummary: s.sharedSafeSummary,
-                  });
-                }
-                return reduceExecutionUx(s, { type: "DISMISS_AUTHORIZE" });
-              })
-            }
-            onPrimary={async () => {
-              const phase =
-                reservationUx.phase === "idle" && reservationReady
-                  ? "place_selected"
-                  : reservationUx.phase;
-              const ux =
-                reservationUx.phase === "idle" && reservationReady
-                  ? reduceExecutionUx(reservationUx, {
-                      type: "PLACE_SELECTED",
-                      placeName: reality.where || "this place",
-                      whenLabel: reality.when,
-                      partySize: reservationPartySize,
-                    })
-                  : reservationUx;
-
-              if (phase === "place_selected" || ux.primaryCta === "check_availability") {
-                setReservationUx(reduceExecutionUx(ux, { type: "CHECK_AVAILABILITY" }));
-                try {
-                  const placeId =
-                    momentSeed?.providerPlaceId ||
-                    `rest-${(reality.where || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-                  if (session?.access_token && apiConfigured()) {
-                    const avail = await checkReservationAvailability(
-                      {
-                        provider_place_id: placeId,
-                        party_size: reservationPartySize,
-                        slot_label: reality.when || "7:30 PM",
-                        place_display_name: reality.where || undefined,
-                      },
-                      session.access_token,
-                    );
-                    setReservationUx((s) =>
-                      reduceExecutionUx(s, {
-                        type: "AVAILABILITY_RESULT",
-                        available: avail.available,
-                        slots: avail.slots || [],
-                      }),
-                    );
-                  } else {
-                    // Offline / fixture: synthetic presentation only
-                    setReservationUx((s) =>
-                      reduceExecutionUx(s, {
-                        type: "AVAILABILITY_RESULT",
-                        available: true,
-                        slots: [
-                          {
-                            slot_id: "slot-local-730",
-                            label: reality.when || "Thursday · 7:30 PM",
-                          },
-                          {
-                            slot_id: "slot-local-745",
-                            label: (reality.when || "Thursday · 7:30 PM").replace(
-                              "7:30",
-                              "7:45",
-                            ),
-                          },
-                        ],
-                      }),
-                    );
-                  }
-                } catch {
-                  setReservationUx((s) =>
-                    reduceExecutionUx(s, {
-                      type: "SERVER_EXECUTION",
-                      status: "failed",
-                      slotLabel: reality.when,
-                      placeName: reality.where,
-                    }),
-                  );
-                }
-                return;
-              }
-
-              if (ux.primaryCta === "reserve_slot" || phase === "available") {
-                setReservationUx((s) => reduceExecutionUx(s, { type: "OPEN_AUTHORIZE" }));
-                return;
-              }
-
-              if (ux.primaryCta === "confirm_reservation" || phase === "authorize") {
-                if (reservationBusyRef.current || ux.confirmPending) return;
-                reservationBusyRef.current = true;
-                setReservationUx((s) => reduceExecutionUx(s, { type: "CONFIRM_TAP" }));
-                try {
-                  const placeId =
-                    momentSeed?.providerPlaceId ||
-                    `rest-${(ux.placeName || "place").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-                  if (session?.access_token && apiConfigured()) {
-                    const realityKey =
-                      momentSeed?.realitySeedId || activeChatId || undefined;
-                    const authRes = await authorizeReservation(
-                      {
-                        provider_place_id: placeId,
-                        place_display_name:
-                          momentSeed?.placeCandidateName ||
-                          ux.placeName ||
-                          reality.where ||
-                          undefined,
-                        party_size: ux.partySize,
-                        slot_label:
-                          ux.selectedSlotLabel ||
-                          momentSeed?.when ||
-                          reality.when ||
-                          undefined,
-                        slot_id: ux.selectedSlotId || undefined,
-                        reality_id: realityKey,
-                        explicit_confirm: true,
-                      },
-                      session.access_token,
-                    );
-                    setReservationAuth(authRes.authorization);
-                    const booked = await requestReservation(
-                      {
-                        authorization: authRes.authorization,
-                        provider_place_id: placeId,
-                        place_display_name:
-                          momentSeed?.placeCandidateName || ux.placeName || reality.where,
-                        party_size: ux.partySize,
-                        slot_id: ux.selectedSlotId,
-                        slot_label:
-                          ux.selectedSlotLabel || momentSeed?.when || reality.when,
-                        reality_id: realityKey,
-                        source_moment_id: momentSeed?.momentId,
-                        lineage: momentSeed
-                          ? {
-                              moment_id: momentSeed.momentId,
-                              reality_seed_id: momentSeed.realitySeedId,
-                              moment_author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
-                              causal_chain: [
-                                {
-                                  moment_id: momentSeed.momentId,
-                                  author_user_id: DEMO_SOCIAL_MOMENT.authorUserId,
-                                  hop: 0,
-                                  evidence: {
-                                    seeded_reality_from_moment: true,
-                                    place_remained_to_transaction: true,
-                                  },
-                                },
-                              ],
-                            }
-                          : undefined,
-                        idempotency_key: `web-${momentSeed?.realitySeedId || activeChatId}-${placeId}-${ux.selectedSlotId || "slot"}-${authRes.authorization?.authorization_id || "a"}`,
-                      },
-                      session.access_token,
-                    );
-                    if (booked.status === "payment_authorization_required") {
-                      setReservationUx((s) =>
-                        reduceExecutionUx(s, {
-                          type: "SERVER_EXECUTION",
-                          status: "failed",
-                          paymentRequired: true,
-                        }),
-                      );
-                      applyReservationToReality({
-                        status: "payment_authorization_required",
-                        executionId: booked.execution?.execution_id,
-                        placeDisplayName: momentSeed?.placeCandidateName,
-                        slotLabel: momentSeed?.when,
-                        liveClaimed: false,
-                      });
-                    } else {
-                      const ex = booked.execution;
-                      setReservationUx((s) =>
-                        reduceExecutionUx(s, {
-                          type: "SERVER_EXECUTION",
-                          status: ex?.status || "failed",
-                          executionId: ex?.execution_id,
-                          slotLabel: ex?.slot_label || ux.selectedSlotLabel,
-                          placeName: ex?.place_display_name || ux.placeName,
-                          partySize: ex?.party_size || ux.partySize,
-                          sharedSafeSummary: ex?.shared_safe_summary || null,
-                          bookedByName: session.display_name || null,
-                        }),
-                      );
-                      applyReservationToReality({
-                        status: ex?.status || "failed",
-                        executionId: ex?.execution_id,
-                        placeDisplayName:
-                          momentSeed?.placeCandidateName ||
-                          ex?.place_display_name ||
-                          ux.placeName,
-                        slotLabel:
-                          momentSeed?.when ||
-                          ex?.slot_label ||
-                          ux.selectedSlotLabel,
-                        liveClaimed: Boolean(ex?.live_claimed),
-                      });
-                    }
-                  } else {
-                    // Local synthetic confirm (dev proof without API)  -  same Reality lineage
-                    const execId = `local-${momentSeed?.realitySeedId || "seed"}-${ux.selectedSlotId || "slot"}`;
-                    setReservationUx((s) =>
-                      reduceExecutionUx(s, {
-                        type: "SERVER_EXECUTION",
-                        status: "confirmed",
-                        executionId: execId,
-                        slotLabel: s.selectedSlotLabel || momentSeed?.when || reality.when,
-                        placeName:
-                          momentSeed?.placeCandidateName || s.placeName || reality.where,
-                        partySize: s.partySize,
-                        sharedSafeSummary: `${momentSeed?.placeCandidateName || s.placeName || "Place"} is reserved for ${s.selectedSlotLabel || momentSeed?.when || reality.when}.`,
-                        bookedByName: session?.display_name || "You",
-                      }),
-                    );
-                    applyReservationToReality({
-                      status: "confirmed",
-                      executionId: execId,
-                      placeDisplayName: momentSeed?.placeCandidateName,
-                      slotLabel: momentSeed?.when || ux.selectedSlotLabel,
-                      liveClaimed: false,
-                    });
-                  }
-                } catch {
-                  setReservationUx((s) =>
-                    reduceExecutionUx(s, {
-                      type: "SERVER_EXECUTION",
-                      status: "failed",
-                      slotLabel: s.selectedSlotLabel,
-                      placeName: s.placeName,
-                    }),
-                  );
-                  applyReservationToReality({
-                    status: "failed",
-                    executionId: `fail-${momentSeed?.realitySeedId || "seed"}`,
-                    placeDisplayName: momentSeed?.placeCandidateName,
-                    slotLabel: momentSeed?.when,
-                    liveClaimed: false,
-                  });
-                } finally {
-                  reservationBusyRef.current = false;
-                }
-                return;
-              }
-
-              if (ux.primaryCta === "cancel_reservation" || phase === "confirmed") {
-                setReservationUx((s) => reduceExecutionUx(s, { type: "OPEN_CANCEL" }));
-                return;
-              }
-
-              if (ux.primaryCta === "confirm_cancel" || phase === "cancel_confirm") {
-                try {
-                  if (ux.executionId && session?.access_token && apiConfigured()) {
-                    const cancelled = await cancelReservation(
-                      ux.executionId,
-                      session.access_token,
-                    );
-                    setReservationUx((s) =>
-                      reduceExecutionUx(s, {
-                        type: "SERVER_EXECUTION",
-                        status: cancelled.execution?.status || "cancelled",
-                        executionId: cancelled.execution?.execution_id || s.executionId,
-                        slotLabel: s.selectedSlotLabel,
-                        placeName: s.placeName,
-                        partySize: s.partySize,
-                      }),
-                    );
-                  } else {
-                    setReservationUx((s) =>
-                      reduceExecutionUx(s, {
-                        type: "SERVER_EXECUTION",
-                        status: "cancelled",
-                        executionId: s.executionId,
-                        slotLabel: s.selectedSlotLabel,
-                        placeName: s.placeName,
-                      }),
-                    );
-                  }
-                } catch {
-                  /* keep prior */
-                }
-                return;
-              }
-
-              if (ux.primaryCta === "recheck") {
-                setReservationUx((s) =>
-                  reduceExecutionUx(s, {
-                    type: "PLACE_SELECTED",
-                    placeName: s.placeName || reality.where || "place",
-                    whenLabel: s.whenLabel || reality.when,
-                    partySize: s.partySize,
-                  }),
-                );
-                return;
-              }
-
-              if (ux.primaryCta === "resolve_drift") {
-                // Surface only  -  changing Reality never auto-updates booking
-                return;
-              }
-            }}
-            onSecondary={() => {
-              if (reservationUx.primaryCta === "try_alt_slot" || reservationUx.slots[1]) {
-                const alt = reservationUx.slots.find(
-                  (s) => s.slotId !== reservationUx.selectedSlotId,
-                );
-                if (alt) {
-                  setReservationUx((s) =>
-                    reduceExecutionUx(s, { type: "SELECT_SLOT", slotId: alt.slotId }),
-                  );
-                }
-              } else if (reservationUx.secondaryCta === "choose_another_place") {
-                setFindPlaceOpen(true);
-                setReservationUx(emptyExecutionUx());
-              }
-            }}
-          />
-        ) : null}
 
         {curateOpen ? (
           <section
@@ -7349,8 +7395,9 @@ export function OpalApp() {
                 ? "group"
                 : "direct"
             }
+            data-send-in-flight={sendInFlight ? "true" : "false"}
             aria-label="Send message"
-            disabled={!draft.trim()}
+            disabled={!draft.trim() || sendInFlight}
           >
             <SendIcon />
           </button>
@@ -7697,22 +7744,34 @@ export function OpalApp() {
         data-testid="first-run-splash-shell"
         data-first-run-stage="splash"
         data-figma-authority="618:19"
-        data-splash-owner="FirstRunSplashPage"
+        data-splash-owner={isC2ShellEnabled() ? "C2Splash1" : "FirstRunSplashPage"}
         data-member-nav="false"
         data-product-name={PRODUCT_PUBLIC_NAME}
         data-forced-first-run={forcedFirstRun || forceSplash ? "1" : "0"}
       >
         {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
-        <FirstRunSplashPage
-          onTapBegin={advanceSplashToPromise}
-          onAlreadyAccount={() => {
-            // Returning account → Phone auth (keep forced sticky; never Home shortcut)
-            setForcedFirstRun(true);
-            writeForcedFirstRun(true);
-            setShowFirstRun(true);
-            setFirstRunStage("auth");
-          }}
-        />
+        {isC2ShellEnabled() ? (
+          <C2Splash1
+            onContinue={advanceSplashToPromise}
+            onAlreadyAccount={() => {
+              setForcedFirstRun(true);
+              writeForcedFirstRun(true);
+              setShowFirstRun(true);
+              setFirstRunStage("auth");
+            }}
+          />
+        ) : (
+          <FirstRunSplashPage
+            onTapBegin={advanceSplashToPromise}
+            onAlreadyAccount={() => {
+              // Returning account → Phone auth (keep forced sticky; never Home shortcut)
+              setForcedFirstRun(true);
+              writeForcedFirstRun(true);
+              setShowFirstRun(true);
+              setFirstRunStage("auth");
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -7772,11 +7831,15 @@ export function OpalApp() {
         data-product-name={PRODUCT_PUBLIC_NAME}
       >
         {/* F12-57: seed banner on every shell — demo never mistaken for live. */}
-        <FirstRunPromisePage
-          onContinue={advancePromiseToAuth}
-          onAlreadyAccount={advancePromiseAlreadyAccount}
-          showHolyShitHook={holyShitEnabled}
-        />
+        {isC2ShellEnabled() ? (
+          <C2Splash2 onEnter={advancePromiseToAuth} onAlreadyAccount={advancePromiseAlreadyAccount} />
+        ) : (
+          <FirstRunPromisePage
+            onContinue={advancePromiseToAuth}
+            onAlreadyAccount={advancePromiseAlreadyAccount}
+            showHolyShitHook={holyShitEnabled}
+          />
+        )}
       </div>
     );
   }
@@ -8120,7 +8183,12 @@ export function OpalApp() {
           })();
         }}
       />
+      {/* Layout Contract L2 (W4-05): the go-live surface owns the screen,
+          so it mounts through TopLayer. Inline inside .app, the shell's
+          `.app > *` rule demoted it to position:relative / z-index:1 and
+          "Go live" appeared to do nothing. */}
       {livesGoLiveOpen ? (
+        <TopLayer band="sheet">
         <div
           className="lives-go-live-overlay"
           role="dialog"
@@ -8152,6 +8220,7 @@ export function OpalApp() {
             />
           </div>
         </div>
+        </TopLayer>
       ) : null}
 
       {/* WHO-FAST-PATH-01 intelligence + FINAL WHO 201:6 presentation */}
@@ -9595,6 +9664,39 @@ export function OpalApp() {
         <GraphDetailSheet
           cardId={graphDetailCardId}
           reality={canonicalGraph}
+          planEdit={(() => {
+            // Repair #18 (W4-04) - the edit descriptor comes from the
+            // durable plan payload for THIS card, never from fixture
+            // or chat-derived state: real plan id, current values,
+            // and the backend's can_edit authority for this viewer.
+            const plan = durableGraphPlans.find((p) => p.id === graphDetailCardId);
+            return plan
+              ? {
+                  planId: plan.id,
+                  title: plan.title,
+                  location: plan.location,
+                  caption: plan.caption,
+                  online: plan.online === true || plan.plan_type === "virtual",
+                  canEdit: plan.can_edit === true,
+                }
+              : null;
+          })()}
+          editBearer={session?.access_token}
+          onPlanEdited={(plan) => {
+            // Re-render from the RETURNED payload: the durable list
+            // (Graphs cards + this detail) takes the edited plan as
+            // its new entry; no local title is ever kept.
+            setDurableGraphPlans((prev) =>
+              prev.map((p) => (p.id === plan.id ? { ...p, ...plan } : p)),
+            );
+          }}
+          foodPlan={
+            durableGraphPlans.find((p) => p.id === graphDetailCardId) ?? null
+          }
+          foodViewerUserId={session?.user_id ?? null}
+          onFoodChanged={() => {
+            void refreshDurableGraphPlans();
+          }}
           leadName={planLeadFromProjection(
             chats.find((c) => c.planProjection?.lineage_id === graphDetailCardId)
               ?.planProjection,

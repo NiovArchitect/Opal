@@ -1,0 +1,313 @@
+/*
+ * Repair #18 - Division C2 - THE global token system (track-c2 sections
+ * 2.2, 2.3, 2.4, 2.5, 2.6, 2.7). C1 consumes this file exactly; there is
+ * no second token system for C2 surfaces.
+ *
+ * Imported LAST in main.tsx, layered as @layer c2, so it wins the cascade
+ * over the legacy Brand V4 sheets on C2 surfaces only: every semantic
+ * token below is consumed through var() by C2 components. The R17
+ * fallback never imports this file (it is wired only on the C2 shell
+ * module graph), so no token change can repaint the old face.
+ *
+ * MODE LAW (section 2.7): mode is one attribute, data-mode="light|dark",
+ * set on <html> by public/c2-boot.js BEFORE first paint and kept current
+ * by src/theme/c2Mode.ts. Components never branch on mode; they read
+ * tokens and the token values change. Every semantic token carries a
+ * value in BOTH modes - a token with only one mode value is a build
+ * failure (enforced by src/theme/c2Tokens.test.ts). No token falls back
+ * to a value from the other mode.
+ */
+
+@layer c2;
+
+@layer c2 {
+  :root {
+    /* ---- Primitives (section 2.2) - values only; product code never
+     * uses primitives directly, only the semantic tokens below. ---- */
+    --p-paper-0: #fffefb;
+    --p-paper-1: #faf7f2;
+    --p-paper-2: #f1ece4;
+    --p-paper-3: #e5ded2;
+    --p-ink-0: #1c1917;
+    --p-ink-1: #44403c;
+    --p-ink-2: #78716c;
+    --p-ink-3: #a8a29e;
+    --p-night-0: #17131f;
+    --p-night-1: #221c2e;
+    --p-night-2: #2e273d;
+    --p-night-ink-0: #faf7f2;
+    --p-night-ink-1: #cfc8d8;
+    --p-cur-1: #2dd4bf;
+    --p-cur-2: #818cf8;
+    --p-cur-3: #c084fc;
+    --p-cur-4: #f0abfc;
+    --p-cur-5: #fbbf24;
+
+    /* Person tints (section 2.2) - avatar fallbacks and story rings
+     * when no state applies. Never a state hue in the same element. */
+    --person-tint-1: #2dd4bf;
+    --person-tint-2: #818cf8;
+    --person-tint-3: #c084fc;
+    --person-tint-4: #f0abfc;
+    --person-tint-5: #fbbf24;
+    --person-tint-6: #86c98a;
+
+    /* ---- Geometry, type, spacing, motion (sections 2.5, 2.6) ----
+     * Mode-free by design: layout never changes across modes. */
+    --radius-card: 20px;
+    --radius-sheet: 24px;
+    --radius-button: 16px;
+    --radius-well: 12px;
+    --radius-min: 8px;
+    --gutter: 20px;
+    --header-h: 60px;
+    --dock-h: 64px;
+    --dock-clearance: calc(var(--dock-h) + 16px + env(safe-area-inset-bottom, 0px));
+    --content-max: 430px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-7: 28px;
+    --type-display: 700 32px/38px ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    --type-title: 650 24px/30px ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    --type-headline: 650 17px/22px system-ui, sans-serif;
+    --type-body: 400 15px/21px system-ui, sans-serif;
+    --type-callout: 400 14px/20px system-ui, sans-serif;
+    --type-caption: 400 12px/16px system-ui, sans-serif;
+    --type-pill: 650 12px/16px system-ui, sans-serif;
+    --ease-c2: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-sheet: 200ms var(--ease-c2);
+    --motion-tab: 160ms var(--ease-c2);
+    --motion-settle: 220ms var(--ease-c2);
+    --motion-breath: 4s ease-in-out;
+
+    /* ---- Layer registry additions (sections 2.6, 3.2) ----
+     * The Division A registry in layerTokens.css stays authoritative
+     * for the names it already defines (--layer-content 0,
+     * --layer-chrome 30, --layer-flow 80, --layer-system 110 match C2).
+     * C2 adds the bands Division A had not named yet. --layer-sheet
+     * keeps its Division A value (65) and the C2 sheet band is the
+     * 65..70 span closed by --layer-sheet-high (70); see the conflict
+     * note in phase2-c-core-report.md. */
+    --layer-dock: 50;
+    --layer-destination: 60;
+    --layer-stage: 90;
+    --layer-call: 100;
+  }
+
+  /* ================= LIGHT (default until boot resolves) ============ */
+  :root,
+  :root[data-mode="light"] {
+    color-scheme: light;
+    --canvas: #fffefb;
+    --canvas-stage: #f5f0e8;
+    --surface-1: #faf7f2;
+    --surface-2: #f1ece4;
+    --line-1: #e5ded2;
+    --line-2: #d6cfc2;
+    --ink-1: #1c1917;
+    --ink-2: #44403c;
+    --ink-3: #78716c;
+    --scrim: rgba(28, 25, 23, 0.48);
+    --shadow-card: 0 1px 2px rgba(28, 25, 23, 0.05), 0 8px 24px rgba(28, 25, 23, 0.05);
+    --accent-1: #6d5df0;
+    --accent-1-ink: #ffffff;
+    --accent-press: #6354dd;
+    --accent-quiet: rgba(109, 93, 240, 0.1);
+    --primary-fill: #6d5df0;
+    --primary-ink: #ffffff;
+    --primary-stage-fill: var(--accent-1);
+    --primary-stage-ink: #ffffff;
+    --grad-current: linear-gradient(
+      100deg,
+      var(--p-cur-1),
+      var(--p-cur-2),
+      var(--p-cur-3),
+      var(--p-cur-4),
+      var(--p-cur-5)
+    );
+    --pattern-lines: rgba(28, 25, 23, 0.06);
+    --pattern-lines-night: rgba(250, 247, 242, 0.1);
+
+    /* State system (section 2.4, Light column). Semantics are locked;
+     * only these visual values evolve. Tint = hue at stated opacity. */
+    --state-forming: #6d5df0;
+    --state-forming-tint: rgba(109, 93, 240, 0.14);
+    --state-forming-ink: #5546d8;
+    --state-action: #e8323f;
+    --state-action-tint: rgba(232, 50, 63, 0.12);
+    --state-action-ink: #c81e2b;
+    --state-ready: #b77900;
+    --state-ready-tint: rgba(183, 121, 0, 0.16);
+    --state-ready-ink: #8a5e00;
+    --state-happening: #0a7c6e;
+    --state-happening-tint: rgba(10, 124, 110, 0.14);
+    --state-happening-ink: #07665a;
+    --state-happening-ring: rgba(10, 124, 110, 0.35);
+    --state-past: #78716c;
+    --state-past-tint: rgba(120, 113, 108, 0.1);
+    --state-past-ink: #57534e;
+  }
+
+  /* ================= DARK - genuine night (section 2.7) ============ */
+  :root[data-mode="dark"] {
+    color-scheme: dark;
+    /* Night budget: canvas 5.7-7.6% lightness, raised <=13%, sunken
+     * <=17%. No large-area element may exceed these values. */
+    --canvas: #121017;
+    --canvas-stage: #0d0b12;
+    --surface-1: #1c1922;
+    --surface-2: #262230;
+    --line-1: rgba(255, 255, 255, 0.1);
+    --line-2: rgba(255, 255, 255, 0.18);
+    --ink-1: #faf7f2;
+    --ink-2: #cfc8d8;
+    --ink-3: #9a93a6;
+    --scrim: rgba(13, 11, 18, 0.64);
+    --shadow-card: none;
+    --accent-1: #8b7fff;
+    --accent-1-ink: #17131f;
+    --accent-press: #9d92ff;
+    --accent-quiet: rgba(139, 127, 255, 0.16);
+    /* The one primary action stays the brightest element at night:
+     * paper fill on member surfaces and on stage surfaces alike. */
+    --primary-fill: #faf7f2;
+    --primary-ink: #1c1917;
+    --primary-stage-fill: #faf7f2;
+    --primary-stage-ink: #1c1917;
+    /* Current gradient at 70% intensity in Dark: each stop mixed 30%
+     * toward canvas-stage (section 2.7 restrained highlights). */
+    --grad-current: linear-gradient(100deg, #23988b, #5e65b3, #8a60b6, #ac7bb6, #b4891f);
+    --pattern-lines: rgba(250, 247, 242, 0.08);
+    --pattern-lines-night: rgba(250, 247, 242, 0.08);
+
+    /* State system (section 2.4, Dark column) - night-safe intensity,
+     * tints capped as tabled, no glow except the happening ring. */
+    --state-forming: #9d94ff;
+    --state-forming-tint: rgba(157, 148, 255, 0.18);
+    --state-forming-ink: #c4beff;
+    --state-action: #ff7a85;
+    --state-action-tint: rgba(255, 122, 133, 0.16);
+    --state-action-ink: #ffb0b7;
+    --state-ready: #f5b93f;
+    --state-ready-tint: rgba(245, 185, 63, 0.16);
+    --state-ready-ink: #ffd88a;
+    --state-happening: #4adecb;
+    --state-happening-tint: rgba(74, 222, 203, 0.16);
+    --state-happening-ink: #8af0e2;
+    --state-happening-ring: rgba(74, 222, 203, 0.35);
+    --state-past: #a8a29e;
+    --state-past-tint: rgba(168, 162, 158, 0.12);
+    --state-past-ink: #d6d0c8;
+  }
+
+  /* No-white-flash backstop: the page ground is mode-correct from the
+   * boot script's inline style; these rules keep every shell the C2
+   * flag can mount painted in the active mode before React paints. */
+  html[data-mode="dark"],
+  html[data-mode="dark"] body {
+    background: #0d0b12;
+  }
+  html[data-mode="light"],
+  html[data-mode="light"] body {
+    background: #fffefb;
+  }
+}
+
+@layer c2 {
+  /* ============ C1 COMPATIBILITY ALIASES (integration, ruling D4) ======
+     The C1 surfaces were authored against --opal-* names. Per D4 they
+     consume the C2 global system: every color alias below resolves to a
+     global token, so C1 surfaces can never drift from the shell palette.
+     Mode resolution follows the global tokens (mode at :root in the
+     shell, or on the [data-design="r18"] root in review mounts).
+     --layer-* names are NOT redefined here (D1: global file owns them;
+     --layer-sheet is 65, --layer-sheet-high is 70). */
+  [data-design="r18"] {
+    /* C1 s1.5 type + motion roles (mode-independent, carried verbatim) */
+    --opal-type-display: 700 28px/34px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --opal-type-title: 650 20px/26px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --opal-type-body: 400 16px/23px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --opal-type-label: 600 14px/19px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --opal-type-meta: 400 13px/18px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --opal-type-micro: 650 11px/14px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --opal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --opal-shadow-sheet: 0 12px 40px rgba(0, 0, 0, 0.45);
+    --opal-pattern-none: none;
+    /* Color roles -> the global tokens (D4) */
+    --opal-accent: var(--accent-1);
+    --opal-accent-ink: var(--accent-1-ink);
+    --opal-bg: var(--canvas);
+    --opal-ink: var(--ink-1);
+    --opal-ink-2: var(--ink-2);
+    --opal-ink-3: var(--ink-3);
+    --opal-line: var(--line-1);
+    --opal-line-strong: var(--line-2);
+    --opal-scrim: var(--scrim);
+    --opal-surface-1: var(--surface-1);
+    --opal-surface-2: var(--surface-2);
+    --opal-state-forming: var(--state-forming);
+    --opal-state-ready: var(--state-ready);
+    --opal-state-action: var(--state-action);
+    --opal-state-happening: var(--state-happening);
+    --opal-state-past: var(--state-past);
+    /* The old iris is retired (founder escalation: everything new);
+       the names resolve to the Current Lines palette + gradient. */
+    --opal-iris-1: var(--p-cur-1);
+    --opal-iris-2: var(--p-cur-2);
+    --opal-iris-3: var(--p-cur-3);
+    --opal-iris-4: var(--p-cur-4);
+    --opal-iris-gradient: var(--grad-current);
+  }
+  [data-design="r18"][data-mode="light"],
+  :root[data-mode="light"] [data-design="r18"] {
+    --opal-bg-wash: #faf7f2;
+    --opal-surface-3: #e5ded2;
+  }
+  [data-design="r18"][data-mode="dark"],
+  :root[data-mode="dark"] [data-design="r18"] {
+    --opal-bg-wash: #17141f;
+    --opal-surface-3: #322b40;
+  }
+  /* Facet pattern (C1 1.3): fine diagonal facet lines, CSS only,
+     hero / empty zones only, fades to flat within 240px. Rendered on a
+     ::before layer so the fade mask can never dim the zone's content
+     (caught on the first rendered pass: the greeting was masked). */
+  [data-design="r18"] .c1-facet-field {
+    position: relative;
+  }
+  [data-design="r18"] .c1-facet-field::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+        115deg,
+        var(--pattern-lines) 0,
+        var(--pattern-lines) 1px,
+        transparent 1px,
+        transparent 28px
+      ),
+      repeating-linear-gradient(
+        25deg,
+        var(--pattern-lines) 0,
+        var(--pattern-lines) 1px,
+        transparent 1px,
+        transparent 28px
+      );
+    -webkit-mask-image: linear-gradient(to bottom, black 0, transparent 240px);
+    mask-image: linear-gradient(to bottom, black 0, transparent 240px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-design="r18"] *,
+    [data-design="r18"] *::before,
+    [data-design="r18"] *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

@@ -1,0 +1,110 @@
+/*
+ * Repair #18 / Walk #4 - THE LAYOUT CONTRACT (W4-02 / W4-03 / W4-05).
+ *
+ * The founder named the recurring failure class on 2026-10-17: overlap,
+ * clipped content, assets hidden behind assets, a tapped asset not coming
+ * forward. That class is an ARCHITECTURE failure, not a per-screen bug.
+ * This file is the contract that makes the class structurally impossible
+ * or immediately test-detectable. Division C surface workers build ON this
+ * contract; a surface that violates it does not ship, however pretty.
+ *
+ * L1 SINGLE STACKING SOURCE. z-index values exist ONLY as --layer-*
+ *    tokens (theme/layerTokens.css). A numeric z-index literal in any
+ *    other stylesheet, or in a TSX style prop, is a defect.
+ * L2 SURFACE RULE (always-surface). A surface that must own the screen
+ *    (sheet / flow / modal / system bands) mounts ONLY through the
+ *    TopLayer portal (opalUi/TopLayer.tsx) as a direct body descendant.
+ *    Never inline inside .app, .thread, or any scrolling or
+ *    stacking-context-sealed ancestor. The tapped control's surface is
+ *    therefore ALWAYS the topmost hit at its own controls.
+ * L3 CONTAINMENT (cards size to content). A card renderer may clip its
+ *    decorative background (overflow: hidden for radius) ONLY when its
+ *    height is content-driven. A fixed height (or max-height) combined
+ *    with overflow: hidden on a content card is a defect: text lines,
+ *    attendance lines, and actions must never be truncated by the card's
+ *    own box. Long single-line titles ellipsize; they never lose their
+ *    leading characters to a rail, dot, or sibling.
+ * L4 THREAD COMPOSITION (one flow, no overlays). Inside a conversation
+ *    thread, every element is an in-flow child of the single thread
+ *    scroll column: header band, status banner, Next Together strip,
+ *    plan-action rows, plan card, messages, composer band. No sticky,
+ *    absolute, or fixed element inside the thread may paint over a
+ *    sibling; no element renders as a bare in-flow child of the sealed
+ *    conversation root (it would paint at the root top, behind the
+ *    header). Status/banner text occupies its own layout box with an
+ *    opaque background - it never "bleeds through" chrome.
+ * L5 CHROME OWNS ITS BAND. The conversation header band is opaque.
+ *    Nothing from the scroll column can show through it, and nothing in
+ *    it is transparent over scrolling content.
+ * L6 ANCHORED POPOVERS ARE VIEWPORT-CONTAINED. A popover anchored to a
+ *    control is positioned so its full box stays inside the viewport
+ *    (anchor coordinates are clamped at the call site; the popover also
+ *    caps its width to the viewport). A popover never renders half
+ *    off-screen with its labels clipped.
+ * L7 ACTIONS LIVE WITH THEIR OWNER. A pill or CTA renders inside the
+ *    card, strip, or sheet whose state it acts on - never as a free
+ *    floating element above or behind another surface.
+ *
+ * Enforcement: src/opalUi/w4LayoutContract.test.ts (static audit) plus
+ * the rendered Playwright proof in shots/repair18/walk4/ (hit tests,
+ * bounding-box overlap, and truncation checks on the served build).
+ * jsdom structure assertions alone NEVER close a layout item again.
+ */
+
+/* L4/L5 - structured conversation: the header band is opaque, so no
+ * scroll-column content can ever show through it. */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"]
+  > .gpt-header,
+.app[data-testid="member-conversation"][data-conversation-layout="structured"]
+  .gpt-header-618 {
+  background: rgb(5, 8, 22);
+}
+
+/* L4 - the Next Together strip is an in-flow thread child. It is never
+ * sticky, so it can never slide over message bubbles or under the
+ * header; it scrolls with the column it belongs to. */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"]
+  .next-plan-strip {
+  position: relative;
+  top: auto;
+  width: auto;
+  margin: 0 0 8px;
+}
+
+/* L4 - the alignment (plan) card likewise never docks over bubbles. */
+.app[data-testid="member-conversation"][data-conversation-layout="structured"]
+  .alignment-card.is-sheet {
+  position: relative;
+  bottom: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+/* L4 - the connection status banner occupies its own opaque box inside
+ * the thread flow (it is rendered as the thread's first child). */
+.connection-hint-sustained {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgb(8, 16, 28);
+  color: var(--muted);
+}
+
+/* L4/L7 - the reservation consequence panel lives inside the thread
+ * flow (rendered directly after the Next Together strip). Its box is
+ * fully opaque and content-sized; its dev note is text inside the box,
+ * never a bleed-through over the header. */
+.thread > .reservation-experience {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0 0 8px;
+  background: rgb(8, 12, 18);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* L6 - anchored popovers cap their width to the viewport. */
+.gsh-compose-chooser {
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+}

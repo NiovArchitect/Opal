@@ -34,11 +34,38 @@ defmodule OpalCoreWeb.ConversationController do
         conversation_id
         |> ConversationAlignment.sync_conversation()
         |> ConversationAlignment.dedupe_pending_presentation()
+        |> put_place_projection(conversation_id)
 
       json(conn, %{"alignment" => alignment})
     else
       conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
     end
+  end
+
+  # B1: the thread surface renders ONE explicit place projection for
+  # the conversation's active plan - the same object the plan
+  # contract carries (SharedPlan.place_projection/1) - instead of
+  # re-deriving place type from the fold's place string. Additive:
+  # plans-less threads are byte-identical to before.
+  defp put_place_projection(alignment, conversation_id) when is_map(alignment) do
+    import Ecto.Query
+
+    plan =
+      from(p in SharedPlan,
+        where:
+          p.conversation_id == ^conversation_id and
+            p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at],
+        limit: 1
+      )
+      |> OpalCore.Repo.one()
+
+    case plan do
+      %SharedPlan{} = plan -> Map.put(alignment, "place_projection", SharedPlan.place_projection(plan))
+      _ -> alignment
+    end
+  rescue
+    _ -> alignment
   end
 
   def outcomes(conn, %{"id" => conversation_id} = params) do
@@ -342,8 +369,12 @@ defmodule OpalCoreWeb.ConversationController do
     attrs = %{
       conversation_id: conversation_id,
       sender_user_id: user_id,
-      client_message_id:
-        params["client_message_id"] || "http-#{System.unique_integer([:positive])}",
+      # Repair #18 (W4-01): pass the client's idempotency key through
+      # verbatim - never mint a fresh random one here. A random key
+      # per HTTP call made every rapid re-send a brand-new message
+      # server-side, so the stored dedupe could never fire. Keyless
+      # sends are handled by Messages' rapid-duplicate window.
+      client_message_id: params["client_message_id"],
       message_type: params["message_type"] || "text",
       body: params["body"] || ""
     }
@@ -388,6 +419,14 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, :blocked} ->
         error(conn, 403, "blocked", "This connection is blocked")
+
+      {:error, :idempotency_conflict} ->
+        error(
+          conn,
+          409,
+          "idempotency_conflict",
+          "That send key was already used by another sender in this conversation. Compose a new message to send."
+        )
 
       {:error, :rate_limited} ->
         error_rate_limited(
@@ -509,9 +548,7 @@ defmodule OpalCoreWeb.ConversationController do
              content_type: params["content_type"] || "audio/webm",
              duration_ms: params["duration_ms"],
              client_message_id: params["client_message_id"],
-             audio_url: params["audio_url"],
-             stub_transcript: params["stub_transcript"],
-             stub_confidence: params["stub_confidence"]
+             audio_url: params["audio_url"]
            ) do
       message = result.message
       contract = Message.to_contract(message)
@@ -543,6 +580,11 @@ defmodule OpalCoreWeb.ConversationController do
     else
       false ->
         error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:disabled, reason} ->
+        # Repair #18 BS-4: transcription provider not configured —
+        # honest 503, no message persisted, no invented transcript.
+        error(conn, 503, "transcription_unavailable", to_string(reason))
 
       {:error, :invalid_audio} ->
         error(conn, 400, "invalid_audio", "Audio payload missing or invalid")

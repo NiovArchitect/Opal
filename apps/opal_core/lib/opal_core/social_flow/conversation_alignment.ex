@@ -51,15 +51,35 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     # new time ("let's change dinner to 8 PM", "move dinner to 8")
     # is consequential - it must sync the fold, or the change is
     # silently dropped on the message path (track-revision H4).
+    # Repair #18 (W4-01): a new-plan scheduling signal ("Schedule
+    # 7 am church at Awaken", "Add soccer Saturday 10 am") is
+    # consequential too - the fold must run at send time so the
+    # intent gate can create the new plan (or ASK) in the same turn,
+    # not only when some later read happens to sync.
     text != "" and not trivial?(text) and not SeedFixtureLeak.seed_fixture_body?(body) and
       (Regex.match?(
          ~r/tomorrow|\bmeet\b|after\s+\d|let'?s do|lets do|make it\s+\d|\bwhere\b|\bconfirm\b/,
          text
        ) or
-         Regex.match?(~r/\b(?:change|move|switch|shift|reschedule)\b[^.]*\bto\b/, text))
+         Regex.match?(~r/\b(?:change|move|switch|shift|reschedule)\b[^.]*\bto\b/, text) or
+         plan_signal?(text))
   end
 
   def consequential?(_), do: false
+
+  # W4-01: a scheduling verb ("schedule", "add", "book", "create",
+  # "set up") together with a clock or a day is a plan signal. The
+  # verb alone ("add me", "book club") is not.
+  defp plan_signal?(text) do
+    Regex.match?(
+      ~r/\b(?:schedule|add|book|create|set up)\b/,
+      text
+    ) and
+      Regex.match?(
+        ~r/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b(?:tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/,
+        text
+      )
+  end
 
   def fold(messages, member_ids, actions \\ [], opts \\ [])
 
@@ -73,6 +93,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       # pure formation semantics). Internal: stripped before return.
       "plan_row_clock" => Keyword.get(opts, :plan_row_clock),
       "plan_version" => 0,
+      # Repair #18 (W4-01): other active plans in this conversation
+      # (siblings of the fold's own plan), seeded by sync_locked only;
+      # pure folds pass none. The intent gate names them as ASK
+      # candidates. Internal: stripped before return.
+      "sibling_plans" => Keyword.get(opts, :sibling_plans, []),
       "participants" => field("locked", member_ids, nil),
       "activity" => field("unknown", nil, nil),
       "date" => field("unknown", nil, nil),
@@ -109,6 +134,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     |> Map.put("explicit_actions", actions)
     |> present()
     |> Map.delete("plan_row_clock")
+    |> Map.delete("sibling_plans")
   end
 
   def sync_conversation(conversation_id) when is_binary(conversation_id) do
@@ -128,7 +154,78 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     # bookkeeping and is stripped from the returned state.
     settle_fold_acceptance(conversation_id, state)
 
+    # Repair #18 (W4-01): materialize the fold's new-plan signals as
+    # separate SharedPlan rows (see materialize_new_plans/2). Runs
+    # after the sync transaction commits, like the settlement above,
+    # and is idempotent per source message.
+    materialize_new_plans(conversation_id, state)
+
     Map.delete(state, "settled_change")
+  end
+
+  # W4-01: a new-plan signal the intent gate recorded during the fold
+  # becomes a real, separate SharedPlan in the same conversation,
+  # through the same creation door as every conversation plan
+  # (SocialFlow.create_tentative_plan_from_conversation - dedupe
+  # identity, participant rows, PlanTransition gate included). The
+  # row is stamped with its origin + source message so replays never
+  # create it twice, and so the fold's own plan selection can tell
+  # the thread's fold lineage from separate plans (prefer_fold_plan/1).
+  defp materialize_new_plans(conversation_id, state) do
+    signals = if is_map(state), do: state["new_plan_signals"] || [], else: []
+
+    Enum.each(signals, fn signal ->
+      message_id = signal["message_id"]
+      actor = signal["actor_user_id"]
+
+      if is_binary(message_id) and is_binary(actor) and
+           not new_plan_materialized?(conversation_id, message_id) do
+        case OpalCore.SocialFlow.create_tentative_plan_from_conversation(
+               conversation_id,
+               actor,
+               %{
+                 "title" => signal["title"],
+                 "place" => signal["place"],
+                 "location" => signal["place"],
+                 "time_label" => signal["time_label"]
+               }
+             ) do
+          {:ok, plan, _participants} ->
+            alignment =
+              (plan.alignment || %{})
+              |> Map.put("origin", "chat_new_plan")
+              |> Map.put("separate_lineage", true)
+              |> Map.put("source_message_id", message_id)
+              |> Map.update("source_message_ids", [message_id], fn ids ->
+                Enum.uniq(ids ++ [message_id])
+              end)
+
+            _ =
+              plan
+              |> SharedPlan.changeset(%{alignment: alignment})
+              |> Repo.update()
+
+            :ok
+
+          _ ->
+            :ok
+        end
+      end
+    end)
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  defp new_plan_materialized?(conversation_id, message_id) do
+    from(p in SharedPlan, where: p.conversation_id == ^conversation_id)
+    |> Repo.all()
+    |> Enum.any?(fn plan ->
+      alignment = plan.alignment || %{}
+      ids = alignment["source_message_ids"] || List.wrap(alignment["source_message_id"])
+      alignment["origin"] == "chat_new_plan" and message_id in ids
+    end)
   end
 
   defp settle_fold_acceptance(conversation_id, state) do
@@ -276,8 +373,22 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     row_clock =
       plan && OpalCore.SocialFlow.PlanIdentity.parse_clock(plan.time_label || "")
 
+    # Repair #18 (W4-01): the conversation's OTHER active plans are
+    # ASK candidates for ambiguous retargets (see the intent gate).
+    sibling_plans =
+      from(p in SharedPlan,
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at]
+      )
+      |> Repo.all()
+      |> Enum.reject(&(plan && &1.id == plan.id))
+      |> Enum.map(fn p ->
+        %{"id" => p.id, "title" => p.title, "time_label" => p.time_label}
+      end)
+
     state =
-      fold(messages, members, actions, plan_row_clock: row_clock)
+      fold(messages, members, actions, plan_row_clock: row_clock, sibling_plans: sibling_plans)
       |> freeze_plan_set_event(plan && plan.alignment)
       |> PlaceIdentity.attach_resolved(plan && plan.alignment)
       |> surface_pending_revision(plan)
@@ -577,17 +688,34 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   Multiple SharedPlans per conversation are lawful (new lineage / residue).
   Canonical open lineage = newest active (tentative|agreed|changed) by updated_at.
   Never use Repo.get_by/2 here — MultipleResultsError is a coherence crash.
+
+  Repair #18 (W4-01): plans the intent gate created as SEPARATE
+  lineages (alignment origin "chat_new_plan") are never the thread's
+  fold plan, however new they are - the fold keeps owning the plan
+  the conversation's messages formed. When several plans qualify,
+  the newest non-separate plan wins; a conversation holding only
+  separate plans still resolves to the newest of them.
   """
   def active_plan_for_conversation(conversation_id) when is_binary(conversation_id) do
-    from(p in SharedPlan,
-      where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
-      order_by: [desc: p.updated_at, desc: p.inserted_at],
-      limit: 1
-    )
-    |> Repo.one()
+    plans =
+      from(p in SharedPlan,
+        where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at]
+      )
+      |> Repo.all()
+
+    prefer_fold_plan(plans)
   end
 
   def active_plan_for_conversation(_), do: nil
+
+  # W4-01: the fold's plan is the newest active plan that is not a
+  # separate new-plan lineage (see active_plan_for_conversation/1).
+  defp prefer_fold_plan(plans) when is_list(plans) do
+    Enum.find(plans, fn plan ->
+      get_in(plan.alignment || %{}, ["origin"]) != "chat_new_plan"
+    end) || List.first(plans)
+  end
 
   @doc """
   Reconcile duplicate active SharedPlans for one conversation.
@@ -647,15 +775,19 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   def reconcile_conversation_plans(_), do: {:error, :invalid}
 
-  # Multiple SharedPlans per conversation are lawful; lock the newest active one.
+  # Multiple SharedPlans per conversation are lawful; lock the fold's
+  # active plan (W4-01: never a separate new-plan lineage while a
+  # fold plan exists - see prefer_fold_plan/1).
   defp lock_plan(conversation_id) do
-    from(p in SharedPlan,
-      where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
-      order_by: [desc: p.updated_at, desc: p.inserted_at],
-      limit: 1,
-      lock: "FOR UPDATE"
-    )
-    |> Repo.one()
+    plans =
+      from(p in SharedPlan,
+        where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        order_by: [desc: p.updated_at, desc: p.inserted_at],
+        lock: "FOR UPDATE"
+      )
+      |> Repo.all()
+
+    prefer_fold_plan(plans)
   end
 
   def set_activity(conversation_id, user_id, activity) when is_binary(activity) do
@@ -1171,18 +1303,572 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         state
 
       true ->
-        state
-        |> note_activity(text, id)
-        |> note_date(text, id)
-        |> accept_date(text, id)
-        |> note_window(text, id)
-        |> note_exact(text, id)
-        |> retarget_time(text, id, actor)
-        |> note_place(text, body, id, actor)
-        |> accept_place(text, id, actor)
-        |> note_datetime_change(text, id, actor)
-        |> note_activity_intent(text, id, actor)
+        case intent_gate(state, text, body, id, actor) do
+          :current ->
+            # Only current-plan-path messages move the thread's
+            # working activity keyword: a sibling-plan creation or
+            # an ASK must never rename what the CURRENT plan is.
+            state
+            |> fold_current_plan_message(text, body, id, actor)
+            |> note_activity_keyword(text)
+
+          {:handled, gated_state} ->
+            gated_state
+        end
     end
+  end
+
+  # W4-01: the thread's working activity keyword - the most recent
+  # known activity noun any earlier message named ("dinner" in
+  # "Let's do dinner at Juniper and Ivy..."). The fold's activity
+  # FIELD only locks for exact-phrase intents, so a plan formed from
+  # ordinary sentences often carries no activity value; the keyword
+  # is the gate's memory of what the current plan IS, used only for
+  # matching (never rendered as the plan's activity). Updated AFTER
+  # the gate reads it, so a message can never match itself.
+  @activity_keywords ~w(dinner lunch brunch breakfast coffee drinks church
+                        soccer movie concert meeting hike gym birthday)
+
+  defp note_activity_keyword(state, text) do
+    keyword =
+      Enum.find(@activity_keywords, fn word ->
+        Regex.match?(~r/\b#{word}\b/, text)
+      end) ||
+        if Regex.match?(~r/\bbible study\b/, text), do: "bible study"
+
+    if keyword do
+      Map.put(state, "activity_keyword", keyword)
+    else
+      state
+    end
+  end
+
+  # The current plan's activity as the gate knows it: the folded
+  # activity value when one locked, else the thread's working
+  # activity keyword.
+  defp current_activity(state) do
+    case get_in(state, ["activity", "value"]) do
+      value when is_binary(value) and value != "" -> value
+      _ -> state["activity_keyword"]
+    end
+  end
+
+  # The pre-W4-01 fold pipeline, unchanged: every step interprets
+  # the message as being about the thread's current plan.
+  defp fold_current_plan_message(state, text, body, id, actor) do
+    state
+    |> note_activity(text, id)
+    |> note_date(text, id)
+    |> accept_date(text, id)
+    |> note_window(text, id)
+    |> note_exact(text, id)
+    |> retarget_time(text, id, actor)
+    |> note_place(text, body, id, actor)
+    |> accept_place(text, id, actor)
+    |> note_datetime_change(text, id, actor)
+    |> note_activity_intent(text, id, actor)
+  end
+
+  # ==================================================================
+  # Repair #18 (W4-01) - INTENT DISAMBIGUATION GATE
+  #
+  # The founder's Walk #4 defect: in a thread with an existing 8 PM
+  # dinner plan, "Schedule 7 am church at Awaken" - a request to
+  # create a NEW plan - was folded into a change_proposal on the
+  # dinner plan ("Suggested 7:00 AM instead"). A new-plan request
+  # must CREATE the new plan or ASK; it must never silently become
+  # a revision candidate on the current plan.
+  #
+  # The gate runs per message BEFORE the current-plan pipeline, in
+  # this order (first match wins):
+  #
+  #  1. ASK RESOLUTION: while an intent_ask is outstanding, a reply
+  #     naming one of its candidates resolves it ("new" -> the stored
+  #     signal becomes a new-plan creation; a change verb or the
+  #     current plan's name -> the stored change applies to the
+  #     current plan through the ordinary revision gate). A bare
+  #     "yes" never resolves an ASK. Unrelated replies leave the
+  #     ASK standing.
+  #  2. NO CURRENT PLAN: nothing to misroute into - the message
+  #     takes the ordinary formation path.
+  #  3. ANCHORED CHANGE: a change verb (change / move / switch /
+  #     shift / reschedule / make it) anchored to the current plan
+  #     (its activity, its place, "it", "the plan") is a revision
+  #     intent - ordinary path, Division A behavior unchanged.
+  #  4. SCHEDULING VERB (schedule / add / book / create / set up, at
+  #     the head of the message or after "let's" / "can we"): the
+  #     message is a creation request.
+  #       - Its activity AND venue (whichever it names) both differ
+  #         from the current plan's: a NEW PLAN signal. The fold
+  #         records it in "new_plan_signals" and touches NOTHING on
+  #         the current plan; sync_conversation materializes it as
+  #         a separate SharedPlan (materialize_new_plans/2).
+  #       - Its activity or venue MATCHES the current plan's, or it
+  #         names neither: genuinely ambiguous - ASK with named
+  #         candidates ("Start a new plan for dinner at 7:00 AM, or
+  #         change Dinner to 7:00 AM?") and write nothing.
+  #  5. BARE RETARGET ("make it 7 instead", "move it to 7") with
+  #     SIBLING plans in the thread: "it" has more than one lawful
+  #     referent - ASK naming every candidate plan, write nothing.
+  #     With no siblings the retarget anchors to the current plan
+  #     (rule 3 / ordinary path), exactly as before.
+  #  6. Anything else: ordinary current-plan path.
+  #
+  # Invariants: the gate never creates a change_proposal for a
+  # rule-4/5 message; an ASK writes nothing (no proposal, no plan,
+  # no field change); Division A revision behavior on the ordinary
+  # path is untouched.
+  # ==================================================================
+
+  defp intent_gate(state, text, body, id, actor) do
+    ask = state["intent_ask"]
+
+    cond do
+      is_map(ask) and intent_ask_resolution(state, ask, text) == :new ->
+        {:handled, resolve_ask_as_new_plan(state, ask)}
+
+      is_map(ask) and intent_ask_resolution(state, ask, text) == :change ->
+        {:handled, resolve_ask_as_change(state, ask, id, actor)}
+
+      not current_plan_material?(state) ->
+        :current
+
+      # Rule 5 before rule 3: a bare retarget ("make it 7") is
+      # "anchored" by the word "it" itself, so the anchored-change
+      # rule would always swallow it - but with sibling plans "it"
+      # has more than one lawful referent and must ASK first.
+      bare_retarget?(text) and sibling_plans_present?(state) ->
+        {:handled, put_retarget_ask(state, text, actor)}
+
+      anchored_change?(state, text) ->
+        :current
+
+      scheduling_verb?(text) ->
+        {:handled, apply_scheduling_intent(state, text, body, id, actor)}
+
+      true ->
+        :current
+    end
+  end
+
+  defp sibling_plans_present?(state) do
+    is_list(state["sibling_plans"]) and state["sibling_plans"] != []
+  end
+
+  # Same materiality test sync uses to decide a plan row exists:
+  # any of date / time_window / exact_time / place is known.
+  defp current_plan_material?(state) do
+    Enum.any?(["date", "time_window", "exact_time", "place"], fn key ->
+      value = get_in(state, [key, "value"])
+      is_binary(value) and value != ""
+    end)
+  end
+
+  defp anchored_change?(state, text) do
+    change_language? =
+      Regex.match?(~r/\b(?:change|move|switch|shift|reschedule)\b/, text) or
+        Regex.match?(~r/\bmake it\b/, text)
+
+    anchored? =
+      mentions_current_plan?(state, text) or
+        Regex.match?(~r/\bit\b|\bthe plan\b/, text)
+
+    change_language? and anchored?
+  end
+
+  defp mentions_current_plan?(state, text) do
+    activity_mentioned? =
+      case current_activity(state) do
+        value when is_binary(value) and value != "" ->
+          String.contains?(text, String.downcase(value))
+
+        _ ->
+          false
+      end
+
+    place_mentioned? =
+      case get_in(state, ["place", "value"]) do
+        value when is_binary(value) and value != "" ->
+          String.contains?(text, String.downcase(value))
+
+        _ ->
+          false
+      end
+
+    activity_mentioned? or place_mentioned?
+  end
+
+  defp scheduling_verb?(text) do
+    Regex.match?(~r/\A(?:please\s+)?(?:schedule|add|book|create|set up)\b/, text) or
+      Regex.match?(~r/\b(?:let'?s|lets)\s+(?:schedule|add|book|plan|create)\b/, text) or
+      Regex.match?(~r/\bcan we\s+(?:schedule|add|book|create)\b/, text)
+  end
+
+  defp bare_retarget?(text) do
+    Regex.match?(~r/\b(?:make|move|change|shift)\s+it\s+(?:to\s+)?\d/, text) or
+      (Regex.match?(~r/\binstead\b/, text) and Regex.match?(~r/\d/, text))
+  end
+
+  # -- Rule 4: scheduling intents ------------------------------------
+
+  defp apply_scheduling_intent(state, text, body, id, actor) do
+    signal = extract_plan_signal(state, text, body, id, actor)
+
+    cond do
+      signal["activity_matches_current"] or signal["venue_matches_current"] ->
+        put_new_or_change_ask(state, signal)
+
+      is_nil(signal["activity"]) and is_nil(signal["place"]) ->
+        put_new_or_change_ask(state, signal)
+
+      true ->
+        state
+        |> clear_intent_ask()
+        |> Map.update("new_plan_signals", [signal], fn signals -> signals ++ [signal] end)
+    end
+  end
+
+  # Parse a scheduling message into a plan signal: activity, venue,
+  # date/time (through the one DateTimeChange reading), and whether
+  # either named thing matches the current plan.
+  defp extract_plan_signal(state, text, body, id, actor) do
+    context = %{
+      "exact_time" => get_in(state, ["exact_time", "value"]),
+      "date" => get_in(state, ["date", "value"]),
+      "reference_on" => "2026-09-27"
+    }
+
+    change =
+      case DateTimeChange.interpret(text, context, scoped: false) do
+        {:change, change} -> change
+        _ -> nil
+      end
+
+    activity =
+      case ActivityIntent.compile(text) do
+        %{"normalized_label" => label} -> label
+        _ -> freeform_activity(text)
+      end
+
+    venue = extract_venue(text)
+    date_label = change && get_in(change, ["date", "value"])
+    time_value = change && get_in(change, ["exact_time", "value"])
+
+    time_label =
+      [date_label, time_value]
+      |> Enum.filter(&(is_binary(&1) and &1 != ""))
+      |> Enum.join(" ")
+      |> case do
+        "" -> nil
+        label -> label
+      end
+
+    title =
+      cond do
+        is_binary(activity) and is_binary(venue) -> "#{activity} at #{venue}"
+        is_binary(activity) -> activity
+        is_binary(venue) -> venue
+        true -> nil
+      end
+
+    %{
+      "message_id" => id,
+      "actor_user_id" => actor,
+      "activity" => activity,
+      "place" => venue,
+      "date_label" => date_label,
+      "time_value" => time_value,
+      "time_label" => time_label,
+      "title" => title,
+      "activity_matches_current" =>
+        signal_matches?(activity, current_activity(state)),
+      "venue_matches_current" => signal_matches?(venue, get_in(state, ["place", "value"])),
+      "change" => change,
+      "raw_text" => body
+    }
+  end
+
+  defp signal_matches?(candidate, current)
+       when is_binary(candidate) and is_binary(current) do
+    a = String.downcase(candidate)
+    b = String.downcase(current)
+    a == b or String.contains?(a, b) or String.contains?(b, a)
+  end
+
+  defp signal_matches?(_, _), do: false
+
+  # Freeform activity: the words of the scheduling phrase once the
+  # verb, the venue tail, the clock and the day are removed
+  # ("add soccer saturday 10 am at the park" -> "Soccer").
+  defp freeform_activity(text) do
+    phrase =
+      text
+      |> String.replace(
+        ~r/\A\s*(?:please\s+)?(?:let'?s|lets|can we)?\s*(?:schedule|add|book|create|set up)\s+/,
+        ""
+      )
+      |> String.replace(~r/\bat\s+.+$/, "")
+      |> String.replace(~r/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/, " ")
+      |> String.replace(
+        ~r/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|today|on|for|a|an|the)\b/,
+        " "
+      )
+      |> String.replace(~r/\s+/, " ")
+      |> String.trim()
+
+    case phrase do
+      "" -> nil
+      phrase -> titleize_words(phrase)
+    end
+  end
+
+  # Venue: the tail after the last " at ", unless the tail is a
+  # clock ("dinner at 7 am" names a time, not a place).
+  defp extract_venue(text) do
+    case Regex.run(~r/\bat\s+(.+)$/, text) do
+      [_, tail] ->
+        tail =
+          tail
+          |> String.replace(
+            ~r/\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|today)\b.*$/,
+            ""
+          )
+          |> String.trim()
+
+        cond do
+          tail == "" -> nil
+          Regex.match?(~r/\A\d/, tail) -> nil
+          Regex.match?(~r/\b(?:am|pm)\b/, tail) and not Regex.match?(~r/[a-z]{3,}/, String.replace(tail, ~r/\b(?:am|pm)\b/, "")) -> nil
+          true -> titleize_words(tail)
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp titleize_words(text) do
+    text
+    |> String.split(~r/\s+/, trim: true)
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  # -- ASKs ------------------------------------------------------------
+
+  defp put_new_or_change_ask(state, signal) do
+    current_name = current_plan_name(state)
+    current_time = get_in(state, ["exact_time", "value"])
+    new_desc = signal_description(signal)
+
+    prompt =
+      if is_binary(signal["time_value"]) do
+        "Start a new plan for #{new_desc}, or change #{current_name} to #{signal["time_value"]}?"
+      else
+        "Start a new plan for #{new_desc}, or change #{current_name}?"
+      end
+
+    ask = %{
+      "kind" => "new_or_change",
+      "prompt" => prompt,
+      "signal" => signal,
+      "change" => signal["change"],
+      "candidates" => [
+        %{"kind" => "new_plan", "label" => "New plan: #{new_desc}"},
+        %{
+          "kind" => "change_current",
+          "label" => "Change #{current_name}",
+          "current_time" => current_time
+        }
+      ]
+    }
+
+    state
+    |> Map.put("intent_ask", ask)
+    |> Map.put("clarify", prompt)
+  end
+
+  defp put_retarget_ask(state, text, actor) do
+    context = %{
+      "exact_time" => get_in(state, ["exact_time", "value"]),
+      "date" => get_in(state, ["date", "value"]),
+      "reference_on" => "2026-09-27"
+    }
+
+    time_value =
+      case DateTimeChange.interpret(text, context, scoped: false) do
+        {:change, change} -> get_in(change, ["exact_time", "value"])
+        _ -> nil
+      end || retarget_clock_label(text)
+
+    current_name = current_plan_name(state)
+    current_time = get_in(state, ["exact_time", "value"])
+
+    candidates =
+      [%{"name" => current_name, "time_label" => current_time}] ++
+        Enum.map(state["sibling_plans"] || [], fn sibling ->
+          %{"name" => sibling["title"], "time_label" => sibling["time_label"]}
+        end)
+
+    named =
+      Enum.map_join(candidates, ", or ", fn candidate ->
+        case candidate["time_label"] do
+          label when is_binary(label) and label != "" -> "#{candidate["name"]} (#{label})"
+          _ -> candidate["name"]
+        end
+      end)
+
+    prompt =
+      if is_binary(time_value) do
+        "Change #{named} to #{time_value}? Which one did you mean?"
+      else
+        "Change #{named}? Which one did you mean?"
+      end
+
+    ask = %{
+      "kind" => "retarget",
+      "prompt" => prompt,
+      "time_value" => time_value,
+      "proposed_by_user_id" => actor,
+      "candidates" =>
+        Enum.map(candidates, fn candidate ->
+          %{"kind" => "plan", "label" => candidate["name"], "time_label" => candidate["time_label"]}
+        end)
+    }
+
+    state
+    |> Map.put("intent_ask", ask)
+    |> Map.put("clarify", prompt)
+  end
+
+  defp retarget_clock_label(text) do
+    case Regex.run(~r/\b(\d{1,2})(?::(\d{2}))?\b/, text) do
+      [_, hour, minutes] ->
+        "#{hour}:#{if(minutes in [nil, ""], do: "00", else: minutes)} PM"
+
+      [_, hour] ->
+        "#{hour}:00 PM"
+
+      _ ->
+        nil
+    end
+  end
+
+  defp current_plan_name(state) do
+    activity = current_activity(state)
+    place = get_in(state, ["place", "value"])
+
+    cond do
+      is_binary(activity) and activity != "" -> titleize_words(String.downcase(activity))
+      is_binary(place) and place != "" -> place
+      true -> "the current plan"
+    end
+  end
+
+  defp signal_description(signal) do
+    parts =
+      [
+        signal["activity"] && String.downcase(signal["activity"]),
+        signal["place"] && "at #{signal["place"]}",
+        signal["date_label"],
+        signal["time_value"] && "at #{signal["time_value"]}"
+      ]
+      |> Enum.filter(&(is_binary(&1) and &1 != ""))
+
+    case parts do
+      [] -> "that"
+      parts -> Enum.join(parts, " ")
+    end
+  end
+
+  # -- ASK resolution ----------------------------------------------------
+
+  # A reply resolves an outstanding ASK only by NAMING a candidate:
+  # "new" for the new-plan candidate, a change verb or the current
+  # plan's own name for the change candidate. A bare yes/no, or an
+  # unrelated message, resolves nothing (the ASK stands) - a bare
+  # yes must never revive an unrelated earlier object.
+  defp intent_ask_resolution(state, %{"kind" => "new_or_change"}, text) do
+    cond do
+      Regex.match?(~r/\bnew\b/, text) -> :new
+      Regex.match?(~r/\b(?:change|move|switch|shift)\b/, text) -> :change
+      mentions_current_plan?(state, text) -> :change
+      true -> nil
+    end
+  end
+
+  defp intent_ask_resolution(state, %{"kind" => "retarget"}, text) do
+    cond do
+      # Naming the thread's own (fold) plan resolves to it. Naming a
+      # sibling does NOT resolve here: the fold does not own the
+      # sibling's schedule (its changes run through PlanRevision),
+      # so the ASK stands until the fold plan is named or a clear
+      # new instruction arrives - named limitation, W4-01 report.
+      mentions_current_plan?(state, text) -> :change
+      true -> nil
+    end
+  end
+
+  defp intent_ask_resolution(_, _, _), do: nil
+
+  defp resolve_ask_as_new_plan(state, %{"signal" => signal}) do
+    state
+    |> clear_intent_ask()
+    |> Map.update("new_plan_signals", [signal], fn signals -> signals ++ [signal] end)
+  end
+
+  defp resolve_ask_as_new_plan(state, _), do: clear_intent_ask(state)
+
+  defp resolve_ask_as_change(state, %{"kind" => "new_or_change"} = ask, id, actor) do
+    state = clear_intent_ask(state)
+
+    case ask["change"] do
+      change when is_map(change) ->
+        apply_datetime_change(state, change, id, actor)
+
+      _ ->
+        case ask["signal"]["time_value"] do
+          value when is_binary(value) ->
+            if value == get_in(state, ["exact_time", "value"]) do
+              state
+            else
+              put_change_proposal(state, "exact_time", value, actor)
+            end
+
+          _ ->
+            state
+        end
+    end
+  end
+
+  defp resolve_ask_as_change(state, %{"kind" => "retarget"} = ask, _id, actor) do
+    state = clear_intent_ask(state)
+    value = ask["time_value"]
+
+    if is_binary(value) and value != get_in(state, ["exact_time", "value"]) do
+      put_change_proposal(state, "exact_time", value, actor)
+    else
+      state
+    end
+  end
+
+  defp resolve_ask_as_change(state, _, _, _), do: clear_intent_ask(state)
+
+  # An ASK is superseded by any explicit new state (a proposal, a
+  # fresh new-plan signal, its own resolution). Clearing also drops
+  # the clarify copy when the clarify IS this ask's prompt, so a
+  # resolved ask never lingers on the thread as a stale question.
+  defp clear_intent_ask(state) do
+    ask = state["intent_ask"]
+
+    state
+    |> Map.delete("intent_ask")
+    |> then(fn next ->
+      if is_map(ask) and next["clarify"] == ask["prompt"] do
+        Map.delete(next, "clarify")
+      else
+        next
+      end
+    end)
   end
 
   defp note_datetime_change(state, text, id, actor) do
@@ -2374,11 +3060,17 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         Map.put(proposal, "expires_at", proposal_expires_at())
       end
 
-    Map.put(state, "change_proposal", proposal)
+    # W4-01: an explicit proposal supersedes an outstanding intent ASK.
+    state
+    |> clear_intent_ask()
+    |> Map.put("change_proposal", proposal)
   end
 
   defp put_change_proposal(state, field, value, actor) do
-    Map.put(state, "change_proposal", %{
+    # W4-01: an explicit proposal supersedes an outstanding intent ASK.
+    state
+    |> clear_intent_ask()
+    |> Map.put("change_proposal", %{
       "field" => field,
       "value" => value,
       "current" => get_in(state, [field, "value"]),
@@ -2758,6 +3450,37 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       alignment: Map.put(state, "lineage_id", lineage_id(conversation_id))
     }
 
+    # B1 (A8, fold-born virtual - built LAST per the design's risk
+    # order): the fold can birth a virtual plan when its state carries
+    # the place type explicitly or locks the Online place marker. The
+    # row column and the alignment mirror are stamped together here,
+    # through the one stamp helper.
+    fold_plan_type =
+      cond do
+        state["plan_type"] in ["virtual", "in_person"] -> state["plan_type"]
+        get_in(state, ["place", "value"]) == "Online" -> "virtual"
+        true -> nil
+      end
+
+    attrs =
+      if fold_plan_type == "virtual" do
+        link = OpalCore.SocialFlow.MeetingLinks.sanitize(state["meeting_link"])
+
+        attrs
+        |> Map.put(:plan_type, "virtual")
+        |> Map.put(:meeting_link, link)
+        |> Map.put(:location, "Online")
+        |> Map.update(:alignment, %{}, fn alignment ->
+          OpalCore.SocialFlow.stamp_place_mirror(alignment, %{
+            "plan_type" => "virtual",
+            "meeting_link" => link,
+            "meeting_provider" => state["meeting_provider"]
+          })
+        end)
+      else
+        attrs
+      end
+
     case active_plan_for_conversation(conversation_id) do
       nil when is_binary(user_id) ->
         # Insert: the fold owns the new row.
@@ -2820,6 +3543,65 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         update_attrs =
           attrs
           |> Map.put(:time_label, schedule_authority_label(plan, state, folded_time_label))
+          # B1: place type is row-owned authority too (the conversion
+          # writer owns it). A fold sync must never revert a
+          # conversion: when the fold state carries no explicit
+          # place_type_change action for a DIFFERENT type, the row's
+          # type wins and the mirror is re-stamped from the row.
+          |> then(fn update_attrs ->
+            explicit_convert? =
+              Enum.any?(state["explicit_actions"] || [], fn a ->
+                is_map(a) and a["kind"] == "place_type_change" and
+                  a["value"] == state["plan_type"]
+              end)
+
+            if fold_plan_type in ["virtual", "in_person"] and
+                 (fold_plan_type == plan.plan_type or explicit_convert?) do
+              link =
+                OpalCore.SocialFlow.MeetingLinks.sanitize(
+                  state["meeting_link"] || plan.meeting_link
+                )
+
+              update_attrs
+              |> Map.put(:plan_type, fold_plan_type)
+              |> Map.put(:meeting_link, link)
+              |> Map.update(:alignment, %{}, fn alignment ->
+                OpalCore.SocialFlow.stamp_place_mirror(alignment, %{
+                  "plan_type" => fold_plan_type,
+                  "meeting_link" => link,
+                  "meeting_provider" => state["meeting_provider"] || plan.meeting_provider
+                })
+              end)
+            else
+              update_attrs
+              |> Map.delete(:plan_type)
+              |> Map.delete(:meeting_link)
+              |> Map.delete(:location)
+              |> Map.update(:alignment, %{}, fn alignment ->
+                alignment
+                |> Map.put("plan_type", plan.plan_type)
+                |> then(fn a ->
+                  if plan.plan_type == "virtual" do
+                    link = OpalCore.SocialFlow.MeetingLinks.sanitize(plan.meeting_link)
+
+                    a
+                    |> then(fn a2 ->
+                      if link, do: Map.put(a2, "meeting_link", link), else: Map.delete(a2, "meeting_link")
+                    end)
+                    |> then(fn a2 ->
+                      if plan.meeting_provider,
+                        do: Map.put(a2, "meeting_provider", plan.meeting_provider),
+                        else: a2
+                    end)
+                  else
+                    a
+                    |> Map.delete("meeting_link")
+                    |> Map.delete("meeting_provider")
+                  end
+                end)
+              end)
+            end
+          end)
 
         case plan |> SharedPlan.changeset(update_attrs) |> Repo.update() do
           {:ok, updated} = ok ->

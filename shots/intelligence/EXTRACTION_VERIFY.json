@@ -51,7 +51,9 @@
       "id": "a04",
       "intent_ok": true,
       "may_commit": false,
-      "pred_people": [],
+      "pred_people": [
+        "chanel"
+      ],
       "pred_places": [],
       "pred_times": [
         "saturday"
@@ -165,13 +167,13 @@
     "booking_request",
     "set_reminder"
   ],
-  "corpus_absolute": "/Users/genghishameha/Developer/NIOVI-Architect/worktrees/opal-grok-real-people/shots/intelligence/extraction_corpus.json",
+  "corpus_absolute": "/home/hatch/workspace/opal-graph/wt-repair18/shots/intelligence/extraction_corpus.json",
   "corpus_counts": {
     "adversarial": 10,
     "messy": 50
   },
   "corpus_path": "shots/intelligence/extraction_corpus.json",
-  "date": "2026-10-09",
+  "date": "2026-10-18",
   "extractor_fn": "OpalCore.Intelligence.Extractor.classify_message/1",
   "extractor_path": "rules_floor",
   "messy_failures": [],

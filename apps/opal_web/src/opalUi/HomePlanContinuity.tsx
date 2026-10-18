@@ -79,7 +79,7 @@ function renderCard(
         <p className="home-plan-execution">Just you. Not a shared agreement.</p>
       ) : null}
       {plan.when_label ? <p className="home-plan-when">{plan.when_label}</p> : null}
-      {plan.online || plan.plan_type === "virtual" ? (
+      {plan.online || plan.plan_type === "virtual" || plan.place_projection?.kind === "virtual" ? (
         <p className="home-plan-place" data-testid="home-plan-online" data-plan-type="virtual">
           <span className="home-plan-online-icon" aria-hidden>
             📹

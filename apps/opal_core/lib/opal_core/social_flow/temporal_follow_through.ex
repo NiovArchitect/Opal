@@ -284,6 +284,23 @@ defmodule OpalCore.SocialFlow.TemporalFollowThrough do
     {"resolved", "terminal_status"}
   end
 
+  # Repair #18 B4: a care turn is never "approaching" (nothing to
+  # prepare; an approaching nudge would be a second surface). Before
+  # the window ends it is not_yet; at/after window end, still open, it
+  # is due. The miss surface itself is owned by CareRotations (budget
+  # gated, exactly once) — see the attention_event clause below.
+  defp mature(%{kind: "care_check_in"} = loop, now) do
+    case loop.semantic_deadline_at do
+      %DateTime{} = deadline ->
+        if DateTime.compare(now, deadline) != :lt,
+          do: {"due", "care_check_in_missed"},
+          else: {"not_yet", "care_check_in_window_open"}
+
+      _ ->
+        {"not_yet", "care_check_in_no_deadline"}
+    end
+  end
+
   defp mature(%{kind: "memory_silence"}, _now), do: {"not_yet", "memory_fact_no_timer"}
   defp mature(%{kind: "pattern_silence"}, _now), do: {"not_yet", "historical_pattern_no_schedule"}
 
@@ -569,6 +586,13 @@ defmodule OpalCore.SocialFlow.TemporalFollowThrough do
           "source_type" => "open_question",
           "copy" => loop.metadata["copy"] || "Still open"
         })
+
+      # Repair #18 B4: TFT evaluation NEVER surfaces a care miss
+      # itself. CareRotations.surface_missed/1 is the single surfacing
+      # path (per-recipient AttentionBudget gate + exactly-once stamp);
+      # a second path here would double-surface.
+      {"care_check_in", _} ->
+        Map.merge(base, %{"source_type" => "memory", "private_memory_only" => true})
 
       {"memory_silence", _} ->
         Map.merge(base, %{"source_type" => "memory", "private_memory_only" => true})

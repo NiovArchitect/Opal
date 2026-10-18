@@ -42,6 +42,13 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
         {:plan, "changed", :change, "changed"},
         {:plan, "changed", :cancel, "cancelled"},
         {:plan, "changed", :complete, "completed"},
+        # Repair #18 (W4-04): end-to-end plan editing is a deliberate
+        # gate widening - :edit is status-preserving and legal exactly
+        # from the live statuses; terminal plans have no :edit row, so
+        # a cancelled/completed/expired plan's details stay history.
+        {:plan, "tentative", :edit, "tentative"},
+        {:plan, "agreed", :edit, "agreed"},
+        {:plan, "changed", :edit, "changed"},
         # Repair #18 (Division A, F18-06): stale tentative expiry is a
         # deliberate gate widening - tentative only (agreed/changed are
         # commitments and never expire), with :revive as the stated
@@ -85,7 +92,7 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
   describe "transition/3 refuses everything the table does not allow" do
     test "F12-62 class: terminal plans are terminal (no resurrection)" do
       for status <- ~w(cancelled completed),
-          action <- [:agree, :change, :cancel, :complete, :create] do
+          action <- [:agree, :change, :cancel, :complete, :create, :edit] do
         assert {:error, :illegal_transition} = PlanTransition.transition(:plan, status, action),
                "expected refusal: plan #{status} + #{action}"
       end
@@ -167,7 +174,7 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
     end
 
     test "legal_actions lists the table's moves from a live status" do
-      assert PlanTransition.legal_actions(:plan, "agreed") == [:cancel, :change, :complete]
+      assert PlanTransition.legal_actions(:plan, "agreed") == [:cancel, :change, :complete, :edit]
 
       assert PlanTransition.legal_actions(:proposal, "visible") == [
                :approve,
@@ -189,7 +196,11 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
       assert Enum.sort(PlanTransition.from_statuses(:proposal, :expire)) ==
                ["approved_for_coordination", "proposed", "visible"]
 
-      assert PlanTransition.from_statuses(:plan, :cancel) ==
+      # from_statuses/2 is a set-valued filter source (map iteration
+      # order is not part of its contract - the sibling assertions
+      # above sort for the same reason; the W4-04 :edit rows changed
+      # the table's iteration order without changing the set).
+      assert Enum.sort(PlanTransition.from_statuses(:plan, :cancel)) ==
                ["agreed", "changed", "tentative"]
     end
   end
