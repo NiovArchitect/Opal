@@ -1358,6 +1358,24 @@
 .r19-share-card { backdrop-filter: blur(var(--chrome-glass-blur)); -webkit-backdrop-filter: blur(var(--chrome-glass-blur)); }
 .r19-share-brand { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
 .r19-share-wordmark { font-weight: 650; font-size: 13px; color: var(--ink-2, inherit); }
+/* Repair #19 W21 (F2) — PRIMARY BUTTON PAIRING, UNLAYERED ON
+   PURPOSE. The layered .c2s-btn-primary rule (above, @layer c2)
+   sets background + color from --primary-fill / --primary-ink,
+   whose per-mode values are a legible pair by design (light:
+   violet on white ink; dark: paper fill, ink label). But the
+   unlayered global reset in styles.css (`button { color:
+   inherit }`) beats EVERY layered rule, so the label computed to
+   the surrounding ink — near-white on the near-white dark fill:
+   illegible (person-profile Message, share-sheet Copy details,
+   the Graphs intention slab). This unlayered class rule is the
+   shared fix for the class, not per-page patches: class
+   specificity beats the element reset in the unlayered cascade,
+   so the token pairing actually computes. Pinned for the class
+   by theme/primaryButtonLegibility.test.ts. */
+.c2s-btn-primary {
+  background: var(--primary-fill);
+  color: var(--primary-ink);
+}
 .r19-profile-hero { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 8px 0 4px; }
 .r19-profile-name { margin: 8px 0 0; font-size: 22px; font-weight: 700; }
 .r19-profile-section { margin-top: 16px; }

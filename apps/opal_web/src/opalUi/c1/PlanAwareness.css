@@ -12,6 +12,7 @@
   align-items: center;
   gap: 6px;
   max-width: 100%;
+  min-width: 0;
   padding: 2px 8px 2px 4px;
   border: 1px solid var(--pa-state);
   border-radius: 999px;
@@ -37,9 +38,21 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  /* W21 (F3): the pill head keeps its natural width (flex none);
+   * the flexible element beside it is the plan text, which
+   * ellipsizes. (With the call variant on the row's full second
+   * line there is room for both; the state label's own ellipsis
+   * rules below remain as the narrow-context safety.) */
   flex: none;
+  min-width: 0;
   font-weight: 650;
   color: var(--pa-state);
+}
+.plan-awareness-state {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .plan-awareness-live-dot {
   display: inline-block;
@@ -53,6 +66,23 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0.85;
+  /* W21 (F3): as a flex item this span must be allowed to shrink
+   * (flex 1 + min-width 0), otherwise its min-content width wins,
+   * the text spills past the pill's border and clips mid-word
+   * with no ellipsis — the call-log pack defect. Now the ellipsis
+   * lands INSIDE the pill border, where it was designed. */
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.plan-awareness[data-variant="call"] {
+  /* W21 (F3): the call variant is the row's full-width second line
+   * (flex-basis 100% inside the wrapping call main), so its text
+   * ellipsizes inside the pill at a readable width — never squeezed
+   * into the name column, never spilling past the pill border. */
+  flex: 1 1 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 .plan-awareness[data-variant="strip"] {
   display: flex;

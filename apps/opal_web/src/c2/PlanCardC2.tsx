@@ -11,8 +11,20 @@
  * label "Needs a look" and logs the value (section 2.4 unknown-state
  * law) - it never defaults silently to ready.
  */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FireLine, StateStone } from "../brand/orb/FireLine";
+import { AuthedImage } from "../media/AuthedImage";
+
+/** One person face: the record photo through the authenticated
+ *  image path (W21 F1), initials on any failure. */
+function PlanPersonFace({ person }: { person: PlanCardPersonC2 }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [person.photoUrl]);
+  if (person.photoUrl && !failed) {
+    return <AuthedImage src={person.photoUrl} alt="" draggable={false} onError={() => setFailed(true)} />;
+  }
+  return <>{person.initials}</>;
+}
 
 export type PlanStateFamilyC2 = "forming" | "action" | "ready" | "happening" | "past";
 
@@ -134,6 +146,8 @@ export function PlanCardC2({
   // designed no-image treatment (the plan's state stone + title
   // initial, the card-grammar analogue of the memory monogram).
   const [mediaFailed, setMediaFailed] = useState(false);
+  // W21 (F1): a new record image gets a fresh authenticated attempt.
+  useEffect(() => setMediaFailed(false), [input.media?.photoUrl]);
   return (
     <article
       className="c2-plan-card"
@@ -170,7 +184,7 @@ export function PlanCardC2({
               </span>
             </span>
           ) : (
-            <img
+            <AuthedImage
               src={input.media.photoUrl}
               alt=""
               draggable={false}
@@ -195,11 +209,7 @@ export function PlanCardC2({
                 data-tint={person.tint ?? undefined}
                 title={person.name}
               >
-                {person.photoUrl ? (
-                  <img src={person.photoUrl} alt="" draggable={false} />
-                ) : (
-                  person.initials
-                )}
+                <PlanPersonFace person={person} />
               </span>
             ))}
           </span>

@@ -44,6 +44,15 @@
   display: block;
   font-weight: 650;
   margin-top: 4px;
+  /* W21 (F4): Center NEEDS YOU titles clipped mid-phrase with no
+   * ellipsis in the pack frames. The deck's queue titles are a
+   * one-line glance: single-line, and any overflow is the designed
+   * ellipsis — never a silent mid-phrase cut. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  min-width: 0;
 }
 .reveal-substance {
   display: block;

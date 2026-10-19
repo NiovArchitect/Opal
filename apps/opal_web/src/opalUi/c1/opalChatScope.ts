@@ -274,6 +274,17 @@ export type OrbitGroup<T> = {
   latestPreview: string;
   latestAt: string | null;
   private: boolean;
+  /**
+   * W21 (F6a): whether the privacy fact is actually KNOWN for this
+   * group — at least one row carries an explicit contract anchor
+   * with a boolean private flag (or the group anchor itself does).
+   * A group whose rows only imply an anchor from birth scope has
+   * NO privacy fact yet: `private` is false there, but surfaces
+   * must not assert "Private" (or locked treatment) from an
+   * unknown state — the pack's first-settle frame labeled every
+   * group "Private" before the facts settled.
+   */
+  privateKnown: boolean;
 };
 
 export type OrbitLog<T> = {
@@ -347,13 +358,27 @@ export function buildOrbitLog<T extends PersonOpalSessionRow>(
   }
   pinned.sort((a, b) => (b.pinnedAt ?? "").localeCompare(a.pinnedAt ?? ""));
   const groups = [...byAnchor.values()]
-    .map(({ anchor, rows }) => ({
-      anchor,
-      sessions: rows,
-      latestPreview: rows[0]?.preview ?? "",
-      latestAt: rows[0]?.updatedAt ?? null,
-      private: rows.some((r) => anchorOfSession(r)?.private === true),
-    }))
+    .map(({ anchor, rows }) => {
+      // W21 (F6a): the privacy fact comes only from EXPLICIT
+      // contract anchors (or the group anchor when it carries a
+      // boolean). Anchors synthesized from birth scope carry no
+      // private field — that is "unknown", never "private".
+      const key = anchorKey(anchor);
+      const explicit = rows
+        .map((r) => r.anchor)
+        .filter((a): a is OpalAnchor => Boolean(a) && anchorKey(a as OpalAnchor) === key);
+      const privateKnown =
+        explicit.length > 0 || typeof anchor.private === "boolean";
+      return {
+        anchor,
+        sessions: rows,
+        latestPreview: rows[0]?.preview ?? "",
+        latestAt: rows[0]?.updatedAt ?? null,
+        private:
+          explicit.some((a) => a.private === true) || anchor.private === true,
+        privateKnown,
+      };
+    })
     .sort((a, b) => (b.latestAt ?? "").localeCompare(a.latestAt ?? ""));
   return {
     continuing: continuing && matches(continuing, anchorOfSession(continuing)) ? continuing : q ? null : continuing,

@@ -14,7 +14,7 @@
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PlanCardC2 } from "./PlanCardC2";
 import { C2Home } from "./shell/C2Home";
@@ -33,8 +33,32 @@ async function render(node: React.ReactNode) {
   await act(async () => {
     root!.render(node);
   });
+  // W21 (F1): record media now loads through AuthedImage (fetch with
+  // the bearer -> blob URL). Let that settle so the <img> is in the
+  // well before the error is fired, exactly as in the browser.
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
   return host;
 }
+
+beforeEach(() => {
+  // W21 (F1): the authenticated fetch succeeds (200 blob); the JA-12
+  // failure under test is the rendered <img> erroring afterwards.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "image/jpeg" },
+      arrayBuffer: async () => new Uint8Array([0xff, 0xd8, 0xff, 0xe0]).buffer as ArrayBuffer,
+    })),
+  );
+  (URL as unknown as { createObjectURL: unknown }).createObjectURL = vi.fn(
+    () => "blob:ja12",
+  );
+  (URL as unknown as { revokeObjectURL: unknown }).revokeObjectURL = vi.fn();
+});
 
 afterEach(async () => {
   if (root) await act(async () => root!.unmount());
@@ -42,6 +66,7 @@ afterEach(async () => {
   host?.remove();
   host = null;
   document.body.innerHTML = "";
+  vi.unstubAllGlobals();
 });
 
 async function fireError(img: Element) {

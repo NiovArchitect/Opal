@@ -8,7 +8,7 @@
  * construction: the rail sets no fixed height and no overflow hidden
  * in the vertical axis, and the sheet is not a descendant of the cell).
  */
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { OrbLockup } from "../../brand/orb/OrbMark";
 import { PlanCardC2 } from "../PlanCardC2";
@@ -17,6 +17,7 @@ import {
   publishSocialMoment,
   uploadSocialMomentMedia,
 } from "../../api/productClient";
+import { AuthedImage } from "../../media/AuthedImage";
 import type { FeedCardProjection, HomeProjection, StoryRailProjection } from "./projections";
 import {
   Avatar,
@@ -105,6 +106,8 @@ type MemoryFeedItem = Extract<FeedCardProjection, { kind: "memory" }>;
  */
 function MemoryFeedCard({ item }: { item: MemoryFeedItem }) {
   const [photoFailed, setPhotoFailed] = useState(false);
+  // W21 (F1): a new record image gets a fresh authenticated attempt.
+  useEffect(() => setPhotoFailed(false), [item.photoUrl]);
   const showPhoto = Boolean(item.photoUrl) && !photoFailed;
   return (
     <article
@@ -124,7 +127,7 @@ function MemoryFeedCard({ item }: { item: MemoryFeedItem }) {
         data-media-provenance={item.photoProvenance ?? undefined}
       >
         {showPhoto ? (
-          <img
+          <AuthedImage
             src={item.photoUrl!}
             alt=""
             draggable={false}
@@ -439,10 +442,10 @@ export function C2Home({
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
-                <img
+                <AuthedImage
                   src={viewer.mediaUrl}
                   alt={viewer.caption || `${viewer.personName} story`}
-                  data-testid="c2-story-viewer-media"
+                  testId="c2-story-viewer-media"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               )}
@@ -457,6 +460,35 @@ export function C2Home({
       ) : null}
     </div>
   );
+}
+
+/**
+ * W21 (F1) — a story cell's face: the story's OWN media through the
+ * authenticated image path (the bearer-gated media endpoint cannot
+ * be reached by a plain <img>), then the person's photo, then their
+ * initials. Any load failure falls through to the next treatment —
+ * never a broken-image hole in the rail.
+ */
+function StoryCellFace({
+  avatar,
+  mediaUrl,
+}: {
+  avatar: { photoUrl?: string | null; initials: string };
+  mediaUrl?: string | null;
+}) {
+  const [mediaFailed, setMediaFailed] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
+  useEffect(() => {
+    setMediaFailed(false);
+    setPhotoFailed(false);
+  }, [mediaUrl, avatar.photoUrl]);
+  if (mediaUrl && !mediaFailed) {
+    return <AuthedImage src={mediaUrl} alt="" draggable={false} onError={() => setMediaFailed(true)} />;
+  }
+  if (avatar.photoUrl && !photoFailed) {
+    return <AuthedImage src={avatar.photoUrl} alt="" draggable={false} onError={() => setPhotoFailed(true)} />;
+  }
+  return <>{avatar.initials}</>;
 }
 
 function StoryRail({
@@ -485,11 +517,7 @@ function StoryRail({
           onClick={onSelf}
         >
           <span className="c2s-story-avatar-inner">
-            {rail.self.avatar.photoUrl ? (
-              <img src={rail.self.avatar.photoUrl} alt="" draggable={false} />
-            ) : (
-              rail.self.avatar.initials
-            )}
+            <StoryCellFace avatar={rail.self.avatar} mediaUrl={rail.self.story?.mediaUrl} />
           </span>
           <span className="c2s-story-plus" aria-hidden>
             +
@@ -520,11 +548,7 @@ function StoryRail({
               }
             >
               <span className="c2s-story-avatar-inner">
-                {story.avatar.photoUrl ? (
-                  <img src={story.avatar.photoUrl} alt="" draggable={false} />
-                ) : (
-                  story.avatar.initials
-                )}
+                <StoryCellFace avatar={story.avatar} mediaUrl={story.mediaUrl} />
               </span>
             </button>
           ) : (
@@ -535,11 +559,7 @@ function StoryRail({
               aria-label={`${story.personName} story is not available to play`}
             >
               <span className="c2s-story-avatar-inner">
-                {story.avatar.photoUrl ? (
-                  <img src={story.avatar.photoUrl} alt="" draggable={false} />
-                ) : (
-                  story.avatar.initials
-                )}
+                <StoryCellFace avatar={story.avatar} mediaUrl={story.mediaUrl} />
               </span>
             </span>
           )}

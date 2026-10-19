@@ -640,6 +640,27 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
         private_anchor: {"person", peers.jordan}
       },
       %{
+        # W21 (ABS-1): a PENDING anchor proposal, seeded through the
+        # real stored state the proposal mechanism reads — an
+        # UNANCHORED Opal conversation whose Opal reply carries the
+        # context_snapshot the Center pipeline stamps on its own
+        # replies (OpalConversations post_message: metadata
+        # "context_snapshot" with "who"). The web's detection
+        # (anchorProposalFromMessages) resolves that name uniquely
+        # against the account's contacts and offers the chip; no
+        # anchor is filed until the user accepts. Nothing here is a
+        # painted fixture: the conversation is born through
+        # start_new_chat and the reply is a real OpalMessage row.
+        birth: :new,
+        title: "A birthday gift for Maya",
+        body: "I want to get Maya something thoughtful for her birthday.",
+        opal_reply: %{
+          body:
+            "Maya lights up around good food and the coast. A small dinner with her favorite people, or a morning at the pier, would land well. Want me to shape one of those into a plan?",
+          who: "Maya Torres"
+        }
+      },
+      %{
         birth: :new,
         title: "Weekend ideas",
         body: "Give me three ideas for this weekend that are not dinner."
@@ -688,6 +709,31 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
         "body" => spec.body
       })
       |> Repo.insert!()
+    end
+
+    # W21 (ABS-1): the spec's Opal reply — a real OpalMessage row in
+    # the exact shape the Center pipeline writes (role "opal",
+    # metadata "context_snapshot" naming who the reply is about).
+    # Idempotent: inserted only when the conversation has no Opal
+    # reply yet.
+    if Map.has_key?(spec, :opal_reply) do
+      already_replied =
+        conv.id
+        |> OpalConversations.list_messages(50)
+        |> Enum.any?(&(&1.role == "opal"))
+
+      unless already_replied do
+        %OpalMessage{}
+        |> OpalMessage.changeset(%{
+          "conversation_id" => conv.id,
+          "role" => "opal",
+          "body" => spec.opal_reply.body,
+          "metadata" => %{
+            "context_snapshot" => %{"who" => spec.opal_reply.who}
+          }
+        })
+        |> Repo.insert!()
+      end
     end
 
     if Map.has_key?(spec, :private_anchor) do

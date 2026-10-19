@@ -379,7 +379,12 @@ export function CenterSessionList({
               <span className="c1-kicker">{ORBITS_NAME.toUpperCase()}</span>
               {log.groups.map((g) => {
                 const key = anchorKey(g.anchor);
-                const locked = g.private && !(orbitGate?.isUnlocked(key) ?? false);
+                // W21 (F6a): "Private" is asserted only when the
+                // privacy fact is KNOWN and true. An unknown state
+                // renders the group's ordinary subtitle — a loading
+                // or scope-implied anchor never claims Private.
+                const locked =
+                  g.privateKnown && g.private && !(orbitGate?.isUnlocked(key) ?? false);
                 const open = !locked && (searching || expanded.has(key));
                 return (
                   <div
@@ -390,6 +395,7 @@ export function CenterSessionList({
                     data-anchor-type={g.anchor.type}
                     data-expanded={open ? "true" : "false"}
                     data-private={g.private ? "true" : "false"}
+                    data-private-known={g.privateKnown ? "true" : "false"}
                   >
                     <button
                       type="button"
@@ -1390,13 +1396,6 @@ export function PeopleCallsList({
                 <span className="c1-session-main">
                   <span className="c1-session-title">{c.name}</span>
                   <span className="c1-session-preview">{c.metadata}</span>
-                  {c.nextPlan ? (
-                    <PlanAwareness
-                      fact={c.nextPlan}
-                      entityTint={c.entityTint}
-                      variant="call"
-                    />
-                  ) : null}
                 </span>
                 {c.callState ? (
                   <span
@@ -1408,6 +1407,18 @@ export function PeopleCallsList({
                     ) : null}
                     {c.callState.label}
                   </span>
+                ) : null}
+                {/* W21 (F3): the plan-awareness pill is a full-width
+                    second line of the row's main (the mini-card
+                    grammar), not a tenant of the name column — in
+                    the column it was squeezed to ~74px at 390px and
+                    its text spilled past the pill border. */}
+                {c.nextPlan ? (
+                  <PlanAwareness
+                    fact={c.nextPlan}
+                    entityTint={c.entityTint}
+                    variant="call"
+                  />
                 ) : null}
               </>
             );

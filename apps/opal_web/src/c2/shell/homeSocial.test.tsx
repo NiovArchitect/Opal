@@ -64,6 +64,20 @@ const PLAN: OpalPlanContract = {
 };
 
 beforeEach(() => {
+  // W21 (F1): the authenticated media fetch succeeds with a blob.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      headers: { get: () => "image/jpeg" },
+      arrayBuffer: async () => new Uint8Array([0xff, 0xd8, 0xff, 0xe0]).buffer as ArrayBuffer,
+    })),
+  );
+  (URL as unknown as { createObjectURL: unknown }).createObjectURL = vi.fn(
+    () => "blob:home-social",
+  );
+  (URL as unknown as { revokeObjectURL: unknown }).revokeObjectURL = vi.fn();
   listOpalPlans.mockReset();
   listTemporaryStories.mockReset();
   fetchHomeFeed.mockReset();
@@ -246,6 +260,11 @@ async function render(node: React.ReactNode) {
   await act(async () => {
     root!.render(node);
   });
+  // W21 (F1): record media loads through AuthedImage (authenticated
+  // fetch -> blob URL); let it settle so the <img> is rendered.
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
   return host;
 }
 afterEach(async () => {
@@ -254,6 +273,7 @@ afterEach(async () => {
   host = null;
   root = null;
   document.body.innerHTML = "";
+  vi.unstubAllGlobals();
 });
 
 const events = {
@@ -297,7 +317,10 @@ describe("W9 C2Home render - imagery and the no-image treatment", () => {
       />,
     );
     const img = el.querySelector('[data-testid="c2-feed-memory-media"] img');
-    expect(img?.getAttribute("src")).toBe("/media/pier.jpg");
+    // W21 (F1): the well renders the authenticated blob URL, never
+    // the bearer-gated record URL itself.
+    expect(img?.getAttribute("src")).toBe("blob:home-social");
+    expect(img?.getAttribute("data-authed-image")).toBe("blob");
     expect(
       el.querySelector('[data-testid="c2-feed-memory-media"]')?.getAttribute("data-media-provenance"),
     ).toBe("moment.media_ref");
@@ -354,7 +377,7 @@ describe("W9 C2Home render - imagery and the no-image treatment", () => {
       />,
     );
     const media = el.querySelector('[data-testid="c2-plan-media"]');
-    expect(media?.querySelector("img")?.getAttribute("src")).toBe("/venues/pier.jpg");
+    expect(media?.querySelector("img")?.getAttribute("src")).toBe("blob:home-social");
     expect(media?.getAttribute("data-media-provenance")).toBe("plan.place.photo_url");
     expect(el.querySelector('[data-testid="c2-plan-people"]')?.textContent).toContain("Maya Chen");
     expect(el.querySelector('[data-testid="c2-plan-card"]')?.getAttribute("data-plan-state")).toBe(

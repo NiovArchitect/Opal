@@ -35,7 +35,7 @@ import "./theme/opalComposerTokens.css";
  * Repair #18 C2: the global token system (@layer c2). Its semantic names
  * are new, so the R17 face is untouched unless the C2 shell flag mounts
  * C2 surfaces; data-mode is stamped pre-paint by public/c2-boot.js on
- * the C2 path only.
+ * the plain entry path (W21 F7: unconditional, like the shell).
  */
 import "./theme/c2Tokens.css";
 import "./c2/c2.css";
@@ -43,7 +43,6 @@ import "./c2/c2.css";
  * (@layer c2; after the C2 tokens, before the Layout Contract). */
 import "./theme/orbTokens.css";
 import { applyStoredC2Mode, installC2ModeSystemListener } from "./theme/c2Mode";
-import { isC2ShellEnabled } from "./theme/c2Shell";
 import { ORB_ASSETS } from "./brand/orb/orbTokens";
 /* Repair #18 / Walk #4: THE LAYOUT CONTRACT loads LAST - its containment,
  * thread-composition, and chrome-band rules win over every earlier sheet.
@@ -59,11 +58,23 @@ import "./theme/unifyChats.css";
 applyStoredAppearanceTheme();
 installAppearanceSystemListener();
 
-/** C2 mode + icon slots, C2 shell path only (fallback never reads these). */
-if (isC2ShellEnabled()) {
-  document.documentElement.setAttribute("data-shell", "c2");
-  applyStoredC2Mode();
-  installC2ModeSystemListener();
+/**
+ * W21 (F7): C2 mode + icon slots run UNCONDITIONALLY. App.tsx
+ * renders the C2 shell unconditionally (W15), so mode setup —
+ * data-mode stamping from the stored/system preference — is part
+ * of the plain entry path, not a flag-gated extra: a build made
+ * without VITE_OPAL_SHELL=c2 previously served an always-light
+ * first paint because this block was flag-gated while the shell
+ * was not. Disposition of the flag: isC2ShellEnabled() still
+ * exists for OpalApp's legacy splash-owner branches, but OpalApp
+ * is not mounted by App.tsx, so NO served behavior is gated on
+ * the flag anymore; VITE_OPAL_SHELL is dead as a mode/shell gate
+ * (kept only as a build marker in vite define + c2Shell.ts docs).
+ */
+document.documentElement.setAttribute("data-shell", "c2");
+applyStoredC2Mode();
+installC2ModeSystemListener();
+{
   try {
     const swapIcon = (selector: string, href: string) => {
       const el = document.querySelector(selector);

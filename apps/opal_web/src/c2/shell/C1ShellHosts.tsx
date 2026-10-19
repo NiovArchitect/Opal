@@ -430,6 +430,32 @@ export function anchorFromContract(
   return { type: raw.type, id: raw.id, label: raw.label ?? null, private: raw.private === true };
 }
 
+/**
+ * W21 (F6b): the orbit sheet's anchor, refreshed from the sessions
+ * read-back. The sheet previously re-opened with the CALLER's stale
+ * anchor object, so a successful orbit-private write never showed:
+ * the toggle label and aria-pressed kept the pre-write value even
+ * though the server (and the rail's group headers, which read the
+ * rows) had the new truth. The read-back rows are the truth: if any
+ * of this orbit's sessions carries the explicit anchor, its private
+ * flag (some = private, the write is orbit-wide) wins.
+ */
+export function anchorWithOrbitReadBack(
+  anchor: OpalAnchor,
+  rows: PersonOpalSessionRow[],
+): OpalAnchor {
+  const key = anchorKey(anchor);
+  const explicit = rows
+    .map((r) => r.anchor)
+    .filter((a): a is OpalAnchor => Boolean(a) && anchorKey(a as OpalAnchor) === key);
+  if (explicit.length === 0) return anchor;
+  return {
+    ...anchor,
+    label: anchor.label ?? explicit[0].label ?? null,
+    private: explicit.some((a) => a.private === true),
+  };
+}
+
 export function summaryToRow(s: OpalChatSessionSummary): PersonOpalSessionRow {
   return {
     id: s.id,
@@ -911,7 +937,12 @@ export function CenterHost({
             sheetPlans.set(r.context.planId, { id: r.context.planId, title: r.context.planTitle });
           }
         }
-        setOrbitSheet({ anchor, context, sessions: inOrbit, plans: [...sheetPlans.values()] });
+        setOrbitSheet({
+          anchor: anchorWithOrbitReadBack(anchor, rows),
+          context,
+          sessions: inOrbit,
+          plans: [...sheetPlans.values()],
+        });
       } catch {
         setOrbitSheet({ anchor, context, sessions: [], plans: [] });
       }
@@ -1255,6 +1286,12 @@ export function CenterHost({
             void (async () => {
               try {
                 await setOrbitPrivate(orbitSheet.anchor, next, bearer);
+                // W21 (F6b): reflect the write in the sheet at once
+                // (label + aria-pressed flip), then let the
+                // read-back refresh confirm it from the server rows.
+                setOrbitSheet((cur) =>
+                  cur ? { ...cur, anchor: { ...cur.anchor, private: next } } : cur,
+                );
                 refreshOrbitSheet();
                 void loadSessions();
               } catch {

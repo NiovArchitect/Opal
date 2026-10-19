@@ -34,6 +34,7 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
     "A gift idea for Maya",
     "Brunch headcount",
     "Just between us — Jordan",
+    "A birthday gift for Maya",
     "Weekend ideas",
     "Thank-you note help"
   ]
@@ -372,11 +373,11 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
 
     # JA-10 re-seed: no duplicate Opal conversations either.
     assert {:ok, payload} = FounderGraphCommitmentSeed.ensure!(viewer.id, explicit_opt_in: true)
-    assert length(payload["world"]["opal_conversations"]) == 6
+    assert length(payload["world"]["opal_conversations"]) == 7
 
     sessions = OpalCore.OpalConversations.list_sessions(viewer.id, limit: 200)
     seeded = Enum.filter(sessions, &(&1["title"] in @seeded_opal_titles))
-    assert length(seeded) == 6
+    assert length(seeded) == 7
   end
 
   test "JA-04: a second viewer seeding the same DB gets their OWN call world", %{viewer: viewer} do
@@ -435,7 +436,7 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
     viewer: viewer
   } do
     assert {:ok, payload} = FounderGraphCommitmentSeed.ensure!(viewer.id, explicit_opt_in: true)
-    assert length(payload["world"]["opal_conversations"]) == 6
+    assert length(payload["world"]["opal_conversations"]) == 7
 
     sessions = OpalCore.OpalConversations.list_sessions(viewer.id, limit: 200)
     by_title = Map.new(sessions, &{&1["title"], &1})
@@ -466,9 +467,20 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
     assert jordan_chat["anchor"]["type"] == "person"
     assert jordan_chat["anchor"]["private"] == true
 
-    # Two unanchored chats.
-    for title <- ["Weekend ideas", "Thank-you note help"] do
+    # Three unanchored chats.
+    for title <- ["Weekend ideas", "Thank-you note help", "A birthday gift for Maya"] do
       assert by_title[title]["anchor"] == nil
     end
+
+    # W21 (ABS-1): the birthday chat carries a PENDING anchor
+    # proposal in the real stored state — an Opal reply whose
+    # metadata context_snapshot names Maya, exactly what the
+    # Center pipeline stamps and the web detection reads. The
+    # conversation itself stays unanchored until a user accepts.
+    birthday = by_title["A birthday gift for Maya"]
+    messages = OpalCore.OpalConversations.list_messages(birthday["id"], 50)
+    opal_reply = Enum.find(messages, &(&1.role == "opal"))
+    assert opal_reply != nil
+    assert opal_reply.metadata["context_snapshot"]["who"] == "Maya Torres"
   end
 end

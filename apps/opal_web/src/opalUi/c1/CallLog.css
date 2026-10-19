@@ -57,8 +57,15 @@
 }
 [data-design="r18"] .c1-call-main {
   flex: 1;
+  /* W21 (F3): min-width 0 is the flex discipline that lets the
+   * text column actually shrink at 390px instead of forcing its
+   * min-content width against the status column and call-back
+   * button (the pack's clipped names/subtitles). flex-wrap lets
+   * the plan-awareness line (flex-basis 100%, PlanAwareness.css)
+   * take the row's full second line. */
   min-width: 0;
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: flex-start;
   background: none;
@@ -72,10 +79,23 @@
   cursor: pointer;
 }
 [data-design="r18"] .c1-call-state-label {
-  flex: none;
+  /* W21 (F3): the status column may shrink and wrap honestly
+   * (flex 0 1 auto + min-width 0) instead of holding its full
+   * min-content width and starving the name/subtitle column at
+   * 390px. The name column's own truncation is ellipsis by design
+   * (.c1-session-title/.c1-session-preview); this column never
+   * forces a mid-word clip. */
+  flex: 0 1 auto;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  /* W21 (F3): when the row is tight the status label wraps to two
+   * lines, right-aligned, instead of holding one line and
+   * starving the name column. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  text-align: right;
   font: var(--opal-type-meta);
   font-weight: 650;
   color: var(--call-state, var(--ink-2));
