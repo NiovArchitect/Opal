@@ -188,6 +188,17 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
 
     calls = seed_calls!(viewer_user_id, peers)
     stories = seed_stories!(viewer_user_id, peers)
+
+    # W21 (ABS-1, contacts leg): the anchor-proposal detection
+    # resolves the Opal reply's named person against the account's
+    # relationship contacts, and the seed world previously had
+    # NONE — so no seeded proposal could ever resolve, however it
+    # was carried. The viewer knows Maya: record that the way the
+    # product records it, through Relationships.set_type (the
+    # explicit user-set type write; an upsert, so re-seeds hold).
+    # Only Maya is typed — the minimal contact the proposal needs.
+    {:ok, _} = OpalCore.Relationships.set_type(viewer_user_id, peers.maya, "close_friend")
+
     opal_conversations = seed_opal_conversations!(viewer_user_id, peers, plans)
 
     %{
@@ -619,7 +630,9 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
 
     specs = [
       %{
-        birth: {:scoped, %{"person_id" => peers.maya, "conversation_id" => maya_direct.conversation_id}},
+        birth:
+          {:scoped,
+           %{"person_id" => peers.maya, "conversation_id" => maya_direct.conversation_id}},
         title: "Saturday with Maya",
         body: "Help me plan something good with Maya for Saturday."
       },

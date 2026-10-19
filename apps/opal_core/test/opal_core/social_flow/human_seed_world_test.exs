@@ -482,5 +482,14 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
     opal_reply = Enum.find(messages, &(&1.role == "opal"))
     assert opal_reply != nil
     assert opal_reply.metadata["context_snapshot"]["who"] == "Maya Torres"
+
+    # W21 (ABS-1, contacts leg): the proposal name must resolve
+    # against the account's relationship contacts — the viewer has
+    # Maya typed as a close friend through the product's own
+    # explicit-type write, so she is a contact with her real name.
+    contacts = OpalCore.Relationships.contacts_with_types(viewer.id)
+    maya_contact = Enum.find(contacts, &(&1.display_name == "Maya Torres"))
+    assert maya_contact != nil
+    assert maya_contact.type == "close_friend"
   end
 end
