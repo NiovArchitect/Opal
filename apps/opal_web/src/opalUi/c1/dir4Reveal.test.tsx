@@ -236,6 +236,120 @@ describe("DIR-4 enter/exit pairs (L8, unit level)", () => {
     expect(without).toContain("Nothing needs you right now. It is all yours.");
   });
 
+  it("deckfix F1: a lit P1 whose plan is NOT in the deck's capped card set still renders in Needs you, with its FireFrame", () => {
+    // The full pack's exact setup: the deck's capped Taking-shape
+    // set holds three unrelated forming cards; the derivation's lit
+    // P1 is for a plan that is in NO deck card set. The pre-fix deck
+    // rendered a reveal only as a replacement for a card already in
+    // the set, so this lit item never landed (no Needs-you section,
+    // zero FireFrames) while GET /reveals served it lit.
+    const formingCard = (id: string, title: string) => ({
+      id,
+      stateFamily: "forming" as const,
+      stateLabel: "Forming",
+      title,
+      whenLine: "7 PM",
+      whereLine: null,
+      attendanceLine: null,
+      primaryActionLabel: null,
+      completionAction: null,
+    });
+    const projection: CenterOpeningProjection = {
+      greeting: "Good evening.",
+      presence: "idle",
+      celebrateOnce: false,
+      needsYou: [],
+      next: null,
+      comingUp: [],
+      forming: [
+        formingCard("f1", "Juniper & Ivy"),
+        formingCard("f2", "RevPlan macreplay1"),
+        formingCard("f3", "Expiry macreplay1"),
+      ],
+      reveals: [item({})],
+    };
+    const events = { openGraph: () => {}, makeSomethingHappen: () => {}, completeSlot: () => {} };
+    const html = renderToString(<C2CenterOpening projection={projection} events={events} />);
+    expect(html).toContain('data-testid="c2-opening-needs-you"');
+    expect(html).toContain('data-testid="reveal-card"');
+    expect(html).toContain('data-lit="true"');
+    expect(html).toContain('data-testid="reveal-fire-frame"');
+    expect(html).toContain("Dinner at Juniper");
+    expect(html).not.toContain('data-testid="c2-opening-calm"');
+    // Caps unchanged: the Taking shape section still holds exactly
+    // its three capped cards - the reveal took a Needs-you slot, it
+    // did not grow any section.
+    const formingSection = html.split('data-testid="c2-opening-forming"')[1] ?? "";
+    expect(formingSection.match(/data-testid="c2-plan-card"/g)?.length).toBe(3);
+  });
+
+  it("deckfix F1: an unmatched plan reveal claims its plan - the plan never also renders as a plain card in another section", () => {
+    const card = {
+      id: "p1",
+      stateFamily: "forming" as const,
+      stateLabel: "Forming",
+      title: "Dinner at Juniper",
+      whenLine: "Saturday 7:30 PM",
+      whereLine: "Juniper and Ivy",
+      attendanceLine: null,
+      primaryActionLabel: null,
+      completionAction: null,
+    };
+    const projection: CenterOpeningProjection = {
+      greeting: "Good evening.",
+      presence: "idle",
+      celebrateOnce: false,
+      needsYou: [],
+      next: null,
+      comingUp: [],
+      forming: [card],
+      // The P1 reveal is about the same plan the deck holds as a
+      // forming card: it renders once, as the reveal in Needs you.
+      reveals: [item({})],
+    };
+    const events = { openGraph: () => {}, makeSomethingHappen: () => {}, completeSlot: () => {} };
+    const html = renderToString(<C2CenterOpening projection={projection} events={events} />);
+    expect(html).toContain('data-testid="c2-opening-needs-you"');
+    expect(html).toContain('data-testid="reveal-card"');
+    expect(html).not.toContain('data-testid="c2-opening-forming"');
+    expect(html.match(/Dinner at Juniper/g)?.length).toBe(1);
+  });
+
+  it("deckfix F1: section cap holds when reveals and cards combine (reveals take their slots first)", () => {
+    const card = (id: string, title: string) => ({
+      id,
+      stateFamily: "action" as const,
+      stateLabel: "Action needed",
+      title,
+      whenLine: "Saturday 7:30 PM",
+      whereLine: null,
+      attendanceLine: null,
+      primaryActionLabel: null,
+    });
+    const projection: CenterOpeningProjection = {
+      greeting: "Good evening.",
+      presence: "idle",
+      celebrateOnce: false,
+      needsYou: [card("a1", "Alpha"), card("a2", "Beta"), card("a3", "Gamma")],
+      next: null,
+      comingUp: [],
+      forming: [],
+      reveals: [
+        item({}),
+        item({ reveal_key: "plan:px:needs-answer", plan_id: "px", title: "Xray", lit: false }),
+      ],
+    };
+    const events = { openGraph: () => {}, makeSomethingHappen: () => {}, completeSlot: () => {} };
+    const html = renderToString(<C2CenterOpening projection={projection} events={events} />);
+    const needsSection = html.split('data-testid="c2-opening-needs-you"')[1] ?? "";
+    const slots =
+      (needsSection.match(/data-testid="reveal-card"/g)?.length ?? 0) +
+      (needsSection.match(/data-testid="c2-plan-card"/g)?.length ?? 0);
+    expect(slots).toBe(3);
+    expect(needsSection).toContain("Dinner at Juniper");
+    expect(needsSection).toContain("Xray");
+  });
+
   it("deck: a plan reveal replaces its plan card in the Needs you slot", () => {
     const card = {
       id: "p1",

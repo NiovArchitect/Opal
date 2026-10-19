@@ -71,6 +71,37 @@ export type CenterOpeningProjection = {
   >;
 };
 
+/** Deck slot reconciliation (deckfix F1). The derivation's section
+ *  caps are Needs you 3 / Coming up 3 / Taking shape 3 (reveal.ex);
+ *  the deck honors the same caps for the COMBINED section, reveals
+ *  first: a plan reveal takes its section slot by right of the
+ *  reveal - it replaces its plan card when that card is in the deck,
+ *  and it renders in its section even when the plan is NOT among the
+ *  deck's capped card set. The pre-fix deck only ever rendered a
+ *  reveal as a replacement for a card already in the set, so a lit
+ *  P1 whose plan sat outside the capped cards was silently dropped
+ *  (the full pack's F1). A plan claimed by any section's reveal
+ *  never also renders as a plain card in another section. */
+export const DECK_SECTION_CAP = 3;
+
+type DeckSlot<T> = { kind: "reveal"; item: RevealItem } | { kind: "card"; card: T };
+
+export function deckSlots<T extends { id: string }>(
+  cards: T[],
+  sectionReveals: RevealItem[],
+  claimedPlanIds: ReadonlySet<string>,
+  cap: number = DECK_SECTION_CAP,
+): DeckSlot<T>[] {
+  const slots: DeckSlot<T>[] = sectionReveals.map((item) => ({
+    kind: "reveal" as const,
+    item,
+  }));
+  for (const card of cards) {
+    if (!claimedPlanIds.has(card.id)) slots.push({ kind: "card", card });
+  }
+  return slots.slice(0, cap);
+}
+
 export type C2CenterOpeningEvents = {
   openGraph: (cardId: string) => void;
   makeSomethingHappen: () => void;
@@ -92,6 +123,39 @@ export function C2CenterOpening({
   projection: CenterOpeningProjection;
   events: C2CenterOpeningEvents;
 }) {
+  // DECKFIX F1: reconcile the reveal feed with the deck's slots.
+  // Plan reveals are assigned to sections by category, exactly as
+  // the derivation caps them (P1 -> Needs you, P4/P2 -> Coming up,
+  // P3 -> Taking shape). Every plan reveal claims its plan: the
+  // reveal renders in its section whether or not the plan's card
+  // was in the deck's capped card set, and a claimed plan never
+  // also renders as a plain card in any section.
+  const allReveals = projection.reveals ?? [];
+  const planReveals = allReveals.filter(
+    (r) => r.plan_id && (r.category === "P1" || r.category === "P2" || r.category === "P3" || r.category === "P4"),
+  );
+  const claimedPlanIds: ReadonlySet<string> = new Set(
+    planReveals.map((r) => r.plan_id as string),
+  );
+  const needsSlots = deckSlots(
+    projection.needsYou,
+    planReveals.filter((r) => r.category === "P1"),
+    claimedPlanIds,
+  );
+  const comingSlots = deckSlots(
+    projection.comingUp,
+    planReveals.filter((r) => r.category === "P4" || r.category === "P2"),
+    claimedPlanIds,
+  );
+  const formingSlots = deckSlots(
+    projection.forming,
+    planReveals.filter((r) => r.category === "P3"),
+    claimedPlanIds,
+  );
+  const hasNamedRevealSection = allReveals.some(
+    (r) => r.category === "P7" || r.category === "P5" || r.category === "P6",
+  );
+
   // ORB PRESENCE (Repair #18 Orb System): the Center rest is looking
   // INTO the stone - the master itself sits at the center of the
   // calm field (medallion variant in Light). The orb carries no
@@ -102,7 +166,20 @@ export function C2CenterOpening({
   // lit thing, from a real signal only.
   return (
     <div className="c2s-scroll" style={{ padding: 0 }} data-testid="c2-center-opening">
-      <section className="c2s-center-rest" style={{ minHeight: 340 }}>
+      {/* Deckfix F3: the deck's rest fold must land in a text-free
+          window. At 390x844 the fold is the viewport bottom (844).
+          Measured on the served deckfix build (geometry probe, pack
+          data, dark): hero 362, Needs-you cards 419-555 (lit),
+          575-696, 716-837, Coming-up section top 865 - the fold
+          sits in the section gap (card 3 bottom 837, next heading
+          865) and the pack's clipped-text probe reads 0 at rest.
+          Pre-F1 the deck's different content put a card title at
+          833-855 across the fold. The min-height floor pins the
+          hero's contribution to that rhythm; an inset scrollport
+          was tried and rejected (the probe adjudicates against the
+          viewport bottom, so below-port content counted as clipped
+          even when nothing was cut). */}
+      <section className="c2s-center-rest" style={{ minHeight: 356 }}>
         <OrbGemPattern />
         {events.openSoulMemory ? (
           <button
@@ -166,29 +243,35 @@ export function C2CenterOpening({
        * container carries matching scroll-padding (c2shell.css), so
        * the last deck card can always come to rest fully above the
        * floating dock instead of straddling the fold behind it. */}
-      <div style={{ padding: "0 var(--gutter) calc(var(--dock-clearance) + var(--space-5))" }}>
-        {projection.needsYou.length > 0 ? (
+      {/* Deckfix F3 (scrolled leg): the bottom clearance is the
+          dock clearance plus TWO breathing steps. The second step
+          also lands the max-scroll top edge past the Taking-shape
+          heading (measured: heading bottom 1217 vs top edge 1213
+          at one step - the heading probed clipped at full scroll;
+          at two steps the edge is 1233 and the scrolled deck
+          probes 0, matching the pack's scrolled record). */}
+      <div style={{ padding: "0 var(--gutter) calc(var(--dock-clearance) + var(--space-5) + var(--space-5))" }}>
+        {needsSlots.length > 0 ? (
           <section data-testid="c2-opening-needs-you">
             <h2 className="c2s-group-title">Needs you</h2>
             <div className="c2s-group-cards">
-              {projection.needsYou.map((card) => {
-                const reveal = (projection.reveals ?? []).find((r) => r.plan_id === card.id);
-                return reveal ? (
+              {needsSlots.map((slot) =>
+                slot.kind === "reveal" ? (
                   <RevealCard
-                    key={card.id}
-                    item={reveal}
+                    key={slot.item.reveal_key}
+                    item={slot.item}
                     surface="deck"
                     onDismiss={events.dismissReveal}
                     onAction={events.revealAction}
                   />
                 ) : (
                   <PlanCardC2
-                    key={card.id}
-                    input={card}
-                    onOpen={() => events.openGraph(card.id)}
+                    key={slot.card.id}
+                    input={slot.card}
+                    onOpen={() => events.openGraph(slot.card.id)}
                   />
-                );
-              })}
+                ),
+              )}
             </div>
           </section>
         ) : null}
@@ -212,43 +295,41 @@ export function C2CenterOpening({
           </section>
         ) : null}
 
-        {projection.comingUp.length > 0 ? (
+        {comingSlots.length > 0 ? (
           <section data-testid="c2-opening-coming-up">
             <h2 className="c2s-group-title">Coming up</h2>
             <div className="c2s-group-cards">
-              {projection.comingUp.slice(0, 3).map((card) => {
-                const reveal = (projection.reveals ?? []).find((r) => r.plan_id === card.id);
-                return reveal ? (
-                  <RevealCard key={card.id} item={reveal} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+              {comingSlots.map((slot) =>
+                slot.kind === "reveal" ? (
+                  <RevealCard key={slot.item.reveal_key} item={slot.item} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
                 ) : (
-                  <PlanCardC2 key={card.id} input={card} onOpen={() => events.openGraph(card.id)} />
-                );
-              })}
+                  <PlanCardC2 key={slot.card.id} input={slot.card} onOpen={() => events.openGraph(slot.card.id)} />
+                ),
+              )}
             </div>
           </section>
         ) : null}
 
-        {projection.forming.length > 0 ? (
+        {formingSlots.length > 0 ? (
           <section data-testid="c2-opening-forming">
             <h2 className="c2s-group-title">Taking shape</h2>
             <div className="c2s-group-cards">
-              {projection.forming.slice(0, 3).map((card) => {
-                const reveal = (projection.reveals ?? []).find((r) => r.plan_id === card.id);
-                return reveal ? (
-                  <RevealCard key={card.id} item={reveal} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+              {formingSlots.map((slot) =>
+                slot.kind === "reveal" ? (
+                  <RevealCard key={slot.item.reveal_key} item={slot.item} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
                 ) : (
                   <PlanCardC2
-                    key={card.id}
-                    input={card}
-                    onOpen={() => events.openGraph(card.id)}
+                    key={slot.card.id}
+                    input={slot.card}
+                    onOpen={() => events.openGraph(slot.card.id)}
                     onPrimaryAction={
-                      card.completionAction
-                        ? () => events.completeSlot(card.id, card.completionAction!.slotKind)
+                      slot.card.completionAction
+                        ? () => events.completeSlot(slot.card.id, slot.card.completionAction!.slotKind)
                         : undefined
                     }
                   />
-                );
-              })}
+                ),
+              )}
             </div>
           </section>
         ) : null}
@@ -290,11 +371,11 @@ export function C2CenterOpening({
           </section>
         ) : null}
 
-        {projection.needsYou.length === 0 &&
+        {needsSlots.length === 0 &&
         !projection.next &&
-        projection.comingUp.length === 0 &&
-        projection.forming.length === 0 &&
-        !(projection.reveals ?? []).some((r) => r.category === "P7" || r.category === "P5" || r.category === "P6") ? (
+        comingSlots.length === 0 &&
+        formingSlots.length === 0 &&
+        !hasNamedRevealSection ? (
           <p className="c2s-lede" style={{ textAlign: "center", marginTop: "var(--space-5)" }} data-testid="c2-opening-calm">
             Nothing needs you right now. It is all yours.
           </p>

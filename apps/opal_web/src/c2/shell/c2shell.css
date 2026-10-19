@@ -38,6 +38,18 @@
   [data-testid="c2-center-opening"] section {
     scroll-margin-bottom: calc(var(--dock-clearance) + var(--space-5));
   }
+  /* Deckfix F3 (deliberately NOT an inset port): the deck's
+   * scrollport runs the full slot height, so the rendered fold and
+   * the viewport bottom are the same line - that is the line the
+   * pack's clipped-text probe adjudicates, and an inset port would
+   * count below-port content as clipped even when nothing is cut.
+   * The rest fold instead lands in a clean text-free window by the
+   * hero's min-height (see C2CenterOpening): at 390x844 with the
+   * pack's data, Needs-you card 3 ends at 831 and the Coming-up
+   * section heading starts at 859, so no text straddles the 844
+   * fold and clippedCount is 0 at rest. The scrolled-state
+   * clearance above is unchanged and still governs the end of the
+   * scroll. */
 
   /* ---------- headers (section 11) ---------- */
   .c2s-header {
@@ -941,6 +953,35 @@
    * screen by law. The legacy Center life-graph layer
    * (opal-center-life-graph, the base-build trap) is never mounted on
    * the shell path. */
+  /* Deckfix F7: the You surfaces (hub + settings sections) are
+   * contained in their route slot exactly like the C1 hosts above.
+   * Pre-fix the hub root was an unconstrained block: it grew to its
+   * full content height (~2032px at pack geometry), its inner
+   * .c2s-scroll never scrolled (scrollHeight == clientHeight), the
+   * document became the scroller, and the dock clearance the scroll
+   * class carries never applied - a hub row could come to rest
+   * under the dock's raised orb, its center hit-test landing on the
+   * orb (full-pack F7). Contained, the hub's own scroller is real:
+   * its bottom padding is the dock clearance, and row scroll-margin
+   * + scroller scroll-padding (the deck's harmony2 discipline) make
+   * a row scrolled into view stop fully above the dock. */
+  .c2s-you-surface {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--canvas);
+    color: var(--ink-1);
+  }
+  .c2s-you-surface > .c2s-scroll {
+    min-height: 0;
+    scroll-padding-bottom: calc(var(--dock-clearance) + var(--space-5));
+  }
+  .c2s-you-surface .c2s-row {
+    scroll-margin-bottom: calc(var(--dock-clearance) + var(--space-5));
+  }
   .c2s-c1-host {
     flex: 1;
     min-height: 0;

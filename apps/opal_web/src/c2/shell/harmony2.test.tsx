@@ -314,9 +314,12 @@ describe("harmony2 HA-A / icon / composer / deck - source pins", () => {
     expect(unify).toContain("outline-color: var(--accent-1)");
   });
 
-  it("deck fold: the deck's bottom pad clears the dock plus a breathing step", () => {
+  it("deck fold: the deck's bottom pad clears the dock plus breathing steps", () => {
     const opening = read("src/c2/shell/C2CenterOpening.tsx");
-    expect(opening).toContain("calc(var(--dock-clearance) + var(--space-5))");
+    // Deckfix F3: two breathing steps - the second lands the
+    // max-scroll top edge past the Taking-shape heading so the
+    // scrolled deck probes 0 clipped, as the full pack recorded.
+    expect(opening).toContain("calc(var(--dock-clearance) + var(--space-5) + var(--space-5))");
     const css = read("src/c2/shell/c2shell.css");
     expect(css).toContain('[data-testid="c2-center-opening"]');
     expect(css).toContain("scroll-padding-bottom");

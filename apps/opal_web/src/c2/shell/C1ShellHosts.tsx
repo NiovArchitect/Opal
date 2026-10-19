@@ -41,6 +41,7 @@ import {
   createOpalChatSession,
   dismissReveal,
   getOpalChatSession,
+  listCalls,
   listMessages,
   listReveals,
   listOpalChatSessions,
@@ -52,8 +53,11 @@ import {
   type NextPlanFact,
   type OpalChatMessage,
   type OpalPlanContract,
+  type ProductCallHistory,
+  type ProductMessage,
   type RevealItem,
 } from "../../api/productClient";
+import { callHistoryLine } from "../../opalUi/callView";
 import { correctVoiceNoteTranscript } from "../../api/productClient";
 import { VoiceNoteControl } from "./adopt3";
 import {
@@ -121,6 +125,67 @@ export function conversationPreviewLabel(chat: {
 
 export function relationshipTypeLabel(type: string): string | null {
   return RELATIONSHIP_TYPE_LABELS[type] ?? null;
+}
+
+/**
+ * Deckfix F2a: a call in a conversation is stored as a message whose
+ * body is the signaling reference "call:<id>" (message_type
+ * "call_invite", calls.ex maybe_call_invite_message). The legacy
+ * shell resolves that to the call record's own history line; the C2
+ * thread host rendered the raw body as a person bubble - the full
+ * pack's `call:47f28413-...` bubble. The truthful line comes from
+ * the call record itself, through the SAME derivation the call log
+ * renders (callHistoryLine over the server's history_label - the
+ * server-side Calls.history_label). No record in the viewer's call
+ * list means no outcome may be invented: the line is plain "Call",
+ * and the raw id never renders either way.
+ */
+export function callInviteIdOf(m: {
+  body?: string | null;
+  message_type?: string | null;
+}): string | null {
+  const body = (m.body ?? "").trim();
+  if (m.message_type === "call_invite" || body.startsWith("call:")) {
+    const id = body.startsWith("call:") ? body.slice("call:".length).trim() : "";
+    return id || null;
+  }
+  return null;
+}
+
+export function callLineForCallRecord(call: ProductCallHistory): string {
+  return callHistoryLine({
+    historyLabel: call.history_label,
+    createdAt: call.created_at,
+    peerName: call.peer_name,
+  }).metadata;
+}
+
+export function threadMsgFromProductMessage(
+  m: ProductMessage,
+  ctx: {
+    viewerUserId?: string;
+    names: Map<string, string>;
+    callLineById: ReadonlyMap<string, string>;
+  },
+): ThreadMsg {
+  const callId = callInviteIdOf(m);
+  if (callId !== null || m.message_type === "call_invite") {
+    return {
+      id: m.id,
+      authorKind: "system",
+      body: (callId ? ctx.callLineById.get(callId) : undefined) ?? "Call",
+    };
+  }
+  return {
+    id: m.id,
+    authorKind: "person",
+    authorName: ctx.names.get(m.sender_user_id),
+    own: Boolean(ctx.viewerUserId) && m.sender_user_id === ctx.viewerUserId,
+    body: m.body,
+    audioUrl: m.audio_url ?? null,
+    durationMs: m.duration_ms ?? null,
+    messageType: m.message_type,
+  };
 }
 
 export function timeLabelFor(iso: string | null | undefined): string {
@@ -640,17 +705,25 @@ export function ChatsHost({
         }
         const conv = conversations.find((c) => c.id === conversationId);
         const names = new Map((conv?.peers ?? []).map((p) => [p.id, p.display_name]));
+        // Deckfix F2a: resolve any call-invite messages against the
+        // viewer's real call records (the call log's own list) so the
+        // thread renders the record's human line, never "call:<id>".
+        const rawMessages = res.messages ?? [];
+        let callLineById: ReadonlyMap<string, string> = new Map();
+        if (rawMessages.some((m) => callInviteIdOf(m) !== null || m.message_type === "call_invite")) {
+          try {
+            const calls = await listCalls(bearer);
+            callLineById = new Map(
+              (calls.calls ?? []).map((call) => [call.id, callLineForCallRecord(call)]),
+            );
+          } catch {
+            callLineById = new Map();
+          }
+        }
         setMessages(
-          (res.messages ?? []).map((m) => ({
-            id: m.id,
-            authorKind: "person" as const,
-            authorName: names.get(m.sender_user_id),
-            own: Boolean(viewerUserId) && m.sender_user_id === viewerUserId,
-            body: m.body,
-            audioUrl: m.audio_url ?? null,
-            durationMs: m.duration_ms ?? null,
-            messageType: m.message_type,
-          })),
+          rawMessages.map((m) =>
+            threadMsgFromProductMessage(m, { viewerUserId, names, callLineById }),
+          ),
         );
       } catch {
         setMessages([]);

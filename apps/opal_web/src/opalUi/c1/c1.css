@@ -199,7 +199,13 @@
   }
   [data-design="r18"] .c1-opal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grad-current); flex: none; margin-top: 7px; }
   [data-design="r18"] .c1-system-line { text-align: center; color: var(--ink-3); font: var(--opal-type-meta); margin: 2px 0; }
-  [data-design="r18"] .c1-next-strip { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 0; z-index: var(--layer-content); }
+  /* Deckfix F2b: the Next Together strip is IN FLOW at the head of
+   * the thread's scroll column - never sticky, never an overlay.
+   * As a sticky element it stayed pinned while messages scrolled
+   * beneath it, and with no ground of its own the first bubble's
+   * text showed through it (full-pack F2). In flow, the column's
+   * gap gives the first message strict clearance below the strip. */
+  [data-design="r18"] .c1-next-strip { display: flex; flex-direction: column; gap: 8px; flex: none; }
   [data-design="r18"] .c1-private-guidance {
     display: flex; flex-direction: column; gap: 4px;
     background: var(--surface-2); border: 1px solid var(--line-2);

@@ -114,7 +114,7 @@ export function C2YouHub({
   }, [projection.index, query]);
 
   return (
-    <div data-testid="c2-you">
+    <div data-testid="c2-you" className="c2s-you-surface">
       <div className="c2s-scroll">
         <div className="c2s-profile-head">
           <Avatar avatar={projection.profile.avatar} size={72} />
@@ -272,7 +272,7 @@ export function C2SettingsSection({
   };
 
   return (
-    <div data-testid={`c2-settings-${section.key}`}>
+    <div data-testid={`c2-settings-${section.key}`} className="c2s-you-surface">
       <header className="c2s-header">
         <button
           type="button"

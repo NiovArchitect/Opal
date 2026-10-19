@@ -33,6 +33,31 @@ the delivery.** FOUNDER_ACCEPTED: NO (unchanged).
   390x844, DSF 2, dark AND light for every phone item, via the waves'
   harness pattern (`lib/browser.mjs` sessions + geometry probes).
 
+## DECKFIX AMENDMENT (2026-10-18, post-pack quality loop)
+
+Findings F1, F2, F3 and F7 below were repaired at source on branch
+`muse/r18-deckfix` (code tip `1c3f7eb5`, tree
+`6e0b0d147baa78494fffaf5f9887989bd29b5cc6`) and the affected frames
+were RE-CAPTURED from the Mac preview stack re-mirrored from that
+tip: mirror commit **`09b1e6f2`** (2026-10-18 21:57:57 PDT), TREE
+GATE PASS (staged tree == code tip tree; the vite proxy patch
+remains the only uncommitted change). Preview restarted after the
+mirror (BEAM 58366 / Vite 58367, 21:58:04 PDT); opal-walk untouched
+(HEAD 808c7bd6, original PIDs/start times); opal-fallback still
+stopped at 1892e5d6. The re-capture
+(`shots/regression/rendered/deckfix-capture.mjs`, same session/data
+pattern, ONE provision + ONE seed call set) found the pack's F1
+setup still live in the served DB - `GET /reveals` for viewer A
+returns the lit P1 and the pack plan's reveal - so nothing was
+recreated. Replaced frames: `center-deck-*`, `center-deck-scrolled-*`,
+`thread-*`, `thread-lit-reveal-*`, `fireframe-element-*` (now cropped
+from the deck's lit reveal), `you-hub-*`; new frames:
+`center-deck-lit-reveal-*`. Amended manifest records carry
+`stamp = 09b1e6f2...` and a `deckfix` note naming the superseded
+18dc95d8 values; see the manifest's top-level `deckfix` block and
+`reprobes.deckfix`. **F5 is unchanged** (declared MT-07, not a
+defect). FOUNDER_ACCEPTED: NO (unchanged).
+
 ## Capture setup - real records only, named
 
 One session provision + ONE founder-seed call set for the whole
@@ -209,8 +234,9 @@ for viewer A). Nothing was painted, fixture-fed, or composited.
 
 ## Findings (named honestly - these ship with the pack)
 
-- **F1 - The lit DIR-4 reveal does NOT render on the Center deck.**
-  The derivation serves it: `GET /reveals` returns a lit P1
+- **F1 - FIXED (deckfix, mirror 09b1e6f2).** Was: the lit DIR-4
+  reveal does NOT render on the Center deck. The derivation serves
+  it: `GET /reveals` returns a lit P1
   (`plan:6e3b03bf...:needs-answer`, lit: true, "Your move"), plus two
   more P1s including this pack's own setup plan. But the deck as
   served shows NO "Needs you" section and zero FireFrames (probe:
@@ -219,21 +245,58 @@ for viewer A). Nothing was painted, fixture-fed, or composited.
   P6 report line. The deck replaces plan cards with reveal cards by
   plan id, and none of the deck's three capped Taking-shape cards
   matches a feed plan - so the strongest waiting item in the
-  product never reaches the deck. The lit reveal DOES render in the
-  thread (capture 8). The task asked for a lit reveal in frame on
-  the deck; on this build that frame does not exist, and this pack
-  does not pretend otherwise.
-- **F2 - Thread top: strip/message overlap + a raw call id bubble.**
-  In `thread-lit-reveal-*` the Next Together strip and its plan
-  pill render OVER the thread's first message bubble (texts
+  product never reaches the deck. **After:** the deck's slot logic
+  is reconciled with the reveal feed - a plan reveal takes its slot
+  in its category's section by right of the reveal (replacing its
+  plan card wherever it would render, or standing in the section
+  when its plan is outside the deck's capped card set), claims its
+  plan so it never also renders as a plain card, and every section
+  stays capped at 3. The re-captured `center-deck-*` frames show
+  the Needs-you section at rest with the lit P1
+  (`plan:6e3b03bf...`) inside its FireFrame, plus the pack plan's
+  own P1 - the frame that did not exist on the pack build now
+  exists in both modes (`center-deck-lit-reveal-*`,
+  `fireframe-element-*` cropped from the deck's lit card;
+  manifest `center-deck-fireframes` records are non-empty).
+  Regression: three new DIR-4 deck tests reproduce the pack's exact
+  setup (lit P1 outside the capped card set) - they fail on the
+  pre-fix deck (proven by run against base) and pass after.
+- **F2 - FIXED (deckfix, mirror 09b1e6f2).** Was: thread top -
+  strip/message overlap + a raw call id bubble. In
+  `thread-lit-reveal-*` the Next Together strip and its plan pill
+  render OVER the thread's first message bubble (texts
   superimposed), and a system record renders as a raw bubble -
   `call:47f28413-1edd-4e5e-bd25-...` (the pack's own POST /calls
-  record) - instead of a human call line. Both are visible in the
-  shipped frame.
-- **F3 - Deck rest fold clips a card title in both modes** (see
-  re-probes): at rest, the third Taking-shape card's title
-  ("Expiry macreplay1") is cut at the fold in dark AND light; it
-  clears when scrolled (fold check ok).
+  record) - instead of a human call line. **After:** (a) the strip
+  is in flow at the head of the thread's scroll column (its sticky
+  positioning is removed), and the re-capture's geometry probe
+  reads strip 76-128 vs first bubble 144-191 - no intersection, in
+  both modes; (b) the in-thread call record renders as a centered
+  system line carrying the call record's own human history line -
+  the same derivation the call log uses (`history_label` + local
+  time): the re-captured `thread-lit-reveal-*` frames show
+  "No answer - 7:03 PM" between the pack's two messages and the lit
+  Juniper reveal, and the probe finds no `call:<uuid>` text
+  anywhere in the thread. An unmatched record falls back to plain
+  "Call" - the raw id can never render. Unit-tested in
+  `deckfix.test.tsx`.
+- **F3 - FIXED (deckfix, mirror 09b1e6f2).** Was: deck rest fold
+  clips a card title in both modes (see re-probes): at rest, the
+  third Taking-shape card's title ("Expiry macreplay1") is cut at
+  the fold in dark AND light; it clears when scrolled (fold check
+  ok). **After:** with the post-F1 deck content (Needs-you reveals
+  lead), the rest rhythm is pinned by the hero's min-height floor
+  so the 844 fold lands in the text-free window between the last
+  Needs-you card (bottom 837, measured on the served build) and
+  the Coming-up section heading (top 865); the deck's end-of-scroll
+  clearance gained one breathing step so the scrolled deck probes
+  clean too. Re-capture: **clippedCount 0 AT REST in both modes**,
+  scrolled fold ok (last card bottom 734 <= dock top 772),
+  scrolled clippedCount 0. (An inset scrollport was tried first
+  and rejected: the pack's probe adjudicates against the viewport
+  bottom, so content below an inset port counted as clipped even
+  when nothing was cut - the port stays full-height and the rhythm
+  carries the fix.)
 - **F4 - Wide You clipped text (2 per mode)**: the wide hub column
   wraps the profile name ("Regress / A") and two text elements
   probe as clipped in the 1280 composition (manifest samples);
@@ -248,13 +311,26 @@ for viewer A). Nothing was painted, fixture-fed, or composited.
   (reads back 0); native scrolling (scrollIntoView / user scroll)
   works - the scrolled Home frame was captured natively. Flagged
   in case it also affects in-app scroll restoration.
-- **F7 - Hub rows can sit under the dock:** the You hub's
-  "Opal Assist and calls" row, when scrolled into view, lands where
-  the dock's raised orb intercepts taps (Playwright hit-test
-  evidence, both modes, repeatedly). A user can scroll further to
-  reach it, and the hub's own settings search reaches it directly
-  (that is how the light/dark captures were taken) - but the row's
-  resting position under the orb is a real reachability wart.
+- **F7 - FIXED (deckfix, mirror 09b1e6f2).** Was: hub rows can
+  sit under the dock: the You hub's "Opal Assist and calls" row,
+  when scrolled into view, lands where the dock's raised orb
+  intercepts taps (Playwright hit-test evidence, both modes,
+  repeatedly). Root cause found by live probe: the hub root was an
+  unconstrained block that grew to its full content height
+  (2032px), so its inner `.c2s-scroll` never scrolled
+  (scrollHeight == clientHeight), the DOCUMENT became the scroller,
+  and the dock-clearance bottom padding the scroll class carries
+  never applied. **After:** the hub (and the settings sections,
+  same pattern) are contained in their route slot
+  (`.c2s-you-surface`, the C1-host pattern), so their own scroller
+  is real; rows carry the deck's scroll-margin discipline and the
+  scroller scroll-padding, so a row scrolled into view stops fully
+  above the dock. Re-capture probe (both modes): hub height 844,
+  scroller scrollHeight 2032 > clientHeight 844; the calls-assist
+  row scrolled into view rests at 574-640 (dock top 772),
+  hit-test lands on the row (trapped: false); at max scroll the
+  last row's bottom is 709, clear of the dock. See manifest
+  records `you-hub` / `you-hub-orb-clearance`.
 - **F8 - Soul form save pill label:** in the Soul + Memory frame
   the form's primary save control renders as a large paper pill
   whose label is not legible in the capture; recorded as observed,

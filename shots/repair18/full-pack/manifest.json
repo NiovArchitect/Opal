@@ -170,6 +170,13 @@
       "replay": "dark true / light false",
       "thisPack": "true in both modes",
       "verdict": "ARTIFACT - the replay's light=false did not reproduce; Center chat opens in both modes."
+    },
+    "deckfix": {
+      "F1": "FIXED - deck renders the Needs-you section with the derivation lit P1 (plan:6e3b03bf...:needs-answer) inside its FireFrame at rest, both modes; center-deck-fireframes records now non-empty.",
+      "F2": "FIXED - thread strip position static (in flow), stripRect 76-128 vs first bubble 144-191 (no overlap); in-thread call renders as the system line \"No answer - 7:03 PM\" (the call record history label, the call log derivation); rawCallTextPresent false.",
+      "F3": "FIXED - center deck clippedCount 0 AT REST in both modes (was 1, Expiry macreplay1); scrolled fold ok (cardBottom 734 <= dockTop 772), scrolled clippedCount 0.",
+      "F7": "FIXED - You hub contained (scroller scrollHeight 2032 > clientHeight 844); calls-assist row scrolled into view rests 574-640, fully above dockTop 772, hit-test lands on the row (trapped false); at max scroll the last row bottom is 709, clear of the dock.",
+      "F5": "UNTOUCHED - declared MT-07 (call log on the R17 path), not a defect."
     }
   },
   "capturePasses": [
@@ -178,7 +185,8 @@
     "youfix (fresh navigation per You section after the main loop stuck on the Your-moments archive)",
     "homefix (Home waited to loaded state; wide pair via sidebar nav)",
     "microfix/scrollfix (dark soul-memory waited; light calls-assist via hub settings search; Home scrolled via native scrollIntoView)",
-    "threaddiag (thread lit-reveal + FireFrame element captures, both modes)"
+    "threaddiag (thread lit-reveal + FireFrame element captures, both modes)",
+    "deckfix (deckfix-capture.mjs - affected surfaces only: center deck rest/scrolled/lit, thread, You hub; ONE provision + ONE founder-seed call set; the pack F1 setup persisted in the served DB - verified via GET /reveals for viewer A (lit P1 + pack plan reveal present), nothing recreated)"
   ],
   "surfaces": [
     {
@@ -322,33 +330,169 @@
       "mode": "dark",
       "reveals": [
         {
+          "lit": "true",
+          "category": "P1",
+          "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+          "text": "◆Your moveactionPlan with User A8:00 PMConfirmDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P1",
+          "key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+          "text": "◆Your moveactionPlan with User Atomorrow after 10 PMConfirmDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P1",
+          "key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+          "text": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P4",
+          "key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+          "text": "●Happening nowhappeningDinner macreplay1Mon, Oct 19, 02:54 AM - HomeView planDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P2",
+          "key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+          "text": "✓Ready for youreadyMeetupSaturday · 7:30 PM - JuniperView planDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P3",
+          "key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+          "text": "○One thing leftformingPlan with User B8:00 PMAdd a placeDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P3",
+          "key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+          "text": "○One thing leftformingCall macreplay1OnlinePick a dayDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P3",
+          "key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+          "text": "○One thing leftformingJuniper & Ivytomorrow 8:00 PMAdd a placeDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P5",
+          "key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+          "text": "◇Remember thisRegression B - birthdayIn 14 days - Nov 2Got itDismiss"
+        },
+        {
           "lit": "false",
           "category": "P6",
-          "text": "\u25cbOpal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss",
-          "inViewport": false
+          "key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+          "text": "○Opal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss"
         }
-      ]
+      ],
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Deckfix re-probe: the deck now renders the reveal feed reconciled into its sections (see deckRest)."
+      },
+      "needsYouPresent": true,
+      "fireFramesOnDeck": 1
     },
     {
       "label": "center-deck",
       "mode": "dark",
       "file": "center-deck-dark.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "docOverflow": 0,
       "escapees": 0,
-      "clippedCount": 1,
-      "clippedSample": [
-        "Expiry macreplay1"
-      ],
+      "clippedCount": 0,
+      "clippedSample": [],
       "lockups": [],
       "fullCount": 0,
-      "lockupGate": "pass"
+      "lockupGate": "pass",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "deckRest": {
+        "scrollTop": 0,
+        "scrollerBottom": 844,
+        "dockTop": 772,
+        "needsYouPresent": true,
+        "revealCards": [
+          {
+            "lit": "true",
+            "category": "P1",
+            "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+            "text": "◆Your moveactionPlan with User A8:00 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+            "text": "◆Your moveactionPlan with User Atomorrow after 10 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+            "text": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P4",
+            "key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+            "text": "●Happening nowhappeningDinner macreplay1Mon, Oct 19, 02:54 AM - HomeView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P2",
+            "key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+            "text": "✓Ready for youreadyMeetupSaturday · 7:30 PM - JuniperView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+            "text": "○One thing leftformingPlan with User B8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+            "text": "○One thing leftformingCall macreplay1OnlinePick a dayDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+            "text": "○One thing leftformingJuniper & Ivytomorrow 8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P5",
+            "key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+            "text": "◇Remember thisRegression B - birthdayIn 14 days - Nov 2Got itDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P6",
+            "key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+            "text": "○Opal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss"
+          }
+        ],
+        "fireFramesOnDeck": 1,
+        "litRect": {
+          "top": 419,
+          "bottom": 555
+        },
+        "litInFrame": true
+      }
     },
     {
       "label": "center-deck-scrolled",
       "mode": "dark",
       "file": "center-deck-scrolled-dark.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "docOverflow": 0,
       "escapees": 0,
       "clippedCount": 0,
@@ -357,12 +501,16 @@
       "fullCount": 0,
       "fold": {
         "ok": true,
-        "cardBottom": 734,
+        "cardBottom": 714,
         "dockTop": 772,
-        "scrollHeight": 1175,
+        "scrollHeight": 2077,
         "clientHeight": 844
       },
-      "lockupGate": "pass"
+      "lockupGate": "pass",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      }
     },
     {
       "label": "center-chat",
@@ -400,7 +548,7 @@
           "0 memories held",
           "0 sources connected"
         ],
-        "chatTextTail": " me to retry?Listen\u25cbFormingFinal name macreplay1\u25f7 Friday 7:30 PM\u2316 Juniper & Ivy1 of 2 going - 1 interestedView planListenWhat are you holding for me?Here is what I am holding for you: 107 plans in motion, 7 waiting on your answer, 0 memories held, and 0 sources connected.Listen107 plans in motion7 waiting on your answer0 memories held0 sources connectedZoom standup with the team Tuesday macreplay1"
+        "chatTextTail": " me to retry?Listen○FormingFinal name macreplay1◷ Friday 7:30 PM⌖ Juniper & Ivy1 of 2 going - 1 interestedView planListenWhat are you holding for me?Here is what I am holding for you: 107 plans in motion, 7 waiting on your answer, 0 memories held, and 0 sources connected.Listen107 plans in motion7 waiting on your answer0 memories held0 sources connectedZoom standup with the team Tuesday macreplay1"
       },
       "lockupGate": "pass"
     },
@@ -420,259 +568,259 @@
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "c8416547-d993-4455-9d01-6bdb3959667d",
           "state": "forming",
-          "text": "\u25cbFormingDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home",
+          "text": "○FormingDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
           "state": "forming",
-          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "text": "○FormingJuniper & Ivy - tomorrow 8:00 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
           "state": "forming",
-          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "text": "○FormingJuniper & Ivy - tomorrow 8:00 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ad3f84db-b595-4d15-9f39-3235906fce5c",
           "state": "ready",
-          "text": "\u2713ReadyLinkless virtual journey macreplay1 - Friday 9:00 PM - Online",
+          "text": "✓ReadyLinkless virtual journey macreplay1 - Friday 9:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "02e80ce2-6680-40fe-ba14-47e06584af1f",
           "state": "ready",
-          "text": "\u2713ReadySplit probe journey macreplay1 - Friday 7:00 PM - Online",
+          "text": "✓ReadySplit probe journey macreplay1 - Friday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "3f038d36-8c0d-402f-ad4f-784697b7036b",
           "state": "ready",
-          "text": "\u2713ReadyPhysical dinner journey macreplay1 - Saturday 7:30 PM - Juniper and Ivy",
+          "text": "✓ReadyPhysical dinner journey macreplay1 - Saturday 7:30 PM - Juniper and Ivy",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
           "state": "ready",
-          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "text": "✓ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
           "state": "ready",
-          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "text": "✓ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "22d6ea64-ed36-4b2e-ae90-fcdf64e470b0",
           "state": "ready",
-          "text": "\u2713ReadyVideo dinner journey macreplay1 - Tuesday 7:00 PM - Online",
+          "text": "✓ReadyVideo dinner journey macreplay1 - Tuesday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
           "state": "ready",
-          "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market",
+          "text": "✓ReadySaturday opens like this - Saturday · Oceanside - Oceanside Farmers Market",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
           "state": "ready",
-          "text": "\u2713ReadyMeetup - Saturday \u00b7 7:30 PM - Juniper",
+          "text": "✓ReadyMeetup - Saturday · 7:30 PM - Juniper",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "f95b1cb8-fdc9-41a7-a541-48a688380518",
           "state": "forming",
-          "text": "\u25cbFormingDate night with Chanelle - tonight 5 PM - date night",
+          "text": "○FormingDate night with Chanelle - tonight 5 PM - date night",
           "isSetupPlan": false
         }
       ],
@@ -682,7 +830,7 @@
       "label": "thread",
       "mode": "dark",
       "file": "thread-dark.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "docOverflow": 0,
       "escapees": 0,
       "clippedCount": 0,
@@ -692,11 +840,36 @@
       "thread": {
         "threadShell": true,
         "stripPresent": true,
-        "stripText": "NEXT TOGETHER\u2713ReadyRaceAccept macreplay1 - tomorrow 8:00 PM - Dinner",
+        "stripPosition": "static",
+        "stripRect": {
+          "top": 76,
+          "bottom": 128
+        },
+        "firstBubbleRect": {
+          "top": 144,
+          "bottom": 191
+        },
+        "stripOverlapsFirstMessage": false,
+        "rawCallTextPresent": false,
+        "systemLines": [
+          "No answer · 7:03 PM"
+        ],
         "threadRevealPresent": true,
-        "threadRevealText": "\u25c6Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+        "threadRevealLit": "true",
+        "threadRevealText": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
       },
-      "lockupGate": "pass"
+      "lockupGate": "pass",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface.",
+        "threadBefore": {
+          "threadShell": true,
+          "stripPresent": true,
+          "stripText": "NEXT TOGETHER✓ReadyRaceAccept macreplay1 - tomorrow 8:00 PM - Dinner",
+          "threadRevealPresent": true,
+          "threadRevealText": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+        }
+      }
     },
     {
       "label": "graphs",
@@ -712,110 +885,110 @@
       "graphs": {
         "planCards": 100,
         "statePills": [
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming"
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming"
         ],
         "groups": [
-          "Needs a day or a detail\u25cbFormingJuniper & Ivy7 PM1 of 3 going",
-          "Someday\u25cbFormingRevPlan macreplay19:00 PMRevPlan macreplay11 "
+          "Needs a day or a detail○FormingJuniper & Ivy7 PM1 of 3 going",
+          "Someday○FormingRevPlan macreplay19:00 PMRevPlan macreplay11 "
         ]
       },
       "lockupGate": "pass"
@@ -845,7 +1018,7 @@
       "lockups": [],
       "fullCount": 0,
       "detail": {
-        "textHead": "Graph\u25cbFormingJuniper & Ivy7 PM1 of 3 going1 of 3 goingWhen7 PMWhoUAUser AGoingRARegression AWaiting to answerRFRegression FifthWaiting to answerAdd peopleOpen the chat for this planHistory - hideUser A set the day to 7 PM.Created by User A.Check inCheck in with everyone",
+        "textHead": "Graph○FormingJuniper & Ivy7 PM1 of 3 going1 of 3 goingWhen7 PMWhoUAUser AGoingRARegression AWaiting to answerRFRegression FifthWaiting to answerAdd peopleOpen the chat for this planHistory - hideUser A set the day to 7 PM.Created by User A.Check inCheck in with everyone",
         "hasWho": true,
         "attendancePresent": true,
         "historyLines": 1
@@ -935,33 +1108,169 @@
       "mode": "light",
       "reveals": [
         {
+          "lit": "true",
+          "category": "P1",
+          "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+          "text": "◆Your moveactionPlan with User A8:00 PMConfirmDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P1",
+          "key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+          "text": "◆Your moveactionPlan with User Atomorrow after 10 PMConfirmDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P1",
+          "key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+          "text": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P4",
+          "key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+          "text": "●Happening nowhappeningDinner macreplay1Mon, Oct 19, 02:54 AM - HomeView planDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P2",
+          "key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+          "text": "✓Ready for youreadyMeetupSaturday · 7:30 PM - JuniperView planDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P3",
+          "key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+          "text": "○One thing leftformingPlan with User B8:00 PMAdd a placeDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P3",
+          "key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+          "text": "○One thing leftformingCall macreplay1OnlinePick a dayDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P3",
+          "key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+          "text": "○One thing leftformingJuniper & Ivytomorrow 8:00 PMAdd a placeDismiss"
+        },
+        {
+          "lit": "false",
+          "category": "P5",
+          "key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+          "text": "◇Remember thisRegression B - birthdayIn 14 days - Nov 2Got itDismiss"
+        },
+        {
           "lit": "false",
           "category": "P6",
-          "text": "\u25cbOpal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss",
-          "inViewport": false
+          "key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+          "text": "○Opal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss"
         }
-      ]
+      ],
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Deckfix re-probe: the deck now renders the reveal feed reconciled into its sections (see deckRest)."
+      },
+      "needsYouPresent": true,
+      "fireFramesOnDeck": 1
     },
     {
       "label": "center-deck",
       "mode": "light",
       "file": "center-deck-light.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "docOverflow": 0,
       "escapees": 0,
-      "clippedCount": 1,
-      "clippedSample": [
-        "Expiry macreplay1"
-      ],
+      "clippedCount": 0,
+      "clippedSample": [],
       "lockups": [],
       "fullCount": 0,
-      "lockupGate": "pass"
+      "lockupGate": "pass",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "deckRest": {
+        "scrollTop": 0,
+        "scrollerBottom": 844,
+        "dockTop": 772,
+        "needsYouPresent": true,
+        "revealCards": [
+          {
+            "lit": "true",
+            "category": "P1",
+            "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+            "text": "◆Your moveactionPlan with User A8:00 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+            "text": "◆Your moveactionPlan with User Atomorrow after 10 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+            "text": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P4",
+            "key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+            "text": "●Happening nowhappeningDinner macreplay1Mon, Oct 19, 02:54 AM - HomeView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P2",
+            "key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+            "text": "✓Ready for youreadyMeetupSaturday · 7:30 PM - JuniperView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+            "text": "○One thing leftformingPlan with User B8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+            "text": "○One thing leftformingCall macreplay1OnlinePick a dayDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+            "text": "○One thing leftformingJuniper & Ivytomorrow 8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P5",
+            "key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+            "text": "◇Remember thisRegression B - birthdayIn 14 days - Nov 2Got itDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P6",
+            "key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+            "text": "○Opal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss"
+          }
+        ],
+        "fireFramesOnDeck": 1,
+        "litRect": {
+          "top": 419,
+          "bottom": 555
+        },
+        "litInFrame": true
+      }
     },
     {
       "label": "center-deck-scrolled",
       "mode": "light",
       "file": "center-deck-scrolled-light.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "docOverflow": 0,
       "escapees": 0,
       "clippedCount": 0,
@@ -970,12 +1279,16 @@
       "fullCount": 0,
       "fold": {
         "ok": true,
-        "cardBottom": 734,
+        "cardBottom": 714,
         "dockTop": 772,
-        "scrollHeight": 1175,
+        "scrollHeight": 2077,
         "clientHeight": 844
       },
-      "lockupGate": "pass"
+      "lockupGate": "pass",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      }
     },
     {
       "label": "center-chat",
@@ -1037,259 +1350,259 @@
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "c8416547-d993-4455-9d01-6bdb3959667d",
           "state": "forming",
-          "text": "\u25cbFormingDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home",
+          "text": "○FormingDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
           "state": "forming",
-          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "text": "○FormingJuniper & Ivy - tomorrow 8:00 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
           "state": "forming",
-          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "text": "○FormingJuniper & Ivy - tomorrow 8:00 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
           "state": "forming",
-          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "text": "○FormingDinner - 7:00 AM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
           "state": "forming",
-          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "text": "○FormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "ad3f84db-b595-4d15-9f39-3235906fce5c",
           "state": "ready",
-          "text": "\u2713ReadyLinkless virtual journey macreplay1 - Friday 9:00 PM - Online",
+          "text": "✓ReadyLinkless virtual journey macreplay1 - Friday 9:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "02e80ce2-6680-40fe-ba14-47e06584af1f",
           "state": "ready",
-          "text": "\u2713ReadySplit probe journey macreplay1 - Friday 7:00 PM - Online",
+          "text": "✓ReadySplit probe journey macreplay1 - Friday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "3f038d36-8c0d-402f-ad4f-784697b7036b",
           "state": "ready",
-          "text": "\u2713ReadyPhysical dinner journey macreplay1 - Saturday 7:30 PM - Juniper and Ivy",
+          "text": "✓ReadyPhysical dinner journey macreplay1 - Saturday 7:30 PM - Juniper and Ivy",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
           "state": "ready",
-          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "text": "✓ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
           "state": "ready",
-          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "text": "✓ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "22d6ea64-ed36-4b2e-ae90-fcdf64e470b0",
           "state": "ready",
-          "text": "\u2713ReadyVideo dinner journey macreplay1 - Tuesday 7:00 PM - Online",
+          "text": "✓ReadyVideo dinner journey macreplay1 - Tuesday 7:00 PM - Online",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
           "state": "ready",
-          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "text": "✓ReadyJuniper & Ivy - 7 PM",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
           "state": "ready",
-          "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market",
+          "text": "✓ReadySaturday opens like this - Saturday · Oceanside - Oceanside Farmers Market",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
           "state": "ready",
-          "text": "\u2713ReadyMeetup - Saturday \u00b7 7:30 PM - Juniper",
+          "text": "✓ReadyMeetup - Saturday · 7:30 PM - Juniper",
           "isSetupPlan": false
         },
         {
           "variant": "row",
           "planId": "f95b1cb8-fdc9-41a7-a541-48a688380518",
           "state": "forming",
-          "text": "\u25cbFormingDate night with Chanelle - tonight 5 PM - date night",
+          "text": "○FormingDate night with Chanelle - tonight 5 PM - date night",
           "isSetupPlan": false
         }
       ],
@@ -1299,7 +1612,7 @@
       "label": "thread",
       "mode": "light",
       "file": "thread-light.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "docOverflow": 0,
       "escapees": 0,
       "clippedCount": 0,
@@ -1309,11 +1622,36 @@
       "thread": {
         "threadShell": true,
         "stripPresent": true,
-        "stripText": "NEXT TOGETHER\u2713ReadyRaceAccept macreplay1 - tomorrow 8:00 PM - Dinner",
+        "stripPosition": "static",
+        "stripRect": {
+          "top": 76,
+          "bottom": 128
+        },
+        "firstBubbleRect": {
+          "top": 144,
+          "bottom": 191
+        },
+        "stripOverlapsFirstMessage": false,
+        "rawCallTextPresent": false,
+        "systemLines": [
+          "No answer · 7:03 PM"
+        ],
         "threadRevealPresent": true,
-        "threadRevealText": "\u25c6Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+        "threadRevealLit": "true",
+        "threadRevealText": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
       },
-      "lockupGate": "pass"
+      "lockupGate": "pass",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface.",
+        "threadBefore": {
+          "threadShell": true,
+          "stripPresent": true,
+          "stripText": "NEXT TOGETHER✓ReadyRaceAccept macreplay1 - tomorrow 8:00 PM - Dinner",
+          "threadRevealPresent": true,
+          "threadRevealText": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+        }
+      }
     },
     {
       "label": "graphs",
@@ -1329,110 +1667,110 @@
       "graphs": {
         "planCards": 100,
         "statePills": [
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming",
-          "\u25cbForming"
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming",
+          "○Forming"
         ],
         "groups": [
-          "Needs a day or a detail\u25cbFormingJuniper & Ivy7 PM1 of 3 going",
-          "Someday\u25cbFormingRevPlan macreplay19:00 PMRevPlan macreplay11 "
+          "Needs a day or a detail○FormingJuniper & Ivy7 PM1 of 3 going",
+          "Someday○FormingRevPlan macreplay19:00 PMRevPlan macreplay11 "
         ]
       },
       "lockupGate": "pass"
@@ -1462,7 +1800,7 @@
       "lockups": [],
       "fullCount": 0,
       "detail": {
-        "textHead": "Graph\u25cbFormingJuniper & Ivy7 PM1 of 3 going1 of 3 goingWhen7 PMWhoUAUser AGoingRARegression AWaiting to answerRFRegression FifthWaiting to answerAdd peopleOpen the chat for this planHistory - hideUser A set the day to 7 PM.Created by User A.Check inCheck in with everyone",
+        "textHead": "Graph○FormingJuniper & Ivy7 PM1 of 3 going1 of 3 goingWhen7 PMWhoUAUser AGoingRARegression AWaiting to answerRFRegression FifthWaiting to answerAdd peopleOpen the chat for this planHistory - hideUser A set the day to 7 PM.Created by User A.Check inCheck in with everyone",
         "hasWho": true,
         "attendancePresent": true,
         "historyLines": 1
@@ -1506,40 +1844,78 @@
     {
       "label": "center-deck-fireframes",
       "mode": "dark",
-      "frames": [],
-      "pass": "topup"
+      "frames": [
+        {
+          "lit": "true",
+          "category": "P1",
+          "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer"
+        }
+      ],
+      "pass": "topup",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Was frames: [] (F1 - no FireFrame on the deck). Deckfix: the lit P1 renders on the deck inside its FireFrame at rest."
+      },
+      "fireFramesOnDeck": 1
     },
     {
       "label": "center-deck-fireframes",
       "mode": "light",
-      "frames": [],
-      "pass": "topup"
+      "frames": [
+        {
+          "lit": "true",
+          "category": "P1",
+          "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer"
+        }
+      ],
+      "pass": "topup",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Was frames: [] (F1 - no FireFrame on the deck). Deckfix: the lit P1 renders on the deck inside its FireFrame at rest."
+      },
+      "fireFramesOnDeck": 1
     },
     {
       "label": "thread-lit-reveal",
       "mode": "dark",
       "file": "thread-lit-reveal-dark.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "pass": "threaddiag",
       "reveal": {
         "data-lit": "true",
         "fireFrames": 1,
         "kicker": "Your move",
         "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
-      }
+      },
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "clippedCount": 0,
+      "clippedSample": [],
+      "docOverflow": 0,
+      "escapees": 0
     },
     {
       "label": "thread-lit-reveal",
       "mode": "light",
       "file": "thread-lit-reveal-light.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "pass": "threaddiag",
       "reveal": {
         "data-lit": "true",
         "fireFrames": 1,
         "kicker": "Your move",
         "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
-      }
+      },
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "clippedCount": 0,
+      "clippedSample": [],
+      "docOverflow": 0,
+      "escapees": 0
     },
     {
       "label": "splash-1-motion-video",
@@ -1602,8 +1978,19 @@
     {
       "label": "center-deck-fireframes",
       "mode": "dark",
-      "frames": [],
-      "pass": "topup"
+      "frames": [
+        {
+          "lit": "true",
+          "category": "P1",
+          "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer"
+        }
+      ],
+      "pass": "topup",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Was frames: [] (F1 - no FireFrame on the deck). Deckfix: the lit P1 renders on the deck inside its FireFrame at rest."
+      },
+      "fireFramesOnDeck": 1
     },
     {
       "label": "graphs-someday-shelf",
@@ -1638,7 +2025,7 @@
           {
             "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
             "state": "ready",
-            "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market"
+            "text": "✓ReadySaturday opens like this - Saturday · Oceanside - Oceanside Farmers Market"
           }
         ]
       },
@@ -1653,8 +2040,19 @@
     {
       "label": "center-deck-fireframes",
       "mode": "light",
-      "frames": [],
-      "pass": "topup"
+      "frames": [
+        {
+          "lit": "true",
+          "category": "P1",
+          "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer"
+        }
+      ],
+      "pass": "topup",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Was frames: [] (F1 - no FireFrame on the deck). Deckfix: the lit P1 renders on the deck inside its FireFrame at rest."
+      },
+      "fireFramesOnDeck": 1
     },
     {
       "label": "graphs-someday-shelf",
@@ -1689,7 +2087,7 @@
           {
             "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
             "state": "ready",
-            "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market"
+            "text": "✓ReadySaturday opens like this - Saturday · Oceanside - Oceanside Farmers Market"
           }
         ]
       },
@@ -2499,43 +2897,67 @@
       "label": "thread-lit-reveal",
       "mode": "dark",
       "file": "thread-lit-reveal-dark.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "pass": "threaddiag",
       "reveal": {
         "data-lit": "true",
         "fireFrames": 1,
         "kicker": "Your move",
         "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
-      }
+      },
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "clippedCount": 0,
+      "clippedSample": [],
+      "docOverflow": 0,
+      "escapees": 0
     },
     {
       "label": "fireframe-element",
       "mode": "dark",
       "file": "fireframe-element-dark.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "pass": "threaddiag",
-      "note": "Element screenshot of the lit thread reveal's FireFrame (reveal-fire-frame)"
+      "note": "Element screenshot of the lit CENTER DECK reveal's FireFrame (reveal-fire-frame) - deckfix re-capture; the pack's original crop was of the thread's lit reveal.",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      }
     },
     {
       "label": "thread-lit-reveal",
       "mode": "light",
       "file": "thread-lit-reveal-light.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "pass": "threaddiag",
       "reveal": {
         "data-lit": "true",
         "fireFrames": 1,
         "kicker": "Your move",
         "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
-      }
+      },
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "clippedCount": 0,
+      "clippedSample": [],
+      "docOverflow": 0,
+      "escapees": 0
     },
     {
       "label": "fireframe-element",
       "mode": "light",
       "file": "fireframe-element-light.png",
-      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
       "pass": "threaddiag",
-      "note": "Element screenshot of the lit thread reveal's FireFrame (reveal-fire-frame)"
+      "note": "Element screenshot of the lit CENTER DECK reveal's FireFrame (reveal-fire-frame) - deckfix re-capture; the pack's original crop was of the thread's lit reveal.",
+      "deckfix": {
+        "supersedesStamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      }
     },
     {
       "label": "splash-1-motion-video",
@@ -2594,6 +3016,272 @@
       "file": "sidebyside-fireframe-notification-light.png",
       "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
       "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "center-deck-lit-reveal",
+      "mode": "dark",
+      "pass": "deckfix",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+      "deckfix": {
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "file": "center-deck-lit-reveal-dark.png",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "deckRest": {
+        "scrollTop": 0,
+        "scrollerBottom": 844,
+        "dockTop": 772,
+        "needsYouPresent": true,
+        "revealCards": [
+          {
+            "lit": "true",
+            "category": "P1",
+            "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+            "text": "◆Your moveactionPlan with User A8:00 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+            "text": "◆Your moveactionPlan with User Atomorrow after 10 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+            "text": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P4",
+            "key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+            "text": "●Happening nowhappeningDinner macreplay1Mon, Oct 19, 02:54 AM - HomeView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P2",
+            "key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+            "text": "✓Ready for youreadyMeetupSaturday · 7:30 PM - JuniperView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+            "text": "○One thing leftformingPlan with User B8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+            "text": "○One thing leftformingCall macreplay1OnlinePick a dayDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+            "text": "○One thing leftformingJuniper & Ivytomorrow 8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P5",
+            "key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+            "text": "◇Remember thisRegression B - birthdayIn 14 days - Nov 2Got itDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P6",
+            "key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+            "text": "○Opal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss"
+          }
+        ],
+        "fireFramesOnDeck": 1,
+        "litRect": {
+          "top": 419,
+          "bottom": 555
+        },
+        "litInFrame": true
+      }
+    },
+    {
+      "label": "center-deck-lit-reveal",
+      "mode": "light",
+      "pass": "deckfix",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+      "deckfix": {
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "file": "center-deck-lit-reveal-light.png",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "deckRest": {
+        "scrollTop": 0,
+        "scrollerBottom": 844,
+        "dockTop": 772,
+        "needsYouPresent": true,
+        "revealCards": [
+          {
+            "lit": "true",
+            "category": "P1",
+            "key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+            "text": "◆Your moveactionPlan with User A8:00 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+            "text": "◆Your moveactionPlan with User Atomorrow after 10 PMConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P1",
+            "key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+            "text": "◆Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P4",
+            "key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+            "text": "●Happening nowhappeningDinner macreplay1Mon, Oct 19, 02:54 AM - HomeView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P2",
+            "key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+            "text": "✓Ready for youreadyMeetupSaturday · 7:30 PM - JuniperView planDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+            "text": "○One thing leftformingPlan with User B8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+            "text": "○One thing leftformingCall macreplay1OnlinePick a dayDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P3",
+            "key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+            "text": "○One thing leftformingJuniper & Ivytomorrow 8:00 PMAdd a placeDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P5",
+            "key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+            "text": "◇Remember thisRegression B - birthdayIn 14 days - Nov 2Got itDismiss"
+          },
+          {
+            "lit": "false",
+            "category": "P6",
+            "key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+            "text": "○Opal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss"
+          }
+        ],
+        "fireFramesOnDeck": 1,
+        "litRect": {
+          "top": 419,
+          "bottom": 555
+        },
+        "litInFrame": true
+      }
+    },
+    {
+      "label": "you-hub",
+      "mode": "dark",
+      "pass": "deckfix",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+      "deckfix": {
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "file": "you-hub-dark.png",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "hubRest": {
+        "hubHeight": 844,
+        "scrollerClientHeight": 844,
+        "scrollerScrollHeight": 2032,
+        "scrollerIsScroller": true,
+        "scrollTop": 0,
+        "dockTop": 772
+      }
+    },
+    {
+      "label": "you-hub",
+      "mode": "light",
+      "pass": "deckfix",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+      "deckfix": {
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "file": "you-hub-light.png",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "hubRest": {
+        "hubHeight": 844,
+        "scrollerClientHeight": 844,
+        "scrollerScrollHeight": 2032,
+        "scrollerIsScroller": true,
+        "scrollTop": 0,
+        "dockTop": 772
+      }
+    },
+    {
+      "label": "you-hub-orb-clearance",
+      "mode": "dark",
+      "pass": "deckfix",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+      "deckfix": {
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "orbProbe": {
+        "rowRectAfterIntoView": {
+          "top": 574,
+          "bottom": 640
+        },
+        "dockTop": 772,
+        "rowFullyAboveDock": true,
+        "hitTestid": null,
+        "hitTag": "span",
+        "trapped": false,
+        "maxScrollTop": 1188,
+        "lastRowBottomAtMaxScroll": 709,
+        "lastRowClearAtMaxScroll": true
+      }
+    },
+    {
+      "label": "you-hub-orb-clearance",
+      "mode": "light",
+      "pass": "deckfix",
+      "stamp": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+      "deckfix": {
+        "note": "Re-captured by the deckfix wave (deckfix-capture.mjs) against mirror 09b1e6f2; this frame replaces the 18dc95d8 capture of the same surface."
+      },
+      "orbProbe": {
+        "rowRectAfterIntoView": {
+          "top": 574,
+          "bottom": 640
+        },
+        "dockTop": 772,
+        "rowFullyAboveDock": true,
+        "hitTestid": null,
+        "hitTag": "span",
+        "trapped": false,
+        "maxScrollTop": 1188,
+        "lastRowBottomAtMaxScroll": 709,
+        "lastRowClearAtMaxScroll": true
+      }
     }
   ],
   "excluded": [
@@ -2601,5 +3289,86 @@
       "file": "dock-full-dark.png / dock-full-light.png",
       "reason": "Main-run frames taken while navigation was stuck on the Your-moments archive (no dock in frame); superseded by the verified dock close-ups + halo probes in manifest-microfix4 records. Excluded rather than shipped mislabeled."
     }
-  ]
+  ],
+  "deckfix": {
+    "wave": "Repair #18 DECKFIX (post-pack quality loop)",
+    "branch": "muse/r18-deckfix",
+    "codeTip": "1c3f7eb56ced6e4e82cd07cb3d00688dbe4df370",
+    "codeTree": "6e0b0d147baa78494fffaf5f9887989bd29b5cc6",
+    "servedMirrorCommit": "09b1e6f25fedc4223c8956ac78908413b494a9ba",
+    "treeGate": "PASS - preview worktree staged tree == code tip tree 6e0b0d147baa78494fffaf5f9887989bd29b5cc6 before the mirror commit; the preview vite.config.ts proxy patch remains the only uncommitted change.",
+    "stack": "Mac preview pair only, restarted after the mirror (BEAM 58366 / Vite 58367, started 2026-10-18 21:58:04 PDT, after mirror commit 21:57:57 PDT). opal-walk untouched (HEAD 808c7bd6, BEAM 15915 / Vite 16004, original start times); opal-fallback stopped at 1892e5d6.",
+    "harness": "shots/regression/rendered/deckfix-capture.mjs - same session/data pattern as the pack (synthetic A +12025550101 / B +12025550102, ONE provision + ONE founder-seed call set, headless-shell 1217, 390x844, dark + light, pack geometry probes).",
+    "setup": {
+      "feedBefore": {
+        "status": 200,
+        "litP1": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+        "packPlanReveal": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer"
+      },
+      "recreated": null,
+      "feedFinal": [
+        {
+          "reveal_key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+          "category": "P1",
+          "lit": true,
+          "plan_id": "6e3b03bf-6c13-4477-b32a-809d50046268"
+        },
+        {
+          "reveal_key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+          "category": "P1",
+          "lit": false,
+          "plan_id": "fcd2e939-b967-42e0-90eb-a9a7366ba49c"
+        },
+        {
+          "reveal_key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+          "category": "P1",
+          "lit": false,
+          "plan_id": "d39df6d7-2626-4143-93ed-85427b910dbd"
+        },
+        {
+          "reveal_key": "plan:c8416547-d993-4455-9d01-6bdb3959667d:happening",
+          "category": "P4",
+          "lit": false,
+          "plan_id": "c8416547-d993-4455-9d01-6bdb3959667d"
+        },
+        {
+          "reveal_key": "celebration:9fbc1990-ad2d-46b0-9f18-8482632c8aa6:2026:14",
+          "category": "P5",
+          "lit": false,
+          "plan_id": null
+        },
+        {
+          "reveal_key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+          "category": "P2",
+          "lit": false,
+          "plan_id": "a7369517-d086-475f-ae0d-7aaeb10feea6"
+        },
+        {
+          "reveal_key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+          "category": "P3",
+          "lit": false,
+          "plan_id": "bf521ad3-4d60-44b7-8591-d2167be68c6a"
+        },
+        {
+          "reveal_key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+          "category": "P3",
+          "lit": false,
+          "plan_id": "39184c54-bfaf-4a4a-90a1-94ca97513736"
+        },
+        {
+          "reveal_key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+          "category": "P3",
+          "lit": false,
+          "plan_id": "d2b0b63f-d0b1-48ac-ba43-648066022485"
+        },
+        {
+          "reveal_key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+          "category": "P6",
+          "lit": false,
+          "plan_id": "c0f2c6b6-3a3c-4ad6-adaf-5823289ff1d8"
+        }
+      ]
+    },
+    "recordsChanged": 24
+  }
 }
