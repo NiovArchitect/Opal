@@ -106,3 +106,69 @@ describe("P7 at-rest - room light is presence (ring metal), never a state hue", 
     );
   });
 });
+
+describe("P7 audit follow-up - ceilings and purity the first pass left unpinned", () => {
+  it("plan-awareness glows sit at their raised values and under the ceiling (--pa-state family)", () => {
+    expect(unify).toContain(
+      "box-shadow: 0 0 16px color-mix(in srgb, var(--pa-state) 25%, transparent);",
+    );
+    expect(unify).toContain(
+      "box-shadow: 0 1px 16px color-mix(in srgb, var(--pa-state) 28%, transparent);",
+    );
+    const paGlows = [
+      ...unify.matchAll(
+        /box-shadow: (?:0 0|0 1px) (\d+)px color-mix\(in srgb, var\(--pa-state\) (\d+)%/g,
+      ),
+    ].map((m) => ({ blur: Number(m[1]), mix: Number(m[2]) }));
+    expect(paGlows.length).toBeGreaterThan(0);
+    for (const g of paGlows) {
+      expect(g.blur).toBeLessThanOrEqual(18);
+      expect(g.mix).toBeLessThanOrEqual(55);
+    }
+    const paMixes = [...unify.matchAll(/--pa-state\) (\d+)%/g)].map((m) =>
+      Number(m[1]),
+    );
+    expect(Math.max(...paMixes)).toBeLessThanOrEqual(55);
+  });
+
+  it("every ring-metal mix in the shell is inside the envelope (fills and the dock border alike)", () => {
+    const mixes = [...shell.matchAll(/--orb-ring-metal\) (\d+)%/g)].map((m) =>
+      Number(m[1]),
+    );
+    expect(mixes.length).toBeGreaterThan(0);
+    expect(Math.max(...mixes)).toBeLessThanOrEqual(55);
+  });
+
+  it("no state box-shadow in c1.css exceeds the 55% ceiling", () => {
+    const mixes = [
+      ...c1.matchAll(/box-shadow:[^;]*var\(--state-\w+\) (\d+)%/g),
+    ].map((m) => Number(m[1]));
+    expect(mixes.length).toBeGreaterThan(0);
+    expect(Math.max(...mixes)).toBeLessThanOrEqual(55);
+  });
+
+  it("AT-08 fire scarcity: neither presence field spends fire, gradient, entity, or any state family", () => {
+    const homeRule = shell.match(
+      /\.c2s-scroll\[data-testid="c2-home-scroll"\] \{[^}]*\}/,
+    )?.[0];
+    const centerRule = shell.match(/\.c2s-center-rest \{[^}]*\}/)?.[0];
+    expect(homeRule).toBeTruthy();
+    expect(centerRule).toBeTruthy();
+    for (const rule of [homeRule!, centerRule!]) {
+      expect(rule).toContain("var(--orb-ring-metal)");
+      for (const banned of [
+        "--orb-indicator",
+        "--orb-fire",
+        "--grad-",
+        "--state-",
+        "--pa-state",
+        "--plan-state",
+        "--person-tint",
+        "animation",
+      ]) {
+        expect(rule).not.toContain(banned);
+      }
+    }
+    expect(centerRule).toContain("var(--orb-ring-metal) 14%");
+  });
+});
