@@ -90,7 +90,20 @@ defmodule OpalCore.AI do
     |> Repo.one()
   end
 
-  def process_job(%AiJob{} = job) do
+  @doc """
+  Process one AI job.
+
+  HA-09 (Repair #18 hunt-fix): retryable failures are actually
+  retried. The caller (the Oban worker) passes its attempt counters
+  via `oban_attempt` / `oban_max_attempts`. A retryable failure with
+  attempts remaining re-queues the job (non-terminal) and returns
+  `{:error, {:retryable_failure, job}}` so Oban schedules the next
+  attempt and genuinely re-executes; on the final attempt the job is
+  marked terminally "failed" as before and `{:ok, job}` is returned.
+  Direct callers (no Oban context) default to a single attempt, so
+  their behavior is unchanged: a failure is terminal on first sight.
+  """
+  def process_job(%AiJob{} = job, opts \\ []) do
     job = reload_job(job.id)
 
     cond do
@@ -98,7 +111,7 @@ defmodule OpalCore.AI do
         {:ok, job}
 
       true ->
-        do_process(job)
+        do_process(job, opts)
     end
   end
 
@@ -133,7 +146,7 @@ defmodule OpalCore.AI do
     }
   end
 
-  defp do_process(%AiJob{} = job) do
+  defp do_process(%AiJob{} = job, attempt_opts \\ []) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
     {:ok, job} =
@@ -155,16 +168,21 @@ defmodule OpalCore.AI do
 
         case client().execute(request) do
           {:ok, response} ->
-            accept_response(job, response)
+            accept_response(job, response, attempt_opts)
 
           {:error, :timeout} ->
-            fail_job(job, "timeout", "AI worker timed out", retryable: true)
+            fail_job(job, "timeout", "AI worker timed out", [retryable: true] ++ attempt_opts)
 
           {:error, :unavailable} ->
-            fail_job(job, "service_unavailable", "AI worker unavailable", retryable: true)
+            fail_job(
+              job,
+              "service_unavailable",
+              "AI worker unavailable",
+              [retryable: true] ++ attempt_opts
+            )
 
           {:error, reason} ->
-            fail_job(job, "client_error", inspect(reason), retryable: true)
+            fail_job(job, "client_error", inspect(reason), [retryable: true] ++ attempt_opts)
         end
 
       {:error, reason} ->
@@ -172,7 +190,8 @@ defmodule OpalCore.AI do
     end
   end
 
-  defp accept_response(%AiJob{} = job, response) when is_map(response) do
+  defp accept_response(%AiJob{} = job, response, _attempt_opts \\ [])
+       when is_map(response) do
     response = stringify_keys(response)
 
     case Contracts.validate_ai_job_response(response) do
@@ -286,30 +305,56 @@ defmodule OpalCore.AI do
   end
 
   defp fail_job(%AiJob{} = job, error_code, reason, opts) do
-    _retryable = Keyword.get(opts, :retryable, false)
+    # HA-09: the retryable flag is honored, not discarded. With Oban
+    # attempts remaining, a retryable failure re-queues the job and
+    # returns {:error, {:retryable_failure, job}} so the worker's
+    # error return makes Oban spend its declared attempts on a real
+    # re-execution. Otherwise the failure is terminal, exactly as
+    # before (the honest state the user already saw).
+    retryable = Keyword.get(opts, :retryable, false)
+    attempt = Keyword.get(opts, :oban_attempt, 1)
+    max_attempts = Keyword.get(opts, :oban_max_attempts, 1)
+    retry? = retryable and attempt < max_attempts
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-    Repo.transaction(fn ->
-      job = reload_job(job.id)
+    result =
+      Repo.transaction(fn ->
+        job = reload_job(job.id)
 
-      if job.status in AiJob.terminal_statuses() do
-        job
-      else
-        {:ok, job} =
+        if job.status in AiJob.terminal_statuses() do
           job
-          |> AiJob.transition_changeset(%{
-            status: "failed",
-            error_code: error_code,
-            failure_reason: reason,
-            finished_at: now
-          })
-          |> Repo.update()
+        else
+          {:ok, job} =
+            job
+            |> AiJob.transition_changeset(%{
+              status: if(retry?, do: "queued", else: "failed"),
+              error_code: error_code,
+              failure_reason: reason,
+              finished_at: if(retry?, do: nil, else: now)
+            })
+            |> Repo.update()
 
-        set_message_state(job, "failed")
-        publish(job, "failed")
-        reload_job(job.id)
-      end
-    end)
+          if retry? do
+            set_message_state(job, "queued")
+          else
+            set_message_state(job, "failed")
+            publish(job, "failed")
+          end
+
+          reload_job(job.id)
+        end
+      end)
+
+    case result do
+      {:ok, %AiJob{status: "queued"} = job} when retry? ->
+        {:error, {:retryable_failure, job}}
+
+      {:ok, job} ->
+        {:ok, job}
+
+      other ->
+        other
+    end
   end
 
   defp publish(%AiJob{} = job, status) do

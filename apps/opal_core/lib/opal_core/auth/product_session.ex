@@ -129,10 +129,12 @@ defmodule OpalCore.Auth.ProductSession do
             touch_session(session)
             user = Repo.get(User, uid)
 
-            if user do
-              {:ok, %{user: user, session: session, user_id: uid}}
-            else
-              {:error, :user_not_found}
+            cond do
+              is_nil(user) -> {:error, :user_not_found}
+              # Spec 4.C6: a deleted account never authenticates, even
+              # with an unexpired token (its sessions are revoked too).
+              not is_nil(user.deleted_at) -> {:error, :account_deleted}
+              true -> {:ok, %{user: user, session: session, user_id: uid}}
             end
 
           %DeviceSession{status: status} when status in ~w(revoked expired) ->
@@ -219,7 +221,8 @@ defmodule OpalCore.Auth.ProductSession do
   def messaging_preferences(%User{} = user) do
     %{
       "read_receipts_enabled" => user.read_receipts_enabled != false,
-      "message_notifications_enabled" => user.message_notifications_enabled != false
+      "message_notifications_enabled" => user.message_notifications_enabled != false,
+      "notifications_paused" => user.notifications_paused == true
     }
   end
 
@@ -246,6 +249,7 @@ defmodule OpalCore.Auth.ProductSession do
       %{}
       |> put_bool(:read_receipts_enabled, params["read_receipts_enabled"])
       |> put_bool(:message_notifications_enabled, params["message_notifications_enabled"])
+      |> put_bool(:notifications_paused, params["notifications_paused"])
 
     user
     |> User.changeset(attrs)

@@ -6,6 +6,7 @@
 import React from "react";
 import { BRAND } from "../../brand/brand";
 import {
+  consumerSafeIntelligenceError,
   deletePersonFact,
   fetchPersonMemory,
   patchPersonFact,
@@ -56,10 +57,12 @@ export function PersonMemoryView({
         displayName,
       });
       setData(next);
-      // Real-flag miss returns empty view with _error (never silent remock).
-      if (next._error) setError(next._error);
+      // Real-flag miss returns empty view with _error (never silent
+      // remock). Hunt-fix B-19: the machine string never reaches the
+      // screen — the sibling surface's consumer-safe pattern does.
+      if (next._error) setError(consumerSafeIntelligenceError(next._error));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load memory");
+      setError(consumerSafeIntelligenceError(e));
     } finally {
       setLoading(false);
     }
@@ -96,7 +99,7 @@ export function PersonMemoryView({
       );
       setEditingKey(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not update");
+      setError(consumerSafeIntelligenceError(e));
     } finally {
       setBusyKey(null);
     }
@@ -117,7 +120,7 @@ export function PersonMemoryView({
       );
       setConfirmRemoveKey(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not remove");
+      setError(consumerSafeIntelligenceError(e));
     } finally {
       setBusyKey(null);
     }
@@ -189,6 +192,11 @@ export function PersonMemoryView({
         ) : null}
       </div>
 
+      {data?._mock ? (
+        <p className="activity-empty" data-testid="person-memory-demo-badge" role="status">
+          Demo data — examples only, not what Opal remembers about this person.
+        </p>
+      ) : null}
       {loading ? (
         <p className="activity-empty" data-testid="person-memory-loading">
           Loading…

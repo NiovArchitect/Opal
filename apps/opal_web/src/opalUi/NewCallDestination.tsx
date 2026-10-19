@@ -4,7 +4,6 @@
  * Law: Recent history should never be required to start a call.
  */
 import React, { useMemo, useState } from "react";
-import { FOUNDER_PEOPLE } from "./founderGraphSeed";
 
 export type NewCallPerson = {
   id: string;
@@ -28,50 +27,16 @@ type Props = {
   onCallGroup: (group: NewCallGroup) => void;
   onOpenPersonContinuity: (person: NewCallPerson) => void;
   onOpenGroupContinuity: (group: NewCallGroup) => void;
-  /** Optional live connections; founder fixture fills defaults. */
+  /**
+   * The account's REAL connections (people + groups from its own
+   * conversations). Repair #18 hunt-fix B-03: there are no defaults —
+   * the previous build filled every account with the founder roster
+   * and a fixture "Juniper crew" group. Absent data renders the
+   * honest empty states below.
+   */
   people?: NewCallPerson[];
   groups?: NewCallGroup[];
 };
-
-const DEFAULT_PEOPLE: NewCallPerson[] = [
-  {
-    id: "newcall-chanelle",
-    name: "Chanelle",
-    kind: "person",
-    avatarSrc: "/figma-v2/home-201/avatar-chanelle.png",
-  },
-  {
-    id: "newcall-maya",
-    name: "Maya",
-    kind: "person",
-    avatarSrc: "/figma-v2/home-201/avatar-maya.png",
-  },
-  {
-    id: "newcall-jordan",
-    name: "Jordan",
-    kind: "person",
-    avatarTone: "#0A2429",
-  },
-];
-
-const DEFAULT_GROUPS: NewCallGroup[] = [
-  {
-    id: "newcall-juniper-crew",
-    name: "Juniper crew",
-    kind: "group",
-    memberCount: 4,
-    avatarTone: "#1A2338",
-  },
-];
-
-function seedPeopleFromFounder(): NewCallPerson[] {
-  const wanted = ["Chanelle", "Maya", "Jordan"];
-  const fromSeed = FOUNDER_PEOPLE.filter((p) => wanted.includes(p)).map((name, i) => {
-    const base = DEFAULT_PEOPLE.find((d) => d.name === name) || DEFAULT_PEOPLE[i]!;
-    return { ...base, name };
-  });
-  return fromSeed.length ? fromSeed : DEFAULT_PEOPLE;
-}
 
 export function NewCallDestination({
   onBack,
@@ -80,10 +45,10 @@ export function NewCallDestination({
   onOpenPersonContinuity,
   onOpenGroupContinuity,
   people,
-  groups = DEFAULT_GROUPS,
+  groups = [],
 }: Props) {
   const [q, setQ] = useState("");
-  const roster = people?.length ? people : seedPeopleFromFounder();
+  const roster = people ?? [];
 
   const filteredPeople = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -142,6 +107,13 @@ export function NewCallDestination({
 
       <section className="new-call-section" data-testid="new-call-people">
         <h2 className="new-call-heading">People</h2>
+        {filteredPeople.length === 0 ? (
+          <p className="new-call-empty" data-testid="new-call-people-empty">
+            {roster.length === 0
+              ? "No one to call yet. People you connect with will show up here."
+              : "No one matches that search."}
+          </p>
+        ) : null}
         <ul className="new-call-list">
           {filteredPeople.map((p) => (
             <li key={p.id} className="new-call-row">
@@ -189,6 +161,13 @@ export function NewCallDestination({
 
       <section className="new-call-section" data-testid="new-call-groups">
         <h2 className="new-call-heading">Groups</h2>
+        {filteredGroups.length === 0 ? (
+          <p className="new-call-empty" data-testid="new-call-groups-empty">
+            {groups.length === 0
+              ? "No groups yet. Groups from your chats will show up here."
+              : "No group matches that search."}
+          </p>
+        ) : null}
         <ul className="new-call-list">
           {filteredGroups.map((g) => (
             <li key={g.id} className="new-call-row">

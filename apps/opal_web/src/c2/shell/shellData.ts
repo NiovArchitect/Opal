@@ -27,10 +27,17 @@
  * skipping any record whose author cannot be named from the record.
  */
 import {
+  fetchHomeFeed,
   getAssistPreference,
+  getDeviceRoster,
+  getSoulMemory,
   getGoogleCalendarStatus,
   getHomeTimezone,
+  getIngestionStatus,
   getMessagingPreferences,
+  getPersonalInviteCode,
+  getSavedLogins,
+  getSettingsConnections,
   listMemoryFacts,
   listOpalPlans,
   listTemporaryStories,
@@ -116,16 +123,50 @@ function missingSlot(plan: OpalPlanContract): { label: string; slotKind: string 
   return null;
 }
 
+/**
+ * The PlanTransition :cancel gate's legal source statuses (backend
+ * plan_transition.ex): cancel is legal only from tentative / agreed /
+ * changed. Cancelled is already terminal; completed / expired are
+ * refused as illegal transitions.
+ */
+const CANCELLABLE_PLAN_STATUSES: ReadonlySet<string> = new Set([
+  "tentative",
+  "agreed",
+  "changed",
+]);
+
+/**
+ * Repair #18 - "Drop it" derivation. A card is droppable only when
+ * BOTH facts the cancel route will check are already knowable from
+ * the plans contract:
+ *  - authority: the list payload stamps `can_edit` from the backend's
+ *    plan_lead?/2 - the exact function SocialFlow.cancel_plan/1
+ *    enforces (lead / co_lead, creator fallback where no lead row
+ *    exists). `can_edit === true` IS the viewer's cancel authority,
+ *    not a proxy for it.
+ *  - state: the plan's status is one the :cancel gate accepts.
+ * When either fact is absent from the contract (a payload without the
+ * can_edit stamp, an unknown status), the control stays absent rather
+ * than rendering a guess the server would refuse.
+ */
+export function planDroppable(plan: OpalPlanContract): boolean {
+  return (
+    plan.can_edit === true &&
+    CANCELLABLE_PLAN_STATUSES.has((plan.status ?? "").toLowerCase())
+  );
+}
+
 export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjection {
   const cards = plans.map((plan) => {
     const card = cardFromPlan(plan);
     const family = familyOfStatus(plan.status);
     const completion = family === "forming" ? missingSlot(plan) : null;
-    // Drop it is NOT rendered in this base: no plan-cancel path exists
-    // anywhere in the web client or its API surface (verified by
-    // search), and a control that cannot perform its operation is a
-    // defect. It returns when Division A ships the cancel intent.
-    return { plan, card: { ...card, completionAction: completion, droppable: false } };
+    // Drop it is wired: confirming calls POST /opal/plans/:id/cancel
+    // through cancelOpalPlan (see C2Shell's dropPlan handler) and the
+    // list re-reads from the server, whose list excludes cancelled
+    // plans. droppable is derived per plan by planDroppable above -
+    // a card the route would refuse never renders the control.
+    return { plan, card: { ...card, completionAction: completion, droppable: planDroppable(plan) } };
   });
   const groups: GraphListProjection["groups"] = [];
   const push = (
@@ -199,9 +240,15 @@ export function detailFromPlan(
     meetingLink: plan.meeting_link ?? null,
     viewerUserId: viewerUserId ?? null,
     whenLine: card.whenLine,
-    where: plan.location?.trim()
-      ? { label: plan.location, kind: "place", handoffLabel: null }
-      : null,
+    // Hunt-fix B-16: a virtual plan renders as virtual — never as a
+    // physical place. The C1 adapter already carries this contract;
+    // the join handoff renders in the detail from meetingLink below.
+    where:
+      plan.plan_type === "virtual" || plan.online === true
+        ? { label: plan.location?.trim() || "Online", kind: "virtual", handoffLabel: null }
+        : plan.location?.trim()
+          ? { label: plan.location, kind: "place", handoffLabel: null }
+          : null,
     // The plans contract carries counts, not participant rosters; the
     // Who section is omitted cleanly until the Division A detail
     // projection lands (named gap, spec section 8.2 omission rule).
@@ -210,6 +257,34 @@ export function detailFromPlan(
     activity: [],
     history: [],
     origin,
+  };
+}
+
+/**
+ * Repair #18 adoption wave 1 (ST-G) - fold the plan-history
+ * projection (the ONE server derivation: history lines + Who list +
+ * counts) into a detail built from the plan contract. The detail's
+ * Who and History sections render only what this projection carries;
+ * the counts the history endpoint serves are the same
+ * JourneyAuthority counts the card renders, so they cannot disagree.
+ */
+export function detailWithHistory(
+  detail: GraphDetailProjection,
+  history: import("../../api/productClient").PlanHistoryContract,
+): GraphDetailProjection {
+  return {
+    ...detail,
+    who: history.who.map((person, i) => ({
+      name: person.name,
+      avatar: avatarOf(person.name, i + 1),
+      responseLabel: person.response_label,
+    })),
+    history: history.history.map((row) => ({ line: row.line })),
+    attendanceLine:
+      typeof history.counts.going_count === "number" &&
+      typeof history.counts.total_count === "number"
+        ? `${history.counts.going_count} of ${history.counts.total_count} going`
+        : detail.attendanceLine,
   };
 }
 
@@ -254,13 +329,30 @@ export function openingFromPlans(
   };
 }
 
-export async function loadPlans(bearer?: string): Promise<OpalPlanContract[]> {
+/**
+ * Hunt-fix B-12: plan loading returns its failure as a leg of the
+ * result. The previous loadPlans swallowed every failure into [],
+ * so an outage painted as a brand-new empty account on Center,
+ * Graphs, Home, and Chats — pixel-identical. Callers render the
+ * error state with a working retry; empty only ever means empty.
+ */
+export async function loadPlansResult(
+  bearer?: string,
+): Promise<{ plans: OpalPlanContract[]; error: string | null }> {
   try {
     const res = await listOpalPlans(bearer);
-    return res.plans ?? [];
+    return { plans: res.plans ?? [], error: null };
   } catch {
-    return [];
+    return {
+      plans: [],
+      error: "Your plans did not load. Check your connection and try again.",
+    };
   }
+}
+
+export async function loadPlans(bearer?: string): Promise<OpalPlanContract[]> {
+  const res = await loadPlansResult(bearer);
+  return res.plans;
 }
 
 export function shellFromSession(
@@ -295,6 +387,16 @@ export async function homeFromSession(
           (typeof r.display_name === "string" && r.display_name) ||
           null;
         if (!personName || typeof r.id !== "string") return null;
+        // Hunt-fix B-10: the rail carries the story's real media, so
+        // the viewer has something true to play. A record with no
+        // renderable media carries none — and its cell never opens
+        // the empty stage the old viewer painted.
+        const rawMedia = typeof r.media_ref === "string" ? r.media_ref : null;
+        const mediaUrl =
+          rawMedia &&
+          (rawMedia.startsWith("/") || rawMedia.startsWith("data:") || rawMedia.startsWith("http"))
+            ? rawMedia
+            : null;
         return {
           id: r.id,
           personName,
@@ -302,13 +404,52 @@ export async function homeFromSession(
           seen: Boolean(r.seen),
           ringKind: r.seen ? ("seen" as const) : ("unseen" as const),
           storyCount: 1,
+          mediaUrl,
+          caption: typeof r.caption === "string" ? r.caption : null,
         };
       })
       .filter((s): s is NonNullable<typeof s> => Boolean(s));
   } catch {
     stories = [];
   }
-  const plans = await loadPlans(bearer);
+  const plansResult = await loadPlansResult(bearer);
+  const plans = plansResult.plans;
+  // Hunt-fix B-11: the feed reads back what the user and their people
+  // actually posted (fetchHomeFeed moments), with plan cards as their
+  // own kind. The previous build composed the feed from the user's
+  // own plans only, so a just-published post could never appear —
+  // success with no read-back, under "your people move" copy.
+  let moments: HomeProjection["feed"] = [];
+  let feedError: string | null = plansResult.error;
+  try {
+    const feedRes = await fetchHomeFeed({ limit: 20, bearer });
+    moments = (feedRes.objects ?? [])
+      .filter((o) => o.object_type === "memory" || !o.object_type)
+      .map((o) => {
+        const actor = (o.actor ?? {}) as Record<string, unknown>;
+        const authorName =
+          typeof actor.display_name === "string" && actor.display_name
+            ? actor.display_name
+            : "Someone";
+        const rawMedia = typeof o.media_ref === "string" ? o.media_ref : null;
+        const photoUrl =
+          rawMedia &&
+          (rawMedia.startsWith("/") || rawMedia.startsWith("data:") || rawMedia.startsWith("http"))
+            ? rawMedia
+            : null;
+        return {
+          kind: "memory" as const,
+          id: String(o.id),
+          photoUrl,
+          contextLine:
+            typeof o.caption === "string" && o.caption ? o.caption : "Memory",
+          authorLine: authorName,
+        };
+      })
+      .filter((m) => m.id && m.id !== "undefined");
+  } catch {
+    feedError = feedError ?? "Your feed did not load. Check your connection and try again.";
+  }
   return {
     header: { ownAvatar: self },
     rail: {
@@ -316,17 +457,21 @@ export async function homeFromSession(
       stories,
       capabilities: { canPost: true, canStory: true },
     },
-    feed: plans.slice(0, 10).map((plan) => ({
-      kind: "plan" as const,
-      id: plan.id,
-      card: cardFromPlan(plan),
-    })),
+    feed: [
+      ...moments,
+      ...plans.slice(0, 10).map((plan) => ({
+        kind: "plan" as const,
+        id: plan.id,
+        card: cardFromPlan(plan),
+      })),
+    ].slice(0, 14),
+    feedError,
   };
 }
 
 export function youHubFromSession(
   session: ProductSession | null,
-  googleConnected: boolean | null,
+  googleConnected: boolean | "simulated" | null,
 ): YouHubProjection {
   const name = session?.display_name ?? "You";
   return {
@@ -339,21 +484,36 @@ export function youHubFromSession(
     connectedSummary:
       googleConnected === null
         ? "Connected sources are checked when you open them."
-        : googleConnected
-          ? "Google Calendar connected."
-          : "Google Calendar not connected.",
+        : googleConnected === "simulated"
+          ? "Google Calendar is a simulated stand-in, not a real connection."
+          : googleConnected
+            ? "Google Calendar connected."
+            : "Google Calendar not connected.",
     index: [
-      { key: "edit-profile", title: "Edit profile", subtitle: "Name and username", keywords: "name username handle photo profile" },
+      { key: "edit-profile", title: "Edit profile", subtitle: "Name and username", keywords: "name username handle photo profile you" },
+      { key: "your-moments", title: "Your moments", subtitle: "Your posts and stories, kept", keywords: "moments archive posts stories shared media photos" },
+      { key: "your-library", title: "Your library", subtitle: "Made by Opal, and your media", keywords: "library artifacts made by opal drafts lists exports media photos videos stories" },
       { key: "appearance", title: "Appearance", subtitle: "Pick your light", keywords: "mode light dark theme appearance" },
-      { key: "privacy", title: "Privacy", subtitle: "You choose who sees what", keywords: "privacy visibility blocked muted" },
+      { key: "soul-memory", title: "Soul + Memory", subtitle: "How Opal is with you, and what it holds", keywords: "soul memory persona tone how opal speaks" },
+      { key: "what-opal-remembers", title: "What Opal remembers", subtitle: "Facts Opal keeps, and forgetting them", keywords: "memory remembers forget facts permissions" },
+      { key: "how-opal-helps", title: "How Opal helps", subtitle: "How forward Opal may be", keywords: "helps proactive forward assist offers suggestions" },
       { key: "calls-assist", title: "Opal Assist and calls", subtitle: "Help on calls, only when you say so", keywords: "assist calls phone" },
-      { key: "what-opal-remembers", title: "What Opal remembers", subtitle: "Facts Opal keeps, and forgetting them", keywords: "memory remembers forget facts" },
+      { key: "approvals-activity", title: "Approvals + activity", subtitle: "What Opal did, and what awaits you", keywords: "approvals activity trail history export" },
+      { key: "what-opal-hears", title: "What Opal hears", subtitle: "Where Opal's memory comes from", keywords: "hears listens chats calls texts room meetings sources" },
+      { key: "connections", title: "Connections", subtitle: "Every connection, with its real status", keywords: "connections connected sources google deepseek twilio places flights status" },
       { key: "care", title: "Care and household", subtitle: "Check-in rotations and your household pod", keywords: "care rotation household pod family check in" },
-      { key: "connected-sources", title: "Connected sources", subtitle: googleConnected ? "Google Calendar connected" : "Google Calendar", keywords: "connected sources google calendar email" },
-      { key: "notifications", title: "Notifications", subtitle: "Loud for people. Quiet for noise.", keywords: "notifications messages calls receipts" },
+      { key: "connected-sources", title: "Connected sources", subtitle: googleConnected === "simulated" ? "Google Calendar - simulated, not real" : googleConnected ? "Google Calendar connected" : "Google Calendar", keywords: "connected sources google calendar email" },
+      { key: "privacy", title: "Privacy", subtitle: "You choose who sees what", keywords: "privacy visibility blocked muted account data rights" },
+      { key: "notifications", title: "Quiet", subtitle: "Notifications, and your peace", keywords: "quiet notifications messages calls receipts alerts hours" },
       { key: "linked-devices", title: "Linked devices", subtitle: "Where you are signed in", keywords: "devices sessions phone desktop" },
+      { key: "saved-logins", title: "Saved logins", subtitle: "Logins Opal keeps for you, by site only", keywords: "saved logins passwords credentials vault sites hosts" },
+      { key: "invite-code", title: "Your invite code", subtitle: "Share it - anyone who joins is connected with you", keywords: "invite code share friends referral join" },
+      { key: "delete-account", title: "Delete my data or account", subtitle: "Your call, with exactly what goes named", keywords: "delete remove account data erase close" },
       { key: "location-travel", title: "Location and travel", subtitle: "Timing that follows you", keywords: "location travel timezone home" },
       { key: "account-security", title: "Account and security", subtitle: "Your account, your call", keywords: "account security delete sign in" },
+      { key: "help-support", title: "Help & support", subtitle: "Report a problem, send feedback", keywords: "help support report problem feedback contact broken" },
+      { key: "report-problem", title: "Report a problem", subtitle: "Tell Opal what went wrong", keywords: "report problem broken bug wrong went wrong" },
+      { key: "submit-feedback", title: "Submit feedback", subtitle: "Ideas and wishes, read by a person", keywords: "feedback idea suggestion wish" },
     ],
   };
 }
@@ -422,9 +582,20 @@ export async function buildSettingsSection(
         const prefs = await getMessagingPreferences(bearer);
         return {
           key,
-          title: "Notifications",
+          title: "Quiet",
           lede: "Loud for people. Quiet for noise.",
           rows: [
+            {
+              // Audit A2 — the master switch. It writes its own real
+              // flag (notifications_paused); the per-kind switches
+              // below keep their stored values untouched, so turning
+              // pause off restores them exactly.
+              kind: "toggle",
+              id: "pause-everything",
+              title: "Pause everything",
+              subtitle: "While this is on, nothing alerts you. Messages from people still arrive in Chats - they just land silently.",
+              value: prefs.notifications_paused === true,
+            },
             {
               kind: "toggle",
               id: "messages-calls",
@@ -444,12 +615,17 @@ export async function buildSettingsSection(
               id: "push-note",
               text: "Push categories for Graph changes and live movement are not wired on this device yet, so they are not listed here.",
             },
+            {
+              kind: "note",
+              id: "quiet-hours-note",
+              text: "Opal already keeps quiet hours (10 PM to 8 AM) for anything it brings you. Setting your own hours here is not built yet, so there is no switch for it that would change nothing.",
+            },
           ],
         };
       } catch {
         return {
           key,
-          title: "Notifications",
+          title: "Quiet",
           lede: "Loud for people. Quiet for noise.",
           rows: [{ kind: "note", id: "load-failed", text: "Your notification settings could not load. Head back and try again." }],
         };
@@ -513,29 +689,170 @@ export async function buildSettingsSection(
         };
       }
     }
-    case "linked-devices":
+    case "linked-devices": {
+      // Spec 4.C2 — the roster is the real session store, read from
+      // the API; revoke kills the session server-side. Pairing a new
+      // device has no mechanism at source (no signed session mint),
+      // so no pairing control is painted: signing in on the other
+      // device with the same phone number is the real add path, and
+      // the note says exactly that.
+      try {
+        const devices = await getDeviceRoster(bearer);
+        return {
+          key,
+          title: "Linked devices",
+          lede: "Where you are signed in.",
+          rows: [
+            ...devices.map((device) => ({
+              kind: "value" as const,
+              id: `device-${device.id}`,
+              title: device.is_current ? `${device.device_label} - this device` : device.device_label,
+              subtitle: device.last_seen_at
+                ? `Last seen ${device.last_seen_at}`
+                : device.platform,
+              value: device.status === "active" ? "Active" : "Signed out",
+            })),
+            ...devices
+              .filter((device) => device.status === "active" && !device.is_current)
+              .map((device) => ({
+                kind: "action" as const,
+                id: `revoke-device-${device.id}`,
+                title: `Sign out ${device.device_label}`,
+                subtitle: "Ends that session on its next request",
+              })),
+            {
+              kind: "note" as const,
+              id: "pairing-note",
+              text: "To add a device, sign in on it with the same phone number - it will appear here. There is no pairing code or QR flow in Opal today, so none is offered here.",
+            },
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "Linked devices",
+          lede: "Where you are signed in.",
+          rows: [{ kind: "note", id: "load-failed", text: "Your devices could not load. Head back and try again." }],
+        };
+      }
+    }
+    case "saved-logins": {
+      // Spec 4.C3 — hosts only. The payload this renders from cannot
+      // contain a value: the API contract is id + host + saved_at.
+      try {
+        const logins = await getSavedLogins(bearer);
+        return {
+          key,
+          title: "Saved logins",
+          lede: "Logins Opal keeps for you. Only the site is ever shown - the login itself stays in the vault and is used only for its own site.",
+          rows: [
+            ...(logins.length === 0
+              ? [{ kind: "note" as const, id: "none", text: "No saved logins yet. Add one below and Opal will keep it for that site only." }]
+              : logins.map((login) => ({
+                  kind: "action" as const,
+                  id: `remove-login-${login.id}`,
+                  title: login.host,
+                  subtitle: "Saved login - tap to remove it",
+                }))),
+            {
+              kind: "note" as const,
+              id: "use-note",
+              text: "Every time Opal uses a saved login, it is written into your activity. Removing a login means the next thing that needs it will ask you again.",
+            },
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "Saved logins",
+          lede: "Logins Opal keeps for you.",
+          rows: [{ kind: "note", id: "load-failed", text: "Your saved logins could not load. Head back and try again." }],
+        };
+      }
+    }
+    case "invite-code": {
+      // Spec 4.C4 — your personal code and the credit, both sides.
+      // The copy promises the connection only, never a reward.
+      try {
+        const payload = await getPersonalInviteCode(bearer);
+        return {
+          key,
+          title: "Your invite code",
+          lede: payload.personal_code.promise,
+          rows: [
+            {
+              kind: "value",
+              id: "code",
+              title: "Your code",
+              subtitle: payload.personal_code.share_url,
+              value: payload.personal_code.code,
+            },
+            ...(payload.joined_through
+              ? [{
+                  kind: "note" as const,
+                  id: "joined-through",
+                  text: payload.joined_through.credit_line,
+                }]
+              : []),
+            ...payload.joined_through_you.map((credit, i) => ({
+              kind: "note" as const,
+              id: `joined-through-you-${i}`,
+              text: credit.credit_line,
+            })),
+            {
+              kind: "note" as const,
+              id: "redeem-note",
+              text: "Have a code from someone else? Enter it below - you will be connected with them.",
+            },
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "Your invite code",
+          lede: "",
+          rows: [{ kind: "note", id: "load-failed", text: "Your invite code could not load. Head back and try again." }],
+        };
+      }
+    }
+    case "delete-account":
+      // Spec 4.C6 — the confirm names exactly what goes, including
+      // the shared-truth rule; the form itself renders in C2You.
       return {
         key,
-        title: "Linked devices",
-        lede: "Where you are signed in.",
+        title: "Delete my data or account",
+        lede: "Take your time. This is permanent, and it is really done when you confirm.",
         rows: [
           {
-            kind: "value",
-            id: "this-phone",
-            title: "This device",
-            subtitle: "Primary device for this account - this session",
-            value: "Active",
+            kind: "note",
+            id: "data-scope",
+            text: "Delete my data removes what Opal holds for you: your memories, how Opal is set up for you, your chats with Opal, your saved logins, and your connections. Your account stays, and you can keep using Opal.",
           },
           {
             kind: "note",
-            id: "roster-note",
-            text: "Other sessions are not listed yet - there is no device roster to read them from, so nothing here pretends to revoke one.",
+            id: "account-scope",
+            text: "Delete my account does all of that and closes your account: every device is signed out and your name is removed.",
+          },
+          {
+            kind: "note",
+            id: "shared-scope",
+            text: "Plans and memories you share with other people are not yours to erase for them. Your side is removed and your seat is shown as a deleted member; their side stands.",
+          },
+          {
+            kind: "note",
+            id: "receipt-note",
+            text: "When it is done you get a receipt with a reference you can quote. Asking through Help and support does exactly the same deletion.",
           },
         ],
       };
     case "connected-sources": {
       try {
         const status = await getGoogleCalendarStatus(bearer);
+        // HA-01 at the glass (FR-18-09): simulated provenance is
+        // checked BEFORE `connected` — a simulated row also carries
+        // connected=true on the wire and must never paint "Connected".
+        const simulated =
+          status.simulated === true || status.status === "connected_simulated";
         return {
           key,
           title: "Connected sources",
@@ -545,15 +862,21 @@ export async function buildSettingsSection(
               kind: "value",
               id: "google-status",
               title: "Google Calendar",
-              subtitle: status.last_synced_at
-                ? `Last checked ${status.last_synced_at}`
-                : "Calendar and email, read only",
-              value: status.connected ? "Connected" : "Not connected",
+              subtitle: simulated
+                ? "A test stand-in, not a real Google sign-in"
+                : status.last_synced_at
+                  ? `Last checked ${status.last_synced_at}`
+                  : "Calendar and email, read only",
+              value: simulated
+                ? "Simulated - not a real connection"
+                : status.connected
+                  ? "Connected"
+                  : "Not connected",
             },
             {
               kind: "action",
-              id: status.connected ? "google-disconnect" : "google-connect",
-              title: status.connected ? "Disconnect Google" : "Connect Google",
+              id: simulated || status.connected ? "google-disconnect" : "google-connect",
+              title: simulated || status.connected ? "Disconnect Google" : "Connect Google",
             },
           ],
         };
@@ -580,7 +903,7 @@ export async function buildSettingsSection(
                   kind: "action" as const,
                   id: `forget-${fact.id}`,
                   title: fact.label,
-                  subtitle: `${fact.value} - tap to forget`,
+                  subtitle: `${fact.value} - tap, then confirm to forget`,
                 })),
         };
       } catch {
@@ -592,18 +915,378 @@ export async function buildSettingsSection(
         };
       }
     }
+    case "soul-memory": {
+      // 12.2 - Repair #18 SM scoped build (W-GAP-31 first form): the
+      // Soul card edits the REAL assistance-preference truth (the
+      // same record Opal's help already follows - no parallel store),
+      // and the Memory card lists this account's capsules with their
+      // provenance, each forgettable for real through the wallet
+      // API. Value rows below carry the soul fields the C2You form
+      // edits (the edit-profile pattern); capsule rows are actions
+      // whose first tap only arms the confirm in the shell.
+      try {
+        const res = await getSoulMemory(bearer);
+        const soul = res.soul;
+        return {
+          key,
+          title: "Soul + Memory",
+          lede: "How Opal is with you, and what it holds - yours to read, change, and forget.",
+          rows: [
+            {
+              kind: "value",
+              id: "assistance_level",
+              title: "How forward Opal may be",
+              value: soul.assistance_level,
+            },
+            {
+              kind: "value",
+              id: "quiet_hours_start",
+              title: "Quiet hours start",
+              value: soul.quiet_hours_start,
+            },
+            {
+              kind: "value",
+              id: "quiet_hours_end",
+              title: "Quiet hours end",
+              value: soul.quiet_hours_end,
+            },
+            { kind: "value", id: "timezone", title: "Home time zone", value: soul.timezone },
+            {
+              kind: "value",
+              id: "max_proactive_signals_per_day",
+              title: "Proactive notes per day, at most",
+              value: String(soul.max_proactive_signals_per_day),
+            },
+            {
+              kind: "value",
+              id: "completion_feedback",
+              title: "Completion feedback",
+              value: soul.completion_feedback,
+            },
+            {
+              kind: "note",
+              id: "memory-heading",
+              text:
+                res.capsules.length === 0
+                  ? "What Opal remembers - Opal is not keeping any memories for you yet."
+                  : `What Opal remembers - ${res.capsule_count} ${res.capsule_count === 1 ? "memory" : "memories"}, each with where it came from. Tap one, then confirm, to forget it for good.`,
+            },
+            ...res.capsules.map((capsule) => ({
+              kind: "action" as const,
+              id: `forget-capsule-${capsule.id}`,
+              title: capsule.summary ?? "A memory",
+              subtitle: `${capsule.provenance_label ?? "Saved with Opal"} - tap, then confirm to forget`,
+            })),
+            { kind: "nav", id: "remembers", title: "What Opal remembers", target: "what-opal-remembers" },
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "Soul + Memory",
+          lede: "How Opal is with you, and what it holds - yours to read, change, and forget.",
+          rows: [
+            {
+              kind: "note",
+              id: "load-failed",
+              text: "Soul + Memory could not load. Head back and try again.",
+            },
+          ],
+        };
+      }
+    }
+    case "how-opal-helps": {
+      // 12.4 — today's TRUE proactivity controls only. HARD BLOCKER
+      // (proactive-presentation-system.md section 8, D-8): the
+      // operational-modes picker MUST NOT SHIP — the mode object
+      // does not exist, so there is no picker here, in any words.
+      try {
+        const pref = await getAssistPreference(bearer);
+        return {
+          key,
+          title: "How Opal helps",
+          lede: "How forward Opal may be, with the controls that are real today.",
+          rows: [
+            {
+              kind: "toggle",
+              id: "assist",
+              title: "Opal Assist on calls",
+              subtitle: "Allow Assist on future calls. You can still pause it on any private call.",
+              value: pref.assist_calls_enabled === true,
+            },
+            { kind: "nav", id: "calls", title: "Opal Assist and calls", target: "calls-assist" },
+            { kind: "nav", id: "quiet", title: "Quiet", target: "notifications" },
+            {
+              kind: "note",
+              id: "modes-gate",
+              text: "Choosing how forward Opal may be in one place is not built yet. Until it is, Opal's offers stay off unless you turn them on, Opal asks once and never nags, and a no is final.",
+            },
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "How Opal helps",
+          lede: "How forward Opal may be, with the controls that are real today.",
+          rows: [{ kind: "note", id: "load-failed", text: "Your help settings could not load. Head back and try again." }],
+        };
+      }
+    }
+    case "approvals-activity":
+      // 12.5 — no page holds approvals or the activity trail yet
+      // (gap F-GAP-5). Honest gated destination, no painted queue.
+      return {
+        key,
+        title: "Approvals + activity",
+        lede: "What Opal did, and what awaits you.",
+        rows: [
+          {
+            kind: "note",
+            id: "approvals-gate",
+            text: "Anything Opal needs your say-so for appears where the work happens - on a plan's page or in a check-in. One place for approvals, what you decided before, and a plain trail of what Opal has done is not built yet, so nothing here is listed as if it were.",
+          },
+          {
+            kind: "note",
+            id: "export-gate",
+            text: "Getting your data out will live under Privacy + account. It is not built yet either - there is no export button here, because a button that does not export would be a lie.",
+          },
+        ],
+      };
+    case "what-opal-hears": {
+      // 12.6 + spec SF-A — each source carries its OWN state line and
+      // progress in words, rendered from that source's own read
+      // (GET /settings/hears derives per source from the D-ING
+      // register). One source in error shows its own error line and
+      // a retry for that source only (ER-2); it never blanks the
+      // page. Without a session there is no per-account read, so the
+      // honest static form below names the sources without states
+      // that pretend to be yours.
+      if (bearer) {
+        try {
+          const sources = await getIngestionStatus(bearer);
+          return {
+            key,
+            title: "What Opal hears",
+            lede: "Where Opal's memory comes from - each source with its own state, read on its own.",
+            rows: [
+              ...sources.flatMap((line) => [
+                {
+                  kind: "value" as const,
+                  id: line.source,
+                  title: line.title,
+                  subtitle: line.progress,
+                  value: line.state_label,
+                },
+                ...(line.error && line.retryable
+                  ? [{
+                      kind: "action" as const,
+                      id: `hears-retry-${line.source}`,
+                      title: `Try ${line.title} again`,
+                      subtitle: "Retries this source only",
+                    }]
+                  : []),
+              ]),
+              { kind: "nav" as const, id: "connections", title: "Connections", target: "connections" },
+              { kind: "nav" as const, id: "assist", title: "Opal Assist and calls", target: "calls-assist" },
+            ],
+          };
+        } catch {
+          return {
+            key,
+            title: "What Opal hears",
+            lede: "Where Opal's memory comes from - each source with its real state.",
+            rows: [{ kind: "note", id: "load-failed", text: "What Opal hears could not load. Head back and try again." }],
+          };
+        }
+      }
+      return {
+        key,
+        title: "What Opal hears",
+        lede: "Where Opal's memory comes from - each source with its real state.",
+        rows: [
+          { kind: "value", id: "chats", title: "Chats in the app", subtitle: "Your conversations here are Opal's working source today.", value: "Working now" },
+          { kind: "value", id: "calls", title: "Phone calls", subtitle: "Opal cannot listen to or write down a live call yet. Nothing is recorded in secret.", value: "Not wired yet" },
+          { kind: "value", id: "texts", title: "Texts", subtitle: "Texts do not reach Opal today, and are never faked.", value: "Waiting on a sending number" },
+          { kind: "value", id: "room", title: "Listening in the room", subtitle: "There is no room listening in Opal, hidden or otherwise.", value: "Not in Opal today" },
+          { kind: "value", id: "meetings", title: "Meetings", subtitle: "Zoom and other meetings are a future source, named here so the place exists.", value: "Coming later" },
+          { kind: "nav", id: "connections", title: "Connections", target: "connections" },
+          { kind: "nav", id: "assist", title: "Opal Assist and calls", target: "calls-assist" },
+        ],
+      };
+    }
+    case "connections": {
+      // DIR-2 — renders the server's settings/connections projection
+      // verbatim (SP-3). Status, label, detail, and gate all arrive
+      // finished; this adapter maps fields, it derives nothing.
+      try {
+        const payload = await getSettingsConnections(bearer);
+        // Audit A1 — the catalog form: rows grouped under their
+        // plain category names, exactly the provider set the server
+        // reports (nothing painted to fill a category). The slot
+        // for custom connections is reserved in words only, at the
+        // end — the capability itself is founder-gated and absent.
+        const categoryNames: Record<string, string> = {
+          intelligence: "Thinking and words",
+          voice: "Voice",
+          phone_and_messaging: "Phone and messaging",
+          places_and_search: "Places and search",
+          travel: "Travel",
+          your_accounts: "Your accounts",
+          payments: "Payments",
+        };
+        const rows: SettingsSectionProjection["rows"] = [];
+        let lastCategory: string | null = null;
+        for (const c of payload.connections) {
+          const categoryName = categoryNames[c.category] ?? c.category;
+          if (categoryName !== lastCategory) {
+            rows.push({ kind: "note", id: `cat-${c.category}`, text: categoryName });
+            lastCategory = categoryName;
+          }
+          rows.push({
+            kind: "connection" as const,
+            id: c.id,
+            title: c.display_name,
+            subtitle: c.powers,
+            status: c.status,
+            statusLabel: c.status_label,
+            detail: c.status_detail,
+            gateReason: c.gate ? c.gate.reason_plain : null,
+            lastVerifiedLabel: c.last_verified_at
+              ? `Last checked ${c.last_verified_at.slice(0, 10)}`
+              : "Never checked",
+          });
+        }
+        rows.push({
+          kind: "note",
+          id: "custom-slot",
+          text: "Connecting a service of your own is not something Opal offers today. If it ever does, it will appear here, in this list.",
+        });
+        const google = payload.connections.find((c) => c.id === "google_calendar");
+        const googleAction = google?.actions.find(
+          (a) => a.enabled && (a.kind === "connect" || a.kind === "disconnect"),
+        );
+        if (google && googleAction) {
+          rows.push({
+            kind: "action",
+            id: googleAction.kind === "connect" ? "google-connect" : "google-disconnect",
+            title: googleAction.kind === "connect" ? "Connect Google" : "Disconnect Google",
+          });
+        }
+        return {
+          key,
+          title: "Connections",
+          lede: "Every connection Opal uses, with the status the server last checked - never a guess.",
+          rows:
+            payload.connections.length === 0
+              ? [{ kind: "note", id: "none", text: "No connections are set up on this server yet." }]
+              : rows,
+        };
+      } catch {
+        return {
+          key,
+          title: "Connections",
+          lede: "Every connection Opal uses, with the status the server last checked - never a guess.",
+          rows: [
+            {
+              kind: "note",
+              id: "load-failed",
+              text: "Could not check connections. Head back and try again - Opal will not guess a status.",
+            },
+          ],
+        };
+      }
+    }
     case "privacy":
       return {
         key,
         title: "Privacy",
         lede: "You choose who sees what. Opal follows it.",
         rows: [
+          {
+            // Audit A4 — plain-language card. Every claim names a
+            // control that exists on the pages below it: the memory
+            // facts you can read and forget, the sources with their
+            // real status and disconnect, and the policy document.
+            kind: "note",
+            id: "privacy-card",
+            text: "In plain words: what Opal holds for you lives in What Opal remembers, where you can read every fact and forget any of them. What Opal can check outside the app lives in Connected sources and Connections, each with its real status - and disconnecting stops it right away. Opal's full Privacy Policy is one tap below.",
+          },
           { kind: "nav", id: "remembers", title: "What Opal remembers", target: "what-opal-remembers" },
           { kind: "nav", id: "sources", title: "Connected sources", target: "connected-sources" },
+          { kind: "nav", id: "connections", title: "Connections", target: "connections" },
+          {
+            // Audit A7 — about Opal's messages. The claims match the
+            // enforced honesty rules: provenance labels on what Opal
+            // makes, and uncertainty is always said out loud.
+            kind: "note",
+            id: "about-messages",
+            text: "About Opal's messages: Opal's messages are generated. The plans and facts Opal states come from your plans and the sources you connected - and anything Opal is unsure of, it has to say so, never state it as fact.",
+          },
+          {
+            // Audit A8 — rows open Opal's own published documents,
+            // shipped in the app bundle (/privacy.html, /terms.html).
+            kind: "action",
+            id: "privacy-policy",
+            title: "Privacy Policy",
+            subtitle: "Opal's published privacy document",
+          },
+          {
+            kind: "action",
+            id: "terms-of-service",
+            title: "Terms of Service",
+            subtitle: "Opal's published terms",
+          },
           {
             kind: "note",
             id: "privacy-note",
             text: "Per-Graph visibility, join requests, and blocked lists do not have a settings API yet, so they live on each Graph and in Safety - not as switches here that would flip nothing.",
+          },
+        ],
+      };
+    case "help-support":
+      // Audit A6 — a doorway where every row opens something real.
+      // Written help articles are not published yet, so there is no
+      // Help row pretending to be one; the two real doors are here.
+      return {
+        key,
+        title: "Help & support",
+        lede: "A person reads everything sent from here.",
+        rows: [
+          { kind: "nav", id: "report", title: "Report a problem", target: "report-problem" },
+          { kind: "nav", id: "feedback", title: "Submit feedback", target: "submit-feedback" },
+          {
+            kind: "note",
+            id: "help-articles-note",
+            text: "Written help articles are not published yet, so there is no help library to open. For now, report a problem or send feedback and a person will read it.",
+          },
+        ],
+      };
+    case "report-problem":
+      // Audit A5 — the form itself renders in C2SettingsSection
+      // (keyed by this section key); these rows are the disclosure,
+      // and they list exactly what a submission includes.
+      return {
+        key,
+        title: "Report a problem",
+        lede: "What went wrong? A person reads every report.",
+        rows: [
+          {
+            kind: "note",
+            id: "disclosure",
+            text: "What is included: your words, the kind of problem, the build of Opal you are using, where you started the report, and your account - so support can find it and reply. Nothing else is sent. Attachments are not part of reports yet - there is no capture Opal can attach honestly on the web today, so none is offered.",
+          },
+        ],
+      };
+    case "submit-feedback":
+      return {
+        key,
+        title: "Submit feedback",
+        lede: "Ideas and wishes go to the same reader as problem reports.",
+        rows: [
+          {
+            kind: "note",
+            id: "disclosure",
+            text: "What is included: your words, marked as feedback, the build of Opal you are using, and your account. Nothing else is sent.",
           },
         ],
       };
@@ -614,10 +1297,13 @@ export async function buildSettingsSection(
         lede: "Your account, your call.",
         rows: [
           { kind: "nav", id: "devices", title: "Linked devices", target: "linked-devices" },
+          { kind: "nav", id: "saved-logins", title: "Saved logins", target: "saved-logins" },
+          { kind: "nav", id: "help", title: "Help & support", target: "help-support" },
+          { kind: "nav", id: "delete", title: "Delete my data or account", target: "delete-account" },
           {
             kind: "note",
             id: "delete-note",
-            text: "Deleting your account goes through Opal support today. There is no delete button here, because a button that does not delete would be a lie.",
+            text: "Deleting is self-serve and permanent. The delete page names exactly what goes - including what happens to plans you share - before anything happens.",
           },
         ],
       };

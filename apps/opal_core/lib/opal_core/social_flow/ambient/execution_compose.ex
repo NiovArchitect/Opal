@@ -326,7 +326,11 @@ defmodule OpalCore.SocialFlow.Ambient.ExecutionCompose do
       "place_label" => ctx["place_label"] || ctx["place"] || ctx["destination"],
       "when" => ctx["when"],
       "start_at" => ctx["when"],
-      "travel_minutes" => ctx["travel_minutes"] || 20,
+      # OPEN-9 (F-11 follow-up site, Repair #18 hunt-fix): raw maybe-nil —
+      # the fallback belongs to Feasibility.TravelEstimate (via
+      # DeviceMoment.schedule_leave_by → LeaveBy), which labels it
+      # "assumed_default"; a silent `|| 20` here read as measured.
+      "travel_minutes" => ctx["travel_minutes"],
       "commitment_id" => ctx["native_commitment_id"],
       "slot_label" => ctx["slot_label"]
     }

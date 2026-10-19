@@ -7,7 +7,22 @@ import {
   episodeCategoryFrom,
 } from "./placeComposition";
 
+// Hunt-fix B-06: the ranking tests supply their own candidate inputs.
+// defaultPlaceCandidates() is the PRODUCTION default and is honestly
+// empty — ranking is tested against explicit inputs, never fixtures.
+const SAMPLE_CANDIDATES = [
+  { id: "juniper", name: "Juniper & Ivy", area: "Little Italy", quiet: true, cuisine: "italian", score: 4.6 },
+  { id: "harbor", name: "Harbor Table", area: "Waterfront", quiet: true, cuisine: "american", score: 4.7 },
+  { id: "campfire", name: "Campfire", area: "North Park", quiet: false, cuisine: "american", score: 4.2 },
+];
+
 describe("placeComposition - memory + episode precedence", () => {
+  it("production default candidates are honestly empty (hunt-fix B-06)", () => {
+    expect(defaultPlaceCandidates()).toEqual([]);
+    const r = composePlaceOptions({ candidates: [] });
+    expect(r.ranked).toEqual([]);
+  });
+
   it("provider projection feeds existing composePlaceOptions without new engine", () => {
     const fromProvider = candidatesFromProviderProjection([
       {
@@ -38,7 +53,7 @@ describe("placeComposition - memory + episode precedence", () => {
 
   it("Italian episode category ranks Juniper first", () => {
     const r = composePlaceOptions({
-      candidates: defaultPlaceCandidates(),
+      candidates: SAMPLE_CANDIDATES,
       placeGapLabel: "Italian dinner · place still open",
     });
     expect(r.episodeCategory).toBe("italian");
@@ -47,7 +62,7 @@ describe("placeComposition - memory + episode precedence", () => {
 
   it("current lively intent overrides quiet relationship memory", () => {
     const r = composePlaceOptions({
-      candidates: defaultPlaceCandidates(),
+      candidates: SAMPLE_CANDIDATES,
       placeGapLabel: "Italian dinner · place still open",
       relationshipPrefs: [
         {
@@ -75,7 +90,7 @@ describe("placeComposition - memory + episode precedence", () => {
 
   it("fixed venue / where known → memory irrelevant", () => {
     const r = composePlaceOptions({
-      candidates: defaultPlaceCandidates(),
+      candidates: SAMPLE_CANDIDATES,
       placeGapLabel: "Italian",
       whereKnown: true,
     });

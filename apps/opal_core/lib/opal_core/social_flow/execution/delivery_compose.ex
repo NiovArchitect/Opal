@@ -12,6 +12,7 @@ defmodule OpalCore.SocialFlow.Execution.DeliveryCompose do
   """
 
   alias OpalCore.SocialFlow.Ambient.{ExecutionAction, InterruptionDebt}
+  alias OpalCore.SocialFlow.Feasibility.TravelEstimate
 
   alias OpalCore.SocialFlow.Execution.{
     ActionClaim,
@@ -337,7 +338,12 @@ defmodule OpalCore.SocialFlow.Execution.DeliveryCompose do
           "status" => "active",
           "commitment_id" => commitment_id,
           "scheduled_for" => leave_by || DateTime.add(now, 3600, :second),
-          "minutes_until_leave" => a["minutes_until_leave"] || 20,
+          # F-11: a defaulted minutes_until_leave is labeled an estimate.
+          "minutes_until_leave" => elem(TravelEstimate.resolve(a["minutes_until_leave"]), 0),
+          "minutes_until_leave_source" =>
+            elem(TravelEstimate.resolve(a["minutes_until_leave"]), 1),
+          "minutes_until_leave_estimated" =>
+            not TravelEstimate.measured?(a["minutes_until_leave"]),
           "plan_version" => a["plan_version"],
           "destination" => a["destination"] || a["place"],
           "venue_id" => a["venue_id"],
@@ -349,23 +355,28 @@ defmodule OpalCore.SocialFlow.Execution.DeliveryCompose do
         content = NotificationContent.build(intent, surface: surface, mode: "minimal")
 
         {:ok,
-         %{
-           "kind" => "hidden_preparation",
-           "capability" => "reminder",
-           "scheduled" => rec,
-           "transport" => transport,
-           "content" => content,
-           "capability_truth" => truth,
-           "interruption_debt" => debt,
-           "surface_moment" => moment["surface"],
-           "delivery_proof" => proof_for_transport(transport, rec),
-           "delivered" => rec["delivered"] == true,
-           "queued_ne_delivered" => true,
-           "overclaim" => false,
-           "claim_level" => "scheduled_not_delivered",
-           "then_get_quiet" => true,
-           "settings_hub" => false
-         }}
+         Map.merge(
+           %{
+             "kind" => "hidden_preparation",
+             "capability" => "reminder",
+             "scheduled" => rec,
+             "transport" => transport,
+             "content" => content,
+             "capability_truth" => truth,
+             "interruption_debt" => debt,
+             "surface_moment" => moment["surface"],
+             "delivery_proof" => proof_for_transport(transport, rec),
+             "delivered" => rec["delivered"] == true,
+             "queued_ne_delivered" => true,
+             "overclaim" => false,
+             "claim_level" => "scheduled_not_delivered",
+             "then_get_quiet" => true,
+             "settings_hub" => false
+           },
+           # F-11: when the leave-by came from compute_leave_hint/1, say
+           # whether its travel minutes were measured or assumed.
+           if(a["leave_by"], do: %{}, else: leave_hint_estimate_fields(a))
+         )}
       end
     end
   end
@@ -558,12 +569,26 @@ defmodule OpalCore.SocialFlow.Execution.DeliveryCompose do
   defp compute_leave_hint(a) do
     case a["when"] || a["plan_start"] do
       %DateTime{} = start ->
-        travel = a["travel_minutes"] || 30
+        # F-11: falls back to the assumed default (30) when unmeasured;
+        # the source is labeled where the hint is composed (see
+        # travel_estimate_fields/1 usage in reminder_delivery outputs).
+        {travel, _source} = TravelEstimate.resolve(a["travel_minutes"], 30)
         DateTime.add(start, -trunc(travel) * 60, :second)
 
       _ ->
         nil
     end
+  end
+
+  # F-11 labels for a leave hint computed from a possibly-defaulted
+  # travel value (default 30 in compute_leave_hint/1).
+  defp leave_hint_estimate_fields(a) do
+    {_minutes, source} = TravelEstimate.resolve(a["travel_minutes"], 30)
+
+    %{
+      "leave_hint_travel_minutes_source" => source,
+      "leave_hint_travel_minutes_estimated" => source == "assumed_default"
+    }
   end
 
   defp default_devices(a) do

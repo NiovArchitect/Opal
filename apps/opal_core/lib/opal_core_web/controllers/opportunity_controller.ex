@@ -2,7 +2,6 @@ defmodule OpalCoreWeb.OpportunityController do
   use OpalCoreWeb, :controller
 
   alias OpalCore.SocialFlow.DynamicIntelligence.Durable
-  alias OpalCore.SocialFlow.DynamicIntelligence.Fixtures
   alias OpalCore.SocialFlow.DynamicIntelligence.Outcome
 
   def show(conn, %{"id" => conversation_id}) do
@@ -23,8 +22,12 @@ defmodule OpalCoreWeb.OpportunityController do
     attrs = %{
       conversation_id: conversation_id,
       requester_user_id: user_id,
-      use_dinner_fixture: Map.get(params, "use_dinner_fixture", true) != false,
-      member_ids: params["member_ids"] || Fixtures.member_ids(),
+      # Repair #18 FALSE-fix F-02: fixture evaluation is explicit opt-in
+      # on this product route (absent => real request input), the response
+      # carries fixture provenance (see Durable.evaluate_and_persist/1),
+      # and no fixture member ids are substituted for the caller's own.
+      use_dinner_fixture: params["use_dinner_fixture"] in [true, "true", "1", 1],
+      member_ids: params["member_ids"],
       messages: params["messages"],
       participants: params["participants"],
       venues: params["venues"],

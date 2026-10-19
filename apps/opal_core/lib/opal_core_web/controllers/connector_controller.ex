@@ -28,6 +28,18 @@ defmodule OpalCoreWeb.ConnectorController do
     })
   end
 
+  # GET /api/v1/product/settings/connections
+  # Repair #18 DIR-2 — the Connections status contract (verification
+  # report Part 4.1). One explicit projection: the server computes
+  # every status (OpalCore.Settings.Connections); the client renders
+  # the payload verbatim and derives nothing. The Google row is built
+  # from the same ProviderConnections read-back as google_status/2,
+  # so Settings and the connector endpoints can never disagree.
+  def settings_connections(conn, _params) do
+    user_id = conn.assigns.current_user_id
+    json(conn, OpalCore.Settings.Connections.build(user_id))
+  end
+
   # GET /api/v1/product/connectors/google_calendar
   def google_status(conn, _params) do
     user_id = conn.assigns.current_user_id
@@ -128,7 +140,14 @@ defmodule OpalCoreWeb.ConnectorController do
 
   # POST /api/v1/product/connectors/google_calendar/simulate
   def google_simulate(conn, params) do
-    if Application.get_env(:opal_core, :dev_auth_enabled, false) do
+    # HA-01 (Repair #18 hunt-fix): the dev_auth boolean alone is
+    # settable in ANY config_env (runtime.exs honors OPAL_DEV_AUTH in
+    # prod), so it cannot be the only gate for minting a connection.
+    # The strong gate is the runtime environment itself: simulate
+    # exists only in dev/test builds. Provenance is also carried on
+    # every read-back (ProviderConnections.public_status/2).
+    if Application.get_env(:opal_core, :dev_auth_enabled, false) and
+         Mix.env() in [:dev, :test] do
       user_id = conn.assigns.current_user_id
 
       case ProviderConnections.upsert_tokens(user_id, "google_calendar", %{

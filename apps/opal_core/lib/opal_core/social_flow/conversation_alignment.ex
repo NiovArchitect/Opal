@@ -92,6 +92,12 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       # seeded by sync_locked only (pure folds pass nothing and keep
       # pure formation semantics). Internal: stripped before return.
       "plan_row_clock" => Keyword.get(opts, :plan_row_clock),
+      # Repair #18 (apifix, FR-12-04): settled-proposal history
+      # round-trips through the plan row like explicit_actions do -
+      # sync_locked seeds the stored entries so a settlement recorded
+      # by an earlier sync (or at accept time) survives replays whose
+      # row clock has already moved past the original proposal.
+      "proposal_history" => Keyword.get(opts, :proposal_history, []),
       "plan_version" => 0,
       # Repair #18 (W4-01): other active plans in this conversation
       # (siblings of the fold's own plan), seeded by sync_locked only;
@@ -128,13 +134,17 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     (message_events ++ action_events)
     |> Enum.sort_by(&{&1.at, &1.order, if(&1.kind == :message, do: 0, else: 1)})
     |> Enum.reduce(base, fn
-      %{kind: :message, message: message}, acc -> apply_message(acc, message)
-      %{kind: :action, action: action}, acc -> apply_action(acc, action)
+      %{kind: :message, message: message} = event, acc ->
+        apply_message(Map.put(acc, "__event_at", event.at), message)
+
+      %{kind: :action, action: action} = event, acc ->
+        apply_action(Map.put(acc, "__event_at", event.at), action)
     end)
     |> Map.put("explicit_actions", actions)
     |> present()
     |> Map.delete("plan_row_clock")
     |> Map.delete("sibling_plans")
+    |> Map.delete("__event_at")
   end
 
   def sync_conversation(conversation_id) when is_binary(conversation_id) do
@@ -268,7 +278,12 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
             conversation_id: conversation_id,
             user_id: marker["actor_user_id"],
             value: label,
-            trace_id: "fold-sync-settle"
+            trace_id: "fold-sync-settle",
+            # This settlement resolves the fold's own change proposal;
+            # a System A revision proposing the same value is the same
+            # change and is accepted, not superseded (W4 two-party pin).
+            accepts_matching_revision: true,
+            settled_event_at: marker["event_at"]
           })
 
         :ok
@@ -350,7 +365,18 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     _ -> :ok
   end
 
+  # FR-11-08: a junk conversation id syncs as an empty thread - the
+  # message/plan queries below would raise a CastError against
+  # :binary_id instead of answering an honest empty alignment.
   defp sync_locked(conversation_id) do
+    if OpalCore.IdShape.uuid?(conversation_id) do
+      do_sync_locked(conversation_id)
+    else
+      fold([], [], [])
+    end
+  end
+
+  defp do_sync_locked(conversation_id) do
     plan = lock_plan(conversation_id)
 
     messages =
@@ -387,8 +413,15 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         %{"id" => p.id, "title" => p.title, "time_label" => p.time_label}
       end)
 
+    stored_history =
+      if plan, do: (plan.alignment || %{})["proposal_history"] || [], else: []
+
     state =
-      fold(messages, members, actions, plan_row_clock: row_clock, sibling_plans: sibling_plans)
+      fold(messages, members, actions,
+        plan_row_clock: row_clock,
+        sibling_plans: sibling_plans,
+        proposal_history: stored_history
+      )
       |> freeze_plan_set_event(plan && plan.alignment)
       |> PlaceIdentity.attach_resolved(plan && plan.alignment)
       |> surface_pending_revision(plan)
@@ -661,7 +694,22 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
     if is_map(proposal) and not is_nil(revision_clock) and
          proposal_clock(proposal) == revision_clock do
-      Map.delete(state, "change_proposal")
+      # Repair #18 (apifix, FR-12-04): the swap must not drop the
+      # pending change's expiry. The fold proposal carries the
+      # actionable lifetime (F12-58 expires_at); the revision record
+      # has no TTL of its own, so presenting the revision alone made
+      # the live proposal read as one that nothing can expire - the
+      # exact precondition FR-12-04 guards. The presented pending
+      # change keeps the fold proposal's expires_at.
+      state
+      |> Map.delete("change_proposal")
+      |> then(fn s ->
+        if is_binary(proposal["expires_at"]) do
+          Map.put(s, "pending_revision", Map.put(pending, "expires_at", proposal["expires_at"]))
+        else
+          s
+        end
+      end)
     else
       state
     end
@@ -699,7 +747,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   def active_plan_for_conversation(conversation_id) when is_binary(conversation_id) do
     plans =
       from(p in SharedPlan,
-        where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
         order_by: [desc: p.updated_at, desc: p.inserted_at]
       )
       |> Repo.all()
@@ -781,7 +830,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   defp lock_plan(conversation_id) do
     plans =
       from(p in SharedPlan,
-        where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
         order_by: [desc: p.updated_at, desc: p.inserted_at],
         lock: "FOR UPDATE"
       )
@@ -1580,8 +1630,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       "time_value" => time_value,
       "time_label" => time_label,
       "title" => title,
-      "activity_matches_current" =>
-        signal_matches?(activity, current_activity(state)),
+      "activity_matches_current" => signal_matches?(activity, current_activity(state)),
       "venue_matches_current" => signal_matches?(venue, get_in(state, ["place", "value"])),
       "change" => change,
       "raw_text" => body
@@ -1636,10 +1685,18 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
           |> String.trim()
 
         cond do
-          tail == "" -> nil
-          Regex.match?(~r/\A\d/, tail) -> nil
-          Regex.match?(~r/\b(?:am|pm)\b/, tail) and not Regex.match?(~r/[a-z]{3,}/, String.replace(tail, ~r/\b(?:am|pm)\b/, "")) -> nil
-          true -> titleize_words(tail)
+          tail == "" ->
+            nil
+
+          Regex.match?(~r/\A\d/, tail) ->
+            nil
+
+          Regex.match?(~r/\b(?:am|pm)\b/, tail) and
+              not Regex.match?(~r/[a-z]{3,}/, String.replace(tail, ~r/\b(?:am|pm)\b/, "")) ->
+            nil
+
+          true ->
+            titleize_words(tail)
         end
 
       _ ->
@@ -1731,7 +1788,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       "proposed_by_user_id" => actor,
       "candidates" =>
         Enum.map(candidates, fn candidate ->
-          %{"kind" => "plan", "label" => candidate["name"], "time_label" => candidate["time_label"]}
+          %{
+            "kind" => "plan",
+            "label" => candidate["name"],
+            "time_label" => candidate["time_label"]
+          }
         end)
     }
 
@@ -1902,7 +1963,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       if is_map(proposal) and is_binary(actor) and actor != proposal["proposed_by_user_id"] do
         state
         |> apply_accepted_change(proposal, actor)
-        |> Map.delete("change_proposal")
+        |> retire_change_proposal("accepted")
         |> Map.update("plan_version", 1, &(&1 + 1))
         |> mark_fold_settlement(actor)
       else
@@ -1923,7 +1984,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     Map.put(state, "settled_change", %{
       "clock" =>
         OpalCore.SocialFlow.PlanIdentity.parse_clock(get_in(state, ["exact_time", "value"]) || ""),
-      "actor_user_id" => actor
+      "actor_user_id" => actor,
+      # When the settling event was sent (unix microseconds, stamped
+      # by the fold reduce): a settlement may only be recorded
+      # against a plan row that existed at that moment (FR-12-02).
+      "event_at" => state["__event_at"]
     })
   end
 
@@ -1975,7 +2040,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
             state
             |> apply_accepted_change(proposal, actor)
-            |> Map.delete("change_proposal")
+            |> retire_change_proposal("accepted")
             |> Map.update("plan_version", 1, &(&1 + 1))
             |> mark_fold_settlement(actor)
 
@@ -2048,10 +2113,29 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   # semantics encode that. A revision exists only against a schedule
   # a plan row already carries - sync_locked seeds the row's current
   # clock into the fold as "plan_row_clock", and a change is gated
-  # when it targets exactly that clock (the fold's current exact_time
-  # IS the row's time, restated by the forming messages) with a
-  # different one, in a multi-party thread, by an actor without
-  # delegated datetime rights. Pure folds (no row) never gate.
+  # when it targets that clock with a different one, in a multi-party
+  # thread, by an actor without delegated datetime rights. Pure folds
+  # (no row) never gate.
+  #
+  # Repair #18 (apifix): the gate used to require the fold's own
+  # exact_time to BE the row's clock (restated by the forming
+  # messages). A plan born through the API (POST /conversations/:id/
+  # plans, Center confirm, graph create) carries its time on the row
+  # only - the thread's messages never restated it, so the fold held
+  # no exact_time at all and a spoken "let's change dinner to 8 PM"
+  # fell to the formation path and silently overwrote the row before
+  # anyone confirmed (FR-12-04 / FR-13-01 / FR-11-04). The gate now
+  # also fires when the fold has not adopted any clock yet: with a
+  # row on the table, an unadopted fold has nothing to "refine" - the
+  # only time a change can move is the row's. It also fires when the
+  # fold HAS adopted a different clock: on a shared thread that clock
+  # is an EARLIER plan's settled time (the fold replays the thread's
+  # whole history), not a negotiation in progress - a change naming
+  # a different clock than the current row's is a revision of the
+  # row on the table (FR-12-02 / FR-18-02 in-suite). Formation with
+  # no row never gates (row_clock is nil), and a fold-born row is
+  # re-upserted from the fold on every sync, so its row clock tracks
+  # the fold's adoption.
   defp existing_time_change?(state, change, actor) do
     current = get_in(state, ["exact_time", "value"])
 
@@ -2065,16 +2149,45 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       not is_binary(row_clock) ->
         false
 
-      not is_binary(current) or current == "" ->
+      # Repair #18 (apifix, FR-12-05): a window-only change ("move
+      # dinner to Saturday after 10") carries no exact_time, so it
+      # slipped past this gate entirely and the direct-apply branch
+      # stamped the window - and upsert_plan then relabeled the ROW
+      # with the window's invented meridiem ("after 10 PM"), erasing
+      # the committed time. When the fold has not adopted the row's
+      # clock, a window change IS a schedule change against the row:
+      # it pends like any other revision. When the fold HAS adopted
+      # the row's clock, a window is a refinement of a live exact
+      # time and keeps the direct path.
+      is_nil(new_clock) and is_map(change["time_window"]) ->
+        adopted_row_clock? =
+          is_binary(current) and not is_nil(current_clock) and current_clock == row_clock
+
+        cond do
+          adopted_row_clock? ->
+            false
+
+          solo_thread?(state) ->
+            false
+
+          actor == DateTimeChange.holder_id(state) and
+              not DateTimeChange.confirmation_required?(state) ->
+            false
+
+          true ->
+            true
+        end
+
+      is_nil(new_clock) ->
         false
 
-      is_nil(new_clock) or is_nil(current_clock) ->
+      # Restating the row's own clock is not a revision.
+      new_clock == row_clock ->
         false
 
-      current_clock != row_clock ->
-        false
-
-      new_clock == current_clock ->
+      # The fold holds time text with no clock (e.g. "evening"): not a
+      # clock revision target (the pre-apifix behavior for this shape).
+      is_binary(current) and current != "" and is_nil(current_clock) ->
         false
 
       solo_thread?(state) ->
@@ -2264,6 +2377,26 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp retarget_time(state, text, id, actor) do
+    # Repair #18 (apifix, FR-12-05): this retarget hardcodes PM and
+    # stamps exact_time directly. In pure formation that is the fold's
+    # established semantics, but when a plan ROW's clock is seeded the
+    # stamp lands on the row (sync_locked upserts the candidate into
+    # time_label): a meridiem-less "make it 8" silently moved the plan
+    # to an invented "8:00 PM" - the defect the R13 W1-01 law forbids
+    # on every other path. With a row on the table the retarget steps
+    # aside entirely: the interpreted datetime-change path below reads
+    # the same utterance and, through the R-2a gate, turns it into a
+    # change PROPOSAL (a proposal may carry the system's reading; the
+    # row itself never moves until someone confirms).
+    if is_binary(state["plan_row_clock"]) and
+         Regex.match?(~r/\b(?:actually\s+)?make it\s+\d{1,2}\b/, text) do
+      state
+    else
+      do_retarget_time(state, text, id, actor)
+    end
+  end
+
+  defp do_retarget_time(state, text, id, actor) do
     case Regex.run(~r/\b(?:actually\s+)?make it\s+(\d{1,2})\b/, text) do
       [_, hour] ->
         label = "#{hour}:00 PM"
@@ -2350,13 +2483,13 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
        when is_binary(proposal_id) do
     previous = state["change_proposal"]
 
-    history =
+    state =
       case previous do
         %{"proposal_id" => old_id} = prior when old_id != proposal_id ->
-          (state["proposal_history"] || []) ++ [Map.put(prior, "status", "superseded")]
+          append_proposal_history(state, Map.put(prior, "status", "superseded"))
 
         _ ->
-          state["proposal_history"] || []
+          state
       end
 
     proposal = %{
@@ -2379,7 +2512,6 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
     }
 
     state
-    |> Map.put("proposal_history", history)
     |> put_change_proposal(proposal)
   end
 
@@ -2434,7 +2566,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   end
 
   defp apply_action(state, %{"kind" => "change_keep"}) do
-    Map.delete(state, "change_proposal")
+    retire_change_proposal(state, "kept")
   end
 
   defp apply_action(state, %{"kind" => "change_accept"} = action) do
@@ -2461,7 +2593,7 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
       true ->
         state
         |> apply_accepted_change(proposal, actor)
-        |> Map.delete("change_proposal")
+        |> retire_change_proposal("accepted")
         |> Map.update("plan_version", 1, &(&1 + 1))
     end
   end
@@ -2659,6 +2791,39 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
   defp apply_action(state, _action), do: state
 
+  # Repair #18 (apifix, FR-12-04): a settled proposal retires into
+  # proposal_history with its terminal status - the same record the
+  # expiry sweep and supersession paths write. Acceptance used to
+  # just delete the live slot, so the surface showed a settled
+  # proposal leaving no trace (history=[]) and "Waiting on one
+  # response" had no auditable end. Replay-stable: the fold rebuilds
+  # state from the event sequence on every sync, so each settlement
+  # appends exactly once per replay.
+  defp retire_change_proposal(state, status) do
+    case state["change_proposal"] do
+      %{} = proposal ->
+        state
+        |> append_proposal_history(Map.put(proposal, "status", status))
+        |> Map.delete("change_proposal")
+
+      _ ->
+        state
+    end
+  end
+
+  # Append a settled proposal to proposal_history unless the exact
+  # entry is already recorded (history is seeded from the plan row on
+  # every sync, so a settlement that replays must not duplicate).
+  defp append_proposal_history(state, entry) do
+    history = state["proposal_history"] || []
+
+    if entry in history do
+      state
+    else
+      Map.put(state, "proposal_history", history ++ [entry])
+    end
+  end
+
   defp settle_proposal_for_accepted_change(state, accepted_value) do
     proposal = state["change_proposal"]
     accepted_clock = OpalCore.SocialFlow.PlanIdentity.parse_clock(accepted_value || "")
@@ -2672,8 +2837,11 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
       true ->
         case proposal_clock(proposal) do
-          nil -> Map.delete(state, "change_proposal")
-          clock when clock == accepted_clock -> Map.delete(state, "change_proposal")
+          # Retire into proposal_history (FR-12-04): this proposal was
+          # accepted - the history record is how the surface proves
+          # the settlement happened.
+          nil -> retire_change_proposal(state, "accepted")
+          clock when clock == accepted_clock -> retire_change_proposal(state, "accepted")
           _ -> state
         end
     end
@@ -3103,13 +3271,8 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
         case DateTime.from_iso8601(expires_at) do
           {:ok, expiry, _} ->
             if DateTime.compare(expiry, DateTime.utc_now()) == :lt do
-              history = state["proposal_history"] || []
-
               state
-              |> Map.put(
-                "proposal_history",
-                history ++ [Map.put(proposal, "status", "expired")]
-              )
+              |> append_proposal_history(Map.put(proposal, "status", "expired"))
               |> Map.delete("change_proposal")
             else
               state
@@ -3586,7 +3749,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
                     a
                     |> then(fn a2 ->
-                      if link, do: Map.put(a2, "meeting_link", link), else: Map.delete(a2, "meeting_link")
+                      if link,
+                        do: Map.put(a2, "meeting_link", link),
+                        else: Map.delete(a2, "meeting_link")
                     end)
                     |> then(fn a2 ->
                       if plan.meeting_provider,

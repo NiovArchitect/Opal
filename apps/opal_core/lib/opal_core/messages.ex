@@ -14,6 +14,7 @@ defmodule OpalCore.Messages do
   alias OpalCore.SocialFlow.{
     ConversationAlignment,
     HomeProjection,
+    NextPlan,
     SeedFixtureLeak,
     SharedPlan,
     SmokeResidue,
@@ -259,8 +260,27 @@ defmodule OpalCore.Messages do
         "title" => conversation_title(peers, conversation),
         "peers" =>
           Enum.map(peers, fn p ->
-            %{"id" => p.id, "display_name" => p.display_name, "handle" => p.handle}
+            %{
+              "id" => p.id,
+              "display_name" => p.display_name,
+              "handle" => p.handle,
+              # DIR-1: the peer's stable entity tint (L9) - the person
+              # element's color on every plan-awareness rendering.
+              "entity_tint" => NextPlan.entity_tint(p.id)
+            }
           end),
+        # DIR-1: the conversation entity's own tint - the sole peer's
+        # tint for a dyad; a stable conversation tint for a group.
+        "entity_tint" =>
+          if(member_count == 2 and length(peers) == 1,
+            do: NextPlan.entity_tint(hd(peers).id),
+            else: NextPlan.entity_tint(conversation.id)
+          ),
+        # DIR-1: the ONE shared upcoming plan fact for this
+        # conversation (NextPlan.for_conversation/2), or nil - never
+        # an empty painted pill. The front end renders it; it never
+        # re-derives shared/upcoming/next itself.
+        "next_plan" => NextPlan.for_conversation(user_id, cid),
         "member_count" => member_count,
         "composition" => if(member_count >= 3, do: "group", else: "dyad"),
         "preview" => (preview_msg && preview_msg.body) || "",
@@ -290,7 +310,8 @@ defmodule OpalCore.Messages do
   defp current_plan(conversation_id) do
     plans =
       from(p in SharedPlan,
-        where: p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
+        where:
+          p.conversation_id == ^conversation_id and p.status in ^~w(tentative agreed changed),
         order_by: [desc: p.updated_at, desc: p.inserted_at]
       )
       |> Repo.all()
@@ -633,20 +654,33 @@ defmodule OpalCore.Messages do
   end
 
   @doc "Member user ids for a conversation (membership-oracle only)."
+  # Repair #18 fix wave (RF-1) — a conversation-less record (a
+  # Center-born plan) has no member context at all: that is an empty
+  # member list, a legal state, never a FunctionClauseError for the
+  # callers that read membership off a plan row.
+  def member_user_ids(nil), do: []
+
   def member_user_ids(conversation_id) when is_binary(conversation_id) do
-    from(cm in ConversationMember,
-      where: cm.conversation_id == ^conversation_id,
-      select: cm.user_id
-    )
-    |> Repo.all()
+    # FR-11-08: a junk conversation id has no members - the query
+    # below would raise a CastError against :binary_id instead.
+    if OpalCore.IdShape.uuid?(conversation_id) do
+      from(cm in ConversationMember,
+        where: cm.conversation_id == ^conversation_id,
+        select: cm.user_id
+      )
+      |> Repo.all()
+    else
+      []
+    end
   end
 
   defp ensure_member(conversation_id, user_id) do
     exists? =
-      from(cm in ConversationMember,
-        where: cm.conversation_id == ^conversation_id and cm.user_id == ^user_id
-      )
-      |> Repo.exists?()
+      OpalCore.IdShape.uuid?(conversation_id) and
+        from(cm in ConversationMember,
+          where: cm.conversation_id == ^conversation_id and cm.user_id == ^user_id
+        )
+        |> Repo.exists?()
 
     if exists?, do: :ok, else: {:error, :not_a_member}
   end

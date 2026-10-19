@@ -22,6 +22,7 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
     FounderCommunicationSeed,
     JourneyAuthority,
     PlanParticipant,
+    PlanTransition,
     SharedPlan
   }
 
@@ -216,9 +217,11 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
          )
          |> Repo.one() do
       %SharedPlan{} = plan ->
+        plan = restore_terminal_plan_for_seed(plan)
+
         plan
         |> SharedPlan.changeset(%{
-          status: if(plan.status in ~w(cancelled completed), do: "agreed", else: plan.status),
+          status: plan.status,
           location: @location,
           time_label: @time_label,
           start_at: plan.start_at || friday_lock_in_start()
@@ -243,6 +246,34 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
         plan
     end
   end
+
+  # Repair #18 FALSE-fix F-10: a terminal seed plan is restored ONLY
+  # through the PlanTransition gate's explicit, seed-only :seed_restore
+  # exception, and the restore is logged with plan id + prior status.
+  # The old code silently rewrote cancelled/completed back to "agreed"
+  # inline — exactly the move the gyroscope exists to forbid. If the
+  # gate ever refuses, the seed fails loudly instead of resurrecting.
+  defp restore_terminal_plan_for_seed(%SharedPlan{status: status} = plan)
+       when status in ~w(cancelled completed) do
+    require Logger
+
+    case PlanTransition.transition(:plan, status, :seed_restore) do
+      {:ok, restored} ->
+        Logger.warning(
+          "founder_seed.seed_restore plan_id=#{plan.id} from_status=#{status} to_status=#{restored} (explicit PlanTransition seed exception, F-10)"
+        )
+
+        # Write from the DB-state struct so the changeset sees the change.
+        plan
+        |> SharedPlan.changeset(%{status: restored})
+        |> Repo.update!()
+
+      {:error, :illegal_transition} ->
+        raise "founder seed: PlanTransition refused :seed_restore from #{inspect(status)} for plan #{plan.id}"
+    end
+  end
+
+  defp restore_terminal_plan_for_seed(%SharedPlan{} = plan), do: plan
 
   defp friday_lock_in_start do
     DateTime.utc_now()

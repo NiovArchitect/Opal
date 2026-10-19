@@ -290,16 +290,60 @@ defmodule OpalCore.SocialFlow.LiveExperience do
   def propose_late_notice(attrs) do
     experience_id = fetch!(attrs, :experience_id)
     user_id = fetch!(attrs, :user_id)
-    delay_minutes = Map.get(attrs, :delay_minutes) || 20
-    arrival_label = Map.get(attrs, :arrival_label) || "around 8:20"
+    delay_minutes = Map.get(attrs, :delay_minutes)
+    # HA-02 (Repair #18 hunt-fix): no invented arrival label. A missing
+    # label used to default to the hardcoded "around 8:20" and, when
+    # shared, was persisted + broadcast with source "explicit" as if
+    # the user had stated it. Sharing now REQUIRES the user's own
+    # label; an unshared prompt never names a time nobody supplied.
+    arrival_label =
+      case Map.get(attrs, :arrival_label) do
+        label when is_binary(label) -> if String.trim(label) == "", do: nil, else: label
+        _ -> nil
+      end
+
     share = Map.get(attrs, :share, false)
     idem = Map.get(attrs, :idempotency_key) || "late-#{experience_id}-#{user_id}"
     trace_id = Map.get(attrs, :trace_id) || @trace
 
+    if share and is_nil(arrival_label) do
+      {:error, :arrival_label_required}
+    else
+      propose_late_notice_checked(
+        experience_id,
+        user_id,
+        delay_minutes,
+        arrival_label,
+        share,
+        idem,
+        trace_id
+      )
+    end
+  end
+
+  defp propose_late_notice_checked(
+         experience_id,
+         user_id,
+         delay_minutes,
+         arrival_label,
+         share,
+         idem,
+         trace_id
+       ) do
     with %SocialExperience{} = exp <- Repo.get(SocialExperience, experience_id),
          :ok <- ensure_member(exp.conversation_id, user_id),
          true <- user_id in (exp.participant_ids || []) do
-      private_prompt = "Share that you may arrive #{arrival_label}?"
+      private_prompt =
+        cond do
+          is_binary(arrival_label) ->
+            "Share that you may arrive #{arrival_label}?"
+
+          is_number(delay_minutes) ->
+            "Share that you may arrive about #{delay_minutes} minutes late?"
+
+          true ->
+            "Share that you are running late?"
+        end
 
       if share do
         now = DateTime.utc_now() |> DateTime.truncate(:microsecond)

@@ -19,8 +19,8 @@ import {
 } from "./mexicoCityCanvasSeed";
 import {
   curateTripExperience,
+  getTrip,
   getTripConvoy,
-  seedMexicoCityCanvas,
   setTripActivityResponse,
   tripConvoyOptIn,
   tripConvoyOptOut,
@@ -28,10 +28,18 @@ import {
   type Trip,
   type TripConvoyRoster,
 } from "../api/productClient";
+import { isFounderSeedEnabled } from "./founderGraphSeed";
 
 type Props = {
   bearer?: string | null;
-  /** Live trip id when available; otherwise founder seed canvas. */
+  /**
+   * The REAL trip id from the surface that opened the canvas. A seed-*
+   * id renders the Mexico City sample ONLY in badged founder seed
+   * mode, labeled on screen as sample data; anywhere else the canvas
+   * is honestly absent (Repair #18 hunt-fix B-09 — the previous
+   * mounts hardcoded the seed id, so F-12's real-trip load could
+   * never run from the product).
+   */
   tripId?: string | null;
   selfUserId?: string | null;
   onClose: () => void;
@@ -162,7 +170,11 @@ export function TripCanvasView({
   onOpenMemories,
 }: Props) {
   const seed = useMemo(() => buildMexicoCityCanvasSeed(), []);
-  const [trip, setTrip] = useState<CanvasTrip>(seed);
+  const isSeedId = !tripId || String(tripId).startsWith("seed-");
+  const seedAllowed = isSeedId && isFounderSeedEnabled();
+  const [trip, setTrip] = useState<CanvasTrip | null>(() =>
+    seedAllowed ? seed : null,
+  );
   const [dayIndex, setDayIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -184,25 +196,42 @@ export function TripCanvasView({
     setLoading(true);
     setError(null);
     try {
-      if (bearer && tripId && !String(tripId).startsWith("seed-")) {
-        const seeded = await seedMexicoCityCanvas(tripId, bearer).catch(() => null);
-        const live = seeded?.trip;
-        if (live?.days?.length) {
-          const mapped = mapApiTripToCanvas(live, selfUserId);
-          mapped.opal_noticed = seed.opal_noticed;
-          setTrip(mapped);
-          setLoading(false);
+      if (!isSeedId && tripId) {
+        // Repair #18 FALSE-fix F-12: the canvas loads the REAL trip.
+        // Hunt-fix B-09: a failed real load is an error state — it
+        // never falls back to the Mexico City fixture.
+        if (!bearer) {
+          setTrip(null);
+          setError("Sign in to see this trip.");
           return;
         }
+        const fetched = await getTrip(tripId, bearer).catch(() => null);
+        const live = fetched?.trip;
+        if (live?.days?.length) {
+          const mapped = mapApiTripToCanvas(live, selfUserId);
+          mapped.opal_noticed = [];
+          setTrip(mapped);
+          return;
+        }
+        setTrip(null);
+        setError(
+          "Couldn't load this trip. It may have been removed, or you're offline — try again.",
+        );
+        return;
       }
-      setTrip(seed);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't load trip canvas.");
-      setTrip(seed);
+      if (seedAllowed) {
+        setTrip(seed);
+        return;
+      }
+      // No real trip id and seed mode is off: honestly absent.
+      setTrip(null);
+    } catch {
+      setTrip(null);
+      setError("Couldn't load this trip. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
-  }, [bearer, tripId, seed, selfUserId]);
+  }, [bearer, tripId, seed, selfUserId, isSeedId, seedAllowed]);
 
   useEffect(() => {
     void load();
@@ -214,10 +243,11 @@ export function TripCanvasView({
     return () => window.clearTimeout(t);
   }, [gateNote]);
 
-  const day = trip.days[dayIndex] || trip.days[0];
-  const dateRange = formatTripDateRange(trip.starts_on, trip.ends_on);
+  const day = trip ? trip.days[dayIndex] || trip.days[0] : undefined;
+  const dateRange = trip ? formatTripDateRange(trip.starts_on, trip.ends_on) : "";
 
   const setDay = (idx: number) => {
+    if (!trip) return;
     const next = Math.max(0, Math.min(trip.days.length - 1, idx));
     setDayIndex(next);
     const rail = dayRailRef.current;
@@ -226,23 +256,27 @@ export function TripCanvasView({
   };
 
   const patchActivity = (activityId: string, state: CanvasRsvpState) => {
-    setTrip((prev) => ({
-      ...prev,
-      days: prev.days.map((d) => ({
-        ...d,
-        time_blocks: d.time_blocks.map((b) => ({
-          ...b,
-          activities: b.activities.map((a) => {
-            if (a.id !== activityId) return a;
-            const others = a.responses.filter((r) => r.user_id !== selfId);
-            return {
-              ...a,
-              responses: [...others, { user_id: selfId, state }],
-            };
-          }),
-        })),
-      })),
-    }));
+    setTrip((prev) =>
+      prev == null
+        ? prev
+        : {
+            ...prev,
+            days: prev.days.map((d) => ({
+              ...d,
+              time_blocks: d.time_blocks.map((b) => ({
+                ...b,
+                activities: b.activities.map((a) => {
+                  if (a.id !== activityId) return a;
+                  const others = a.responses.filter((r) => r.user_id !== selfId);
+                  return {
+                    ...a,
+                    responses: [...others, { user_id: selfId, state }],
+                  };
+                }),
+              })),
+            })),
+          },
+    );
   };
 
   const onRsvp = async (activity: CanvasActivity, state: CanvasRsvpState) => {
@@ -325,7 +359,7 @@ export function TripCanvasView({
           user_id: selfId,
           sharing: true,
           // F12-12: never hardcode a place label — use the trip destination or nothing.
-          place_label: trip.destination_label || trip.title || "Destination",
+          place_label: trip?.destination_label || trip?.title || "Destination",
           has_coords: false,
           eta_note: "You · sharing",
         },
@@ -396,8 +430,55 @@ export function TripCanvasView({
     else setDay(dayIndex - 1);
   };
 
+  if (!trip) {
+    return (
+      <div className="trip-canvas" data-testid="trip-canvas" data-screen="trip-canvas">
+        <header className="trip-canvas-header">
+          <button
+            type="button"
+            className="trip-canvas-back"
+            data-testid="trip-canvas-close"
+            aria-label="Close trip canvas"
+            onClick={onClose}
+          >
+            ‹
+          </button>
+          <div className="trip-canvas-header-main">
+            <p className="trip-canvas-kicker">TRIP</p>
+            <h1 className="trip-canvas-title" data-testid="trip-canvas-title">
+              Trip
+            </h1>
+          </div>
+        </header>
+        {loading ? (
+          <p className="gsh-gate-note" role="status" data-testid="trip-canvas-loading">
+            Loading your trip — one moment.
+          </p>
+        ) : error ? (
+          <div data-testid="trip-canvas-error">
+            <p className="gsh-gate-note" role="alert">
+              {error}
+            </p>
+            <button type="button" className="btn primary" data-testid="trip-canvas-retry" onClick={() => void load()}>
+              Try again
+            </button>
+          </div>
+        ) : (
+          <p className="gsh-gate-note" role="status" data-testid="trip-canvas-absent">
+            No trip to show here yet. Open a trip from your Graphs and its canvas will show up here.
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="trip-canvas" data-testid="trip-canvas" data-screen="trip-canvas">
+      {seedAllowed ? (
+        <p className="gsh-gate-note" role="status" data-testid="trip-canvas-sample-badge">
+          Sample trip — demo data, not one of your trips.
+        </p>
+      ) : null}
       <header className="trip-canvas-header">
         <button
           type="button"

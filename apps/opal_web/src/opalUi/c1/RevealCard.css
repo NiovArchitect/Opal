@@ -1,0 +1,63 @@
+/* DIR-4 reveal forms. Colors come only from tokens: the orb
+ * indicator tokens (via FireFrame) and --reveal-state, which the
+ * component sets from PLAN_STATE_HEX (the single source). */
+.reveal-card {
+  display: block;
+  margin: 0 0 8px;
+}
+.reveal-card--p3 .orb-fire-frame::before {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--orb-indicator-forming) 0 8px,
+    transparent 8px 14px
+  );
+}
+.reveal-card--p6,
+.reveal-card--plain {
+  border-top: 1px solid var(--line-2);
+  padding: 8px 4px;
+}
+.reveal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reveal-glyph {
+  color: var(--reveal-state, inherit);
+}
+.reveal-kicker {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.reveal-entity {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.reveal-state {
+  color: var(--reveal-state);
+  font-size: 11px;
+}
+.reveal-title {
+  display: block;
+  font-weight: 650;
+  margin-top: 4px;
+}
+.reveal-substance {
+  display: block;
+  margin-top: 2px;
+}
+.reveal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.reveal-list-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-left: 2px solid var(--reveal-state, var(--line-2));
+  padding-left: 8px;
+}

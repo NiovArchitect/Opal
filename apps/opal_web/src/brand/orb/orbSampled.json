@@ -1,0 +1,238 @@
+{
+  "generatedBy": "apps/opal_web/scripts/orb/sample_masters.py",
+  "masters": {
+    "orb": "shots/repair18/design-masters/opal-orb-master.webp",
+    "wordmark": "shots/repair18/design-masters/opal-wordmark-master.webp"
+  },
+  "field": {
+    "orb": "#000000",
+    "wordmark": "#18141c"
+  },
+  "orbGeometry": {
+    "canvas": [
+      1600,
+      1600
+    ],
+    "sphereCenter": [
+      810,
+      800
+    ],
+    "sphereRadius": 410,
+    "ringRadius": 568,
+    "horizontalRingCenterY": 846
+  },
+  "fire": {
+    "redOrange": {
+      "hex": "#815049",
+      "coreHex": "#cd9185",
+      "peakHex": "#d0856e",
+      "shadeHex": "#56342e",
+      "pixels": 30636,
+      "shareOfFire": 0.1092,
+      "medianHueDeg": 13.7
+    },
+    "gold": {
+      "hex": "#ebb27f",
+      "coreHex": "#fedc9a",
+      "peakHex": "#f1aa62",
+      "shadeHex": "#c0835a",
+      "pixels": 46672,
+      "shareOfFire": 0.1664,
+      "medianHueDeg": 28.5
+    },
+    "cyan": {
+      "hex": "#5487a4",
+      "coreHex": "#6bacc9",
+      "peakHex": "#60b9d8",
+      "shadeHex": "#427091",
+      "pixels": 33010,
+      "shareOfFire": 0.1177,
+      "medianHueDeg": 203.2
+    },
+    "blue": {
+      "hex": "#464a82",
+      "coreHex": "#6e74b7",
+      "peakHex": "#6257c7",
+      "shadeHex": "#2d2b5a",
+      "pixels": 53062,
+      "shareOfFire": 0.1891,
+      "medianHueDeg": 238.4
+    },
+    "violet": {
+      "hex": "#5d398a",
+      "coreHex": "#885cbb",
+      "peakHex": "#7d4dce",
+      "shadeHex": "#472a67",
+      "pixels": 94284,
+      "shareOfFire": 0.3361,
+      "medianHueDeg": 267.2
+    },
+    "magenta": {
+      "hex": "#80496f",
+      "coreHex": "#c179ab",
+      "peakHex": "#d972c2",
+      "shadeHex": "#5d3452",
+      "pixels": 22875,
+      "shareOfFire": 0.0815,
+      "medianHueDeg": 316.7
+    }
+  },
+  "ringMetal": {
+    "median": "#dbae8e",
+    "p90": "#ffeac9",
+    "pixels": 24172
+  },
+  "pointsOfLight": {
+    "median": "#fff1d0",
+    "pixels": 2847
+  },
+  "wordmark": {
+    "canvas": [
+      1920,
+      1280
+    ],
+    "letters": [
+      {
+        "x0": 195,
+        "x1": 569,
+        "y0": 465,
+        "y1": 837
+      },
+      {
+        "x0": 704,
+        "x1": 958,
+        "y0": 466,
+        "y1": 835
+      },
+      {
+        "x0": 1024,
+        "x1": 1364,
+        "y0": 466,
+        "y1": 835
+      },
+      {
+        "x0": 1486,
+        "x1": 1724,
+        "y0": 466,
+        "y1": 835
+      }
+    ],
+    "gradientSlices": [
+      "#9168cb",
+      "#9ba8da",
+      "#897be7",
+      "#7387da",
+      "#6294ce",
+      "#c2a4a9",
+      "#c3c3b7",
+      "#dcad82"
+    ],
+    "gemO": {
+      "center": [
+        382.0,
+        651.0
+      ],
+      "outerRadius": 187.0,
+      "innerRadius": 144.0,
+      "stroke": 43.0,
+      "facets": [
+        {
+          "deg": 0,
+          "hex": "#e6d5b4"
+        },
+        {
+          "deg": 15,
+          "hex": "#d4d1c7"
+        },
+        {
+          "deg": 30,
+          "hex": "#9ba8c8"
+        },
+        {
+          "deg": 45,
+          "hex": "#6aaee9"
+        },
+        {
+          "deg": 60,
+          "hex": "#808bd7"
+        },
+        {
+          "deg": 75,
+          "hex": "#8c86d5"
+        },
+        {
+          "deg": 90,
+          "hex": "#6d5ec1"
+        },
+        {
+          "deg": 105,
+          "hex": "#cbbdf1"
+        },
+        {
+          "deg": 120,
+          "hex": "#9d85da"
+        },
+        {
+          "deg": 135,
+          "hex": "#754db8"
+        },
+        {
+          "deg": 150,
+          "hex": "#a67ad9"
+        },
+        {
+          "deg": 165,
+          "hex": "#8852c1"
+        },
+        {
+          "deg": 180,
+          "hex": "#b27ce9"
+        },
+        {
+          "deg": 195,
+          "hex": "#ab78dd"
+        },
+        {
+          "deg": 210,
+          "hex": "#a981dd"
+        },
+        {
+          "deg": 225,
+          "hex": "#d7c3f7"
+        },
+        {
+          "deg": 240,
+          "hex": "#8264c3"
+        },
+        {
+          "deg": 255,
+          "hex": "#7a6bc7"
+        },
+        {
+          "deg": 270,
+          "hex": "#b1abe8"
+        },
+        {
+          "deg": 285,
+          "hex": "#c4c6f4"
+        },
+        {
+          "deg": 300,
+          "hex": "#8895e1"
+        },
+        {
+          "deg": 315,
+          "hex": "#a9dff6"
+        },
+        {
+          "deg": 330,
+          "hex": "#f2e6fa"
+        },
+        {
+          "deg": 345,
+          "hex": "#d9cdc7"
+        }
+      ]
+    }
+  }
+}

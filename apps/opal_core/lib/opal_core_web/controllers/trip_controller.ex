@@ -222,8 +222,24 @@ defmodule OpalCoreWeb.TripController do
     end
   end
 
-  @doc "Seed Mexico City 4-day canvas with real venues + free blocks + RSVPs."
+  @doc """
+  Seed Mexico City 4-day canvas with real venues + free blocks + RSVPs.
+
+  Repair #18 FALSE-fix F-12: this is a fixture seed, not a product
+  action. It sits behind the same founder-seed gate as the other dev
+  seed endpoints (`:allow_founder_communication_seed`, dev/test config
+  only); with the flag off it answers 403 `founder_seed_disabled` and
+  paints nothing. The shipping web client no longer calls it.
+  """
   def seed_mexico_city_canvas(conn, %{"id" => id}) do
+    if Application.get_env(:opal_core, :allow_founder_communication_seed, false) != true do
+      conn |> put_status(403) |> json(%{"error_code" => "founder_seed_disabled"})
+    else
+      do_seed_mexico_city_canvas(conn, id)
+    end
+  end
+
+  defp do_seed_mexico_city_canvas(conn, id) do
     user_id = conn.assigns.current_user_id
 
     with {:ok, trip} <- Trips.get_trip_for_user(id, user_id) do

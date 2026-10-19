@@ -79,6 +79,68 @@ defmodule OpalCoreWeb.ProductInviteController do
   end
 
   @doc """
+  Spec 4.C4 - your personal invite code: created on first ask, then
+  stable. The payload promises the connection only - no reward.
+  """
+  def personal_code(conn, _params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalCore.Invites.PersonalCodes.get_or_create_code(user_id) do
+      {:ok, row} ->
+        json(conn, %{
+          "personal_code" => OpalCore.Invites.PersonalCodes.to_contract(row, user_id),
+          "joined_through" => OpalCore.Invites.PersonalCodes.joined_through(user_id),
+          "joined_through_you" => OpalCore.Invites.PersonalCodes.joined_through_you(user_id)
+        })
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "code_unavailable"})
+    end
+  end
+
+  @doc """
+  Spec 4.C4 - redeem a personal code (onboarding or Settings; the
+  same endpoint serves both). Redemption is a real linking record;
+  both sides can read the credit back from GET personal-code.
+  """
+  def redeem_personal(conn, params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalCore.Invites.PersonalCodes.redeem(user_id, params["code"] || "") do
+      {:ok, credit} ->
+        conn
+        |> put_status(201)
+        |> json(%{"redeemed" => true, "credit" => credit})
+
+      {:error, :cannot_redeem_own} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "cannot_redeem_own", "message" => "That is your own code."})
+
+      {:error, :already_redeemed} ->
+        conn
+        |> put_status(409)
+        |> json(%{
+          "error_code" => "already_redeemed",
+          "message" => "You already joined through that code."
+        })
+
+      {:error, :rate_limited} ->
+        conn
+        |> put_status(429)
+        |> json(%{
+          "error_code" => "rate_limited",
+          "message" => "Too many codes tried today - try again tomorrow."
+        })
+
+      {:error, _} ->
+        conn
+        |> put_status(404)
+        |> json(%{"error_code" => "not_found", "message" => "That code is not a personal invite code."})
+    end
+  end
+
+  @doc """
   Authenticated join: mark product invite joined + friend both ways.
   Used when an already-signed-in user opens `?invite=CODE`.
   """

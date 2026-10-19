@@ -14,7 +14,7 @@
  * data exists. It never reads or mimics the user projections.
  */
 import React, { useRef } from "react";
-import { C2Mark } from "../c2/LoopCharacter";
+import { OrbMark } from "../brand/orb/OrbMark";
 import { C2PatternLines } from "../c2/C2PatternLines";
 import { PlanCardC2 } from "../c2/PlanCardC2";
 
@@ -63,7 +63,7 @@ export function C2Splash2({ onEnter, onAlreadyAccount }: Props) {
         </div>
         <div className="c2-convergence" aria-hidden>
           <span className="c2-happening-ring">
-            <C2Mark size={28} />
+            <OrbMark size={28} />
           </span>
         </div>
         <div className="c2-splash-card-wrap" data-illustration="1" data-testid="c2-splash2-illustration-card">

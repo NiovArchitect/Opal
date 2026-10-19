@@ -22,7 +22,15 @@
 import { allStrings } from "../lib/harness.mjs";
 
 async function ownThread(ctx, label) {
-  const g = await ctx.h.createGroup(ctx.A, [ctx.sessions.b.userId], label);
+  // Isolation repair (Repair #18 apifix): a two-member "group" is
+  // refused (group_too_small) and the old code silently fell back to
+  // the SHARED A-B direct thread, whose fold replays every earlier
+  // case's traffic. A third pool member makes the group real, as in
+  // the sibling Center cases.
+  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const memberIds = [ctx.sessions.b.userId];
+  if (third?.session?.userId) memberIds.push(third.session.userId);
+  const g = await ctx.h.createGroup(ctx.A, memberIds, label);
   if (g.conversationId) return g.conversationId;
   const d = await ctx.h.ensureDirect(ctx.A, ctx.sessions.b.userId);
   return d.conversationId;
@@ -76,9 +84,14 @@ export default {
         movedOrProposed || asked,
         "\"move dinner to Saturday\" must resolve the plan (proposal/applied/clarifying question) - a dead end is the defect",
       );
+      // Scoping repair (Repair #18 apifix): the duplicate check used
+      // to count every plan in the account listing whose title
+      // carries the run tag - that measures the whole suite's
+      // history, not the move. The contract is about the move's own
+      // thread: it must not mint a second plan there.
       assert.eq(
         "GET /opal/plans (move creates no duplicate)",
-        plansMid.plans.filter((p) => p.id !== planId && (p.title || "").includes(ctx.tag)).length,
+        plansMid.plans.filter((p) => p.id !== planId && p.conversation_id === convId).length,
         0,
         "a move utterance must never mint a second plan",
       );

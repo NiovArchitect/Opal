@@ -36,7 +36,12 @@ defmodule OpalCoreWeb.ConversationController do
         |> ConversationAlignment.dedupe_pending_presentation()
         |> put_place_projection(conversation_id)
 
-      json(conn, %{"alignment" => alignment})
+      json(conn, %{
+        "alignment" => alignment,
+        # DIR-1: the thread contract carries the same shared upcoming
+        # plan fact as the chats list and the call log (one fact).
+        "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id)
+      })
     else
       conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
     end
@@ -310,7 +315,10 @@ defmodule OpalCoreWeb.ConversationController do
           "messages" => messages,
           "signals" => signals,
           "chronology" => chronology,
-          "durable_chronology" => true
+          "durable_chronology" => true,
+          # DIR-1: the thread's Next Together fact - the same shared
+          # upcoming plan fact as the chats list and the call log.
+          "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id)
         })
 
       {:error, :not_a_member} ->
@@ -591,6 +599,80 @@ defmodule OpalCoreWeb.ConversationController do
 
       {:error, reason} ->
         error(conn, 422, "voice_ingest_failed", inspect(reason))
+    end
+  end
+
+  @doc """
+  ST-H - voice note: audio is stored (AudioStore) and sends as audio
+  whether or not transcription is configured. Body JSON:
+  { audio_base64, content_type?, duration_ms?, client_message_id? }
+  """
+  def create_voice_note(conn, %{"id" => conversation_id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with true <- user_id in Messages.member_user_ids(conversation_id),
+         {:ok, audio} <- decode_audio(params),
+         {:ok, result} <-
+           OpalCore.VoiceNotes.send_note(conversation_id, user_id, audio,
+             content_type: params["content_type"] || "audio/webm",
+             duration_ms: params["duration_ms"],
+             client_message_id: params["client_message_id"]
+           ) do
+      contract = Message.to_contract(result.message)
+
+      if result.origin == :created do
+        OpalCoreWeb.Endpoint.broadcast(
+          "conversation:#{conversation_id}",
+          "message:new",
+          %{"schema_version" => "0.1.0", "message" => contract, "trace_id" => "trace-voice-note"}
+        )
+
+        Inbox.fanout_message(result.message)
+      end
+
+      conn
+      |> put_status(201)
+      |> json(%{
+        "message" => contract,
+        "transcript" => result.transcript,
+        "transcription_state" => result.transcription_state,
+        "origin" => to_string(result.origin)
+      })
+    else
+      false ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :invalid_audio} ->
+        error(conn, 400, "invalid_audio", "Audio payload missing or invalid")
+
+      {:error, reason} ->
+        error(conn, 422, "voice_note_failed", inspect(reason))
+    end
+  end
+
+  @doc "ST-H - sender-only transcript correction for a voice note."
+  def correct_voice_note_transcript(
+        conn,
+        %{"id" => conversation_id, "message_id" => message_id} = params
+      ) do
+    user_id = conn.assigns.current_user_id
+    text = params["transcript"] || params["body"] || ""
+
+    with true <- user_id in Messages.member_user_ids(conversation_id),
+         {:ok, message} <- OpalCore.VoiceNotes.correct_transcript(message_id, user_id, text) do
+      json(conn, %{"message" => Message.to_contract(message), "transcript" => message.body})
+    else
+      false ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :forbidden} ->
+        error(conn, 403, "forbidden", "Only the sender can correct this transcript")
+
+      {:error, :not_found} ->
+        error(conn, 404, "not_found", "Voice note not found")
+
+      {:error, reason} ->
+        error(conn, 422, "correction_failed", inspect(reason))
     end
   end
 

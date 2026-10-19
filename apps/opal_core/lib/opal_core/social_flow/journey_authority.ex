@@ -54,6 +54,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
       _ = ensure_lead(plan, user_id)
       _ = ensure_participant(plan, user_id, "accepted", role_for(plan, user_id))
+      _ = enroll_conversation_members(plan, user_id)
 
       # Phase 5A — only on transition INTO agreed (new plan), after participants exist
       if origin == :created do
@@ -71,7 +72,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   @doc "Load Journey projection if plan is journey-eligible."
   def get(plan_id, user_id) when is_binary(plan_id) and is_binary(user_id) do
-    case Repo.get(SharedPlan, plan_id) do
+    case fetch_plan(plan_id) do
       %SharedPlan{} = plan ->
         with :ok <- ensure_plan_access(plan, user_id),
              true <- journey_eligible?(plan) do
@@ -88,6 +89,14 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   def get(_, _), do: {:error, :invalid}
 
+  # Repair #18 (apifix, FR-11-08): a junk plan id ("nil", "not-a-uuid")
+  # is a guessed id - every entry point in this authority reads
+  # through this fetch so the answer is :not_found, never an
+  # Ecto.Query.CastError raised out of Repo.get/2 against :binary_id.
+  defp fetch_plan(plan_id) do
+    if OpalCore.IdShape.uuid?(plan_id), do: Repo.get(SharedPlan, plan_id), else: nil
+  end
+
   def journey_eligible?(%SharedPlan{status: status, location: loc, time_label: tl} = plan) do
     status in ~w(agreed changed) and
       ((is_binary(loc) and loc != "") or (is_binary(tl) and tl != "") or not is_nil(plan.start_at))
@@ -100,7 +109,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       when is_binary(plan_id) and is_binary(user_id) do
     note = Map.get(stringify(opts), "note")
 
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          :ok <- ensure_plan_access(plan, user_id),
          %PlanParticipant{} = pp <- get_participant(plan.id, user_id) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -156,6 +165,18 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   - Always bumps `current_revision_id` via PlanRevision on material changes.
   """
   def material_change(plan_id, user_id, changes) when is_map(changes) do
+    # FR-11-08: the FOR UPDATE query below casts plan_id against
+    # :binary_id - a junk id must answer :not_found, never raise.
+    if not OpalCore.IdShape.uuid?(plan_id) do
+      {:error, :not_found}
+    else
+      do_material_change(plan_id, user_id, changes)
+    end
+  end
+
+  def material_change(_, _, _), do: {:error, :invalid}
+
+  defp do_material_change(plan_id, user_id, changes) do
     c = stringify(changes)
 
     case Repo.transaction(fn ->
@@ -312,10 +333,8 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
     end
   end
 
-  def material_change(_, _, _), do: {:error, :invalid}
-
   defp invalidate_derived_for_plan(plan_id) when is_binary(plan_id) do
-    case Repo.get(SharedPlan, plan_id) do
+    case fetch_plan(plan_id) do
       %SharedPlan{conversation_id: cid} when is_binary(cid) and cid != "" ->
         member_ids =
           from(cm in ConversationMember,
@@ -342,7 +361,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
          "revision_id" => revision_id
        })
        when is_binary(plan_id) and is_binary(revision_id) do
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          %PlanRevision{} = revision <- Repo.get(PlanRevision, revision_id) do
       _ = PlanRecentChanges.record_fields_changed(plan, revision)
     end
@@ -375,7 +394,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   @doc "Non-lead attempting material change must be denied."
   def participant_change_denied?(plan_id, user_id) do
-    case Repo.get(SharedPlan, plan_id) do
+    case fetch_plan(plan_id) do
       %SharedPlan{} = plan ->
         case require_lead(plan, user_id) do
           :ok -> false
@@ -389,7 +408,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   @doc "Add people to Journey (plan participants) — not chat membership."
   def add_people(plan_id, actor_user_id, peer_user_ids) when is_list(peer_user_ids) do
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          :ok <- ensure_plan_access(plan, actor_user_id),
          :ok <- require_lead(plan, actor_user_id) do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -453,7 +472,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   Journey navigation. Does not call activate/1.
   """
   def accept_going(plan_id, user_id) when is_binary(plan_id) and is_binary(user_id) do
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          :ok <- ensure_plan_access(plan, user_id),
          %PlanParticipant{} = pp <- get_participant(plan.id, user_id),
          :ok <- going_accept_allowed?(pp) do
@@ -680,7 +699,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   accepting a stale invitation after withdrawal without a fresh proposal.
   """
   def reconfirm(plan_id, user_id) do
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          :ok <- ensure_plan_access(plan, user_id),
          %PlanParticipant{} = pp <- get_participant(plan.id, user_id),
          :ok <- reconfirm_allowed?(plan, pp) do
@@ -718,7 +737,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   @doc "Assign co-lead (lead only)."
   def assign_co_lead(plan_id, actor_user_id, peer_user_id) do
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          :ok <- require_lead(plan, actor_user_id),
          :ok <- ensure_plan_access_or_conversation_peer(plan, peer_user_id) do
       ensure_participant(plan, peer_user_id, "accepted", "co_lead")
@@ -731,7 +750,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
 
   @doc "Handoff lead to another accepted participant."
   def handoff_lead(plan_id, actor_user_id, peer_user_id) do
-    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+    with %SharedPlan{} = plan <- fetch_plan(plan_id),
          :ok <- require_lead(plan, actor_user_id),
          :ok <- ensure_plan_access(plan, peer_user_id),
          %PlanParticipant{} = peer <- get_participant(plan.id, peer_user_id),
@@ -793,6 +812,7 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
       if virtual?,
         do: %{"available" => false, "reason" => "virtual_join_instead"},
         else: maps_links(plan)
+
     reservation = reservation_truth(plan)
     me = Enum.find(participants, &(&1.user_id == user_id))
     lead = Enum.find(participants, &(&1.role == "lead")) || hd_or_nil(participants)
@@ -1061,6 +1081,31 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
         ensure_participant(plan, user_id, "accepted", role)
     end
   end
+
+  # Repair #18 (apifix, FR-06-01): activation used to enroll ONLY the
+  # activator. The journey projection still presented every other
+  # conversation member as a participant (pending), but with no
+  # PlanParticipant row they could not accept-going, decline, or
+  # receive a lead handoff - every participant-authority action
+  # answered :not_found for them. The conversation-plan birth path
+  # (SocialFlow.create_tentative_plan_from_conversation) enrolls all
+  # members; the journey birth now does the same. Existing rows are
+  # never clobbered - only missing members are enrolled, as pending
+  # participants.
+  defp enroll_conversation_members(%SharedPlan{conversation_id: cid} = plan, except_user_id)
+       when is_binary(cid) and cid != "" do
+    cid
+    |> OpalCore.Messages.member_user_ids()
+    |> Enum.each(fn uid ->
+      if uid != except_user_id and is_nil(get_participant(plan.id, uid)) do
+        ensure_participant(plan, uid, "pending", "participant")
+      end
+    end)
+
+    :ok
+  end
+
+  defp enroll_conversation_members(_, _), do: :ok
 
   defp ensure_participant(%SharedPlan{} = plan, user_id, state, role) do
     case get_participant(plan.id, user_id) do

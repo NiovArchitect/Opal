@@ -436,6 +436,79 @@ defmodule OpalCoreWeb.OpalConversationController do
   → 422 schedule_field_requires_revision (schedule changes are
   revisions, not edits); terminal plans → 422 invalid_status.
   """
+  @doc """
+  Repair #18 fix wave — cancel ONE plan over HTTP.
+
+  POST /api/v1/product/opal/plans/:id/cancel with an empty body (no
+  fields are read). The write flows through SocialFlow.cancel_plan/1:
+  the ONE SharedPlan row transitions to "cancelled" through the
+  PlanTransition :cancel gate (legal only from tentative / agreed /
+  changed), so every surface that reads the row — the plans list,
+  plan detail, thread alignment, the chats-list projection — reads
+  the cancellation back identically.
+
+  Authority (the gate's own law): the plan's lead or co_lead
+  (creator fallback where no lead row exists) cancels directly.
+  Responses follow the PATCH edit conventions in this controller:
+  success 200 `{"ok": true, "plan": <plan_payload>}` (the cancelled
+  row, status "cancelled"); unknown or foreign plan ids → 404
+  not_found (existence is never revealed across accounts); a
+  participant without lead rights → 403 not_authorized; an already
+  cancelled plan → 409 already_cancelled; a terminal plan the gate
+  refuses (completed / expired) → 422 illegal_transition.
+  """
+  def cancel_plan(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    result =
+      SocialFlow.cancel_plan(%{
+        plan_id: id,
+        user_id: user_id,
+        trace_id: "trace-plan-cancel-1"
+      })
+
+    case result do
+      {:ok, %{plan: plan}} ->
+        json(conn, %{"ok" => true, "plan" => SocialFlow.plan_payload(plan)})
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, :not_a_member} ->
+        not_found(conn)
+
+      {:error, :not_authorized} ->
+        conn
+        |> put_status(403)
+        |> json(%{
+          "error_code" => "not_authorized",
+          "message" => "Only the plan's lead can cancel it."
+        })
+
+      {:error, :already_cancelled} ->
+        conn
+        |> put_status(409)
+        |> json(%{
+          "error_code" => "already_cancelled",
+          "message" => "That plan is already cancelled."
+        })
+
+      {:error, :illegal_transition} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "illegal_transition",
+          "message" => "A finished plan can't be cancelled."
+        })
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        unprocessable(conn, cs)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
   def edit_plan(conn, %{"id" => id} = params) do
     user_id = conn.assigns.current_user_id
 

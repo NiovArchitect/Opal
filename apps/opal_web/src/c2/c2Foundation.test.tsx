@@ -49,7 +49,15 @@ function click(el: Element) {
 describe("C2 Splash 1 (track-c2 section 4)", () => {
   it("carries the new identity, exact copy, and zero Enter Opal", async () => {
     const el = await render(<C2Splash1 onContinue={() => {}} onAlreadyAccount={() => {}} />);
-    expect(q('[data-testid="c2-splash1-wordmark"]')?.getAttribute("src")).toContain("/brand/c2/");
+    // ORB ANCHOR (R18 Orb System): the old pin asserted the C2 gradient
+    // wordmark as an <img> under /brand/c2/ - that mechanism is retired
+    // as the front door. Splash 1 now carries the founder's orb master
+    // itself (keyed hero / medallion variant) + the drawn OPAL wordmark
+    // reduction rendered inline.
+    const hero = q('[data-testid="c2-splash1-orb"] img');
+    expect(hero?.getAttribute("src")).toContain("/brand/orb/opal-orb-");
+    expect(hero?.getAttribute("data-orb-master")).toBe("1");
+    expect(q('[data-testid="c2-splash1-wordmark"] svg')?.getAttribute("data-orb-asset")).toBe("wordmark");
     expect(el.textContent).toContain("REAL PEOPLE. REAL PLANS.");
     expect(el.textContent).toContain("Your people. Your plans. One place.");
     expect(el.textContent).not.toContain("Enter Opal");

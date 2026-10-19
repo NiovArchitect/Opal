@@ -5,7 +5,7 @@ defmodule OpalCore.SocialFlow.Feasibility.TimePlaceLoop do
   time candidate → place → travel makes time bad → adjusted time
   """
 
-  alias OpalCore.SocialFlow.Feasibility.Travel
+  alias OpalCore.SocialFlow.Feasibility.{Travel, TravelEstimate}
   alias OpalCore.SocialFlow.RealWorld.Cognition.DecisionCompression
   alias OpalCore.SocialFlow.RealWorld.Place.Catalog
 
@@ -27,7 +27,8 @@ defmodule OpalCore.SocialFlow.Feasibility.TimePlaceLoop do
     pairs =
       for start <- starts,
           place <- places,
-          travel = travel_for(a, place),
+          # F-11: per-place travel may be an assumed default — labeled.
+          {travel, travel_source} = travel_for(a, place),
           {:ok, feas} <- [
             Travel.assess(%{
               "prior_end_at" => prior,
@@ -50,6 +51,8 @@ defmodule OpalCore.SocialFlow.Feasibility.TimePlaceLoop do
           "feasibility" => feas["feasibility"],
           "leave_by" => feas["leave_by"],
           "travel_minutes" => travel,
+          "travel_minutes_source" => travel_source,
+          "travel_minutes_estimated" => travel_source == "assumed_default",
           "score" => Float.round(score, 3),
           "cost" => price_rank(place["price_band"]),
           "travel" => travel
@@ -75,7 +78,8 @@ defmodule OpalCore.SocialFlow.Feasibility.TimePlaceLoop do
   """
   def suggest_adjusted_start(prior_end, travel_minutes, opts \\ []) do
     buf = OpalCore.SocialFlow.Feasibility.Buffer.minutes(opts)
-    travel = if is_number(travel_minutes), do: travel_minutes, else: 20
+    # F-11: a non-numeric travel falls back to the assumed default (20).
+    {travel, _travel_source} = TravelEstimate.resolve(travel_minutes)
     slack = 5
 
     prior_end
@@ -89,11 +93,14 @@ defmodule OpalCore.SocialFlow.Feasibility.TimePlaceLoop do
     end
   end
 
+  # Returns {minutes, source} — F-11: the fallback is TravelEstimate's
+  # assumed default and is labeled as such by the caller.
   defp travel_for(a, place) do
     by = a["travel_by_place"] || %{}
-    Map.get(by, place["id"]) || Map.get(by, String.to_atom(place["id"] || "")) || 20
+    raw = Map.get(by, place["id"]) || Map.get(by, String.to_atom(place["id"] || ""))
+    TravelEstimate.resolve(raw)
   rescue
-    _ -> 20
+    _ -> TravelEstimate.resolve(nil)
   end
 
   defp catalog_opts(a) do

@@ -21,6 +21,21 @@ import { C2Shell } from "./C2Shell";
 import { C2SettingsSection } from "./C2You";
 import { saveProfile } from "../../api/productClient";
 
+// Hunt-fix B-12: a failed plans read now renders the Center error
+// state instead of an empty deck, so this navigation suite mocks a
+// successful (empty) plans read — the deck it exercises is the
+// loaded one. The failure state itself is pinned in
+// huntFixShellData.test.ts.
+vi.mock("../../api/productClient", async () => {
+  const actual = await vi.importActual<typeof import("../../api/productClient")>(
+    "../../api/productClient",
+  );
+  return {
+    ...actual,
+    listOpalPlans: async () => ({ plans: [] }),
+  };
+});
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let host: HTMLDivElement | null = null;
@@ -115,6 +130,7 @@ describe("C2 settings - toggle truth", () => {
       setPreference,
       runAction: vi.fn(),
       saveProfileFields: vi.fn(async () => undefined),
+      submitSupportReport: vi.fn(async () => ({ reference: "OPAL-TEST" })),
       setModePreference: vi.fn(),
       modePreference: "system" as const,
     };
@@ -178,13 +194,23 @@ describe("C2 shell - A1 static audit", () => {
     }
   });
 
-  it("every token used by c2shell.css is defined in c2Tokens.css or layerTokens.css", () => {
+  it("every token used by c2shell.css is defined in c2Tokens.css, layerTokens.css, or orbTokens.css", () => {
+    // Harmony-0 extension, named: the shell chrome now consumes the
+    // sampled orb tokens (theme/orbTokens.css - imported on the same
+    // C2 module graph in main.tsx, after c2Tokens.css), so that sheet
+    // is a lawful definition source for shell tokens alongside the
+    // two original sheets. The audit's force is unchanged: every used
+    // token must be defined in a token sheet the C2 graph imports.
     const css = readFileSync(join(shellDir, "c2shell.css"), "utf8");
     const tokens = readFileSync(join(process.cwd(), "src/theme/c2Tokens.css"), "utf8");
     const layerTokens = readFileSync(join(process.cwd(), "src/theme/layerTokens.css"), "utf8");
+    const orbTokens = readFileSync(join(process.cwd(), "src/theme/orbTokens.css"), "utf8");
     const used = new Set([...css.matchAll(/var\((--[a-z0-9-]+)\)/g)].map((m) => m[1]));
     for (const token of used) {
-      const defined = tokens.includes(`${token}:`) || layerTokens.includes(`${token}:`);
+      const defined =
+        tokens.includes(`${token}:`) ||
+        layerTokens.includes(`${token}:`) ||
+        orbTokens.includes(`${token}:`);
       expect(defined, `${token} is not defined`).toBe(true);
     }
   });

@@ -244,10 +244,13 @@ export function GraphsTemporalTimeline({
     </div>
   );
 
-  // Paste W3 5.1 — user-facing seed honesty only (no walkthrough/dev prose).
-  const seedNote = usingSeed ? (
+  // Hunt-fix B-07: seed content is labeled WHENEVER it renders — the
+  // note names sample content plainly, and every seed card carries
+  // its own Sample tag (TimelineCard), in pure-seed and mixed modes.
+  const anySeed = items.some((i) => (i.source || "seed") === "seed");
+  const seedNote = usingSeed || anySeed ? (
     <p className="graphs-temporal-seed-note" data-testid="graphs-temporal-seed-note">
-      Plans you line up will land here.
+      Includes sample plans from demo mode — marked Sample. Your real plans are unmarked.
     </p>
   ) : null;
 
@@ -299,7 +302,7 @@ export function GraphsTemporalTimeline({
       className="graphs-temporal"
       data-testid="graphs-temporal-timeline"
       data-range-days={rangeDays}
-      data-source={usingSeed ? "seed" : "live"}
+      data-source={usingSeed ? "seed" : anySeed ? "mixed" : "live"}
     >
       {rangeToggle}
       {seedNote}
@@ -439,6 +442,11 @@ function TimelineCard({
           </span>
         </span>
         <span className="graphs-temporal-when">{item.whenLabel}</span>
+        {(item.source || "seed") === "seed" ? (
+          <span className="graphs-temporal-sample" data-testid={`graphs-temporal-sample-${item.id}`}>
+            Sample
+          </span>
+        ) : null}
         {item.where ? <span className="graphs-temporal-where">{item.where}</span> : null}
       </button>
       <div className="graphs-temporal-who">

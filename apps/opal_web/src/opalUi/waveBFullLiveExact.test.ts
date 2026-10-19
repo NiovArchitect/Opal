@@ -32,9 +32,13 @@ describe("P0-05.12A Full Live exact 863:2", () => {
   it("FULL_LIVE_CURRENT_IDENTITY_COPY", () => {
     const live = read("opalUi/GraphLivePanel.tsx");
     expect(live).toMatch(/Rooftop jazz|place/);
-    expect(live).toMatch(/Downtown/);
+    // Repair #18 FALSE-fix F-04: no invented defaults remain in the
+    // panel - no default area, host, broadcaster, media, or table line.
+    expect(live).not.toMatch(/area = "Downtown"/);
+    expect(live).not.toMatch(/mediaSrc = FULL_LIVE_MEDIA_SRC/);
+    expect(live).not.toMatch(/tableReadyLabel = "Table ready/);
     // F12-12: no invented presence defaults — the panel ships empty lines and
-    // callers pass real presence, never a fabricated "Sadeil + 3 are here".
+    // callers pass real presence, never a fabricated seed presence line.
     expect(live).toMatch(/hereLine = ""/);
     expect(live).toMatch(/etaLine = ""/);
     expect(live).not.toMatch(/Sadeil \+ 3 are here/);
@@ -44,6 +48,18 @@ describe("P0-05.12A Full Live exact 863:2", () => {
     expect(live).toMatch(/VIDEO LIVE/);
     expect(live).not.toMatch(/Then it actually happens/);
     expect(live).not.toMatch(/Juniper & Ivy/);
+  });
+
+  it("F04_F05_APP_LIVE_AND_CALLS_CARRY_NO_CANNED_FALLBACKS", () => {
+    const app = read("OpalApp.tsx");
+    // F-04: the full-Live mount must not substitute invented defaults.
+    expect(app).not.toMatch(/\|\| "Rooftop jazz"/);
+    expect(app).not.toMatch(/\|\| "Jordan"/);
+    expect(app).not.toMatch(/\|\| "Sabrina"/);
+    expect(app).not.toMatch(/Sadeil \+ 3 are here/);
+    expect(app).not.toMatch(/Maya is on the way · 8 min/);
+    // F-05: no unconditional canned alignment signal on group continuity.
+    expect(app).not.toMatch(/signalLabel: "3 of 4 aligned/);
   });
 
   it("HOME_LIVE_MEDIA_EQUALS_FULL_LIVE_MEDIA", () => {

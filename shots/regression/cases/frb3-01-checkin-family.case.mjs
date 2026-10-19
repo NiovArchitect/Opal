@@ -267,11 +267,27 @@ export default {
     assert.eq("summary final", s.counts.still_waiting, 1, "exactly one still waiting");
     const fRow = row(s, F);
     assert.eq("unanswered visibility", fRow.response_status, "asked", "the silent member is still 'asked', never marked answered or declined");
+    // Name-source repair (Repair #18 apifix): the line names the
+    // member by the SERVER's display name for that account. The
+    // case's locally-assumed fixture name ("Member Eff" / F.session
+    // .name) is not what the server holds in suite context - the
+    // synthetic phone pool is shared, an earlier case provisions
+    // each pool phone first, and activation verify keeps the
+    // existing user's name, so the server-side name differs. The
+    // assertion's contract is unchanged (the line NAMES the
+    // unanswered member); the expected name now comes from the
+    // server's own records: the summary's member row for F, falling
+    // back to F's own profile.
+    let serverName = fRow.display_name || null;
+    if (!serverName) {
+      const prof = await F.get("/session");
+      serverName =
+        prof.json?.user?.display_name || prof.json?.session?.user?.display_name || null;
+    }
     assert.check(
       "unanswered visibility",
-      (s.copy.still_waiting_line || "").includes("Eff") ||
-        (s.copy.still_waiting_line || "").includes(F.session.name || "»"),
-      "the still-waiting line NAMES the unanswered member",
+      !!serverName && (s.copy.still_waiting_line || "").includes(serverName),
+      `the still-waiting line NAMES the unanswered member (server-known name ${JSON.stringify(serverName)}); line: ${JSON.stringify(s.copy.still_waiting_line)}`,
     );
     assert.check(
       "summary copy",

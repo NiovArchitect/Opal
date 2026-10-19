@@ -25,12 +25,27 @@ export default {
     assert.check("POST /stories", story.status === 200 || story.status === 201,
       `a close-circle story create must succeed; got ${story.status}: ${JSON.stringify(story.json).slice(0, 160)}`);
     const feed = await A.get("/home/feed");
-    const mine = (feed.json.stories || []).filter((s) => (s.caption || "").includes(ctx.tag));
+    // Precision repair (Repair #18 apifix): match THIS story by its
+    // full marker, never the bare run tag - the tag is shared by every
+    // case in the run, so a tag-only filter counts any other tagged
+    // story the viewer lawfully sees as this story leaking.
+    const thisStory = (s) => (s.caption || "").includes(ctx.marker("close circle"));
+    const mine = (feed.json.stories || []).filter(thisStory);
     assert.check("GET /home/feed (author)", mine.length >= 1,
       "the author's close-circle story must at minimum reach the author's own story tray (the author==viewer bug reached nobody else AND hid intent)");
-    if (B) {
-      const bFeed = await B.get("/home/feed");
-      const leaked = (bFeed.json.stories || []).filter((s) => (s.caption || "").includes(ctx.tag));
+    // Viewer repair (Repair #18 apifix): session B is NOT an unrelated
+    // viewer in suite context - FR-14-04 leaves A->B typed family, and
+    // close types (spouse/partner/family/close_friend, either
+    // direction) ARE the close circle by the product's own law
+    // (TemporaryStoryPublishing close_circle_member?), so the story
+    // lawfully reaches B and this leg failed on a false premise. The
+    // assertion is unchanged; the viewer is an account with no CLOSE
+    // relationship to the author (a plain "friend" typing is not a
+    // close type and must not admit it to a close-circle story).
+    const outsider = await ctx.freshClient("+12025550107", "Outsider Gee");
+    if (outsider) {
+      const oFeed = await outsider.get("/home/feed");
+      const leaked = (oFeed.json.stories || []).filter(thisStory);
       assert.check("GET /home/feed (unrelated viewer)", leaked.length === 0,
         "a close-circle story must not leak to an account with no close relationship");
       assert.note("mutual close-circle member leg needs an established mutual relationship between two provisioned accounts; asserted here: author reach + non-member exclusion");

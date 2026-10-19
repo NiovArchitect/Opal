@@ -6,15 +6,19 @@ defmodule OpalCore.AI.ProcessJobWorker do
   alias OpalCore.Repo
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"job_id" => job_id}}) do
+  def perform(%Oban.Job{args: %{"job_id" => job_id}, attempt: attempt, max_attempts: max}) do
     case Repo.get(AiJob, job_id) do
       nil ->
         :ok
 
       %AiJob{} = job ->
-        case AI.process_job(job) do
+        # HA-09 (Repair #18 hunt-fix): a retryable AI failure returns
+        # {:error, _} so Oban actually spends max_attempts on real
+        # re-executions. The old mapping turned every outcome into
+        # :ok, so the declared retries never happened.
+        case AI.process_job(job, oban_attempt: attempt, oban_max_attempts: max) do
           {:ok, _} -> :ok
-          {:error, _} -> :ok
+          {:error, reason} -> {:error, reason}
         end
     end
   end

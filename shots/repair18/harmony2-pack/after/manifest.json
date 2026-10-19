@@ -1,0 +1,208 @@
+{
+  "build_tag": "harmony2-after",
+  "web": "http://127.0.0.1:5174",
+  "api": "http://127.0.0.1:4100",
+  "surfaces": [
+    {
+      "label": "home",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "search",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "opened": true,
+      "rawCallPreviews": 0
+    },
+    {
+      "label": "center-deck",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "fold": {
+        "ok": true,
+        "cardBottom": 742,
+        "dockTop": 772,
+        "scrollHeight": 968,
+        "clientHeight": 844
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "center-chat",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "opened": true,
+      "holdingChips": 0
+    },
+    {
+      "label": "graphs",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "goals": {
+        "present": true,
+        "pickers": 0
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "you",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "you-soul-memory",
+      "mode": "dark",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "soulForm": true
+    },
+    {
+      "label": "legacy-center-composer",
+      "mode": "dark",
+      "composer": null
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "search",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "opened": true,
+      "rawCallPreviews": 0
+    },
+    {
+      "label": "center-deck",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "fold": {
+        "ok": true,
+        "cardBottom": 742,
+        "dockTop": 772,
+        "scrollHeight": 968,
+        "clientHeight": 844
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "center-chat",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "opened": true,
+      "holdingChips": 0
+    },
+    {
+      "label": "graphs",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "goals": {
+        "present": true,
+        "pickers": 0
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "you",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": []
+    },
+    {
+      "label": "you-soul-memory",
+      "mode": "light",
+      "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+      "soulForm": true
+    },
+    {
+      "label": "legacy-center-composer",
+      "mode": "light",
+      "composer": null
+    },
+    {
+      "label": "wide",
+      "mode": "dark",
+      "wide": {
+        "sidebarDisplay": "flex",
+        "sidebarWidth": 232,
+        "dockDisplay": "none"
+      },
+      "youNav": {
+        "present": true,
+        "display": "block",
+        "rows": 22
+      }
+    },
+    {
+      "label": "wide",
+      "mode": "light",
+      "wide": {
+        "sidebarDisplay": "flex",
+        "sidebarWidth": 232,
+        "dockDisplay": "none"
+      },
+      "youNav": {
+        "present": true,
+        "display": "block",
+        "rows": 22
+      }
+    }
+  ],
+  "icons": [
+    {
+      "path": "/favicon-32.png",
+      "status": 200,
+      "bytes": 2091,
+      "png": true,
+      "md5": "20e58e401ccf"
+    },
+    {
+      "path": "/brand/favicon-48.png",
+      "status": 200,
+      "bytes": 4264,
+      "png": true,
+      "md5": "443cbb687fec"
+    },
+    {
+      "path": "/brand/opal-app-icon-180.png",
+      "status": 200,
+      "bytes": 44239,
+      "png": true,
+      "md5": "a04e6d109504"
+    },
+    {
+      "path": "/brand/opal-app-icon-512.png",
+      "status": 200,
+      "bytes": 251869,
+      "png": true,
+      "md5": "71efa608fdfd"
+    },
+    {
+      "path": "/brand/orb/opal-orb-icon-1024.png",
+      "status": 200,
+      "bytes": 702887,
+      "png": true,
+      "md5": "628e3d3664d2"
+    }
+  ]
+}

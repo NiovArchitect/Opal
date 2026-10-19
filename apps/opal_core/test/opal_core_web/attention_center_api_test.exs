@@ -57,6 +57,31 @@ defmodule OpalCoreWeb.AttentionCenterApiTest do
 
   defp auth(conn, token), do: put_req_header(conn, "authorization", "Bearer #{token}")
 
+  # Repair #18 FALSE-fix F-13: ingest is documented dev/test-only; with
+  # the founder-seed flag off (the production posture) it must refuse.
+  test "ATTENTION_INGEST_GATE — ingest refuses 403 when the seed flag is off", %{conn: conn} do
+    {token_a, _user_a, _} = activate(conn, @alex, "Gate A", "ac_gate_a")
+
+    previous = Application.get_env(:opal_core, :allow_founder_communication_seed)
+    Application.put_env(:opal_core, :allow_founder_communication_seed, false)
+
+    on_exit(fn ->
+      if is_nil(previous) do
+        Application.delete_env(:opal_core, :allow_founder_communication_seed)
+      else
+        Application.put_env(:opal_core, :allow_founder_communication_seed, previous)
+      end
+    end)
+
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> post("/api/v1/product/attention/ingest", %{"event" => %{"source_type" => "proposal"}})
+
+    body = json_response(conn, 403)
+    assert body["error_code"] == "attention_ingest_disabled"
+  end
+
   test "ATTENTION_CENTER_API — ingest proposal, badge 1 for responder, 0 for proposer", %{
     conn: conn
   } do

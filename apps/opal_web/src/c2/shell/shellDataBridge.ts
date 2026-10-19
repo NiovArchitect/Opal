@@ -9,9 +9,14 @@ export * from "./shellData";
 
 export async function getGoogleCalendarStatusSafe(
   bearer?: string,
-): Promise<boolean | null> {
+): Promise<boolean | "simulated" | null> {
   try {
     const status = await getGoogleCalendarStatus(bearer);
+    // HA-01: a simulated row also reports connected=true on the wire;
+    // its provenance wins — the hub must never summarize it as connected.
+    if (status.simulated === true || status.status === "connected_simulated") {
+      return "simulated";
+    }
     return status.connected;
   } catch {
     return null;

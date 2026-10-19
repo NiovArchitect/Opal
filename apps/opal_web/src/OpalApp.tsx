@@ -68,7 +68,9 @@ import {
   getAvailabilityOverlap,
   getJourney,
   journeyAddPeople,
+  convertPlanPlaceType,
   journeyCantMakeIt,
+  planConversionLine,
   journeyMaterialChange,
   journeyReconfirm,
   fetchAttention,
@@ -250,8 +252,7 @@ import { ActivityDestination } from "./opalUi/ActivityDestination";
 import { NewCallDestination, type NewCallPerson, type NewCallGroup } from "./opalUi/NewCallDestination";
 import {
   CallContinuityDestination,
-  defaultPersonRecent,
-  defaultGroupRecent,
+  type RecentCallEvent,
 } from "./opalUi/CallContinuityDestination";
 import {
   FOUNDER_CALLS_CONTINUITY_ROWS,
@@ -966,6 +967,8 @@ export function OpalApp() {
     /** ID-stable Continuity → Chat (primary over display name). */
     conversationId?: string | null;
     peerUserId?: string | null;
+    /** Real group size when the opening surface knew it; never guessed. */
+    memberCount?: number;
   }>(null);
   /** Chats|Calls surface ownership — Chat must never leave Calls mode visible. */
   const [commSurface, setCommSurface] = useState<"chats" | "calls">("chats");
@@ -1124,6 +1127,8 @@ export function OpalApp() {
   const [storyQueueOverride, setStoryQueueOverride] = useState<FounderStoryItem[] | null>(null);
   /** Mexico City soft itinerary canvas (distinct from StoryViewer memories). */
   const [tripCanvasOpen, setTripCanvasOpen] = useState(false);
+  /** The real trip the canvas was opened for (B-09); null = none. */
+  const [tripCanvasTripId, setTripCanvasTripId] = useState<string | null>(null);
   const [storyCreateOpen, setStoryCreateOpen] = useState(false);
   const [homeScrollToken, setHomeScrollToken] = useState(0);
   /** Persistent Home destination → root feed scroll-to-top (distinct from Back restore). */
@@ -1149,6 +1154,8 @@ export function OpalApp() {
   >({});
   const [journeyManageOpen, setJourneyManageOpen] = useState(false);
   const [cantMakeItOpen, setCantMakeItOpen] = useState(false);
+  const [cantMakeItError, setCantMakeItError] = useState<string | null>(null);
+  const [cantMoveOnlineBusy, setCantMoveOnlineBusy] = useState(false);
   const [locationPermOpen, setLocationPermOpen] = useState(false);
   const [locationGranted, setLocationGranted] = useState(false);
   const [journeyNote, setJourneyNote] = useState<string | null>(null);
@@ -1298,7 +1305,47 @@ export function OpalApp() {
     refreshCallLog();
   }, [authenticated, session?.user_id, session?.access_token, refreshCallLog]);
 
-  /** Resolve place options: provider projection when Moment-seeded, else fixtures / server. */
+  /**
+   * Repair #18 hunt-fix B-02: Call Continuity's Recent list comes from
+   * the account's REAL call log (listCalls), filtered to this person
+   * (peer id, else conversation, else exact peer name) — never from a
+   * constant. No matching rows means no history section content, and
+   * the destination renders its honest empty line.
+   */
+  const recentCallsForContinuity = useCallback(
+    (target: {
+      peerUserId?: string | null;
+      conversationId?: string | null;
+      name: string;
+    }): RecentCallEvent[] => {
+      const nameKey = target.name.trim().toLowerCase();
+      const rows = (callLog || []).filter((call) => {
+        if (target.peerUserId && call.peer_user_id) {
+          return call.peer_user_id === target.peerUserId;
+        }
+        if (target.conversationId && call.conversation_id) {
+          return call.conversation_id === target.conversationId;
+        }
+        return (call.peer_name || "").trim().toLowerCase() === nameKey;
+      });
+      return rows.slice(0, 6).map((call) => {
+        const line = callHistoryLine({
+          historyLabel: call.history_label,
+          createdAt: call.created_at,
+          peerName: call.peer_name,
+        });
+        const parts = line.metadata.split(" · ");
+        return {
+          id: call.id,
+          typeLabel: parts[0] || "Call",
+          whenLabel: parts.slice(1).join(" · "),
+        };
+      });
+    },
+    [callLog],
+  );
+
+  /** Resolve place options: server collective-fit, Curate shortlist, or Moment provider — never fixtures (hunt-fix B-06). Empty stays empty. */
   const resolvePlaceCandidates = useCallback(
     (convSignal: ProductSignal | null | undefined, threadBodies: string, whereKnown: boolean) => {
       const cf = (
@@ -1322,7 +1369,7 @@ export function OpalApp() {
           return { id, name, area: o.area || o.tag || "" };
         });
       }
-      // Phase 1C: server-ranked Curate shortlist preferred; then Moment provider; else fixtures.
+      // Phase 1C: server-ranked Curate shortlist preferred; then Moment provider; else NO options (honest empty, hunt-fix B-06).
       const base =
         curateServerCandidates && curateServerCandidates.length > 0
           ? curateServerCandidates
@@ -1857,7 +1904,7 @@ export function OpalApp() {
   );
   const messages = activeChatId ? threads[activeChatId] ?? [] : [];
 
-  /** Phase 1C — fetch server shortlist when Curate or place sheet opens; fixture fallback on failure. */
+  /** Phase 1C — fetch server shortlist when Curate or place sheet opens; failure leaves NO candidates (honest empty, hunt-fix B-06). */
   useEffect(() => {
     if (!curateOpen && !findPlaceOpen) {
       setCurateServerCandidates(null);
@@ -2159,6 +2206,10 @@ export function OpalApp() {
             c.plan_projection as Record<string, unknown> | null | undefined,
             c.id,
           ),
+          // DIR-1: the shared upcoming plan fact, verbatim from the
+          // conversations contract - rendered, never re-derived.
+          nextPlan: c.next_plan ?? null,
+          entityTint: c.entity_tint ?? null,
           peers: (c.peers || []).map((p) => ({
             id: p.id,
             display_name: p.display_name,
@@ -3494,7 +3545,18 @@ export function OpalApp() {
 
   /** Soft itinerary canvas — title/plan CTA. Memories stay on photo CTA. */
   const openAlexTripCanvas = () => {
-    setTripCanvasOpen(true);
+    // Repair #18 hunt-fix B-09: the canvas opens with the trip id of
+    // the surface that asked for it. The Alex/Mexico City canvas is
+    // the founder SAMPLE trip — it opens only in badged seed mode,
+    // labeled as sample data inside the canvas. On a real account
+    // there is no real trip behind this entry, so it gates honestly
+    // instead of mounting the fixture under a hardcoded seed id.
+    if (isFounderSeedEnabled()) {
+      setTripCanvasTripId("seed-trip-mexico-city");
+      setTripCanvasOpen(true);
+      return;
+    }
+    setCallsGateNote("Trips open from a real trip in your Graphs.");
   };
 
   const send = async () => {
@@ -4669,15 +4731,16 @@ export function OpalApp() {
               );
             }}
             onVideo={() => {
+              // Repair #18 hunt-fix B-04: Video gets the SAME honest
+              // gate as its sibling Call button — it used to paint the
+              // Figma call stage with no live call behind it.
               setContactProfileOpen(false);
-              setCallSurface({
-                kind: "video",
-                direction: "outgoing",
-                peerName:
-                  (isFounderSeedEnabled()
-                    ? founderSeedDisplayNameForId(activeChat.id)
-                    : null) || activeChat.name,
-              });
+              setCallsGateCallId(null);
+              setCallsGateNote(
+                session?.access_token || session?.cookie_session
+                  ? "Calls aren't available on this build yet."
+                  : "Sign in to place a call.",
+              );
             }}
             onPlan={() => {
               setContactProfileOpen(false);
@@ -6830,6 +6893,17 @@ export function OpalApp() {
                 </li>
               ))}
             </ul>
+            {!(curateServerCandidates && curateServerCandidates.length) &&
+            !(momentProviderCandidates && momentProviderCandidates.length) &&
+            !(
+              (convSignal as { collective_fit?: { options?: unknown[] } } | null)
+                ?.collective_fit?.options?.length
+            ) ? (
+              <p className="presence-detail" data-testid="place-options-empty" role="status">
+                No places to suggest right now. Name a place in the chat, or try again in a
+                moment.
+              </p>
+            ) : null}
             {planThisNote ? (
               <p className="presence-detail" data-testid="place-plan-this-ok" role="status">
                 {planThisNote}
@@ -6893,7 +6967,7 @@ export function OpalApp() {
             aria-label="Curated evening"
             data-node-ref="4:11"
             data-curate-source={
-              curateServerCandidates && curateServerCandidates.length ? "server" : "fixture"
+              curateServerCandidates && curateServerCandidates.length ? "server" : "none"
             }
             data-curate-ranked={
               curateServerCandidates && curateServerCandidates.length
@@ -6966,6 +7040,17 @@ export function OpalApp() {
                   ? "Continuing from a Moment you loved  -  still private until you share."
                   : "You asked Opal to curate this."}
             </p>
+            {!(curateServerCandidates && curateServerCandidates.length) &&
+            !(momentProviderCandidates && momentProviderCandidates.length) &&
+            !(
+              (convSignal as { collective_fit?: { options?: unknown[] } } | null)
+                ?.collective_fit?.options?.length
+            ) ? (
+              <p className="curate-truth" data-testid="curate-no-options" role="status">
+                No places to suggest right now. Name a place in the chat, or close this and
+                try again in a moment.
+              </p>
+            ) : null}
             {momentSeed ? (
               <p className="curate-truth" data-testid="moment-seed-lineage" hidden>
                 {momentSeed.lineageEdge.fromMomentId}→{momentSeed.lineageEdge.toRealityId}
@@ -7597,12 +7682,13 @@ export function OpalApp() {
                 : undefined)
             }
             isGroup={callSurface.isGroup}
-            memberCount={callSurface.memberCount ?? (callSurface.isGroup ? 4 : undefined)}
+            memberCount={callSurface.memberCount}
             participants={callSurface.participants}
             muted={callMuted}
             videoOn={callVideoOn}
             speakerOn={callSpeakerOn}
-            assistCallId={callSurface.liveCallId}
+            hasLiveCall={!!callSurface.liveCallId}
+          assistCallId={callSurface.liveCallId}
             assistBearer={session?.access_token}
             onDecline={declineLiveCall}
             onAnswer={answerLiveCall}
@@ -7696,7 +7782,7 @@ export function OpalApp() {
         {tripCanvasOpen ? (
           <TripCanvasView
             bearer={session?.access_token}
-            tripId="seed-trip-mexico-city"
+            tripId={tripCanvasTripId}
             selfUserId={session?.user_id}
             onClose={() => setTripCanvasOpen(false)}
             onOpenMemories={() => {
@@ -8832,6 +8918,10 @@ export function OpalApp() {
                     ? resolveFounderPeerAvatarSrc(c.name) ||
                       (c as { avatarSrc?: string }).avatarSrc
                     : undefined) || undefined,
+                // DIR-1: the row's plan-awareness fact (ChatsHome
+                // renders it as the row's one plan element).
+                nextPlan: c.nextPlan ?? null,
+                entityTint: c.entityTint ?? null,
                 planConsequence: c.planProjection
                   ? (() => {
                       // Repair #17: list state comes from the SAME shared
@@ -8983,6 +9073,10 @@ export function OpalApp() {
                     callMedia: "audio" as const,
                     conversationId: call.conversation_id || undefined,
                     real: true,
+                    // DIR-1: the call row's shared upcoming plan
+                    // fact for this peer, verbatim from the contract.
+                    nextPlan: call.next_plan ?? null,
+                    entityTint: call.peer_tint ?? null,
                   };
                 });
               // Founder seed: merge live (real:true) ABOVE seed so a just-placed
@@ -9177,19 +9271,31 @@ export function OpalApp() {
                         (row.peerName || row.name).toLowerCase(),
                     )
                   : null;
+              const groupChat = isGroup
+                ? chats.find((c) => c.id === rowConv)
+                : null;
+              const groupSize =
+                groupChat?.memberCount ??
+                (groupChat?.peers ? groupChat.peers.length + 1 : undefined);
               setCallContinuity({
                 kind: isGroup ? "group" : "person",
                 name: row.name,
                 meta: isGroup
-                  ? "4 people · group calls"
+                  ? groupSize
+                    ? `${groupSize} people · group calls`
+                    : "Group calls"
                   : "Direct connection · calls",
+                memberCount: groupSize,
                 avatarSrc: row.avatarSrc,
                 avatarTone: row.avatarTone,
                 hasStory: !!row.hasStory,
                 signalEyebrow: isGroup ? "SHARED SIGNAL" : "CURRENT SIGNAL",
+                // F-05 (same class): the label comes from the row's own
+                // signal data - never a hardcoded plan string painted
+                // for any "ready" row regardless of its actual plan.
                 signalLabel:
                   row.signal?.kind === "ready"
-                    ? "Saturday · 7:30 PM · Juniper & Ivy"
+                    ? row.signal.label || undefined
                     : row.signal?.kind === "graph_updated"
                       ? "Graph updated"
                       : row.signal?.kind === "callback"
@@ -9921,25 +10027,65 @@ export function OpalApp() {
                 p.user_id === session?.user_id,
             ) === true
           }
-          onBack={() => setCantMakeItOpen(false)}
+          error={cantMakeItError}
+          moveOnlineBusy={cantMoveOnlineBusy}
+          onBack={() => {
+            setCantMakeItOpen(false);
+            setCantMakeItError(null);
+          }}
           onHandoffLead={() => {
             setCantMakeItOpen(false);
             setJourneyManageOpen(true);
           }}
+          onMoveOnline={() => {
+            // Hunt-fix B-15: "Ask to move this online" runs the real
+            // B1 conversion. Solo plans move now; shared plans move
+            // when the group agrees — the note says which happened.
+            if (!session?.access_token || cantMoveOnlineBusy) return;
+            setCantMoveOnlineBusy(true);
+            setCantMakeItError(null);
+            void convertPlanPlaceType(activeJourney.plan_id, "virtual", {
+              bearer: session.access_token,
+            })
+              .then((res) => {
+                setCantMakeItOpen(false);
+                setJourneyNote(
+                  res.applied
+                    ? planConversionLine(res)
+                    : res.revision
+                      ? planConversionLine(res)
+                      : "This plan is already online.",
+                );
+              })
+              .catch((err) => {
+                setCantMakeItError(planConversionLine(null, err));
+              })
+              .finally(() => setCantMoveOnlineBusy(false));
+          }}
           onConfirm={(note) => {
             if (!session?.access_token) return;
+            setCantMakeItError(null);
             void journeyCantMakeIt(activeJourney.plan_id, {
               note,
               bearer: session.access_token,
-            }).then((res) => {
-              setActiveJourney((res.journey as JourneyProjection) || activeJourney);
-              setCantMakeItOpen(false);
-              setJourneyNote(
-                res.cancels_everyone
-                  ? "Unexpected: cancelled everyone"
-                  : "You left this Journey  -  others remain.",
-              );
-            });
+            })
+              .then((res) => {
+                setActiveJourney((res.journey as JourneyProjection) || activeJourney);
+                setCantMakeItOpen(false);
+                setJourneyNote(
+                  res.cancels_everyone
+                    ? "Unexpected: cancelled everyone"
+                    : "You left this Journey  -  others remain.",
+                );
+              })
+              .catch(() => {
+                // Hunt-fix B-15: leaving used to fail silently with
+                // the sheet just staying open. Now it says so, with
+                // the next step.
+                setCantMakeItError(
+                  "Couldn't leave this plan. Check your connection and try again.",
+                );
+              });
           }}
         />
       ) : null}
@@ -10383,7 +10529,7 @@ export function OpalApp() {
       {tripCanvasOpen ? (
         <TripCanvasView
           bearer={session?.access_token}
-          tripId="seed-trip-mexico-city"
+          tripId={tripCanvasTripId}
           selfUserId={session?.user_id}
           onClose={() => setTripCanvasOpen(false)}
           onOpenMemories={() => {
@@ -10601,25 +10747,22 @@ export function OpalApp() {
                   );
                 }
                 const pasteK = liveCard.id.startsWith("live-room-");
+                // Repair #18 FALSE-fix F-04: real card data or nothing -
+                // no invented place/host/broadcaster/media defaults, and
+                // the seed fixture presence/ETA/table lines never paint
+                // on the Live destination (seed mode included).
                 return (
                   <GraphLivePanel
-                    place={liveCard?.title?.split("·")[0]?.trim() || "Rooftop jazz"}
-                    area={pasteK ? liveCard.placeLine || "Nearby" : "Downtown"}
-                    host={liveCard?.host || "Jordan"}
-                    broadcaster={liveCard?.broadcaster || "Sabrina"}
-                    mediaSrc={liveCard?.mediaSrc || "/figma-v2/home-201/media-live-city-1728.png"}
+                    place={liveCard?.title?.split("·")[0]?.trim() || ""}
+                    area={pasteK ? liveCard.placeLine || "" : liveCard?.title?.split("·")[1]?.trim() || ""}
+                    host={liveCard?.host || ""}
+                    broadcaster={liveCard?.broadcaster || ""}
+                    mediaSrc={liveCard?.mediaSrc || undefined}
                     videoLive={pasteK ? false : liveCard?.videoLive !== false}
                     hereLine={
-                      pasteK
-                        ? `${liveCard.person} is Live · presence, not a stream`
-                        : seedOn
-                          ? "Sadeil + 3 are here"
-                          : "People here"
+                      pasteK ? `${liveCard.person} is Live · presence, not a stream` : ""
                     }
-                    etaLine={pasteK ? "" : seedOn ? "Maya is on the way · 8 min" : ""}
-                    tableReadyLabel={
-                      pasteK ? undefined : seedOn ? "Table ready · Great news" : undefined
-                    }
+                    etaLine=""
                     onOnMyWay={pasteK ? undefined : () => setOnMyWayActive((v) => !v)}
                     onMyWayActive={onMyWayActive}
                   />
@@ -10826,11 +10969,12 @@ export function OpalApp() {
                 : undefined)
           }
           isGroup={callSurface.isGroup}
-          memberCount={callSurface.memberCount ?? (callSurface.isGroup ? 4 : undefined)}
+          memberCount={callSurface.memberCount}
           participants={callSurface.participants}
           muted={callMuted}
           videoOn={callVideoOn}
           speakerOn={callSpeakerOn}
+          hasLiveCall={!!callSurface.liveCallId}
           assistCallId={callSurface.liveCallId}
           assistBearer={session?.access_token}
           onDecline={declineLiveCall}
@@ -10884,6 +11028,7 @@ export function OpalApp() {
 
       {searchOpen && !activityOpen && !newCallOpen ? (
         <SearchDestination
+          demoMode={isFounderSeedEnabled()}
           initialMode={searchInitialMode}
           searchContext={searchContext}
           query={searchQuery}
@@ -11008,8 +11153,23 @@ export function OpalApp() {
       {newCallOpen ? (
         <NewCallDestination
           onBack={() => setNewCallOpen(false)}
+          people={listDirectPeopleFromChats(chats).map((p) => ({
+            id: p.peerUserId,
+            name: p.displayName,
+            kind: "person" as const,
+          }))}
+          groups={listExplicitGroupsFromChats(chats).map((g) => ({
+            id: g.conversationId,
+            name: g.displayName,
+            kind: "group" as const,
+            memberCount: g.memberCount,
+          }))}
           onCallPerson={(person: NewCallPerson) => {
-            // R3-early: live invite when peer id is a real user UUID; else Continuity chrome only (P2 freeze).
+            // Repair #18 hunt-fix B-03: a call surface renders ONLY
+            // behind a real created call. A failed createCall shows
+            // the failure as a failure — the old catch painted the
+            // same ringing surface as success. A contact with no real
+            // user id behind it gets the honest gate, never a stage.
             const liveId = person.id;
             const looksUuid =
               typeof liveId === "string" &&
@@ -11021,6 +11181,7 @@ export function OpalApp() {
                 try {
                   const { createCall } = await import("./api/productClient");
                   const res = await createCall(liveId, session.access_token);
+                  setNewCallOpen(false);
                   setCallSurface({
                     kind: "audio",
                     direction: "outgoing",
@@ -11032,31 +11193,24 @@ export function OpalApp() {
                     liveCalleeUserId: res.call.callee_user_id,
                   });
                 } catch {
-                  setCallSurface({
-                    kind: "audio",
-                    direction: "outgoing",
-                    peerName: person.name,
-                    peerAvatarSrc: person.avatarSrc,
-                  });
+                  setCallsGateNote(
+                    `Couldn't start that call with ${person.name}. Check your connection and try again.`,
+                  );
                 }
               })();
               return;
             }
-            setCallSurface({
-              kind: "audio",
-              direction: "outgoing",
-              peerName: person.name,
-              peerAvatarSrc: person.avatarSrc,
-            });
+            setCallsGateNote(
+              "Calls aren't available for this contact yet. Open their chat to reach them.",
+            );
           }}
           onCallGroup={(group: NewCallGroup) => {
-            setCallSurface({
-              kind: "group",
-              direction: "outgoing",
-              peerName: group.name,
-              isGroup: true,
-              memberCount: group.memberCount,
-            });
+            // Repair #18 hunt-fix B-03: group calls have no backend
+            // create path on this build — gate honestly (the same
+            // standard as Contact Profile's Call button) instead of
+            // painting a group stage with no call behind it.
+            void group;
+            setCallsGateNote("Group calls aren't available on this build yet.");
           }}
           onOpenPersonContinuity={(person: NewCallPerson) => {
             setNewCallOpen(false);
@@ -11069,14 +11223,16 @@ export function OpalApp() {
               meta: "Direct connection · calls",
               avatarSrc: person.avatarSrc,
               avatarTone: person.avatarTone,
-              hasStory: /chanelle/i.test(person.name),
-              signalEyebrow: "CURRENT SIGNAL",
-              signalLabel: /chanelle/i.test(person.name)
-                ? "Saturday · 7:30 PM · Juniper & Ivy"
-                : undefined,
-              signalGraphId: /chanelle/i.test(person.name)
-                ? "seed-chanelle-juniper"
-                : undefined,
+              // Repair #18 hunt-fix B-02: the residual /chanelle/i
+              // name test is removed — a story ring renders only from
+              // a real story record, and this path carries none.
+              hasStory: false,
+              // Repair #18 FALSE-fix F-05: no name-keyed canned signal.
+              // A continuity signal renders only when a real plan
+              // projection supplies it; this path has none, so none is set.
+              signalEyebrow: undefined,
+              signalLabel: undefined,
+              signalGraphId: undefined,
               conversationId: peer?.conversationId || null,
               peerUserId: peer?.peerUserId || null,
             });
@@ -11088,9 +11244,13 @@ export function OpalApp() {
               name: group.name,
               meta: `${group.memberCount} people · group calls`,
               avatarTone: group.avatarTone,
-              signalEyebrow: "SHARED SIGNAL",
-              signalLabel: "3 of 4 aligned · Saturday 7:30",
-              signalGraphId: "seed-chanelle-juniper",
+              memberCount: group.memberCount,
+              // Repair #18 FALSE-fix F-05: the unconditional canned
+              // alignment signal + seed graph id are removed - a signal
+              // comes from the group's real plan projection or none renders.
+              signalEyebrow: undefined,
+              signalLabel: undefined,
+              signalGraphId: undefined,
               // Repair #17: no seed id minting — Message resolves the
               // group through the real resolver (exact-name / new-chat).
               conversationId: null,
@@ -11110,31 +11270,83 @@ export function OpalApp() {
           signalEyebrow={callContinuity.signalEyebrow}
           signalLabel={callContinuity.signalLabel}
           signalGraphId={callContinuity.signalGraphId}
-          recent={
-            callContinuity.kind === "group"
-              ? defaultGroupRecent()
-              : defaultPersonRecent()
-          }
+          recent={recentCallsForContinuity({
+            peerUserId: callContinuity.peerUserId,
+            conversationId: callContinuity.conversationId,
+            name: callContinuity.name,
+          })}
           onBack={() => setCallContinuity(null)}
           onCall={() => {
-            setCallSurface({
-              kind: callContinuity.kind === "group" ? "group" : "audio",
-              direction: "outgoing",
-              peerName: callContinuity.name,
-              isGroup: callContinuity.kind === "group",
-              peerAvatarSrc: callContinuity.avatarSrc,
-              memberCount: callContinuity.kind === "group" ? 4 : undefined,
-            });
+            // Repair #18 hunt-fix B-04: Continuity Call/Video create a
+            // REAL call first (person path) or gate honestly — they
+            // never paint a stage with no call behind it. Group calls
+            // have no backend create path on this build.
+            if (callContinuity.kind === "group") {
+              setCallsGateNote("Group calls aren't available on this build yet.");
+              return;
+            }
+            const peerId = callContinuity.peerUserId;
+            if (!peerId || !session?.access_token) {
+              setCallsGateNote(
+                "Calls aren't available for this contact yet. Open their chat to reach them.",
+              );
+              return;
+            }
+            void (async () => {
+              try {
+                const { createCall } = await import("./api/productClient");
+                const res = await createCall(peerId, session.access_token);
+                setCallContinuity(null);
+                setCallSurface({
+                  kind: "audio",
+                  direction: "outgoing",
+                  peerName: callContinuity.name,
+                  peerAvatarSrc: callContinuity.avatarSrc,
+                  liveCallId: res.call.id,
+                  liveCallStatus: res.call.status,
+                  liveCallerUserId: res.call.caller_user_id,
+                  liveCalleeUserId: res.call.callee_user_id,
+                });
+              } catch {
+                setCallsGateNote(
+                  `Couldn't start that call with ${callContinuity.name}. Check your connection and try again.`,
+                );
+              }
+            })();
           }}
           onVideo={() => {
-            setCallSurface({
-              kind: callContinuity.kind === "group" ? "group" : "video",
-              direction: "outgoing",
-              peerName: callContinuity.name,
-              isGroup: callContinuity.kind === "group",
-              peerAvatarSrc: callContinuity.avatarSrc,
-              memberCount: callContinuity.kind === "group" ? 4 : undefined,
-            });
+            if (callContinuity.kind === "group") {
+              setCallsGateNote("Group calls aren't available on this build yet.");
+              return;
+            }
+            const peerId = callContinuity.peerUserId;
+            if (!peerId || !session?.access_token) {
+              setCallsGateNote(
+                "Calls aren't available for this contact yet. Open their chat to reach them.",
+              );
+              return;
+            }
+            void (async () => {
+              try {
+                const { createCall } = await import("./api/productClient");
+                const res = await createCall(peerId, session.access_token);
+                setCallContinuity(null);
+                setCallSurface({
+                  kind: "video",
+                  direction: "outgoing",
+                  peerName: callContinuity.name,
+                  peerAvatarSrc: callContinuity.avatarSrc,
+                  liveCallId: res.call.id,
+                  liveCallStatus: res.call.status,
+                  liveCallerUserId: res.call.caller_user_id,
+                  liveCalleeUserId: res.call.callee_user_id,
+                });
+              } catch {
+                setCallsGateNote(
+                  `Couldn't start that call with ${callContinuity.name}. Check your connection and try again.`,
+                );
+              }
+            })();
           }}
           onChat={() => {
             const target: PersonChatTarget = {

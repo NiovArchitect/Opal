@@ -186,6 +186,18 @@ defmodule OpalCore.ConsentAiTest do
                trace_id: "trace-unavail-0000001"
              })
 
+    # HA-09 (Repair #18 hunt-fix): :unavailable is retryable and the
+    # worker declares max_attempts 3 — the first failure now honestly
+    # re-queues instead of terminally failing on attempt 1 (the old
+    # assertion pinned the discarded-retry behavior). Drive the
+    # remaining Oban attempts the way the real queue would.
+    assert job.status == "queued"
+    assert job.error_code == "service_unavailable"
+
+    assert {:error, {:retryable_failure, _}} =
+             AI.process_job(job, oban_attempt: 2, oban_max_attempts: 3)
+
+    assert {:ok, job} = AI.process_job(job, oban_attempt: 3, oban_max_attempts: 3)
     assert job.status == "failed"
     assert job.error_code == "service_unavailable"
     reloaded = Messages.get_message!(msg.id)
@@ -207,6 +219,16 @@ defmodule OpalCore.ConsentAiTest do
                trace_id: "trace-timeout-0000001"
              })
 
+    # HA-09: same retry-honoring as the :unavailable case above —
+    # :timeout is retryable, so attempt 1 re-queues; the terminal
+    # "failed" lands only when the declared attempts are spent.
+    assert job.status == "queued"
+    assert job.error_code == "timeout"
+
+    assert {:error, {:retryable_failure, _}} =
+             AI.process_job(job, oban_attempt: 2, oban_max_attempts: 3)
+
+    assert {:ok, job} = AI.process_job(job, oban_attempt: 3, oban_max_attempts: 3)
     assert job.status == "failed"
     assert job.error_code == "timeout"
   end

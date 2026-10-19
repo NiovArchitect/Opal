@@ -37,6 +37,10 @@ const listPeople = vi.fn();
 const listRelationships = vi.fn();
 const getCheckinForSource = vi.fn();
 const getCheckin = vi.fn();
+// Hunt-fix B-12: plan-load failures now surface as an error state
+// instead of an empty deck, so this suite mocks a successful (empty)
+// plans read — the deck it exercises is the loaded one.
+const listOpalPlans = vi.fn(async () => ({ plans: [] }));
 
 vi.mock("../../api/productClient", async () => {
   const actual = await vi.importActual<typeof import("../../api/productClient")>(
@@ -54,6 +58,7 @@ vi.mock("../../api/productClient", async () => {
     listRelationships: (...a: unknown[]) => listRelationships(...a),
     getCheckinForSource: (...a: unknown[]) => getCheckinForSource(...a),
     getCheckin: (...a: unknown[]) => getCheckin(...a),
+    listOpalPlans: (...a: unknown[]) => listOpalPlans(...a),
   };
 });
 
@@ -79,7 +84,7 @@ vi.mock("../../care/careClient", async () => {
 });
 
 import { C2Shell } from "./C2Shell";
-import { CenterHost, ChatsHost, planProjectionFromContract } from "./C1ShellHosts";
+import { CenterHost, ChatsHost, conversationPreviewLabel, planProjectionFromContract } from "./C1ShellHosts";
 import { CareDestination } from "./CareDestination";
 import { C2GraphDetail } from "./C2Graphs";
 import { saveProfile, type OpalPlanContract } from "../../api/productClient";
@@ -168,6 +173,29 @@ beforeEach(() => {
   getCheckin.mockResolvedValue({ checkin: null });
   listRelationships.mockResolvedValue({ relationships: [], contacts: [], allowed_types: [] });
   listPeople.mockResolvedValue({ connected: [], outgoing: [], incoming: [] });
+});
+
+describe("conversationPreviewLabel (harmony-0 finding ii: no raw call:<id> preview)", () => {
+  it("resolves a call preview from the conversation's own peer name", () => {
+    expect(
+      conversationPreviewLabel({
+        title: "Maya",
+        preview: "call:07391047-6835-432f-9ab7-2feb9de5ec69",
+        peers: [{ display_name: "Maya" }],
+      }),
+    ).toBe("Call with Maya");
+  });
+  it("falls back to the conversation title, then to plain Call", () => {
+    expect(conversationPreviewLabel({ title: "Jordan", preview: "call:abc", peers: [] })).toBe(
+      "Call with Jordan",
+    );
+    expect(conversationPreviewLabel({ title: "", preview: "call:abc", peers: [] })).toBe("Call");
+  });
+  it("passes every non-call preview through untouched", () => {
+    expect(conversationPreviewLabel({ title: "Maya", preview: "Perfect, see you there.", peers: [] })).toBe(
+      "Perfect, see you there.",
+    );
+  });
 });
 
 describe("plan contract -> C1 projection adapter", () => {

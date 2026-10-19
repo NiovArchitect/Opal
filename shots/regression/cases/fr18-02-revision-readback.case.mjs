@@ -40,6 +40,25 @@
  * pair when the suite can provision one (local/dev synthetic mode),
  * or waits out the retry window on the walk sessions.
  *
+ * Isolation repair (Repair #18 casefix): on the local synthetic suite
+ * the A-B direct thread is a SHARED fixture - the find-or-create below
+ * bound to a foreign case's agreed plan on that thread ("RaceAccept
+ * ...", already reading 8:00 PM), so the case read another scenario's
+ * settled state as its own (apifix standing verdict: CASE DEFECT,
+ * suite-context premise). The case now provisions its OWN pair of
+ * synthetic accounts (+12025550109 / +12025550110, plus a silent third
+ * +12025550111 so the thread is a real group, exactly the isolation
+ * shape FR-12-02 / FR-12-04 / FR-13-01 use) and creates its plan and
+ * revision entirely inside a fresh group thread of that pair - no
+ * other case provisions these numbers, and each run's group is new,
+ * so no foreign state can bind. The plan is additionally bound by
+ * id-set difference (the plan born from THIS flow), never by
+ * first-match alone. On stacks where synthetic provisioning is not
+ * available (the minted walk sessions) the case keeps its original
+ * shape and runs on the walk pair it was written for. The contract
+ * assertions are unchanged - isolation changes the fixture, never
+ * the standard.
+ *
  * Expected on the R17 tip: FAIL - the R17 flow is proven only through
  * module calls on a harness plan; the real thread path runs through
  * the alignment fold, and the stored-alignment projection, the frozen
@@ -80,22 +99,61 @@ export default {
     // The full flow, parameterized by the session pair so it can re-run
     // on fresh accounts after a throttled first attempt. Returns true
     // when the proposer's change message was accepted (201).
-    async function flow(P, C, peerIdOfC, label) {
-      const direct = await h.ensureDirect(P, peerIdOfC);
-      assert.check(
-        "POST /conversations/direct",
-        !!direct.conversationId,
-        `${label}: a direct conversation between the two parties is required`,
-      );
-      const convId = direct.conversationId;
+    async function flow(P, C, peerIdOfC, label, third = null) {
+      // Thread acquisition: with a silent third member the pair gets a
+      // REAL group thread of its own (a two-member "group" is refused
+      // and would fall back to a shared direct thread - the original
+      // contamination). Without a third (walk sessions), the pair's
+      // direct thread is used, as before.
+      let convId = null;
+      if (third?.session?.userId) {
+        const g = await h.createGroup(
+          P,
+          [peerIdOfC, third.session.userId],
+          ctx.marker("revision readback"),
+        );
+        convId = g.conversationId || null;
+        if (convId) {
+          assert.note(`${label}: isolated group thread ${convId} (third member silent)`);
+        }
+      }
+      if (!convId) {
+        const direct = await h.ensureDirect(P, peerIdOfC);
+        assert.check(
+          "POST /conversations/direct",
+          !!direct.conversationId,
+          `${label}: a direct conversation between the two parties is required`,
+        );
+        convId = direct.conversationId;
+      }
 
-      await h.postHumanMessage(P, convId, "Let's do dinner at Juniper and Ivy on Thursday at 7:30 PM");
-      await h.postHumanMessage(C, convId, "Sounds good, 7:30 works for me");
+      // Plans that already exist for the proposer BEFORE this flow's
+      // formation messages: the plan under test is the one born from
+      // this flow (id-set difference), never a first-match that some
+      // earlier state left on a reused thread.
+      const priorPlanIds = new Set((await h.listPlans(P)).plans.map((p) => p.id));
+
+      // Formation: the CONFIRMER originates the plan and the proposer
+      // seconds it. Speaker order is load-bearing setup, probed live
+      // in this repair: when the proposer originates/creates the plan,
+      // their later spoken change is applied as the creator's direct
+      // edit of a still-tentative plan (no pending change forms, the
+      // listing moves before any confirm) - the two-party revision
+      // law this case guards only engages when the plan originates
+      // from the other party, which is also the walk pair's shape
+      // (the seeded plan predates the proposer's change).
+      await h.postHumanMessage(C, convId, "Let's do dinner at Juniper and Ivy on Thursday at 7:30 PM");
+      await h.postHumanMessage(P, convId, "Sounds good, 7:30 works for me");
 
       let plans = await h.listPlans(P);
-      let plan = plans.plans.find((p) => p.conversation_id === convId);
+      let plan =
+        plans.plans.find((p) => p.conversation_id === convId && !priorPlanIds.has(p.id)) ||
+        plans.plans.find((p) => p.conversation_id === convId);
       if (!plan) {
-        const created = await h.createConversationPlan(P, convId, {
+        // Created by the confirmer, for the same originator reason as
+        // the formation messages above: the plan under test must not
+        // be the proposer's own creation.
+        const created = await h.createConversationPlan(C, convId, {
           title: "Juniper and Ivy",
           option_label: "Juniper and Ivy",
           place: "Juniper and Ivy",
@@ -289,17 +347,31 @@ export default {
       return true;
     }
 
-    // Primary pair: the suite's two sessions (on staging, the walk pair).
-    const done = await flow(A, B, ctx.sessions.b.userId, "walk pair");
+    // Primary pair: the case's OWN provisioned pair when the suite can
+    // provision synthetic accounts (local/dev) - dedicated numbers no
+    // other case uses, so its thread, plan and revision are isolated
+    // by construction. Where synthetic provisioning is unavailable
+    // (minted walk sessions on staging), the primary pair is the
+    // suite's two sessions - the walk pair this case was written for.
+    const ownP = await ctx.freshClient("+12025550109", "Regression Revision Proposer");
+    const ownC = await ctx.freshClient("+12025550110", "Regression Revision Confirmer");
+    const ownThird = await ctx.freshClient("+12025550111", "Regression Revision Third");
+    const primary =
+      ownP && ownC
+        ? { P: ownP, C: ownC, peer: ownC.session.userId, third: ownThird, label: "own pair" }
+        : { P: A, C: B, peer: ctx.sessions.b.userId, third: null, label: "walk pair" };
+    const done = await flow(primary.P, primary.C, primary.peer, primary.label, primary.third);
     if (done) return;
 
-    // Throttled on the primary pair: re-run on fresh accounts when the
-    // suite can provision them (local/dev synthetic mode).
-    const C = await ctx.freshClient("+12025550105", "Regression C");
-    const D = await ctx.freshClient("+12025550106", "Regression D");
+    // Throttled on the primary pair: re-run on a second dedicated
+    // account pair when the suite can provision them (local/dev
+    // synthetic mode) - never on the shared suite pair or pool.
+    const C = await ctx.freshClient("+12025550112", "Regression Revision Fallback C");
+    const D = await ctx.freshClient("+12025550113", "Regression Revision Fallback D");
+    const fallbackThird = await ctx.freshClient("+12025550114", "Regression Revision Fallback Third");
     if (C && D) {
       assert.note("re-running the flow on a fresh account pair (seed/throttle isolation)");
-      const doneFresh = await flow(C, D, D.session.userId, "fresh pair");
+      const doneFresh = await flow(C, D, D.session.userId, "fresh pair", fallbackThird);
       assert.check(
         "fresh pair flow",
         doneFresh,
@@ -311,7 +383,7 @@ export default {
     // No fresh pair available: wait out the retry window once and retry.
     assert.note("no fresh pair available; waiting 65s for the throttle window and retrying once");
     await sleep(65000);
-    const retried = await flow(A, B, ctx.sessions.b.userId, "walk pair retry");
+    const retried = await flow(primary.P, primary.C, primary.peer, "walk pair retry", primary.third);
     assert.check(
       "walk pair retry",
       retried,

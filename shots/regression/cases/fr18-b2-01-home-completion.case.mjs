@@ -28,16 +28,27 @@ export default {
     if (!B) throw Object.assign(new Error("harness: B2-S1 needs two distinct sessions (A and B)"), { harness: true });
 
     // -- Create: virtual dinner with explicit food signal, via Center ----
+    // Flow repair (Repair #18 apifix): plan creation through Center is
+    // a TWO-turn flow by design - the first turn proposes and asks
+    // ("Want me to set this up with that link?"), the plan is born on
+    // the confirm turn. The case used to send only the first turn and
+    // then read the freshest virtual plan in the listing, which was
+    // some stale plan from an earlier case (no completion key, wrong
+    // participants). The confirm turn is now sent, and the target is
+    // the plan THIS flow created (id set difference), never a stale
+    // listing head. All assertions below are unchanged.
+    const beforeIds = new Set((await h.listPlans(A)).plans.map((p) => p.id));
     await h.centerNewChat(A);
     const created = await h.centerSend(
       A,
       `Virtual dinner with ${B.session.name || "Maya"} this Friday at 7 - Zoom, and let us all order in from the same place ${ctx.tag}`,
     );
     assert.check("Center create", created.status === 200 || created.status === 201, `center send must answer (got ${created.status})`);
+    const confirmed = await h.centerSend(A, "yes, set it up");
+    assert.check("Center create (confirm turn)", confirmed.status === 200 || confirmed.status === 201, `center confirm must answer (got ${confirmed.status})`);
 
     const plans = await h.listPlans(A);
-    // Newest virtual plan owned by A (listing is freshest-first).
-    const mine = plans.plans.filter((p) => p.plan_type === "virtual");
+    const mine = plans.plans.filter((p) => p.plan_type === "virtual" && !beforeIds.has(p.id));
     const target = mine[0];
     assert.check("GET /opal/plans", !!target, "a virtual plan must exist after the virtual-dinner create");
     if (!target) return;

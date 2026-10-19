@@ -35,6 +35,24 @@ export function buildShellFlag(): string {
 export function isC2ShellEnabled(
   search: string = typeof window !== "undefined" ? window.location.search : "",
 ): boolean {
+  // Repair #18 STEP 0 (founder visible-proof tranche): the explicit
+  // ?shell=r17 QA/walk override must win over the served build flag -
+  // checked first, it was unreachable whenever the build set shell=c2,
+  // which made the R17 shell (and its ChatsHome call log) unreachable
+  // in the served app. The override branch below is unchanged.
+  try {
+    const q = new URLSearchParams(search);
+    if (q.get("shell") === "r17") {
+      try {
+        localStorage.removeItem(C2_SHELL_STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
+      return false;
+    }
+  } catch {
+    /* ignore */
+  }
   if (buildShellFlag() === "c2") return true;
   try {
     const q = new URLSearchParams(search);

@@ -35,6 +35,32 @@ const SYNTHETIC_CODES = {
   "+12025550106": "666666",
   "+12025550107": "777777",
   "+12025550108": "888888",
+  // Case-dedicated numbers (FR-18-02-revision isolation repair): no
+  // other case provisions these, so their accounts, threads and plans
+  // are private to that case. They are not backend fixture numbers;
+  // the backend synthetic adapter assigns the generic fallback code
+  // "000000" to non-fixture numbers (synthetic_adapter.ex), which is
+  // the code the challenge digest stores for them.
+  "+12025550109": "000000",
+  "+12025550110": "000000",
+  "+12025550111": "000000",
+  "+12025550112": "000000",
+  "+12025550113": "000000",
+  "+12025550114": "000000",
+  // Case-dedicated numbers (FR-18-DIR1-01 / FR-18-DIR1-02 isolation
+  // repair): no other case provisions these, so their accounts,
+  // threads and plans are private to the DIR-1 cases. Same generic
+  // fallback code "000000" as the FR-18-02-revision block above.
+  // DIR1-01: lead / invited / silent third.
+  "+12025550115": "000000",
+  "+12025550116": "000000",
+  "+12025550117": "000000",
+  // DIR1-02: A / B / C / silent A-B third / silent A-C third.
+  "+12025550118": "000000",
+  "+12025550119": "000000",
+  "+12025550120": "000000",
+  "+12025550121": "000000",
+  "+12025550122": "000000",
 };
 
 export function loadConfig(env = process.env) {

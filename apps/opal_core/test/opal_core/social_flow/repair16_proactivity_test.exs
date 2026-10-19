@@ -804,7 +804,12 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
 
   describe "P5 celebration preparation" do
     defp celebration_in(owner, person, days) do
-      date = Date.add(Date.utc_today(), days)
+      # Seed from the governed clock (SocialFlow.Clock), not the wall
+      # clock: CelebrationCuration computes days_until from Clock, so a
+      # wall-clock seed shifts every band whenever a pinned run's date
+      # differs from the run date (found by the R18 pinned battery,
+      # 2026-10-18: Oct-17 pins against an Oct-18 wall clock).
+      date = Date.add(OpalCore.SocialFlow.Clock.utc_now() |> DateTime.to_date(), days)
 
       {:ok, c} =
         Celebrations.create(owner.id, %{

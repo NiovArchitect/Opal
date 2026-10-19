@@ -28,10 +28,17 @@ export type CallsGraphingDerived = {
   graphCardId?: string;
 };
 
+import type { NextPlanFact } from "../api/productClient";
+
 export type CallsContinuityRow = {
   id: string;
   name: string;
   kind: "person" | "group";
+  /** DIR-1: the backend's shared upcoming plan fact for this peer
+   *  (real call rows only - seed rows never carry one). */
+  nextPlan?: NextPlanFact | null;
+  /** DIR-1: the peer's stable entity tint. */
+  entityTint?: number | null;
   /** Call metadata only — always shown */
   metadata: string;
   /** Missed inbound / missed group — for Missed filter */

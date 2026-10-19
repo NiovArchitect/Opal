@@ -136,6 +136,23 @@ defmodule OpalCoreWeb.Router do
     # Google browser redirect is GET ?code=&state= — callback MUST accept GET
     # (default redirect_uri is connectors/.../callback). Cookie auth covers
     # same-origin return; POST remains for FE code-exchange.
+    get("/settings/connections", ConnectorController, :settings_connections)
+    post("/support/reports", SupportController, :create_report)
+    get("/support/reports/:reference", SupportController, :show_report)
+    # Adoption wave 2 (4.C6): support-path deletion - identical
+    # AccountDeletion semantics to the self-serve route below.
+    post("/support/account-deletion", SupportController, :account_deletion)
+
+    # Adoption wave 2 - account/settings cluster (4.C2/4.C3/SF-A/4.C6)
+    get("/settings/devices", SettingsAccountController, :devices_index)
+    post("/settings/devices/:id/revoke", SettingsAccountController, :devices_revoke)
+    get("/settings/saved-logins", SettingsAccountController, :saved_logins_index)
+    post("/settings/saved-logins", SettingsAccountController, :saved_logins_create)
+    delete("/settings/saved-logins/:id", SettingsAccountController, :saved_logins_delete)
+    get("/settings/activity", SettingsAccountController, :activity_index)
+    get("/settings/hears", SettingsAccountController, :hears_index)
+    post("/settings/hears/retry", SettingsAccountController, :hears_retry)
+    post("/settings/delete", SettingsAccountController, :delete_execute)
     get("/connectors", ConnectorController, :index)
     get("/connectors/google_calendar", ConnectorController, :google_status)
     post("/connectors/google_calendar/start", ConnectorController, :google_start)
@@ -165,29 +182,72 @@ defmodule OpalCoreWeb.Router do
       FounderSeedController,
       :ensure_communication
     )
+
     post(
       "/dev/founder-graph-commitment-seed",
       FounderSeedController,
       :ensure_graph_commitment
     )
+
     get("/conversations/:id/messages", ConversationController, :messages)
     post("/conversations/:id/messages", ConversationController, :create_message)
     post("/presence/heartbeat", PresenceController, :heartbeat)
     post("/conversations/:id/voice_messages", ConversationController, :create_voice_message)
+    post("/conversations/:id/voice_notes", ConversationController, :create_voice_note)
+
+    patch(
+      "/conversations/:id/voice_notes/:message_id/transcript",
+      ConversationController,
+      :correct_voice_note_transcript
+    )
+
     # Phase 11A — tentative SharedPlan from curated conversation option
     post("/conversations/:id/plans", ConversationController, :create_plan)
     get("/conversations/:id/alignment", ConversationController, :alignment)
     get("/conversations/:id/outcomes", ConversationController, :outcomes)
     post("/conversations/:id/alignment/confirm", ConversationController, :confirm_alignment)
     post("/conversations/:id/alignment/activity", ConversationController, :set_alignment_activity)
-    post("/conversations/:id/alignment/place/confirm", ConversationController, :confirm_alignment_place)
-    post("/conversations/:id/alignment/place/decline", ConversationController, :decline_alignment_place)
-    post("/conversations/:id/alignment/place/reopen", ConversationController, :reopen_alignment_place)
+
+    post(
+      "/conversations/:id/alignment/place/confirm",
+      ConversationController,
+      :confirm_alignment_place
+    )
+
+    post(
+      "/conversations/:id/alignment/place/decline",
+      ConversationController,
+      :decline_alignment_place
+    )
+
+    post(
+      "/conversations/:id/alignment/place/reopen",
+      ConversationController,
+      :reopen_alignment_place
+    )
+
     post("/conversations/:id/alignment/place", ConversationController, :nominate_alignment_place)
-    post("/conversations/:id/alignment/reservation/authorize", ConversationController, :authorize_alignment_reservation)
-    post("/conversations/:id/alignment/change/accept", ConversationController, :accept_alignment_change)
+
+    post(
+      "/conversations/:id/alignment/reservation/authorize",
+      ConversationController,
+      :authorize_alignment_reservation
+    )
+
+    post(
+      "/conversations/:id/alignment/change/accept",
+      ConversationController,
+      :accept_alignment_change
+    )
+
     post("/conversations/:id/alignment/change/keep", ConversationController, :keep_alignment_plan)
-    post("/conversations/:id/alignment/change/datetime", ConversationController, :propose_alignment_datetime)
+
+    post(
+      "/conversations/:id/alignment/change/datetime",
+      ConversationController,
+      :propose_alignment_datetime
+    )
+
     post("/conversations/:id/alignment/change", ConversationController, :propose_alignment_change)
     post("/conversations/:id/members", ConversationController, :add_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
@@ -232,6 +292,10 @@ defmodule OpalCoreWeb.Router do
     post("/attention/ingest", AttentionCenterController, :ingest)
     post("/attention/resolve", AttentionCenterController, :resolve)
     post("/attention/seen", AttentionCenterController, :seen)
+
+    # Repair #18 DIR-4 - proactive reveal presentation (one derivation)
+    get("/reveals", RevealController, :index)
+    post("/reveals/dismiss", RevealController, :dismiss)
 
     # Phase X — timezone-only travel ingest (GPS rejected server-side)
     post("/travel/ingest", TravelController, :ingest)
@@ -295,6 +359,8 @@ defmodule OpalCoreWeb.Router do
     post("/trips/:id/blocks/:block_id/activities", TripController, :add_activity)
     put("/trips/:id/activities/:activity_id/response", TripController, :set_activity_response)
     get("/trips/:id/vibe_profiles", TripController, :vibe_profiles)
+    # F-12: fixture seed — gated in the controller on the founder-seed
+    # flag (dev/test); not a product action, no client wiring ships.
     post("/trips/:id/seed_mexico_city_canvas", TripController, :seed_mexico_city_canvas)
 
     # Phase 1D — act-on-behalf consent management (grant/revoke/list)
@@ -306,34 +372,59 @@ defmodule OpalCoreWeb.Router do
     get("/memory/facts", MemoryController, :index_facts)
     delete("/memory/facts/:id", MemoryController, :delete_fact)
 
+    # Repair #18 SM scoped build — Soul + Memory wallet (W-GAP-01/02/31):
+    # the wallet record, the soul over the real assistance-preference
+    # truth, and capsules through the one mediated facade.
+    get("/memory-wallet", SoulMemoryController, :show)
+    patch("/memory-wallet/soul", SoulMemoryController, :update_soul)
+    post("/memory-wallet/capsules", SoulMemoryController, :create_capsule)
+    delete("/memory-wallet/capsules/:id", SoulMemoryController, :forget_capsule)
+
     # Paste F — intelligence product surfaces (person memory / mediation / briefings)
     post(
       "/intelligence/onboarding/copy",
       IntelligenceProductController,
       :onboarding_copy
     )
+
     get("/intelligence/people/:person_id/memory", IntelligenceProductController, :person_memory)
-    patch("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :patch_fact)
-    delete("/intelligence/people/:person_id/facts/:key", IntelligenceProductController, :delete_fact)
+
+    patch(
+      "/intelligence/people/:person_id/facts/:key",
+      IntelligenceProductController,
+      :patch_fact
+    )
+
+    delete(
+      "/intelligence/people/:person_id/facts/:key",
+      IntelligenceProductController,
+      :delete_fact
+    )
+
     post(
       "/intelligence/people/:person_id/facts/:key/confirm",
       IntelligenceProductController,
       :confirm_fact
     )
+
     get("/intelligence/mediation", IntelligenceProductController, :list_mediation)
     get("/intelligence/mediation/:id", IntelligenceProductController, :show_mediation)
+
     get(
       "/intelligence/groups/:conversation_id/mediation",
       IntelligenceProductController,
       :show_group_mediation
     )
+
     post("/intelligence/mediation/:id/send", IntelligenceProductController, :send_mediation)
     post("/intelligence/mediation/:id/dismiss", IntelligenceProductController, :dismiss_mediation)
+
     post(
       "/intelligence/mediation/:id/create_plan",
       IntelligenceProductController,
       :create_plan_mediation
     )
+
     get("/intelligence/briefings", IntelligenceProductController, :list_briefings)
     get("/intelligence/briefings/:id", IntelligenceProductController, :show_briefing)
     post("/intelligence/briefings/:id/dismiss", IntelligenceProductController, :dismiss_briefing)
@@ -426,7 +517,11 @@ defmodule OpalCoreWeb.Router do
       :complete_check_in
     )
 
-    post("/care-rotations/:id/check-ins/:occurrence_key/pass", CareRotationController, :pass_check_in)
+    post(
+      "/care-rotations/:id/check-ins/:occurrence_key/pass",
+      CareRotationController,
+      :pass_check_in
+    )
 
     # Repair #18 Division B (B5) — household pod + planning contexts
     get("/households", HouseholdController, :index)
@@ -445,14 +540,20 @@ defmodule OpalCoreWeb.Router do
 
     # Paste G Phase 9 — shareable plan/trip HTML artifacts
     post("/artifacts", ArtifactController, :create)
+    get("/artifacts", ArtifactController, :index)
+    delete("/artifacts/:id", ArtifactController, :delete)
 
     # Paste G Phase 10 — cloud TTS voice notes + listen honesty
     post("/voice/speak", VoiceController, :speak)
     get("/voice/listen", VoiceController, :listen)
+    get("/voice/status", VoiceController, :status)
 
     # Phase NE-1 — invite friends to join Opal
     get("/invites", ProductInviteController, :index)
     post("/invites", ProductInviteController, :create)
+    # Adoption wave 2 (4.C4): personal invite codes + redemption.
+    get("/invites/personal-code", ProductInviteController, :personal_code)
+    post("/invites/redeem", ProductInviteController, :redeem_personal)
     post("/invites/:code/join", ProductInviteController, :join)
 
     # Phase OC-1 — Opal Center conversational shell (one conversation per user)
@@ -473,9 +574,31 @@ defmodule OpalCoreWeb.Router do
     # Repair #18 (Walk #4, W4-04) - edit one plan's title / core details
     # (lead-only, through the PlanTransition :edit gate).
     patch("/opal/plans/:id", OpalConversationController, :edit_plan)
+    # Repair #18 fix wave - cancel one plan (lead/co_lead, creator
+    # fallback, through the PlanTransition :cancel gate). This is the
+    # HTTP route the C2 shell's "Drop it" intent was built against;
+    # until now cancellation existed only at the gate / in Center chat.
+    post("/opal/plans/:id/cancel", OpalConversationController, :cancel_plan)
     # Repair #16 (W1) — durable GraphCreateFlow completion (non-post graph
     # drafts) through the same SharedPlan authority as Center plans.
     post("/opal/plans/graph-create", OpalConversationController, :create_graph_plan)
+
+    # Repair #18 adoption wave 1 - graph/people cluster (ST-A intentions,
+    # ST-B ideas shelf, ST-G plan history, 4.C10 goals, 4.C1 holding).
+    # Every action renders the one GraphPeople / PlanHistory projection.
+    get("/graph/intentions", GraphPeopleController, :list_intentions)
+    post("/graph/intentions", GraphPeopleController, :create_intention)
+    delete("/graph/intentions/:id", GraphPeopleController, :delete_intention)
+    post("/graph/intentions/:id/surfaced", GraphPeopleController, :surfaced_intention)
+    get("/graph/goals", GraphPeopleController, :list_goals)
+    post("/graph/goals", GraphPeopleController, :create_goal)
+    delete("/graph/goals/:id", GraphPeopleController, :delete_goal)
+    post("/graph/goals/:id/link", GraphPeopleController, :link_goal)
+    post("/graph/goals/:id/unlink", GraphPeopleController, :unlink_goal)
+    get("/graph/shelf", GraphPeopleController, :shelf)
+    post("/graph/shelf/:plan_id/promote", GraphPeopleController, :promote_spark)
+    get("/opal/plans/:id/history", GraphPeopleController, :plan_history)
+    get("/opal/holding", GraphPeopleController, :holding)
 
     # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
     # venue ranking / near-me. Separate from the travel-mode 422 privacy law.
@@ -485,6 +608,7 @@ defmodule OpalCoreWeb.Router do
     post("/social-moments/media", SocialMomentController, :upload_media)
     get("/social-moments/media/:media_id", SocialMomentController, :media)
     post("/social-moments/audience-preview", SocialMomentController, :audience_preview)
+    get("/social-moments/mine", SocialMomentController, :mine)
     get("/social-moments", SocialMomentController, :index)
     post("/social-moments", SocialMomentController, :create)
     get("/social-moments/:id", SocialMomentController, :show)

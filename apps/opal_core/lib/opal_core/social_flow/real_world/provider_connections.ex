@@ -143,6 +143,18 @@ defmodule OpalCore.SocialFlow.RealWorld.ProviderConnections do
     end
   end
 
+  @doc """
+  True when the stored connection row is a simulated (dev/test) one.
+  HA-01 (Repair #18 hunt-fix): provenance is part of the truth layer —
+  a simulated row must be visibly simulated in every status surface,
+  never indistinguishable from a real OAuth connection.
+  """
+  def simulated?(%ProviderConnection{} = row) do
+    (row.metadata || %{})["simulated"] == true
+  end
+
+  def simulated?(_), do: false
+
   def public_status(user_id, provider) do
     case get(user_id, provider) do
       nil ->
@@ -150,15 +162,25 @@ defmodule OpalCore.SocialFlow.RealWorld.ProviderConnections do
           "provider" => provider,
           "connected" => false,
           "status" => "not_connected",
+          "simulated" => false,
           "scopes" => [],
           "token_present" => false
         }
 
       row ->
+        simulated = simulated?(row)
+
         %{
           "provider" => row.provider,
           "connected" => row.status == "connected",
-          "status" => row.status,
+          # A simulated connection reads back as its own state, so no
+          # consumer can mistake test-access-token for a real grant.
+          "status" =>
+            if(simulated and row.status == "connected",
+              do: "connected_simulated",
+              else: row.status
+            ),
+          "simulated" => simulated,
           "scopes" => row.scopes || [],
           "token_present" => not is_nil(row.access_token_ciphertext),
           "last_synced_at" => row.last_synced_at && DateTime.to_iso8601(row.last_synced_at),

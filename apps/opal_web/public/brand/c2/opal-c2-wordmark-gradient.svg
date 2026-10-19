@@ -1,16 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 196 88" role="img" aria-label="Opal">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 88" role="img" aria-label="Opal">
 <title>Opal</title>
-<defs><linearGradient id="cur" x1="0" y1="0" x2="1" y2="0">
-<stop offset="0" stop-color="#2DD4BF"/><stop offset="0.25" stop-color="#818CF8"/>
-<stop offset="0.5" stop-color="#C084FC"/><stop offset="0.75" stop-color="#F0ABFC"/>
-<stop offset="1" stop-color="#FBBF24"/></linearGradient></defs>
+<defs><linearGradient id="cur" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="172" y2="0">
+<stop offset="0" stop-color="#2DD4BF"/><stop offset="0.25" stop-color="#818CF8"/><stop offset="0.5" stop-color="#C084FC"/><stop offset="0.75" stop-color="#F0ABFC"/><stop offset="1" stop-color="#FBBF24"/></linearGradient></defs>
 <g fill="none" stroke="url(#cur)" stroke-width="11" stroke-linecap="round">
-<path d="M 43.9 28.5 A 16 16 0 1 0 45.8 39.8"/>
-<path d="M 43.5 30.5 L 60 27.8"/>
-<path d="M 64 27 L 64 74"/>
-<circle cx="80" cy="42" r="16"/>
-<circle cx="124" cy="42" r="16"/>
-<path d="M 140 27 L 140 58"/>
-<path d="M 168 14 L 168 58"/>
+<path d="M40 37 H63"/>
+<circle cx="27" cy="43" r="15"/>
+<path d="M63 28 V81"/>
+<circle cx="78" cy="43" r="15"/>
+<circle cx="127" cy="43" r="15"/>
+<path d="M142 28 V58"/>
+<path d="M163 21 V58"/>
 </g>
 </svg>

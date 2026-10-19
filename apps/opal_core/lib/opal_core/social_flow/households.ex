@@ -31,6 +31,7 @@ defmodule OpalCore.SocialFlow.Households do
     Household,
     HouseholdMembership,
     PlanParticipant,
+    PlanTransition,
     SharedPlan
   }
 
@@ -339,6 +340,10 @@ defmodule OpalCore.SocialFlow.Households do
                 "household_id" => defaults && defaults["household_id"]
               })
           })
+          # HA-05 (Repair #18 hunt-fix): creation is a PlanTransition
+          # too — households plans are born tentative, via the gate
+          # (the trips.ex pattern), not by an unguarded insert.
+          |> PlanTransition.guard_changeset(:plan, :create)
           |> Repo.insert()
 
         Enum.each(participants, fn uid ->
@@ -512,6 +517,8 @@ defmodule OpalCore.SocialFlow.Households do
                   created_by_user_id: user_id,
                   alignment: %{"kind" => "pod_supply", "household_id" => pod.id}
                 })
+                # HA-05: born tentative via the PlanTransition gate.
+                |> PlanTransition.guard_changeset(:plan, :create)
                 |> Repo.insert()
 
               Enum.each(members, fn uid ->

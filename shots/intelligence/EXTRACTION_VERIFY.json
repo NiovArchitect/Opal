@@ -167,7 +167,7 @@
     "booking_request",
     "set_reminder"
   ],
-  "corpus_absolute": "/home/hatch/workspace/opal-graph/wt-repair18/shots/intelligence/extraction_corpus.json",
+  "corpus_absolute": "/home/hatch/workspace/opal-graph/wt-sm/shots/intelligence/extraction_corpus.json",
   "corpus_counts": {
     "adversarial": 10,
     "messy": 50

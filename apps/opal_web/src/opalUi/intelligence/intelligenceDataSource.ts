@@ -24,7 +24,10 @@
  *   1. in-memory test override
  *   2. ?opal_intel_real=1 | ?opal_intel_real=person_memory[,mediation]
  *   3. localStorage `opal.intelligence.data_source.v1` JSON
- *   4. ?opal_intel_mock=1 forces mock fallback for local demos
+ *   4. (Removed, hunt-fix B-08) ?opal_intel_mock=1 and stored mock/auto
+ *      overrides no longer exist in the shipping build — they painted
+ *      fixture facts for any person with no on-screen label. Mock
+ *      fallback survives only behind the test-only override.
  */
 
 export type IntelligenceSurface =
@@ -79,16 +82,6 @@ function readStorage(): StoredShape | null {
   return null;
 }
 
-function queryMockAll(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const raw = new URL(window.location.href).searchParams.get("opal_intel_mock");
-    return raw === "1" || raw === "true" || raw === "all";
-  } catch {
-    return false;
-  }
-}
-
 function queryRealSurfaces(): Set<IntelligenceSurface> | "all" | null {
   if (typeof window === "undefined") return null;
   try {
@@ -130,14 +123,19 @@ export function getIntelligenceDataSource(
     return testOverride[surface]!;
   }
 
-  if (queryMockAll()) return "mock";
-
+  // Repair #18 hunt-fix B-08: the ?opal_intel_mock=1 URL flag and any
+  // stored mock/auto override are REMOVED from the shipping build.
+  // They painted one person's fixture facts for any person and
+  // returned fake ok:true on send/dismiss/create, with no on-screen
+  // label anywhere. Mock fallback now exists only behind the
+  // test-only override above (unit tests), never from a link,
+  // bookmark, or a prior demo session's localStorage.
   const q = queryRealSurfaces();
   if (q === "all") return "real";
   if (q && q.has(surface)) return "real";
 
   const fromStore = modeFromStorage(surface, readStorage());
-  if (fromStore) return fromStore;
+  if (fromStore === "real") return "real";
 
   return DEFAULT_MODE;
 }

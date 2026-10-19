@@ -12,6 +12,10 @@ defmodule OpalCore.Accounts.User do
     # other people are told that this user saw a message.
     field :read_receipts_enabled, :boolean, default: true
     field :message_notifications_enabled, :boolean, default: true
+    # Repair #18 / audit A2 — Quiet master switch. Pausing never
+    # rewrites the per-kind switches, so unpausing restores them
+    # exactly; the notification gates consult this flag first.
+    field :notifications_paused, :boolean, default: false
     # nil = no choice yet. true/false is an explicit account default for future calls.
     field :assist_calls_enabled, :boolean
     # Phase D-1 — exclude this user from group taste learning aggregates.
@@ -22,6 +26,10 @@ defmodule OpalCore.Accounts.User do
     # Default false: no account receives an Opal-started thread until the
     # user enables this. `proactive_opt_out` still wins when both are set.
     field :proactive_threads_enabled, :boolean, default: false
+    # Adoption wave 2 (spec 4.C6): stamped when the account is closed
+    # and anonymized in place by AccountDeletion. Sessions are revoked
+    # at the same moment; authenticate/1 refuses a deleted account.
+    field :deleted_at, :utc_datetime_usec
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -34,6 +42,7 @@ defmodule OpalCore.Accounts.User do
       :display_name,
       :read_receipts_enabled,
       :message_notifications_enabled,
+      :notifications_paused,
       :assist_calls_enabled,
       :group_taste_opt_out,
       :proactive_opt_out,

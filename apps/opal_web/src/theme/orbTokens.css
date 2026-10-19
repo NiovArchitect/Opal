@@ -1,0 +1,119 @@
+/*
+ * Repair #18 - THE ORB SYSTEM - design tokens sampled from the
+ * founder's masters (communication-model.md section 8.1: DERIVE,
+ * DON'T REDRAW). Every hue below is a programmatic sample recorded
+ * in src/brand/orb/orbSampled.json (scripts/orb/sample_masters.py);
+ * no color here was approximated from memory.
+ *
+ * INDICATOR LAW (Persistent Indicator Language, 2026-10-18 06:18
+ * PDT; MP-11/SP-11): the --orb-indicator-* tokens are THE indicator
+ * language - the single source other surfaces consume for state.
+ * Their hues are the canonical pinned hexes, IDENTICAL in both
+ * modes; where the sampled master value differed, the canon won
+ * (both values recorded in src/brand/orb/orbTokens.ts and in
+ * orb-system-report.md). Only glow intensity varies per mode
+ * (dark: fire glows on the deep field; light: reduced glow, per
+ * section 8.1's per-mode definitions) - never the hue.
+ *
+ * Imported on the C2 module graph only (main.tsx, after
+ * c2Tokens.css, before the Layout Contract). The R17 fallback never
+ * imports this file.
+ */
+
+@layer c2 {
+  :root {
+    /* ---- Sampled primitives (mode-free; the master's own colors) ---- */
+    --orb-field-true: #000000; /* orb master field, corner-median sample */
+    --orb-field: #18141c; /* wordmark master field sample; the medallion case */
+    --orb-fire-violet: #7d4dce; /* fire sector peak, hue 267 deg, 33.6% of fire */
+    --orb-fire-blue: #6257c7; /* fire sector peak, hue 238 deg */
+    --orb-fire-cyan: #60b9d8; /* fire sector peak, hue 203 deg */
+    --orb-fire-magenta: #d972c2; /* fire sector peak, hue 317 deg */
+    --orb-fire-gold: #f1aa62; /* fire sector peak, hue 28.5 deg */
+    --orb-fire-gold-core: #fedc9a; /* gold sector core (top quartile by value) */
+    --orb-ring-metal: #dbae8e; /* gyroscope ring metal, annulus median */
+    --orb-ring-metal-lit: #ffeac9; /* ring metal, 90th percentile (the lit edge) */
+    --orb-point-light: #fff1d0; /* points of light, median */
+
+    /* The fire gradient: sampled sector peaks in the master's own
+     * left-to-right burn order (violet -> blue -> cyan -> magenta -> gold). */
+    --orb-fire-gradient: linear-gradient(
+      100deg,
+      var(--orb-fire-violet),
+      var(--orb-fire-blue),
+      var(--orb-fire-cyan),
+      var(--orb-fire-magenta),
+      var(--orb-fire-gold)
+    );
+    /* The wordmark gradient: the 8 sampled x-slices of the master wordmark. */
+    --orb-wordmark-gradient: linear-gradient(
+      90deg,
+      #9168cb 0%,
+      #9ba8da 14.3%,
+      #897be7 28.6%,
+      #7387da 42.9%,
+      #6294ce 57.1%,
+      #c2a4a9 71.4%,
+      #c3c3b7 85.7%,
+      #dcad82 100%
+    );
+
+    /* ---- THE INDICATOR LANGUAGE (canonical, mode-invariant hues) ---- */
+    --orb-indicator-forming: #8b5cf6;
+    --orb-indicator-happening: #00e5ff;
+    --orb-indicator-ready: #ffc86b;
+    --orb-indicator-action: #ff4d5e;
+    --orb-indicator-past: #ffffff;
+
+    /* ---- Fire line (the app-wide treatment family) ---- */
+    --orb-fire-line-width: 1px;
+    --orb-fire-line-gradient: var(--orb-fire-gradient);
+
+    /* ---- Medallion device (light-mode variant presentation) ---- */
+    --orb-medallion-field: var(--orb-field);
+    --orb-medallion-ring: var(--orb-ring-metal);
+
+    /* ---- The night moment (Splash 1 full-bleed, R18 splash rebuild) ----
+     * Splash 1 IS the master composition, and the master's moment is
+     * a NIGHT moment: the splash carries its own night field in BOTH
+     * modes (a founder-verdict choice, stated in the splash report -
+     * the master is never inverted or washed out for light mode).
+     * The field is the master's own edge-field sample (median of the
+     * outer 24px frame, scripts/orb/build_splash_master.py); the inks
+     * and the primary pair mirror the dark stage tokens in
+     * theme/c2Tokens.css exactly, so the night splash reads
+     * identically whichever mode the app is in. The app beyond the
+     * splash keeps its real per-mode tokens untouched. */
+    --orb-night-field: #05030f; /* master edge-field median sample */
+    --orb-night-ink-1: #faf7f2; /* = dark --ink-1 */
+    --orb-night-ink-2: #cfc8d8; /* = dark --ink-2 */
+    --orb-night-primary-fill: #faf7f2; /* = dark --primary-stage-fill */
+    --orb-night-primary-ink: #1c1917; /* = dark --primary-stage-ink */
+    --orb-night-primary-press: #e9e2d6; /* paper, one step down for :active */
+  }
+
+  /* ================= DARK: fire on the deep field ================= */
+  :root[data-mode="dark"] {
+    --orb-indicator-forming-glow: rgba(139, 92, 246, 0.45);
+    --orb-indicator-happening-glow: rgba(0, 229, 255, 0.45);
+    --orb-indicator-ready-glow: rgba(255, 200, 107, 0.45);
+    --orb-indicator-action-glow: rgba(255, 77, 94, 0.5);
+    --orb-indicator-past-glow: transparent; /* past = the stone at rest, no glow */
+    --orb-fire-glow: 0 0 18px rgba(125, 77, 206, 0.35), 0 0 42px rgba(96, 185, 216, 0.18);
+    --orb-medallion-glow: 0 0 0 1px rgba(219, 174, 142, 0.55), 0 10px 34px rgba(0, 0, 0, 0.45);
+    --orb-gem-pattern-opacity: 0.055;
+  }
+
+  /* ============ LIGHT: jewel-in-case, reduced-glow fire ============ */
+  :root,
+  :root[data-mode="light"] {
+    --orb-indicator-forming-glow: rgba(139, 92, 246, 0.22);
+    --orb-indicator-happening-glow: rgba(0, 229, 255, 0.22);
+    --orb-indicator-ready-glow: rgba(255, 200, 107, 0.28);
+    --orb-indicator-action-glow: rgba(255, 77, 94, 0.25);
+    --orb-indicator-past-glow: transparent; /* past = the stone at rest, no glow */
+    --orb-fire-glow: 0 0 10px rgba(125, 77, 206, 0.16), 0 0 22px rgba(96, 185, 216, 0.1);
+    --orb-medallion-glow: 0 0 0 1px rgba(219, 174, 142, 0.7), 0 10px 30px rgba(24, 20, 28, 0.22);
+    --orb-gem-pattern-opacity: 0.04;
+  }
+}

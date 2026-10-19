@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Opal orb">
+  <!-- Repair #18 Orb System: FLAT single-color fallback of the ring device.
+       Same measured geometry as opal-orb-mark.svg; paint with color via CSS
+       (fill/stroke inherit currentColor only in inline use; this file paints
+       #18141c, the sampled wordmark field, for standalone slots). -->
+  <g fill="none" stroke="#18141c" stroke-width="7">
+    <circle cx="101" cy="100" r="47"/>
+    <circle cx="101" cy="100" r="71"/>
+    <ellipse cx="101" cy="106" rx="86" ry="15"/>
+  </g>
+</svg>

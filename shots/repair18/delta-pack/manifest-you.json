@@ -1,0 +1,21 @@
+{
+  "build_tag": "harmony0-b9757c09",
+  "surfaces": [
+    {
+      "label": "you-settings-identity",
+      "mode": "dark",
+      "failures": [],
+      "markPresent": true,
+      "markAsset": "mark-mono",
+      "lockups": []
+    },
+    {
+      "label": "you-settings-identity",
+      "mode": "light",
+      "failures": [],
+      "markPresent": true,
+      "markAsset": "mark-mono",
+      "lockups": []
+    }
+  ]
+}

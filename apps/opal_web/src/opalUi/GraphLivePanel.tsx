@@ -26,15 +26,15 @@ export type LiveParticipant = {
 };
 
 type Props = {
-  /** Experience title - current: Rooftop jazz */
+  /** Experience title - real card data only (F-04: no invented default). */
   place: string;
-  /** Location line - current: Downtown */
+  /** Location line - real card data only; omitted when unknown. */
   area?: string;
-  /** Host authority (not broadcaster) - current: Jordan */
+  /** Host authority (not broadcaster) - real card data only. */
   host: string;
-  /** Broadcast attribution - current: Sabrina */
+  /** Broadcast attribution - real card data only. */
   broadcaster: string;
-  /** Same Reality media as Home 618:217 */
+  /** Media for THIS live card; omitted renders no media (no figma fallback). */
   mediaSrc?: string;
   videoLive?: boolean;
   hereLine?: string;
@@ -48,15 +48,16 @@ type Props = {
 
 export function GraphLivePanel({
   place,
-  area = "Downtown",
+  area = "",
   host,
   broadcaster,
-  mediaSrc = FULL_LIVE_MEDIA_SRC,
+  mediaSrc,
   videoLive = true,
-  // F12-12: no fabricated presence defaults — callers pass real lines or nothing.
+  // F12-12 + Repair #18 FALSE-fix F-04: no fabricated presence/media/
+  // table defaults - callers pass real lines or nothing renders.
   hereLine = "",
   etaLine = "",
-  tableReadyLabel = "Table ready · Great news",
+  tableReadyLabel,
   onOnMyWay,
   onMyWayActive,
 }: Props) {
@@ -103,24 +104,30 @@ export function GraphLivePanel({
         </p>
       ) : null}
 
-      <div className="full-live-media" data-testid="full-live-media" data-figma-node="863:10">
-        <img
-          src={mediaSrc}
-          alt=""
-          draggable={false}
-          data-figma-media={FULL_LIVE_MEDIA_NODE}
-          data-media-hash={FULL_LIVE_MEDIA_FIGMA_HASH}
-        />
-        {videoLive ? (
-          <span className="full-live-video-badge" data-testid="full-live-video-badge" data-figma-node="863:11">
-            VIDEO LIVE
-          </span>
-        ) : null}
-      </div>
+      {mediaSrc ? (
+        <div className="full-live-media" data-testid="full-live-media" data-figma-node="863:10">
+          <img
+            src={mediaSrc}
+            alt=""
+            draggable={false}
+            data-figma-media={FULL_LIVE_MEDIA_NODE}
+            data-media-hash={FULL_LIVE_MEDIA_FIGMA_HASH}
+          />
+          {videoLive ? (
+            <span className="full-live-video-badge" data-testid="full-live-video-badge" data-figma-node="863:11">
+              VIDEO LIVE
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
-      <p className="full-live-attribution" data-testid="glive-seed-label" data-figma-node="863:13">
-        Live by {broadcaster} · hosted by {host}
-      </p>
+      {broadcaster || host ? (
+        <p className="full-live-attribution" data-testid="glive-seed-label" data-figma-node="863:13">
+          {broadcaster ? `Live by ${broadcaster}` : ""}
+          {broadcaster && host ? " · " : ""}
+          {host ? `hosted by ${host}` : ""}
+        </p>
+      ) : null}
 
       <section
         className="full-live-state"

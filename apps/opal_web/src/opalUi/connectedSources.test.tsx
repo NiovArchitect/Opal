@@ -88,6 +88,32 @@ describe("projectGoogleConnection (pure projection of backend status)", () => {
     expect(p.detail).toMatch(/by hand still works/);
   });
 
+  it("FR-18-09: a simulated status projects Simulated, NEVER Connected (HA-01 at the glass)", () => {
+    const p = projectGoogleConnection({
+      provider: "google_calendar",
+      connected: true,
+      status: "connected_simulated",
+      simulated: true,
+      scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
+      token_present: true,
+    });
+    expect(p.state).toBe("simulated");
+    expect(p.label).toBe("Simulated - not a real connection");
+    expect(p.label).not.toBe("Connected");
+  });
+
+  it("FR-18-09: the connected_simulated status string alone forces Simulated", () => {
+    const p = projectGoogleConnection({
+      provider: "google_calendar",
+      connected: true,
+      status: "connected_simulated",
+      scopes: [],
+      token_present: true,
+    });
+    expect(p.state).toBe("simulated");
+    expect(p.label).not.toBe("Connected");
+  });
+
   it("no status yet projects Checking, never a guessed state", () => {
     const p = projectGoogleConnection(null);
     expect(p.state).toBe("unknown");
@@ -165,6 +191,31 @@ describe("ConnectedSourcesSection render (status endpoint mocked)", () => {
         .querySelector('[data-testid="connected-sources-google"]')
         ?.getAttribute("data-connection-state"),
     ).toBe("connected");
+  });
+
+  it("FR-18-09: simulated backend status renders Simulated + Disconnect, never Connected, no Connect", async () => {
+    mocks.getGoogleCalendarStatus.mockResolvedValue({
+      provider: "google_calendar",
+      connected: true,
+      status: "connected_simulated",
+      simulated: true,
+      scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
+      token_present: true,
+    });
+    await act(async () => {
+      root.render(<ConnectedSourcesSection session={session} />);
+    });
+    const statusEl = container.querySelector(
+      '[data-testid="connected-sources-google-status"]',
+    );
+    expect(statusEl?.textContent).toBe("Simulated - not a real connection");
+    expect(
+      container
+        .querySelector('[data-testid="connected-sources-google"]')
+        ?.getAttribute("data-connection-state"),
+    ).toBe("simulated");
+    expect(container.querySelector('[data-testid="connected-sources-google-disconnect"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="connected-sources-google-connect"]')).toBeNull();
   });
 
   it("not-connected backend status renders Not connected + Connect, no Disconnect", async () => {

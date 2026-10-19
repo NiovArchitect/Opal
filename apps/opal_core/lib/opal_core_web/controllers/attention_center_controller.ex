@@ -3,7 +3,12 @@ defmodule OpalCoreWeb.AttentionCenterController do
   Track A6.1 — product Attention Center projection.
 
   GET  /api/v1/product/attention
-  POST /api/v1/product/attention/ingest   (dev/test + internal fixtures)
+  POST /api/v1/product/attention/ingest   (dev/test + internal fixtures —
+    GATED, Repair #18 FALSE-fix F-13: ingest answers 403
+    `attention_ingest_disabled` unless the founder-seed flag
+    (`:allow_founder_communication_seed`, dev/test config) is enabled,
+    the same gate the FounderSeed endpoints use. The doc previously
+    claimed dev/test-only while the code applied no gate.)
   POST /api/v1/product/attention/resolve
   POST /api/v1/product/attention/seen
   """
@@ -18,6 +23,18 @@ defmodule OpalCoreWeb.AttentionCenterController do
   end
 
   def ingest(conn, params) do
+    # F-13 gate (FounderSeed pattern): fixture/internal ingest is not a
+    # product capability. Without the dev/test seed flag, refuse honestly.
+    if Application.get_env(:opal_core, :allow_founder_communication_seed, false) != true do
+      conn
+      |> put_status(403)
+      |> json(%{"error_code" => "attention_ingest_disabled"})
+    else
+      do_ingest(conn, params)
+    end
+  end
+
+  defp do_ingest(conn, params) do
     user_id = conn.assigns.current_user_id
     event = stringify(params["event"] || params)
 

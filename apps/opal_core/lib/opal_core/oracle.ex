@@ -836,6 +836,25 @@ defmodule OpalCore.Oracle do
 
   # Repair #13 (W4-5) — resolve "which plan" from a person/place question.
   # Owner's own active plans only (participant-scoped, like plans_for_user/1).
+  #
+  # Repair #18 fix wave (RF-4) — the reference words are whatever the
+  # question uses to point at a plan: its activity ("dinner"), a title
+  # word, a weekday, or its venue. The old reject list stripped the
+  # activity nouns themselves, so "Where is dinner?" reduced to the
+  # single word "where" — which no plan title contains — and a real
+  # two-party dinner plan dead-ended at "I don't see a plan by that
+  # name". Only question scaffolding is stripped now; scoring runs
+  # against the plan's title AND its held place (location / attached
+  # venue), because a venue name is how users refer to plans too.
+  # The honest dead-ends stay: no plans at all reads :none, a
+  # reference that matches nothing reads :no_match, and a
+  # reference-less question over several plans reads :ambiguous with
+  # the candidates named.
+  @plan_ref_scaffolding ~w(who s is are the a an to for on of my this that it
+    coming invited going attending organized organised created planned made
+    set up host organizer organiser guest list with what which where when
+    do does did)
+
   defp resolve_referenced_plan(user_id, text) do
     plans =
       plans_for_user(user_id)
@@ -845,43 +864,55 @@ defmodule OpalCore.Oracle do
       text
       |> String.downcase()
       |> String.split(~r/[^a-z0-9']+/, trim: true)
-      |> Enum.reject(&(&1 in ~w(who s is are the a an to for on of my this that it s
-        coming invited going organized created planned made set up host organizer
-        guest list dinner lunch brunch breakfast with what which)))
+      |> Enum.reject(&(&1 in @plan_ref_scaffolding))
+      |> Enum.uniq()
 
-    case {plans, words} do
-      {[], _} ->
+    case plans do
+      [] ->
         {:error, :none}
 
-      {[one], []} ->
+      [one] when words == [] ->
         {:ok, one}
 
-      {_, _} ->
+      _ ->
         scored =
           plans
-          |> Enum.map(fn p ->
-            title = String.downcase(to_string(p.title || ""))
-            {p, Enum.count(words, &String.contains?(title, &1))}
-          end)
+          |> Enum.map(fn p -> {p, plan_ref_score(words, p)} end)
           |> Enum.filter(fn {_p, score} -> score > 0 end)
           |> Enum.sort_by(fn {_p, score} -> score end, :desc)
 
         case scored do
-          [] when words == [] and length(plans) == 1 ->
-            {:ok, hd(plans)}
+          [] when words == [] ->
+            titles = plans |> Enum.take(3) |> Enum.map(& &1.title)
+            {:error, :ambiguous, titles}
 
           [] ->
             {:error, :no_match}
 
-          [{best, top} | rest] ->
-            if Enum.any?(rest, fn {_p, s} -> s == top end) do
-              titles = scored |> Enum.take(3) |> Enum.map(fn {p, _} -> p.title end)
-              {:error, :ambiguous, titles}
-            else
-              {:ok, best}
-            end
+          [{best, _top} | _rest] ->
+            # A scored tie breaks by recency: plans_for_user/1 is
+            # newest-first and the sort is stable, so `best` is the
+            # most recently created of the top matches — the plan the
+            # conversation most recently primed ("About dinner X at
+            # Juniper…" then "Where is dinner?"). Ambiguity is kept
+            # for the reference-less case above (no word to resolve
+            # with at all), where asking is the only honest answer.
+            {:ok, best}
         end
     end
+  end
+
+  # How strongly a plan's own held facts (title + place) match the
+  # question's reference words. A title match is the plan's name; a
+  # place match is its venue — both are real references, counted once
+  # per word so a long title cannot outvote a precise one.
+  defp plan_ref_score(words, %SharedPlan{} = plan) do
+    title = String.downcase(to_string(plan.title || ""))
+    place = String.downcase(to_string(plan_place_label(plan) || ""))
+
+    Enum.count(words, fn w ->
+      String.contains?(title, w) or (place != "" and String.contains?(place, w))
+    end)
   end
 
   # The plan's place: an attached venue (name + address) wins; a Center

@@ -194,7 +194,11 @@ export function composeGraphsList(opts: {
           !liveIds.has(s.id) && (s.bucket === "someday" || s.bucket === "earlier"),
       );
       timelineItems = [...liveItems, ...seedExtras];
-      seedLabeled = false;
+      // Repair #18 hunt-fix B-07: seed content is labeled WHENEVER it
+      // renders. The mixed branch used to set seedLabeled = false, so
+      // seed extras (incl. an invented market claim) merged into live
+      // data with the honesty label computed OFF.
+      seedLabeled = seedExtras.length > 0;
     }
 
     return {

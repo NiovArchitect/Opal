@@ -53,5 +53,8 @@ defmodule OpalCoreWeb.CallChannel do
     {:reply, :ok, socket}
   end
 
-  def handle_in(_, _, socket), do: {:noreply, socket}
+  # Repair #18 FALSE-fix F-15: unknown events must surface an error to
+  # the client — silently swallowing them ({:noreply}) made a client
+  # typo during a live call fail with no error to anyone.
+  def handle_in(_, _, socket), do: {:reply, {:error, %{reason: "unknown_event"}}, socket}
 end

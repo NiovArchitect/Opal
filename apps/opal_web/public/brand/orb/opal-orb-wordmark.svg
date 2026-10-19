@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1530 372" role="img" aria-label="OPAL">
+  <!-- Repair #18 Orb System: vector REDUCTION of the founder's wordmark master.
+       Letter runs measured by scripts/orb/sample_masters.py (O 195..569, P 704..958,
+       A 1024..1364, L 1486..1724, height 465..837, translated to origin); gem O
+       facet fills are the sampled facet colors; P/A/L paint is the sampled
+       8-slice wordmark gradient (userSpaceOnUse - stems can never vanish). -->
+  <defs>
+    <linearGradient id="wmgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1530" y2="0">
+      <stop offset="0%" stop-color="#9168cb"/>
+      <stop offset="14.3%" stop-color="#9ba8da"/>
+      <stop offset="28.6%" stop-color="#897be7"/>
+      <stop offset="42.9%" stop-color="#7387da"/>
+      <stop offset="57.1%" stop-color="#6294ce"/>
+      <stop offset="71.4%" stop-color="#c2a4a9"/>
+      <stop offset="85.7%" stop-color="#c3c3b7"/>
+      <stop offset="100%" stop-color="#dcad82"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <polygon points="187.0,-1.0 280.5,24.1 259.0,61.3 187.0,42.0" fill="#c4c6f4"/>
+    <polygon points="280.5,24.1 348.9,92.5 311.7,114.0 259.0,61.3" fill="#a9dff6"/>
+    <polygon points="348.9,92.5 374.0,186.0 331.0,186.0 311.7,114.0" fill="#d9cdc7"/>
+    <polygon points="374.0,186.0 348.9,279.5 311.7,258.0 331.0,186.0" fill="#d4d1c7"/>
+    <polygon points="348.9,279.5 280.5,347.9 259.0,310.7 311.7,258.0" fill="#6aaee9"/>
+    <polygon points="280.5,347.9 187.0,373.0 187.0,330.0 259.0,310.7" fill="#8c86d5"/>
+    <polygon points="187.0,373.0 93.5,347.9 115.0,310.7 187.0,330.0" fill="#cbbdf1"/>
+    <polygon points="93.5,347.9 25.1,279.5 62.3,258.0 115.0,310.7" fill="#754db8"/>
+    <polygon points="25.1,279.5 0.0,186.0 43.0,186.0 62.3,258.0" fill="#8852c1"/>
+    <polygon points="0.0,186.0 25.1,92.5 62.3,114.0 43.0,186.0" fill="#ab78dd"/>
+    <polygon points="25.1,92.5 93.5,24.1 115.0,61.3 62.3,114.0" fill="#d7c3f7"/>
+    <polygon points="93.5,24.1 187.0,-1.0 187.0,42.0 115.0,61.3" fill="#7a6bc7"/>
+  </g>
+  <g fill="none" stroke="url(#wmgrad)" stroke-width="43" stroke-linecap="square">
+    <path d="M531 372 V0 H636 A93 93 0 0 1 636 186 H531"/>
+    <path d="M856 372 L1010 2 L1164 372"/>
+    <path d="M1313 0 V372 H1529"/>
+  </g>
+</svg>

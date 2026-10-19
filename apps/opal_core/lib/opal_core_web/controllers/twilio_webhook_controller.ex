@@ -24,7 +24,9 @@ defmodule OpalCoreWeb.TwilioWebhookController do
           "sid_present" => is_binary(params["SmsSid"] || params["CallSid"] || params["sid"])
         })
 
-        # Update OTP attempt record when challenge sid is known (best-effort).
+        # Log the challenge status when a sid is known (best-effort).
+        # HA-08: no OTP attempt record is mutated here — the earlier
+        # comment claimed an update that does not exist.
         _ = maybe_touch_challenge(params)
 
         conn
@@ -36,7 +38,10 @@ defmodule OpalCoreWeb.TwilioWebhookController do
 
         conn
         |> put_resp_content_type("application/json")
-        |> send_resp(401, Jason.encode!(%{"error_code" => "invalid_signature", "message" => "Unauthorized"}))
+        |> send_resp(
+          401,
+          Jason.encode!(%{"error_code" => "invalid_signature", "message" => "Unauthorized"})
+        )
     end
   end
 
@@ -51,7 +56,11 @@ defmodule OpalCoreWeb.TwilioWebhookController do
         :ok
 
       # Dev/test probe when Twilio creds are not configured.
-      not token_configured? and params_probe?(conn) ->
+      # HA-08 (Repair #18 hunt-fix): the probe bypass is gated on the
+      # runtime environment itself, not only on "no token configured" —
+      # a misconfigured non-dev host (exactly where signature
+      # validation matters) must not accept unauthenticated probes.
+      not token_configured? and Mix.env() in [:dev, :test] and params_probe?(conn) ->
         :ok
 
       not sig_present? ->

@@ -37,6 +37,28 @@ defmodule OpalCoreWeb.ArtifactController do
     end
   end
 
+  @doc "GET /api/v1/product/artifacts - the owner's Made-by-Opal shelf (4.C11)."
+  def index(conn, _params) do
+    user_id = conn.assigns.current_user_id
+    json(conn, %{"artifacts" => Artifacts.list_for_account(user_id) |> Enum.map(&stringify/1)})
+  end
+
+  @doc "DELETE /api/v1/product/artifacts/:id - owner-scoped delete (4.C11)."
+  def delete(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Artifacts.delete_for_account(user_id, id) do
+      :ok ->
+        json(conn, %{"deleted" => true, "artifact_id" => id})
+
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+
+      {:error, reason} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => error_string(reason)})
+    end
+  end
+
   @doc "GET /share/artifacts/:token — branded HTML (noindex)."
   def show_share(conn, %{"token" => token}) do
     case Artifacts.get_by_token(token) do

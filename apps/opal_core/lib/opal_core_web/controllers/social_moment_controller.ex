@@ -46,6 +46,12 @@ defmodule OpalCoreWeb.SocialMomentController do
     json(conn, %{"preview" => preview, "question" => "Who can see this?"})
   end
 
+  @doc "ST-C: the owner's own moments archive (posts + live stories, newest first)."
+  def mine(conn, _params) do
+    user_id = conn.assigns.current_user_id
+    json(conn, SocialMomentPublishing.list_own_archive(user_id))
+  end
+
   def index(conn, _params) do
     user_id = conn.assigns.current_user_id
 

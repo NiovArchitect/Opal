@@ -17,8 +17,11 @@
  *  - Confirmer: "confirm 8 PM" - plan listing (both parties), thread
  *    alignment and Chats projection ALL read 8:00 PM, and still do
  *    after re-entry.
- *  - Lead variant: the lead's own change applies immediately (no
- *    pending state left behind).
+ *  - Lead variant: the lead's spoken change pends under the same
+ *    two-party law (role-symmetric) and applies on the participant's
+ *    confirm, leaving no pending state behind. (Repaired in the
+ *    Repair #18 apifix wave: the old "lead applies immediately in
+ *    chat" premise never existed in the chat path - see the leg.)
  *  - Throttle variant: if a send is throttled (429), the response is
  *    an honest retryable error - never a silent swallow.
  *
@@ -27,7 +30,16 @@
 import { allStrings } from "../lib/harness.mjs";
 
 async function ownThread(ctx, label) {
-  const g = await ctx.h.createGroup(ctx.A, [ctx.sessions.b.userId], label);
+  // Isolation repair (Repair #18 apifix): a two-member "group" is
+  // refused (group_too_small) and the old code silently fell back to
+  // the SHARED A-B direct thread, whose fold replays every earlier
+  // case's change/confirm traffic - the pending/apply behavior then
+  // depended on suite history instead of this scenario. A third pool
+  // member makes the group real, as in the sibling Center cases.
+  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const memberIds = [ctx.sessions.b.userId];
+  if (third?.session?.userId) memberIds.push(third.session.userId);
+  const g = await ctx.h.createGroup(ctx.A, memberIds, label);
   if (g.conversationId) return g.conversationId;
   const d = await ctx.h.ensureDirect(ctx.A, ctx.sessions.b.userId);
   return d.conversationId;
@@ -131,7 +143,21 @@ export default {
       }
     }
 
-    // -- Lead direct change applies immediately ------------------------------
+    // -- Lead-proposed change: the two-party law is role-symmetric --------
+    // Verdict repair (Repair #18 apifix): this leg used to assert the
+    // lead's spoken change "applies immediately". That behavior never
+    // existed in the chat path: a spoken change from ANY participant,
+    // lead included, pends until the other party confirms (the law
+    // FR-13-01 pins from the other side - its lead proposals must be
+    // live). The leg's old baseline pass came from the shared-thread
+    // lineage overwrite: scenario 1's settled 8:00 was upserted onto
+    // this scenario's plan by the one-lineage fold - the very
+    // moved-without-confirming defect this case guards. The lead's
+    // direct authority is real but lives in the journey endpoint
+    // (POST /journeys/:id/material-change, agreed journeys), not in
+    // chat. Correct assertion: the lead's utterance pends naming
+    // 8:00, and on the participant's confirm it applies, leaving no
+    // pending state behind.
     const conv2 = await ownThread(ctx, ctx.marker("lead change"));
     const c2 = await h.createConversationPlan(A, conv2, {
       title: "LeadChange",
@@ -142,13 +168,36 @@ export default {
     assert.eq("POST /conversations/:id/plans", c2.status, 201, "lead-variant setup plan");
     const leadSend = await h.postHumanMessage(A, conv2, "let's change dinner to 8 PM");
     if (checkSend("lead change", leadSend)) {
-      const plans = await h.listPlans(A, true);
-      const entry = find(plans, c2.plan?.id);
-      assert.check(
-        "GET /opal/plans (lead direct change)",
-        !!entry && (entry.time_label || "").includes("8:00"),
-        `the lead's own change must apply immediately; got ${entry?.time_label}`,
+      const alLead = await h.getAlignment(A, conv2);
+      const leadPending = ["change_proposal", "pending_revision", "pending_change"].filter(
+        (k) => alLead.alignment?.[k] && Object.keys(alLead.alignment[k]).length > 0,
       );
+      assert.check(
+        "GET /conversations/:id/alignment (lead proposal pends)",
+        leadPending.length === 1 &&
+          allStrings(alLead.alignment[leadPending[0]]).some((s) => s.includes("8:00")),
+        `the lead's spoken change must pend naming 8:00 PM (two-party law); found ${leadPending.join(",") || "none"}`,
+      );
+      const conf2 = await h.postHumanMessage(B, conv2, "confirm 8 PM");
+      if (checkSend("participant confirm", conf2)) {
+        const plans = await h.listPlans(A, true);
+        const entry = find(plans, c2.plan?.id);
+        assert.check(
+          "GET /opal/plans (lead change settled)",
+          !!entry && (entry.time_label || "").includes("8:00"),
+          `the lead's change must apply once the other party confirms; got ${entry?.time_label}`,
+        );
+        const alDone = await h.getAlignment(A, conv2);
+        const leftPending = ["change_proposal", "pending_revision", "pending_change"].filter(
+          (k) => alDone.alignment?.[k] && Object.keys(alDone.alignment[k]).length > 0,
+        );
+        assert.eq(
+          "GET /conversations/:id/alignment (no pending left behind)",
+          leftPending.length,
+          0,
+          "a settled lead change leaves no pending state behind",
+        );
+      }
     }
   },
 };

@@ -55,6 +55,14 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
         # recovery path from the terminal expired status.
         {:plan, "tentative", :expire, "expired"},
         {:plan, "expired", :revive, "tentative"},
+        # Repair #18 FALSE-fix F-10: :seed_restore is a deliberate gate
+        # widening — the ONLY outbound move from cancelled/completed,
+        # callable solely by the flag-gated founder seed for its own
+        # deterministic plan, and logged at the call site. It is not a
+        # product transition; every product action from terminal stays
+        # illegal (asserted in the F-10 seed test + the refusal tests).
+        {:plan, "cancelled", :seed_restore, "agreed"},
+        {:plan, "completed", :seed_restore, "agreed"},
         {:proposal, nil, :create, "visible"},
         {:proposal, "proposed", :approve, "approved_for_coordination"},
         {:proposal, "visible", :approve, "approved_for_coordination"},
@@ -168,7 +176,10 @@ defmodule OpalCore.SocialFlow.PlanTransitionTest do
     end
 
     test "a terminal status reports zero legal actions" do
-      assert PlanTransition.legal_actions(:plan, "cancelled") == []
+      # F-10 exception: a cancelled plan's only legal action is the
+      # seed-only :seed_restore — zero PRODUCT actions remain legal.
+      assert PlanTransition.legal_actions(:plan, "cancelled") == [:seed_restore]
+      assert PlanTransition.legal_actions(:plan, "completed") == [:seed_restore]
       assert PlanTransition.legal_actions(:proposal, "converted") == []
       assert PlanTransition.legal_actions(:revision, "accepted") == []
     end

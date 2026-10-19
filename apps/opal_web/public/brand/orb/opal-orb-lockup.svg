@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1043 200" role="img" aria-label="OPAL">
+  <!-- Repair #18 Orb System: full lockup reduction (orb mark + OPAL wordmark),
+       composed from opal-orb-mark.svg and opal-orb-wordmark.svg geometry. -->
+  <svg x="0" y="0" width="200" height="200" viewBox="0 0 200 200">
+    <defs>
+      <linearGradient id="lfire" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0%" stop-color="#7d4dce"/><stop offset="34%" stop-color="#6257c7"/><stop offset="58%" stop-color="#60b9d8"/><stop offset="80%" stop-color="#d972c2"/><stop offset="100%" stop-color="#f1aa62"/>
+      </linearGradient>
+      <linearGradient id="lmetal" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#dbae8e"/><stop offset="52%" stop-color="#ffeac9"/><stop offset="100%" stop-color="#dbae8e"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="101" cy="106" rx="86" ry="11" fill="none" stroke="url(#lmetal)" stroke-width="2.4"/>
+    <circle cx="101" cy="100" r="51" fill="url(#lfire)"/>
+    <circle cx="101" cy="100" r="71" fill="none" stroke="url(#lmetal)" stroke-width="2.4"/>
+  </svg>
+  <svg x="220" y="0" width="823" height="200" viewBox="0 0 1530 372">
+    <defs>
+      <linearGradient id="lwm" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1530" y2="0">
+        <stop offset="0%" stop-color="#9168cb"/>
+      <stop offset="14.3%" stop-color="#9ba8da"/>
+      <stop offset="28.6%" stop-color="#897be7"/>
+      <stop offset="42.9%" stop-color="#7387da"/>
+      <stop offset="57.1%" stop-color="#6294ce"/>
+      <stop offset="71.4%" stop-color="#c2a4a9"/>
+      <stop offset="85.7%" stop-color="#c3c3b7"/>
+      <stop offset="100%" stop-color="#dcad82"/>
+      </linearGradient>
+    </defs>
+    <g><polygon points="187.0,-1.0 280.5,24.1 259.0,61.3 187.0,42.0" fill="#c4c6f4"/>
+    <polygon points="280.5,24.1 348.9,92.5 311.7,114.0 259.0,61.3" fill="#a9dff6"/>
+    <polygon points="348.9,92.5 374.0,186.0 331.0,186.0 311.7,114.0" fill="#d9cdc7"/>
+    <polygon points="374.0,186.0 348.9,279.5 311.7,258.0 331.0,186.0" fill="#d4d1c7"/>
+    <polygon points="348.9,279.5 280.5,347.9 259.0,310.7 311.7,258.0" fill="#6aaee9"/>
+    <polygon points="280.5,347.9 187.0,373.0 187.0,330.0 259.0,310.7" fill="#8c86d5"/>
+    <polygon points="187.0,373.0 93.5,347.9 115.0,310.7 187.0,330.0" fill="#cbbdf1"/>
+    <polygon points="93.5,347.9 25.1,279.5 62.3,258.0 115.0,310.7" fill="#754db8"/>
+    <polygon points="25.1,279.5 0.0,186.0 43.0,186.0 62.3,258.0" fill="#8852c1"/>
+    <polygon points="0.0,186.0 25.1,92.5 62.3,114.0 43.0,186.0" fill="#ab78dd"/>
+    <polygon points="25.1,92.5 93.5,24.1 115.0,61.3 62.3,114.0" fill="#d7c3f7"/>
+    <polygon points="93.5,24.1 187.0,-1.0 187.0,42.0 115.0,61.3" fill="#7a6bc7"/></g>
+    <g fill="none" stroke="url(#lwm)" stroke-width="43" stroke-linecap="square">
+      <path d="M531 372 V0 H636 A93 93 0 0 1 636 186 H531"/>
+      <path d="M856 372 L1010 2 L1164 372"/>
+      <path d="M1313 0 V372 H1529"/>
+    </g>
+  </svg>
+</svg>

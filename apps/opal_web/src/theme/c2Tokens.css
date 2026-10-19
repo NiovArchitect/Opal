@@ -32,9 +32,9 @@
     --p-ink-1: #44403c;
     --p-ink-2: #78716c;
     --p-ink-3: #a8a29e;
-    --p-night-0: #17131f;
-    --p-night-1: #221c2e;
-    --p-night-2: #2e273d;
+    --p-night-0: #18141c; /* = --orb-field (sampled wordmark field) */
+    --p-night-1: #201a27; /* quiet step of the sampled field */
+    --p-night-2: #2a2333; /* quiet step of the sampled field */
     --p-night-ink-0: #faf7f2;
     --p-night-ink-1: #cfc8d8;
     --p-cur-1: #2dd4bf;
@@ -112,22 +112,20 @@
     --ink-3: #78716c;
     --scrim: rgba(28, 25, 23, 0.48);
     --shadow-card: 0 1px 2px rgba(28, 25, 23, 0.05), 0 8px 24px rgba(28, 25, 23, 0.05);
-    --accent-1: #6d5df0;
+    --accent-1: #5d398a; /* sampled fire violet, median (orbSampled.json) */
     --accent-1-ink: #ffffff;
-    --accent-press: #6354dd;
-    --accent-quiet: rgba(109, 93, 240, 0.1);
-    --primary-fill: #6d5df0;
+    --accent-press: #472a67; /* sampled fire violet, shade */
+    --accent-quiet: rgba(93, 57, 138, 0.1); /* sampled fire violet, median at 10% */
+    --primary-fill: #5d398a; /* = --accent-1, the sampled fire violet median */
     --primary-ink: #ffffff;
     --primary-stage-fill: var(--accent-1);
     --primary-stage-ink: #ffffff;
-    --grad-current: linear-gradient(
-      100deg,
-      var(--p-cur-1),
-      var(--p-cur-2),
-      var(--p-cur-3),
-      var(--p-cur-4),
-      var(--p-cur-5)
-    );
+    /* Harmony (R18 harmony-0): the gradient IS the orb's fire, sampled
+     * medians/shades for the soft light field (violet, blue, cyan,
+     * magenta, gold shade) - the same family as --orb-fire-gradient,
+     * quieter per mode. It is brand fire, never a state indicator:
+     * no canonical state hex appears in it. */
+    --grad-current: linear-gradient(100deg, #5d398a, #464a82, #427091, #80496f, #c0835a);
     --pattern-lines: rgba(28, 25, 23, 0.06);
     --pattern-lines-night: rgba(250, 247, 242, 0.1);
 
@@ -156,10 +154,10 @@
     color-scheme: dark;
     /* Night budget: canvas 5.7-7.6% lightness, raised <=13%, sunken
      * <=17%. No large-area element may exceed these values. */
-    --canvas: #121017;
+    --canvas: #18141c; /* sampled field (--orb-field): the shell sits on the stone's night */
     --canvas-stage: #0d0b12;
-    --surface-1: #1c1922;
-    --surface-2: #262230;
+    --surface-1: #201a27; /* quiet step of the sampled field */
+    --surface-2: #2a2333; /* quiet step of the sampled field */
     --line-1: rgba(255, 255, 255, 0.1);
     --line-2: rgba(255, 255, 255, 0.18);
     --ink-1: #faf7f2;
@@ -167,10 +165,10 @@
     --ink-3: #9a93a6;
     --scrim: rgba(13, 11, 18, 0.64);
     --shadow-card: none;
-    --accent-1: #8b7fff;
-    --accent-1-ink: #17131f;
-    --accent-press: #9d92ff;
-    --accent-quiet: rgba(139, 127, 255, 0.16);
+    --accent-1: #7d4dce; /* sampled fire violet, peak (--orb-fire-violet) */
+    --accent-1-ink: #fff1d0; /* sampled point light (--orb-point-light) */
+    --accent-press: #885cbb; /* sampled fire violet, core */
+    --accent-quiet: rgba(125, 77, 206, 0.16); /* sampled fire violet, peak at 16% */
     /* The one primary action stays the brightest element at night:
      * paper fill on member surfaces and on stage surfaces alike. */
     --primary-fill: #faf7f2;
@@ -179,7 +177,7 @@
     --primary-stage-ink: #1c1917;
     /* Current gradient at 70% intensity in Dark: each stop mixed 30%
      * toward canvas-stage (section 2.7 restrained highlights). */
-    --grad-current: linear-gradient(100deg, #23988b, #5e65b3, #8a60b6, #ac7bb6, #b4891f);
+    --grad-current: linear-gradient(100deg, #7d4dce, #6257c7, #60b9d8, #d972c2, #f1aa62); /* = --orb-fire-gradient stops (sampled peaks) */
     --pattern-lines: rgba(250, 247, 242, 0.08);
     --pattern-lines-night: rgba(250, 247, 242, 0.08);
 
@@ -268,8 +266,8 @@
   }
   [data-design="r18"][data-mode="dark"],
   :root[data-mode="dark"] [data-design="r18"] {
-    --opal-bg-wash: #17141f;
-    --opal-surface-3: #322b40;
+    --opal-bg-wash: #18141c;
+    --opal-surface-3: #2a2333;
   }
   /* Facet pattern (C1 1.3): fine diagonal facet lines, CSS only,
      hero / empty zones only, fades to flat within 240px. Rendered on a

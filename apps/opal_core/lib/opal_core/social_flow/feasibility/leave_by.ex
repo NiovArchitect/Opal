@@ -6,7 +6,7 @@ defmodule OpalCore.SocialFlow.Feasibility.LeaveBy do
   Never exposes origin coordinates to peers.
   """
 
-  alias OpalCore.SocialFlow.Feasibility.Buffer
+  alias OpalCore.SocialFlow.Feasibility.{Buffer, TravelEstimate}
 
   @doc """
   Compute private leave-by for a commitment + optional travel context.
@@ -17,7 +17,11 @@ defmodule OpalCore.SocialFlow.Feasibility.LeaveBy do
 
     case start_at do
       %DateTime{} ->
-        travel = Keyword.get(opts, :travel_minutes) || c["travel_minutes"] || 20
+        # F-11: defaulted travel is labeled an assumed estimate at the
+        # source (travel_minutes_source / travel_minutes_estimated).
+        raw_travel = Keyword.get(opts, :travel_minutes) || c["travel_minutes"]
+        default = Keyword.get(opts, :travel_minutes_default, 20)
+        {travel, travel_source} = TravelEstimate.resolve(raw_travel, default)
         mode = Keyword.get(opts, :mode, :driving)
 
         leave =
@@ -29,6 +33,8 @@ defmodule OpalCore.SocialFlow.Feasibility.LeaveBy do
            "leave_by" => leave,
            "plan_start" => start_at,
            "travel_minutes" => travel,
+           "travel_minutes_source" => travel_source,
+           "travel_minutes_estimated" => travel_source == "assumed_default",
            "private" => true,
            "private_copy" => leave_copy(leave),
            "origin_exposed" => false,

@@ -88,6 +88,11 @@ export function WeeklyBriefingCard({
       data-section="needs_you"
       aria-label={briefing.header}
     >
+      {briefing._mock ? (
+        <p data-testid="briefing-demo-badge" role="status">
+          Demo data — an example briefing, not your week.
+        </p>
+      ) : null}
       <span
         className="intelligence-briefing-kicker"
         style={{ color: BRAND.palette.opalCyan }}

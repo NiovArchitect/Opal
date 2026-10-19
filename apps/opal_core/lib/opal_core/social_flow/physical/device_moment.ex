@@ -17,7 +17,12 @@ defmodule OpalCore.SocialFlow.Physical.DeviceMoment do
   """
   def schedule_leave_by(commitment, opts \\ []) when is_map(commitment) do
     c = stringify(commitment)
-    travel = Keyword.get(opts, :travel_minutes) || c["travel_minutes"] || 20
+    # HA-06 (Repair #18 hunt-fix, F-11 broken cover): never pre-default
+    # travel here. Passing `|| 20` made LeaveBy label an assumed value
+    # "measured". The raw maybe-nil value goes through so
+    # Feasibility.TravelEstimate remains the single fallback point and
+    # its provenance labels the result.
+    travel = Keyword.get(opts, :travel_minutes) || c["travel_minutes"]
     mode = Keyword.get(opts, :mode, :driving)
 
     with {:ok, leave} <- LeaveBy.for_commitment(c, travel_minutes: travel, mode: mode),
@@ -36,6 +41,12 @@ defmodule OpalCore.SocialFlow.Physical.DeviceMoment do
        %{
          "leave_by" => leave["leave_by"],
          "private_copy" => leave["private_copy"],
+         # HA-06: the TravelEstimate provenance must survive to the
+         # contract boundary (TravelEstimate's own contract: any output
+         # carrying a defaulted value must also carry these fields).
+         "travel_minutes" => leave["travel_minutes"],
+         "travel_minutes_source" => leave["travel_minutes_source"],
+         "travel_minutes_estimated" => leave["travel_minutes_estimated"],
          "queued" => queued,
          "origin_exposed" => false,
          "reentry_required" => false,
@@ -129,7 +140,9 @@ defmodule OpalCore.SocialFlow.Physical.DeviceMoment do
         "place_label" => c["place_label"] || c["destination"],
         "when" => c["when"],
         "start_at" => c["when"],
-        "travel_minutes" => c["travel_minutes"] || 20,
+        # HA-06: raw maybe-nil — LeaveBy/TravelEstimate labels the
+        # fallback; pre-defaulting here laundered it into "measured".
+        "travel_minutes" => c["travel_minutes"],
         "slot_label" => c["slot_label"]
       }
 

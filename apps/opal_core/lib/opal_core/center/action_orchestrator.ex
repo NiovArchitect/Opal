@@ -189,6 +189,30 @@ defmodule OpalCore.Center.ActionOrchestrator do
               raw_text
             )
 
+          # Repair #18 fix wave (RF-2) — a bare category answer with a
+          # live planning flow but NO recorded outstanding question.
+          # The category question is also asked by paths that never
+          # register the outstanding slot (an LLM-drafted reply, a
+          # deflected eliciting turn): the user's "Food" then fell out
+          # of the flow entirely and the template layer revived a
+          # stale entity ("You mentioned Maya earlier"). A bare
+          # category noun is an answer, never a new topic — consume it
+          # into the SAME flow the question belonged to.
+          unregistered_category_answer_turn?(intent, planning, raw_text) ->
+            handle_outstanding_answer(
+              user_id,
+              intent,
+              planning,
+              %{
+                "kind" => "category",
+                "prompt" => "food, outdoors, or nightlife?",
+                "who" => planning["who"] || planning["primary_person"],
+                "what" => planning["what"],
+                "intent_scope" => planning["intent_scope"]
+              },
+              raw_text
+            )
+
           # F12-13/F12-53 — the sticky plan_id is only actionable while
           # fresh and the plan is still active. A bare is_binary check let
           # days-old or cancelled plan_ids hijack unrelated utterances.
@@ -794,31 +818,59 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
   defp intent_without_search(intent) when is_map(intent) do
     ents = Map.get(intent, :entities) || Map.get(intent, "entities") || %{}
+    kind = Map.get(intent, :intent) || Map.get(intent, "intent")
+
+    # Repair #18 fix wave (RF-3) — the strip below removes SEARCH
+    # routing state so a sticky restaurant draft cannot hijack a
+    # conversational turn. But on a :plan_create / :plan_confirm turn
+    # the venue keys are not search state: they are facts of the plan
+    # being proposed/confirmed, parsed from this very utterance (or
+    # carried by the pending ask). Stripping them made the Center
+    # confirmation drop the named venue ("Got it: brunch Sunday" for
+    # "brunch at The Henry in Coronado on Sunday at 10 AM"). The
+    # venue family survives for plan intents; every other
+    # conversational turn keeps the full strip.
+    venue_family =
+      if kind in [:plan_create, :plan_confirm] do
+        [
+          :venue,
+          :venue_locality,
+          :requested_venue_name,
+          :requested_venue_locality,
+          "venue",
+          "venue_locality",
+          "requested_venue_name",
+          "requested_venue_locality"
+        ]
+      else
+        []
+      end
+
+    strip =
+      [
+        :category,
+        :wants_restaurant,
+        :destination,
+        :search_mode,
+        :requested_venue_name,
+        :requested_venue_locality,
+        :cuisine,
+        :discovery_request,
+        :venue,
+        "category",
+        "wants_restaurant",
+        "destination",
+        "search_mode",
+        "requested_venue_name",
+        "requested_venue_locality",
+        "cuisine",
+        "discovery_request",
+        "venue"
+      ] -- venue_family
 
     cleaned =
       ents
-      |> Enum.reject(fn {k, _} ->
-        k in [
-          :category,
-          :wants_restaurant,
-          :destination,
-          :search_mode,
-          :requested_venue_name,
-          :requested_venue_locality,
-          :cuisine,
-          :discovery_request,
-          :venue,
-          "category",
-          "wants_restaurant",
-          "destination",
-          "search_mode",
-          "requested_venue_name",
-          "requested_venue_locality",
-          "cuisine",
-          "discovery_request",
-          "venue"
-        ]
-      end)
+      |> Enum.reject(fn {k, _} -> k in strip end)
       |> Map.new()
       |> Map.put(:conversation_owns_routing, true)
       |> Map.put("conversation_owns_routing", true)
@@ -1009,6 +1061,44 @@ defmodule OpalCore.Center.ActionOrchestrator do
       %{} = q -> PlanningContext.answer_to_outstanding?(q, raw_text)
       _ -> false
     end
+  end
+
+  # RF-2 — true when this turn is a bare category answer (a category
+  # NOUN: food / outdoors / nightlife / dinner / drinks — never a bare
+  # affirmation, which belongs to the confirm machinery) and a planning
+  # flow is live to consume it. Turns that carry their own routing
+  # (a confirm, a modify command, an oracle or venue question) are
+  # never answers, whatever they start with.
+  defp unregistered_category_answer_turn?(intent, planning, raw_text)
+       when is_map(planning) and is_binary(raw_text) do
+    atom = if is_map(intent), do: intent[:intent] || intent["intent"], else: nil
+
+    atom not in [:plan_confirm, :plan_modify, :oracle, :named_venue] and
+      bare_category_answer?(raw_text) and
+      planning_flow_live?(planning)
+  end
+
+  defp unregistered_category_answer_turn?(_, _, _), do: false
+
+  defp bare_category_answer?(raw_text) do
+    down = raw_text |> String.trim() |> String.downcase()
+
+    not String.contains?(down, "?") and
+      Regex.match?(~r/^\s*(food|outdoors?|nightlife|dinner|drinks?)\b[.!]?\s*$/i, down)
+  end
+
+  # A flow is live when the durable planning context still carries the
+  # plan being shaped (a who, a what, or an intent scope). A bare
+  # category word in an empty context answers nothing and falls
+  # through to the ordinary path untouched.
+  defp planning_flow_live?(planning) do
+    Enum.any?(["who", "primary_person", "what", "intent_scope"], fn key ->
+      case planning[key] do
+        v when is_binary(v) -> String.trim(v) != ""
+        v when is_list(v) -> v != []
+        _ -> false
+      end
+    end)
   end
 
   # Consume the answer in flow: the outstanding question is cleared, the
@@ -1393,7 +1483,7 @@ defmodule OpalCore.Center.ActionOrchestrator do
       is_binary(restore_time) and is_binary(current_time) and
         normalize_ampm(restore_time) != normalize_ampm(current_time)
 
-    {planning2, restored?} =
+    {planning2, restored?, plan_restore} =
       if act in ["challenge_prior_action", "correct_slot"] and is_binary(restore_time) do
         next =
           planning
@@ -1407,32 +1497,42 @@ defmodule OpalCore.Center.ActionOrchestrator do
 
         {:ok, next} = PlanningContext.put(user_id, next)
 
-        if is_binary(next["plan_id"]) do
-          case Repo.get(SharedPlan, next["plan_id"]) do
-            %SharedPlan{} = plan ->
-              time_label = compose_time_label(restore_when, restore_time, next)
+        # HA-04 (Repair #18 hunt-fix, SP-10 governed writes only): the
+        # shared plan's schedule is written ONLY through the lawful
+        # correction path — SocialFlow.change_plan_time/1, the same
+        # PlanTransition-gated, revision-recording, terminal-checked
+        # path the correction handler in this file uses. The previous
+        # code rewrote time_label/alignment by direct Repo.update with
+        # no gate, no authority check, and the result discarded. When
+        # the governed path refuses (non-lead, terminal plan), the
+        # restore holds in the planning context only and the reply
+        # says exactly that — it never claims the plan was restored.
+        plan_restore =
+          if is_binary(next["plan_id"]) do
+            case Repo.get(SharedPlan, next["plan_id"]) do
+              %SharedPlan{} = plan ->
+                time_label = compose_time_label(restore_when, restore_time, next)
 
-              alignment =
-                (plan.alignment || %{})
-                |> Map.put("when", restore_when)
-                |> Map.put("when_time", restore_time)
+                case SocialFlow.change_plan_time(%{
+                       plan_id: plan.id,
+                       user_id: user_id,
+                       new_time_label: time_label,
+                       trace_id: "center_challenge_restore"
+                     }) do
+                  {:ok, _} -> :ok
+                  {:error, reason} -> {:blocked, reason}
+                end
 
-              _ =
-                plan
-                |> SharedPlan.changeset(%{
-                  "time_label" => time_label,
-                  "alignment" => alignment
-                })
-                |> Repo.update()
-
-            _ ->
-              :ok
+              _ ->
+                :no_plan
+            end
+          else
+            :no_plan
           end
-        end
 
-        {next, true}
+        {next, true, plan_restore}
       else
-        {planning, false}
+        {planning, false, :no_plan}
       end
 
     override =
@@ -1445,6 +1545,9 @@ defmodule OpalCore.Center.ActionOrchestrator do
           else
             "You're right to call that out — I shouldn't ask for something we already know."
           end
+
+        restored? and match?({:blocked, _}, plan_restore) ->
+          "You're right — you said #{normalize_ampm(restore_time)}. I've kept that as your stated time here, but I couldn't change the shared plan itself — that takes the plan lead or a revision proposal, so the plan still shows the earlier time until one of those happens."
 
         restored? and mismatched_time? ->
           "You're right — you said #{normalize_ampm(restore_time)}. I had #{normalize_ampm(current_time)} from an earlier soft default. Restored to #{normalize_ampm(restore_time)}. Same plan otherwise."
@@ -1465,6 +1568,14 @@ defmodule OpalCore.Center.ActionOrchestrator do
       "plan_id" => planning2["plan_id"],
       "PLAN_ID_STABLE" => true,
       "restored_explicit" => restored?,
+      # HA-04: whether the governed write actually landed on the plan
+      # (distinct from the planning-context restore above).
+      "plan_restored" => plan_restore == :ok,
+      "plan_restore_blocked" =>
+        case plan_restore do
+          {:blocked, reason} -> inspect(reason)
+          _ -> nil
+        end,
       "slots_changed" => if(restored?, do: ["when_time"], else: []),
       "before_context" => %{"when_time" => current_time, "when" => prior["when"]},
       "after_context" => %{

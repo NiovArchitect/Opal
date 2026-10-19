@@ -58,7 +58,10 @@ defmodule OpalCore.SocialFlow.DurablePreferenceMemory do
             {:ok, existing, :idempotent}
 
           nil ->
-            review = DateTime.utc_now() |> DateTime.add(90 * 24 * 3600, :second) |> DateTime.truncate(:microsecond)
+            review =
+              DateTime.utc_now()
+              |> DateTime.add(90 * 24 * 3600, :second)
+              |> DateTime.truncate(:microsecond)
 
             %RelationshipMemory{}
             |> RelationshipMemory.changeset(%{
@@ -214,6 +217,49 @@ defmodule OpalCore.SocialFlow.DurablePreferenceMemory do
   end
 
   def forget_with_candidates(_, _), do: {:error, :invalid}
+
+  @doc """
+  Adoption wave 2 (spec 4.C6) - erase EVERY memory this owner holds,
+  for account/data deletion. This is the owner's own erasure leg:
+  the query is scoped by owner in the predicate, lives in the
+  declared owner module (MP-6), and hard-deletes - deletion under
+  4.C6 is erasure, not the soft "forgotten" state forget/2 writes.
+  Returns the number of rows erased. NOTE for the MP-6 baseline:
+  this adds ONE query site to this file (10 -> 11), recorded as a
+  founder-visible event in adopt2-report.md.
+  """
+  def erase_all_for_owner(owner_user_id) when is_binary(owner_user_id) do
+    {count, _} =
+      Repo.delete_all(from(m in RelationshipMemory, where: m.owner_user_id == ^owner_user_id))
+
+    count
+  end
+
+  def erase_all_for_owner(_), do: 0
+
+  @doc """
+  Repair #18 SM scoped build - erase ONE memory this owner holds,
+  by id. The per-capsule FORGET path for the capsule class
+  (`CapsuleRead.forget/2`): same MP-6 discipline as
+  `erase_all_for_owner/1` - the query is scoped by owner AND id in
+  the predicate, lives in the declared owner module, and
+  hard-deletes. A foreign id erases nothing and returns 0. NOTE for
+  the MP-6 baseline: this adds ONE query site to this file
+  (11 -> 12), recorded as a founder-visible event in sm-report.md.
+  """
+  def erase_one_for_owner(owner_user_id, memory_id)
+      when is_binary(owner_user_id) and is_binary(memory_id) do
+    {count, _} =
+      Repo.delete_all(
+        from(m in RelationshipMemory,
+          where: m.owner_user_id == ^owner_user_id and m.id == ^memory_id
+        )
+      )
+
+    count
+  end
+
+  def erase_one_for_owner(_, _), do: 0
 
   @doc """
   Plain-language label for a stored preference value.

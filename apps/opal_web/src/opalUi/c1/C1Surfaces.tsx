@@ -10,7 +10,11 @@
  * composition - all in the new First Light language, both modes.
  */
 import React, { useEffect, useRef, useState } from "react";
+import type { NextPlanFact, RevealItem } from "../../api/productClient";
 import { PlanCard, PlanDetailSheet } from "./PlanCard";
+import { ListenButton } from "./ListenButton";
+import { PlanAwareness } from "./PlanAwareness";
+import { RevealCard, RevealListLine } from "./RevealCard";
 import type { PlanProjection } from "./planProjection";
 
 /* ---------------- Presence (spec 8: real signals only) ---------------- */
@@ -294,6 +298,12 @@ export function CenterSessionList({
 
 /* ---------------- Shared thread pieces ---------------- */
 
+/** Harmony2 completion (adopt1 4.C1's named missing leg): one
+ * figure of the holding answer, parsed from the message's
+ * metadata.holding by the host - the label is a finished string and
+ * the target is the surface key the backend's links map named. */
+export type HoldingFigure = { key: string; label: string; target: string };
+
 export type ThreadMsg = {
   id: string;
   authorKind: "person" | "opal" | "system";
@@ -301,16 +311,29 @@ export type ThreadMsg = {
   own?: boolean;
   body: string;
   planId?: string | null;
+  /** The holding answer's per-figure links, when this message is
+   * the holding answer. Absent on every other message. */
+  holdingFigures?: HoldingFigure[] | null;
+  /** ST-H: voice-note audio (same stored audio for every participant). */
+  audioUrl?: string | null;
+  durationMs?: number | null;
+  messageType?: string;
 };
 
 function MessageFlow({
   messages,
   plansById,
   onOpenPlan,
+  onCorrectTranscript,
+  onHoldingLink,
 }: {
   messages: ThreadMsg[];
   plansById: Map<string, PlanProjection>;
   onOpenPlan?: (plan: PlanProjection) => void;
+  /** ST-H: sender-only transcript correction, wired by the host. */
+  onCorrectTranscript?: (messageId: string, text: string) => Promise<void>;
+  /** Harmony2: a holding chip tap routes to its named surface. */
+  onHoldingLink?: (target: string) => void;
 }) {
   return (
     <div className="c1-flow">
@@ -323,6 +346,32 @@ function MessageFlow({
           );
         }
         const plan = m.planId ? plansById.get(m.planId) : undefined;
+        if (m.audioUrl) {
+          // ST-H voice note: the player is the message; the transcript
+          // (when the real transcription path produced one) is its
+          // caption. No transcript - no caption, no claim.
+          return (
+            <React.Fragment key={m.id}>
+              <div className={`c1-bubble-row${m.own ? " c1-bubble-own" : ""}`}>
+                <div className="c1-bubble c1-voice-note" data-testid="voice-note">
+                  <audio controls src={m.audioUrl} data-testid="voice-note-player" />
+                  {m.body ? (
+                    <span className="c1-voice-transcript" data-testid="voice-note-transcript">
+                      {m.body}
+                    </span>
+                  ) : null}
+                  {m.own && onCorrectTranscript ? (
+                    <VoiceTranscriptCorrection
+                      messageId={m.id}
+                      current={m.body}
+                      onCorrect={onCorrectTranscript}
+                    />
+                  ) : null}
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        }
         return (
           <React.Fragment key={m.id}>
             {m.body ? (
@@ -332,7 +381,23 @@ function MessageFlow({
                     <span className="c1-opal-dot" aria-hidden="true" />
                   ) : null}
                   <span>{m.body}</span>
+                  {m.authorKind === "opal" ? <ListenButton text={m.body} /> : null}
                 </div>
+              </div>
+            ) : null}
+            {m.holdingFigures && m.holdingFigures.length > 0 ? (
+              <div className="c1-holding-chips" data-testid="holding-chips">
+                {m.holdingFigures.map((figure) => (
+                  <button
+                    key={figure.key}
+                    type="button"
+                    className="c1-holding-chip"
+                    data-testid={`holding-chip-${figure.key}`}
+                    onClick={() => onHoldingLink?.(figure.target)}
+                  >
+                    {figure.label}
+                  </button>
+                ))}
               </div>
             ) : null}
             {plan ? (
@@ -355,6 +420,7 @@ export function CenterChat({
   onOpenPlan,
   onSend,
   onToggleVoice,
+  onHoldingLink,
 }: {
   title: string;
   presence?: PresenceState;
@@ -366,6 +432,8 @@ export function CenterChat({
   onSend?: (text: string) => void;
   /** The voice toggle renders only when a host wires the real toggle. */
   onToggleVoice?: () => void;
+  /** Harmony2: holding chip taps route to their named surfaces. */
+  onHoldingLink?: (target: string) => void;
 }) {
   const [draft, setDraft] = useState("");
   return (
@@ -387,7 +455,7 @@ export function CenterChat({
           </button>
         ) : null}
       </header>
-      <MessageFlow messages={messages} plansById={plansById} onOpenPlan={onOpenPlan} />
+      <MessageFlow messages={messages} plansById={plansById} onOpenPlan={onOpenPlan} onHoldingLink={onHoldingLink} />
       <div className="c1-composer-bar">
         <span className="c1-destination-pill c1-destination-compact">{title}</span>
         <div className="c1-composer">
@@ -432,6 +500,17 @@ export type PeopleChatSummary = {
   timeLabel: string;
   unread: boolean;
   plan: PlanProjection | null;
+  /** DIR-1: the backend's shared upcoming plan fact for this row.
+   *  When present it is the row's ONE plan-awareness element (it
+   *  replaces the row pill - presence discipline: one per row). */
+  nextPlan?: NextPlanFact | null;
+  /** DIR-1: the conversation entity's stable tint (L9). */
+  entityTint?: number | null;
+  /** DIR-4: a P1 reveal about this conversation's people, from the
+   *  ONE derivation. When present it takes over the row's plan line
+   *  (entry 7: same slot, never a fourth line). */
+  reveal?: RevealItem | null;
+  onDismissReveal?: (item: RevealItem) => void;
 };
 
 export function PeopleChatsList({
@@ -478,7 +557,16 @@ export function PeopleChatsList({
               data-testid="chats-row"
               onClick={() => onOpen?.(c.id)}
             >
-              <span className="c1-avatar">
+              <span
+                className="c1-avatar"
+                style={
+                  c.entityTint
+                    ? {
+                        boxShadow: `inset 0 0 0 2px var(--person-tint-${c.entityTint})`,
+                      }
+                    : undefined
+                }
+              >
                 {c.initials}
                 {c.unread ? <span className="c1-unread-dot" aria-label="Unread" /> : null}
               </span>
@@ -487,7 +575,13 @@ export function PeopleChatsList({
                   {c.name}
                 </span>
                 <span className="c1-session-preview">{c.preview}</span>
-                {c.plan ? <PlanCard plan={c.plan} size="row" /> : null}
+                {c.reveal ? (
+                  <RevealListLine item={c.reveal} onDismiss={c.onDismissReveal} />
+                ) : c.nextPlan ? (
+                  <PlanAwareness fact={c.nextPlan} entityTint={c.entityTint} variant="row" />
+                ) : c.plan ? (
+                  <PlanCard plan={c.plan} size="row" />
+                ) : null}
               </span>
               <span className="c1-session-time">{c.timeLabel}</span>
             </button>
@@ -514,11 +608,70 @@ export function NextTogetherStrip({
   );
 }
 
+/** ST-H: the sender corrects the stored transcript; the correction
+ *  replaces it - it is the text every later read (and ingestion) sees. */
+function VoiceTranscriptCorrection({
+  messageId,
+  current,
+  onCorrect,
+}: {
+  messageId: string;
+  current: string;
+  onCorrect: (messageId: string, text: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(current);
+  const [error, setError] = useState<string | null>(null);
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        className="c1-listen-btn"
+        data-testid="voice-note-correct"
+        onClick={() => {
+          setDraft(current);
+          setEditing(true);
+        }}
+      >
+        {current ? "Correct transcript" : "Add transcript"}
+      </button>
+    );
+  }
+  return (
+    <span className="c1-voice-correction">
+      <input
+        aria-label="Corrected transcript"
+        data-testid="voice-note-correction-input"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+      />
+      <button
+        type="button"
+        className="c1-listen-btn"
+        data-testid="voice-note-correction-save"
+        onClick={() => {
+          void onCorrect(messageId, draft)
+            .then(() => setEditing(false))
+            .catch(() => setError("That correction did not save. Try again."));
+        }}
+      >
+        Save
+      </button>
+      {error ? <span role="alert">{error}</span> : null}
+    </span>
+  );
+}
+
 export function ThreadShell({
   name,
   initials,
   sharedLine,
   nextPlan,
+  nextPlanFact,
+  entityTint,
+  reveals,
+  onDismissReveal,
+  onRevealAction,
   messages,
   plansById,
   contextualChip,
@@ -528,11 +681,24 @@ export function ThreadShell({
   onOpenPlan,
   onSend,
   onCall,
+  onCorrectTranscript,
 }: {
   name: string;
   initials: string;
   sharedLine?: string | null;
   nextPlan?: PlanProjection | null;
+  /** DIR-1: the backend's shared upcoming plan fact for this thread.
+   *  When present, the Next Together strip at its designed place is
+   *  fed by this fact (the same fact the chats row and call log
+   *  render) instead of a PlanProjection. */
+  nextPlanFact?: NextPlanFact | null;
+  entityTint?: number | null;
+  /** DIR-4: this thread's reveal items from the ONE derivation, in
+   *  the derivation's priority order. At most the first renders
+   *  (entry 8 / spec 5.4: one unanswered reveal per thread). */
+  reveals?: RevealItem[];
+  onDismissReveal?: (item: RevealItem) => void;
+  onRevealAction?: (item: RevealItem) => void;
   messages: ThreadMsg[];
   plansById: Map<string, PlanProjection>;
   contextualChip?: string | null;
@@ -545,6 +711,7 @@ export function ThreadShell({
   onSend?: (text: string) => void;
   /** Call controls render only when a host wires the real call path. */
   onCall?: (kind: "video" | "voice") => void;
+  onCorrectTranscript?: (messageId: string, text: string) => Promise<void>;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -572,7 +739,11 @@ export function ThreadShell({
           <span className="c1-thread-name" data-testid="thread-header-name">
             {name}
           </span>
-          {scrolled && nextPlan ? (
+          {scrolled && nextPlanFact ? (
+            <span className="c1-thread-sub">
+              {nextPlanFact.title} - {nextPlanFact.when_label ?? "Time not set yet."}
+            </span>
+          ) : scrolled && nextPlan ? (
             <span className="c1-thread-sub">
               {nextPlan.title} - {nextPlan.when.kind === "canonical" ? nextPlan.when.label : "Time not set yet."}
             </span>
@@ -592,8 +763,25 @@ export function ThreadShell({
         ) : null}
       </header>
       <div className="c1-scroll" ref={scrollRef}>
-        {nextPlan ? <NextTogetherStrip plan={nextPlan} onOpen={open} /> : null}
-        <MessageFlow messages={messages} plansById={plansById} onOpenPlan={open} />
+        {nextPlanFact ? (
+          <div className="c1-next-strip" data-testid="next-together-strip">
+            <span className="c1-kicker">NEXT TOGETHER</span>
+            <PlanAwareness fact={nextPlanFact} entityTint={entityTint} variant="strip" />
+          </div>
+        ) : nextPlan ? (
+          <NextTogetherStrip plan={nextPlan} onOpen={open} />
+        ) : null}
+        <MessageFlow messages={messages} plansById={plansById} onOpenPlan={open} onCorrectTranscript={onCorrectTranscript} />
+        {reveals && reveals.length > 0 ? (
+          <div data-testid="reveal-thread">
+            <RevealCard
+              item={reveals[0]}
+              surface="thread"
+              onDismiss={onDismissReveal}
+              onAction={onRevealAction}
+            />
+          </div>
+        ) : null}
       </div>
       {privateGuidance ? (
         <div className="c1-private-guidance" data-testid="private-guidance">

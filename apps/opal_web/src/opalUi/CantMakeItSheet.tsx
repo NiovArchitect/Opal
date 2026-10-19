@@ -14,6 +14,16 @@ type Props = {
   onBack: () => void;
   onConfirm: (note?: string) => void;
   onHandoffLead?: () => void;
+  /**
+   * Hunt-fix B-15: the continuation the sheet never offered — ask to
+   * move this plan online (B1 conversion) instead of only staying or
+   * leaving. Rendered only when the parent wires the real conversion.
+   */
+  onMoveOnline?: () => void;
+  moveOnlineBusy?: boolean;
+  /** A failure from the last action, in plain words. The sheet stays
+   *  open and shows it — failures are never silent. */
+  error?: string | null;
 };
 
 export function CantMakeItSheet({
@@ -23,6 +33,9 @@ export function CantMakeItSheet({
   onBack,
   onConfirm,
   onHandoffLead,
+  onMoveOnline,
+  moveOnlineBusy = false,
+  error,
 }: Props) {
   return (
     <div
@@ -58,6 +71,11 @@ export function CantMakeItSheet({
           If you are the lead - Hand off lead first.
         </p>
       ) : null}
+      {error ? (
+        <p className="gsh-gate-note" role="alert" data-testid="cant-make-it-error">
+          {error}
+        </p>
+      ) : null}
       <div className="cant-make-it-actions">
         <button
           type="button"
@@ -67,6 +85,17 @@ export function CantMakeItSheet({
         >
           Keep going
         </button>
+        {onMoveOnline ? (
+          <button
+            type="button"
+            className="btn ghost"
+            data-testid="cant-make-it-move-online"
+            onClick={onMoveOnline}
+            disabled={moveOnlineBusy}
+          >
+            {moveOnlineBusy ? "Asking…" : "Ask to move this online"}
+          </button>
+        ) : null}
         {viewerIsLead && onHandoffLead ? (
           <button
             type="button"

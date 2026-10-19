@@ -219,7 +219,11 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   @doc "Author soft-deletes their Story — removes from all viewer eligibility."
   def delete_own(author_user_id, story_id)
       when is_binary(author_user_id) and is_binary(story_id) do
-    case Repo.get(TemporaryStory, story_id) do
+    # FR-11-08: a junk story id is a guessed id - :not_found, never a
+    # CastError out of Repo.get/2 against :binary_id.
+    story_id = if OpalCore.IdShape.uuid?(story_id), do: story_id, else: nil
+
+    case story_id && Repo.get(TemporaryStory, story_id) do
       %TemporaryStory{author_user_id: ^author_user_id, deleted_at: nil} = story ->
         now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 

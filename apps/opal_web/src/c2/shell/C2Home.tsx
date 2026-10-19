@@ -10,7 +10,7 @@
  */
 import React, { useRef, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
-import { C2LockupInline } from "../C2Wordmark";
+import { OrbLockup } from "../../brand/orb/OrbMark";
 import { PlanCardC2 } from "../PlanCardC2";
 import {
   createTemporaryStory,
@@ -61,14 +61,20 @@ export function C2Home({
 }) {
   const [sheet, setSheet] = useState<null | "create">(null);
   const [composer, setComposer] = useState<null | "story" | "post">(null);
-  const [viewer, setViewer] = useState<null | { personName: string; storyCount: number }>(null);
+  const [viewer, setViewer] = useState<null | {
+    personName: string;
+    storyCount: number;
+    mediaUrl: string;
+    caption?: string | null;
+  }>(null);
   const rail = projection.rail;
 
   const openSelf = () => {
-    if (rail.self.hasLiveStory) {
-      setViewer({ personName: "Your story", storyCount: 1 });
-      return;
-    }
+    // Hunt-fix B-10: your own live story opens the viewer only when
+    // the rail carries its media (the adapter never sets hasLiveStory
+    // without media today); otherwise the tap goes to create — never
+    // to an empty stage.
+    if (rail.self.hasLiveStory) return;
     if (rail.capabilities.canPost && rail.capabilities.canStory) {
       setSheet("create");
     } else if (rail.capabilities.canStory) {
@@ -88,7 +94,7 @@ export function C2Home({
           label="You"
         />
         <div style={{ flex: 1 }}>
-          <C2LockupInline wordmarkWidth={72} />
+          <OrbLockup form="wordmark" wordmarkWidth={72} />
         </div>
         <button
           type="button"
@@ -120,11 +126,20 @@ export function C2Home({
       <div className="c2s-scroll" data-testid="c2-home-scroll">
         <StoryRail rail={rail} onSelf={openSelf} onOpen={(s) => setViewer(s)} />
         <div className="c2s-feed" data-testid="c2-feed">
-          {projection.feed.length === 0 ? (
+          {projection.feedError ? (
+            <EmptyBlock
+              testId="c2-feed-error"
+              headline="Your feed did not load."
+              line={projection.feedError}
+              actionLabel="Try again"
+              onAction={events.onShared}
+            />
+          ) : null}
+          {projection.feed.length === 0 && !projection.feedError ? (
             <EmptyBlock
               testId="c2-feed-empty"
               headline="Nothing here yet."
-              line="When your people move, you will see it here."
+              line="Posts from your people and your plans will show up here."
             />
           ) : (
             projection.feed.map((item) => {
@@ -267,7 +282,27 @@ export function C2Home({
               </button>
             </div>
             <div className="c2s-viewer-media">
-              Stories play here. Tap close any time to head back.
+              {/\.(mp4|webm|mov|m4v)(\?|$)/i.test(viewer.mediaUrl) ? (
+                <video
+                  src={viewer.mediaUrl}
+                  autoPlay
+                  playsInline
+                  data-testid="c2-story-viewer-media"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <img
+                  src={viewer.mediaUrl}
+                  alt={viewer.caption || `${viewer.personName} story`}
+                  data-testid="c2-story-viewer-media"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              )}
+              {viewer.caption ? (
+                <p className="c2s-viewer-caption" data-testid="c2-story-viewer-caption">
+                  {viewer.caption}
+                </p>
+              ) : null}
             </div>
           </div>
         </TopLayer>
@@ -283,7 +318,12 @@ function StoryRail({
 }: {
   rail: StoryRailProjection;
   onSelf: () => void;
-  onOpen: (s: { personName: string; storyCount: number }) => void;
+  onOpen: (s: {
+    personName: string;
+    storyCount: number;
+    mediaUrl: string;
+    caption?: string | null;
+  }) => void;
 }) {
   return (
     <div className="c2s-rail" data-testid="c2-story-rail">
@@ -315,22 +355,46 @@ function StoryRail({
       </div>
       {rail.stories.map((story) => (
         <div className="c2s-story-cell" key={story.id}>
-          <button
-            type="button"
-            className="c2s-story-avatar-btn"
-            data-ring={story.ringKind}
-            data-testid="c2-story-cell"
-            aria-label={`${story.personName} story`}
-            onClick={() => onOpen({ personName: story.personName, storyCount: story.storyCount })}
-          >
-            <span className="c2s-story-avatar-inner">
-              {story.avatar.photoUrl ? (
-                <img src={story.avatar.photoUrl} alt="" draggable={false} />
-              ) : (
-                story.avatar.initials
-              )}
+          {story.mediaUrl ? (
+            <button
+              type="button"
+              className="c2s-story-avatar-btn"
+              data-ring={story.ringKind}
+              data-testid="c2-story-cell"
+              aria-label={`${story.personName} story`}
+              onClick={() =>
+                onOpen({
+                  personName: story.personName,
+                  storyCount: story.storyCount,
+                  mediaUrl: story.mediaUrl!,
+                  caption: story.caption,
+                })
+              }
+            >
+              <span className="c2s-story-avatar-inner">
+                {story.avatar.photoUrl ? (
+                  <img src={story.avatar.photoUrl} alt="" draggable={false} />
+                ) : (
+                  story.avatar.initials
+                )}
+              </span>
+            </button>
+          ) : (
+            <span
+              className="c2s-story-avatar-btn"
+              data-ring={story.ringKind}
+              data-testid="c2-story-cell-nomedia"
+              aria-label={`${story.personName} story is not available to play`}
+            >
+              <span className="c2s-story-avatar-inner">
+                {story.avatar.photoUrl ? (
+                  <img src={story.avatar.photoUrl} alt="" draggable={false} />
+                ) : (
+                  story.avatar.initials
+                )}
+              </span>
             </span>
-          </button>
+          )}
           <p className="c2s-story-name">{story.personName}</p>
           <p className="c2s-story-sub">{story.seen ? "Seen" : "New"}</p>
         </div>

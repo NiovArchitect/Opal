@@ -117,7 +117,7 @@ export function projectTravelModeLabel(
  * check instead of guessing Connected / Not connected.
  */
 export type GoogleConnectionProjection = {
-  state: "connected" | "not_connected" | "unknown";
+  state: "connected" | "not_connected" | "simulated" | "unknown";
   label: string;
   detail: string;
 };
@@ -152,6 +152,19 @@ export function projectGoogleConnection(
   }
   if (!status) {
     return { state: "unknown", label: "Checking", detail: "Checking this connection." };
+  }
+  // HA-01 at the glass (Repair #18 DIR-2, FR-18-09): the backend has
+  // carried the `simulated` provenance flag since 7726a678, and this
+  // projection ignored it — a simulated Google row painted plain
+  // "Connected". Provenance is checked FIRST, before `connected`:
+  // a simulated connection can never render as connected, anywhere.
+  if (status.simulated === true || status.status === "connected_simulated") {
+    return {
+      state: "simulated",
+      label: "Simulated - not a real connection",
+      detail:
+        "This is a test stand-in, not a real Google sign-in. Disconnect it, then connect Google for real when you are ready.",
+    };
   }
   if (status.connected) {
     // Repair #17 W5 — status refinement: when the backend reports a real
@@ -1493,7 +1506,7 @@ export function ConnectedSourcesSection({ session }: WhatOpalCanDoProps) {
           {busy ? "Opening Google..." : "Connect Google"}
         </button>
       ) : null}
-      {projection.state === "connected" ? (
+      {projection.state === "connected" || projection.state === "simulated" ? (
         <button
           type="button"
           className="you-trust-grant"

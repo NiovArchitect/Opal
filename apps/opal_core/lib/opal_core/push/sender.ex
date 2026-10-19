@@ -2,8 +2,10 @@ defmodule OpalCore.Push.Sender do
   @moduledoc """
   Push sender behaviour + adapter resolution.
 
-  Default is Synthetic (honest — never claims delivery). APNs/FCM adapters
-  are selected only when credentials are present; otherwise Synthetic + warn.
+  Default is Synthetic (honest — never claims delivery). The APNs adapter
+  is selected only when credentials are present; otherwise Synthetic + warn.
+  FCM is retired (FALSE-fix F-03): its adapter never reports credentials
+  present, so Android always resolves here until a real HTTP v1 sender exists.
 
   Phase 2C: tokens starting with `ExponentPushToken[` route to the Expo
   adapter (token format is the discriminator; platform stays ios|android).

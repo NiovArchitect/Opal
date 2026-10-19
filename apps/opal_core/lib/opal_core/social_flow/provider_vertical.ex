@@ -81,7 +81,10 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
     social_order_ids = Enum.map(ranked, &(&1["id"] || &1["provider_place_id"]))
 
     selected_id = c["selected_place_id"] || List.first(social_order_ids)
-    selected = Enum.find(ranked, &((&1["id"] || &1["provider_place_id"]) == selected_id)) || List.first(ranked)
+
+    selected =
+      Enum.find(ranked, &((&1["id"] || &1["provider_place_id"]) == selected_id)) ||
+        List.first(ranked)
 
     place_identity = place_identity(selected)
     travel = travel_for(selected, c)
@@ -93,7 +96,9 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
         ExternalWorldTruth.recompose_after_provider_failure(
           %{
             "what" => c["what"] || "Dinner",
-            "when" => c["when_label"] || "Thursday · 6:30 PM",
+            # HA-10 (Repair #18 hunt-fix): no invented day/time — a
+            # missing when_label stays absent, never "Thursday · 6:30 PM".
+            "when" => c["when_label"],
             "where" => place_identity && place_identity["display_name"],
             "next_gap" => "none"
           },
@@ -171,8 +176,11 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
 
       c["prefer_recorded"] == true or c["source"] == "recorded_fixture" ->
         case RecordedPlaces.fetch_candidates(search_query(c)) do
-          {:ok, r} -> r
-          {:error, e} -> %{"candidates" => [], "error" => to_string(e), "source" => "recorded_fixture"}
+          {:ok, r} ->
+            r
+
+          {:error, e} ->
+            %{"candidates" => [], "error" => to_string(e), "source" => "recorded_fixture"}
         end
 
       mode["mode"] == "connected" and mode["credential_present"] == true ->
@@ -314,13 +322,17 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
     exp = f["expires_at"] || get_in(f, ["provenance", "valid_until"])
 
     cond do
-      match?(%DateTime{}, exp) -> DateTime.compare(now, exp) != :gt
+      match?(%DateTime{}, exp) ->
+        DateTime.compare(now, exp) != :gt
+
       is_binary(exp) ->
         case DateTime.from_iso8601(exp) do
           {:ok, dt, _} -> DateTime.compare(now, dt) != :gt
           _ -> false
         end
-      true -> false
+
+      true ->
+        false
     end
   end
 
@@ -366,21 +378,27 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
   defp attach_provider_envelope(c) do
     c = stringify(c)
     observed = DateTime.utc_now() |> DateTime.truncate(:second)
-    prov = c["provenance"] || WorldFact.provenance(%{
-      "source" => c["provider"] || c["provider_freshness"] || "fixture_catalog",
-      "source_item_id" => c["provider_place_id"] || c["id"],
-      "observed_at" => observed,
-      "valid_until" => DateTime.add(observed, @place_ttl_sec, :second),
-      "synthetic" => c["provider_freshness"] in ["fixture", "fixture_catalog", nil],
-      "real" => c["provider"] == "google_places" and c["provider_freshness"] != "recorded"
-    })
+
+    prov =
+      c["provenance"] ||
+        WorldFact.provenance(%{
+          "source" => c["provider"] || c["provider_freshness"] || "fixture_catalog",
+          "source_item_id" => c["provider_place_id"] || c["id"],
+          "observed_at" => observed,
+          "valid_until" => DateTime.add(observed, @place_ttl_sec, :second),
+          "synthetic" => c["provider_freshness"] in ["fixture", "fixture_catalog", nil],
+          "real" => c["provider"] == "google_places" and c["provider_freshness"] != "recorded"
+        })
 
     c
     |> Map.put("truth_class", "provider_fact")
     |> Map.put("fact_type", "place")
     |> Map.put("provenance", prov)
     |> Map.put("observed_at", prov["observed_at"])
-    |> Map.put("expires_at", prov["valid_until"] || DateTime.add(observed, @place_ttl_sec, :second))
+    |> Map.put(
+      "expires_at",
+      prov["valid_until"] || DateTime.add(observed, @place_ttl_sec, :second)
+    )
     |> Map.put_new("reservation_available", :unknown)
     |> Map.put("authorizes_set", false)
   end
@@ -487,18 +505,22 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
   defp leave_consequence(nil, _), do: %{"kind" => "silence", "reason" => "no_travel_truth"}
 
   defp leave_consequence(travel, c) do
-    mins_until = c["minutes_until_event"] || 90
+    # HA-10: no fixture defaults — a missing conversation/who/when/
+    # minutes value stays absent (nil) instead of silently becoming
+    # the fixture conversation "conv-1", "friend", "Thursday · 6:30 PM"
+    # or an assumed 90 minutes.
+    mins_until = c["minutes_until_event"]
     duration = travel["duration_minutes"]
 
     facts = [
       %{
-        "conversation_id" => c["conversation_id"] || "conv-1",
-        "who" => c["who"] || "friend",
+        "conversation_id" => c["conversation_id"],
+        "who" => c["who"],
         "next_gap" => "none",
         "lifecycle_stage" => "set",
         "sufficiency" => "usable",
         "has_meaningful_dims" => true,
-        "when" => c["when_label"] || "Thursday · 6:30 PM",
+        "when" => c["when_label"],
         "minutes_until" => mins_until,
         "requires_user_action" => false
       }
@@ -522,9 +544,11 @@ defmodule OpalCore.SocialFlow.ProviderVertical do
 
   defp delivery_for(leave, c) do
     facts = %{
-      "conversation_id" => c["conversation_id"] || "jordan-1",
+      # HA-10: never the fixture conversation "jordan-1" and never an
+      # assumed 20 minutes — missing input stays absent.
+      "conversation_id" => c["conversation_id"],
       "leave_by_relevant" => leave["kind"] == "leave_window",
-      "minutes_until" => leave["minutes_until"] || 20
+      "minutes_until" => leave["minutes_until"]
     }
 
     prior = c["prior_delivery_history"] || []

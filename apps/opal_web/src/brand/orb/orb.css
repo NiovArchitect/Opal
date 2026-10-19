@@ -1,0 +1,172 @@
+/*
+ * Repair #18 - THE ORB SYSTEM - component styles. Every value comes
+ * from theme/orbTokens.css (sampled from the masters) or the C2
+ * token system; no raw hue is introduced here except the indicator
+ * rgba glows, which live in orbTokens.css per mode.
+ */
+
+.orb-hero {
+  display: block;
+  flex: none;
+  /* The hero IS the master on the page's own field: no background,
+   * no border, no box (section 8 - a background box around the mark
+   * FAILS). The medallion variant carries its own case in the art. */
+  background: transparent;
+  border: 0;
+}
+.orb-hero--medallion {
+  border-radius: 999px;
+  box-shadow: var(--orb-medallion-glow);
+}
+
+.orb-mark,
+.orb-gem-o,
+.orb-wordmark {
+  display: block;
+  flex: none;
+}
+.orb-wordmark {
+  color: var(--ink-1);
+}
+
+.orb-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-1);
+}
+/* LOCKUP LAW: the combined lockup is STACKED only - orb centered
+ * above the wordmark. No horizontal composition exists. */
+.orb-lockup--stacked {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The gem pattern: facet geometry at token opacity, zones only. */
+.orb-gem-pattern {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: var(--orb-gem-pattern-opacity);
+}
+
+/* ---- Fire language ---- */
+.orb-fire-line {
+  display: block;
+  height: var(--orb-fire-line-width);
+  background: var(--orb-fire-line-gradient);
+  box-shadow: var(--orb-fire-glow);
+  border-radius: 999px;
+}
+.orb-fire-line--short {
+  width: min(220px, 60%);
+}
+
+.orb-fire-frame {
+  position: relative;
+  border-radius: var(--radius-card);
+  background: var(--surface-1);
+  box-shadow: var(--orb-fire-glow);
+  padding: var(--space-4);
+}
+/* The fire line itself: a gradient border ring, 1px, no fill flood. */
+.orb-fire-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--orb-fire-line-width);
+  background: var(--orb-fire-line-gradient);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* State-tinted glow when the frame carries an indicator state. */
+.orb-fire-frame[data-orb-state] {
+  box-shadow: 0 0 16px var(--orb-frame-glow, transparent);
+}
+.orb-fire-frame[data-orb-state="past"] {
+  box-shadow: none; /* past = the stone at rest */
+}
+
+.orb-state-stone {
+  display: inline-flex;
+  flex: none;
+  border-radius: 999px;
+}
+.orb-state-stone[data-orb-state="forming"] { box-shadow: 0 0 8px var(--orb-indicator-forming-glow); }
+.orb-state-stone[data-orb-state="happening"] { box-shadow: 0 0 8px var(--orb-indicator-happening-glow); }
+.orb-state-stone[data-orb-state="ready"] { box-shadow: 0 0 8px var(--orb-indicator-ready-glow); }
+.orb-state-stone[data-orb-state="action"] { box-shadow: 0 0 8px var(--orb-indicator-action-glow); }
+.orb-state-stone[data-orb-state="past"] { box-shadow: none; }
+/* On the soft light field the pale past ring needs the case line. */
+:root[data-mode="light"] .orb-state-stone[data-orb-state="past"] {
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+
+/* Center presence: looking into the stone (section 8 read). */
+.orb-center-presence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Dock center device: the rings, raised on the calm disc. */
+.orb-dock-device {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- The living rings (OrbLivingRings) ----
+ * The motion layer rides absolutely over its orb composition (the
+ * full-bleed master on Splash 1, the OrbMark device in the dock).
+ * It carries NO structure of its own - points of light + one lit
+ * arc - so it can never double or fight the rings beneath it.
+ * Settle law: the still composition paints first; the living layer
+ * fades in over 1.6s after a 0.45s beat (opacity only - the opening
+ * surface's first paint is never blocked or moved by the motion). */
+.orb-living-rings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  animation: orb-rings-settle 1.6s ease-out 0.45s forwards;
+  will-change: opacity;
+}
+@keyframes orb-rings-settle {
+  to {
+    opacity: 1;
+  }
+}
+/* Rest state (reduced motion, decided in the component): no fade,
+ * no travel - the points simply are there. */
+.orb-living-rings[data-motion="rest"] {
+  animation: none;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-living-rings {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Dock mark wrapper: the living layer is clipped to the mark's own
+ * square, well inside the 56px disc - traveler halos (max extent
+ * ~17px from center at 40px render) never reach the disc border. */
+.orb-dock-mark {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+.orb-dock-mark .orb-living-rings {
+  inset: 0;
+}

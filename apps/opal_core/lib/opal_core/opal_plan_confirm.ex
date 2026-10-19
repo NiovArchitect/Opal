@@ -28,9 +28,23 @@ defmodule OpalCore.OpalPlanConfirm do
     meeting_link = resolve_meeting_link(user_id, entities, plan_type)
     share? = explicit_share?(entities)
 
+    # Repair #18 fix wave (RF-3) — the explicit clock and named venue
+    # parsed at proposal time are facts of the plan being confirmed:
+    # the stored time_label carries day + clock ("Sunday 10 AM", the
+    # same label shape conversation plans use), and a named venue is
+    # the plan's place — not the echoed activity word.
+    when_time = present(entities[:when_time] || entities["when_time"])
+    venue = present(entities[:venue] || entities["venue"])
+
     title = build_title(what, when_s, who)
-    time_label = when_s
-    location = if plan_type == "virtual", do: "Online", else: what
+    time_label = combine_when(when_s, when_time)
+
+    location =
+      cond do
+        plan_type == "virtual" -> "Online"
+        is_binary(venue) -> venue
+        true -> what
+      end
 
     # Repair #18: pass the decision context through - the resolved
     # subject id (when the who resolves inside the user's own contacts)
@@ -103,6 +117,11 @@ defmodule OpalCore.OpalPlanConfirm do
          subject_user_id,
          decision_id
        ) do
+    # RF-3 — the venue/clock facts ride the confirm entities; the
+    # result quotes the created record's own label and place.
+    when_time = present(entities[:when_time] || entities["when_time"])
+    venue = present(entities[:venue] || entities["venue"])
+
     case SocialFlow.create_tentative_plan_from_center(user_id, %{
            "title" => title,
            "place" => location,
@@ -111,7 +130,9 @@ defmodule OpalCore.OpalPlanConfirm do
            "plan_type" => plan_type,
            "meeting_link" => meeting_link,
            "meeting_provider" =>
-             MeetingLinks.normalize_provider(entities[:meeting_provider] || entities["meeting_provider"]),
+             MeetingLinks.normalize_provider(
+               entities[:meeting_provider] || entities["meeting_provider"]
+             ),
            "subject_who" => who,
            "subject_user_id" => subject_user_id,
            "decision_id" => decision_id,
@@ -135,7 +156,11 @@ defmodule OpalCore.OpalPlanConfirm do
          %{
            title: plan.title || title,
            what: what,
-           when: when_s,
+           # RF-3 — the confirmed record's own label (day + explicit
+           # clock) and venue, so the Done copy quotes the plan row.
+           when: plan.time_label || time_label || when_s,
+           when_time: when_time,
+           venue: venue,
            who: who,
            plan_id: plan.id,
            conversation_id: nil,
@@ -148,6 +173,24 @@ defmodule OpalCore.OpalPlanConfirm do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  # RF-3 — day + explicit clock as one stored label ("Sunday 10 AM").
+  # The clock is appended only when the day string does not already
+  # carry it; a missing day falls back to the clock alone.
+  defp combine_when(when_s, when_time) do
+    cond do
+      is_binary(when_s) and is_binary(when_time) ->
+        if String.contains?(String.downcase(when_s), String.downcase(when_time)),
+          do: when_s,
+          else: "#{when_s} #{when_time}"
+
+      is_binary(when_s) ->
+        when_s
+
+      true ->
+        when_time
     end
   end
 

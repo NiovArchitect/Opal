@@ -198,3 +198,20 @@ goal, landing). This stage enforces it on the real path:
 Status: PENDING-RUN with the rest of the integrated-shell rendered
 evidence (see `shots/repair18/COMPLAINT_LEDGER.md`, sweeps (a)/(b)
 extension), never pre-claimed.
+
+## Communication-model gate (founder UX bar, 2026-10-18 03:48 PDT)
+
+Layout Contract L12 + `coordination/repair18/communication-model.md`:
+
+5. **Copy/voice sweep.** Every capture is read, not just measured. A
+   surface FAILS if any user-visible text is an internal state, an enum
+   value, machine jargon, or raw error text; if a status is shown that
+   the user cannot act on; or if a long-running operation is represented
+   by a bare spinner / unchanging "loading" with no checkpoint words.
+   For every long-running in-app operation exercised in the run (plan
+   execution, search, sweep send), the run must capture at least one
+   mid-operation CHECKPOINT state (what is done / happening / remains,
+   in human words), not only the terminal state.
+
+Status: PENDING-RUN with the integrated-shell rendered evidence,
+never pre-claimed.

@@ -41,13 +41,21 @@ type Props = {
   /** Real connected call only. Absent on ringing and fixture stages. */
   assistCallId?: string | null;
   assistBearer?: string | null;
+  /**
+   * True only when a real call record backs this surface. Repair #18
+   * hunt-fix B-04: with no live call and no live view, the surface
+   * renders an honest gate — never the Figma stage with its fake
+   * timer, invented participants, and fixed Assist claim.
+   */
+  hasLiveCall?: boolean;
 };
 
 /**
- * Neutral stage labels when a group call surface opens before real
- * participant names load. Never a specific person's circle.
+ * Stage labels when a group call surface opens before real
+ * participant names load. Only "You" is known — invented "Guest N"
+ * participants are never painted (hunt-fix B-04).
  */
-const DEFAULT_GROUP_PARTICIPANTS = ["You", "Guest 1", "Guest 2", "Guest 3"];
+const DEFAULT_GROUP_PARTICIPANTS = ["You"];
 
 /** Exact Figma tile geometry within control rails (video/group). */
 /** Tile left within rail (rail at x=16). Viewport x = 16 + left → 22/108/194/280. */
@@ -93,7 +101,7 @@ export function CallSurface({
   direction,
   peerName,
   peerAvatarSrc,
-  memberCount = 4,
+  memberCount,
   participants,
   onDecline,
   onAnswer,
@@ -109,6 +117,7 @@ export function CallSurface({
   statusNote = null,
   assistCallId = null,
   assistBearer = null,
+  hasLiveCall = false,
 }: Props) {
   const initial = peerName.slice(0, 1).toUpperCase();
   const resolvedDirection: CallDirection =
@@ -231,6 +240,39 @@ export function CallSurface({
     return createPortal(live, document.body);
   }
 
+  if (!hasLiveCall) {
+    // Hunt-fix B-04 honest gate: no live call backs this surface, so
+    // there is no call stage to paint — no fake timer, no invented
+    // participants, no Assist claim. One way back, in plain words.
+    const gate = (
+      <div
+        className="live-call"
+        data-testid="call-surface"
+        data-call-gated="true"
+        role="dialog"
+        aria-modal="true"
+        aria-label={peerName}
+      >
+        <div className="live-call-stage" data-testid="call-stage">
+          <h1 className="live-call-name" data-testid="call-incoming-name">
+            {peerName}
+          </h1>
+          <p className="live-call-status" data-testid="call-unavailable" role="status">
+            Calls aren&apos;t connected here yet, so there&apos;s no call to show. Head back and
+            open the chat instead.
+          </p>
+          <div className="live-call-actions">
+            <button type="button" className="live-call-end" data-testid="call-end" onClick={onEnd}>
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+    if (typeof document === "undefined") return gate;
+    return createPortal(gate, document.body);
+  }
+
   const figma =
     kind === "incoming"
       ? "618:581"
@@ -246,19 +288,24 @@ export function CallSurface({
       ? peerName || "Group call"
       : peerName;
 
+  const elapsedLabel = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:${String(elapsedSeconds % 60).padStart(2, "0")}`;
   const subtitle = isIncoming
     ? "Direct connection · audio call"
     : resolvedDirection === "outgoing"
       ? isGroupCall
-        ? `Calling ${memberCount} people…`
+        ? memberCount
+          ? `Calling ${memberCount} people…`
+          : "Calling the group…"
         : isVideo
           ? "Calling… · Video"
           : "Calling… · Audio"
       : isGroupCall
-        ? `${memberCount} people · exact group membership`
+        ? memberCount
+          ? `${memberCount} people · exact group membership`
+          : "Group call"
         : isVideo
-          ? "Video call · 00:12"
-          : "00:12";
+          ? `Video call · ${elapsedLabel}`
+          : elapsedLabel;
 
   const tileHandlers: Record<string, (() => void) | undefined> = {
     mute: onMute,
@@ -364,7 +411,7 @@ export function CallSurface({
             {peerName}
           </h1>
           <div className="call-exact-incoming-assist" data-testid="call-opal-assist">
-            <p className="call-assist-title">Opal Assist · preference on</p>
+            <p className="call-assist-title">Opal Assist</p>
             <p className="call-assist-body">
               Activates for this call when participants allow it.
             </p>
@@ -429,7 +476,7 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,554,350,76"
           >
-            <p className="call-assist-title">Opal Assist · preference on</p>
+            <p className="call-assist-title">Opal Assist</p>
             <p className="call-assist-on">Ready when both allow</p>
             <p className="call-assist-body">
               Helps remember useful preferences and plans. No hidden recording.
@@ -492,7 +539,7 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,626,350,50"
           >
-            <p className="call-assist-title">Opal Assist · preference on</p>
+            <p className="call-assist-title">Opal Assist</p>
             <p className="call-assist-on">Both allowed</p>
           </div>
           {railTiles(692, "call-controls")}
@@ -543,7 +590,7 @@ export function CallSurface({
             data-testid="call-opal-assist"
             data-figma-rect="20,532,350,72"
           >
-            <p className="call-assist-title">Opal Assist · preference on</p>
+            <p className="call-assist-title">Opal Assist</p>
             <p className="call-assist-body">
               Only active when required group consent exists. No hidden recording.
             </p>

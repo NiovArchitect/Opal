@@ -1,0 +1,38 @@
+{
+  "stamp": "164491d2b332da9923657b9713e4e5cba962e22a",
+  "goal": {
+    "formPresent": true,
+    "created": true,
+    "pickerPresent": true,
+    "linkButtons": 3,
+    "statusChanged": true,
+    "unlinkAfterLink": 1
+  },
+  "holding": {
+    "talkPresent": true,
+    "composerPresent": true,
+    "chips": 4,
+    "chipLabels": [
+      {
+        "id": "holding-chip-plans_in_motion",
+        "label": "3 plans in motion"
+      },
+      {
+        "id": "holding-chip-approvals_waiting",
+        "label": "2 waiting on your answer"
+      },
+      {
+        "id": "holding-chip-memories_held",
+        "label": "0 memories held"
+      },
+      {
+        "id": "holding-chip-sources_connected",
+        "label": "0 sources connected"
+      }
+    ],
+    "afterTap": {
+      "routeYou": true,
+      "sectionText": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul + MemoryWhat Opal remembersHow Opal hel"
+    }
+  }
+}

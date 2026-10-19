@@ -29,15 +29,15 @@ type Props = {
 };
 
 const CONTEXT_GLOBAL: { id: string; label: string; value: string; icon: string; w?: number; hint: string }[] = [
-  { id: "people", label: "People", value: "18", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Who Opal is considering for this decision." },
+  { id: "people", label: "People", value: "Yours", icon: "/figma-v2/opal-ambient/icon-ctx-people.png", hint: "Who Opal is considering for this decision." },
   { id: "budget", label: "Budget", value: "$", icon: "/figma-v2/opal-ambient/icon-ctx-budget.png", hint: "Spend fit currently in play." },
-  { id: "places", label: "Places", value: "96", icon: "/figma-v2/opal-ambient/icon-ctx-places.png", hint: "Place pool Opal can draw from." },
-  { id: "past", label: "Past moments", value: "24", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Past moments shaping taste - private until you share." },
+  { id: "places", label: "Places", value: "Nearby", icon: "/figma-v2/opal-ambient/icon-ctx-places.png", hint: "Place pool Opal can draw from." },
+  { id: "past", label: "Past moments", value: "Yours", icon: "/figma-v2/opal-ambient/icon-ctx-past.png", w: 102, hint: "Past moments shaping taste - private until you share." },
   { id: "vibe", label: "Vibe", value: "calm, fun", icon: "/figma-v2/opal-ambient/icon-ctx-vibe.png", w: 106, hint: "Current vibe constraint for this answer." },
   {
     id: "availability",
     label: "Availability",
-    value: "3",
+    value: "Now",
     icon: "/figma-v2/opal-ambient/icon-ctx-availability.png",
     w: 96,
     hint: "Overlapping windows Opal believes are usable.",
@@ -365,9 +365,9 @@ export function OpalAmbient({
     setSheet({
       kind: "correction",
       title: chip.label,
-      body: `Got it - I’ll keep that in mind for this decision.`,
+      body: `Noted for this chat. It does not change a pick until you ask Opal to look again.`,
     });
-    setNote(`Got it - “${chip.label}” noted.`);
+    setNote(`Noted - “${chip.label}”. Ask Opal to look again to use it.`);
   }
 
   function openContext(chip: (typeof CONTEXT)[number]) {
@@ -375,7 +375,7 @@ export function OpalAmbient({
       kind: "context",
       id: chip.id,
       title: chip.label,
-      body: `${chip.hint}\n\nCurrent value: ${chip.value}\n\nTell Opal in the chat if this should change - corrections apply to this decision.`,
+      body: `${chip.hint}\n\nTell Opal in the chat if this should change.`,
     });
   }
 
@@ -548,14 +548,14 @@ export function OpalAmbient({
                 : liveFailure
                   ? "I don't have enough live context to pick one confidently yet. Want me to look nearby or use a place you already like?"
                   : exploreMode
-                    ? "I found a few nearby options. Here are the best matches."
+                    ? "Here are a few sample ideas to react to."
                     : lowOpen
                       ? "This one's a real tradeoff - pick the side that fits you."
                       : mediumOpen
                         ? "One thing would finish this - then I can decide."
                         : liveHigh
                           ? "One best fit for this context - confirm when you're ready."
-                          : "One best fit for this context - confirm when you're ready."}
+                          : "I don't have a live pick yet - ask me to look nearby and I'll find one from real places."}
             </p>
             <p className="opal-response-picks">
               {resolving
@@ -570,7 +570,7 @@ export function OpalAmbient({
                         ? "One question to finish the decision."
                         : liveHigh
                           ? "Best match - not booked until you confirm."
-                          : "Best match - not booked until you confirm."}
+                          : "No single pick yet - your call."}
             </p>
           </div>
         </div>
@@ -703,12 +703,17 @@ export function OpalAmbient({
           data-real-external={liveHigh && liveDecision?.real ? "true" : undefined}
           hidden={(mediumOpen || lowOpen) && !exploreMode ? true : undefined}
         >
-          {liveFailure && !exploreMode ? (
+          {!liveHigh && !exploreMode ? (
             <p className="opal-ambient-note" data-testid="opal-decision-failure" role="status">
               I don&apos;t have enough live context to pick one confidently yet. Want me to look nearby or use a place you already like?
             </p>
           ) : (
             <div className={`opal-ideas-track ${exploreMode ? "" : "is-one-answer"}`}>
+              {exploreMode ? (
+                <p className="opal-ambient-note" data-testid="opal-sample-ideas-note" role="status">
+                  Sample ideas — examples to react to, not live picks for you.
+                </p>
+              ) : null}
               {(exploreMode
                 ? visibleIdeas
                 : liveHigh
@@ -763,14 +768,14 @@ export function OpalAmbient({
                     </span>
                     <span className="opal-idea-fit">
                       <img className="opal-idea-ico" src="/figma-v2/opal-ambient/icon-idea-fit.png" alt="" width={10} height={10} />
-                      {exploreMode ? idea.fit : "Provisional · Go with this"}
+                      {exploreMode ? "Sample · example only" : "Provisional · Go with this"}
                     </span>
                   </span>
                 </button>
               ))}
             </div>
           )}
-          {exploreMode || liveFailure ? null : (
+          {!liveHigh ? null : (
             <button
               type="button"
               className="opal-high-accept"
@@ -925,7 +930,7 @@ export function OpalAmbient({
                     else next.add(sheet.id!);
                     return next;
                   });
-                  setNote(`Context “${sheet.title}” ${contextOn.has(sheet.id!) ? "removed from" : "added to"} current decision inputs.`);
+                  setNote(`Context “${sheet.title}” ${contextOn.has(sheet.id!) ? "removed from" : "kept in"} this view. It applies the next time Opal looks.`);
                   setSheet(null);
                 }}
               >

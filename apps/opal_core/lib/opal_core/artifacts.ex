@@ -58,6 +58,40 @@ defmodule OpalCore.Artifacts do
   def generate(_, _, _, _), do: {:error, :invalid}
 
   @doc "Load artifact by opaque share token (expired → :expired)."
+  @doc """
+  4.C11 (Repair #18 adoption wave 3): the owner's Made-by-Opal shelf -
+  every artifact Opal produced for this account, newest first, as
+  preview payloads (provenance: kind + share URL + expiry). Scoped to
+  the account: another account's artifacts never appear.
+  """
+  def list_for_account(account_id) when is_binary(account_id) do
+    from(a in Artifact,
+      where: a.account_id == ^account_id,
+      order_by: [desc: a.inserted_at]
+    )
+    |> Repo.all()
+    |> Enum.map(&preview_payload/1)
+  end
+
+  def list_for_account(_), do: []
+
+  @doc "Owner-scoped delete. Another account's artifact is :not_found."
+  def delete_for_account(account_id, artifact_id)
+      when is_binary(account_id) and is_binary(artifact_id) do
+    case Repo.get(Artifact, artifact_id) do
+      %Artifact{account_id: ^account_id} = art ->
+        case Repo.delete(art) do
+          {:ok, _} -> :ok
+          {:error, _} = err -> err
+        end
+
+      _ ->
+        {:error, :not_found}
+    end
+  end
+
+  def delete_for_account(_, _), do: {:error, :not_found}
+
   def get_by_token(token) when is_binary(token) do
     case Repo.get_by(Artifact, signed_token: token) do
       nil ->
@@ -307,7 +341,11 @@ defmodule OpalCore.Artifacts do
   end
 
   defp plan_participant?(plan_id, user_id) do
-    from(p in PlanParticipant, where: p.plan_id == ^plan_id and p.user_id == ^user_id, select: 1, limit: 1)
+    from(p in PlanParticipant,
+      where: p.plan_id == ^plan_id and p.user_id == ^user_id,
+      select: 1,
+      limit: 1
+    )
     |> Repo.one()
     |> is_integer()
   end

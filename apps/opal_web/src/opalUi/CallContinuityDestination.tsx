@@ -24,7 +24,14 @@ type Props = {
   signalEyebrow?: string;
   signalLabel?: string;
   signalGraphId?: string;
-  recent: RecentCallEvent[];
+  /**
+   * Real call history for this person/group, from the account's own
+   * call log. Absent or empty renders an honest empty line — this
+   * destination never invents a history (Repair #18 hunt-fix B-02:
+   * the previous build passed fabricated PERSON_RECENT / GROUP_RECENT
+   * constants for every person and group).
+   */
+  recent?: RecentCallEvent[];
   onBack: () => void;
   onCall: () => void;
   onVideo: () => void;
@@ -32,26 +39,6 @@ type Props = {
   onOpenGraph?: (graphId: string) => void;
   onOpenStory?: () => void;
 };
-
-const PERSON_RECENT: RecentCallEvent[] = [
-  { id: "rc1", typeLabel: "Outgoing audio", whenLabel: "12m ago · 14m" },
-  { id: "rc2", typeLabel: "Video", whenLabel: "Yesterday · 36m" },
-  { id: "rc3", typeLabel: "Incoming audio", whenLabel: "Fri · 8m" },
-  { id: "rc4", typeLabel: "Missed audio", whenLabel: "Thu · 6:42 PM" },
-];
-
-const GROUP_RECENT: RecentCallEvent[] = [
-  { id: "rg1", typeLabel: "Missed group call", whenLabel: "28m ago" },
-  { id: "rg2", typeLabel: "Group audio", whenLabel: "Sunday · 22m" },
-  { id: "rg3", typeLabel: "Group video", whenLabel: "Aug 26 · 18m" },
-];
-
-export function defaultPersonRecent() {
-  return PERSON_RECENT;
-}
-export function defaultGroupRecent() {
-  return GROUP_RECENT;
-}
 
 export function CallContinuityDestination({
   kind,
@@ -169,21 +156,27 @@ export function CallContinuityDestination({
         <h2 className="call-cont-recent-title">
           {isGroup ? "Recent group calls" : "Recent calls"}
         </h2>
-        <ul className="call-cont-recent-list">
-          {recent.map((ev) => (
-            <li
-              key={ev.id}
-              className="call-cont-recent-row"
-              data-affordance="info"
-              data-testid={`call-cont-recent-${ev.id}`}
-            >
-              <div>
-                <strong>{ev.typeLabel}</strong>
-                <span>{ev.whenLabel}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {recent && recent.length > 0 ? (
+          <ul className="call-cont-recent-list">
+            {recent.map((ev) => (
+              <li
+                key={ev.id}
+                className="call-cont-recent-row"
+                data-affordance="info"
+                data-testid={`call-cont-recent-${ev.id}`}
+              >
+                <div>
+                  <strong>{ev.typeLabel}</strong>
+                  <span>{ev.whenLabel}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="call-cont-recent-empty" data-testid="call-cont-recent-empty">
+            No calls yet. When you talk, your calls will show up here.
+          </p>
+        )}
       </section>
 
       <p className="call-cont-law" data-testid="call-cont-law">

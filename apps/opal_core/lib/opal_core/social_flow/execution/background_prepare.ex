@@ -14,6 +14,7 @@ defmodule OpalCore.SocialFlow.Execution.BackgroundPrepare do
 
   alias OpalCore.SocialFlow.Ambient.{Freshness, ProviderTier}
   alias OpalCore.SocialFlow.Execution.{AttentionTier, ExecutionRequirements}
+  alias OpalCore.SocialFlow.Feasibility.TravelEstimate
 
   @doc """
   Run private preparation for a plan given attention evaluation.
@@ -195,6 +196,10 @@ defmodule OpalCore.SocialFlow.Execution.BackgroundPrepare do
   end
 
   defp leave_item(a, now) do
+    # F-11: the travel fallback (30) is an assumed default, labeled in
+    # the result so a computed leave-by is never read as measured fact.
+    {travel, travel_source} = TravelEstimate.resolve(a["travel_minutes"], 30)
+
     leave =
       case a["leave_by"] do
         %DateTime{} = dt ->
@@ -203,7 +208,6 @@ defmodule OpalCore.SocialFlow.Execution.BackgroundPrepare do
         _ ->
           case a["when"] || a["plan_start"] do
             %DateTime{} = start ->
-              travel = a["travel_minutes"] || 30
               DateTime.add(start, -trunc(travel) * 60, :second)
 
             _ ->
@@ -215,6 +219,10 @@ defmodule OpalCore.SocialFlow.Execution.BackgroundPrepare do
       "kind" => "leave_by_context",
       "result" => %{
         "leave_by" => leave,
+        "travel_minutes" => if(a["leave_by"], do: nil, else: travel),
+        "travel_minutes_source" => if(a["leave_by"], do: nil, else: travel_source),
+        "travel_minutes_estimated" =>
+          if(a["leave_by"], do: nil, else: travel_source == "assumed_default"),
         "computed_at" => now,
         "surface" => false
       },

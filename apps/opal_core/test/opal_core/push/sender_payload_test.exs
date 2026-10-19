@@ -117,15 +117,35 @@ defmodule OpalCore.Push.SenderPayloadTest do
     assert log =~ "refusing fake success"
   end
 
-  test "FCM adapter refuses fake success when credentials absent" do
+  # Repair #18 FALSE-fix F-03: the FCM adapter is retired — the legacy
+  # endpoint it posted to is shut down and no HTTP v1 sender exists, so
+  # it must never report ready or sent, with OR without env credentials.
+  test "FCM adapter is honestly unavailable when credentials absent" do
     log =
       capture_log(fn ->
-        assert {:error, :credentials_absent} =
+        assert {:error, :fcm_not_configured} =
                  FCM.send("tok", %{title: "t", body: "b"}, [])
       end)
 
-    assert log =~ "credentials_absent"
+    assert log =~ "fcm_not_configured"
     assert log =~ "refusing fake success"
+  end
+
+  test "FCM adapter stays unavailable even when legacy env credentials are set" do
+    prior_key = System.get_env("FCM_SERVER_KEY")
+    prior_sa = System.get_env("FCM_SERVICE_ACCOUNT_JSON")
+    System.put_env("FCM_SERVER_KEY", "legacy-server-key")
+    System.put_env("FCM_SERVICE_ACCOUNT_JSON", ~s({"type":"service_account"}))
+
+    on_exit(fn ->
+      restore_env("FCM_SERVER_KEY", prior_key)
+      restore_env("FCM_SERVICE_ACCOUNT_JSON", prior_sa)
+    end)
+
+    refute FCM.credentials_present?()
+    assert {:error, :fcm_not_configured} = FCM.send("tok", %{title: "t", body: "b"}, [])
+    # Sender must fall back to honest Synthetic for Android, never FCM.
+    assert Sender.resolve_adapter(platform: "android") == Synthetic
   end
 
   test "no *_score fields in payload data" do
@@ -148,4 +168,7 @@ defmodule OpalCore.Push.SenderPayloadTest do
 
     refute Sender.resolve_adapter(platform: "ios", token: "apns-abcdef12") == Expo
   end
+
+  defp restore_env(name, nil), do: System.delete_env(name)
+  defp restore_env(name, val), do: System.put_env(name, val)
 end

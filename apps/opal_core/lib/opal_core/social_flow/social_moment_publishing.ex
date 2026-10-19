@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
     SocialMomentRealtime,
     SocialMomentRecord,
     SocialMomentReport,
+    TemporaryStoryPublishing,
     SocialMomentVisibility
   }
 
@@ -180,7 +181,11 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
 
   @doc "Fetch moment for viewer with server visibility enforcement."
   def get_for_viewer(moment_id, viewer_user_id) do
-    case Repo.get(SocialMomentRecord, moment_id) do
+    # FR-11-08: a junk moment id is a guessed id - :not_found, never a
+    # CastError out of Repo.get/2 against :binary_id.
+    moment_id = if OpalCore.IdShape.uuid?(moment_id), do: moment_id, else: nil
+
+    case moment_id && Repo.get(SocialMomentRecord, moment_id) do
       nil ->
         {:error, :not_found}
 
@@ -202,6 +207,39 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
         end
     end
   end
+
+  @doc """
+  ST-C (Repair #18 adoption wave 3): the owner's OWN moments archive -
+  their posts, newest first, as the same public contracts the Home feed
+  composes (HomeFeed enriches these exact records), plus their live
+  stories. No other author's record can appear: the query is scoped to
+  author == owner. Counts therefore equal the feed's own-author records.
+  """
+  def list_own_archive(owner_user_id, opts \\ []) when is_binary(owner_user_id) do
+    limit = Keyword.get(opts, :limit, 60)
+
+    posts =
+      from(m in SocialMomentRecord,
+        where:
+          m.author_user_id == ^owner_user_id and is_nil(m.deleted_at) and
+            m.moderation_state == "active",
+        order_by: [desc: m.inserted_at],
+        limit: ^limit
+      )
+      |> Repo.all()
+      |> Enum.map(fn m ->
+        urls = media_delivery_urls(m, owner_user_id)
+        SocialMomentRecord.public_contract(m, include_media_urls: true, media_urls: urls)
+      end)
+
+    stories =
+      TemporaryStoryPublishing.list_for_viewer(owner_user_id, limit: 40)
+      |> Enum.filter(fn s -> s["author_user_id"] == owner_user_id end)
+
+    %{"posts" => posts, "stories" => stories, "count" => length(posts) + length(stories)}
+  end
+
+  def list_own_archive(_, _), do: %{"posts" => [], "stories" => [], "count" => 0}
 
   @doc "Authorized discovery list — not Home, not engagement feed."
   def list_for_viewer(viewer_user_id, opts \\ []) do

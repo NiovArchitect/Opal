@@ -420,22 +420,36 @@ defmodule OpalCoreWeb.ConversationChannel do
     user_id = socket.assigns.user_id
     trace_id = payload["trace_id"] || "trace-sf-rev"
 
-    case SocialFlow.propose_revision(%{
-           plan_id: payload["plan_id"],
-           proposed_by_user_id: user_id,
-           changes: payload["changes"] || %{"time_label" => payload["time_label"] || "7:30 PM"},
-           trace_id: trace_id
-         }) do
-      {:ok, %{revision: rev, signal: s}} ->
+    # HA-03 (Repair #18 hunt-fix): no invented revision times. A payload
+    # with neither `changes` nor `time_label` used to propose "7:30 PM"
+    # the user never named — a real, broadcast PlanRevision. Absent
+    # changes are an honest error, never a default.
+    case revision_changes(payload) do
+      {:error, :revision_changes_required} ->
         {:reply,
-         {:ok,
-          %{
-            "revision" => OpalCore.SocialFlow.PlanRevision.to_contract(rev),
-            "signal" => OpalCore.SocialFlow.Signal.to_contract(s)
-          }}, socket}
+         {:error,
+          error_envelope("revision_changes_required", "revision_changes_required", trace_id)},
+         socket}
 
-      {:error, reason} ->
-        {:reply, {:error, error_envelope("revision_failed", inspect(reason), trace_id)}, socket}
+      {:ok, changes} ->
+        case SocialFlow.propose_revision(%{
+               plan_id: payload["plan_id"],
+               proposed_by_user_id: user_id,
+               changes: changes,
+               trace_id: trace_id
+             }) do
+          {:ok, %{revision: rev, signal: s}} ->
+            {:reply,
+             {:ok,
+              %{
+                "revision" => OpalCore.SocialFlow.PlanRevision.to_contract(rev),
+                "signal" => OpalCore.SocialFlow.Signal.to_contract(s)
+              }}, socket}
+
+          {:error, reason} ->
+            {:reply, {:error, error_envelope("revision_failed", inspect(reason), trace_id)},
+             socket}
+        end
     end
   end
 
@@ -532,7 +546,11 @@ defmodule OpalCoreWeb.ConversationChannel do
             {:reply, {:ok, Map.merge(state, ft)}, socket}
 
           {:error, _} ->
-            {:reply, {:ok, state}, socket}
+            # HA-11 (Repair #18 hunt-fix): the SocialFlow half synced
+            # but follow-through did not — the reply must say so.
+            # Returning the bare state read as full success and left
+            # the client unable to tell its follow-through is stale.
+            {:reply, {:ok, Map.put(state, "follow_through", "unavailable")}, socket}
         end
 
       {:error, reason} ->
@@ -1162,19 +1180,31 @@ defmodule OpalCoreWeb.ConversationChannel do
   def handle_in("social_flow:group_propose_revision", payload, socket) do
     user_id = socket.assigns.user_id
 
-    case Collective.propose_group_revision(%{
-           plan_id: payload["plan_id"],
-           proposed_by_user_id: user_id,
-           changes: payload["changes"] || %{"time_label" => payload["time_label"] || "8:00 PM"},
-           shared_reason: payload["shared_reason"]
-         }) do
-      {:ok, rev} ->
-        {:reply, {:ok, %{"revision" => OpalCore.SocialFlow.GroupPlanRevision.to_contract(rev)}},
+    # HA-03: same law as social_flow:propose_revision — no "8:00 PM"
+    # default for a time the proposer never named.
+    case revision_changes(payload) do
+      {:error, :revision_changes_required} ->
+        {:reply,
+         {:error,
+          error_envelope("revision_changes_required", "revision_changes_required", "t-sf4-rv")},
          socket}
 
-      {:error, reason} ->
-        {:reply, {:error, error_envelope("group_rev_failed", inspect(reason), "t-sf4-rv")},
-         socket}
+      {:ok, changes} ->
+        case Collective.propose_group_revision(%{
+               plan_id: payload["plan_id"],
+               proposed_by_user_id: user_id,
+               changes: changes,
+               shared_reason: payload["shared_reason"]
+             }) do
+          {:ok, rev} ->
+            {:reply,
+             {:ok, %{"revision" => OpalCore.SocialFlow.GroupPlanRevision.to_contract(rev)}},
+             socket}
+
+          {:error, reason} ->
+            {:reply, {:error, error_envelope("group_rev_failed", inspect(reason), "t-sf4-rv")},
+             socket}
+        end
     end
   end
 
@@ -2030,6 +2060,23 @@ defmodule OpalCoreWeb.ConversationChannel do
   end
 
   defp maybe_presence_joins(_, _), do: :ok
+
+  # HA-03: revision changes come only from the client — an explicit
+  # `changes` map, or a `time_label` the proposer actually sent.
+  # Anything else is {:error, :revision_changes_required}; this helper
+  # never invents a time.
+  defp revision_changes(payload) do
+    cond do
+      is_map(payload["changes"]) and map_size(payload["changes"]) > 0 ->
+        {:ok, payload["changes"]}
+
+      is_binary(payload["time_label"]) and String.trim(payload["time_label"]) != "" ->
+        {:ok, %{"time_label" => payload["time_label"]}}
+
+      true ->
+        {:error, :revision_changes_required}
+    end
+  end
 
   defp error_envelope(code, message, trace_id) do
     OpalCore.Contracts.error_envelope(code, message, trace_id: trace_id)

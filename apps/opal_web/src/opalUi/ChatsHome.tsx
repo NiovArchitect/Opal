@@ -6,6 +6,8 @@
 import React, { useMemo, useState } from "react";
 import { PRODUCT_COPY } from "../designTokens";
 import { type CallsContinuityRow } from "./callsContinuitySeed";
+import { PlanAwareness } from "./c1/PlanAwareness";
+import type { NextPlanFact } from "../api/productClient";
 import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
 import { isTestResidueConversation } from "./realChatPath";
@@ -37,6 +39,12 @@ export type ChatsHomeRow = {
     /** Repair #18 - conflict line from the backend contract only. */
     conflictLabel?: string | null;
   };
+  /** DIR-1: the backend's shared upcoming plan fact for this row.
+   *  When present it is the row's ONE plan-awareness element and
+   *  replaces the plan pill (one per row, presence discipline). */
+  nextPlan?: NextPlanFact | null;
+  /** DIR-1: the conversation entity's stable tint. */
+  entityTint?: number | null;
   /**
    * Optional canonical relationship label only when proven (Follow ≠ Connection).
    * Composition alone must never invent Following or Connection.
@@ -375,11 +383,10 @@ export function ChatsHome({
               <div
                 className={`calls-continuity-row ${r.missed || r.signal?.kind === "callback" ? "is-missed" : ""}`}
                 data-name={r.name}
-                style={
-                  r.avatarTone && !(r.missed || r.signal?.kind === "callback")
-                    ? { borderColor: r.avatarTone }
-                    : undefined
-                }
+                /* UNIFY (R18): the per-person avatarTone perimeter border
+                 * is retired - borders are ambient + functional only
+                 * (theme/unifyChats.css). The row's only edge is the
+                 * missed/callback action edge, painted by the sheet. */
               >
                 <button
                   type="button"
@@ -428,6 +435,13 @@ export function ChatsHome({
                   >
                     {r.metadata}
                   </span>
+                  {r.nextPlan ? (
+                    <PlanAwareness
+                      fact={r.nextPlan}
+                      entityTint={r.entityTint}
+                      variant="call"
+                    />
+                  ) : null}
                   {r.signal ? (
                     <span
                       className={`calls-continuity-signal calls-signal-${r.signal.kind} ${
@@ -605,7 +619,13 @@ export function ChatsHome({
                       >
                         {defaultRelLabel(r)}
                       </span>
-                      {pill ? (
+                      {r.nextPlan ? (
+                        <PlanAwareness
+                          fact={r.nextPlan}
+                          entityTint={r.entityTint}
+                          variant="row"
+                        />
+                      ) : pill ? (
                         <span
                           role="link"
                           tabIndex={0}

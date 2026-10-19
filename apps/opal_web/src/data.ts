@@ -1,4 +1,5 @@
 /** Conversation data for the public product shell: socially fluent, high-signal. */
+import type { NextPlanFact } from "./api/productClient";
 
 export type SignalKind =
   | "open_loop"
@@ -25,6 +26,12 @@ export type ChatPreview = {
   /** ISO timestamp used to order the inbox. Display copy lives in `time`. */
   updatedAt?: string;
   latestServerSeq?: number;
+  /** DIR-1: the backend's shared upcoming plan fact for this
+   *  conversation (NextPlan), or null - rendered as the row's one
+   *  plan-awareness element in Chats and fed to the thread strip. */
+  nextPlan?: NextPlanFact | null;
+  /** DIR-1: the conversation entity's stable tint. */
+  entityTint?: number | null;
   planProjection?: {
     lineage_id?: string | null;
     conversation_id: string;

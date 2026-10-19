@@ -28,7 +28,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { C2Splash1 } from "../../onboarding/C2Splash1";
 import { C2Splash2 } from "../../onboarding/C2Splash2";
 import { TopLayer } from "../../opalUi/TopLayer";
-import { C2Mark } from "../LoopCharacter";
+import { OrbMark, OrbWordmark } from "../../brand/orb/OrbMark";
+import { OrbLivingRings } from "../../brand/orb/OrbLivingRings";
 import {
   applyC2Mode,
   readC2ModePreference,
@@ -36,29 +37,55 @@ import {
   type C2ModePreference,
 } from "../../theme/c2Mode";
 import {
+  addSavedLogin,
+  cancelOpalPlan,
+  convertPlanPlaceType,
   createGraphPlan,
+  createIntention,
   createTrip,
+  createWorkingGoal,
+  deleteIntention,
+  deleteWorkingGoal,
+  executeDeletion,
+  getPlanHistory,
+  getShelf,
+  linkGoalPlan,
+  listIntentions,
+  listWorkingGoals,
+  promoteSpark,
+  unlinkGoalPlan,
+  forgetCapsule,
   forgetMemoryFact,
   listConversations,
   loadProfile,
+  opalPlanCancelError,
+  planConversionLine,
+  redeemPersonalInviteCode,
+  removeSavedLogin,
+  retryIngestionSource,
+  revokeDevice,
   revokeGoogleCalendarConnection,
   startGoogleCalendarConnect,
+  submitSupportReport as submitSupportReportRequest,
   updateAssistPreference,
   updateHomeTimezone,
+  updateSoul,
   updateMessagingPreferences,
   updateProfile,
   type ConversationSummary,
   type OpalPlanContract,
   type ProductSession,
+  type ShelfStarterContract,
 } from "../../api/productClient";
 import "./c2shell.css";
-import type { C2Route, GraphDetailProjection } from "./projections";
+import type { Adopt1Projection, C2Route, GraphDetailProjection } from "./projections";
 import {
   buildSettingsSection,
   detailFromPlan,
+  detailWithHistory,
   graphListFromPlans,
   homeFromSession,
-  loadPlans,
+  loadPlansResult,
   openingFromPlans,
   shellFromSession,
   youHubFromSession,
@@ -66,9 +93,15 @@ import {
 } from "./shellDataBridge";
 import { C2Home } from "./C2Home";
 import { C2Graphs, C2GraphDetail } from "./C2Graphs";
-import { C2YouHub, C2SettingsSection } from "./C2You";
+import { C2YouHub, C2SettingsSection, HUB_GROUPS } from "./C2You";
+import { LibraryDestination, MomentsArchive } from "./adopt3";
 import { C2Onboarding } from "./C2Onboarding";
-import { CenterHost, ChatsHost, CheckinSummarySheet } from "./C1ShellHosts";
+import {
+  CenterHost,
+  ChatsHost,
+  CheckinSummarySheet,
+  conversationPreviewLabel,
+} from "./C1ShellHosts";
 import { CareDestination } from "./CareDestination";
 import {
   Avatar,
@@ -95,22 +128,79 @@ export function C2Shell() {
   const [settingKey, setSettingKey] = useState<string | null>(null);
   const [createKind, setCreateKind] = useState<null | "plan" | "trip" | "idea">(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number } | null>(null);
   const [activityOpen, setActivityOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [homeNonce, setHomeNonce] = useState(0);
   const [summarySweepId, setSummarySweepId] = useState<string | null>(null);
   const bearer = session?.access_token;
 
+  const [plansError, setPlansError] = useState<string | null>(null);
+  const [conversationsError, setConversationsError] = useState<string | null>(null);
+  // Adoption wave 1 - intentions / goals / shelf, plus the starter
+  // prefill for the create flow.
+  const [adopt1Data, setAdopt1Data] = useState<Omit<Adopt1Projection, "people"> | null>(null);
+  const [createPrefill, setCreatePrefill] = useState<{
+    title: string;
+    participantUserIds: string[];
+  } | null>(null);
+
   const refreshPlans = useCallback(async () => {
-    setPlans(await loadPlans(bearer));
+    // Hunt-fix B-12: a failed load is state, not an empty list.
+    const res = await loadPlansResult(bearer);
+    setPlans(res.plans);
+    setPlansError(res.error);
+  }, [bearer]);
+
+  /** "Drop it" - the real plan cancel (POST /opal/plans/:id/cancel).
+   *  On success the plans are re-read from the server: the list
+   *  excludes cancelled plans, so the dropped plan leaves every
+   *  projection because the server's truth says so - it is never just
+   *  hidden locally. An open detail for the dropped plan closes for
+   *  the same reason. On failure nothing changes on screen; the
+   *  caller (the confirm sheet) shows the one plain error line this
+   *  resolves with. */
+  const dropPlan = useCallback(
+    async (cardId: string): Promise<string | null> => {
+      try {
+        await cancelOpalPlan(cardId, bearer);
+      } catch (err) {
+        return opalPlanCancelError(err);
+      }
+      await refreshPlans();
+      setDetail((current) => (current && current.id === cardId ? null : current));
+      return null;
+    },
+    [bearer, refreshPlans],
+  );
+
+  /** Adoption wave 1 - re-read the graph/people cluster projections.
+   *  A failed read leaves the sections absent, never painted. */
+  const refreshAdopt1 = useCallback(async () => {
+    try {
+      const [intentions, goals, shelf] = await Promise.all([
+        listIntentions(bearer),
+        listWorkingGoals(bearer),
+        getShelf(bearer),
+      ]);
+      setAdopt1Data({
+        intentions: intentions.intentions ?? [],
+        goals: goals.goals ?? [],
+        shelf: shelf ?? { sparks: [], starters: [] },
+      });
+    } catch {
+      setAdopt1Data(null);
+    }
   }, [bearer]);
 
   const refreshConversations = useCallback(async () => {
     try {
       const res = await listConversations(bearer);
       setConversations(res.conversations ?? []);
+      setConversationsError(null);
     } catch {
-      setConversations([]);
+      // Hunt-fix B-12: failure paints as failure, not an empty people list.
+      setConversationsError("Your chats did not load. Check your connection and try again.");
     }
   }, [bearer]);
 
@@ -118,11 +208,33 @@ export function C2Shell() {
     if (stage === "member") {
       void refreshPlans();
       void refreshConversations();
+      void refreshAdopt1();
     }
-  }, [stage, bearer, refreshPlans, refreshConversations, homeNonce]);
+  }, [stage, bearer, refreshPlans, refreshConversations, refreshAdopt1, homeNonce]);
 
   const shell = useMemo(() => shellFromSession(session, route), [session, route]);
-  const graphList = useMemo(() => graphListFromPlans(plans), [plans]);
+  const graphList = useMemo(() => {
+    const peopleById = new Map<string, string>();
+    for (const conversation of conversations) {
+      for (const peer of conversation.peers ?? []) {
+        if (peer.id && peer.display_name) peopleById.set(peer.id, peer.display_name);
+      }
+    }
+    const adopt1: Adopt1Projection | null = adopt1Data
+      ? {
+          ...adopt1Data,
+          people: Array.from(peopleById, ([id, name]) => ({ id, name })),
+        }
+      : null;
+    // ST-B: the Someday group becomes the shelf - spark plans render
+    // on the shelf section (with starters and promote), not as cards
+    // in the plan groups. The promoted plan is a different plan and
+    // keeps its card.
+    const sparkIds = new Set((adopt1Data?.shelf.sparks ?? []).map((s) => s.id));
+    const listPlans =
+      sparkIds.size > 0 ? plans.filter((p) => !sparkIds.has(p.id)) : plans;
+    return { ...graphListFromPlans(listPlans), listError: plansError, adopt1 };
+  }, [plans, plansError, adopt1Data, conversations]);
   const opening = useMemo(
     () => openingFromPlans(plans, session?.display_name ?? ""),
     [plans, session],
@@ -134,20 +246,116 @@ export function C2Shell() {
       if (!plan) return;
       setDetailOrigin(origin);
       setDetail(detailFromPlan(plan, origin, session?.user_id));
+      // ST-G - the detail's Who and History come from the ONE plan
+      // history projection; until it lands (or if it fails) the
+      // sections stay honestly empty rather than guessed.
+      void (async () => {
+        try {
+          const history = await getPlanHistory(cardId, bearer);
+          setDetail((current) =>
+            current && current.id === cardId ? detailWithHistory(current, history) : current,
+          );
+        } catch {
+          // History stays absent - the plan itself already rendered.
+        }
+      })();
     },
-    [plans, session],
+    [plans, session, bearer],
+  );
+
+  /** Adoption wave 1 - Graphs section handlers. Each runs the real
+   *  API, then re-reads the server's projections before rendering. */
+  const adopt1Events = useMemo(
+    () => ({
+      createIntention: async (input: {
+        subjectUserId: string;
+        title: string;
+        cadenceDays?: number;
+      }) => {
+        await createIntention(
+          {
+            subject_user_id: input.subjectUserId,
+            title: input.title,
+            cadence_days: input.cadenceDays,
+          },
+          bearer,
+        );
+        await refreshAdopt1();
+      },
+      deleteIntention: async (intentionId: string) => {
+        await deleteIntention(intentionId, bearer);
+        await refreshAdopt1();
+      },
+      createGoal: async (title: string) => {
+        await createWorkingGoal(title, bearer);
+        await refreshAdopt1();
+      },
+      deleteGoal: async (goalId: string) => {
+        await deleteWorkingGoal(goalId, bearer);
+        await refreshAdopt1();
+      },
+      linkGoalPlan: async (goalId: string, planId: string) => {
+        await linkGoalPlan(goalId, planId, bearer);
+        // Read-back: the goal list (and its derived status line) is
+        // re-read from the server before anything re-renders.
+        await refreshAdopt1();
+      },
+      unlinkGoalPlan: async (goalId: string, planId: string) => {
+        await unlinkGoalPlan(goalId, planId, bearer);
+        await refreshAdopt1();
+      },
+      promoteSpark: async (sparkId: string) => {
+        await promoteSpark(sparkId, {}, bearer);
+        await refreshPlans();
+        await refreshAdopt1();
+      },
+      startStarter: (starterId: string) => {
+        const starter: ShelfStarterContract | undefined = adopt1Data?.shelf.starters.find(
+          (s) => s.id === starterId,
+        );
+        if (!starter) return;
+        // The create flow opens pre-filled from the starter's own
+        // prefill - nothing is created or sent until the user saves.
+        setCreatePrefill({
+          title: starter.prefill.title,
+          participantUserIds: starter.prefill.participant_user_ids ?? [],
+        });
+        setCreateKind("plan");
+      },
+    }),
+    [bearer, refreshAdopt1, refreshPlans, adopt1Data],
   );
 
   /** After a food action, re-read the plans and re-render the open
    *  detail from the RETURNED plan - never from a local edit. */
   const refreshDetailFromServer = useCallback(async () => {
-    const fresh = await loadPlans(bearer);
+    const res = await loadPlansResult(bearer);
+    const fresh = res.plans;
     setPlans(fresh);
+    setPlansError(res.error);
     if (detail) {
       const plan = fresh.find((p) => p.id === detail.id);
       if (plan) setDetail(detailFromPlan(plan, detailOrigin, session?.user_id));
     }
   }, [bearer, detail, detailOrigin, session]);
+
+  /** Hunt-fix B-15: plan conversion through the B1 endpoint. The
+   *  returned line says what actually happened — applied now, or
+   *  proposed to the group — and a success re-reads the server's
+   *  truth before the detail re-renders. */
+  const convertPlan = useCallback(
+    async (cardId: string): Promise<string> => {
+      try {
+        const res = await convertPlanPlaceType(cardId, "virtual", { bearer });
+        const line = planConversionLine(res);
+        if (res.applied) await refreshDetailFromServer();
+        return line;
+      } catch (err) {
+        return planConversionLine(null, err);
+      }
+    },
+    [bearer, refreshDetailFromServer],
+  );
 
   const goRoute = (next: C2Route) => {
     setDetail(null);
@@ -211,6 +419,34 @@ export function C2Shell() {
 
   return (
     <div className="c2s-root" data-shell="c2" data-testid="c2-shell">
+      {/* HA-A wide sidebar (harmony2): at wide geometry the five
+       * destinations become a persistent left sidebar in the dock's
+       * order (Home, Chats, Opal, Graphs, You) - the same surfaces,
+       * the same projections, the same handlers; the sidebar is
+       * chrome, never a second app. It carries no state hues (the
+       * dock law it inherits); the active row is the sampled accent
+       * at quiet strength. On phone it does not render visibly and
+       * the dock remains the navigation. */}
+      <aside className="c2s-sidebar" data-testid="c2-sidebar" aria-label="Main">
+        <div className="c2s-sidebar-brand">
+          <OrbWordmark width={76} variant="gradient" />
+        </div>
+        <SideSlot label="Home" active={route === "home"} testId="c2-side-home" onClick={() => goRoute("home")}>
+          <IconHome />
+        </SideSlot>
+        <SideSlot label="Chats" active={route === "chats"} testId="c2-side-chats" badge={shell.dockUnread} onClick={() => goRoute("chats")}>
+          <IconChats />
+        </SideSlot>
+        <SideSlot label="Opal" active={route === "center"} testId="c2-side-center" onClick={() => goRoute("center")}>
+          <OrbMark size={22} />
+        </SideSlot>
+        <SideSlot label="Graphs" active={route === "graphs"} testId="c2-side-graphs" onClick={() => goRoute("graphs")}>
+          <IconGraphs />
+        </SideSlot>
+        <SideSlot label="You" active={route === "you"} testId="c2-side-you" onClick={() => goRoute("you")}>
+          {session ? <Avatar avatar={shell.ownAvatar} size={22} /> : <IconPerson />}
+        </SideSlot>
+      </aside>
       <div className="c2s-column">
         <main style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
           {route === "home" ? (
@@ -230,28 +466,72 @@ export function C2Shell() {
 
           {route === "chats" ? (
             <div data-testid="c2-route-chats" style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+              {conversationsError ? (
+                <div className="c2s-scroll">
+                  <EmptyBlock
+                    testId="c2-chats-error"
+                    headline="Your chats did not load."
+                    line={conversationsError}
+                    actionLabel="Try again"
+                    onAction={() => void refreshConversations()}
+                  />
+                </div>
+              ) : (
               <ChatsHost
                 bearer={bearer}
                 viewerUserId={session?.user_id}
                 conversations={conversations}
                 onConversationsChanged={() => void refreshConversations()}
+                openRequest={chatOpenRequest}
               />
+              )}
             </div>
           ) : null}
 
           {route === "center" ? (
             <div data-testid="c2-route-center" style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+              {plansError ? (
+                <div className="c2s-scroll">
+                  <EmptyBlock
+                    testId="c2-center-error"
+                    headline="Your plans did not load."
+                    line={plansError}
+                    actionLabel="Try again"
+                    onAction={() => void refreshPlans()}
+                  />
+                </div>
+              ) : (
               <CenterHost
                 bearer={bearer}
                 opening={opening}
                 plans={plans}
                 onOpenGraph={(id) => openGraph(id, "center")}
+                onHoldingLink={(target) => {
+                  // Harmony2: holding chips route to the surface the
+                  // backend's links map named - graphs for the plan
+                  // figures, the named Settings section for memory
+                  // and connections.
+                  if (target === "graphs") {
+                    goRoute("graphs");
+                  } else if (target === "what-opal-remembers" || target === "connections") {
+                    goRoute("you");
+                    setSettingKey(target);
+                  }
+                }}
                 openingEvents={{
                   openGraph: (id) => openGraph(id, "center"),
                   makeSomethingHappen: () => setCreateKind("plan"),
                   completeSlot: (id) => openGraph(id, "center"),
+                  // SM doorway, first form: the center character
+                  // (and the dock orb that lands here) reaches the
+                  // Soul + Memory cards in Settings.
+                  openSoulMemory: () => {
+                    goRoute("you");
+                    setSettingKey("soul-memory");
+                  },
                 }}
               />
+              )}
             </div>
           ) : null}
 
@@ -265,18 +545,33 @@ export function C2Shell() {
                   createTrip: () => setCreateKind("trip"),
                   createIdea: () => setCreateKind("idea"),
                   completeSlot: (id) => openGraph(id, "graphs"),
-                  dropPlan: () => undefined,
+                  dropPlan,
                   runNextAction: () => undefined,
                   addPeople: () => undefined,
                   openChatForPlan: () => goRoute("chats"),
                   back: () => goRoute("center"),
+                  retryLoad: () => void refreshPlans(),
+                  convertPlan,
+                  ...adopt1Events,
                 }}
               />
             </div>
           ) : null}
 
           {route === "you" ? (
-            <div data-testid="c2-route-you" style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+            <div data-testid="c2-route-you" className="c2s-route-you-wrap" style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+              {/* HA-A Settings sidebar (harmony2): on wide viewports
+               * the hub's sections stay visible as a persistent left
+               * column in the phone hub's own group order (F-GAP-7's
+               * designed form); rows land on the same sections their
+               * phone counterparts do. Sections that do not exist
+               * stay absent here too - the rows come from the same
+               * hub projection the phone hub renders. */}
+              <WideYouNav
+                session={session}
+                activeKey={settingKey}
+                onOpen={(key) => setSettingKey(key)}
+              />
               <YouRoute
                 session={session}
                 bearer={bearer}
@@ -315,8 +610,14 @@ export function C2Shell() {
             aria-label="Opal Center"
             onClick={() => goRoute("center")}
           >
-            <span className="c2s-dock-center-disc">
-              <C2Mark size={40} />
+            <span className="c2s-dock-center-disc orb-dock-device" data-orb="dock-device">
+              {/* The living rings at ambient subtlety (R18 splash
+               * rebuild): the SAME OrbLivingRings system as Splash 1,
+               * clipped to the mark's own square inside the disc. */}
+              <span className="orb-dock-mark">
+                <OrbMark size={40} />
+                <OrbLivingRings variant="ambient" />
+              </span>
             </span>
           </button>
           <DockSlot
@@ -354,9 +655,11 @@ export function C2Shell() {
             createTrip: () => setCreateKind("trip"),
             createIdea: () => setCreateKind("idea"),
             completeSlot: () => undefined,
-            dropPlan: () => undefined,
+            dropPlan,
             runNextAction: () => undefined,
             addPeople: () => undefined,
+            retryLoad: () => void refreshPlans(),
+            convertPlan,
             openChatForPlan: () => {
               setDetail(null);
               goRoute("chats");
@@ -373,10 +676,16 @@ export function C2Shell() {
         <CreateFlow
           kind={createKind}
           bearer={bearer}
-          onClose={() => setCreateKind(null)}
+          prefill={createPrefill ?? undefined}
+          onClose={() => {
+            setCreateKind(null);
+            setCreatePrefill(null);
+          }}
           onCreated={() => {
             setCreateKind(null);
+            setCreatePrefill(null);
             void refreshPlans();
+            void refreshAdopt1();
           }}
         />
       ) : null}
@@ -389,6 +698,11 @@ export function C2Shell() {
           onOpenGraph={(id) => {
             setSearchOpen(false);
             openGraph(id, route);
+          }}
+          onOpenChat={(id) => {
+            setSearchOpen(false);
+            setChatOpenRequest({ conversationId: id, nonce: Date.now() });
+            goRoute("chats");
           }}
         />
       ) : null}
@@ -444,6 +758,99 @@ export function C2Shell() {
 
       <DevChip hidden={Boolean(detail || createKind || searchOpen || activityOpen)} />
     </div>
+  );
+}
+
+/** HA-A (harmony2): one wide-sidebar destination row. Same order,
+ * same handlers as the dock; quiet by the dock law (no state hues,
+ * the active row is the sampled accent at quiet strength). */
+function SideSlot({
+  label,
+  active,
+  onClick,
+  testId,
+  badge,
+  children,
+}: {
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+  testId: string;
+  badge?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className={`c2s-side-slot${active ? " is-active" : ""}`}
+      data-testid={testId}
+      aria-current={active ? "page" : undefined}
+      onClick={onClick}
+    >
+      <span className="c2s-side-glyph">{children}</span>
+      <span className="c2s-side-label">{label}</span>
+      {badge ? (
+        <span className="c2s-badge" style={{ position: "static" }}>
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+/** HA-A (harmony2): the Settings wide sidebar - the hub's grouped
+ * sections, persistent beside the open section on wide viewports.
+ * Rows derive from the same hub projection the phone hub renders
+ * (google status read as not-yet-known here; the section surfaces
+ * themselves carry the live status, the nav is chrome). */
+function WideYouNav({
+  session,
+  activeKey,
+  onOpen,
+}: {
+  session: ProductSession | null;
+  activeKey: string | null;
+  onOpen: (key: string | null) => void;
+}) {
+  const hub = useMemo(() => youHubFromSession(session, null), [session]);
+  const byKey = useMemo(() => {
+    const map = new Map<string, (typeof hub.index)[number]>();
+    for (const row of hub.index) map.set(row.key, row);
+    return map;
+  }, [hub]);
+  return (
+    <nav className="c2s-you-nav" data-testid="c2-you-nav" aria-label="Settings">
+      <button
+        type="button"
+        className={`c2s-you-nav-row${activeKey === null ? " is-active" : ""}`}
+        data-testid="c2-you-nav-hub"
+        onClick={() => onOpen(null)}
+      >
+        All settings
+      </button>
+      {HUB_GROUPS.map((group) => {
+        const rows = group.keys
+          .map((key) => byKey.get(key))
+          .filter((r): r is NonNullable<typeof r> => Boolean(r));
+        if (rows.length === 0) return null;
+        return (
+          <div key={group.label}>
+            <p className="c2s-group-label">{group.label}</p>
+            {rows.map((row) => (
+              <button
+                key={row.key}
+                type="button"
+                className={`c2s-you-nav-row${activeKey === row.key ? " is-active" : ""}`}
+                data-testid={`c2-you-nav-row-${row.key}`}
+                onClick={() => onOpen(row.key)}
+              >
+                {row.title}
+              </button>
+            ))}
+          </div>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -558,16 +965,50 @@ function YouRoute(props: {
   setMode: (pref: C2ModePreference) => void;
   onSessionChange: () => void;
 }) {
-  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleConnected, setGoogleConnected] = useState<boolean | "simulated" | null>(null);
   const [section, setSection] = useState<Awaited<ReturnType<typeof buildSettingsSection>> | null>(null);
   const [sectionNonce, setSectionNonce] = useState(0);
+  // Hunt-fix B-14: forgetting is confirm-then-forget (the legacy
+  // two-step pattern), and every runAction failure lands on an error
+  // line — a failed forget used to be indistinguishable from success.
+  const [pendingForgetId, setPendingForgetId] = useState<string | null>(null);
+  // SM: a capsule forget arms the same confirmation, but confirms
+  // through the wallet capsule path (truly deletes, both stores).
+  const [pendingForgetCapsuleId, setPendingForgetCapsuleId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [forgetBusy, setForgetBusy] = useState(false);
+
+  const confirmForget = async () => {
+    if ((!pendingForgetId && !pendingForgetCapsuleId) || forgetBusy) return;
+    setForgetBusy(true);
+    try {
+      if (pendingForgetCapsuleId) {
+        await forgetCapsule(pendingForgetCapsuleId, props.bearer);
+        setPendingForgetCapsuleId(null);
+      } else if (pendingForgetId) {
+        await forgetMemoryFact(pendingForgetId, props.bearer);
+        setPendingForgetId(null);
+      }
+      setActionError(null);
+      setSectionNonce((n) => n + 1);
+    } catch {
+      setActionError("That could not be forgotten. Check your connection and try again.");
+    } finally {
+      setForgetBusy(false);
+    }
+  };
 
   useEffect(() => {
     void getGoogleCalendarStatusSafe(props.bearer).then(setGoogleConnected);
   }, [props.bearer]);
 
   useEffect(() => {
-    if (!props.settingKey || props.settingKey === "care") {
+    if (
+      !props.settingKey ||
+      props.settingKey === "care" ||
+      props.settingKey === "your-moments" ||
+      props.settingKey === "your-library"
+    ) {
       setSection(null);
       return;
     }
@@ -595,14 +1036,25 @@ function YouRoute(props: {
     modePreference: props.modePref,
     setModePreference: props.setMode,
     setPreference: async (sectionKey: string, rowId: string, value: boolean) => {
-      if (sectionKey === "notifications" && rowId === "messages-calls") {
+      if (sectionKey === "notifications" && rowId === "pause-everything") {
+        // Audit A2 — the Quiet master switch writes its own real flag;
+        // the per-kind values stay untouched, so unpausing restores
+        // them exactly.
+        await updateMessagingPreferences(
+          { notifications_paused: value },
+          props.bearer,
+        );
+      } else if (sectionKey === "notifications" && rowId === "messages-calls") {
         await updateMessagingPreferences(
           { message_notifications_enabled: value },
           props.bearer,
         );
       } else if (sectionKey === "notifications" && rowId === "read-receipts") {
         await updateMessagingPreferences({ read_receipts_enabled: value }, props.bearer);
-      } else if (sectionKey === "calls-assist" && rowId === "assist") {
+      } else if (
+        (sectionKey === "calls-assist" || sectionKey === "how-opal-helps") &&
+        rowId === "assist"
+      ) {
         await updateAssistPreference(value, props.bearer);
       } else {
         throw new Error(`No real preference behind ${sectionKey}/${rowId}`);
@@ -611,24 +1063,123 @@ function YouRoute(props: {
       setSectionNonce((n) => n + 1);
     },
     runAction: (sectionKey: string, rowId: string) => {
+      const fail = () =>
+        setActionError("That didn't go through. Check your connection and try again.");
       if (sectionKey === "location-travel" && rowId === "use-device-timezone") {
         void updateHomeTimezone(
           Intl.DateTimeFormat().resolvedOptions().timeZone,
           props.bearer,
-        ).then(() => setSectionNonce((n) => n + 1));
-      } else if (sectionKey === "connected-sources" && rowId === "google-connect") {
-        void startGoogleCalendarConnect(props.bearer).then((res) => {
-          if (res.authorize_url) window.location.href = res.authorize_url;
-        });
-      } else if (sectionKey === "connected-sources" && rowId === "google-disconnect") {
-        void revokeGoogleCalendarConnection(props.bearer).then(() =>
-          setSectionNonce((n) => n + 1),
+        )
+          .then(() => {
+            setActionError(null);
+            setSectionNonce((n) => n + 1);
+          })
+          .catch(fail);
+      } else if (
+        (sectionKey === "connected-sources" || sectionKey === "connections") &&
+        rowId === "google-connect"
+      ) {
+        void startGoogleCalendarConnect(props.bearer)
+          .then((res) => {
+            if (res.authorize_url) {
+              window.location.href = res.authorize_url;
+            } else {
+              setActionError("Google did not send a sign-in link. Try again in a moment.");
+            }
+          })
+          .catch(fail);
+      } else if (
+        (sectionKey === "connected-sources" || sectionKey === "connections") &&
+        rowId === "google-disconnect"
+      ) {
+        void revokeGoogleCalendarConnection(props.bearer)
+          .then(() => {
+            setActionError(null);
+            setSectionNonce((n) => n + 1);
+          })
+          .catch(fail);
+      } else if (
+        sectionKey === "privacy" &&
+        (rowId === "privacy-policy" || rowId === "terms-of-service")
+      ) {
+        // Audit A8 — the rows open Opal's own published documents,
+        // shipped in the app bundle.
+        window.open(
+          rowId === "privacy-policy" ? "/privacy.html" : "/terms.html",
+          "_blank",
+          "noopener",
         );
       } else if (sectionKey === "what-opal-remembers" && rowId.startsWith("forget-")) {
-        void forgetMemoryFact(rowId.slice("forget-".length), props.bearer).then(() =>
-          setSectionNonce((n) => n + 1),
-        );
+        // First tap only arms the confirmation — nothing is forgotten yet.
+        setActionError(null);
+        setPendingForgetId(rowId.slice("forget-".length));
+      } else if (sectionKey === "soul-memory" && rowId.startsWith("forget-capsule-")) {
+        // SM: first tap only arms the same confirmation - the
+        // capsule is forgotten (truly deleted) only on confirm.
+        setActionError(null);
+        setPendingForgetCapsuleId(rowId.slice("forget-capsule-".length));
+      } else if (sectionKey === "linked-devices" && rowId.startsWith("revoke-device-")) {
+        // Spec 4.C2 — revoke kills the session server-side; the
+        // refreshed projection is the read-back.
+        void revokeDevice(rowId.slice("revoke-device-".length), props.bearer)
+          .then(() => {
+            setActionError(null);
+            setSectionNonce((n) => n + 1);
+          })
+          .catch(fail);
+      } else if (sectionKey === "saved-logins" && rowId.startsWith("remove-login-")) {
+        void removeSavedLogin(rowId.slice("remove-login-".length), props.bearer)
+          .then(() => {
+            setActionError(null);
+            setSectionNonce((n) => n + 1);
+          })
+          .catch(fail);
+      } else if (sectionKey === "what-opal-hears" && rowId.startsWith("hears-retry-")) {
+        // Spec SF-A / ER-2 — retry re-derives that one source only.
+        void retryIngestionSource(rowId.slice("hears-retry-".length), props.bearer)
+          .then(() => {
+            setActionError(null);
+            setSectionNonce((n) => n + 1);
+          })
+          .catch(fail);
       }
+    },
+    saveSoulPreferences: async (attrs: Record<string, string>) => {
+      await updateSoul(attrs, props.bearer);
+      // The refreshed projection is the read-back (toggle truth).
+      setSectionNonce((n) => n + 1);
+    },
+    addSavedLogin: async (host: string, secret: string) => {
+      await addSavedLogin(host, secret, props.bearer);
+      setSectionNonce((n) => n + 1);
+    },
+    redeemInviteCode: async (code: string) => {
+      const credit = await redeemPersonalInviteCode(code, props.bearer);
+      setSectionNonce((n) => n + 1);
+      return credit;
+    },
+    executeDeletion: async (mode: "data" | "account") => {
+      const receipt = await executeDeletion(mode, "self_serve", props.bearer);
+      if (mode === "account") props.onSessionChange();
+      return { reference: receipt.reference };
+    },
+    submitSupportReport: async (
+      kind: "problem" | "feedback",
+      category: string,
+      body: string,
+    ) => {
+      // Audit A5 + A9 — the payload is exactly the disclosure: words,
+      // kind, category, and the served build identity read from the
+      // same build stamp the Home badge renders (never typed copy).
+      const buildRef =
+        typeof document !== "undefined"
+          ? document.documentElement.getAttribute("data-git-head")
+          : null;
+      const report = await submitSupportReportRequest(
+        { kind, category, body, build_ref: buildRef },
+        props.bearer,
+      );
+      return { reference: report.reference };
     },
     saveProfileFields: async (name: string, handle: string) => {
       await updateProfile(
@@ -639,6 +1190,18 @@ function YouRoute(props: {
       setSectionNonce((n) => n + 1);
     },
   };
+
+  if (props.settingKey === "your-moments") {
+    return (
+      <MomentsArchive bearer={props.bearer} onBack={() => props.setSettingKey(null)} />
+    );
+  }
+
+  if (props.settingKey === "your-library") {
+    return (
+      <LibraryDestination bearer={props.bearer} onBack={() => props.setSettingKey(null)} />
+    );
+  }
 
   if (props.settingKey === "care") {
     return (
@@ -654,7 +1217,44 @@ function YouRoute(props: {
         </div>
       );
     }
-    return <C2SettingsSection key={section.key} section={section} events={events} />;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+        {pendingForgetId || pendingForgetCapsuleId ? (
+          <div className="c2s-scroll" data-testid="c2-forget-confirm" role="alertdialog" aria-label="Confirm forget">
+            <p style={{ fontWeight: 650 }}>Forget this for good?</p>
+            <p className="c2s-card-line">
+              Opal will stop keeping it, and it cannot be undone.
+            </p>
+            <button
+              type="button"
+              className="c2s-btn-primary"
+              data-testid="c2-forget-confirm-yes"
+              disabled={forgetBusy}
+              onClick={() => void confirmForget()}
+            >
+              {forgetBusy ? "Forgetting…" : "Forget it"}
+            </button>
+            <button
+              type="button"
+              className="c2s-btn-text"
+              data-testid="c2-forget-confirm-no"
+              onClick={() => {
+                setPendingForgetId(null);
+                setPendingForgetCapsuleId(null);
+              }}
+            >
+              Keep it
+            </button>
+          </div>
+        ) : null}
+        {actionError ? (
+          <p className="c2s-error-line" role="alert" data-testid="c2-you-action-error" style={{ padding: "0 var(--gutter)" }}>
+            {actionError}
+          </p>
+        ) : null}
+        <C2SettingsSection key={section.key} section={section} events={events} />
+      </div>
+    );
   }
   return <C2YouHub projection={hub} events={events} />;
 }
@@ -665,15 +1265,20 @@ function YouRoute(props: {
 function CreateFlow({
   kind,
   bearer,
+  prefill,
   onClose,
   onCreated,
 }: {
   kind: "plan" | "trip" | "idea";
   bearer?: string;
+  /** Adoption wave 1 (ST-B) - a shelf starter's prefill: the form
+   *  opens with the starter's words and people; nothing is created
+   *  or sent until the user saves. */
+  prefill?: { title: string; participantUserIds: string[] };
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(prefill?.title ?? "");
   const [when, setWhen] = useState("");
   const [place, setPlace] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -691,6 +1296,10 @@ function CreateFlow({
             title: title.trim(),
             location: place.trim() || undefined,
             time_label: when.trim() || undefined,
+            participant_user_ids:
+              prefill && prefill.participantUserIds.length > 0
+                ? prefill.participantUserIds
+                : undefined,
             entry: kind === "idea" ? "c2-idea" : "c2-plan",
             idempotency_key: `c2-${kind}-${Date.now()}`,
           },
@@ -766,16 +1375,24 @@ function CreateFlow({
   );
 }
 
-function SearchDestination({
+export function SearchDestination({
   plans,
   conversations,
+  intentions,
   onClose,
   onOpenGraph,
+  onOpenChat,
 }: {
   plans: OpalPlanContract[];
   conversations: ConversationSummary[];
+  /** ST-D: the user's own intentions (ST-A). The group renders only
+   *  when intentions exist in the store; absent data - no header.
+   *  The MEMORY group never renders here: the capsule/memory class
+   *  is not built yet (Soul+Memory track dependency), never faked. */
+  intentions?: Array<{ id: string; title: string; personName?: string }>;
   onClose: () => void;
   onOpenGraph: (id: string) => void;
+  onOpenChat: (id: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
@@ -786,6 +1403,26 @@ function SearchDestination({
           c.title.toLowerCase().includes(q) || c.preview.toLowerCase().includes(q),
       )
     : [];
+  // People: the real peers on the viewer's own conversations.
+  const peopleHits = q
+    ? conversations
+        .flatMap((c) =>
+          (c.peers ?? [])
+            .filter((peer) => peer.display_name.toLowerCase().includes(q))
+            .map((peer) => ({ peer, conversationId: c.id })),
+        )
+        .filter(
+          (hit, i, all) => all.findIndex((h) => h.peer.id === hit.peer.id) === i,
+        )
+    : [];
+  const intentionHits = q
+    ? (intentions ?? []).filter((i) => i.title.toLowerCase().includes(q))
+    : [];
+  const nothing =
+    planHits.length === 0 &&
+    chatHits.length === 0 &&
+    peopleHits.length === 0 &&
+    intentionHits.length === 0;
   return (
     <TopLayer band="flow">
       <div className="c2s-flow" style={{ background: "var(--canvas)" }} data-testid="c2-search">
@@ -801,35 +1438,84 @@ function SearchDestination({
           <input
             className="c2s-search"
             data-testid="c2-search-input"
-            placeholder="Search your plans and chats"
+            placeholder="Search plans, chats, people, and intentions"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search your plans and chats"
+            aria-label="Search plans, chats, people, and intentions"
           />
-          {q && planHits.length === 0 && chatHits.length === 0 ? (
+          {q && nothing ? (
             <p className="c2s-lede" style={{ marginTop: "var(--space-4)" }}>
-              No match in your plans or chats.
+              No match in your plans, chats, people, or intentions.
             </p>
           ) : null}
-          {planHits.map((plan) => (
-            <button
-              key={plan.id}
-              type="button"
-              className="c2s-card"
-              data-testid="c2-search-plan"
-              style={{ width: "100%", textAlign: "left", cursor: "pointer", marginTop: "var(--space-3)" }}
-              onClick={() => onOpenGraph(plan.id)}
-            >
-              <p className="c2s-card-title">{plan.title}</p>
-              <p className="c2s-card-line">{plan.time_label ?? "Time not set yet."}</p>
-            </button>
-          ))}
-          {chatHits.map((chat) => (
-            <div key={chat.id} className="c2s-card" style={{ marginTop: "var(--space-3)" }}>
-              <p className="c2s-card-title">{chat.title}</p>
-              <p className="c2s-card-line">{chat.preview}</p>
+          {planHits.length > 0 ? (
+            <div data-testid="c2-search-group-plans">
+              <p className="c2s-group-label">Plans</p>
+              {planHits.map((plan) => (
+                <button
+                  key={plan.id}
+                  type="button"
+                  className="c2s-card"
+                  data-testid="c2-search-plan"
+                  style={{ width: "100%", textAlign: "left", cursor: "pointer", marginTop: "var(--space-3)" }}
+                  onClick={() => onOpenGraph(plan.id)}
+                >
+                  <p className="c2s-card-title">{plan.title}</p>
+                  <p className="c2s-card-line">{plan.time_label ?? "Time not set yet."}</p>
+                </button>
+              ))}
             </div>
-          ))}
+          ) : null}
+          {chatHits.length > 0 ? (
+            <div data-testid="c2-search-group-chats">
+              <p className="c2s-group-label">Chats</p>
+              {chatHits.map((chat) => (
+                <button
+                  key={chat.id}
+                  type="button"
+                  className="c2s-card"
+                  data-testid="c2-search-chat"
+                  style={{ width: "100%", textAlign: "left", cursor: "pointer", marginTop: "var(--space-3)" }}
+                  onClick={() => onOpenChat(chat.id)}
+                >
+                  <p className="c2s-card-title">{chat.title}</p>
+                  {/* Harmony2 essence fix: the same human preview
+                   * the chats list renders - a raw call:<id> body
+                   * is a machine string, never a search result. */}
+                  <p className="c2s-card-line">{conversationPreviewLabel(chat)}</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {peopleHits.length > 0 ? (
+            <div data-testid="c2-search-group-people">
+              <p className="c2s-group-label">People</p>
+              {peopleHits.map((hit) => (
+                <button
+                  key={hit.peer.id}
+                  type="button"
+                  className="c2s-card"
+                  data-testid="c2-search-person"
+                  style={{ width: "100%", textAlign: "left", cursor: "pointer", marginTop: "var(--space-3)" }}
+                  onClick={() => onOpenChat(hit.conversationId)}
+                >
+                  <p className="c2s-card-title">{hit.peer.display_name}</p>
+                  <p className="c2s-card-line">Open your chat</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {intentionHits.length > 0 ? (
+            <div data-testid="c2-search-group-intentions">
+              <p className="c2s-group-label">Intentions</p>
+              {intentionHits.map((intention) => (
+                <div key={intention.id} className="c2s-card" style={{ marginTop: "var(--space-3)" }}>
+                  <p className="c2s-card-title">{intention.title}</p>
+                  {intention.personName ? <p className="c2s-card-line">{intention.personName}</p> : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </TopLayer>

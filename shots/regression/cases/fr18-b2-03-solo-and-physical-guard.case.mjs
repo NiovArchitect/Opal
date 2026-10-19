@@ -22,10 +22,17 @@ export default {
     const { A, h, assert } = ctx;
 
     // -- Solo at-home ------------------------------------------------------
+    // Flow repair (Repair #18 apifix): same two-turn Center creation
+    // flow as FR-18-B2-01 - the plan is born on the confirm turn, and
+    // each leg targets the plan its own flow created (id difference),
+    // never a stale virtual plan left by an earlier case. Assertions
+    // unchanged.
+    const beforeIds = new Set((await h.listPlans(A)).plans.map((p) => p.id));
     await h.centerNewChat(A);
     await h.centerSend(A, `Solo movie night at home Friday - order in sushi, just me ${ctx.tag}`);
+    await h.centerSend(A, "yes, set it up");
     let plans = await h.listPlans(A);
-    const solo = plans.plans.find((p) => p.plan_type === "virtual");
+    const solo = plans.plans.find((p) => p.plan_type === "virtual" && !beforeIds.has(p.id));
     assert.check("solo plan", !!solo, "solo virtual plan must exist");
     if (solo) {
       const food = (solo.completion?.steps || []).find((s) => s.id === "food");
@@ -37,10 +44,12 @@ export default {
     }
 
     // -- Control: virtual standup earns no food step -----------------------
+    const beforeStandup = new Set((await h.listPlans(A)).plans.map((p) => p.id));
     await h.centerNewChat(A);
     await h.centerSend(A, `Zoom standup with the team Tuesday ${ctx.tag}`);
+    await h.centerSend(A, "yes, set it up");
     plans = await h.listPlans(A);
-    const standup = plans.plans.find((p) => p.plan_type === "virtual" && p.id !== solo?.id) || plans.plans.find((p) => p.plan_type === "virtual");
+    const standup = plans.plans.find((p) => p.plan_type === "virtual" && !beforeStandup.has(p.id));
     if (standup) {
       const food = (standup.completion?.steps || []).find((s) => s.id === "food");
       assert.check("standup control", !food, "a work-shaped virtual plan gets NO food step and NO ask");

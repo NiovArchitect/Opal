@@ -20,14 +20,15 @@ defmodule OpalCore.Bookings.OpenTableCallToBookTest do
   defp restore(name, nil), do: System.delete_env(name)
   defp restore(name, val), do: System.put_env(name, val)
 
-  test "search includes call_to_book draft without inventing phone" do
-    assert {:ok, [row]} =
+  # Repair #18 FALSE-fix F-01: with a key provisioned, search must NOT
+  # echo the query back as a result row — no partner search call exists,
+  # so search reports disabled truthfully in the keyed state too.
+  test "search with a key provisioned is honestly disabled, never a query echo" do
+    assert {:disabled, msg} =
              OpenTable.search(%{"query" => "Contramar", "party_size" => 2, "when" => "Friday 7pm"})
 
-    assert row["call_to_book"] == true
-    assert row["bookable"] == false
-    assert is_binary(row["draft_message"])
-    assert row["phone"] == nil
+    assert is_binary(msg)
+    assert msg =~ "not connected"
   end
 
   test "book never invents confirmation" do

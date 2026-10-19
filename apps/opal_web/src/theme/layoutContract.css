@@ -65,6 +65,14 @@
  *      - Next Together strip: a plan projection for this thread has an
  *        upcoming plan. Exits when the plan passes, is cancelled, or the
  *        thread's projection no longer carries it.
+ *      - Plan-awareness element (DIR-1: chats row, thread Next
+ *        Together strip, call-log row): the backend contract carries
+ *        a shared upcoming plan fact (next_plan) for this
+ *        conversation / peer, derived from a real plan record by
+ *        the service layer. Exits the moment the fact leaves the
+ *        contract - the plan passes, is cancelled, or completes.
+ *        No fact, no element: never a painted or empty pill. Exactly
+ *        one per row / thread (it replaces the row pill).
  *      - "Check availability" pill: an availability ask for the current
  *        proposal is outstanding AND actionable by this viewer. Exits
  *        the moment the ask is answered, superseded, or withdrawn.
@@ -76,6 +84,18 @@
  *      - Proactive suggestion cards: the gate stack (opt-in, budget,
  *        quiet hours, cadence) approves AND the suggestion is
  *        unanswered. Dismissal is permanent; exit is silent.
+ *      - Proactive reveals (DIR-4, P1-P7): the ONE backend derivation
+ *        (SocialFlow.Reveal) returns the item for this viewer AND it
+ *        is not dismissed. P1: viewer's answer pending. P2: plan
+ *        ready, nothing missing. P3: forming plan missing exactly
+ *        one named thing. P4: plan inside its live window. P5: an
+ *        explicitly saved celebration at a lead-time milestone
+ *        (14/7/1/0 days). P6: a material report from the last 24
+ *        hours (visit-scoped line only). P7: an open check-in ask,
+ *        an organizer summary with answers, or a care turn the
+ *        truth side already surfaced once. Exits on answer,
+ *        dismissal (permanent), trigger end, or window close -
+ *        absent, never dimmed or shelled.
  *      - Center presence states (listening / thinking / speaking): the
  *        conversation engine is in exactly that state right now. A
  *        presence state that outlives its engine state is a defect
@@ -160,6 +180,21 @@
  *      - Next Together strip: ambient information with a tap journey -
  *        tap lands on the plan it names, in the state it showed. It
  *        takes no other taps.
+ *
+ * L12 THE COMMUNICATION MODEL (founder UX bar, 2026-10-18 03:48 PDT;
+ *    full spec: coordination/repair18/communication-model.md).
+ *    Muse-level capability and polish is the FLOOR for every surface.
+ *    Opal communicates like Muse: (1) proactive preparation - the
+ *    next step is ready before the user asks, inside granted
+ *    permissions and the QUIET gate stack; (2) plain-language state -
+ *    what is happening, what is blocked, what is next, in human words;
+ *    internal states, enums, and machine vocabulary NEVER reach the
+ *    screen; (3) checkpoint honesty - long-running work shows what is
+ *    done, what is happening, and what remains; a bare spinner is a
+ *    defect; (4) errors in plain words with the one useful next step;
+ *    (5) offers are single-tap answerable, with the substance already
+ *    prepared, and dismissal is respected permanently. A surface that
+ *    communicates like a developer tool fails, however functional.
  *
  * Enforcement: src/opalUi/w4LayoutContract.test.ts (static audit) plus
  * the rendered Playwright proof in shots/repair18/walk4/ (hit tests,

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 288" role="presentation" aria-hidden="true">
+  <!-- Repair #18 Orb System: faceted-gem pattern asset - the gem O's facet
+       geometry (diamond + inner facet lines + counter circle) tiled.
+       Use at low opacity only (token --orb-gem-pattern-opacity); a pattern
+       is a secondary indicator under QUIET and never carries state. -->
+  <defs>
+    <pattern id="gem" width="72" height="72" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+      <g fill="none" stroke="#7d4dce" stroke-width="1">
+        <polygon points="36,6 66,36 36,66 6,36"/>
+        <polygon points="36,6 36,36 66,36"/>
+        <polygon points="36,36 36,66 6,36"/>
+        <circle cx="36" cy="36" r="13"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="288" height="288" fill="url(#gem)"/>
+</svg>

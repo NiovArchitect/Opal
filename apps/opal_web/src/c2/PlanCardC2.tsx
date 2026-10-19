@@ -12,6 +12,7 @@
  * law) - it never defaults silently to ready.
  */
 import React from "react";
+import { FireLine, StateStone } from "../brand/orb/FireLine";
 
 export type PlanStateFamilyC2 = "forming" | "action" | "ready" | "happening" | "past";
 
@@ -75,6 +76,7 @@ export function PlanStatePillC2({
       data-plan-state-known={known ? "1" : "0"}
       data-testid="c2-plan-state-pill"
     >
+      <StateStone state={family} size={12} />
       <span className="c2-state-glyph" aria-hidden>
         {PLAN_STATE_GLYPH_C2[family]}
       </span>
@@ -107,6 +109,11 @@ export function PlanCardC2({
       <div className="c2-plan-card-top">
         <PlanStatePillC2 stateFamily={input.stateFamily} stateLabel={input.stateLabel} />
       </div>
+      {family !== "past" ? (
+        <div style={{ marginTop: 10 }} aria-hidden>
+          <FireLine />
+        </div>
+      ) : null}
       <h3 className="c2-plan-title">{input.title}</h3>
       <p className="c2-plan-when">{input.whenLine}</p>
       {input.whereLine ? <p className="c2-plan-where">{input.whereLine}</p> : null}

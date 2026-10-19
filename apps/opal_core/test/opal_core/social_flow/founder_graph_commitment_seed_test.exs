@@ -58,4 +58,48 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeedTest do
   test "explicit opt-in required", %{viewer: viewer} do
     assert {:error, :explicit_opt_in_required} = FounderGraphCommitmentSeed.ensure!(viewer.id)
   end
+
+  # Repair #18 FALSE-fix F-10: re-seeding a cancelled seed plan restores
+  # it ONLY via the logged PlanTransition :seed_restore exception.
+  test "cancelled seed plan is restored through the gate exception, with a log line", %{
+    viewer: viewer
+  } do
+    import ExUnit.CaptureLog
+    alias OpalCore.SocialFlow.SharedPlan
+
+    assert {:ok, payload} =
+             FounderGraphCommitmentSeed.ensure!(viewer.id, explicit_opt_in: true)
+
+    plan = Repo.get!(SharedPlan, payload["shared_plan_id"])
+    assert plan.status == "agreed"
+
+    plan
+    |> SharedPlan.changeset(%{status: "cancelled"})
+    |> Repo.update!()
+
+    log =
+      capture_log(fn ->
+        assert {:ok, _} =
+                 FounderGraphCommitmentSeed.ensure!(viewer.id, explicit_opt_in: true)
+      end)
+
+    assert log =~ "founder_seed.seed_restore"
+    assert log =~ "from_status=cancelled"
+    assert Repo.get!(SharedPlan, plan.id).status == "agreed"
+  end
+
+  # The gate exception is seed-shaped only: :seed_restore is the ONLY
+  # outbound move from terminal plan statuses, and ordinary actions
+  # (accept/change/cancel/complete) stay illegal from them.
+  test "terminal plans still refuse every product transition" do
+    alias OpalCore.SocialFlow.PlanTransition
+
+    for status <- ~w(cancelled completed), action <- [:agree, :change, :cancel, :complete, :edit] do
+      assert {:error, :illegal_transition} = PlanTransition.transition(:plan, status, action),
+             "expected #{action} from #{status} to stay illegal"
+    end
+
+    assert {:ok, "agreed"} = PlanTransition.transition(:plan, "cancelled", :seed_restore)
+    assert {:ok, "agreed"} = PlanTransition.transition(:plan, "completed", :seed_restore)
+  end
 end

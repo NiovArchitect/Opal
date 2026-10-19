@@ -29,6 +29,15 @@
     padding: 0 var(--gutter) var(--dock-clearance);
     -webkit-overflow-scrolling: touch;
   }
+  /* Center deck fold (harmony2): a deck section scrolled into view
+   * (or focused) stops a breathing step above the floating dock, so
+   * no card ever rests half-hidden behind it. */
+  [data-testid="c2-center-opening"] {
+    scroll-padding-bottom: calc(var(--dock-clearance) + var(--space-5));
+  }
+  [data-testid="c2-center-opening"] section {
+    scroll-margin-bottom: calc(var(--dock-clearance) + var(--space-5));
+  }
 
   /* ---------- headers (section 11) ---------- */
   .c2s-header {
@@ -109,11 +118,41 @@
     height: var(--dock-h);
     border-radius: var(--radius-sheet);
     background: var(--surface-1);
+    /* UNIFY HALO FIX (founder, 2026-10-18 13:46 PDT): the top border
+     * segment is NOT drawn by the dock's own border - the raised
+     * center orb device (disc margin-top -18px) sits across the top
+     * edge, and the full border line rendered straight THROUGH its
+     * transparent halo. The ::before/::after segments below draw the
+     * top edge only up to the disc's edge (disc radius 28px + 8px
+     * halo gap each side); no line crosses the halo. */
     border: 1px solid var(--line-1);
+    border-top-color: transparent;
     box-shadow: var(--shadow-card);
     display: flex;
     align-items: stretch;
     z-index: var(--layer-dock);
+  }
+  .c2s-dock::before,
+  .c2s-dock::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    height: calc(var(--radius-sheet) + 1px);
+    pointer-events: none;
+  }
+  .c2s-dock::before {
+    left: -1px;
+    width: calc(50% - 36px);
+    border-top: 1px solid var(--line-1);
+    border-left: 1px solid var(--line-1);
+    border-top-left-radius: var(--radius-sheet);
+  }
+  .c2s-dock::after {
+    right: -1px;
+    width: calc(50% - 36px);
+    border-top: 1px solid var(--line-1);
+    border-right: 1px solid var(--line-1);
+    border-top-right-radius: var(--radius-sheet);
   }
   .c2s-dock-slot {
     flex: 1;
@@ -163,7 +202,11 @@
     height: 56px;
     border-radius: 999px;
     background: var(--accent-quiet);
-    border: 1px solid var(--line-1);
+    /* Harmony-0: the dock's center device sits in the gyroscope's own
+     * metal - the ring sampled from the master (--orb-ring-metal),
+     * quiet at 45%, so the disc reads as the orb's ring, not a
+     * generic tinted button. */
+    border: 1px solid color-mix(in srgb, var(--orb-ring-metal) 45%, transparent);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -202,6 +245,22 @@
   }
   .c2s-dev-chip .c2s-sha {
     font-family: ui-monospace, monospace;
+  }
+
+  /* ---------- support form chips (Repair #18, audit A5) ---------- */
+  .c2s-chip {
+    border: 1px solid var(--line-1);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: var(--type-caption);
+    cursor: pointer;
+  }
+  .c2s-chip[data-active="1"] {
+    background: var(--ink-1);
+    color: var(--canvas);
+    border-color: var(--ink-1);
   }
 
   /* ---------- sheets and flows (sections 3.2, 7.2) ---------- */
@@ -838,7 +897,13 @@
     gap: var(--space-3);
     text-align: center;
     padding: var(--space-5);
-    background: var(--canvas-stage);
+    /* Harmony-0: the field around the presence radiates from the
+     * stone - a quiet ring-metal halo (7% of the sampled metal) over
+     * the stage field. The orb stays the one lit thing; the halo is
+     * field, not a second element, in both modes. */
+    background:
+      radial-gradient(ellipse 75% 52% at 50% 36%, color-mix(in srgb, var(--orb-ring-metal) 7%, transparent), transparent 70%),
+      var(--canvas-stage);
     position: relative;
     overflow: hidden;
   }
@@ -933,5 +998,110 @@
     color: var(--ink-2);
     margin: 0 0 var(--space-1);
     text-transform: capitalize;
+  }
+
+  /* ---------- HA-A wide sidebar (harmony2) ----------
+   * Phone: neither sidebar renders; the dock is the navigation and
+   * the You hub is the Settings index. Wide (>= 900px): the shell
+   * gains the persistent left sidebar (same five destinations, same
+   * order as the dock), the dock retires, and the You route gains
+   * its Settings sidebar column. One lit thing per surface holds:
+   * the active row is the sampled accent at quiet strength, and no
+   * state hue ever appears in this chrome. */
+  .c2s-sidebar,
+  .c2s-you-nav {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .c2s-root {
+      display: flex;
+    }
+    .c2s-column {
+      flex: 1;
+      min-width: 0;
+    }
+    .c2s-dock {
+      display: none;
+    }
+    .c2s-scroll {
+      padding-bottom: var(--space-5);
+    }
+    [data-testid="c2-center-opening"] {
+      scroll-padding-bottom: var(--space-5);
+    }
+    .c2s-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      width: 232px;
+      flex: none;
+      border-right: 1px solid var(--line-1);
+      background: var(--canvas);
+      padding: var(--space-4) var(--space-3);
+      overflow-y: auto;
+    }
+    .c2s-sidebar-brand {
+      padding: var(--space-2) var(--space-2) var(--space-4);
+    }
+    .c2s-side-slot {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-height: 44px;
+      padding: 0 var(--space-3);
+      border: 0;
+      border-radius: var(--radius-card);
+      background: transparent;
+      color: var(--ink-2);
+      font: var(--type-body);
+      cursor: pointer;
+      text-align: left;
+    }
+    .c2s-side-slot.is-active {
+      background: var(--accent-quiet);
+      color: var(--ink-1);
+    }
+    .c2s-side-glyph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      flex: none;
+    }
+    .c2s-side-label {
+      flex: 1;
+    }
+    .c2s-route-you-wrap {
+      flex-direction: row !important;
+    }
+    .c2s-you-nav {
+      display: block;
+      width: 232px;
+      flex: none;
+      border-right: 1px solid var(--line-1);
+      padding: var(--space-4) var(--space-3);
+      overflow-y: auto;
+    }
+    .c2s-you-nav + * {
+      flex: 1;
+      min-width: 0;
+    }
+    .c2s-you-nav-row {
+      display: block;
+      width: 100%;
+      min-height: 36px;
+      padding: var(--space-1) var(--space-3);
+      border: 0;
+      border-radius: var(--radius-card);
+      background: transparent;
+      color: var(--ink-2);
+      font: var(--type-callout);
+      cursor: pointer;
+      text-align: left;
+    }
+    .c2s-you-nav-row.is-active {
+      background: var(--accent-quiet);
+      color: var(--ink-1);
+    }
   }
 }

@@ -4,6 +4,7 @@
  * drawn for C2 (stroke glyphs in surface ink); no old asset is reused.
  */
 import React from "react";
+import { OrbMarkSmall } from "../../brand/orb/OrbMark";
 import type { AvatarRef } from "./projections";
 
 const TINTS = [
@@ -158,22 +159,9 @@ export function EmptyBlock({
 }) {
   return (
     <div className="c2s-empty" data-testid={testId}>
-      <svg width="40" height="50" viewBox="0 0 100 124" aria-hidden style={{ color: "var(--ink-3)" }}>
-        <path
-          d="M50 20 C72 20 86 40 86 64 C86 92 71 110 50 110 C29 110 14 92 14 64 C14 40 28 20 50 20 Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={6}
-          strokeLinejoin="round"
-        />
-        <path
-          d="M50 21 C41 8 59 2 55 14 C53 19 47 20 50 21 Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={6}
-          strokeLinecap="round"
-        />
-      </svg>
+<span style={{ color: "var(--ink-3)", display: "inline-flex" }}>
+        <OrbMarkSmall size={40} />
+      </span>
       <h2>{headline}</h2>
       <p>{line}</p>
       {actionLabel && onAction ? (

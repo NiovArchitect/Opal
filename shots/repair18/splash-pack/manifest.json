@@ -1,0 +1,153 @@
+{
+  "build_tag": "splash-r18-7567b780",
+  "web": "http://127.0.0.1:15175",
+  "api": "http://127.0.0.1:14101",
+  "seed": {
+    "comm": 200,
+    "graph": 200
+  },
+  "surfaces": [
+    {
+      "label": "splash-1",
+      "mode": "dark",
+      "rootPresent": true,
+      "fieldAttr": "night-master",
+      "rootBg": "rgb(5, 3, 15)",
+      "enterOpalCount": "0",
+      "imgSrc": "/brand/orb/opal-orb-master-full.webp",
+      "imgNatural": {
+        "w": 1024,
+        "h": 1024
+      },
+      "stageBox": {
+        "x": 14,
+        "y": 14,
+        "w": 362,
+        "h": 362
+      },
+      "margin": {
+        "left": 14,
+        "right": 14,
+        "top": 14,
+        "contained": true
+      },
+      "rings": {
+        "variant": "hero",
+        "motion": "living",
+        "animateMotion": 2,
+        "animateTransform": 2
+      },
+      "lockupStacked": {
+        "stacked": true,
+        "centerDeltaX": 0
+      },
+      "gitHeadFull": "d0bcc9981082fe220005047879ee4e484d35f841",
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "splash-2-entry",
+      "mode": "dark",
+      "enterButtons": 1
+    },
+    {
+      "label": "splash-1",
+      "mode": "light",
+      "rootPresent": true,
+      "fieldAttr": "night-master",
+      "rootBg": "rgb(5, 3, 15)",
+      "enterOpalCount": "0",
+      "imgSrc": "/brand/orb/opal-orb-master-full.webp",
+      "imgNatural": {
+        "w": 1024,
+        "h": 1024
+      },
+      "stageBox": {
+        "x": 14,
+        "y": 14,
+        "w": 362,
+        "h": 362
+      },
+      "margin": {
+        "left": 14,
+        "right": 14,
+        "top": 14,
+        "contained": true
+      },
+      "rings": {
+        "variant": "hero",
+        "motion": "living",
+        "animateMotion": 2,
+        "animateTransform": 2
+      },
+      "lockupStacked": {
+        "stacked": true,
+        "centerDeltaX": 0
+      },
+      "gitHeadFull": "d0bcc9981082fe220005047879ee4e484d35f841",
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "splash-2-entry",
+      "mode": "light",
+      "enterButtons": 1
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "dark",
+      "file": "splash-1-motion-dark.webm"
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "light",
+      "file": "splash-1-motion-light.webm"
+    },
+    {
+      "label": "splash-1-reduced-motion",
+      "mode": "dark",
+      "rings": {
+        "motion": "rest",
+        "animateCount": 0
+      }
+    },
+    {
+      "label": "dock-center",
+      "mode": "dark",
+      "discPresent": true,
+      "rings": {
+        "motion": "living",
+        "animateMotion": 1,
+        "animateTransform": 2
+      },
+      "markInsideDisc": true,
+      "markBox": {
+        "w": 40,
+        "h": 40
+      },
+      "discBox": {
+        "w": 56,
+        "h": 56
+      }
+    },
+    {
+      "label": "dock-center",
+      "mode": "light",
+      "discPresent": true,
+      "rings": {
+        "motion": "living",
+        "animateMotion": 1,
+        "animateTransform": 2
+      },
+      "markInsideDisc": true,
+      "markBox": {
+        "w": 40,
+        "h": 40
+      },
+      "discBox": {
+        "w": 56,
+        "h": 56
+      }
+    }
+  ]
+}

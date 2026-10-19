@@ -108,6 +108,42 @@ defmodule OpalCoreWeb.OpportunityApiTest do
     assert json_response(conn, 403)["error"]["code"] == "not_a_member"
   end
 
+  # Repair #18 FALSE-fix F-02: the product route must not default to the
+  # dinner fixture, and every evaluate response carries provenance.
+  test "evaluate without fixture opt-in is NOT fixture-backed and is labeled", %{
+    conn: conn,
+    conv: conv
+  } do
+    conn =
+      post(conn, "/api/v1/product/conversations/#{conv}/opportunity/evaluate", %{
+        "member_ids" => DsiFixtures.member_ids(),
+        "messages" => DsiFixtures.quiet_ordinary_messages(),
+        "participants" => DsiFixtures.participants(),
+        "venues" => DsiFixtures.venues(),
+        "time_window" => DsiFixtures.time_window(),
+        "idempotency_key" => "api-f02-default-off"
+      })
+
+    body = json_response(conn, 200)
+    assert body["opportunity"]["provenance"] == %{"fixture" => false, "input_source" => "request"}
+    refute body["opportunity"]["primary_option"] == "Quiet bistro fixture"
+  end
+
+  test "evaluate with explicit fixture opt-in is labeled fixture provenance", %{
+    conn: conn,
+    conv: conv
+  } do
+    conn =
+      post(conn, "/api/v1/product/conversations/#{conv}/opportunity/evaluate", %{
+        "use_dinner_fixture" => true,
+        "member_ids" => DsiFixtures.member_ids(),
+        "idempotency_key" => "api-f02-fixture-labeled"
+      })
+
+    body = json_response(conn, 201)
+    assert body["opportunity"]["provenance"] == %{"fixture" => true, "input_source" => "fixture_catalog"}
+  end
+
   test "quiet ordinary conversation evaluate returns quiet", %{conn: conn, conv: conv} do
     conn =
       post(conn, "/api/v1/product/conversations/#{conv}/opportunity/evaluate", %{

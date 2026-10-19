@@ -38,7 +38,9 @@ html[data-mode="light"] #root {
 }
 .c2-lockup-hero {
   display: inline-flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 .c2-loop--hero {
   animation: c2-breath var(--motion-breath) ease-in-out infinite alternate;
@@ -100,6 +102,12 @@ html[data-mode="light"] #root {
 }
 .c2-splash-wordmark {
   margin-top: 10px;
+  display: inline-flex;
+}
+.c2-splash-wordmark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .c2-splash-headline {
   font: var(--type-display);
@@ -120,6 +128,59 @@ html[data-mode="light"] #root {
   flex-direction: column;
   gap: 10px;
   padding-top: 24px;
+}
+
+/* ---- Splash 1 full-bleed (R18 splash rebuild, founder 2026-10-18
+ * 13:48 PDT): the splash IS the master composition. The master
+ * fills the screen width edge to edge - no panel, no card, no
+ * medallion frame - and its own night field (the sampled
+ * --orb-night-field) continues the composition down the screen.
+ * The night tokens apply in BOTH modes: the stone's moment is a
+ * night moment (presented choice, see C2Splash1.tsx header). ---- */
+.c2-splash-1--fullbleed {
+  background: var(--orb-night-field);
+  color: var(--orb-night-ink-1);
+}
+.c2-splash-stage {
+  position: relative;
+  /* COMPOSITION REFINEMENT (founder, 2026-10-18 13:59 PDT): "Leave a
+   * little bit of space on the edge so it doesn't bleed off screen."
+   * The COMPLETE master composition sits inside a small safe margin
+   * (rings whole, points of light never cropped at the screen edge),
+   * while the night field - this splash's background, the master's
+   * own sampled field - extends behind the margin to the screen
+   * edges, so the breathing room reads as intentional framing.
+   * Safe-area aware: the top margin never goes below the inset. */
+  width: calc(100% - 28px);
+  margin: max(14px, env(safe-area-inset-top, 0px)) auto 0;
+  aspect-ratio: 1;
+  flex: none;
+  background: var(--orb-night-field);
+}
+.c2-splash-master {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.c2-splash-1--fullbleed .c2-splash-column {
+  padding-top: 4px;
+}
+.c2-splash-1--fullbleed .c2-splash-wordmark {
+  margin-top: 2px;
+}
+.c2-splash-1--fullbleed .c2-splash-subline {
+  color: var(--orb-night-ink-2);
+}
+.c2-splash-1--fullbleed .c2-btn-primary {
+  background: var(--orb-night-primary-fill);
+  color: var(--orb-night-primary-ink);
+}
+.c2-splash-1--fullbleed .c2-btn-primary:active {
+  background: var(--orb-night-primary-press);
+}
+.c2-splash-1--fullbleed .c2-btn-text {
+  color: var(--orb-night-ink-1);
 }
 .c2-btn-primary {
   min-height: 52px;

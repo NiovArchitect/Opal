@@ -39,17 +39,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createOpalChatSession,
+  dismissReveal,
   getOpalChatSession,
   listMessages,
+  listReveals,
   listOpalChatSessions,
   listPeople,
   listRelationships,
   postOpalSessionMessage,
   sendMessage,
   type ConversationSummary,
+  type NextPlanFact,
   type OpalChatMessage,
   type OpalPlanContract,
+  type RevealItem,
 } from "../../api/productClient";
+import { correctVoiceNoteTranscript } from "../../api/productClient";
+import { VoiceNoteControl } from "./adopt3";
 import {
   CenterChat,
   CenterSessionList,
@@ -73,6 +79,50 @@ import { EmptyBlock } from "./bits";
 /* ------------------------------------------------------------------ */
 
 /** Finished short label for an ISO timestamp, built by the adapter. */
+/**
+ * Hunt-fix B-17: relationship types are internal enum values
+ * (close_friend, …). The circle header shows finished words, built
+ * here in the adapter — an unknown type renders NO header, never
+ * the raw slug.
+ */
+const RELATIONSHIP_TYPE_LABELS: Record<string, string> = {
+  spouse: "Spouse",
+  partner: "Partners",
+  family: "Family",
+  close_friend: "Close friends",
+  friend: "Friends",
+  business: "Work",
+  acquaintance: "Acquaintances",
+};
+
+/**
+ * Harmony-0 (named glass finding ii): a conversation whose last
+ * message is a call invite carries the raw signaling body
+ * "call:<id>" as its preview (the backend's last-message text). The
+ * legacy shell resolves that to a human label (OpalApp.tsx: a known
+ * call's history label, else "Call"); the C2 host showed the raw id.
+ * Truthful derivation from the conversation record itself: a call
+ * preview reads "Call with <name>" from the conversation's own peer /
+ * title - never the raw id, never an invented call outcome (the host
+ * has no call record to quote a history label from). Any other
+ * preview passes through untouched.
+ */
+export function conversationPreviewLabel(chat: {
+  title: string;
+  preview: string;
+  peers?: { display_name: string }[];
+}): string {
+  const raw = (chat.preview ?? "").trim();
+  if (!raw.startsWith("call:")) return chat.preview;
+  const peerName = chat.peers?.find((peer) => peer.display_name?.trim())?.display_name?.trim();
+  const name = peerName || chat.title?.trim();
+  return name ? `Call with ${name}` : "Call";
+}
+
+export function relationshipTypeLabel(type: string): string | null {
+  return RELATIONSHIP_TYPE_LABELS[type] ?? null;
+}
+
 export function timeLabelFor(iso: string | null | undefined): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -152,6 +202,55 @@ export function planProjectionFromContract(plan: OpalPlanContract): PlanProjecti
   };
 }
 
+/** Harmony2 (adopt1 4.C1's missing leg): parse the holding answer's
+ * metadata.holding ({counters, links, answer_text} - the ONE counter
+ * set from GraphPeople.holding/1) into per-figure chips. Labels use
+ * the answer text's own phrasing; a figure renders only when both
+ * its counter and its link target are present - never invented. */
+export function holdingFiguresFromMetadata(
+  metadata: Record<string, unknown> | null | undefined,
+): ThreadMsg["holdingFigures"] {
+  const holding = metadata?.holding;
+  if (!holding || typeof holding !== "object") return null;
+  const counters = (holding as { counters?: unknown }).counters;
+  const links = (holding as { links?: unknown }).links;
+  if (!counters || typeof counters !== "object" || !links || typeof links !== "object") {
+    return null;
+  }
+  const count = (key: string): number | null => {
+    const value = (counters as Record<string, unknown>)[key];
+    return typeof value === "number" ? value : null;
+  };
+  const target = (key: string): string | null => {
+    const value = (links as Record<string, unknown>)[key];
+    return typeof value === "string" && value ? value : null;
+  };
+  const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+  const specs: Array<{ key: string; label: (n: number) => string }> = [
+    {
+      key: "plans_in_motion",
+      label: (n) => `${n} ${plural(n, "plan", "plans")} in motion`,
+    },
+    { key: "approvals_waiting", label: (n) => `${n} waiting on your answer` },
+    {
+      key: "memories_held",
+      label: (n) => `${n} ${plural(n, "memory", "memories")} held`,
+    },
+    {
+      key: "sources_connected",
+      label: (n) => `${n} ${plural(n, "source", "sources")} connected`,
+    },
+  ];
+  const figures = specs.flatMap((spec) => {
+    const n = count(spec.key);
+    const t = target(spec.key);
+    return n !== null && t !== null
+      ? [{ key: spec.key, label: spec.label(n), target: t }]
+      : [];
+  });
+  return figures.length > 0 ? figures : null;
+}
+
 function threadMsgFromOpalMessage(m: OpalChatMessage): ThreadMsg {
   const planId =
     m.metadata && typeof m.metadata.plan_id === "string" ? m.metadata.plan_id : null;
@@ -161,6 +260,7 @@ function threadMsgFromOpalMessage(m: OpalChatMessage): ThreadMsg {
     own: m.role === "user",
     body: m.body,
     planId,
+    holdingFigures: holdingFiguresFromMetadata(m.metadata),
   };
 }
 
@@ -208,6 +308,7 @@ export function CenterHost({
   openingEvents,
   plans,
   onOpenGraph,
+  onHoldingLink,
 }: {
   bearer?: string;
   opening: CenterOpeningProjection;
@@ -215,9 +316,13 @@ export function CenterHost({
     openGraph: (cardId: string) => void;
     makeSomethingHappen: () => void;
     completeSlot: (cardId: string, slotKind: string) => void;
+    /** SM doorway, first form - passed through to the opening. */
+    openSoulMemory?: () => void;
   };
   plans: OpalPlanContract[];
   onOpenGraph: (cardId: string) => void;
+  /** Harmony2: a holding chip tap routes to its named surface. */
+  onHoldingLink?: (target: string) => void;
 }) {
   const [view, setView] = useState<CenterView>({ kind: "deck" });
   const [sessions, setSessions] = useState<CenterSessionSummary[]>([]);
@@ -225,6 +330,35 @@ export function CenterHost({
   const [messages, setMessages] = useState<ThreadMsg[]>([]);
   const [error, setError] = useState<string | null>(null);
   const sessionsLoaded = useRef(false);
+  // DIR-4: the deck's reveal items, from the ONE derivation.
+  const [reveals, setReveals] = useState<RevealItem[]>([]);
+
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      try {
+        const feed = await listReveals(bearer);
+        if (live) setReveals(feed.items ?? []);
+      } catch {
+        if (live) setReveals([]);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [bearer]);
+
+  const dismissDeckReveal = useCallback(
+    async (item: RevealItem) => {
+      try {
+        const feed = await dismissReveal(item.reveal_key, bearer);
+        setReveals(feed.items ?? []);
+      } catch {
+        // Dismissal is server truth; on failure the item stays.
+      }
+    },
+    [bearer],
+  );
 
   const plansById = useMemo(() => {
     const map = new Map<string, PlanProjection>();
@@ -341,8 +475,15 @@ export function CenterHost({
     return (
       <>
         <C2CenterOpening
-          projection={opening}
-          events={{ ...openingEvents, openCenterChat: () => void openActiveChat() }}
+          projection={{ ...opening, reveals }}
+          events={{
+            ...openingEvents,
+            openCenterChat: () => void openActiveChat(),
+            dismissReveal: (item) => void dismissDeckReveal(item),
+            revealAction: (item) => {
+              if (item.plan_id) onOpenGraph(item.plan_id);
+            },
+          }}
         />
         {error ? (
           <p className="c2s-error-line" role="alert" style={{ padding: "0 var(--gutter)" }}>
@@ -384,6 +525,7 @@ export function CenterHost({
           onBack={() => setView({ kind: "sessions" })}
           onOpenPlan={(plan) => onOpenGraph(plan.id)}
           onSend={(text) => void send(text)}
+          onHoldingLink={onHoldingLink}
         />
       )}
       {error ? (
@@ -404,14 +546,21 @@ export function ChatsHost({
   viewerUserId,
   conversations,
   onConversationsChanged,
+  openRequest,
 }: {
   bearer?: string;
   viewerUserId?: string;
   conversations: ConversationSummary[];
   onConversationsChanged: () => void;
+  /** ST-D: an external open request (from Search) - opens the real
+   *  thread in the state its row showed. */
+  openRequest?: { conversationId: string; nonce: number } | null;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ThreadMsg[]>([]);
+  /** DIR-1: the thread's shared upcoming plan fact, read from the
+   *  thread contract (listMessages) - the same fact the row carries. */
+  const [threadNextPlan, setThreadNextPlan] = useState<NextPlanFact | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [people, setPeople] = useState<
@@ -419,8 +568,39 @@ export function ChatsHost({
   >([]);
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [summarySweepId, setSummarySweepId] = useState<string | null>(null);
+  // DIR-4: reveal items for the list (P1 line takeover) and thread.
+  const [reveals, setReveals] = useState<RevealItem[]>([]);
+  const [threadReveals, setThreadReveals] = useState<RevealItem[]>([]);
 
   const selected = conversations.find((c) => c.id === selectedId) ?? null;
+
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      try {
+        const feed = await listReveals(bearer);
+        if (live) setReveals(feed.items ?? []);
+      } catch {
+        if (live) setReveals([]);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [bearer, conversations]);
+
+  const dismissChatReveal = useCallback(
+    async (item: RevealItem) => {
+      try {
+        const feed = await dismissReveal(item.reveal_key, bearer);
+        setReveals(feed.items ?? []);
+        setThreadReveals((prev) => (feed.items ?? []).filter((r) => prev.some((p) => p.reveal_key === r.reveal_key)));
+      } catch {
+        // Server truth wins; a failed dismissal changes nothing.
+      }
+    },
+    [bearer],
+  );
 
   useEffect(() => {
     let live = true;
@@ -451,6 +631,13 @@ export function ChatsHost({
       setError(null);
       try {
         const res = await listMessages(conversationId, bearer);
+        setThreadNextPlan(res.next_plan ?? null);
+        try {
+          const feed = await listReveals(bearer, conversationId);
+          setThreadReveals(feed.items ?? []);
+        } catch {
+          setThreadReveals([]);
+        }
         const conv = conversations.find((c) => c.id === conversationId);
         const names = new Map((conv?.peers ?? []).map((p) => [p.id, p.display_name]));
         setMessages(
@@ -460,14 +647,35 @@ export function ChatsHost({
             authorName: names.get(m.sender_user_id),
             own: Boolean(viewerUserId) && m.sender_user_id === viewerUserId,
             body: m.body,
+            audioUrl: m.audio_url ?? null,
+            durationMs: m.duration_ms ?? null,
+            messageType: m.message_type,
           })),
         );
       } catch {
         setMessages([]);
+        setThreadNextPlan(null);
         setError("Messages could not load. Head back and try again.");
       }
     },
     [bearer, conversations, viewerUserId],
+  );
+
+  const lastOpenNonce = useRef(0);
+  useEffect(() => {
+    if (openRequest && openRequest.nonce !== lastOpenNonce.current) {
+      lastOpenNonce.current = openRequest.nonce;
+      void openThread(openRequest.conversationId);
+    }
+  }, [openRequest, openThread]);
+
+  const correctTranscript = useCallback(
+    async (messageId: string, text: string) => {
+      if (!selectedId) return;
+      await correctVoiceNoteTranscript(selectedId, messageId, text, bearer);
+      await openThread(selectedId);
+    },
+    [bearer, openThread, selectedId],
   );
 
   const send = useCallback(
@@ -499,12 +707,20 @@ export function ChatsHost({
     id: chat.id,
     name: chat.title,
     initials: initialsOf(chat.title),
-    preview: chat.preview,
+    preview: conversationPreviewLabel(chat),
     timeLabel: timeLabelFor(chat.updated_at),
     unread: (chat.unread_count ?? 0) > 0,
-    // The conversations contract carries no plan state for the row
-    // pill, so no pill renders - never a guessed one.
+    // DIR-1: the row's plan-awareness element renders from the
+    // contract's shared upcoming plan fact (next_plan) - the
+    // service-layer derivation. No fact, no element; never guessed.
     plan: null,
+    nextPlan: chat.next_plan ?? null,
+    entityTint: chat.entity_tint ?? null,
+    // DIR-4 entry 7: a P1 reveal about this conversation's people
+    // takes over the row's plan line (same slot, fire line added).
+    reveal:
+      reveals.find((r) => r.category === "P1" && r.conversation_id === chat.id) ?? null,
+    onDismissReveal: (item: RevealItem) => void dismissChatReveal(item),
   }));
 
   return (
@@ -519,11 +735,27 @@ export function ChatsHost({
                 ? selected.peers.map((p) => p.display_name).join(", ")
                 : null
             }
+            nextPlanFact={threadNextPlan ?? selected.next_plan ?? null}
+            entityTint={selected.entity_tint ?? null}
+            reveals={threadReveals}
+            onDismissReveal={(item) => void dismissChatReveal(item)}
+            onRevealAction={(item) => {
+              if (item.plan_id) onConversationsChanged();
+            }}
             messages={messages}
             plansById={new Map()}
             composerPlaceholder={`Message ${selected.title}`}
             onBack={() => setSelectedId(null)}
             onSend={(text) => void send(text)}
+            onCorrectTranscript={correctTranscript}
+          />
+          <VoiceNoteControl
+            conversationId={selected.id}
+            bearer={bearer}
+            onSent={() => {
+              void openThread(selected.id);
+              onConversationsChanged();
+            }}
           />
           <div className="c2s-c1-checkin-bar">
             <CheckinCircleRow
@@ -545,7 +777,9 @@ export function ChatsHost({
               <p className="c2s-c1-circles-title">Your circles</p>
               {relTypes.map((type) => (
                 <div key={type} className="c2s-c1-circle">
-                  <p className="c2s-c1-circle-label">{type}</p>
+                  {relationshipTypeLabel(type) ? (
+                    <p className="c2s-c1-circle-label">{relationshipTypeLabel(type)}</p>
+                  ) : null}
                   <CheckinCircleRow
                     source={{
                       source_kind: "relationship_set",

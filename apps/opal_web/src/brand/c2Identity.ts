@@ -1,9 +1,18 @@
 /**
- * Repair #18 - Division C2 - NEW identity assets (track-c2 section 1).
+ * Repair #18 - Division C2 - interim identity assets (track-c2 section 1).
  *
- * The Join wordmark, the Loop character, the faceless mark, and the app
- * icon live under public/brand/c2/. The retired R17 assets stay exactly
- * where they are for the fallback; no old path is reused here.
+ * RETIRED (founder, 2026-10-18 12:53 PDT): THE ORB IS THE LOGO,
+ * PERMANENTLY. The Join wordmark, the Loop character, the faceless
+ * mark, and the app icon named here were the shell's INTERIM identity
+ * (the DIR-5 family). They are NOT an alternate and NOT a fallback
+ * identity inside the new design: no surface in the integrated C2
+ * build renders them - the foundation gallery's identity plate was
+ * removed in harmony-0, the C2 icon slots resolve to the orb master
+ * (main.tsx), and the only identity the shell renders is the orb
+ * system in brand/orb/ (tokens in theme/orbTokens.css). This file
+ * remains as the record of the interim geometry (brand/c2Geometry.ts)
+ * and the Loop presence-mapping contract the component tests pin;
+ * the R17 fallback keeps its OWN older identity, untouched, elsewhere.
  */
 
 export const C2_ASSETS = {

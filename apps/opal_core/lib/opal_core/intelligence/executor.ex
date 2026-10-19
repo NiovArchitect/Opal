@@ -102,6 +102,12 @@ defmodule OpalCore.Intelligence.Executor do
 
     if is_binary(user_id) do
       # Phase 4 — Opal suggestion → normal tier
+      # HA-07 (Repair #18 hunt-fix, SP-9 failures surface): every
+      # enqueue outcome is reported as what it actually is. The old
+      # catch-all mapped ANY result — including {:error, _} from a
+      # failed Oban insert — to {:ok, %{"push" => "queued"}}, so the
+      # execution record claimed a push that was never enqueued, and
+      # mute/in-app suppressions were mislabeled "queued" too.
       case OpalCore.Push.NotificationIntelligence.enqueue(
              user_id,
              title,
@@ -109,8 +115,13 @@ defmodule OpalCore.Intelligence.Executor do
              %{"decision_id" => d.id, "kind" => "opal.suggestion", "tier" => "normal"},
              tier: :normal
            ) do
-        {:ok, _} -> {:ok, %{"push" => "queued"}}
-        other -> {:ok, %{"push" => "queued", "detail" => inspect(other)}}
+        {:ok, %Oban.Job{}} -> {:ok, %{"push" => "queued"}}
+        {:ok, :suppressed_mute} -> {:ok, %{"push" => "suppressed_mute"}}
+        {:ok, :in_app_only} -> {:ok, %{"push" => "in_app_only"}}
+        {:ok, :digested} -> {:ok, %{"push" => "digested"}}
+        {:ok, :held_quiet_hours} -> {:ok, %{"push" => "held_quiet_hours"}}
+        {:ok, other} -> {:ok, %{"push" => "accepted", "detail" => inspect(other)}}
+        {:error, reason} -> {:error, {:push_enqueue_failed, reason}}
       end
     else
       Logger.info("intelligence.push_queued decision=#{d.id} (no user_id)")

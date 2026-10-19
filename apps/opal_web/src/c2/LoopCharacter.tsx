@@ -15,6 +15,12 @@
  */
 import React from "react";
 import { C2_ASSETS, LOOP_FACE_MIN_PX, type LoopExpression } from "../brand/c2Identity";
+import {
+  C2_MARK_BODY_D,
+  C2_MARK_CREST,
+  C2_MARK_STROKE,
+  C2_MARK_VIEWBOX,
+} from "../brand/c2Geometry";
 
 export function LoopCharacter({
   expression = "rest",
@@ -61,7 +67,14 @@ export function LoopCharacter({
  * token in the active mode - an <img> SVG cannot inherit page color
  * and would paint black on the night stage. The standalone file
  * public/brand/c2/opal-c2-mark.svg carries the same two shapes for
- * non-DOM slots (favicon-class uses).
+ * non-DOM slots (favicon-class uses); brandGeometry.test.ts pins the
+ * file to the shared geometry in brand/c2Geometry.ts.
+ *
+ * DIR-5 refinement: one confident device - the pebble body at a bold
+ * 10-unit stroke with the crest abstracted to a single ring on its
+ * crown. The old 6-unit outline and crest sliver collapsed to an egg
+ * with a dot at dock/header sizes; the ring's counter stays open at
+ * 28px and the silhouette is the character, distilled.
  */
 export function C2Mark({
   size = 28,
@@ -73,11 +86,11 @@ export function C2Mark({
   className?: string;
 }) {
   const height = Math.max(size, 1);
-  const width = Math.round(height * (100 / 124));
+  const width = Math.round(height * (100 / 136));
   return (
     <svg
       className={`c2-mark ${className ?? ""}`.trim()}
-      viewBox="0 0 100 124"
+      viewBox={C2_MARK_VIEWBOX}
       width={width}
       height={height}
       role={title === "" ? "presentation" : "img"}
@@ -87,18 +100,19 @@ export function C2Mark({
       data-c2-faceless="1"
     >
       <path
-        d="M50 20 C72 20 86 40 86 64 C86 92 71 110 50 110 C29 110 14 92 14 64 C14 40 28 20 50 20 Z"
+        d={C2_MARK_BODY_D}
         fill="none"
         stroke="currentColor"
-        strokeWidth={6}
+        strokeWidth={C2_MARK_STROKE}
         strokeLinejoin="round"
       />
-      <path
-        d="M50 21 C41 8 59 2 55 14 C53 19 47 20 50 21 Z"
+      <circle
+        cx={C2_MARK_CREST.cx}
+        cy={C2_MARK_CREST.cy}
+        r={C2_MARK_CREST.r}
         fill="none"
         stroke="currentColor"
-        strokeWidth={6}
-        strokeLinecap="round"
+        strokeWidth={C2_MARK_STROKE}
       />
     </svg>
   );

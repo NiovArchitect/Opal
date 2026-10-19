@@ -65,14 +65,27 @@ describe("c2Tokens (track-c2 sections 2.6 and 2.7)", () => {
   it("grounds match the section 2.7 per-mode table", () => {
     expect(light.get("--canvas")).toBe("#fffefb");
     expect(light.get("--canvas-stage")).toBe("#f5f0e8");
-    expect(dark.get("--canvas")).toBe("#121017");
+    expect(dark.get("--canvas")).toBe("#18141c"); // harmony-0: the sampled orb field (--orb-field) is the dark ground
     expect(dark.get("--canvas-stage")).toBe("#0d0b12");
-    expect(dark.get("--surface-1")).toBe("#1c1922");
-    expect(dark.get("--surface-2")).toBe("#262230");
+    expect(dark.get("--surface-1")).toBe("#201a27"); // harmony-0: quiet step of the sampled field
+    expect(dark.get("--surface-2")).toBe("#2a2333"); // harmony-0: quiet step of the sampled field
+  });
+
+  it("harmony-0: accents and gradient are the sampled orb fire, never canonical state hexes", () => {
+    expect(dark.get("--accent-1")).toContain("#7d4dce"); // sampled violet peak
+    expect(light.get("--accent-1")).toContain("#5d398a"); // sampled violet median
+    for (const mode of [light, dark]) {
+      const grad = mode.get("--grad-current")!;
+      for (const stateHex of ["#8b5cf6", "#00e5ff", "#ffc86b", "#ff4d5e"]) {
+        expect(grad.toLowerCase()).not.toContain(stateHex); // indicator hues are meaning only
+      }
+    }
+    expect(dark.get("--grad-current")).toContain("#7d4dce");
+    expect(light.get("--grad-current")).toContain("#5d398a");
   });
 
   it("dark grounds obey the night budget lightness caps", () => {
-    expect(hslLightness(dark.get("--canvas")!)).toBeLessThanOrEqual(9);
+    expect(hslLightness(dark.get("--canvas")!)).toBeLessThanOrEqual(10); // harmony-0: the sampled field #18141c is 9.4% - the master sets the budget here
     expect(hslLightness(dark.get("--canvas-stage")!)).toBeLessThanOrEqual(9);
     expect(hslLightness(dark.get("--surface-1")!)).toBeLessThanOrEqual(13);
     expect(hslLightness(dark.get("--surface-2")!)).toBeLessThanOrEqual(17);

@@ -26,7 +26,7 @@ export type SearchPlaceResult = {
   source_entity_id: string;
   /** Exact Graph Reality when CURRENT authority owns one — never invent a Place page */
   graph_id: string | null;
-  authority_status: "GREEN" | "MISSING_CURRENT_AUTHORITY";
+  authority_status: "SAMPLE" | "MISSING_CURRENT_AUTHORITY";
 };
 
 export type SearchExperienceResult = {
@@ -35,7 +35,7 @@ export type SearchExperienceResult = {
   meta: string;
   source_entity_id: string;
   graph_id: string | null;
-  authority_status: "GREEN" | "MISSING_CURRENT_AUTHORITY";
+  authority_status: "SAMPLE" | "MISSING_CURRENT_AUTHORITY";
 };
 
 export type SearchGraphResult = {
@@ -61,6 +61,13 @@ type Props = {
   onModeChange?: (mode: SearchPill) => void;
   /** Controlled scrollTop — parent restores on Back */
   scrollTop?: number;
+  /**
+   * Repair #18 hunt-fix B-01: the result classes below are founder
+   * SAMPLE data. They render only in demo (seed) mode, under a
+   * visible sample banner. On a real account the destination is an
+   * honest empty state — fixtures never present as the user's world.
+   */
+  demoMode?: boolean;
   onScrollTopChange?: (scrollTop: number) => void;
 };
 
@@ -93,7 +100,7 @@ const PLACES: SearchPlaceResult[] = [
     meta: "San Diego · restaurant",
     source_entity_id: "place-juniper-ivy",
     graph_id: "seed-chanelle-juniper",
-    authority_status: "GREEN",
+    authority_status: "SAMPLE",
   },
 ];
 
@@ -106,7 +113,7 @@ const EXPERIENCES: SearchExperienceResult[] = [
     meta: "Sample experience",
     source_entity_id: "experience-rooftop-jazz",
     graph_id: "seed-near-rooftop",
-    authority_status: "GREEN",
+    authority_status: "SAMPLE",
   },
   {
     result_type: "experiences",
@@ -114,7 +121,7 @@ const EXPERIENCES: SearchExperienceResult[] = [
     meta: "Sample experience · Saturday",
     source_entity_id: "experience-oceanside-farmers",
     graph_id: "seed-jordan-market",
-    authority_status: "GREEN",
+    authority_status: "SAMPLE",
   },
 ];
 
@@ -142,6 +149,7 @@ export function SearchDestination({
   onModeChange,
   scrollTop = 0,
   onScrollTopChange,
+  demoMode = false,
 }: Props) {
   const [localQ, setLocalQ] = React.useState("");
   const [localPill, setLocalPill] = React.useState<SearchPill>(initialMode);
@@ -215,10 +223,10 @@ export function SearchDestination({
     return () => window.removeEventListener("keydown", onKey);
   }, [onBack]);
 
-  const showPeople = pill === "Top" || pill === "People";
-  const showPlaces = pill === "Top" || pill === "Places";
-  const showExperiences = pill === "Top" || pill === "Experiences";
-  const showGraphs = pill === "Top" || pill === "Graphs";
+  const showPeople = demoMode && (pill === "Top" || pill === "People");
+  const showPlaces = demoMode && (pill === "Top" || pill === "Places");
+  const showExperiences = demoMode && (pill === "Top" || pill === "Experiences");
+  const showGraphs = demoMode && (pill === "Top" || pill === "Graphs");
 
   function renderNavigableRow(opts: {
     testId: string;
@@ -361,6 +369,16 @@ export function SearchDestination({
       </div>
 
       <div className="search-results-scroll" data-testid="search-results-scroll">
+      {demoMode ? (
+        <p className="search-demo-banner" data-testid="search-demo-banner" role="status">
+          Sample data — demo only. These are not your people, places, or Graphs.
+        </p>
+      ) : (
+        <p className="search-empty" data-testid="search-honest-empty" role="status">
+          Search is not connected to your people and plans yet, so there is nothing to show
+          here. Your people live in Chats and your plans live in Graphs.
+        </p>
+      )}
       {showPeople ? (
         <>
           <p className="search-section-label">People</p>
@@ -386,7 +404,7 @@ export function SearchDestination({
           <p className="search-section-label">Places</p>
           {places.map((p) => (
             <React.Fragment key={p.source_entity_id}>
-              {p.graph_id && p.authority_status === "GREEN"
+              {p.graph_id && p.authority_status === "SAMPLE"
                 ? renderNavigableRow({
                     testId: `search-place-${p.name.toLowerCase().replace(/\s+/g, "-")}`,
                     name: p.name,
@@ -411,7 +429,7 @@ export function SearchDestination({
           <p className="search-section-label">Experiences</p>
           {experiences.map((p) => (
             <React.Fragment key={p.source_entity_id}>
-              {p.graph_id && p.authority_status === "GREEN"
+              {p.graph_id && p.authority_status === "SAMPLE"
                 ? renderNavigableRow({
                     testId: `search-experience-${p.name.toLowerCase().replace(/\s+/g, "-")}`,
                     name: p.name,

@@ -1,0 +1,507 @@
+{
+  "build_tag": "harmony0-b9757c09",
+  "web": "http://127.0.0.1:15174",
+  "api": "http://127.0.0.1:14100",
+  "seed": {
+    "comm": 200,
+    "graph": 200
+  },
+  "surfaces": [
+    {
+      "label": "splash-1",
+      "mode": "dark",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": []
+    },
+    {
+      "label": "splash-1-orb",
+      "mode": "dark",
+      "heroPresent": true,
+      "heroImg": "/brand/orb/opal-orb-hero-512.webp",
+      "heroBox": {
+        "w": 248,
+        "h": 248
+      },
+      "imgs": [
+        "/brand/orb/opal-orb-hero-512.webp"
+      ],
+      "hasOpalWordmarkText": false
+    },
+    {
+      "label": "splash-1-lockup-law",
+      "mode": "dark",
+      "present": true,
+      "stacked": true,
+      "centerDeltaX": 0,
+      "sideBySide": false
+    },
+    {
+      "label": "splash-2",
+      "mode": "dark",
+      "testids": [
+        "c2-splash2",
+        "c2-splash2-illustration-card",
+        "c2-plan-card",
+        "c2-plan-state-pill",
+        "c2-splash2-enter",
+        "c2-splash2-already",
+        "c2-dev-chip"
+      ],
+      "failures": []
+    },
+    {
+      "label": "splash-1",
+      "mode": "light",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": []
+    },
+    {
+      "label": "splash-1-orb",
+      "mode": "light",
+      "heroPresent": true,
+      "heroImg": "/brand/orb/opal-orb-medallion.webp",
+      "heroBox": {
+        "w": 248,
+        "h": 248
+      },
+      "imgs": [
+        "/brand/orb/opal-orb-medallion.webp"
+      ],
+      "hasOpalWordmarkText": false
+    },
+    {
+      "label": "splash-1-lockup-law",
+      "mode": "light",
+      "present": true,
+      "stacked": true,
+      "centerDeltaX": 0,
+      "sideBySide": false
+    },
+    {
+      "label": "splash-2",
+      "mode": "light",
+      "testids": [
+        "c2-splash2",
+        "c2-splash2-illustration-card",
+        "c2-plan-card",
+        "c2-plan-state-pill",
+        "c2-splash2-enter",
+        "c2-splash2-already",
+        "c2-dev-chip"
+      ],
+      "failures": []
+    },
+    {
+      "label": "center-rest",
+      "mode": "dark",
+      "failures": [
+        "clipped text: [\"Plan with User A\"]"
+      ],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 1,
+      "truncatedNotes": []
+    },
+    {
+      "label": "center-orb",
+      "mode": "dark",
+      "dockCenterPresent": true,
+      "dockCenterMedia": [
+        "orb-mark"
+      ],
+      "dockHTML": "<span class=\"c2s-dock-center-disc orb-dock-device\" data-orb=\"dock-device\"><svg class=\"orb-mark\" viewBox=\"0 0 200 200\" width=\"40\" height=\"40\" role=\"presentation\" aria-hidden=\"true\" data-orb-asset=\"mark"
+    },
+    {
+      "label": "harmony-tokens",
+      "mode": "dark",
+      "canvas": "#18141c",
+      "canvasStage": "#0d0b12",
+      "surface1": "#201a27",
+      "accent1": "#7d4dce",
+      "rootBg": "rgb(24, 20, 28)",
+      "dockDiscBorder": "color(srgb 0.858824 0.682353 0.556863 / 0.45)",
+      "fireLinesInCenter": 3
+    },
+    {
+      "label": "center-card-title-scrolled",
+      "mode": "dark",
+      "w": 316,
+      "h": 22,
+      "scrollW": 316,
+      "clientW": 316,
+      "scrollH": 22,
+      "clientH": 22,
+      "textOverflow": "clip",
+      "whiteSpace": "normal"
+    },
+    {
+      "label": "home",
+      "mode": "dark",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": []
+    },
+    {
+      "label": "home-lockup",
+      "mode": "dark",
+      "orbAssets": [],
+      "allImgs": [],
+      "svgCount": 6
+    },
+    {
+      "label": "home-lockup-law",
+      "mode": "dark",
+      "count": 1,
+      "forms": [
+        "wordmark"
+      ],
+      "anyFullHorizontal": false,
+      "headerText": "RAOPAL"
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": [
+        "Plan with User A - tomorrow after 10 PM",
+        "Jordan Saturday Graph",
+        "Saturday opens like this - Saturday · Oceanside - Oceanside ",
+        "Meetup - Saturday · 7:30 PM - Juniper"
+      ]
+    },
+    {
+      "label": "chats-plan-awareness",
+      "mode": "dark",
+      "planAwareness": {
+        "total": 3,
+        "variants": [
+          "row",
+          "row",
+          "row"
+        ],
+        "found": [
+          {
+            "text": "◆Action neededPlan with User A - tomorrow after 10 PM",
+            "planId": "fcd2e939-b967-42e0-90eb-a9a7366ba49c",
+            "state": "action",
+            "pattern": "solid-bold",
+            "entityBg": "rgb(134, 201, 138)",
+            "pillColor": "rgb(255, 77, 94)",
+            "box": {
+              "x": 97,
+              "y": 257,
+              "w": 149,
+              "h": 22
+            },
+            "visible": true
+          },
+          {
+            "text": "◆Action neededSaturday opens like this - Saturday · Oceanside - Oceanside Farmers Market",
+            "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
+            "state": "action",
+            "pattern": "solid-bold",
+            "entityBg": "rgb(45, 212, 191)",
+            "pillColor": "rgb(255, 77, 94)",
+            "box": {
+              "x": 97,
+              "y": 344,
+              "w": 141,
+              "h": 22
+            },
+            "visible": true
+          },
+          {
+            "text": "✓ReadyMeetup - Saturday · 7:30 PM - Juniper",
+            "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
+            "state": "ready",
+            "pattern": "solid",
+            "entityBg": "rgb(251, 191, 36)",
+            "pillColor": "rgb(255, 200, 107)",
+            "box": {
+              "x": 97,
+              "y": 450,
+              "w": 141,
+              "h": 22
+            },
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "label": "chats-preview-audit",
+      "mode": "dark",
+      "previews": [
+        "Call with Maya",
+        "",
+        "I'm in.",
+        "Mexico City was unreal",
+        "Sent a photo",
+        "Perfect. I'll grab a table.",
+        "Yes, after 6 works."
+      ],
+      "rawCallPreviews": 0
+    },
+    {
+      "label": "thread-next-together",
+      "mode": "dark",
+      "strip": {
+        "present": true,
+        "text": "NEXT TOGETHER✓ReadyMeetup - Saturday · 7:30 PM - Juniper"
+      },
+      "planAwareness": {
+        "total": 1,
+        "variants": [
+          "strip"
+        ],
+        "found": [
+          {
+            "text": "✓ReadyMeetup - Saturday · 7:30 PM - Juniper",
+            "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
+            "state": "ready",
+            "pattern": "solid",
+            "entityBg": "rgb(251, 191, 36)",
+            "pillColor": "rgb(255, 200, 107)",
+            "box": {
+              "x": 20,
+              "y": 98,
+              "w": 350,
+              "h": 30
+            },
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "label": "settings-identity",
+      "mode": "dark",
+      "failures": [
+        "TimeoutError: page.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('[data-testid=\"c2-dock-you\"]')\n"
+      ]
+    },
+    {
+      "label": "call-log-plan-awareness",
+      "mode": "dark",
+      "failures": [
+        "comm-mode-calls control not found on chats route"
+      ]
+    },
+    {
+      "label": "center-rest",
+      "mode": "light",
+      "failures": [
+        "clipped text: [\"Plan with User A\"]"
+      ],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 1,
+      "truncatedNotes": []
+    },
+    {
+      "label": "center-orb",
+      "mode": "light",
+      "dockCenterPresent": true,
+      "dockCenterMedia": [
+        "orb-mark"
+      ],
+      "dockHTML": "<span class=\"c2s-dock-center-disc orb-dock-device\" data-orb=\"dock-device\"><svg class=\"orb-mark\" viewBox=\"0 0 200 200\" width=\"40\" height=\"40\" role=\"presentation\" aria-hidden=\"true\" data-orb-asset=\"mark"
+    },
+    {
+      "label": "harmony-tokens",
+      "mode": "light",
+      "canvas": "#fffefb",
+      "canvasStage": "#f5f0e8",
+      "surface1": "#faf7f2",
+      "accent1": "#5d398a",
+      "rootBg": "rgb(255, 254, 251)",
+      "dockDiscBorder": "color(srgb 0.858824 0.682353 0.556863 / 0.45)",
+      "fireLinesInCenter": 3
+    },
+    {
+      "label": "center-card-title-scrolled",
+      "mode": "light",
+      "w": 316,
+      "h": 22,
+      "scrollW": 316,
+      "clientW": 316,
+      "scrollH": 22,
+      "clientH": 22,
+      "textOverflow": "clip",
+      "whiteSpace": "normal"
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": []
+    },
+    {
+      "label": "home-lockup",
+      "mode": "light",
+      "orbAssets": [],
+      "allImgs": [],
+      "svgCount": 6
+    },
+    {
+      "label": "home-lockup-law",
+      "mode": "light",
+      "count": 1,
+      "forms": [
+        "wordmark"
+      ],
+      "anyFullHorizontal": false,
+      "headerText": "RAOPAL"
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": [
+        "Plan with User A - tomorrow after 10 PM",
+        "Jordan Saturday Graph",
+        "Saturday opens like this - Saturday · Oceanside - Oceanside ",
+        "Meetup - Saturday · 7:30 PM - Juniper"
+      ]
+    },
+    {
+      "label": "chats-plan-awareness",
+      "mode": "light",
+      "planAwareness": {
+        "total": 3,
+        "variants": [
+          "row",
+          "row",
+          "row"
+        ],
+        "found": [
+          {
+            "text": "◆Action neededPlan with User A - tomorrow after 10 PM",
+            "planId": "fcd2e939-b967-42e0-90eb-a9a7366ba49c",
+            "state": "action",
+            "pattern": "solid-bold",
+            "entityBg": "rgb(134, 201, 138)",
+            "pillColor": "rgb(255, 77, 94)",
+            "box": {
+              "x": 97,
+              "y": 257,
+              "w": 149,
+              "h": 22
+            },
+            "visible": true
+          },
+          {
+            "text": "◆Action neededSaturday opens like this - Saturday · Oceanside - Oceanside Farmers Market",
+            "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
+            "state": "action",
+            "pattern": "solid-bold",
+            "entityBg": "rgb(45, 212, 191)",
+            "pillColor": "rgb(255, 77, 94)",
+            "box": {
+              "x": 97,
+              "y": 344,
+              "w": 141,
+              "h": 22
+            },
+            "visible": true
+          },
+          {
+            "text": "✓ReadyMeetup - Saturday · 7:30 PM - Juniper",
+            "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
+            "state": "ready",
+            "pattern": "solid",
+            "entityBg": "rgb(251, 191, 36)",
+            "pillColor": "rgb(255, 200, 107)",
+            "box": {
+              "x": 97,
+              "y": 450,
+              "w": 141,
+              "h": 22
+            },
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "label": "chats-preview-audit",
+      "mode": "light",
+      "previews": [
+        "Call with Maya",
+        "",
+        "I'm in.",
+        "Mexico City was unreal",
+        "Sent a photo",
+        "Perfect. I'll grab a table.",
+        "Yes, after 6 works."
+      ],
+      "rawCallPreviews": 0
+    },
+    {
+      "label": "thread-next-together",
+      "mode": "light",
+      "strip": {
+        "present": true,
+        "text": "NEXT TOGETHER✓ReadyMeetup - Saturday · 7:30 PM - Juniper"
+      },
+      "planAwareness": {
+        "total": 1,
+        "variants": [
+          "strip"
+        ],
+        "found": [
+          {
+            "text": "✓ReadyMeetup - Saturday · 7:30 PM - Juniper",
+            "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
+            "state": "ready",
+            "pattern": "solid",
+            "entityBg": "rgb(251, 191, 36)",
+            "pillColor": "rgb(255, 200, 107)",
+            "box": {
+              "x": 20,
+              "y": 98,
+              "w": 350,
+              "h": 30
+            },
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "label": "settings-identity",
+      "mode": "light",
+      "failures": [
+        "TimeoutError: page.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('[data-testid=\"c2-dock-you\"]')\n"
+      ]
+    },
+    {
+      "label": "call-log-plan-awareness",
+      "mode": "light",
+      "failures": [
+        "comm-mode-calls control not found on chats route"
+      ]
+    }
+  ],
+  "buildStamp": {
+    "gitHeadFull": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+    "badge": null
+  }
+}

@@ -1,0 +1,447 @@
+{
+  "build_tag": "rmveaycje17",
+  "web": "http://127.0.0.1:15174",
+  "api": "http://127.0.0.1:14100",
+  "surfaces": [
+    {
+      "label": "home",
+      "mode": "dark",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "halo": {
+        "dockBorderTopColor": "rgba(255, 255, 255, 0.1)",
+        "before": {
+          "borderTopColor": "rgb(250, 247, 242)",
+          "width": "auto",
+          "left": "auto"
+        },
+        "after": {
+          "borderTopColor": "rgb(250, 247, 242)",
+          "width": "auto"
+        },
+        "discZone": {
+          "left": 155,
+          "right": 211,
+          "top": -5
+        },
+        "dockW": 366
+      },
+      "planCards": [
+        {
+          "state": "forming",
+          "borderTopColor": "rgba(255, 255, 255, 0.1)",
+          "borderTopStyle": "solid",
+          "boxShadow": "none",
+          "pillColor": "rgb(196, 190, 255)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "rgba(255, 255, 255, 0.1)",
+          "borderTopStyle": "solid",
+          "boxShadow": "none",
+          "pillColor": "rgb(196, 190, 255)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "rgba(255, 255, 255, 0.1)",
+          "borderTopStyle": "solid",
+          "boxShadow": "none",
+          "pillColor": "rgb(196, 190, 255)"
+        }
+      ],
+      "drift": [],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list-c2",
+      "mode": "dark",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "rgb(255, 200, 107)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(251, 191, 36)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread-c2",
+      "mode": "dark",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "drift": [
+        {
+          "variant": "strip",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "legacyHalo": {
+        "ringBackground": "linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(255, 200, 107) 50%, rgb(217, 70, 255) 100%)",
+        "maskImage": "linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px), linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px)",
+        "opalZone": {
+          "left": 142,
+          "right": 228
+        },
+        "barW": 370
+      },
+      "treatments": {
+        "row": {
+          "bg": "rgb(3, 6, 12)",
+          "borderTopColor": "rgb(31, 46, 71)",
+          "borderTopWidth": "1px"
+        },
+        "avatar": {
+          "bg": "linear-gradient(135deg, rgb(101, 115, 235), rgb(221, 112, 233))"
+        },
+        "connectionColor": "rgb(0, 229, 255)"
+      },
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "rgb(255, 200, 107)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(251, 191, 36)"
+        }
+      ],
+      "failures": [
+        "clipped: [\"Alex\",\"Mexico City was unreal\",\"Direct connection\"]"
+      ],
+      "docOverflow": 0,
+      "clippedCount": 3
+    },
+    {
+      "label": "call-log",
+      "mode": "dark",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "treatments": {
+        "row": {
+          "bg": "rgb(4, 6, 10)",
+          "borderTopColor": "rgba(0, 229, 255, 0.75)",
+          "borderTopWidth": "1px",
+          "boxShadow": "none"
+        },
+        "avatar": {
+          "bg": "linear-gradient(137deg, rgb(95, 174, 207) 0%, rgb(221, 112, 233) 100%)",
+          "shadow": "rgba(248, 250, 255, 0.18) 0px 0px 0px 1px"
+        }
+      },
+      "drift": [
+        {
+          "variant": "call",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread",
+      "mode": "dark",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "treatments": {
+        "in": {
+          "bg": "rgba(139, 92, 246, 0.18)",
+          "borderTopColor": "rgb(139, 92, 246)",
+          "borderTopWidth": "1px"
+        },
+        "out": {
+          "bg": "rgba(0, 229, 255, 0.18)",
+          "borderTopColor": "rgb(0, 229, 255)",
+          "borderTopWidth": "1px"
+        },
+        "present": true
+      },
+      "drift": [],
+      "failures": [
+        "clipped: [\"MA\",\"Saturday morning. farmers market?\",\"10:55 AM\"]"
+      ],
+      "docOverflow": 0,
+      "clippedCount": 3
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "halo": {
+        "dockBorderTopColor": "rgb(229, 222, 210)",
+        "before": {
+          "borderTopColor": "rgb(28, 25, 23)",
+          "width": "auto",
+          "left": "auto"
+        },
+        "after": {
+          "borderTopColor": "rgb(28, 25, 23)",
+          "width": "auto"
+        },
+        "discZone": {
+          "left": 155,
+          "right": 211,
+          "top": -5
+        },
+        "dockW": 366
+      },
+      "planCards": [
+        {
+          "state": "forming",
+          "borderTopColor": "rgb(229, 222, 210)",
+          "borderTopStyle": "solid",
+          "boxShadow": "rgba(28, 25, 23, 0.05) 0px 1px 2px 0px, rgba(28, 25, 23, 0.05) 0px 8px 24px 0px",
+          "pillColor": "rgb(85, 70, 216)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "rgb(229, 222, 210)",
+          "borderTopStyle": "solid",
+          "boxShadow": "rgba(28, 25, 23, 0.05) 0px 1px 2px 0px, rgba(28, 25, 23, 0.05) 0px 8px 24px 0px",
+          "pillColor": "rgb(85, 70, 216)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "rgb(229, 222, 210)",
+          "borderTopStyle": "solid",
+          "boxShadow": "rgba(28, 25, 23, 0.05) 0px 1px 2px 0px, rgba(28, 25, 23, 0.05) 0px 8px 24px 0px",
+          "pillColor": "rgb(85, 70, 216)"
+        }
+      ],
+      "drift": [],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list-c2",
+      "mode": "light",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "rgb(255, 200, 107)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(251, 191, 36)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread-c2",
+      "mode": "light",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "drift": [
+        {
+          "variant": "strip",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "legacyHalo": {
+        "ringBackground": "linear-gradient(90deg, rgb(0, 229, 255) 0%, rgb(255, 200, 107) 50%, rgb(217, 70, 255) 100%)",
+        "maskImage": "linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px), linear-gradient(rgb(255, 255, 255) 0px, rgb(255, 255, 255) 0px)",
+        "opalZone": {
+          "left": 142,
+          "right": 228
+        },
+        "barW": 370
+      },
+      "treatments": {
+        "row": {
+          "bg": "rgb(3, 6, 12)",
+          "borderTopColor": "rgb(31, 46, 71)",
+          "borderTopWidth": "1px"
+        },
+        "avatar": {
+          "bg": "linear-gradient(135deg, rgb(101, 115, 235), rgb(221, 112, 233))"
+        },
+        "connectionColor": "rgb(0, 229, 255)"
+      },
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "rgb(255, 200, 107)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(251, 191, 36)"
+        }
+      ],
+      "failures": [
+        "clipped: [\"Direct connection\",\"Sabrina\",\"10:55 AM\",\"Sent a photo\"]"
+      ],
+      "docOverflow": 0,
+      "clippedCount": 4
+    },
+    {
+      "label": "call-log",
+      "mode": "light",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "treatments": {
+        "row": {
+          "bg": "rgb(4, 6, 10)",
+          "borderTopColor": "rgba(0, 229, 255, 0.75)",
+          "borderTopWidth": "1px",
+          "boxShadow": "none"
+        },
+        "avatar": {
+          "bg": "linear-gradient(137deg, rgb(95, 174, 207) 0%, rgb(221, 112, 233) 100%)",
+          "shadow": "rgba(248, 250, 255, 0.18) 0px 0px 0px 1px"
+        }
+      },
+      "drift": [
+        {
+          "variant": "call",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "rgb(255, 77, 94)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread",
+      "mode": "light",
+      "stamp": "1390bd6e00f27d396f95bde4c91e5a333012fbbb",
+      "treatments": {
+        "in": {
+          "bg": "rgba(139, 92, 246, 0.18)",
+          "borderTopColor": "rgb(139, 92, 246)",
+          "borderTopWidth": "1px"
+        },
+        "out": {
+          "bg": "rgba(0, 229, 255, 0.18)",
+          "borderTopColor": "rgb(0, 229, 255)",
+          "borderTopWidth": "1px"
+        },
+        "present": true
+      },
+      "drift": [],
+      "failures": [
+        "clipped: [\"MA\",\"Saturday morning. farmers market?\",\"10:55 AM\"]"
+      ],
+      "docOverflow": 0,
+      "clippedCount": 3
+    }
+  ]
+}

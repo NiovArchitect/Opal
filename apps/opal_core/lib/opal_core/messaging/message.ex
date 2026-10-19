@@ -6,7 +6,7 @@ defmodule OpalCore.Messaging.Message do
   @foreign_key_type :binary_id
 
   # call_invite: optional continuity hint in chat (IDs + status — not SDP)
-  @message_types ~w(text voice_transcript call_invite)
+  @message_types ~w(text voice_transcript voice_note call_invite)
   @delivery_states ~w(accepted persisted delivered failed)
   @ai_states ~w(not_requested consent_required queued processing completed refused failed)
 
@@ -95,6 +95,17 @@ defmodule OpalCore.Messaging.Message do
   # fresh signed share URL so the thread <audio> player has a playable src.
   defp resolve_audio_url(%{"audio_url" => url}) when is_binary(url) and url != "", do: url
 
+  # Voice notes (ST-H): the hint carries the AudioStore storage key so a
+  # fresh signed share URL is minted on every read - every participant
+  # plays the same stored audio, long after the send-time token aged.
+  defp resolve_audio_url(%{"vn" => true, "sk" => sk} = media)
+       when is_binary(sk) and sk != "" do
+    OpalCore.Voice.AudioStore.public_url(%{
+      "storage_key" => sk,
+      "mime_type" => media["mime"] || "audio/webm"
+    })
+  end
+
   defp resolve_audio_url(%{"sk" => sk} = media) when is_binary(sk) and sk != "" do
     if media["tts"] == true or media["tts"] == "true" do
       OpalCore.Voice.AudioStore.public_url(%{
@@ -109,6 +120,7 @@ defmodule OpalCore.Messaging.Message do
   defp resolve_audio_url(_), do: nil
 
   defp decode_media(nil), do: %{}
+
   defp decode_media(s) when is_binary(s) do
     case Jason.decode(s) do
       {:ok, map} when is_map(map) -> map

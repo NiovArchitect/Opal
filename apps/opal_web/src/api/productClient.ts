@@ -19,12 +19,92 @@ export type ProductSession = {
   cookie_session?: boolean;
 };
 
+/**
+ * Repair #18 DIR-1 - the ONE shared upcoming plan fact. Derived in
+ * the service layer (NextPlan) from real plan records only: the
+ * soonest upcoming plan the viewer shares with this conversation's
+ * people (or, on a call row, with that peer). Surfaces render it
+ * verbatim; they never re-derive shared / upcoming / next / state.
+ * Absent (null) = no shared upcoming plan - no element renders.
+ */
+export type NextPlanFact = {
+  plan_id: string;
+  title: string;
+  /** Finished when string from the service layer (never formatted here). */
+  when_label?: string | null;
+  starts_at?: string | null;
+  where_label?: string | null;
+  /** "physical" | "virtual" from the plan's one place projection. */
+  where_kind?: string | null;
+  /** Governed plan status (tentative / agreed / changed). */
+  status: string;
+  /** Indicator state family: forming | action | ready | happening. */
+  state: string;
+  conversation_id?: string | null;
+};
+
+/**
+ * Repair #18 DIR-4 - one proactive reveal item, from the ONE backend
+ * derivation (SocialFlow.Reveal). Category, kicker, state, timing,
+ * and the lit flag are all decided server side; surfaces render
+ * this verbatim and never re-derive any of it.
+ */
+export type RevealItem = {
+  reveal_key: string;
+  category: "P1" | "P2" | "P3" | "P4" | "P5" | "P6" | "P7" | string;
+  kicker: string;
+  title: string;
+  substance?: string | null;
+  plan_id?: string | null;
+  conversation_id?: string | null;
+  source_ref_id?: string | null;
+  /** Indicator state family for plan items, or null (P5/P6/P7). */
+  plan_state?: string | null;
+  /** DIR-1 entity tint (1-6) for the plan's other person, or null. */
+  entity_tint?: number | null;
+  action_label?: string | null;
+  missing_slot?: string | null;
+  /** Exactly one item per feed carries the fire (QUIET ceiling). */
+  lit: boolean;
+};
+
+export type RevealFeed = {
+  items: RevealItem[];
+  deck: {
+    needs_you: RevealItem[];
+    next_together: RevealItem[];
+    coming_up: RevealItem[];
+    taking_shape: RevealItem[];
+    report_line: RevealItem | null;
+  };
+};
+
+export async function listReveals(bearer?: string, conversationId?: string) {
+  const qs = conversationId ? `?conversation_id=${encodeURIComponent(conversationId)}` : "";
+  return request<RevealFeed>(`/api/v1/product/reveals${qs}`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function dismissReveal(revealKey: string, bearer?: string) {
+  return request<RevealFeed>("/api/v1/product/reveals/dismiss", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ reveal_key: revealKey }),
+  });
+}
+
 export type ConversationSummary = {
   id: string;
   title: string;
   preview: string;
   updated_at: string;
-  peers: { id: string; display_name: string; handle: string }[];
+  peers: { id: string; display_name: string; handle: string; entity_tint?: number | null }[];
+  /** DIR-1: this conversation entity's stable tint (the peer's tint
+   *  for a dyad; a stable conversation tint for a group). */
+  entity_tint?: number | null;
+  /** DIR-1: the shared upcoming plan fact, or null. */
+  next_plan?: NextPlanFact | null;
   member_count?: number;
   composition?: "group" | "dyad" | string;
   /** Slice #1 — durable unread from conversation_members.last_read_server_seq */
@@ -68,7 +148,215 @@ export type ConversationSummary = {
 export type MessagingPreferences = {
   read_receipts_enabled: boolean;
   message_notifications_enabled: boolean;
+  /** Repair #18 / audit A2 — Quiet master switch. */
+  notifications_paused?: boolean;
 };
+
+/** Audit spec 4.A5 — one support intake submission, as the reporter sees it. */
+export type SupportReportContract = {
+  reference: string;
+  kind: string;
+  category: string;
+  entry_point?: string;
+  status: string;
+  submitted_at?: string;
+};
+
+export async function submitSupportReport(
+  input: {
+    kind: "problem" | "feedback";
+    category: string;
+    body: string;
+    build_ref?: string | null;
+    /** Spec 4.C7 — which surface the report started from. The intake
+     * and payload are identical from every entry point. */
+    entry_point?: string;
+    /** Repair #18 hardening — the client's retry key. A repeat
+     * submit under the same key returns the original report
+     * instead of filing a duplicate. */
+    idempotency_key?: string;
+  },
+  bearer?: string,
+): Promise<SupportReportContract> {
+  const response = await request<{ report: SupportReportContract }>(
+    "/api/v1/product/support/reports",
+    {
+      bearer: resolveBearer(bearer),
+      method: "POST",
+      body: JSON.stringify({
+        kind: input.kind,
+        category: input.category,
+        body: input.body,
+        build_ref: input.build_ref ?? undefined,
+        entry_point: input.entry_point ?? "you_help",
+        idempotency_key: input.idempotency_key ?? undefined,
+      }),
+    },
+  );
+  return response.report;
+}
+
+/* ------------------------------------------------------------------ */
+/* Adoption wave 2 — account/settings cluster (4.C2/4.C3/4.C4/4.C6,   */
+/* SF-A). Every payload below is the server's own contract; saved     */
+/* logins carry hosts only — no value ever crosses this client.        */
+/* ------------------------------------------------------------------ */
+
+export type DeviceContract = {
+  id: string;
+  device_label: string;
+  status: string;
+  platform: string;
+  last_seen_at: string | null;
+  is_current?: boolean;
+};
+
+export async function getDeviceRoster(bearer?: string): Promise<DeviceContract[]> {
+  const response = await request<{ devices: DeviceContract[] }>(
+    "/api/v1/product/settings/devices",
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+  return response.devices;
+}
+
+export async function revokeDevice(sessionId: string, bearer?: string): Promise<void> {
+  await request(
+    `/api/v1/product/settings/devices/${encodeURIComponent(sessionId)}/revoke`,
+    { bearer: resolveBearer(bearer), method: "POST", body: JSON.stringify({}) },
+  );
+}
+
+export type SavedLoginContract = { id: string; host: string; saved_at?: string };
+
+export async function getSavedLogins(bearer?: string): Promise<SavedLoginContract[]> {
+  const response = await request<{ saved_logins: SavedLoginContract[] }>(
+    "/api/v1/product/settings/saved-logins",
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+  return response.saved_logins;
+}
+
+export async function addSavedLogin(
+  host: string,
+  secret: string,
+  bearer?: string,
+): Promise<SavedLoginContract> {
+  const response = await request<{ saved_login: SavedLoginContract }>(
+    "/api/v1/product/settings/saved-logins",
+    {
+      bearer: resolveBearer(bearer),
+      method: "POST",
+      body: JSON.stringify({ host, secret }),
+    },
+  );
+  return response.saved_login;
+}
+
+export async function removeSavedLogin(id: string, bearer?: string): Promise<void> {
+  await request(`/api/v1/product/settings/saved-logins/${encodeURIComponent(id)}`, {
+    bearer: resolveBearer(bearer),
+    method: "DELETE",
+  });
+}
+
+export type PersonalInviteCodeContract = {
+  personal_code: { code: string; share_url: string; joined_count: number; promise: string };
+  joined_through: { credit_line: string; inviter_display_name?: string } | null;
+  joined_through_you: Array<{ credit_line: string; redeemer_display_name?: string }>;
+};
+
+export async function getPersonalInviteCode(
+  bearer?: string,
+): Promise<PersonalInviteCodeContract> {
+  return request<PersonalInviteCodeContract>("/api/v1/product/invites/personal-code", {
+    bearer: resolveBearer(bearer),
+    method: "GET",
+  });
+}
+
+export async function redeemPersonalInviteCode(
+  code: string,
+  bearer?: string,
+): Promise<{ credit_line: string }> {
+  const response = await request<{ credit: { credit_line: string } }>(
+    "/api/v1/product/invites/redeem",
+    {
+      bearer: resolveBearer(bearer),
+      method: "POST",
+      body: JSON.stringify({ code }),
+    },
+  );
+  return response.credit;
+}
+
+export type IngestionSourceLine = {
+  source: string;
+  title: string;
+  state: string;
+  state_label: string;
+  progress: string;
+  error: string | null;
+  retryable: boolean;
+};
+
+export async function getIngestionStatus(bearer?: string): Promise<IngestionSourceLine[]> {
+  const response = await request<{ sources: IngestionSourceLine[] }>(
+    "/api/v1/product/settings/hears",
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+  return response.sources;
+}
+
+export async function retryIngestionSource(
+  source: string,
+  bearer?: string,
+): Promise<IngestionSourceLine> {
+  const response = await request<{ source_line: IngestionSourceLine }>(
+    "/api/v1/product/settings/hears/retry",
+    {
+      bearer: resolveBearer(bearer),
+      method: "POST",
+      body: JSON.stringify({ source }),
+    },
+  );
+  return response.source_line;
+}
+
+export type DeletionReceiptContract = {
+  reference: string;
+  mode: string;
+  source: string;
+  summary: Record<string, number | boolean>;
+  completed_at?: string;
+};
+
+export async function executeDeletion(
+  mode: "data" | "account",
+  via: "self_serve" | "support",
+  bearer?: string,
+): Promise<DeletionReceiptContract> {
+  const path =
+    via === "support"
+      ? "/api/v1/product/support/account-deletion"
+      : "/api/v1/product/settings/delete";
+  const response = await request<{ receipt: DeletionReceiptContract }>(path, {
+    bearer: resolveBearer(bearer),
+    method: "POST",
+    body: JSON.stringify({ mode, confirm: true }),
+  });
+  return response.receipt;
+}
+
+export async function getSupportReport(
+  reference: string,
+  bearer?: string,
+): Promise<SupportReportContract> {
+  const response = await request<{ report: SupportReportContract }>(
+    `/api/v1/product/support/reports/${encodeURIComponent(reference)}`,
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+  return response.report;
+}
 
 export type ProductMessage = {
   id: string;
@@ -1143,6 +1431,8 @@ export async function listMessages(conversationId: string, bearer?: string) {
     signals: ProductSignal[];
     chronology?: DurableChronologyMoment[];
     durable_chronology?: boolean;
+    /** DIR-1: the thread's shared upcoming plan fact, or null. */
+    next_plan?: NextPlanFact | null;
   }>(`/api/v1/product/conversations/${conversationId}/messages`, {
     bearer: resolveBearer(bearer),
   });
@@ -1241,6 +1531,81 @@ export async function sendVoiceMessage(
   });
 }
 
+
+/** ST-C (wave 3): the owner's own moments archive - the same records
+ *  the Home feed composes, scoped to the owner by the server. */
+export async function fetchMomentsArchive(bearer?: string) {
+  return request<{
+    posts: Array<Record<string, unknown>>;
+    stories: Array<Record<string, unknown>>;
+    count: number;
+  }>("/api/v1/product/social-moments/mine", { bearer: resolveBearer(bearer) });
+}
+
+/** ST-H (wave 3): send a voice note. Audio is stored server-side and
+ *  the note plays back for every participant; transcript present only
+ *  when the real transcription path produced one. */
+export async function sendVoiceNote(
+  conversationId: string,
+  attrs: { audio_base64: string; content_type?: string; duration_ms?: number; client_message_id?: string },
+  bearer?: string,
+) {
+  return request<{
+    message: ProductMessage;
+    transcript: string | null;
+    transcription_state: string;
+    origin: string;
+  }>(`/api/v1/product/conversations/${encodeURIComponent(conversationId)}/voice_notes`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+/** ST-H: sender-only transcript correction. */
+export async function correctVoiceNoteTranscript(
+  conversationId: string,
+  messageId: string,
+  transcript: string,
+  bearer?: string,
+) {
+  return request<{ message: ProductMessage; transcript: string }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/voice_notes/${encodeURIComponent(messageId)}/transcript`,
+    { method: "PATCH", bearer: resolveBearer(bearer), body: JSON.stringify({ transcript }) },
+  );
+}
+
+/** ST-I/ST-H provider truth: TTS + transcription configuration. */
+export async function fetchVoiceStatus(bearer?: string) {
+  return request<{ tts_configured: boolean; transcription_configured: boolean }>(
+    "/api/v1/product/voice/status",
+    { bearer: resolveBearer(bearer) },
+  );
+}
+
+/** 4.C11 (wave 3): the owner's Made-by-Opal shelf. */
+export type MyArtifact = {
+  artifact_id: string;
+  kind: string;
+  title: string;
+  subtitle?: string;
+  share_url: string;
+  expires_at?: string;
+  outdated?: boolean;
+};
+
+export async function listMyArtifacts(bearer?: string) {
+  return request<{ artifacts: MyArtifact[] }>("/api/v1/product/artifacts", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function deleteMyArtifact(artifactId: string, bearer?: string) {
+  return request<{ deleted: boolean }>(
+    `/api/v1/product/artifacts/${encodeURIComponent(artifactId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
 
 export async function fetchConversationAlignment(conversationId: string, bearer?: string) {
   return request<{ alignment: Record<string, unknown> }>(
@@ -1671,6 +2036,10 @@ export type ProductCallHistory = {
   created_at?: string | null;
   media_connected_at?: string | null;
   ended_at?: string | null;
+  /** DIR-1: the shared upcoming plan fact for this peer, or null. */
+  next_plan?: NextPlanFact | null;
+  /** DIR-1: the peer's stable entity tint. */
+  peer_tint?: number | null;
 };
 
 export async function listCalls(bearer?: string) {
@@ -2987,16 +3356,9 @@ export async function setTripActivityResponse(
   );
 }
 
-/** Seed Mexico City 4-day canvas (real venues + free blocks + RSVPs). */
-export async function seedMexicoCityCanvas(tripId: string, bearer?: string) {
-  return request<{ trip: Trip }>(
-    `/api/v1/product/trips/${encodeURIComponent(tripId)}/seed_mexico_city_canvas`,
-    {
-      method: "POST",
-      bearer: resolveBearer(bearer),
-    },
-  );
-}
+/* Repair #18 FALSE-fix F-12: the seedMexicoCityCanvas client helper was
+   removed - a fixture seed endpoint must not be wired into the shipping
+   client as a product action. The backend route is founder-seed gated. */
 
 export async function getTripVibeProfiles(tripId: string, bearer?: string) {
   return request<{ profiles: TripVibeProfile[] }>(
@@ -3663,6 +4025,60 @@ export async function listMemoryFacts(bearer?: string) {
   });
 }
 
+/** Repair #18 SM scoped build - Soul + Memory wallet (W-GAP-01/02/31). */
+export type SoulContract = {
+  user_id: string;
+  assistance_level: string;
+  assistance_level_label: string;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  quiet_hours_label: string;
+  timezone: string;
+  max_proactive_signals_per_day: number;
+  completion_feedback: string;
+  motion_preference: string;
+};
+
+export type MemoryCapsuleContract = {
+  id: string;
+  source: string;
+  summary: string | null;
+  provenance_label: string | null;
+  provenance: Record<string, unknown>;
+  scope_policy: Record<string, unknown>;
+  purpose: string | null;
+  because: string | null;
+  created_at: string | null;
+};
+
+export type SoulMemoryPayload = {
+  wallet: { id: string; owner_user_id: string; created_at: string | null };
+  soul: SoulContract;
+  capsules: MemoryCapsuleContract[];
+  capsule_count: number;
+};
+
+export async function getSoulMemory(bearer?: string) {
+  return request<SoulMemoryPayload>("/api/v1/product/memory-wallet", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function updateSoul(attrs: Record<string, unknown>, bearer?: string) {
+  return request<{ soul: SoulContract }>("/api/v1/product/memory-wallet/soul", {
+    method: "PATCH",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function forgetCapsule(capsuleId: string, bearer?: string) {
+  return request<{ forgotten: boolean; source: string }>(
+    `/api/v1/product/memory-wallet/capsules/${encodeURIComponent(capsuleId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
 export async function forgetMemoryFact(factId: string, bearer?: string) {
   return request<{
     fact: MemoryFact;
@@ -3796,11 +4212,62 @@ export type GoogleCalendarConnectionStatus = {
   provider: string;
   connected: boolean;
   status: string;
+  /** HA-01 provenance: true when this row is a simulated (dev/test)
+   * stand-in. A simulated connection is NEVER "Connected". */
+  simulated?: boolean;
   scopes: string[];
   token_present: boolean;
   last_synced_at?: string | null;
   last_error_class?: string | null;
 };
+
+/**
+ * Repair #18 DIR-2 — Settings > Connections status contract
+ * (connections-verification-report.md Part 4). The server computes
+ * every status; this client renders the payload verbatim and
+ * derives NOTHING. `status` is the 7-value enum:
+ * working | working_test | gated | not_connected | unverified |
+ * simulated | unknown.
+ */
+export type SettingsConnection = {
+  id: string;
+  display_name: string;
+  category: string;
+  powers: string;
+  status: string;
+  status_label: string;
+  status_detail: string;
+  credential_status: string;
+  provider_status: string;
+  function_status: string;
+  provenance: string;
+  mode: string;
+  verification_basis: string;
+  last_verified_at: string | null;
+  gate: { code: string; reason_plain: string; founder_step: string } | null;
+  actions: Array<{
+    kind: string;
+    label: string;
+    route: string;
+    enabled: boolean;
+    disabled_reason: string | null;
+  }>;
+  risk_note?: string | null;
+};
+
+export type SettingsConnectionsPayload = {
+  connections: SettingsConnection[];
+  generated_at: string;
+  build_ref: string;
+  environment: string;
+};
+
+export async function getSettingsConnections(bearer?: string) {
+  return request<SettingsConnectionsPayload>(
+    "/api/v1/product/settings/connections",
+    { bearer: resolveBearer(bearer), method: "GET" },
+  );
+}
 
 export async function getGoogleCalendarStatus(bearer?: string) {
   return request<GoogleCalendarConnectionStatus>(
@@ -4681,6 +5148,324 @@ export function opalPlanEditError(
   if (typeof serverMessage === "string" && serverMessage !== "") return serverMessage;
   const message = (error as { message?: unknown }).message;
   return typeof message === "string" && message !== "" ? message : null;
+}
+
+/**
+ * Repair #18 - cancel ONE plan (the C2 shell's "Drop it").
+ *
+ *   POST /api/v1/product/opal/plans/:id/cancel   (empty body)
+ *         -> { ok, plan: OpalPlanContract }   (the cancelled row,
+ *             status "cancelled")
+ *         404 not_found for unknown/foreign ids; 403 not_authorized
+ *         for a participant without lead rights; 409 already_cancelled;
+ *         422 illegal_transition for a finished plan.
+ *
+ * Server authority is the lead model (lead / co_lead, creator fallback
+ * where no lead row exists) through the PlanTransition :cancel gate -
+ * legal only from tentative / agreed / changed. That is the SAME
+ * plan_lead?/2 the plans list stamps as `can_edit`, so the shell
+ * derives the affordance from can_edit + status and never guesses.
+ * Callers re-read the plans list after a success: the list excludes
+ * cancelled plans, so the dropped plan reads back as gone from the
+ * projection because the server says so - never because a surface hid
+ * it locally.
+ */
+/**
+ * Repair #18 hunt-fix B-15 — B1 place-type conversion, the glass
+ * caller that did not exist. The endpoint has been live server-side
+ * (JourneyController.convert_place_type) with no client function
+ * calling it, so a plan that could not be physical had no way to
+ * become virtual from any surface.
+ *
+ *   POST /api/v1/product/journeys/:id/convert-place-type
+ *        body { to_plan_type: "virtual" | "in_person", meeting_link? }
+ *        -> { plan, revision, applied }
+ * Solo plans apply directly (applied: true). Shared plans return
+ * applied: false with the proposed revision — the plan does not move
+ * until the other participants accept through the respond endpoint.
+ * Callers must say exactly that, never claim the move happened.
+ */
+export async function convertPlanPlaceType(
+  planId: string,
+  toPlanType: "virtual" | "in_person",
+  opts?: { meetingLink?: string | null; bearer?: string },
+) {
+  return request<{
+    plan: OpalPlanContract;
+    revision: Record<string, unknown> | null;
+    applied: boolean;
+  }>(`/api/v1/product/journeys/${encodeURIComponent(planId)}/convert-place-type`, {
+    method: "POST",
+    bearer: resolveBearer(opts?.bearer),
+    body: JSON.stringify({
+      to_plan_type: toPlanType,
+      ...(opts?.meetingLink ? { meeting_link: opts.meetingLink } : {}),
+    }),
+  });
+}
+
+/**
+ * The plain-language line for a conversion result or rejection
+ * (L12: what happened, plus the one useful next step).
+ */
+export function planConversionLine(
+  result: { applied: boolean } | null,
+  error?: unknown,
+): string {
+  if (error) {
+    const code =
+      error && typeof error === "object" ? (error as { code?: unknown }).code : undefined;
+    if (code === "not_found") {
+      return "We couldn't find that plan anymore. Head back to Graphs and refresh your list.";
+    }
+    if (code === "forbidden" || code === "not_authorized" || code === "not_a_member") {
+      return "Only people on this plan can move it online. Ask the plan's lead, or keep it as it is.";
+    }
+    return "That didn't go through. Check your connection and try again.";
+  }
+  if (result?.applied) {
+    return "Done — this plan is online now. Join shows on the plan when its meeting link is set.";
+  }
+  return "Asked the group to move this online. It changes when they agree — the plan stays as it is until then.";
+}
+
+export async function cancelOpalPlan(planId: string, bearer?: string) {
+  return request<{ ok: boolean; plan: OpalPlanContract }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/cancel`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({}),
+    },
+  );
+}
+
+/**
+ * Repair #18 - the plain-language line for a plan-cancel rejection:
+ * what happened, plus the ONE useful next step. No internal state
+ * names or error codes reach the screen. The backend's own message is
+ * carried verbatim inside the composed line when one was sent.
+ */
+export function opalPlanCancelError(error: unknown): string {
+  const code =
+    error && typeof error === "object"
+      ? (error as { code?: unknown }).code
+      : undefined;
+  const serverMessage =
+    error && typeof error === "object"
+      ? (error as { serverMessage?: unknown }).serverMessage
+      : undefined;
+  const detail =
+    typeof serverMessage === "string" && serverMessage !== ""
+      ? serverMessage
+      : null;
+  switch (code) {
+    case "not_authorized":
+      return "Only the plan's lead can drop this plan. Ask them to drop it, or keep it for now.";
+    case "already_cancelled":
+      return "This plan is already dropped. Close this and reopen Graphs to see your list up to date.";
+    case "illegal_transition":
+      return "This plan has finished, so it can't be dropped. It stays with your past plans.";
+    case "not_found":
+      return "We couldn't find that plan anymore. Close this and reopen Graphs to refresh your list.";
+    default:
+      return detail
+        ? `${detail} Try again in a moment.`
+        : "That didn't go through. Check your connection and try again.";
+  }
+}
+
+/**
+ * Repair #18 adoption wave 1 - graph/people cluster client.
+ *
+ * Every function reads or writes the ONE server projection
+ * (GraphPeople / PlanHistory); surfaces render the finished strings
+ * verbatim and derive nothing locally.
+ */
+export type IntentionContract = {
+  id: string;
+  title: string;
+  subject_user_id: string;
+  subject_name: string;
+  cadence_days: number | null;
+  kept_count: number;
+  last_kept: { plan_id: string; title: string; when_label: string | null; at: string } | null;
+  next_window_at: string | null;
+  missed: boolean;
+  missed_needs_surface: boolean;
+  status_line: string;
+  created_at: string;
+};
+
+export type WorkingGoalContract = {
+  id: string;
+  title: string;
+  linked_plan_ids: string[];
+  linked_count: number;
+  completed_count: number;
+  last_completed: { plan_id: string; title: string; at: string } | null;
+  next_upcoming: { plan_id: string; title: string; when_label: string | null } | null;
+  status_line: string;
+  created_at: string;
+};
+
+export type ShelfSparkContract = {
+  id: string;
+  title: string;
+  state: "spark" | "promoted";
+  promoted_plan: { plan_id: string; title: string; status: string } | null;
+  prefill: {
+    title: string;
+    location: string | null;
+    time_label: string | null;
+    participant_user_ids: string[];
+  };
+  created_at: string;
+};
+
+export type ShelfStarterContract = {
+  id: string;
+  kind: "celebration" | "person";
+  title: string;
+  basis_line: string;
+  basis_ref: string;
+  prefill: { title: string; participant_user_ids: string[] };
+};
+
+export type ShelfContract = { sparks: ShelfSparkContract[]; starters: ShelfStarterContract[] };
+
+export type PlanHistoryContract = {
+  plan_id: string;
+  history: Array<{ line: string; kind: string; at: string }>;
+  who: Array<{
+    user_id: string;
+    name: string;
+    role: string;
+    response_state: string | null;
+    response_label: string;
+  }>;
+  counts: {
+    going_count?: number;
+    interested_count?: number;
+    total_count?: number;
+    viewer_state?: string | null;
+  };
+};
+
+export type HoldingContract = {
+  counters: {
+    plans_in_motion: number;
+    approvals_waiting: number;
+    memories_held: number;
+    sources_connected: number;
+  };
+  links: Record<string, string>;
+  answer_text: string;
+};
+
+export async function listIntentions(bearer?: string) {
+  return request<{ intentions: IntentionContract[] }>("/api/v1/product/graph/intentions", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function createIntention(
+  attrs: { subject_user_id: string; title: string; cadence_days?: number },
+  bearer?: string,
+) {
+  return request<{ intention: IntentionContract }>("/api/v1/product/graph/intentions", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify(attrs),
+  });
+}
+
+export async function deleteIntention(intentionId: string, bearer?: string) {
+  return request<{ ok: boolean }>(
+    `/api/v1/product/graph/intentions/${encodeURIComponent(intentionId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function listWorkingGoals(bearer?: string) {
+  return request<{ goals: WorkingGoalContract[] }>("/api/v1/product/graph/goals", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function createWorkingGoal(title: string, bearer?: string) {
+  return request<{ goal: WorkingGoalContract }>("/api/v1/product/graph/goals", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ title }),
+  });
+}
+
+export async function deleteWorkingGoal(goalId: string, bearer?: string) {
+  return request<{ ok: boolean }>(`/api/v1/product/graph/goals/${encodeURIComponent(goalId)}`, {
+    method: "DELETE",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function linkGoalPlan(goalId: string, planId: string, bearer?: string) {
+  return request<{ goal: WorkingGoalContract }>(
+    `/api/v1/product/graph/goals/${encodeURIComponent(goalId)}/link`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ plan_id: planId }),
+    },
+  );
+}
+
+export async function unlinkGoalPlan(goalId: string, planId: string, bearer?: string) {
+  return request<{ goal: WorkingGoalContract }>(
+    `/api/v1/product/graph/goals/${encodeURIComponent(goalId)}/unlink`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ plan_id: planId }),
+    },
+  );
+}
+
+export async function getShelf(bearer?: string) {
+  return request<ShelfContract>("/api/v1/product/graph/shelf", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function promoteSpark(
+  sparkId: string,
+  overrides: { title?: string; location?: string; time_label?: string } = {},
+  bearer?: string,
+) {
+  return request<{ spark: ShelfSparkContract; plan: OpalPlanContract }>(
+    `/api/v1/product/graph/shelf/${encodeURIComponent(sparkId)}/promote`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(overrides),
+    },
+  );
+}
+
+export async function getPlanHistory(planId: string, bearer?: string) {
+  return request<PlanHistoryContract>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/history`,
+    { method: "GET", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function getHolding(bearer?: string) {
+  return request<HoldingContract>("/api/v1/product/opal/holding", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
 }
 
 /** Paste K — Lives (placed-only), stickers, venue pay. */

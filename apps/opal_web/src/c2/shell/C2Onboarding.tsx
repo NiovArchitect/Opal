@@ -12,7 +12,7 @@
  * invents a cooldown or a masked number.
  */
 import React, { useRef, useState } from "react";
-import { C2LockupInline } from "../C2Wordmark";
+import { OrbLockup } from "../../brand/orb/OrbMark";
 import {
   startChallenge,
   updateProfile,
@@ -144,7 +144,7 @@ export function C2Onboarding({ events }: { events: C2OnboardingEvents }) {
         >
           <IconBack />
         </button>
-        <C2LockupInline wordmarkWidth={64} />
+        <OrbLockup form="wordmark" wordmarkWidth={64} />
         <span className="c2s-entry-step">{stepLabel}</span>
       </div>
 

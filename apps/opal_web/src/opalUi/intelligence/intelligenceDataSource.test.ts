@@ -51,26 +51,28 @@ describe("getIntelligenceDataSource", () => {
     expect(all.choreography_events).toBe("real");
   });
 
-  it("?opal_intel_mock=1 forces mock fallback", () => {
+  it("?opal_intel_mock=1 no longer forces mock fallback (hunt-fix B-08)", () => {
+    // The URL flag painted fixture facts for any person with no
+    // on-screen label; it is removed from the shipping build.
     window.history.replaceState({}, "", "/?opal_intel_mock=1");
-    expect(getIntelligenceDataSource("person_memory")).toBe("mock");
-    expect(allowsMockFallback("mediation")).toBe(true);
+    expect(getIntelligenceDataSource("person_memory")).toBe("real");
+    expect(allowsMockFallback("mediation")).toBe(false);
   });
 
-  it("reads per-surface localStorage JSON", () => {
+  it("stored mock/auto overrides are ignored in the product build (hunt-fix B-08)", () => {
     setIntelligenceDataSource({
       person_memory: "mock",
       mediation: "auto",
     });
-    expect(getIntelligenceDataSource("person_memory")).toBe("mock");
-    expect(getIntelligenceDataSource("mediation")).toBe("auto");
+    expect(getIntelligenceDataSource("person_memory")).toBe("real");
+    expect(getIntelligenceDataSource("mediation")).toBe("real");
     expect(getIntelligenceDataSource("weekly_briefing")).toBe("real");
   });
 
-  it("reads global string mode from localStorage", () => {
+  it("a stored global auto mode is ignored in the product build (hunt-fix B-08)", () => {
     setIntelligenceDataSource("auto");
-    expect(getIntelligenceDataSource("person_memory")).toBe("auto");
-    expect(getIntelligenceDataSource("mediation")).toBe("auto");
+    expect(getIntelligenceDataSource("person_memory")).toBe("real");
+    expect(getIntelligenceDataSource("mediation")).toBe("real");
   });
 
   it("?opal_intel_real=1 flips all surfaces to real", () => {

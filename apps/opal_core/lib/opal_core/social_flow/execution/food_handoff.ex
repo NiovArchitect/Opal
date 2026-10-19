@@ -69,8 +69,23 @@ defmodule OpalCore.SocialFlow.Execution.FoodHandoff do
     choice = present(a["provider_choice"])
 
     cond do
+      # Repair #18 (apifix, FR-18-B2-01): no restaurant chosen yet is a
+      # FACT the handoff surface must state (the honest no-rail
+      # answer: nothing handed off, nothing ordered), not a 422 - a
+      # participant tapping handoff before the group picks a place
+      # got an error where the contract promises handoff-only truth.
       is_nil(name) ->
-        {:error, :no_restaurant}
+        {:ok,
+         %{
+           "state" => "no_rail",
+           "mode" => "handoff",
+           "restaurant_name" => nil,
+           "handoff_url" => nil,
+           "ordered" => false,
+           "provider_confirmed" => false,
+           "no_rail_reason" =>
+             "No restaurant has been chosen for this plan yet. Once the group picks a place, your own handoff opens here."
+         }}
 
       # The recipient's OWN explicit provider pick wins for their handoff;
       # with no pick, the held restaurant website is the default target.

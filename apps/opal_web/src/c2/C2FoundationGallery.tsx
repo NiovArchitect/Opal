@@ -4,7 +4,9 @@
  * Dev review route (?review=c2), following the AvailabilityReview
  * precedent in App.tsx. Renders the foundation the surface phases
  * consume - both splashes, the reference plan card in all five states,
- * the identity lockups, and every Loop expression - with a live mode
+ * the orb system plate (the interim identity plate was REMOVED in
+ * harmony-0: the orb is the logo, permanently - founder 2026-10-18
+ * 12:53 PDT; no surface renders the retired interim mark) - with a live mode
  * toggle that flips data-mode in the same frame (no reload). This is
  * the surface the per-mode visual evidence and the night-path
  * brightness pass are captured from, through the real served path.
@@ -13,10 +15,9 @@ import React, { useState } from "react";
 import { C2Splash1 } from "../onboarding/C2Splash1";
 import { C2Splash2 } from "../onboarding/C2Splash2";
 import { PlanCardC2 } from "./PlanCardC2";
-import { LoopCharacter } from "./LoopCharacter";
-import { C2LockupInline, C2Wordmark } from "./C2Wordmark";
 import { setC2ModePreference, type C2ModePreference } from "../theme/c2Mode";
-import type { LoopExpression } from "../brand/c2Identity";
+import { OrbHero, OrbLockup, OrbMark, OrbMarkMono, OrbMarkSmall, OrbWordmark } from "../brand/orb/OrbMark";
+import { FireFrame, ORB_INDICATOR_STATES, StateStone } from "../brand/orb/FireLine";
 
 const STATE_CARDS = [
   { stateFamily: "forming", stateLabel: "Forming", title: "Dinner at Juniper and Ivy", whenLine: "Time not set yet.", whereLine: "Juniper and Ivy, North Park", attendanceLine: "2 of 4 going", primaryActionLabel: "Pick a time" },
@@ -25,8 +26,6 @@ const STATE_CARDS = [
   { stateFamily: "happening", stateLabel: "Happening", title: "Rooftop Jazz", whenLine: "Tonight at 8 PM", whereLine: "Zilker Park Rooftop", attendanceLine: "12 going", primaryActionLabel: "View plan" },
   { stateFamily: "past", stateLabel: "Past", title: "Morning hike", whenLine: "Sat, Oct 10 at 9:00 AM", whereLine: "Torrey Pines", attendanceLine: "3 of 3 going", primaryActionLabel: "View plan" },
 ] as const;
-
-const EXPRESSIONS: LoopExpression[] = ["rest", "glad", "thinking", "listening", "sleep"];
 
 export function C2FoundationGallery() {
   const [view, setView] = useState<"splash1" | "splash2" | "system">("system");
@@ -101,23 +100,47 @@ export function C2FoundationGallery() {
         <C2Splash2 onEnter={() => setView("system")} onAlreadyAccount={() => setView("system")} />
       ) : (
         <main style={{ maxWidth: 430, margin: "0 auto", padding: 20, display: "grid", gap: 28 }}>
-          <section data-testid="c2-gallery-identity">
-            <h2 style={{ font: "var(--type-title)" }}>Identity</h2>
+          <section data-testid="c2-gallery-orb">
+            <h2 style={{ font: "var(--type-title)" }}>Orb System (the anchor)</h2>
             <div style={{ display: "grid", gap: 16 }}>
-              <C2LockupInline wordmarkWidth={96} />
-              <C2Wordmark width={132} />
-              <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-                {EXPRESSIONS.map((e) => (
-                  <figure key={e} style={{ margin: 0, textAlign: "center" }}>
-                    <LoopCharacter expression={e} size={72} title="" />
-                    <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>{e}</figcaption>
+              <figure style={{ margin: 0, textAlign: "center" }}>
+                <OrbHero size={220} title="" />
+                <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>
+                  hero - the master itself (medallion variant in Light)
+                </figcaption>
+              </figure>
+              <figure style={{ margin: 0, textAlign: "center" }}>
+                <OrbLockup wordmarkWidth={110} />
+                <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>
+                  stacked lockup - the only combined composition (orb above wordmark)
+                </figcaption>
+              </figure>
+              <OrbWordmark width={150} />
+              <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <figure style={{ margin: 0, textAlign: "center" }}>
+                  <OrbMark size={40} />
+                  <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>mark 40px</figcaption>
+                </figure>
+                <figure style={{ margin: 0, textAlign: "center" }}>
+                  <OrbMarkSmall size={20} />
+                  <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>small 20px</figcaption>
+                </figure>
+                <figure style={{ margin: 0, textAlign: "center" }}>
+                  <OrbMarkMono size={28} />
+                  <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>mono 28px</figcaption>
+                </figure>
+                {ORB_INDICATOR_STATES.map((st) => (
+                  <figure key={st} style={{ margin: 0, textAlign: "center" }}>
+                    <StateStone state={st} size={22} />
+                    <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>{st}</figcaption>
                   </figure>
                 ))}
-                <figure style={{ margin: 0, textAlign: "center" }}>
-                  <LoopCharacter expression="rest" size={28} title="" />
-                  <figcaption style={{ font: "var(--type-caption)", color: "var(--ink-2)" }}>mark 28px</figcaption>
-                </figure>
               </div>
+              <FireFrame state="ready">
+                <p style={{ margin: 0, font: "var(--type-body)" }}>
+                  Fire frame - the notification / nudge treatment (ready state glow).
+                </p>
+              </FireFrame>
             </div>
           </section>
           <section data-testid="c2-gallery-states" style={{ display: "grid", gap: 12 }}>

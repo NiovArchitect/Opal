@@ -575,6 +575,20 @@ defmodule OpalCore.OpalConversations do
   def start_new_chat(_), do: {:error, :invalid}
 
   defp assemble_classify_generate(user_id, trimmed, client_context) do
+    # Repair #18 adoption wave 1 (4.C1) - "what are you holding for
+    # me?" is answered deterministically from the ONE holding counter
+    # set (GraphPeople.holding/1), read at answer time. It never goes
+    # to the LLM and never estimates; the counters ride the message
+    # metadata so the surface can link each figure into its home.
+    if OpalCore.GraphPeople.holding_question?(trimmed) do
+      holding = OpalCore.GraphPeople.holding(user_id)
+      {nil, nil, holding["answer_text"], %{}, %{"holding" => holding}}
+    else
+      do_assemble_classify_generate(user_id, trimmed, client_context)
+    end
+  end
+
+  defp do_assemble_classify_generate(user_id, trimmed, client_context) do
     case OpalContext.assemble(user_id, trimmed, client_context) do
       {:ok, ctx} ->
         intent =
@@ -643,6 +657,21 @@ defmodule OpalCore.OpalConversations do
                 when: result.when,
                 who: result.who
               })
+              |> then(fn e ->
+                # RF-3 — the confirmed record's venue/clock ride into
+                # the Done copy when the confirm carried them.
+                e
+                |> then(fn x ->
+                  if is_binary(result[:venue] || result["venue"]),
+                    do: Map.put(x, :venue, result[:venue] || result["venue"]),
+                    else: x
+                end)
+                |> then(fn x ->
+                  if is_binary(result[:when_time] || result["when_time"]),
+                    do: Map.put(x, :when_time, result[:when_time] || result["when_time"]),
+                    else: x
+                end)
+              end)
         }
 
         text =

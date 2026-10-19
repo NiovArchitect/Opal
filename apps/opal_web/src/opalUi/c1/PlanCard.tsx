@@ -9,6 +9,7 @@
  */
 import React from "react";
 import { TopLayer } from "../TopLayer";
+import { ListenButton } from "./ListenButton";
 import {
   STATE_META,
   attendanceLine,
@@ -171,6 +172,11 @@ export function PlanCard({
     );
   }
   const inner = <CardBody plan={plan} size={size} onOpen={onOpen} />;
+  // ST-I: the plan-card summary, read aloud exactly as displayed -
+  // title, when line, where line (the same strings CardBody renders).
+  const summaryText = [plan.title, whenLine(plan), whereLine(plan)]
+    .filter((x): x is string => Boolean(x))
+    .join(". ");
   const cls = `c1-plan-card c1-plan-card-${size}${plan.state === "past" ? " c1-plan-past" : ""}`;
   return size === "strip" ? (
     <button
@@ -186,6 +192,7 @@ export function PlanCard({
   ) : (
     <article className={cls} data-testid="plan-card" data-plan-state={plan.state} data-plan-id={plan.id}>
       {inner}
+      <ListenButton text={summaryText} />
     </article>
   );
 }

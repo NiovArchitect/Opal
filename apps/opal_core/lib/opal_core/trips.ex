@@ -24,6 +24,14 @@ defmodule OpalCore.Trips do
   alias OpalCore.Trips.TripLeg
   alias OpalCore.Trips.TripParticipant
   alias OpalCore.Trips.TripTimeBlock
+
+  # FR-11-08: every id-addressed read in this module goes through
+  # fetch/2 so a junk id (path params address :binary_id rows) answers
+  # nil/:not_found instead of raising Ecto.Query.CastError.
+  defp fetch(schema, id) do
+    if OpalCore.IdShape.uuid?(id), do: Repo.get(schema, id), else: nil
+  end
+
   alias OpalCore.Trips.VibeProfiles
 
   @doc "Create a trip for a user. Optional user_ids[] become participants. Zero legs is valid."
@@ -53,13 +61,23 @@ defmodule OpalCore.Trips do
 
   @doc "Load a trip with legs ordered by position and participants."
   def get_trip(id) when is_binary(id) do
-    case Repo.get(Trip, id) do
-      %Trip{} = trip -> {:ok, preload_trip!(trip)}
-      nil -> {:error, :not_found}
+    # FR-11-08: a junk trip id is a guessed id - :not_found, never a
+    # CastError out of Repo.get/2 against :binary_id.
+    if not OpalCore.IdShape.uuid?(id) do
+      {:error, :not_found}
+    else
+      do_get_trip(id)
     end
   end
 
   def get_trip(_), do: {:error, :not_found}
+
+  defp do_get_trip(id) do
+    case fetch(Trip, id) do
+      %Trip{} = trip -> {:ok, preload_trip!(trip)}
+      nil -> {:error, :not_found}
+    end
+  end
 
   @doc "Get trip if user is creator or participant; otherwise :not_found (no leak)."
   def get_trip_for_user(id, user_id) when is_binary(id) and is_binary(user_id) do
@@ -96,7 +114,8 @@ defmodule OpalCore.Trips do
     {:ok, trips}
   end
 
-  def list_trips_for_user(_), do: {:error, error_changeset(Trip, :created_by_user_id, "is invalid")}
+  def list_trips_for_user(_),
+    do: {:error, error_changeset(Trip, :created_by_user_id, "is invalid")}
 
   @doc "Update trip title / destination / dates. Caller must already be authorized."
   def update_trip(%Trip{} = trip, attrs) when is_map(attrs) do
@@ -118,7 +137,7 @@ defmodule OpalCore.Trips do
 
   @doc "Append a leg at max(position)+1 (or 0 when empty)."
   def add_leg(trip_id, attrs) when is_binary(trip_id) and is_map(attrs) do
-    case Repo.get(Trip, trip_id) do
+    case fetch(Trip, trip_id) do
       nil ->
         {:error, :not_found}
 
@@ -147,7 +166,7 @@ defmodule OpalCore.Trips do
   """
   def reorder_legs(trip_id, leg_ids)
       when is_binary(trip_id) and is_list(leg_ids) do
-    case Repo.get(Trip, trip_id) do
+    case fetch(Trip, trip_id) do
       nil ->
         {:error, :not_found}
 
@@ -167,7 +186,8 @@ defmodule OpalCore.Trips do
             {:error, error_changeset(TripLeg, :id, "duplicate leg ids")}
 
           given != existing ->
-            {:error, error_changeset(TripLeg, :id, "must list every leg of the trip exactly once")}
+            {:error,
+             error_changeset(TripLeg, :id, "must list every leg of the trip exactly once")}
 
           true ->
             do_reorder(trip_id, leg_ids)
@@ -179,7 +199,9 @@ defmodule OpalCore.Trips do
 
   @doc "Remove a leg from a trip. Remaining positions may have gaps until reorder."
   def remove_leg(trip_id, leg_id) when is_binary(trip_id) and is_binary(leg_id) do
-    case Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id) do
+    case if OpalCore.IdShape.uuid?(leg_id),
+           do: Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id),
+           else: nil do
       nil -> {:error, :not_found}
       %TripLeg{} = leg -> Repo.delete(leg)
     end
@@ -194,8 +216,12 @@ defmodule OpalCore.Trips do
   def link_leg_plan(trip_id, leg_id, shared_plan_id, user_id)
       when is_binary(trip_id) and is_binary(leg_id) and is_binary(shared_plan_id) and
              is_binary(user_id) do
-    with %TripLeg{trip_id: ^trip_id} = leg <- Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id),
-         %SharedPlan{} = plan <- Repo.get(SharedPlan, shared_plan_id),
+    with %TripLeg{trip_id: ^trip_id} = leg <-
+           if(OpalCore.IdShape.uuid?(leg_id),
+             do: Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id),
+             else: nil
+           ),
+         %SharedPlan{} = plan <- fetch(SharedPlan, shared_plan_id),
          :ok <- ensure_plan_visible(plan, user_id) do
       leg
       |> TripLeg.changeset(%{shared_plan_id: plan.id})
@@ -221,10 +247,14 @@ defmodule OpalCore.Trips do
   def create_plan_from_leg(trip_id, leg_id, user_id)
       when is_binary(trip_id) and is_binary(leg_id) and is_binary(user_id) do
     with {:ok, trip} <- get_trip_for_user(trip_id, user_id),
-         %TripLeg{trip_id: ^trip_id} = leg <- Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id) do
+         %TripLeg{trip_id: ^trip_id} = leg <-
+           if(OpalCore.IdShape.uuid?(leg_id),
+             do: Repo.get_by(TripLeg, id: leg_id, trip_id: trip_id),
+             else: nil
+           ) do
       cond do
         is_binary(leg.shared_plan_id) ->
-          case Repo.get(SharedPlan, leg.shared_plan_id) do
+          case fetch(SharedPlan, leg.shared_plan_id) do
             %SharedPlan{} = plan ->
               participants = list_plan_participants(plan.id)
               {:ok, :existing, plan, participants, leg}
@@ -260,7 +290,7 @@ defmodule OpalCore.Trips do
   - `{:error, :not_found}`
   """
   def agree_trip_leg_plan_if_unanimous(plan_id) when is_binary(plan_id) do
-    case Repo.get(SharedPlan, plan_id) do
+    case fetch(SharedPlan, plan_id) do
       %SharedPlan{source: "trip_leg"} = plan ->
         plan = Repo.preload(plan, :participants)
 
@@ -308,13 +338,13 @@ defmodule OpalCore.Trips do
   defp do_agree_trip_leg_plan(%SharedPlan{} = plan) do
     leg =
       case plan.trip_leg_id do
-        id when is_binary(id) -> Repo.get(TripLeg, id)
+        id when is_binary(id) -> fetch(TripLeg, id)
         _ -> nil
       end
 
     trip =
       case leg do
-        %TripLeg{trip_id: tid} -> Repo.get(Trip, tid)
+        %TripLeg{trip_id: tid} -> fetch(Trip, tid)
         _ -> nil
       end
 
@@ -538,7 +568,7 @@ defmodule OpalCore.Trips do
 
   @doc "Add a canvas day (soft multi-day model)."
   def add_day(trip_id, attrs) when is_binary(trip_id) and is_map(attrs) do
-    case Repo.get(Trip, trip_id) do
+    case fetch(Trip, trip_id) do
       nil ->
         {:error, :not_found}
 
@@ -564,7 +594,7 @@ defmodule OpalCore.Trips do
   @doc "Add a loose time block to a day."
   def add_time_block(trip_id, day_id, attrs)
       when is_binary(trip_id) and is_binary(day_id) and is_map(attrs) do
-    with %TripDay{trip_id: ^trip_id} = day <- Repo.get(TripDay, day_id) do
+    with %TripDay{trip_id: ^trip_id} = day <- fetch(TripDay, day_id) do
       params =
         attrs
         |> stringify_keys()
@@ -589,8 +619,8 @@ defmodule OpalCore.Trips do
   @doc "Propose an activity (real venue) inside a time block."
   def add_activity(trip_id, block_id, attrs)
       when is_binary(trip_id) and is_binary(block_id) and is_map(attrs) do
-    with %TripTimeBlock{} = block <- Repo.get(TripTimeBlock, block_id),
-         %TripDay{trip_id: ^trip_id} <- Repo.get(TripDay, block.trip_day_id) do
+    with %TripTimeBlock{} = block <- fetch(TripTimeBlock, block_id),
+         %TripDay{trip_id: ^trip_id} <- fetch(TripDay, block.trip_day_id) do
       params =
         attrs
         |> stringify_keys()
@@ -615,9 +645,9 @@ defmodule OpalCore.Trips do
   def set_activity_response(trip_id, activity_id, user_id, state)
       when is_binary(trip_id) and is_binary(activity_id) and is_binary(user_id) and
              is_binary(state) do
-    with %TripActivity{} = activity <- Repo.get(TripActivity, activity_id),
-         %TripTimeBlock{} = block <- Repo.get(TripTimeBlock, activity.trip_time_block_id),
-         %TripDay{trip_id: ^trip_id} <- Repo.get(TripDay, block.trip_day_id),
+    with %TripActivity{} = activity <- fetch(TripActivity, activity_id),
+         %TripTimeBlock{} = block <- fetch(TripTimeBlock, activity.trip_time_block_id),
+         %TripDay{trip_id: ^trip_id} <- fetch(TripDay, block.trip_day_id),
          true <- member_of_trip?(trip_id, user_id) do
       existing =
         Repo.get_by(TripActivityResponse,
@@ -653,7 +683,16 @@ defmodule OpalCore.Trips do
 
   def set_activity_response(_, _, _, _), do: {:error, :not_found}
 
-  defp tap_learn_vibe({:ok, _row} = ok, activity_id, user_id, state, old_state, activity, block, trip_id) do
+  defp tap_learn_vibe(
+         {:ok, _row} = ok,
+         activity_id,
+         user_id,
+         state,
+         old_state,
+         activity,
+         block,
+         trip_id
+       ) do
     _ = VibeProfiles.learn_from_activity_response(activity_id, user_id, state)
 
     _ =
@@ -843,7 +882,10 @@ defmodule OpalCore.Trips do
   end
 
   defp next_activity_position(block_id) do
-    case from(a in TripActivity, where: a.trip_time_block_id == ^block_id, select: max(a.position))
+    case from(a in TripActivity,
+           where: a.trip_time_block_id == ^block_id,
+           select: max(a.position)
+         )
          |> Repo.one() do
       nil -> 0
       n when is_integer(n) -> n + 1

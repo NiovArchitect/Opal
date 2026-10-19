@@ -23,6 +23,7 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     TravelMode,
     WorldEnrichment
   }
+
   alias OpalCore.Relationships.Access
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
@@ -103,6 +104,11 @@ defmodule OpalCore.Intelligence.PromptBuilder do
       what = format_what_you_know(recall, shared)
       world = maybe_world_sections(current_message)
       what = append_world_sections(what, world)
+      # Repair #18 SM: personal-memory capsules enter the prompt ONLY
+      # through the one scoped assembly (ScopedContext -> CapsuleRead
+      # facade: owner + scope + purpose + expiry, fail closed). The
+      # builder never reads a capsule store directly (GYRO-01).
+      what = append_capsule_section(what, scoped.account_id, conversation_id)
       ids = recall[:memory_record_ids] || %{}
 
       Logger.info(
@@ -130,11 +136,28 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     end
   end
 
+  defp append_capsule_section(what, account_id, conversation_id) do
+    section =
+      OpalCore.MemoryWallet.ScopedContext.prompt_section(account_id,
+        scope_kind: "conversation",
+        scope_id: conversation_id
+      )
+
+    cond do
+      not is_binary(section) or section == "" -> what
+      is_binary(what) and what != "" -> what <> "\n" <> section
+      true -> section
+    end
+  rescue
+    _ -> what
+  end
+
   defp maybe_world_sections(text) when is_binary(text) do
     WorldEnrichment.enrich(nil, text)
   end
 
-  defp maybe_world_sections(_), do: %{search_section: nil, places_section: nil, meta: %{triggered: false}}
+  defp maybe_world_sections(_),
+    do: %{search_section: nil, places_section: nil, meta: %{triggered: false}}
 
   defp append_world_sections(nil, world), do: append_world_sections("", world)
 
@@ -153,9 +176,14 @@ defmodule OpalCore.Intelligence.PromptBuilder do
 
   def tier_for(text, extraction) when is_map(extraction) do
     cond do
-      simple_message?(text) -> :simple
-      extraction[:potential_conflict] == true or extraction["potential_conflict"] == true -> :expanded
-      true -> :standard
+      simple_message?(text) ->
+        :simple
+
+      extraction[:potential_conflict] == true or extraction["potential_conflict"] == true ->
+        :expanded
+
+      true ->
+        :standard
     end
   end
 
@@ -383,8 +411,14 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     if is_nil(profile) and override == %{} do
       nil
     else
-      tone = override["tone_adjustment"] || override[:tone_adjustment] || (profile && profile.tone) || "warm_casual"
-      proactivity = override["proactivity"] || override[:proactivity] || (profile && profile.proactivity) || "medium"
+      tone =
+        override["tone_adjustment"] || override[:tone_adjustment] || (profile && profile.tone) ||
+          "warm_casual"
+
+      proactivity =
+        override["proactivity"] || override[:proactivity] || (profile && profile.proactivity) ||
+          "medium"
+
       notes = (profile && profile.boundary_notes) || ""
       learned = override["note"] || override[:note]
       gloss = proactivity_gloss(proactivity)

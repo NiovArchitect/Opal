@@ -1,0 +1,516 @@
+/*
+ * Repair #18 - THEME UNIFICATION WAVE (muse/r18-unify).
+ *
+ * Brings the ChatsHome family (call log, chats list, chat thread - in
+ * BOTH presentations: the C1 surfaces inside the C2 shell and the
+ * ChatsHome / member-conversation surfaces in the legacy shell this
+ * build also serves) and Home's plan-state treatments INTO the orb
+ * theme. Function is frozen: no layout, flow, data, or component
+ * structure changes - treatments only.
+ *
+ * THE RULE (founder, 2026-10-18 13:45 PDT): borders are AMBIENT +
+ * FUNCTIONAL ONLY - the fire-line family. A border exists to carry
+ * meaning (state, entity, the one lit element); a border serving no
+ * purpose is REMOVED, not recolored. Grounds are the sampled field
+ * family (--orb-field steps); brand accents are the sampled fire;
+ * state renders ONLY through the canonical indicator tokens
+ * (PLAN_STATE_HEX == --orb-indicator-*), at ambient intensity -
+ * the same token on every surface (indicator-drift law, section 9).
+ *
+ * Loaded LAST in main.tsx (after the Layout Contract) so these scoped
+ * rules win over the legacy sheets they retire treatments from. Every
+ * rule is scoped to a named surface family; nothing here repaints a
+ * surface outside the wave's scope.
+ */
+
+/* ================================================================== */
+/* 1. PlanAwareness (DIR-1) - ambient intensity, ONE token source.    */
+/*    The element's border and fill are the state hue at ambient      */
+/*    strength, mixed FROM the --pa-state custom property the         */
+/*    component sets from PLAN_STATE_HEX - so the state that renders  */
+/*    here is byte-identical to the state everywhere else (drift      */
+/*    check: unifyDrift.test.ts + the rendered drift probe). The      */
+/*    pill's glyph + label keep the full canonical hue: meaning       */
+/*    stays legible, the chrome stops shouting. The entity dot keeps  */
+/*    its --person-tint-* token, desaturated to ambient intensity:    */
+/*    entity identity is a tint, never a saturated fill.              */
+/* ================================================================== */
+.plan-awareness[data-testid="plan-awareness"] {
+  border-color: color-mix(in srgb, var(--pa-state) 52%, transparent);
+  background: color-mix(in srgb, var(--pa-state) 9%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pa-state) 12%, transparent);
+}
+.plan-awareness[data-testid="plan-awareness"][data-pattern="dashed"] {
+  border-style: dashed; /* forming keeps its pattern cue */
+}
+.plan-awareness .plan-awareness-entity {
+  filter: saturate(0.55) brightness(0.92);
+  opacity: 0.85;
+}
+.plan-awareness[data-testid="plan-awareness"][data-variant="strip"] {
+  /* The thread strip is the surface's one plan element: it carries
+   * the fire-line family - a soft state glow under the strip. */
+  box-shadow: 0 1px 12px color-mix(in srgb, var(--pa-state) 14%, transparent);
+}
+
+/* ================================================================== */
+/* 2. ChatsHome family in the LEGACY shell (ChatsHome.tsx surfaces:   */
+/*    chats list + call log) - grounds to the sampled field family,   */
+/*    quiet surface steps, saturated treatments retired.              */
+/* ================================================================== */
+.chats-home {
+  --unify-field: #18141c; /* sampled field (--orb-field) */
+  --unify-surface-1: #201a27; /* quiet step of the sampled field */
+  --unify-surface-2: #2a2333; /* quiet step of the sampled field */
+  --unify-ink-2: #cfc8d8;
+  --unify-ink-3: #9a93a6;
+  --unify-avatar-tint: color-mix(in srgb, var(--orb-fire-violet) 26%, #201a27);
+  background: var(--unify-field);
+}
+/* NOTE (inventory finding): the legacy presentation is a dark-field
+ * design in BOTH modes - its light capture renders the same midnight
+ * field (verified in the BEFORE pack: identical row/bubble values in
+ * dark and light). The unified legacy scope therefore carries the
+ * sampled DARK field family in both modes; inventing a light repaint
+ * of one surface inside a dark shell would break the surface's own
+ * chrome. The C1/C2 presentations carry true per-mode tokens. */
+/* Ambient glows retired: the field is calm; no cyan/violet wash.
+ * AMBIENT AUDIT (founder, 2026-10-18 14:29 PDT): an earlier draft of
+ * this wave replaced the wash with a quieter ring-metal radial -
+ * removed on audit: it answered to no live condition and told the
+ * user nothing. The ambient element paints NOTHING now; the ground
+ * is the flat sampled field. Every ambient treatment that remains
+ * in this sheet carries its reason in unify-report.md's register. */
+.chats-home .chats-ambient {
+  background: none;
+}
+.chats-home .calls-ambient-928 {
+  display: none;
+}
+/* Rows/cards sit on the quiet surface step; the per-row border
+ * served no purpose (the step + gap already separate) - REMOVED. */
+.chats-home .chats-home-row {
+  background: var(--unify-surface-1);
+  border: 0;
+}
+.chats-home .chats-home-row:hover {
+  background: var(--unify-surface-2);
+}
+.chats-home .calls-continuity-row {
+  background: var(--unify-surface-1);
+  border: 0 !important; /* beats the retired per-name inline borderColor */
+  box-shadow: none;
+}
+/* Missed / callback-needed is MEANING (action): it keeps a functional
+ * edge - a 3px inset line in the canonical action indicator at
+ * ambient strength, replacing the full pink perimeter. */
+.chats-home .calls-continuity-row.is-missed {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--orb-indicator-action) 72%, transparent);
+}
+.chats-home .calls-continuity-meta.is-missed-meta {
+  color: color-mix(in srgb, var(--orb-indicator-action) 82%, var(--unify-ink-2));
+}
+/* Avatars: the saturated ear gradient is retired on these surfaces.
+ * Entity identity = the initial on a quiet sampled-violet tint
+ * (ambient intensity). The inline gradient is overridden here, on
+ * these surfaces only. */
+.chats-home .chats-home-avatar,
+.chats-home .calls-row-avatar {
+  background: var(--unify-avatar-tint) !important;
+  box-shadow: none;
+  color: var(--unify-ink-2);
+}
+/* Story ring on a call avatar is meaning (an unseen story): it
+ * renders in the sampled ring metal at ambient strength, not the
+ * retired cyan/gold/violet triple ring. */
+.chats-home .calls-row-avatar.has-story-ring {
+  box-shadow: 0 0 0 2px var(--unify-field), 0 0 0 3.5px color-mix(in srgb, var(--orb-ring-metal) 65%, transparent);
+}
+/* The connection label was decorative cyan (the happening indicator
+ * spent as decoration = drift). It is plain metadata: quiet ink. */
+.chats-home .chats-home-connection {
+  color: var(--unify-ink-3);
+}
+/* Mode + filter pills: selection is navigation, rendered in the
+ * sampled fire violet at ambient strength. The cyan/violet/coral
+ * per-pill hues are retired (two of them were indicator hues spent
+ * decoratively). The active pill is the bar's one lit element. */
+.chats-home .comm-mode-btn,
+.chats-home .calls-filter-btn {
+  border: 1px solid color-mix(in srgb, var(--orb-fire-violet) 30%, transparent);
+  background: transparent;
+  color: var(--unify-ink-2);
+  box-shadow: none;
+}
+.chats-home .comm-mode-btn.is-active,
+.chats-home .calls-filter-btn.is-active {
+  border-color: color-mix(in srgb, var(--orb-fire-violet) 68%, transparent);
+  background: color-mix(in srgb, var(--orb-fire-violet) 16%, transparent);
+  color: inherit;
+}
+/* The + button: sampled violet, no neon glow. */
+.chats-home .chats-home-new-plus {
+  border: 1px solid color-mix(in srgb, var(--orb-fire-violet) 55%, transparent);
+  background: color-mix(in srgb, var(--orb-fire-violet) 12%, transparent);
+  color: color-mix(in srgb, var(--orb-fire-violet) 55%, white);
+  box-shadow: none;
+}
+.chats-home .chats-plus-sheet {
+  background: var(--unify-surface-1);
+  border: 0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.chats-home .chats-plus-sheet button:hover {
+  background: color-mix(in srgb, var(--orb-fire-violet) 14%, transparent);
+  color: inherit;
+}
+/* Search: quiet surface step, border removed. */
+.chats-home .chats-home-search {
+  background: var(--unify-surface-2);
+  border: 0;
+  color: inherit;
+}
+/* The legacy plan pill (non-DIR-1 fallback): state at ambient
+ * intensity - tint fill from the surface step, border at half
+ * strength; the label keeps the per-mode state ink. The state color
+ * still comes from the pill's own [data-plan-state] token
+ * (--plan-state-* == PLAN_STATE_HEX family), never a new hue. */
+.chats-home .chats-plan-pill {
+  background: color-mix(in srgb, var(--plan-state-color, var(--orb-indicator-forming)) 13%, var(--unify-surface-1)) !important;
+  border: 1px solid color-mix(in srgb, var(--plan-state-color, var(--orb-indicator-forming)) 48%, transparent) !important;
+}
+/* Call signals: text-only meaning. Ready keeps its gold (canon);
+ * graph-updated was decorative cyan text - quiet ink now; needs-you /
+ * callback was non-canon pink - the canonical action hue. */
+.chats-home .calls-signal-graph_updated {
+  color: var(--unify-ink-2);
+}
+.chats-home .calls-signal-callback,
+.chats-home .calls-signal-needs_you {
+  color: color-mix(in srgb, var(--orb-indicator-action) 85%, var(--unify-ink-2));
+}
+.chats-home .calls-signal-action {
+  color: color-mix(in srgb, var(--orb-indicator-ready) 80%, var(--unify-ink-2));
+}
+/* The quick-call phone control: the neon cyan ring asset is retired
+ * on this surface - the button is a quiet surface disc and the phone
+ * glyph (a neutral line icon) stays. */
+.chats-home .calls-row-phone {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--unify-surface-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.chats-home .calls-row-phone-shell {
+  display: none;
+}
+.chats-home .chats-unread-badge {
+  background: color-mix(in srgb, var(--orb-fire-violet) 72%, #201a27);
+  color: #fff1d0;
+}
+
+/* ================================================================== */
+/* 3. Legacy chat THREAD (member-conversation): bubbles were full-    */
+/*    saturation indicator fills (friend = forming violet, own =     */
+/*    happening cyan, both with 1px saturated borders) - indicator    */
+/*    hues spent as decoration. Retired: bubbles are quiet surface    */
+/*    steps, borders REMOVED; own vs peer reads by step + alignment   */
+/*    + sender name, exactly as the C1 thread reads.                  */
+/* ================================================================== */
+.app[data-testid="member-conversation"] {
+  background: var(--orb-field);
+}
+.app[data-testid="member-conversation"] .thread {
+  /* Flat sampled field. (Ambient audit: a ring-metal radial wash
+   * here was removed - no live condition, no information.) */
+  background: var(--orb-field);
+}
+/* Specificity note: the retired treatments include a (0,5,0)
+ * !important rule for direct threads, so these selectors carry the
+ * full root chain (.app.app-futura + both data attributes) to win
+ * on specificity, not on order alone. */
+.app.app-futura[data-testid="member-conversation"][data-chat-kind] .bubble-row.in .bubble.in,
+.app.app-futura[data-testid="member-conversation"][data-chat-kind] .bubble-row[data-sender-name] .bubble.in {
+  background: #201a27 !important;
+  border: 0 !important;
+}
+.app.app-futura[data-testid="member-conversation"][data-chat-kind] .bubble-row.out .bubble.out,
+.app.app-futura[data-testid="member-conversation"][data-chat-kind] .bubble-row[data-sender-name="You"] .bubble {
+  background: #2a2333 !important;
+  border: 0 !important;
+}
+[data-testid="member-conversation"] .bubble-sender-name,
+[data-testid="member-conversation"] .bubble-row.out .bubble-sender-name,
+[data-testid="member-conversation"] .bubble-row[data-sender-name] .bubble-sender-name {
+  color: #9a93a6 !important;
+}
+/* The self "You" label is a ::before in happening cyan (the retired
+ * Paste W6 user-cyan/friend-purple identity scheme - a state hue
+ * spent as decoration). Same quiet ink as the peer name: identity
+ * reads by name + alignment, not by a saturated hue. */
+[data-testid="member-conversation"] .bubble-row.out .bubble-stack::before {
+  color: #9a93a6;
+}
+[data-testid="member-conversation"] .bubble-avatar {
+  background: color-mix(in srgb, var(--orb-fire-violet) 26%, #201a27) !important;
+  box-shadow: none;
+}
+/* Thread composer: the spectral cyan/gold/magenta border gradient
+ * (opalComposerTokens, .opal-composer-brand) is retired on this
+ * surface - the gradient implies brand/state meaning the input does
+ * not carry. The override lives in the SAME cascade layer as the
+ * brand rule with higher specificity (the brand rule's background
+ * is !important inside @layer brand-v4-components, which an
+ * unlayered override cannot beat), and is scoped to the thread:
+ * the Center composer's shell is a different surface's chrome.
+ * Inside the thread composer the cyan mic/send discs quiet down
+ * with it; the send disc keeps the sampled fire accent because it
+ * is the surface's one committed action. */
+@layer brand-v4-components {
+  html.opal-native-host
+    [data-testid="member-conversation"]
+    .composer-618.opal-composer-brand,
+  [data-testid="member-conversation"] .composer-618.opal-composer-brand {
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    background: #201a27 !important;
+    box-shadow: none;
+  }
+  [data-testid="member-conversation"] .opal-composer-brand .opal-center-mic,
+  html.opal-native-host
+    [data-testid="member-conversation"]
+    .opal-center-mic {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #f8faff;
+  }
+  [data-testid="member-conversation"] .opal-composer-brand .opal-center-send,
+  html.opal-native-host
+    [data-testid="member-conversation"]
+    .opal-center-send {
+    background: var(--orb-fire-violet);
+    color: #fff;
+  }
+}
+
+/* Focus outline inside the C2 shell (harmony2, found by rendered
+ * proof): the global button/input :focus-visible rule paints
+ * var(--accent-soft), which resolves to the legacy teal #00f0d1 in
+ * this shell - a non-canon hue ringing the Center composer input in
+ * the AFTER capture. The outline itself stays (it answers to a live
+ * condition: keyboard focus must be visible), but inside the C2
+ * shell it takes the sampled brand accent. Scoped + unlayered so it
+ * wins over the global element rule. */
+[data-shell="c2"] button:focus-visible,
+[data-shell="c2"] input:focus-visible,
+[data-shell="c2"] textarea:focus-visible {
+  outline-color: var(--accent-1);
+}
+
+/* Center composer (harmony2, residue 2a closed properly): the unify
+ * wave retired the spectral border only inside the thread and left
+ * the Center composer's shell - the surface where the user talks to
+ * Opal - still wearing the cyan/gold/magenta gradient. That gradient
+ * spends two canonical state hexes (happening cyan, ready gold) as
+ * decoration: indicator drift, and a second lit thing competing
+ * with the Center orb. The Center composer now gets the SAME
+ * ambient treatment as the thread composer: a quiet field step, a
+ * hairline, no glow; the mic quiets to ink; the send disc keeps the
+ * sampled fire accent because it is the surface's one committed
+ * action. Scoped to the Center contexts: the day-view composer
+ * ([data-testid="composer"], data-composer-language="center-unified")
+ * and the Center chat composer (.opal-center-chat-composer). The
+ * listening state is a live condition (Opal is hearing you now), so
+ * the mic's listening form keeps a visible read - in the sampled
+ * accent at ambient strength, never the retired magenta. */
+@layer brand-v4-components {
+  [data-testid="composer"].composer-618.opal-composer-brand,
+  html.opal-native-host [data-testid="composer"].composer-618.opal-composer-brand,
+  .opal-center-chat-composer.opal-composer,
+  html.opal-native-host .opal-center-chat-composer.opal-composer {
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    background: #201a27 !important;
+    box-shadow: none;
+  }
+  [data-testid="composer"] .opal-center-mic,
+  .opal-center-chat-composer .opal-center-mic,
+  html.opal-native-host [data-testid="composer"] .opal-center-mic {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #f8faff;
+  }
+  [data-testid="composer"] .opal-center-mic.is-listening,
+  .opal-center-chat-composer .opal-center-mic.is-listening,
+  html.opal-native-host [data-testid="composer"] .opal-center-mic.is-listening {
+    background: color-mix(in srgb, var(--orb-fire-violet) 22%, transparent);
+    border-color: color-mix(in srgb, var(--orb-fire-violet) 55%, transparent);
+    color: #f8faff;
+  }
+  [data-testid="composer"] .opal-center-send,
+  .opal-center-chat-composer .opal-center-send,
+  html.opal-native-host [data-testid="composer"] .opal-center-send {
+    background: var(--orb-fire-violet);
+    color: #fff;
+  }
+}
+
+/* ================================================================== */
+/* 4. Legacy DOCK (the presenting chrome of the surfaces above, and   */
+/*    every R17 surface): HALO FIX + ambient ring. The dock bar's     */
+/*    border ring was a full-perimeter neon gradient                */
+/*    (cyan/gold/magenta) that ran straight THROUGH the raised        */
+/*    center Opal device. Now: the ring is the sampled ring metal     */
+/*    at ambient strength, and the top segment is MASKED OUT across   */
+/*    the center device zone (opal 86/370 + halo gap) - the border    */
+/*    breaks cleanly around the device; no line crosses its halo,     */
+/*    in either mode (the legacy shell's field is dark in both).      */
+/* ================================================================== */
+/* Segmented ring (same construction as the C2 dock): the bar's own
+ * border carries the sides + bottom in the ring metal; its top is
+ * transparent; ::before/::after draw the top edge only outside the
+ * center device zone (each segment ends at 33% / starts at 67% of
+ * the bar - the device zone is 38.4%-61.6% - leaving a clean halo
+ * gap on both sides). An earlier mask-notch construction was
+ * rejected on rendered proof: mask-composite exclude XORs a
+ * disjoint notch IN instead of out. */
+.tabbar-option-b .dock-bar,
+html.opal-native-host .tabbar-option-b .dock-bar {
+  border: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
+  border-top-color: transparent;
+  box-sizing: border-box;
+}
+.tabbar-option-b .dock-bar::before,
+html.opal-native-host .tabbar-option-b .dock-bar::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 33%;
+  height: 27px;
+  padding: 0;
+  background: transparent;
+  -webkit-mask: none;
+  mask: none;
+  border-top: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
+  border-top-left-radius: 26px;
+  pointer-events: none;
+}
+.tabbar-option-b .dock-bar::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 33%;
+  height: 27px;
+  border-top: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
+  border-top-right-radius: 26px;
+  pointer-events: none;
+}
+/* Dock active state was the happening indicator spent as navigation
+ * decoration (drift). Navigation selection = sampled fire violet. */
+.tabbar-option-b .dock-tab.is-active {
+  color: color-mix(in srgb, var(--orb-fire-violet) 52%, white);
+}
+.tabbar-option-b .dock-opal.is-listening .dock-opal-mark,
+.tabbar-option-b .dock-opal[data-dock-active="true"] .dock-opal-mark {
+  color: color-mix(in srgb, var(--orb-fire-violet) 52%, white);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--orb-fire-violet) 38%, transparent));
+}
+
+/* ================================================================== */
+/* 5. C1 surfaces inside the C2 shell (PeopleChatsList + ThreadShell) */
+/* ================================================================== */
+/* Chat/session rows: the card border served no purpose beyond the
+ * surface step - removed, with the card shadow. */
+[data-design="r18"] .c1-chat-row,
+[data-design="r18"] .c1-session-row {
+  border: 0;
+  box-shadow: none;
+}
+/* The active session keeps a functional edge (where you are). */
+[data-design="r18"] .c1-session-row-active {
+  border-left: 3px solid var(--accent-1);
+}
+/* Thread bubbles: own bubble's border removed - step + alignment. */
+[data-design="r18"] .c1-bubble-own .c1-bubble {
+  border: 0;
+}
+/* Send + primary buttons were the retired iris gradient - a second
+ * saturated element per surface. They are the sampled accent solid
+ * now (the C2 token already resolves to the sampled fire violet). */
+[data-design="r18"] .c1-send,
+[data-design="r18"] .c1-primary-btn {
+  background: var(--accent-1);
+  color: var(--accent-1-ink);
+}
+/* C1 plan card: the full-saturation state perimeter becomes the
+ * ambient fire-line family - border at half strength over the quiet
+ * line, tint ground kept (state ink tokens unchanged). */
+[data-design="r18"] .c1-plan-card[data-plan-state="forming"] { border-color: color-mix(in srgb, var(--state-forming) 52%, var(--line-1)); }
+[data-design="r18"] .c1-plan-card[data-plan-state="action"] { border-color: color-mix(in srgb, var(--state-action) 52%, var(--line-1)); }
+[data-design="r18"] .c1-plan-card[data-plan-state="ready"] { border-color: color-mix(in srgb, var(--state-ready) 52%, var(--line-1)); }
+[data-design="r18"] .c1-plan-card[data-plan-state="happening"] { border-color: color-mix(in srgb, var(--state-happening) 52%, var(--line-1)); }
+[data-design="r18"] .c1-plan-card[data-plan-state="past"] { border-color: var(--line-1); }
+[data-design="r18"] .c1-state-pill {
+  border-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+/* ================================================================== */
+/* 6. HOME plan-state treatments (C2 PlanCardC2): every state gets    */
+/*    its own ambient register in the orb system. States are NEVER    */
+/*    faked - these treatments render only the state the projection   */
+/*    carries. FORMING reads as ANTICIPATION: ambient violet          */
+/*    border-glow family, dashed fire-line pattern cue, and a slow    */
+/*    breath on the card's fire line (L10-honest motion: it animates  */
+/*    only opacity of an element that already exists; reduced-motion  */
+/*    and light mode calm it). One lit element per card: the fire     */
+/*    line + the state stone; the card ground stays a quiet step.     */
+/* ================================================================== */
+.c2s-root .c2-plan-card[data-plan-state="forming"] {
+  border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-forming) 7%, var(--surface-1)), var(--surface-1));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--orb-indicator-forming-glow) 55%, transparent);
+}
+.c2s-root .c2-plan-card[data-plan-state="forming"] .orb-fire-line {
+  animation: unify-forming-breath 5s ease-in-out infinite;
+}
+@keyframes unify-forming-breath {
+  0%, 100% { opacity: 0.62; }
+  50% { opacity: 1; }
+}
+.c2s-root .c2-plan-card[data-plan-state="action"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 42%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--orb-indicator-action) 78%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--orb-indicator-action-glow) 45%, transparent);
+}
+.c2s-root .c2-plan-card[data-plan-state="ready"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-ready) 50%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-ready) 6%, var(--surface-1)), var(--surface-1));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--orb-indicator-ready-glow) 50%, transparent);
+}
+.c2s-root .c2-plan-card[data-plan-state="happening"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 50%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
+}
+.c2s-root .c2-plan-card[data-plan-state="past"] {
+  border: 1px solid var(--line-1);
+  box-shadow: none;
+  opacity: 0.78; /* the stone at rest: no glow, no fire */
+}
+/* State pills on the cards: ambient border (half strength), the
+ * stone + glyph + ink label keep the canonical read. */
+.c2s-root .c2-state-pill[data-plan-state="forming"] { border-color: color-mix(in srgb, var(--orb-indicator-forming) 55%, transparent); }
+.c2s-root .c2-state-pill[data-plan-state="action"] { border-color: color-mix(in srgb, var(--orb-indicator-action) 55%, transparent); }
+.c2s-root .c2-state-pill[data-plan-state="ready"] { border-color: color-mix(in srgb, var(--orb-indicator-ready) 55%, transparent); }
+.c2s-root .c2-state-pill[data-plan-state="happening"] { border-color: color-mix(in srgb, var(--orb-indicator-happening) 55%, transparent); }
+.c2s-root .c2-state-pill[data-plan-state="past"] { border-color: var(--line-2); }
+@media (prefers-reduced-motion: reduce) {
+  .c2s-root .c2-plan-card[data-plan-state="forming"] .orb-fire-line {
+    animation: none;
+  }
+}

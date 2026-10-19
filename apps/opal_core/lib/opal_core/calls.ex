@@ -267,15 +267,35 @@ defmodule OpalCore.Calls do
   def list_for(user_id) when is_binary(user_id) do
     # A harness session lets a final transcript use the production path.
     # It is not a call anyone placed, so it stays out of call history.
-    from(c in CallSession,
-      where:
-        (c.caller_user_id == ^user_id or c.callee_user_id == ^user_id) and
-          (is_nil(c.ended_reason) or c.ended_reason != "harness"),
-      order_by: [desc: c.inserted_at],
-      limit: 50
-    )
-    |> Repo.all()
-    |> Enum.map(&project(&1, user_id))
+    rows =
+      from(c in CallSession,
+        where:
+          (c.caller_user_id == ^user_id or c.callee_user_id == ^user_id) and
+            (is_nil(c.ended_reason) or c.ended_reason != "harness"),
+        order_by: [desc: c.inserted_at],
+        limit: 50
+      )
+      |> Repo.all()
+      |> Enum.map(&project(&1, user_id))
+
+    # Repair #18 DIR-1: each call row carries, per peer, the SAME
+    # shared upcoming plan fact the chats list and thread carry
+    # (NextPlan.for_peer/2 - the one derivation), or nil, plus the
+    # peer's stable entity tint. Computed once per distinct peer.
+    facts =
+      rows
+      |> Enum.map(& &1["peer_user_id"])
+      |> Enum.filter(&is_binary/1)
+      |> Enum.uniq()
+      |> Map.new(fn peer_id -> {peer_id, OpalCore.SocialFlow.NextPlan.for_peer(user_id, peer_id)} end)
+
+    Enum.map(rows, fn row ->
+      peer_id = row["peer_user_id"]
+
+      row
+      |> Map.put("next_plan", if(is_binary(peer_id), do: Map.get(facts, peer_id)))
+      |> Map.put("peer_tint", OpalCore.SocialFlow.NextPlan.entity_tint(peer_id))
+    end)
   end
 
   def mark_media_connected(call_id, user_id) when is_binary(call_id) and is_binary(user_id) do

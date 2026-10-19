@@ -188,6 +188,9 @@ function reviewHome(): HomeProjection {
 
 const noop = () => undefined;
 const noopAsync = async () => undefined;
+/** Review fixtures never cancel; the dropPlan contract resolves null
+ *  (success) so a fixture confirm simply closes its sheet. */
+const noopDrop = async (): Promise<string | null> => null;
 
 export function C2ShellReview({ surface }: { surface: string }) {
   useEffect(() => {
@@ -222,7 +225,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
           createTrip: noop,
           createIdea: noop,
           completeSlot: noop,
-          dropPlan: noop,
+          dropPlan: noopDrop,
           runNextAction: noop,
           addPeople: noop,
           openChatForPlan: noop,
@@ -240,7 +243,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
           createTrip: noop,
           createIdea: noop,
           completeSlot: noop,
-          dropPlan: noop,
+          dropPlan: noopDrop,
           runNextAction: noop,
           addPeople: noop,
           openChatForPlan: noop,
@@ -299,6 +302,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
           setPreference: noopAsync,
           runAction: noop,
           saveProfileFields: noopAsync,
+          submitSupportReport: async () => ({ reference: "OPAL-TEST" }),
           setModePreference: noop,
           modePreference: "system",
         }}
@@ -324,6 +328,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
           setPreference: noopAsync,
           runAction: noop,
           saveProfileFields: noopAsync,
+          submitSupportReport: async () => ({ reference: "OPAL-TEST" }),
           setModePreference: noop,
           modePreference: "system",
         }}
@@ -348,6 +353,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
           setPreference: noopAsync,
           runAction: noop,
           saveProfileFields: noopAsync,
+          submitSupportReport: async () => ({ reference: "OPAL-TEST" }),
           setModePreference: noop,
           modePreference: "dark",
         }}

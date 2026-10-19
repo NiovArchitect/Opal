@@ -38,14 +38,21 @@ import "./theme/opalComposerTokens.css";
  */
 import "./theme/c2Tokens.css";
 import "./c2/c2.css";
+/* Repair #18 Orb System: sampled orb tokens + the indicator language
+ * (@layer c2; after the C2 tokens, before the Layout Contract). */
+import "./theme/orbTokens.css";
 import { applyStoredC2Mode, installC2ModeSystemListener } from "./theme/c2Mode";
 import { isC2ShellEnabled } from "./theme/c2Shell";
-import { C2_ASSETS } from "./brand/c2Identity";
+import { ORB_ASSETS } from "./brand/orb/orbTokens";
 /* Repair #18 / Walk #4: THE LAYOUT CONTRACT loads LAST - its containment,
  * thread-composition, and chrome-band rules win over every earlier sheet.
  * (Integration ruling: the contract is the integrated law; the C2 token
  * layer loads immediately before it.) */
 import "./theme/layoutContract.css";
+/* Repair #18 THEME UNIFICATION (muse/r18-unify): ChatsHome family +
+ * Home state treatments into the orb theme - scoped treatment rules
+ * that must win over every sheet above on their named surfaces. */
+import "./theme/unifyChats.css";
 
 /** Appearance before React paint — data-theme + color-scheme on <html>. */
 applyStoredAppearanceTheme();
@@ -61,8 +68,12 @@ if (isC2ShellEnabled()) {
       const el = document.querySelector(selector);
       if (el) el.setAttribute("href", href);
     };
-    swapIcon('link[rel="apple-touch-icon"]', C2_ASSETS.appIcon180);
-    swapIcon('link[rel="icon"][sizes="48x48"]', C2_ASSETS.appIcon180);
+    // The icon slots already serve the orb-derived raster (harmony2
+    // icon pass: index.html + site.webmanifest point at files
+    // generated from the orb master); the runtime swap re-asserts
+    // the orb icon master so no cached interim href survives.
+    swapIcon('link[rel="apple-touch-icon"]', ORB_ASSETS.icon1024);
+    swapIcon('link[rel="icon"][sizes="48x48"]', ORB_ASSETS.icon1024);
   } catch {
     /* icon swap is cosmetic; never block boot */
   }
@@ -226,8 +237,11 @@ class OpalErrorBoundary extends Component<
               window.location.href = "/?opal_reset_first_run=1";
             }}
             style={{
-              background: "#00e5ff",
-              color: "#050816",
+              // Harmony2 drift fix: the sampled brand accent, not
+              // the happening state hex - state color is meaning
+              // only, and this button means "restart", not "live now".
+              background: "#7d4dce",
+              color: "#ffffff",
               border: 0,
               borderRadius: 999,
               padding: "12px 20px",

@@ -1117,6 +1117,16 @@ defmodule OpalCore.SocialFlow do
         trace_id: trace_id
       })
       when decision in ~w(accept reject) do
+    # FR-11-08: a junk revision id must answer :not_found, never raise
+    # a CastError out of the locking query below.
+    if not OpalCore.IdShape.uuid?(revision_id) do
+      {:error, :not_found}
+    else
+      do_respond_to_revision(revision_id, user_id, decision, trace_id)
+    end
+  end
+
+  defp do_respond_to_revision(revision_id, user_id, decision, trace_id) do
     trace = trace_id || @trace_default
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
@@ -1389,46 +1399,46 @@ defmodule OpalCore.SocialFlow do
           {plan_attrs, copy}
 
         true ->
-        # Repair #18 residuals (R-2b): a revision can carry a raw
-        # fragment ("8 PM") from natural-language extraction. The
-        # accept writes the canonical label, like every schedule
-        # write (see canonical_time_label/2).
-        time_label =
-          canonical_time_label(
-            plan,
-            changes["time_label"] || changes["new_value"] || plan.time_label
-          )
+          # Repair #18 residuals (R-2b): a revision can carry a raw
+          # fragment ("8 PM") from natural-language extraction. The
+          # accept writes the canonical label, like every schedule
+          # write (see canonical_time_label/2).
+          time_label =
+            canonical_time_label(
+              plan,
+              changes["time_label"] || changes["new_value"] || plan.time_label
+            )
 
-        # F12-02c (gyroscope) — project the accepted change into the fold's
-        # explicit action log, same as change_plan_schedule/1, so the next
-        # sync_conversation keeps the accepted schedule verbatim.
-        # Repair #18: the same transaction also syncs the STORED
-        # exact_time, the resolved start_at and the plan_set_event
-        # summary (sync_stored_schedule/5), so read-back on the stored
-        # projections equals the plan row immediately - no later sync
-        # is required for the truth to move.
-        alignment =
-          (plan.alignment || %{})
-          |> append_explicit_action(%{
-            "kind" => "schedule_change",
-            "actor_user_id" => actor,
-            "field" => "time_label",
-            "value" => time_label,
-            "truth" => "locked",
-            "explicit" => true,
-            "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
-            "revision_id" => rev.id,
-            "at" => DateTime.to_iso8601(now)
-          })
-          |> sync_stored_schedule(plan, time_label, rev.id, now)
+          # F12-02c (gyroscope) — project the accepted change into the fold's
+          # explicit action log, same as change_plan_schedule/1, so the next
+          # sync_conversation keeps the accepted schedule verbatim.
+          # Repair #18: the same transaction also syncs the STORED
+          # exact_time, the resolved start_at and the plan_set_event
+          # summary (sync_stored_schedule/5), so read-back on the stored
+          # projections equals the plan row immediately - no later sync
+          # is required for the truth to move.
+          alignment =
+            (plan.alignment || %{})
+            |> append_explicit_action(%{
+              "kind" => "schedule_change",
+              "actor_user_id" => actor,
+              "field" => "time_label",
+              "value" => time_label,
+              "truth" => "locked",
+              "explicit" => true,
+              "schema_version" => OpalCore.SocialFlow.ConversationAlignment.schema_version(),
+              "revision_id" => rev.id,
+              "at" => DateTime.to_iso8601(now)
+            })
+            |> sync_stored_schedule(plan, time_label, rev.id, now)
 
-        {%{
-           status: "changed",
-           time_label: time_label,
-           start_at: resolved_start_at(plan, time_label, changes),
-           current_revision_id: rev.id,
-           alignment: alignment
-         }, "Dinner moved to #{time_label}."}
+          {%{
+             status: "changed",
+             time_label: time_label,
+             start_at: resolved_start_at(plan, time_label, changes),
+             current_revision_id: rev.id,
+             alignment: alignment
+           }, "Dinner moved to #{time_label}."}
       end
 
     {:ok, rev} =
@@ -1595,6 +1605,11 @@ defmodule OpalCore.SocialFlow do
     cond do
       not is_binary(plan_id) or not is_binary(user_id) ->
         {:error, :invalid}
+
+      # FR-11-08: a junk plan id is a guessed id - :not_found, never a
+      # CastError out of Repo.get/2 against :binary_id.
+      not OpalCore.IdShape.uuid?(plan_id) ->
+        {:error, :not_found}
 
       to_type not in ["virtual", "in_person"] ->
         {:error, :invalid_plan_type}
@@ -1920,7 +1935,9 @@ defmodule OpalCore.SocialFlow do
       join_reminders =
         from(r in PlanReminder, where: r.plan_id == ^plan.id and r.status == "scheduled")
         |> Repo.all()
-        |> Enum.filter(fn r -> is_map(r.source_lineage) and r.source_lineage["origin"] == "virtual_join" end)
+        |> Enum.filter(fn r ->
+          is_map(r.source_lineage) and r.source_lineage["origin"] == "virtual_join"
+        end)
 
       Enum.each(join_reminders, fn r ->
         r |> PlanReminder.changeset(%{status: "cancelled"}) |> Repo.update()
@@ -1981,6 +1998,19 @@ defmodule OpalCore.SocialFlow do
               |> Repo.one()
 
             with %SharedPlan{} = plan <- plan do
+              # Repair #18 (apifix, FR-12-02 in-suite): a fold
+              # settlement replayed from the thread's history belongs
+              # to the plan that existed when the settling message was
+              # sent. On a shared thread, a NEW plan row born later
+              # must not inherit an earlier plan's settlement just
+              # because it is now the conversation's newest row - the
+              # replay derives the marker on every sync, and recording
+              # it here silently moved the new plan to the old plan's
+              # settled time before anyone confirmed anything.
+              if settlement_predates_plan?(attrs, plan) do
+                Repo.rollback(:settlement_predates_plan)
+              end
+
               # Repair #18 residuals (R-2b): the fold's post-sync value
               # can be the raw spoken fragment ("8 PM"). The mirror must
               # write the canonical label - the same resolution
@@ -1993,12 +2023,47 @@ defmodule OpalCore.SocialFlow do
               # Settle any open System A proposals for this plan: the fold
               # accept IS their resolution (never leave a second pending
               # representation of the same change behind).
-              superseded_ids =
+              #
+              # Repair #18 (apifix): when this settlement IS the
+              # resolution of a fold change proposal (the chat-confirm
+              # path, settle_fold_acceptance), an open revision whose
+              # proposed time IS the settled value is not a competing
+              # representation - it is the SAME change mirrored in
+              # System A (the executor mirrors exactly the spoken
+              # changes the fold gate now pends, e.g. the W4 two-party
+              # flow). That revision is ACCEPTED by this settlement,
+              # with the confirmer recorded. Direct authority callers
+              # (no fold proposal being settled) keep the F18-02
+              # behavior: supersede every open proposal and mint the
+              # fold-source revision.
+              accepts_matching? =
+                Map.get(attrs, :accepts_matching_revision) ||
+                  Map.get(attrs, "accepts_matching_revision")
+
+              open_revisions =
                 from(r in PlanRevision,
                   where: r.plan_id == ^plan.id and r.status == "proposed",
-                  select: r.id
+                  order_by: [desc: r.inserted_at]
                 )
                 |> Repo.all()
+
+              {matching, superseded} =
+                if accepts_matching? do
+                  Enum.split_with(open_revisions, fn r ->
+                    canonical_time_label(plan, r.proposed_changes["time_label"] || "") ==
+                      value
+                  end)
+                else
+                  {[], open_revisions}
+                end
+
+              {accepted_existing, extra_matching} =
+                case matching do
+                  [first | rest] -> {first, rest}
+                  [] -> {nil, []}
+                end
+
+              superseded_ids = Enum.map(superseded ++ extra_matching, & &1.id)
 
               if superseded_ids != [] do
                 from(r in PlanRevision, where: r.id in ^superseded_ids)
@@ -2011,25 +2076,38 @@ defmodule OpalCore.SocialFlow do
               end
 
               {:ok, revision} =
-                %PlanRevision{}
-                |> PlanRevision.changeset(%{
-                  plan_id: plan.id,
-                  proposed_by_user_id: user_id,
-                  prior_revision_id: plan.current_revision_id,
-                  proposed_changes: %{
-                    "kind" => "schedule_change",
-                    "field" => "time_label",
-                    "time_label" => value,
-                    "new_value" => value,
-                    "source" => "alignment_fold"
-                  },
-                  status: "accepted",
-                  accepted_at: now,
-                  required_approvals: [user_id],
-                  approvals: %{user_id => "accept"}
-                })
-                |> PlanTransition.guard_changeset(:revision, :accept_direct)
-                |> Repo.insert()
+                case accepted_existing do
+                  %PlanRevision{} = existing ->
+                    existing
+                    |> PlanRevision.changeset(%{
+                      status: "accepted",
+                      accepted_at: now,
+                      approvals: Map.put(existing.approvals || %{}, user_id, "accept")
+                    })
+                    |> PlanTransition.guard_changeset(:revision, :accept)
+                    |> Repo.update()
+
+                  nil ->
+                    %PlanRevision{}
+                    |> PlanRevision.changeset(%{
+                      plan_id: plan.id,
+                      proposed_by_user_id: user_id,
+                      prior_revision_id: plan.current_revision_id,
+                      proposed_changes: %{
+                        "kind" => "schedule_change",
+                        "field" => "time_label",
+                        "time_label" => value,
+                        "new_value" => value,
+                        "source" => "alignment_fold"
+                      },
+                      status: "accepted",
+                      accepted_at: now,
+                      required_approvals: [user_id],
+                      approvals: %{user_id => "accept"}
+                    })
+                    |> PlanTransition.guard_changeset(:revision, :accept_direct)
+                    |> Repo.insert()
+                end
 
               alignment =
                 (plan.alignment || %{})
@@ -2090,6 +2168,9 @@ defmodule OpalCore.SocialFlow do
 
             result
 
+          {:error, :settlement_predates_plan} ->
+            {:ok, :duplicate}
+
           _ ->
             result
         end
@@ -2097,6 +2178,15 @@ defmodule OpalCore.SocialFlow do
   end
 
   def record_fold_change_acceptance(_), do: {:error, :invalid}
+
+  # The fold settlement's source event time (unix microseconds),
+  # when the caller carries it (settle_fold_acceptance does): the
+  # settlement predates this plan when the plan row was inserted
+  # after the settling message was sent.
+  defp settlement_predates_plan?(attrs, %SharedPlan{} = plan) do
+    at = Map.get(attrs, :settled_event_at) || Map.get(attrs, "settled_event_at")
+    is_integer(at) and DateTime.to_unix(plan.inserted_at, :microsecond) > at
+  end
 
   @doc """
   Repair #18 residuals (R-2) - settle a chat confirmation the fold
@@ -2195,13 +2285,20 @@ defmodule OpalCore.SocialFlow do
                true ->
                  now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-                 {:ok, plan} =
-                   plan
-                   |> SharedPlan.changeset(%{status: "cancelled", cancelled_at: now})
-                   # Gyroscope (R13): cancel is refused on terminal plans by
-                   # the gate, not just by the :already_cancelled check above.
-                   |> PlanTransition.guard_changeset(:plan, :cancel)
-                   |> Repo.update()
+                 # Gyroscope (R13): cancel is refused on terminal plans by
+                 # the gate, not just by the :already_cancelled check above.
+                 # Repair #18 fix wave — a gate refusal is an honest
+                 # {:error, :illegal_transition}, never a MatchError
+                 # crash inside the transaction (the HTTP cancel route
+                 # maps it to a 422; the Center path maps it to copy).
+                 plan =
+                   case plan
+                        |> SharedPlan.changeset(%{status: "cancelled", cancelled_at: now})
+                        |> PlanTransition.guard_changeset(:plan, :cancel)
+                        |> Repo.update() do
+                     {:ok, updated} -> updated
+                     {:error, %Ecto.Changeset{}} -> Repo.rollback(:illegal_transition)
+                   end
 
                  audit!(
                    plan.conversation_id,
@@ -4349,7 +4446,6 @@ defmodule OpalCore.SocialFlow do
               "meeting_link" => meeting_link,
               "meeting_provider" => meeting_provider
             })
-
             |> then(fn a ->
               # Repair #18 (B2) \u2014 food-at-home signal passthrough.
               if params["food_at_home"] == true or params["food_at_home"] == "true",
@@ -4361,6 +4457,7 @@ defmodule OpalCore.SocialFlow do
                 do: Map.put(a, "food_question", true),
                 else: a
             end)
+
           # Repair #18 (Division A, F18-06): stamp the dedupe identity
           # and merge into a surviving twin instead of inserting a
           # sibling - a twin in THIS conversation, or a conversation-less
@@ -4512,15 +4609,18 @@ defmodule OpalCore.SocialFlow do
     link = OpalCore.SocialFlow.MeetingLinks.sanitize(source_value(source, :meeting_link))
 
     provider =
-      OpalCore.SocialFlow.MeetingLinks.normalize_provider(
-        source_value(source, :meeting_provider)
-      ) || OpalCore.SocialFlow.MeetingLinks.provider_for(link)
+      OpalCore.SocialFlow.MeetingLinks.normalize_provider(source_value(source, :meeting_provider)) ||
+        OpalCore.SocialFlow.MeetingLinks.provider_for(link)
 
     alignment
     |> Map.put("plan_type", plan_type)
-    |> then(fn a -> if link, do: Map.put(a, "meeting_link", link), else: Map.delete(a, "meeting_link") end)
     |> then(fn a ->
-      if provider, do: Map.put(a, "meeting_provider", provider), else: Map.delete(a, "meeting_provider")
+      if link, do: Map.put(a, "meeting_link", link), else: Map.delete(a, "meeting_link")
+    end)
+    |> then(fn a ->
+      if provider,
+        do: Map.put(a, "meeting_provider", provider),
+        else: Map.delete(a, "meeting_provider")
     end)
     |> then(fn a ->
       if plan_type == "virtual" do
@@ -4646,10 +4746,26 @@ defmodule OpalCore.SocialFlow do
   @doc "Add/replace the CALLER's own household item list. Any participant."
   def food_add_items(plan_id, user_id, items) when is_list(items) do
     mutate_food_recipient(plan_id, user_id, fn step, entry ->
-      items = items |> Enum.filter(&is_binary/1) |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == "")) |> Enum.take(50)
-      entry = %{entry | "items" => items, "items_state" => if(items == [], do: "none", else: "ready")}
+      items =
+        items
+        |> Enum.filter(&is_binary/1)
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.take(50)
+
+      entry = %{
+        entry
+        | "items" => items,
+          "items_state" => if(items == [], do: "none", else: "ready")
+      }
+
       step = OpalCore.SocialFlow.FoodStep.put_recipient(step, entry)
-      step = if step["status"] in ["suggested", "declined"], do: %{step | "status" => "composing"}, else: step
+
+      step =
+        if step["status"] in ["suggested", "declined"],
+          do: %{step | "status" => "composing"},
+          else: step
+
       {step, entry}
     end)
   end
@@ -4706,7 +4822,10 @@ defmodule OpalCore.SocialFlow do
                       e = %{
                         e
                         | "handoff_state" => "handed_off",
-                          "handed_off_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+                          "handed_off_at" =>
+                            DateTime.utc_now()
+                            |> DateTime.truncate(:second)
+                            |> DateTime.to_iso8601(),
                           "provider_choice" => choice || e["provider_choice"]
                       }
 
@@ -4733,7 +4852,8 @@ defmodule OpalCore.SocialFlow do
       entry = %{
         entry
         | "handoff_state" => "self_confirmed_done",
-          "self_confirmed_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
+          "self_confirmed_at" =>
+            DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
       }
 
       {OpalCore.SocialFlow.FoodStep.put_recipient(step, entry), entry}
@@ -4751,7 +4871,12 @@ defmodule OpalCore.SocialFlow do
   @doc "The CALLER reports the restaurant does not deliver to them; optionally names their own alternate (visible only to them + bare rollup state)."
   def food_could_not_deliver(plan_id, user_id, alternate \\ nil) do
     mutate_food_recipient(plan_id, user_id, fn step, entry ->
-      entry = %{entry | "handoff_state" => "could_not_deliver", "alternate_restaurant" => alternate}
+      entry = %{
+        entry
+        | "handoff_state" => "could_not_deliver",
+          "alternate_restaurant" => alternate
+      }
+
       {OpalCore.SocialFlow.FoodStep.put_recipient(step, entry), entry}
     end)
   end
@@ -4768,7 +4893,11 @@ defmodule OpalCore.SocialFlow do
             "restaurant_website" => attrs["website"] || attrs[:website],
             "restaurant_phone" => attrs["phone"] || attrs[:phone],
             "restaurant_verified" => (attrs["verified"] || attrs[:verified]) == true,
-            "status" => if(step["status"] in ["suggested", "declined"], do: "composing", else: step["status"])
+            "status" =>
+              if(step["status"] in ["suggested", "declined"],
+                do: "composing",
+                else: step["status"]
+              )
         }
 
         {step, step}
@@ -4879,7 +5008,10 @@ defmodule OpalCore.SocialFlow do
     new_step = %{
       new_step
       | "status" =>
-          OpalCore.SocialFlow.FoodStep.derive_status(new_step["status"], new_step["recipients"] || [])
+          OpalCore.SocialFlow.FoodStep.derive_status(
+            new_step["status"],
+            new_step["recipients"] || []
+          )
     }
 
     new_step = Map.put(new_step, "rollup", food_rollup(plan, new_step))
@@ -4918,6 +5050,7 @@ defmodule OpalCore.SocialFlow do
       "Your order list is ready - you place the order with the provider"
     else
       name = step["restaurant_name"] || "the restaurant"
+
       "Order list for #{name} - your group list. You will place the actual order with the provider."
     end
   end
@@ -5096,7 +5229,8 @@ defmodule OpalCore.SocialFlow do
               if params["food_question"] == true or params["food_question"] == "true",
                 do: Map.put(a, "food_question", true),
                 else: a
-            end)            |> put_alignment("subject_who", subject_who)
+            end)
+            |> put_alignment("subject_who", subject_who)
             |> then(fn a ->
               if subject_ids != [],
                 do: Map.put(a, "participant_ids", subject_ids),
@@ -5637,11 +5771,17 @@ defmodule OpalCore.SocialFlow do
   defp present_string(_), do: nil
 
   defp member_user_ids(conversation_id) do
-    from(cm in ConversationMember,
-      where: cm.conversation_id == ^conversation_id,
-      select: cm.user_id
-    )
-    |> Repo.all()
+    # FR-11-08: junk conversation ids have no members (never a
+    # CastError out of the :binary_id query).
+    if OpalCore.IdShape.uuid?(conversation_id) do
+      from(cm in ConversationMember,
+        where: cm.conversation_id == ^conversation_id,
+        select: cm.user_id
+      )
+      |> Repo.all()
+    else
+      []
+    end
   end
 
   defp ensure_member(conversation_id, user_id) do
@@ -5649,10 +5789,11 @@ defmodule OpalCore.SocialFlow do
   end
 
   defp member?(conversation_id, user_id) do
-    from(cm in ConversationMember,
-      where: cm.conversation_id == ^conversation_id and cm.user_id == ^user_id
-    )
-    |> Repo.exists?()
+    OpalCore.IdShape.uuid?(conversation_id) and
+      from(cm in ConversationMember,
+        where: cm.conversation_id == ^conversation_id and cm.user_id == ^user_id
+      )
+      |> Repo.exists?()
   end
 
   defp fetch!(attrs, key) do

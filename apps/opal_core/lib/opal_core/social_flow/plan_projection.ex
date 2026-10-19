@@ -38,8 +38,27 @@ defmodule OpalCore.SocialFlow.PlanProjection do
   # store to attach SharedPlan.place_projection/1 (the ONE explicit place
   # projection) to the thread alignment payload — audited: it renders the
   # row through that single projection and derives nothing itself.
+  # Added 2026-10-18 (DIR-1): social_flow/next_plan.ex is the ONE
+  # derivation of the shared upcoming plan fact for the conversations,
+  # thread, and call-log contracts — audited: it queries the single
+  # store (shared_plans + plan_participants) directly, renders place
+  # through SharedPlan.place_projection/1 and participant sets through
+  # SocialFlow.plan_participant_ids/1, and keeps no shadow copy.
+  # Added 2026-10-18 (DIR-4): social_flow/reveal.ex is the ONE
+  # proactive reveal derivation - audited: it queries the single
+  # store directly, renders place through SharedPlan.place_projection/1
+  # and participant sets through SocialFlow.plan_participant_ids/1,
+  # and keeps no shadow copy.
+  # Added 2026-10-18 (adoption wave 1): graph_people.ex is the ONE
+  # derivation for intentions progress, goal status, shelf starters,
+  # and the holding counters — audited: it queries the single plan
+  # store directly and keeps no shadow copy; plan_history.ex is the
+  # ONE derivation of a plan's own history + Who list — audited: it
+  # reads the plan row, its audit events, its revisions, and its
+  # participant rows, and takes counts/names from JourneyAuthority.
   @read_files ~w(
     lib/opal_core/artifacts.ex
+    lib/opal_core/graph_people.ex
     lib/opal_core/celebration_curation.ex
     lib/opal_core/center/action_orchestrator.ex
     lib/opal_core/center/now_strip.ex
@@ -61,9 +80,12 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/households.ex
     lib/opal_core/social_flow/journey_authority.ex
     lib/opal_core/social_flow/meaning.ex
+    lib/opal_core/social_flow/next_plan.ex
     lib/opal_core/social_flow/plan_agreement_taste_bridge.ex
     lib/opal_core/social_flow/plan_completion.ex
     lib/opal_core/social_flow/plan_execution.ex
+    lib/opal_core/social_flow/reveal.ex
+    lib/opal_core/social_flow/plan_history.ex
     lib/opal_core/social_flow/temporal_habit_miner.ex
     lib/opal_core/social_flow/temporal_habit_miner_worker.ex
     lib/opal_core/trips.ex
@@ -110,6 +132,22 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 B5: suggestion candidate shapes derived read-time from the single plan store"},
       {OpalCore.SocialFlow.Households, :open_supply_plan?, 2,
        "Repair #18 B5: open pod supply plan read from the single plan store"},
+      {OpalCore.SocialFlow.NextPlan, :for_conversation, 3,
+       "Repair #18 DIR-1: the one shared upcoming plan fact for the chats list and thread contracts"},
+      {OpalCore.SocialFlow.NextPlan, :for_peer, 3,
+       "Repair #18 DIR-1: the one shared upcoming plan fact for the call-log contract"},
+      {OpalCore.SocialFlow.Reveal, :for_viewer, 2,
+       "Repair #18 DIR-4: the one proactive reveal derivation for deck, thread, and chats list"},
+      {OpalCore.SocialFlow.Reveal, :for_conversation, 3,
+       "Repair #18 DIR-4: conversation-scoped reveal derivation"},
+      {OpalCore.GraphPeople, :intention_projection, 2,
+       "Repair #18 adoption wave 1 (ST-A): the one intention progress projection, derived from real plans with that person"},
+      {OpalCore.GraphPeople, :goal_projection, 2,
+       "Repair #18 adoption wave 1 (4.C10): the one goal status projection, derived from linked plans only"},
+      {OpalCore.GraphPeople, :holding, 1,
+       "Repair #18 adoption wave 1 (4.C1): the one holding counter set, read from the same stores the surfaces read"},
+      {OpalCore.SocialFlow.PlanHistory, :for_plan, 2,
+       "Repair #18 adoption wave 1 (ST-G): the one plan history + Who projection, from the plan's own records and JourneyAuthority"},
       {OpalCore.Center.PlanningContext, :get_for_user, 1, "center in-flight planning state"},
       {OpalCore.Center.NowStrip, :plan_events, 3,
        "Center header strip: live plan commitments in window (Repair #17 W4-6)"},
@@ -131,6 +169,46 @@ defmodule OpalCore.SocialFlow.PlanProjection do
             "SocialFlow.broadcast_plan/4 (chat track) and " <>
             "JourneyAuthority.material_change/3 (journey track)"
       }
+    ]
+  end
+
+  # ------------------------------------------------------------------
+  # Repair #18 SM scoped build - GYRO-01 kernel registry for the
+  # personal-memory capsule class, in this registry's pattern. The
+  # plan registry above governs plan tables; this is the capsule
+  # class's own read registry: the files sanctioned to query the
+  # capsule table (`memory_capsules`), and the one mediated read
+  # facade every capsule consumer must go through. The SM isolation
+  # suite scans lib/ against `capsule_read_files/0` exactly the way
+  # the plan coherence test scans against `read_files/0` - a new
+  # direct capsule reader fails until it is registered here, and
+  # registration is a founder-visible event.
+  @capsule_read_files ~w(
+    lib/opal_core/memory_wallet/capsule_read.ex
+    lib/opal_core/memory_wallet/personal_memory_capsule.ex
+    lib/opal_core/memory_wallet.ex
+    lib/opal_core/memory_wallet/wallet.ex
+    lib/opal_core/memory_wallet/memory_capsule.ex
+  )
+
+  @doc "Source files sanctioned to touch the capsule table or the capsule object (SM build)."
+  def capsule_read_files, do: @capsule_read_files
+
+  @doc """
+  The sanctioned capsule read surface. Every entry is a mediated
+  read through the ONE facade - there is no other capsule read
+  function in the product for the covered class.
+  """
+  def capsule_read_functions do
+    [
+      {OpalCore.MemoryWallet.CapsuleRead, :list_for_owner, 2,
+       "SM: the one strict mediated capsule read (owner + scope + purpose + expiry; unrecognized scope fails closed)"},
+      {OpalCore.MemoryWallet.CapsuleRead, :list_for_owner_browse, 1,
+       "SM: the owner's own Settings browse read, through the same facade"},
+      {OpalCore.MemoryWallet.CapsuleRead, :read_one, 3,
+       "SM: one capsule by id through the same mediation; foreign reads are not_found"},
+      {OpalCore.MemoryWallet.ScopedContext, :assemble, 2,
+       "SM: the one scoped-context assembly for capsules (LLM prompt + packages), built only from the facade's reads"}
     ]
   end
 

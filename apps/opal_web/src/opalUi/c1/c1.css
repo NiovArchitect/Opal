@@ -102,6 +102,17 @@
     box-shadow: var(--opal-shadow-sheet);
   }
   [data-design="r18"] .c1-composer:focus-within { border-color: var(--accent-1); }
+  /* Holding chips (harmony2): the holding answer's figures as
+   * tappable routes into their surfaces. Quiet chrome - the counts
+   * are the information; no state hue is spent here. */
+  [data-design="r18"] .c1-holding-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px 22px;
+  }
+  [data-design="r18"] .c1-holding-chip {
+    border-radius: 999px; padding: 7px 12px; cursor: pointer;
+    background: var(--accent-quiet); color: var(--ink-1);
+    border: 1px solid var(--line-2); font: var(--opal-type-label);
+  }
   [data-design="r18"] .c1-composer-input {
     flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
     color: var(--ink-1); font: var(--opal-type-body);

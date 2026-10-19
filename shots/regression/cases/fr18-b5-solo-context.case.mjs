@@ -124,7 +124,15 @@ export default {
       assert.eq("C3 (pool group)", (await mk({ title: `Crew ${ctx.tag}`, participant_user_ids: [rinId, B.session.userId, sam.session.userId, jo.session.userId] })).status, 201, "group plan created");
       assert.eq("C3 (pool virtual)", (await mk({ title: `Online ${ctx.tag}`, plan_type: "virtual" })).status, 201, "virtual plan created");
       const order1 = (await rin.get("/context/suggestion-order")).json;
-      const kinds1 = (order1.candidates || []).map((c) => c.shape);
+      // Pool scoping repair (Repair #18 apifix): Rin is the suite's
+      // shared pool account (+12025550107), and earlier cases enroll
+      // it in other open plans (B1-S5's activated journey - lawfully
+      // a pool member since activation enrolls every conversation
+      // member). The pool is real held data, so it can carry more
+      // than this case's three plans; the bias contract is asserted
+      // on the three plans this case created, identified by title.
+      const mineTitles = new Set([`Duo ${ctx.tag}`, `Crew ${ctx.tag}`, `Online ${ctx.tag}`]);
+      const kinds1 = (order1.candidates || []).filter((c) => mineTitles.has(c.title)).map((c) => c.shape);
       assert.check("C3 (pool)", JSON.stringify(kinds1.slice().sort()) === JSON.stringify(["group", "one_to_one", "virtual"]),
         `the candidate pool carries all three shapes (got ${JSON.stringify(kinds1)})`);
       assert.check("C3 (bias)", kinds1.indexOf("one_to_one") === kinds1.length - 1,
@@ -177,7 +185,8 @@ export default {
       context = (await rin.get("/context")).json.context;
       assert.check("C3 (predicate off)", context?.context_kind !== "solo", "solo context ends the moment Opal holds someone for Rin");
       const order2 = (await rin.get("/context/suggestion-order")).json;
-      const kinds2 = (order2.candidates || []).map((c) => c.shape);
+      const mineTitles2 = new Set([`Duo ${ctx.tag}`, `Crew ${ctx.tag}`, `Online ${ctx.tag}`]);
+      const kinds2 = (order2.candidates || []).filter((c) => mineTitles2.has(c.title)).map((c) => c.shape);
       assert.check("C3 (bias off)", JSON.stringify(kinds2) === JSON.stringify(["one_to_one", "group", "virtual"]),
         "ordering returns to natural once solo ends");
       await setClock(ctx, "2026-11-26T18:00:00Z");

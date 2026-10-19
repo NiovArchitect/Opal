@@ -88,7 +88,10 @@ export function FoodStepPanel(props: {
                 Join{join.host ? ` on ${join.host}` : ""}
               </button>
             ) : (
-              <span>Join link ready</span>
+              <span data-testid="join-link-missing">
+                The meeting link is not on this plan yet — ask the host to add it and Join
+                will show up here.
+              </span>
             )
           ) : (
             <p className="food-step-join-missing">

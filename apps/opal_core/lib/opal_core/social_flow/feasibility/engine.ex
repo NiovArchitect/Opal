@@ -5,7 +5,7 @@ defmodule OpalCore.SocialFlow.Feasibility.Engine do
   A time is not viable merely because a calendar slot is empty.
   """
 
-  alias OpalCore.SocialFlow.Feasibility.{LeaveBy, TimePlaceLoop, Travel}
+  alias OpalCore.SocialFlow.Feasibility.{LeaveBy, TimePlaceLoop, Travel, TravelEstimate}
   alias OpalCore.SocialFlow.OpalCalendar
   alias OpalCore.SocialFlow.OpalCalendar.ReminderDelivery
 
@@ -25,7 +25,9 @@ defmodule OpalCore.SocialFlow.Feasibility.Engine do
          %DateTime{} <- start_at do
       prior = prior_commitment_end(owner, start_at, conv)
 
-      travel_min = a["travel_minutes"] || 20
+      # F-11: a missing travel value is an ASSUMED default, labeled as
+      # such in the output — never indistinguishable from a measurement.
+      {travel_min, travel_source} = TravelEstimate.resolve(a["travel_minutes"])
 
       {:ok, travel} =
         Travel.assess(%{
@@ -52,7 +54,7 @@ defmodule OpalCore.SocialFlow.Feasibility.Engine do
 
       alternate =
         if not viable? and match?(%DateTime{}, prior) do
-          case TimePlaceLoop.suggest_adjusted_start(prior, travel_min) do
+          case TimePlaceLoop.suggest_adjusted_start(prior, a["travel_minutes"]) do
             {:ok, adj} -> adj
             _ -> nil
           end
@@ -61,7 +63,8 @@ defmodule OpalCore.SocialFlow.Feasibility.Engine do
       leave =
         case LeaveBy.for_commitment(
                %{"id" => a["commitment_id"], "start_at" => start_at, "owner_user_id" => owner},
-               travel_minutes: travel_min
+               travel_minutes: a["travel_minutes"],
+               travel_minutes_default: travel_min
              ) do
           {:ok, l} -> l
           _ -> nil
@@ -70,6 +73,9 @@ defmodule OpalCore.SocialFlow.Feasibility.Engine do
       {:ok,
        %{
          "viable" => viable?,
+         "travel_minutes" => travel_min,
+         "travel_minutes_source" => travel_source,
+         "travel_minutes_estimated" => travel_source == "assumed_default",
          "feasibility" => travel["feasibility"],
          "leave_by" => leave && leave["leave_by"],
          "leave_copy" => leave && leave["private_copy"],

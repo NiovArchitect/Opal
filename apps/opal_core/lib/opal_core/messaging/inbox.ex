@@ -209,6 +209,10 @@ defmodule OpalCore.Messaging.Inbox do
 
   defp message_notifications_enabled?(user_id) do
     case Repo.get(User, user_id) do
+      # Repair #18 / audit A2 — the Quiet master switch wins over the
+      # per-kind switches without rewriting them: while paused, nothing
+      # notifies; messages still land silently in Chats.
+      %User{notifications_paused: true} -> false
       %User{message_notifications_enabled: false} -> false
       _ -> true
     end

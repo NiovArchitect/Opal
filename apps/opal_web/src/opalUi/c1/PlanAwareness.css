@@ -1,0 +1,62 @@
+/*
+ * Repair #18 DIR-1 - plan-awareness element. Quiet chrome: the element
+ * is a calm inline line until its state color speaks (brand essence:
+ * color is meaning, spent sparingly). The state hue arrives via the
+ * --pa-state custom property, set from the ONE token source
+ * (theme/planStateColors) by PlanAwareness.tsx - no hex lives here.
+ * The entity dot takes a --person-tint-* token. Both modes: the hues
+ * are mode-invariant (L9); only the surrounding field changes.
+ */
+.plan-awareness {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 8px 2px 4px;
+  border: 1px solid var(--pa-state);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 16px;
+  color: inherit;
+  background: transparent;
+}
+.plan-awareness[data-pattern="dashed"] {
+  border-style: dashed;
+}
+.plan-awareness[data-pattern="solid-bold"] {
+  border-left-width: 3px;
+}
+.plan-awareness-entity {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line-2, rgba(128, 128, 128, 0.4));
+}
+.plan-awareness-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  font-weight: 650;
+  color: var(--pa-state);
+}
+.plan-awareness-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pa-state);
+}
+.plan-awareness-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+.plan-awareness[data-variant="strip"] {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+}

@@ -37,15 +37,28 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Durable do
 
     with :ok <- ensure_member(conversation_id, requester),
          :ok <- ensure_participants_are_members(conversation_id, input) do
+      # Repair #18 FALSE-fix F-02: every evaluation response carries
+      # explicit provenance — fixture-backed input is labeled, never
+      # presented as a real evaluation of the caller's data.
+      provenance = %{
+        "input_source" => if(use_dinner_fixture?(attrs), do: "fixture_catalog", else: "request"),
+        "fixture" => use_dinner_fixture?(attrs)
+      }
+
       case get_active_by_key(conversation_id, evaluation_key) do
         %ExperienceOpportunity{} = existing ->
-          {:ok, project_for_user(existing.id, requester), :idempotent}
+          {:ok, existing.id |> project_for_user(requester) |> Map.put("provenance", provenance),
+           :idempotent}
 
         nil ->
           if cooldown_or_suppressed?(conversation_id, input) do
-            {:ok, quiet_payload(conversation_id), :suppressed}
+            {:ok, conversation_id |> quiet_payload() |> Map.put("provenance", provenance),
+             :suppressed}
           else
-            persist_evaluation(conversation_id, requester, input, evaluation_key)
+            case persist_evaluation(conversation_id, requester, input, evaluation_key) do
+              {:ok, payload, origin} -> {:ok, Map.put(payload, "provenance", provenance), origin}
+              other -> other
+            end
           end
       end
     end
@@ -303,7 +316,12 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Durable do
         idempotency_key: Keyword.get(opts, :idempotency_key, "dsi-phase2-dinner-1")
       )
 
-    evaluate_and_persist(Map.put(scenario, :requester_user_id, requester))
+    # This path is by definition the fixture proof — opt in explicitly
+    # (F-02 made the fixture opt-in everywhere; no implicit default).
+    scenario
+    |> Map.put(:requester_user_id, requester)
+    |> Map.put(:use_dinner_fixture, true)
+    |> evaluate_and_persist()
   end
 
   # --- internals ---
@@ -646,11 +664,16 @@ defmodule OpalCore.SocialFlow.DynamicIntelligence.Durable do
     |> Map.put(:requester_user_id, attr(attrs, :requester_user_id))
   end
 
+  # F-02: fixture input is OPT-IN only. The old default (absent => true)
+  # made the product route evaluate fixture data and present it as a
+  # real evaluation. Absent or false-y now means real request input.
   defp use_dinner_fixture?(attrs) do
-    case attr(attrs, :use_dinner_fixture, true) do
-      false -> false
-      "false" -> false
-      _ -> true
+    case attr(attrs, :use_dinner_fixture, false) do
+      true -> true
+      "true" -> true
+      1 -> true
+      "1" -> true
+      _ -> false
     end
   end
 

@@ -23,7 +23,16 @@
 import { findKeys } from "../lib/harness.mjs";
 
 async function ownThread(ctx, label) {
-  const g = await ctx.h.createGroup(ctx.A, [ctx.sessions.b.userId], label);
+  // A real group needs >= 3 people: a third pool member makes the
+  // group create succeed. (The old two-person attempt 422'd
+  // group_too_small and silently fell back to the shared A-B direct
+  // thread, so every scenario in the suite shared one conversation.)
+  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const g = await ctx.h.createGroup(
+    ctx.A,
+    [ctx.sessions.b.userId, third?.session?.userId],
+    label,
+  );
   if (g.conversationId) return g.conversationId;
   const d = await ctx.h.ensureDirect(ctx.A, ctx.sessions.b.userId);
   return d.conversationId;
@@ -34,7 +43,15 @@ function leadOf(journeyJson) {
   return hits.length ? hits[0].value : null;
 }
 function roleOf(journeyJson) {
-  const hits = findKeys(journeyJson, ["viewer_role", "role", "my_role"]);
+  // The viewer's OWN role lives on the viewer projection
+  // (journey.viewer.role) - that is the field the product contracts
+  // for "your role on this plan". A bare findKeys for "role" hits
+  // the participants list first (the lead's row), which reads "lead"
+  // for every viewer and made this leg unpassable against a correct
+  // payload (Repair #18 apifix adjudication).
+  const viewer = journeyJson?.journey?.viewer || journeyJson?.viewer;
+  if (viewer && typeof viewer.role === "string") return viewer.role;
+  const hits = findKeys(journeyJson, ["viewer_role", "my_role"]);
   return hits.length ? hits[0].value : null;
 }
 
@@ -49,14 +66,29 @@ export default {
     if (!B) throw new Error("two distinct sessions required (lead + participant)");
 
     const convId = await ownThread(ctx, ctx.marker("leadership"));
-    const created = await h.createConversationPlan(A, convId, {
+    // Setup repair (Repair #18 apifix): the case used to birth the
+    // plan via POST /conversations/:id/plans, which creates a
+    // *tentative* plan. Under the product's own law GET /journeys/:id
+    // serves only journey-eligible plans (SharedPlan status agreed or
+    // changed - JourneyAuthority moduledoc) and lawfully answers 409
+    // not_journey for a tentative one (the same 409 FR-07-03 and
+    // FR-08-02 pin as correct for non-journey plans). A leadership
+    // case must therefore birth a real journey: activateJourney
+    // births the plan agreed, with the activator recorded as lead -
+    // which is also the only birth that names a lead at all. Every
+    // assertion below is unchanged.
+    const act = await h.activateJourney(A, {
+      conversation_id: convId,
       title: `Leadership ${ctx.tag}`,
-      option_label: "Dinner",
-      place: "Dinner",
+      location: "Dinner",
       time_label: "Thursday 7:30 PM",
     });
-    assert.eq("POST /conversations/:id/plans", created.status, 201, "setup plan must be created");
-    const planId = created.plan?.id;
+    assert.check(
+      "POST /journeys/activate",
+      !!act.journey?.plan_id,
+      `setup journey must activate (got ${act.status}: ${JSON.stringify(act.json).slice(0, 140)})`,
+    );
+    const planId = act.journey?.plan_id;
     const leadId = ctx.sessions.a.userId;
     const find = (list) => list.plans.find((p) => p.id === planId);
 

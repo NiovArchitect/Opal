@@ -16,7 +16,27 @@
  * empty states, never fixtures.
  */
 import type { PlanCardC2Input } from "../PlanCardC2";
-import type { OpalPlanContract } from "../../api/productClient";
+import type {
+  IntentionContract,
+  OpalPlanContract,
+  ShelfContract,
+  WorkingGoalContract,
+} from "../../api/productClient";
+
+/**
+ * Repair #18 adoption wave 1 - the graph/people cluster rides the
+ * Graphs list projection as finished server contracts (ST-A
+ * intentions, 4.C10 goals, ST-B shelf). The surface renders them
+ * verbatim; it never re-derives progress, status, or a starter's
+ * basis. `people` is the shell's own conversation peers, offered as
+ * the intention form's person choices.
+ */
+export type Adopt1Projection = {
+  people: Array<{ id: string; name: string }>;
+  intentions: IntentionContract[];
+  goals: WorkingGoalContract[];
+  shelf: ShelfContract;
+};
 
 export type C2Route = "home" | "chats" | "center" | "graphs" | "you";
 
@@ -59,6 +79,10 @@ export type StoryRailProjection = {
     seen: boolean;
     ringKind: "unseen" | "seen" | "happening";
     storyCount: number;
+    /** The story's real media (hunt-fix B-10). Absent = the cell
+     *  never opens a viewer; there is no empty stage. */
+    mediaUrl?: string | null;
+    caption?: string | null;
   }>;
   capabilities: { canPost: boolean; canStory: boolean };
 };
@@ -95,6 +119,9 @@ export type HomeProjection = {
   header: ShellHeaderProjection;
   rail: StoryRailProjection;
   feed: FeedCardProjection[];
+  /** Hunt-fix B-12: a failed feed/plans load, in plain words. The
+   *  surface renders this with a retry — never an empty feed. */
+  feedError?: string | null;
 };
 
 /** Section 8.1 - Graphs list. Groups arrive ordered and titled; the
@@ -117,6 +144,9 @@ export type GraphListProjection = {
   lensCounts: { all: number; action: number; ready: number; past: number };
   timelineAvailable: boolean;
   listError?: string | null;
+  /** Adoption wave 1 sections (intentions / goals / shelf). Absent
+   *  when the cluster did not load - the sections render nothing. */
+  adopt1?: Adopt1Projection | null;
 };
 
 /** Section 8.2 - Graph Detail. */
@@ -156,7 +186,25 @@ export type SettingsRowProjection =
   | { kind: "value"; id: string; title: string; subtitle?: string; value: string }
   | { kind: "nav"; id: string; title: string; subtitle?: string; target: string }
   | { kind: "action"; id: string; title: string; subtitle?: string }
-  | { kind: "note"; id: string; text: string };
+  | { kind: "note"; id: string; text: string }
+  /**
+   * Repair #18 DIR-2 — one Connections row, rendered VERBATIM from
+   * the server's settings/connections projection (SP-3: the surface
+   * renders the output; it never re-derives a status). `status` and
+   * `statusLabel` are the payload's own values, so DOM status equals
+   * payload status by construction.
+   */
+  | {
+      kind: "connection";
+      id: string;
+      title: string;
+      subtitle?: string;
+      status: string;
+      statusLabel: string;
+      detail: string;
+      gateReason?: string | null;
+      lastVerifiedLabel: string;
+    };
 
 export type SettingsSectionProjection = {
   key: string;

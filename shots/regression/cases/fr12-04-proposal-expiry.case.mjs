@@ -27,7 +27,18 @@
 import { allStrings, findKeys } from "../lib/harness.mjs";
 
 async function ownThread(ctx, label) {
-  const g = await ctx.h.createGroup(ctx.A, [ctx.sessions.b.userId], label);
+  // Isolation repair (Repair #18 apifix): a real group needs >= 3
+  // people, so the old two-person create 422'd group_too_small and
+  // silently fell back to the SHARED A-B direct thread - every
+  // scenario in the suite then folded over the same replayed
+  // history (and shared one spam-throttle bucket). A third pool
+  // member makes each scenario's group real and isolated.
+  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const g = await ctx.h.createGroup(
+    ctx.A,
+    [ctx.sessions.b.userId, third?.session?.userId],
+    label,
+  );
   if (g.conversationId) return g.conversationId;
   const d = await ctx.h.ensureDirect(ctx.A, ctx.sessions.b.userId);
   return d.conversationId;

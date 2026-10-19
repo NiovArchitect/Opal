@@ -42,6 +42,8 @@ defmodule OpalCore.SocialFlow.PlanTransition do
   | plan | SocialFlow.JourneyAuthority (material change) | :change |
   | plan | SocialFlow.JourneyAuthority.create_journey_plan/1 | :create_agreed |
   | plan | Trips.do_agree_trip_leg_plan/1 | :agree |
+  | plan | SocialFlow.Households.create_plan_from_context/2 | :create |
+  | plan | SocialFlow.Households.accept_supply/1 | :create |
   | proposal | SocialFlow.insert_plan_proposal/1 | :create |
   | proposal | SocialFlow.approve_coordination/1 | :approve |
   | proposal | SocialFlow.dismiss_proposal/1 | :dismiss |
@@ -52,10 +54,15 @@ defmodule OpalCore.SocialFlow.PlanTransition do
   | revision | SocialFlow.respond_to_revision/1 | :accept / :reject |
   | revision | SocialFlow.change_plan_schedule/1 (lead direct edit) | :accept_direct |
   | revision | SocialFlow.JourneyAuthority (material change) | :accept_direct |
+  | plan | FounderGraphCommitmentSeed.ensure_shared_plan!/3 (SEED ONLY, logged) | :seed_restore |
 
   F12-62 ("terminal plans are terminal") is the prototype this generalizes:
-  `cancelled` and `completed` plans have no outbound transitions, so a stale
-  accept can never resurrect them — structurally, not by one more `if`.
+  `cancelled` and `completed` plans have no outbound PRODUCT transitions, so
+  a stale accept can never resurrect them — structurally, not by one more
+  `if`. The single exception is the logged, seed-only `:seed_restore`
+  (F-10), callable only by the flag-gated founder seed for its own
+  deterministic plan; it is in the table below so the exception is
+  explicit and auditable rather than a silent rewrite at a call site.
 
   NOTE (honest): `expired` / `superseded` on PlanRevision and `completed` on
   SharedPlan are declared statuses with no current writers. They have no
@@ -102,6 +109,17 @@ defmodule OpalCore.SocialFlow.PlanTransition do
     # auto-expire), and :revive is the stated recovery path back.
     {:plan, "tentative", :expire} => "expired",
     {:plan, "expired", :revive} => "tentative",
+    # Repair #18 FALSE-fix F-10 — EXPLICIT SEED EXCEPTION, the only one in
+    # this table: the founder seed may restore ITS OWN deterministic seed
+    # plan from a terminal status back to "agreed" so the founder walk can
+    # be re-run. This is not a product transition: the sole legal caller
+    # is FounderGraphCommitmentSeed (itself behind the founder-seed flag +
+    # explicit opt-in), and that caller MUST log the restore at warning
+    # level with the plan id and prior status. No product path may use
+    # :seed_restore — a cancelled/completed user plan stays terminal for
+    # every other action, as the rows above guarantee.
+    {:plan, "cancelled", :seed_restore} => "agreed",
+    {:plan, "completed", :seed_restore} => "agreed",
     # --- proposal ---
     {:proposal, nil, :create} => "visible",
     {:proposal, "proposed", :approve} => "approved_for_coordination",

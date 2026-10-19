@@ -42,11 +42,15 @@ export type PlaceComposeResult = {
   irrelevant?: boolean;
 };
 
-const DEFAULT_FIXTURE: PlaceCandidate[] = [
-  { id: "juniper", name: "Juniper & Ivy", area: "Little Italy", quiet: true, cuisine: "italian", score: 4.6 },
-  { id: "harbor", name: "Harbor Table", area: "Waterfront", quiet: true, cuisine: "american", score: 4.7 },
-  { id: "campfire", name: "Campfire", area: "North Park", quiet: false, cuisine: "american", score: 4.2 },
-];
+/**
+ * Repair #18 hunt-fix B-06: there is NO fixture fallback. The previous
+ * DEFAULT_FIXTURE (Juniper & Ivy / Harbor Table / Campfire with
+ * invented scores) was composed whenever the server returned nothing —
+ * failure painted as options, with provenance only in a DOM data
+ * attribute. Empty candidates now compose to an empty result, and
+ * surfaces render an honest no-options state.
+ */
+const DEFAULT_FIXTURE: PlaceCandidate[] = [];
 
 /**
  * Pass 15 continuity: accept provider-backed candidates into existing Curate ranking.

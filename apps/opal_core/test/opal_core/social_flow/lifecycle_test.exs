@@ -271,6 +271,18 @@ defmodule OpalCore.SocialFlow.LifecycleTest do
                trace_id: "trace-sf-fail-safe-ai-01"
              })
 
+    # HA-09 (Repair #18 hunt-fix): :unavailable is retryable and the
+    # worker declares max_attempts 3, so attempt 1 now re-queues
+    # honestly instead of failing terminally on first sight (the old
+    # assertion pinned the discarded-retry behavior). Spend the
+    # declared attempts, then the failure is terminal — and the
+    # existing plan is still uncorrupted.
+    assert job.status == "queued"
+
+    assert {:error, {:retryable_failure, _}} =
+             AI.process_job(job, oban_attempt: 2, oban_max_attempts: 3)
+
+    assert {:ok, job} = AI.process_job(job, oban_attempt: 3, oban_max_attempts: 3)
     assert job.status == "failed"
     {:ok, still} = SocialFlow.get_plan_for_user(plan.id, alex)
     assert still.id == plan.id

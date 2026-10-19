@@ -60,6 +60,30 @@ defmodule OpalCoreWeb.TripApiTest do
 
   defp auth(conn, token), do: put_req_header(conn, "authorization", "Bearer #{token}")
 
+  # Repair #18 FALSE-fix F-12: the Mexico City canvas seed is a fixture
+  # path, not a product action — with the founder-seed flag off it 403s.
+  test "seed_mexico_city_canvas refuses 403 when the seed flag is off", %{conn: conn} do
+    {token_a, _} = activate(conn, @alex, "Seed Gate", "trip_seed_gate")
+
+    previous = Application.get_env(:opal_core, :allow_founder_communication_seed)
+    Application.put_env(:opal_core, :allow_founder_communication_seed, false)
+
+    on_exit(fn ->
+      if is_nil(previous) do
+        Application.delete_env(:opal_core, :allow_founder_communication_seed)
+      else
+        Application.put_env(:opal_core, :allow_founder_communication_seed, previous)
+      end
+    end)
+
+    conn =
+      build_conn()
+      |> auth(token_a)
+      |> post("/api/v1/product/trips/#{Ecto.UUID.generate()}/seed_mexico_city_canvas", %{})
+
+    assert json_response(conn, 403)["error_code"] == "founder_seed_disabled"
+  end
+
   test "full CRUD + auth scoping + leg reorder + link-plan", %{conn: conn} do
     {token_a, user_a} = activate(conn, @alex, "Trip A", "trip_walk_a")
     {token_b, user_b} = activate(build_conn(), @jordan, "Trip B", "trip_walk_b")

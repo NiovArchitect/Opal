@@ -1,17 +1,21 @@
 defmodule OpalCore.Bookings.OpenTable do
   @moduledoc """
-  OpenTable restaurant adapter.
+  OpenTable restaurant adapter — HONESTLY ABSENT as a search provider.
 
-  Gates on `OPENTABLE_API_KEY` for informational partner search. Without the
-  key every callback returns `{:disabled, "OPENTABLE_API_KEY missing"}`.
+  Repair #18 FALSE-fix F-01: there is no wired OpenTable partner search
+  call in this codebase. The previous `search/2`, when a key was present,
+  performed NO HTTP request and returned the caller's own query string
+  echoed back as a result row — a result-shaped fabrication. That behavior
+  is deleted: `search/2` now returns `{:disabled, reason}` whether or not
+  `OPENTABLE_API_KEY` is provisioned, so provisioning a key can never arm
+  the echo. Search stays disabled until a real partner call exists.
 
-  OpenTable has no simple self-serve booking API for most partners — search-only
-  plus **call to book** is the honest path. Even with a key, `book/2` refuses to
-  invent a reservation confirmation.
-
-  Paste G Phase 6: when a `place_id` is present, enriches call-to-book with a
-  **real phone** from `OpalCore.Places.get_details/1` + draft SMS/call script.
-  Never fabricates phone numbers or reservation confirmations.
+  OpenTable has no simple self-serve booking API for most partners, so
+  `book/2` / `cancel/1` also refuse — **call to book** is the honest path.
+  `build_call_to_book/4` remains as an honest helper: when a `place_id`
+  is present it enriches the draft with a **real phone** from
+  `OpalCore.Places.get_details/1`; it never fabricates phone numbers or
+  reservation confirmations.
   """
 
   @behaviour OpalCore.Bookings.Provider
@@ -20,30 +24,18 @@ defmodule OpalCore.Bookings.OpenTable do
 
   @impl true
   def search(params, opts \\ []) when is_map(params) do
-    with {:ok, _key} <- api_key(opts) do
-      query = params["query"] || params[:query] || params["place"] || params[:place] || "restaurant"
-      party = params["party_size"] || params[:party_size] || 2
-      when_label = params["when"] || params[:when] || params["time"] || params[:time]
-      place_id = params["place_id"] || params[:place_id]
+    # F-01: no partner search call exists, so search is disabled in BOTH
+    # key states. It must be impossible for a provisioned key to produce
+    # a result row — the old keyed branch echoed the query as the result.
+    _ = params
 
-      call_to_book = build_call_to_book(query, party, when_label, place_id)
+    case api_key(opts) do
+      {:disabled, _} = dis ->
+        dis
 
-      {:ok,
-       [
-         Map.merge(
-           %{
-             "provider" => "opentable",
-             "name" => to_string(query),
-             "party_size" => party,
-             "when" => when_label,
-             "place_id" => place_id,
-             "bookable" => false,
-             "call_to_book" => true,
-             "message" => "OpenTable search is informational — call the restaurant to book."
-           },
-           call_to_book
-         )
-       ]}
+      {:ok, _} ->
+        {:disabled,
+         "OpenTable search is not connected — no partner search API is wired; call the restaurant to book"}
     end
   end
 

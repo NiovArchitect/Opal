@@ -115,7 +115,13 @@ defmodule OpalCore.OpalIntent do
 
   # --- classifiers ------------------------------------------------------------
 
-  @affirmations ~r/^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|all\s+right|please|do\s+it|go\s+ahead|sounds\s+good|let'?s\s+do\s+it)\s*[.!?]?\s*$/i
+  # Repair #18 (apifix, FR-17-05 / FR-18-B2): "yes, set it up" and a
+  # bare "set it up" are affirmations of the pending ask - the setup
+  # instruction the ask itself invites ("Want me to set this up?").
+  # The anchored full-string shape is unchanged otherwise: an
+  # affirmation still binds ONLY through pending_plan_create/1, so a
+  # consumed or absent ask leaves these words inert (FR-17-04).
+  @affirmations ~r/^\s*(?:(yes|yeah|yep|yup|sure|ok|okay|alright|all\s+right|please|do\s+it|go\s+ahead|sounds\s+good|let'?s\s+do\s+it)(?:\s*[,!]?\s+set\s+it\s+up)?|set\s+it\s+up)\s*[.!?]?\s*$/i
 
   defp try_plan_confirm(%{original: original} = norm, context) do
     pasted = OpalCore.SocialFlow.MeetingLinks.extract_from_text(original)
@@ -252,12 +258,32 @@ defmodule OpalCore.OpalIntent do
     plan_type = ents[:plan_type] || ents["plan_type"]
     meeting_link = ents[:meeting_link] || ents["meeting_link"]
     use_usual = ents[:use_usual_meeting_link] || ents["use_usual_meeting_link"]
+    # Repair #18 fix wave (RF-3) — the explicit clock + venue parsed at
+    # proposal time ride the pending ask into the confirm, so the plan
+    # record created on "yes" carries them too.
+    when_time = ents[:when_time] || ents["when_time"]
+    venue = ents[:venue] || ents["venue"]
+    venue_locality = ents[:venue_locality] || ents["venue_locality"]
+
+    # Repair #18 (apifix, FR-18-B2): the food-at-home signal parsed at
+    # proposal time rides the pending ask too - the whitelist used to
+    # drop it, so every confirm-born at-home plan lost its explicit
+    # food signal and the completion projection could only fall back
+    # to title shape ("suggested" for a dinner, nothing at all for a
+    # solo movie night whose title carries no meal word).
+    food_at_home = ents[:food_at_home] || ents["food_at_home"]
+    food_question = ents[:food_question] || ents["food_question"]
 
     if is_binary(what) and what != "" do
       %{what: what, when: when_s, who: who}
       |> maybe_put(:plan_type, plan_type)
       |> maybe_put(:meeting_link, meeting_link)
       |> maybe_put(:use_usual_meeting_link, use_usual)
+      |> maybe_put(:when_time, when_time)
+      |> maybe_put(:venue, venue)
+      |> maybe_put(:venue_locality, venue_locality)
+      |> maybe_put(:food_at_home, food_at_home)
+      |> maybe_put(:food_question, food_question)
     else
       # Recover from the prior Opal ask body when entities were thin.
       recover_entities_from_ask(body)
@@ -272,8 +298,13 @@ defmodule OpalCore.OpalIntent do
 
   defp recover_entities_from_ask(body) when is_binary(body) do
     # "Got it — dinner Friday with Maya. Want me to set this up?"
+    # Repair #18 (apifix, FR-17-05): the response layer also emits the
+    # colon form ("Got it: dinner tonight at 5 PM with Chanelle. Want
+    # me to set this up?") - the recovery must accept the shapes the
+    # product actually sends, or a thin-entities ask can never be
+    # confirmed.
     case Regex.run(
-           ~r/Got it\s*[—-]\s*(.+?)(?:\.|\s+Want me to set this up)/i,
+           ~r/Got it\s*[—\-:]\s*(.+?)(?:\.|\s+Want me to set this up)/i,
            body
          ) do
       [_, middle] ->
@@ -283,7 +314,12 @@ defmodule OpalCore.OpalIntent do
         what = strip_when_who(middle, when_s, who)
 
         if is_binary(what) and what != "" do
+          # RF-3 — the ask body now quotes the explicit clock back
+          # ("... Sunday at 10 AM"); recover it as when_time too.
+          temporal = OpalCore.Center.PlanContextPatch.extract_explicit_temporal(middle)
+
           %{what: what, when: when_s, who: who}
+          |> maybe_put(:when_time, temporal[:when_time] || temporal["when_time"])
         else
           nil
         end
@@ -453,6 +489,36 @@ defmodule OpalCore.OpalIntent do
                 else: x
             end)
           end)
+          |> then(fn e ->
+            # Repair #18 fix wave (RF-3) — an explicit clock time and a
+            # named venue in the utterance are part of the plan being
+            # proposed: they ride the intent entities so the
+            # confirmation the user reads (and the plan record a later
+            # confirm creates) carries them, instead of the day-only
+            # `when` surviving alone ("Got it: brunch Sunday" for
+            # "brunch at The Henry in Coronado on Sunday at 10 AM").
+            temporal = OpalCore.Center.PlanContextPatch.extract_explicit_temporal(norm.original)
+            venue = OpalCore.Center.PlanContextPatch.extract_exact_venue(norm.original)
+
+            e
+            |> then(fn x ->
+              if is_binary(temporal[:when_time] || temporal["when_time"]),
+                do: Map.put(x, :when_time, temporal[:when_time] || temporal["when_time"]),
+                else: x
+            end)
+            |> then(fn x ->
+              if match?(%{name: n} when is_binary(n) and n != "", venue),
+                do:
+                  x
+                  |> Map.put(:venue, venue.name)
+                  |> then(fn y ->
+                    if is_binary(venue.locality) and venue.locality != "",
+                      do: Map.put(y, :venue_locality, venue.locality),
+                      else: y
+                  end),
+                else: x
+            end)
+          end)
 
         conf =
           cond do
@@ -470,6 +536,10 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp virtual_meeting?(norm) do
+    # B1: an activity word carrying a virtual marker - "video
+    # dinner", "online game night", "virtual coffee".
+    # Repair #18 (B2) \u2014 at-home markers: "dinner at home" names a
+    # plan whose place is the room, not a venue (same virtual class).
     match_phrase?(norm, ~r/\bzoom\b/i) or
       match_phrase?(norm, ~r/\bgoogle\s*meet\b/i) or
       match_phrase?(norm, ~r/\b(ms\s+)?teams\b/i) or
@@ -477,14 +547,10 @@ defmodule OpalCore.OpalIntent do
       match_phrase?(norm, ~r/\bvideo\s+call\b/i) or
       match_phrase?(norm, ~r/\bvirtual\s+(meeting|call|hangout)\b/i) or
       match_phrase?(norm, ~r/\bonline\s+(meeting|call)\b/i) or
-      # B1: an activity word carrying a virtual marker - "video
-      # dinner", "online game night", "virtual coffee".
       match_phrase?(
         norm,
         ~r/\b(?:video|online|virtual)\s+(?:dinner|lunch|breakfast|brunch|coffee|game|hangout|date|watch|movie|book|class|lesson|workout|drinks?)\b/i
       ) or
-      # Repair #18 (B2) \u2014 at-home markers: "dinner at home" names a
-      # plan whose place is the room, not a venue (same virtual class).
       at_home_virtual?(norm)
   end
 
@@ -724,7 +790,8 @@ defmodule OpalCore.OpalIntent do
   end
 
   # "Where is Maya" asks about a person, not a venue — leave it for chat.
-  defp venue_question_is_person?(name, known_names) when is_binary(name) and is_list(known_names) do
+  defp venue_question_is_person?(name, known_names)
+       when is_binary(name) and is_list(known_names) do
     bare =
       name |> String.replace(~r/^(?:the\s+)/i, "") |> String.trim() |> String.downcase()
 
@@ -794,12 +861,12 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp try_recommend(norm, names) do
+    # Repair #4 — founder Center phrasing
     hit? =
       match_phrase?(norm, ~r/\b(suggest|recommend)\b/i) or
         match_phrase?(norm, ~r/\bwhere\s+should\b/i) or
         match_phrase?(norm, ~r/\bwhat\s+should\b/i) or
         match_phrase?(norm, ~r/\bideas?\s+for\b/i) or
-        # Repair #4 — founder Center phrasing
         match_phrase?(norm, ~r/\bfind\s+(something|somewhere|a\s+place)\b/i) or
         match_phrase?(norm, ~r/\bnearby\b/i)
 
@@ -890,6 +957,7 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp try_check_status(norm, _names) do
+    # Repair #4 — calendar/people status phrasing
     hit? =
       match_phrase?(norm, ~r/\bwhat's\b/i) or
         match_phrase?(norm, ~r/\bwhats\b/i) or
@@ -898,7 +966,6 @@ defmodule OpalCore.OpalIntent do
         match_phrase?(norm, ~r/\bstatus\b/i) or
         match_phrase?(norm, ~r/\bupcoming\b/i) or
         match_phrase?(norm, ~r/\bcoming\s+up\b/i) or
-        # Repair #4 — calendar/people status phrasing
         match_phrase?(norm, ~r/\bwho\s+am\s+i\s+seeing\b/i) or
         match_phrase?(norm, ~r/\bwhat'?s\s+next\b/i)
 
@@ -957,6 +1024,16 @@ defmodule OpalCore.OpalIntent do
   defp extract_what(norm, trigger_re) do
     after_trigger = capture_after(norm, trigger_re)
 
+    # Repair #18 (apifix, FR-17-05): a leading article belongs to the
+    # noun phrase ("Schedule a date night..." -> what "date night").
+    # The clause-cut below treats a standalone "a" as an ender, so an
+    # article-led phrase was annihilated to nil - the ask then quoted
+    # "something" back and, with no `what` on the pending entities,
+    # the founder's confirm could not bind. Strip ONE leading article
+    # before the cut.
+    after_trigger =
+      String.replace(after_trigger, ~r/^\s*(?:a|an|the)\s+(?=\S)/i, "")
+
     after_trigger
     # Seed handoff may append "— yes, plan something"; keep first clause only.
     |> String.split(~r/[?—–]/u)
@@ -986,12 +1063,20 @@ defmodule OpalCore.OpalIntent do
       m = Regex.run(~r/\bthis\s+weekend\b/i, original) ->
         hd(m)
 
-      m = Regex.run(~r/\b(?:on\s+)?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/i, original) ->
+      m =
+          Regex.run(
+            ~r/\b(?:on\s+)?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/i,
+            original
+          ) ->
         # Prefer bare weekday token
         Enum.find(m, &(&1 =~ ~r/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/i)) ||
           hd(m)
 
-      m = Regex.run(~r/\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)\b/i, original) ->
+      m =
+          Regex.run(
+            ~r/\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)\b/i,
+            original
+          ) ->
         hd(m)
 
       Enum.any?(@weekdays, &String.contains?(lower, &1)) ->
@@ -1148,17 +1233,29 @@ defmodule OpalCore.OpalIntent do
 
       m = Regex.run(~r/\blast\s+(\w+)/i, original) ->
         Enum.at(m, 1)
-      true -> nil
+
+      true ->
+        nil
     end
   end
 
   defp extract_recommend_category(%{original: original, lower: lower}) do
     cond do
-      String.contains?(lower, "restaurant") -> "restaurant"
-      String.contains?(lower, "cafe") or String.contains?(lower, "coffee") -> "coffee"
-      String.contains?(lower, "bar") or String.contains?(lower, "drinks") -> "drinks"
-      String.contains?(lower, "activity") or String.contains?(lower, "thing to do") -> "activity"
-      String.contains?(lower, "place") -> "place"
+      String.contains?(lower, "restaurant") ->
+        "restaurant"
+
+      String.contains?(lower, "cafe") or String.contains?(lower, "coffee") ->
+        "coffee"
+
+      String.contains?(lower, "bar") or String.contains?(lower, "drinks") ->
+        "drinks"
+
+      String.contains?(lower, "activity") or String.contains?(lower, "thing to do") ->
+        "activity"
+
+      String.contains?(lower, "place") ->
+        "place"
+
       m = Regex.run(~r/\b(?:suggest|recommend)\s+(?:a|an|some)?\s*([a-z]+)/i, original) ->
         word = Enum.at(m, 1) |> String.downcase()
 
@@ -1286,5 +1383,4 @@ defmodule OpalCore.OpalIntent do
   end
 
   defp try_oracle(_), do: nil
-
 end

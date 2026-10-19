@@ -1,0 +1,101 @@
+{
+  "build_tag": "firstlook-3b34052c",
+  "web": "http://127.0.0.1:15174",
+  "api": "http://127.0.0.1:14100",
+  "surfaces": [
+    {
+      "label": "center-rest",
+      "mode": "dark",
+      "failures": [
+        "clipped text: [\"tomorrow after 10 PM\"]"
+      ],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 1,
+      "truncatedNotes": []
+    },
+    {
+      "label": "home",
+      "mode": "dark",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": []
+    },
+    {
+      "label": "center-chat",
+      "mode": "dark",
+      "failures": [],
+      "hostPresent": 1
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": [
+        "Jordan Saturday Graph",
+        "Perfect. I'll grab a table."
+      ]
+    },
+    {
+      "label": "thread",
+      "mode": "dark",
+      "failures": [],
+      "threadTestids": [
+        "thread-shell",
+        "thread-header-name"
+      ]
+    },
+    {
+      "label": "center-rest",
+      "mode": "light",
+      "failures": [
+        "clipped text: [\"tomorrow after 10 PM\"]"
+      ],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 1,
+      "truncatedNotes": []
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": []
+    },
+    {
+      "label": "center-chat",
+      "mode": "light",
+      "failures": [],
+      "hostPresent": 1
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "failures": [],
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "truncatedNotes": [
+        "Jordan Saturday Graph",
+        "Perfect. I'll grab a table."
+      ]
+    },
+    {
+      "label": "thread",
+      "mode": "light",
+      "failures": [],
+      "threadTestids": [
+        "thread-shell",
+        "thread-header-name"
+      ]
+    }
+  ]
+}

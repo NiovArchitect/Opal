@@ -26,12 +26,31 @@ type Props = {
   onOpenSummary?: (sweepId: string) => void;
 };
 
+/**
+ * Hunt-fix B-18: the cooldown instant is finished HERE, in human
+ * words — the raw ISO string from the API never reaches the screen.
+ * An unparseable value renders no line at all, never the raw text.
+ */
+export function cooldownLabel(nextAllowed: string | null): string | null {
+  if (!nextAllowed) return null;
+  const when = new Date(nextAllowed);
+  if (Number.isNaN(when.getTime())) return null;
+  const formatted = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(when);
+  return `Next check-in available ${formatted}`;
+}
+
 export function CheckinCircleRow({ source, bearer, onOpenSummary }: Props) {
   const [checkin, setCheckin] = useState<CheckinOrganizerSummary | null>(null);
   const [suggestion, setSuggestion] = useState<CheckinSuggestion | null>(null);
   const [nextAllowed, setNextAllowed] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const keyRef = useRef<string>("");
 
   const sourceKey = `${source.source_kind}:${source.source_ref_id || ""}:${JSON.stringify(source.source_filter || {})}`;
@@ -68,6 +87,7 @@ export function CheckinCircleRow({ source, bearer, onOpenSummary }: Props) {
   const onCreate = async () => {
     if (busy || cooldownActive) return;
     setBusy(true);
+    setCreateError(null);
     try {
       const res = await createCheckin(
         source,
@@ -77,8 +97,10 @@ export function CheckinCircleRow({ source, bearer, onOpenSummary }: Props) {
       setCheckin(res.checkin);
       onOpenSummary?.(res.checkin.sweep.id);
     } catch {
-      // Server refusals (quiet window, too large) re-render on the
-      // next load; the row never invents its own state.
+      // Hunt-fix B-18: a refused or failed create is a plain line
+      // with the retry the button already offers — never a silent
+      // reload that reads as a button that does nothing.
+      setCreateError("That check-in didn't start. Check your connection and try again.");
       await load();
     } finally {
       setBusy(false);
@@ -134,9 +156,15 @@ export function CheckinCircleRow({ source, bearer, onOpenSummary }: Props) {
         </button>
       ) : null}
 
-      {cooldownActive ? (
+      {cooldownActive && cooldownLabel(nextAllowed) ? (
         <p className="checkin-circle-cooldown" data-testid="checkin-circle-cooldown">
-          Next check-in available after {nextAllowed}
+          {cooldownLabel(nextAllowed)}
+        </p>
+      ) : null}
+
+      {createError ? (
+        <p className="checkin-circle-error" data-testid="checkin-circle-error" role="alert">
+          {createError}
         </p>
       ) : null}
     </div>

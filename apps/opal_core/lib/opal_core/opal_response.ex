@@ -327,7 +327,12 @@ defmodule OpalCore.OpalResponse do
 
   defp render_plan_create(entities, context) do
     what = sanitize_consumer_what(entity(entities, :what)) || "something"
-    when_s = entity(entities, :when) || "soon"
+    # Repair #18 fix wave (RF-3) — the confirmation quotes the plan as
+    # parsed: the explicit clock time and the named venue ride along
+    # with the day, never dropped ("Got it: brunch Sunday" for a
+    # 10 AM brunch at The Henry was the founder-visible defect).
+    when_s = display_when(entity(entities, :when), entity(entities, :when_time)) || "soon"
+    venue_bit = venue_bit(entities)
     who = entity(entities, :who)
     with_who = format_with_who(who)
     plan_type = entity(entities, :plan_type)
@@ -352,13 +357,14 @@ defmodule OpalCore.OpalResponse do
       # Avoid "dinner Friday Friday" when what already carries the day.
       what_s = to_string(what || "")
       when_part = to_string(when_s || "")
+      what_bit = if what_s == "", do: "", else: what_s <> venue_bit
 
       lead_core =
         cond do
-          when_part == "" -> what_s
-          what_s == "" -> when_part
-          String.ends_with?(String.downcase(what_s), String.downcase(when_part)) -> what_s
-          true -> "#{what_s} #{when_part}"
+          when_part == "" -> what_bit
+          what_bit == "" -> when_part
+          String.ends_with?(String.downcase(what_bit), String.downcase(when_part)) -> what_bit
+          true -> "#{what_bit} #{when_part}"
         end
 
       lead = "Got it: #{lead_core}#{with_who}."
@@ -374,7 +380,7 @@ defmodule OpalCore.OpalResponse do
               # never looped in without the owner's say-so.
               "Got it — I'll plan the birthday#{with_who} here with you. It stays between us. I won't loop anyone in unless you say so."
             else
-              "Got it — I'll start planning #{what}#{with_who}."
+              "Got it — I'll start planning #{lead_core}#{with_who}."
             end
 
           [start]
@@ -388,6 +394,63 @@ defmodule OpalCore.OpalResponse do
         end
 
       Enum.join(parts, " ")
+    end
+  end
+
+  # RF-3 — compose the day + explicit clock the user actually said
+  # ("Sunday" + "10 AM" -> "Sunday at 10 AM"). The clock is appended
+  # only when the day string does not already carry it, so a stored
+  # combined label never doubles ("Sunday 10 AM at 10 AM").
+  defp display_when(when_s, when_time) do
+    day = if is_binary(when_s), do: String.trim(when_s), else: nil
+    clock = if is_binary(when_time), do: String.trim(when_time), else: nil
+
+    cond do
+      is_binary(day) and day != "" and is_binary(clock) and clock != "" ->
+        if String.contains?(String.downcase(day), String.downcase(clock)),
+          do: day,
+          else: "#{day} at #{clock}"
+
+      is_binary(day) and day != "" ->
+        day
+
+      is_binary(clock) and clock != "" ->
+        clock
+
+      true ->
+        nil
+    end
+  end
+
+  # RF-3 — the " at <Venue> in <Locality>" fragment for confirmation
+  # copy, from the venue parsed out of the user's own utterance (or
+  # the planning context's exact-venue slots). Empty when the turn
+  # named no venue — nothing is ever invented to fill it.
+  defp venue_bit(entities) do
+    venue =
+      entity(entities, :venue) || entity(entities, :requested_venue_name)
+
+    # The bare :destination slot is a search geography for many flows;
+    # it only names THIS venue's locality when the exact-venue slots
+    # carried the venue (the patch stamps both together).
+    locality =
+      entity(entities, :venue_locality) || entity(entities, :requested_venue_locality) ||
+        if(is_binary(entity(entities, :requested_venue_name)),
+          do: entity(entities, :destination),
+          else: nil
+        )
+
+    cond do
+      is_binary(venue) and venue != "" and is_binary(locality) and locality != "" ->
+        if String.contains?(String.downcase(venue), String.downcase(locality)),
+          do: " at #{venue}",
+          else: " at #{venue} in #{locality}"
+
+      is_binary(venue) and venue != "" ->
+        " at #{venue}"
+
+      true ->
+        ""
     end
   end
 
@@ -444,7 +507,11 @@ defmodule OpalCore.OpalResponse do
   defp render_plan_confirm(entities, _context) do
     confirmed? = entity(entities, :confirmed) != false
     what = entity(entities, :what) || "that plan"
-    when_s = entity(entities, :when)
+    # RF-3 — the Done copy quotes the confirmed plan record's own
+    # facts: combined day + explicit clock, and the venue when the
+    # plan carries one.
+    when_s = display_when(entity(entities, :when), entity(entities, :when_time))
+    venue_bit = venue_bit(entities)
     who = entity(entities, :who)
     with_who = format_with_who(who)
     when_bit = if is_binary(when_s) and when_s != "", do: " #{when_s}", else: ""
@@ -464,7 +531,7 @@ defmodule OpalCore.OpalResponse do
 
       true ->
         # Honest success: plan is durable on Graph. Booking/outbound stay gated.
-        "Done. #{what}#{when_bit}#{with_who} is set up. It's on your Graph."
+        "Done. #{what}#{venue_bit}#{when_bit}#{with_who} is set up. It's on your Graph."
     end
   end
 
@@ -1283,7 +1350,15 @@ defmodule OpalCore.OpalResponse do
       # must not hijack a direct question. A question-shaped turn (has "?" or
       # opens with a question word) gets a real answer attempt, never the
       # sticky nudge.
-      is_binary(recent_who) and recent_who != "" and not question_shaped?(lower) ->
+      # Repair #18 fix wave (RF-2) — nor may it hijack an ANSWER. The
+      # nudge scans conversation history for a mentioned name; an
+      # answer-shaped turn (a bare category choice, or a short reply
+      # to a question Opal just asked) is mid-flow by definition, and
+      # reviving a stale entity over it was the F17-08 hijack. The
+      # orchestrator consumes registered answers upstream; this guard
+      # is the emitter-side law for every path that still lands here.
+      is_binary(recent_who) and recent_who != "" and not question_shaped?(lower) and
+          not answer_shaped?(lower, context) ->
         "You mentioned #{recent_who} earlier — want to keep going on that, or something new?"
 
       String.length(String.trim(raw)) <= 2 ->
@@ -1342,6 +1417,40 @@ defmodule OpalCore.OpalResponse do
   end
 
   defp question_shaped?(_), do: false
+
+  # RF-2 — an answer-shaped turn: a bare category choice, or a short
+  # reply while Opal's immediately preceding turn asked a question.
+  # Deliberately narrow: an idle non-question turn ("just thinking")
+  # is neither, and the sticky nudge still serves it (W4-4c).
+  defp answer_shaped?(lower, context) when is_binary(lower) do
+    bare_category?(lower) or short_reply_to_opal_question?(lower, context)
+  end
+
+  defp answer_shaped?(_, _), do: false
+
+  defp bare_category?(lower) do
+    Regex.match?(~r/^\s*(food|outdoors?|nightlife|dinner|drinks?)\s*[.!]?\s*$/i, lower)
+  end
+
+  defp short_reply_to_opal_question?(lower, context) do
+    history = get_in_ctx(context, [:conversation_history]) || []
+
+    last_opal =
+      history
+      |> Enum.reverse()
+      |> Enum.find(fn turn ->
+        (turn[:role] || turn["role"]) in ["opal", :opal]
+      end)
+
+    body =
+      case last_opal do
+        %{} = turn -> turn[:body] || turn["body"] || ""
+        _ -> ""
+      end
+
+    String.contains?(body, "?") and
+      lower |> String.split(~r/\s+/, trim: true) |> length() <= 6
+  end
 
   # Repair #13 (W4-6) — "remind me to <task>" is a reminder request. Center
   # has no reminder execution path; this predicate routes it to the honest
