@@ -46,7 +46,7 @@ describe("opalCenterVoice", () => {
     expect(MIC_BLOCKED_COPY).toMatch(/Settings/);
     expect(VOICE_OFFLINE_COPY).toMatch(/internet/i);
     expect(STT_FAIL_COPY).toMatch(/didn't catch/i);
-    expect(LISTENING_COPY).toBe("Listening…");
+    expect(LISTENING_COPY).toBe("Voice input is on…");
     expect(MAX_TTS_MS).toBe(30_000);
   });
 

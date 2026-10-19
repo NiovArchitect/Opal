@@ -263,8 +263,8 @@ describe("DIR-4 enter/exit pairs (L8, unit level)", () => {
       comingUp: [],
       forming: [
         formingCard("f1", "Juniper & Ivy"),
-        formingCard("f2", "RevPlan macreplay1"),
-        formingCard("f3", "Expiry macreplay1"),
+        formingCard("f2", "Dinner at Campfire"),
+        formingCard("f3", "Sunday brunch at Herb & Wood"),
       ],
       reveals: [item({})],
     };

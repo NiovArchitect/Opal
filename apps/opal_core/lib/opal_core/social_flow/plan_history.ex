@@ -362,7 +362,63 @@ defmodule OpalCore.SocialFlow.PlanHistory do
         "response_state" => state,
         "response_label" => response_label(state)
       }
+      |> Map.merge(location_fields(plan, row["user_id"]))
     end)
+  end
+
+  # R19 W7 - where they are, from the per-plan sharing backbone ONLY
+  # (PlanLocationShare: the joiner's own opt-in for THIS plan). No
+  # fresh share row -> "not_sharing" and NO distance, ever. A fresh
+  # share + the plan place's own coordinates -> a measured coarse
+  # distance (DeviceLocation.distance_label, the one distance
+  # function; basis named "measured" because both endpoints are real
+  # recorded coords, coarse at ~110 m). A fresh share without place
+  # coordinates -> sharing, distance honestly unavailable with the
+  # reason in the finished label.
+  defp location_fields(%SharedPlan{} = plan, user_id) when is_binary(user_id) do
+    case OpalCore.SocialFlow.PlanLocationShare.fresh_for(plan.id, user_id) do
+      %OpalCore.SocialFlow.PlanLocationShare{} = share ->
+        distance =
+          if is_number(plan.place_lat) and is_number(plan.place_lon) do
+            OpalCore.Center.DeviceLocation.distance_label(
+              share.lat,
+              share.lon,
+              plan.place_lat,
+              plan.place_lon
+            )
+          end
+
+        label =
+          if distance do
+            "Sharing location - #{distance} from the place (measured from the location they shared for this plan)"
+          else
+            "Sharing location - distance unavailable: this plan's place has no coordinates yet"
+          end
+
+        %{
+          "location_state" => "sharing",
+          "location_label" => label,
+          "distance_label" => distance,
+          "distance_basis" => if(distance, do: "measured", else: nil)
+        }
+
+      _ ->
+        %{
+          "location_state" => "not_sharing",
+          "location_label" => "Not sharing location",
+          "distance_label" => nil,
+          "distance_basis" => nil
+        }
+    end
+  end
+
+  defp location_fields(_, _) do
+    %{
+      "location_state" => "not_sharing",
+      "location_label" => "Not sharing location",
+      "distance_label" => nil,
+      "distance_basis" => nil
+    }
   end
 
   defp response_label("accepted"), do: "Going"

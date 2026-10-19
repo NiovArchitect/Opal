@@ -306,11 +306,18 @@ defmodule OpalCore.Repair18PatternEnforcementTest do
     test "stable seed peer UUIDs appear only in the seed modules (lib + priv seeds)" do
       files = @lib_files ++ ["priv/repo/seeds.exs"]
 
+      # Repair #19 (W1): the human seed world (registered above for
+      # FIX-10b) carries two NEW stable peer ids in the same family
+      # (Priya Shah / Marcus Lee). It is seed-gated by inheritance —
+      # callable only from the graph commitment seed's gated ensure!/2 —
+      # so it is a lawful holder of seed peer ids, named here visibly.
+      uuid_holders = @seed_module_files ++ ["lib/opal_core/social_flow/human_seed_world.ex"]
+
       offenders =
         for file <- files,
             File.exists?(file),
             String.contains?(source(file), @seed_peer_uuid_prefix),
-            file not in @seed_module_files do
+            file not in uuid_holders do
           file
         end
 
@@ -354,6 +361,13 @@ defmodule OpalCore.Repair18PatternEnforcementTest do
         "lib/opal_core/social_flow/discovery.ex",
         "lib/opal_core/social_flow/founder_communication_seed.ex",
         "lib/opal_core/social_flow/founder_graph_commitment_seed.ex",
+        # Repair #19 (W1): the human seed world writes plan/participant
+        # rows for the founder review world. Registered visibly per
+        # FIX-10b in the commit that introduced it; it is callable ONLY
+        # from the graph commitment seed's gated ensure!/2 (it defines
+        # no gate of its own and has no other caller), so the MP-2 cage
+        # is inherited, not widened.
+        "lib/opal_core/social_flow/human_seed_world.ex",
         "lib/opal_core/social_flow/households.ex",
         "lib/opal_core/social_flow/journey_authority.ex",
         "lib/opal_core/social_flow/live_experience.ex",

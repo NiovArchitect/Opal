@@ -9,8 +9,9 @@
  *      NO memory group ever (dependency not built).
  *  ST-H voice-note composer: record shows a visibly active state,
  *      review plays the recording, send goes through the real client.
- *  ST-I Listen: provider off -> control absent from the DOM; provider
- *      on -> the exact displayed string is handed to the provider;
+ *  ST-I Read aloud (re-homed R19 W6; formerly the "Listen" rail):
+ *      provider off -> control absent from the DOM; provider on ->
+ *      the exact displayed string is handed to the provider;
  *      stoppable; unmount stops playback.
  *  4.C11 library: Made-by-Opal shelf lists real artifacts with the
  *      provenance label and deletes for real; media shelf lists the
@@ -43,7 +44,7 @@ vi.mock("../../api/productClient", async () => {
 });
 
 import { LibraryDestination, MomentsArchive, VoiceNoteControl } from "./adopt3";
-import { ListenButton, resetListenStatusCache } from "../../opalUi/c1/ListenButton";
+import { ReadAloudButton, resetReadAloudStatusCache } from "../../opalUi/c1/ReadAloudButton";
 import { ThreadShell } from "../../opalUi/c1/C1Surfaces";
 import { SearchDestination } from "./C2Shell";
 
@@ -91,7 +92,7 @@ beforeEach(() => {
   sendVoiceNote.mockReset();
   fetchVoiceStatus.mockReset();
   speakApprovedText.mockReset();
-  resetListenStatusCache();
+  resetReadAloudStatusCache();
 });
 
 afterEach(async () => {
@@ -183,12 +184,13 @@ describe("4.C11 your library", () => {
   });
 });
 
-describe("ST-I Listen", () => {
+describe("ST-I Read aloud", () => {
   it("provider off: the control is ABSENT from the DOM", async () => {
     fetchVoiceStatus.mockResolvedValue({ tts_configured: false, transcription_configured: false });
-    await render(<ListenButton text="Dinner is set for Saturday." bearer="tok" />);
+    await render(<ReadAloudButton text="Dinner is set for Saturday." bearer="tok" />);
+    expect(host!.querySelector('[data-testid="read-aloud-play"]')).toBeNull();
     expect(host!.querySelector('[data-testid="listen-play"]')).toBeNull();
-    expect(host!.querySelector('[data-testid="listen-stop"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="read-aloud-stop"]')).toBeNull();
   });
 
   it("provider on: speaks exactly the displayed text; stoppable; unmount stops playback", async () => {
@@ -198,8 +200,8 @@ describe("ST-I Listen", () => {
     const play = vi.fn().mockResolvedValue(undefined);
     const AudioMock = vi.fn().mockImplementation(() => ({ play, pause, onended: null }));
     vi.stubGlobal("Audio", AudioMock);
-    await render(<ListenButton text="Dinner is set for Saturday." bearer="tok" />);
-    const btn = host!.querySelector('[data-testid="listen-play"]');
+    await render(<ReadAloudButton text="Dinner is set for Saturday." bearer="tok" />);
+    const btn = host!.querySelector('[data-testid="read-aloud-play"]');
     expect(btn).not.toBeNull();
     await click(btn!);
     // Spoken-text equality: the exact displayed string, approved.
@@ -208,7 +210,7 @@ describe("ST-I Listen", () => {
       "tok",
     );
     expect(play).toHaveBeenCalled();
-    const stopBtn = host!.querySelector('[data-testid="listen-stop"]');
+    const stopBtn = host!.querySelector('[data-testid="read-aloud-stop"]');
     expect(stopBtn).not.toBeNull();
     // Stop on surface exit: unmount pauses the audio.
     await act(async () => root!.unmount());

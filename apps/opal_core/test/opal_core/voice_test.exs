@@ -110,7 +110,7 @@ defmodule OpalCore.VoiceTest do
       if prior, do: System.put_env("DEEPGRAM_API_KEY", prior), else: System.delete_env("DEEPGRAM_API_KEY")
     end)
 
-    assert {:disabled, "I can't listen to voice notes yet"} = Voice.listen(%{})
+    assert {:disabled, "I can't transcribe voice notes yet"} = Voice.listen(%{})
   end
 
   test "message row persists approved text only (no freelance)" do

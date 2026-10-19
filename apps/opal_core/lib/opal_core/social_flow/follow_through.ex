@@ -301,27 +301,12 @@ defmodule OpalCore.SocialFlow.FollowThrough do
     end
   end
 
+  # Repair #19 FIX-A (BS-04) — the ONE quiet-hours resolver judges
+  # the stored window in the preference's own timezone at minute
+  # precision. The old local copy compared the saved window against
+  # UTC and is retired (its parse_hm/1 went with it).
   defp quiet_hours?(%AssistancePreference{} = pref, %DateTime{} = now) do
-    # UTC HH:MM comparison for deterministic tests
-    {sh, sm} = parse_hm(pref.quiet_hours_start)
-    {eh, em} = parse_hm(pref.quiet_hours_end)
-    minutes = now.hour * 60 + now.minute
-    start_m = sh * 60 + sm
-    end_m = eh * 60 + em
-
-    if start_m <= end_m do
-      minutes >= start_m and minutes < end_m
-    else
-      # wraps midnight
-      minutes >= start_m or minutes < end_m
-    end
-  end
-
-  defp parse_hm(str) do
-    case String.split(str || "22:00", ":") do
-      [h, m] -> {String.to_integer(h), String.to_integer(m)}
-      _ -> {22, 0}
-    end
+    OpalCore.SocialFlow.QuietHours.quiet_now?(pref, now)
   end
 
   defp frequency_capped?(owner_id, pref, now) do

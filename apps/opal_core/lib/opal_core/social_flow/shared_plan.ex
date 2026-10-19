@@ -52,6 +52,12 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     field :completed_at, :utc_datetime_usec
     field :alignment, :map, default: %{}
     field :source, :string, default: "conversation"
+    # R19 W7 (additive): the owner's per-graph private flag, and the
+    # place's coordinates when a real place record carries them
+    # (nullable - no coordinates, no distance is ever computed).
+    field :is_private, :boolean, default: false
+    field :place_lat, :float
+    field :place_lon, :float
 
     belongs_to :conversation, OpalCore.Messaging.Conversation
 
@@ -96,7 +102,10 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       :completed_at,
       :alignment,
       :source,
-      :trip_leg_id
+      :trip_leg_id,
+      :is_private,
+      :place_lat,
+      :place_lon
     ])
     |> update_change(:meeting_link, &MeetingLinks.sanitize/1)
     |> validate_required([:title, :status, :created_by_user_id, :timezone])
@@ -266,7 +275,13 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "trip_leg_id" => p.trip_leg_id,
       "created_at" => dt(p.inserted_at),
       "cancelled_at" => dt(p.cancelled_at),
-      "completed_at" => dt(p.completed_at)
+      "completed_at" => dt(p.completed_at),
+      # R19 W7 (additive): the private flag rides every contract so
+      # the owner's surfaces can gate the plan; non-owner lists never
+      # receive a private plan at all (list_plans_for_user filter).
+      "is_private" => Map.get(p, :is_private) == true,
+      "place_lat" => Map.get(p, :place_lat),
+      "place_lon" => Map.get(p, :place_lon)
     }
 
     # Repair #18 (Division A): the dedupe identity stamped at creation is
@@ -320,6 +335,22 @@ defmodule OpalCore.SocialFlow.SharedPlan do
           end
         end)
       end)
+
+    # Repair #19 BS-05: a plan carrying media (alignment media_id,
+    # the leg above) also projects image_url — the served media
+    # path the product itself uses (SocialMomentPublishing media
+    # endpoint; byte access is authorized per-viewer for the plan's
+    # creator and participants in read_media/2). This is the first
+    # field Home's planImageFromRecord reads, so a plan with a real
+    # photo finally renders one. Plans without media are unchanged.
+    base =
+      case Map.get(p.alignment || %{}, "media_id") do
+        mid when is_binary(mid) and mid != "" ->
+          Map.put(base, "image_url", "/api/v1/product/social-moments/media/" <> mid)
+
+        _ ->
+          base
+      end
 
     case Keyword.get(opts, :viewer_timezone) || Keyword.get(opts, :local_times) do
       tz when is_binary(tz) ->
@@ -426,4 +457,49 @@ defmodule OpalCore.SocialFlow.SharedPlan do
 
   defp dt(nil), do: nil
   defp dt(%DateTime{} = d), do: DateTime.to_iso8601(d)
+
+  @doc """
+  Repair #19 BS-05 — plan media byte authorization, the plan leg of
+  SocialMomentPublishing.read_media/2 (the story leg lives in
+  TemporaryStoryPublishing by the same pattern). A plan carrying
+  `media_id` in its alignment authorizes exactly its own people —
+  its creator and its participants — to read those bytes. An
+  existence check only: it projects no plan state to anyone.
+  """
+  def plan_media_authorized?(media_id, viewer_user_id)
+      when is_binary(media_id) and is_binary(viewer_user_id) do
+    # W20 floor note (pre-existing at the R19 tip, found by the
+    # full-suite run): a junk non-UUID viewer id ("" from a
+    # signed-out probe) reached the binary_id comparisons below
+    # and raised a cast error instead of the clean denial
+    # StoryMediaRepair16Test pins. Mirror read_media's own R16
+    # guard: an un-castable id authorizes nothing.
+    if match?(:error, Ecto.UUID.cast(viewer_user_id)) do
+      false
+    else
+      plan_media_authorized_query(media_id, viewer_user_id)
+    end
+  end
+
+  defp plan_media_authorized_query(media_id, viewer_user_id) do
+    import Ecto.Query
+
+    alias OpalCore.Repo
+    alias OpalCore.SocialFlow.PlanParticipant
+
+    from(p in __MODULE__,
+      as: :plan,
+      where: fragment("? ->> 'media_id' = ?", p.alignment, ^media_id),
+      where:
+        p.created_by_user_id == ^viewer_user_id or
+          exists(
+            from(pp in PlanParticipant,
+              where: pp.plan_id == parent_as(:plan).id and pp.user_id == ^viewer_user_id
+            )
+          )
+    )
+    |> Repo.exists?()
+  end
+
+  def plan_media_authorized?(_, _), do: false
 end

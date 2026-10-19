@@ -563,6 +563,18 @@ defmodule OpalCoreWeb.Router do
     post("/opal/conversation/clear", OpalConversationController, :clear_conversation)
     # Repair #17 (W4-7) — Opal chat sessions: list + switch (owner-scoped).
     get("/opal/conversations", OpalConversationController, :list_sessions)
+    # Repair #19 (W14 + Orbits) — scoped birth, anchor write, orbit
+    # privacy flag, and real removal. Declared BEFORE the :id routes
+    # so "scoped"/"orbit-private" are never captured as an id.
+    post("/opal/conversations/scoped", OpalConversationController, :create_scoped_session)
+    post("/opal/conversations/orbit-private", OpalConversationController, :set_orbit_private)
+    # Repair #19 FIX-A (BS-02) — orbit unlock verification (the W7
+    # graph-lock passcode, scoped to the caller's own orbits).
+    post("/opal/conversations/orbit-verify", OpalConversationController, :verify_orbit_unlock)
+    post("/opal/conversations/:id/anchor", OpalConversationController, :set_anchor)
+    post("/opal/conversations/:id/remove", OpalConversationController, :remove_session)
+    post("/opal/conversations/:id/pin", OpalConversationController, :set_pinned)
+    post("/opal/conversations/:id/archive", OpalConversationController, :set_archived)
     post("/opal/conversations/:id/switch", OpalConversationController, :switch_session)
     # Repair #18 (G-IA3) - rename one of the caller's own Opal sessions.
     patch("/opal/conversations/:id", OpalConversationController, :rename_session)
@@ -599,6 +611,13 @@ defmodule OpalCoreWeb.Router do
     post("/graph/shelf/:plan_id/promote", GraphPeopleController, :promote_spark)
     get("/opal/plans/:id/history", GraphPeopleController, :plan_history)
     get("/opal/holding", GraphPeopleController, :holding)
+    # Repair #19 W7 - private graphs + living detail backbone.
+    post("/opal/plans/:id/private", GraphPeopleController, :set_plan_private)
+    post("/opal/plans/:id/location-share", GraphPeopleController, :share_plan_location)
+    delete("/opal/plans/:id/location-share", GraphPeopleController, :stop_plan_location)
+    get("/opal/graph-lock", GraphPeopleController, :graph_lock_status)
+    post("/opal/graph-lock", GraphPeopleController, :set_graph_lock)
+    post("/opal/graph-lock/verify", GraphPeopleController, :verify_graph_lock)
 
     # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
     # venue ranking / near-me. Separate from the travel-mode 422 privacy law.

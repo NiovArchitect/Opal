@@ -13,7 +13,7 @@ export default {
   surfaces: ["GET /people", "GET /trips", "POST /recommendations/curate"],
   async run(ctx) {
     const { assert } = ctx;
-    const fresh = await ctx.freshClient("+12025550105", "Regression Fresh");
+    const fresh = await ctx.freshClient("+12025550105", "Anna Lindqvist");
     const client = fresh || ctx.A;
     if (!fresh) { assert.note("no fresh synthetic account; founder-copy legs are only meaningful on a fresh account - running anyway, results may be vacuous"); }
     const FOUNDER = [/chanelle/i, /maya/i, /jordan/i, /juniper/i, /sadeil/i];

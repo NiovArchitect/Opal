@@ -27,7 +27,7 @@ async function ownThread(ctx, label) {
   // the SHARED A-B direct thread, whose fold replays every earlier
   // case's traffic. A third pool member makes the group real, as in
   // the sibling Center cases.
-  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const third = await ctx.freshClient("+12025550108", "Henry Ruiz");
   const memberIds = [ctx.sessions.b.userId];
   if (third?.session?.userId) memberIds.push(third.session.userId);
   const g = await ctx.h.createGroup(ctx.A, memberIds, label);

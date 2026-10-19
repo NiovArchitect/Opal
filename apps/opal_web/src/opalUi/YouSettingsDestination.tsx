@@ -481,7 +481,7 @@ const SCREENS: Record<YouSettingKey, ScreenDef> = {
       {
         kind: "note",
         id: "assist-law",
-        text: "Opal never speaks as you or posts a Memory from a call. Assist only listens when allowed.",
+        text: "Opal never speaks as you or posts a Memory from a call. Assist transcribes a call only when you say so.",
       },
     ],
   },

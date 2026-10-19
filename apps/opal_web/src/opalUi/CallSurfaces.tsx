@@ -11,6 +11,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import type { CallView } from "./callView";
 import { CallAssistControl } from "./callAssist";
+import { OrbMark } from "../brand/orb/OrbMark";
 import { overlayCallNote } from "../realtime/callMediaRuntime";
 
 export type CallKind = "incoming" | "audio" | "video" | "group";
@@ -180,22 +181,50 @@ export function CallSurface({
               {view.status}
             </p>
           ) : null}
-          {view.showTimer ? (
-            <p className="live-call-timer" data-testid="call-timer">
-              {minutes}:{seconds}
-            </p>
-          ) : (
-            <div className="live-call-mark" aria-hidden>
+          {/*
+            Repair #19 W12 identity: the ORBIT STAGE. A call is with a
+            person, not a countdown — the peer stays at the center of
+            Opal's orbit structure (two gyroscope rings, from the orb's
+            own geometry) for the whole call, and elapsed time recedes
+            to a quiet line beneath. Opal's mark rides the ring as a
+            point of light: Opal is the medium carrying this call, not
+            a logo stamped on a phone screen. Ring motion exists only
+            while waiting (ringing/connecting turn slowly); connected
+            is still — ambience with a reason, never noise.
+          */}
+          <div
+            className="live-call-orbit"
+            data-testid="call-orbit"
+            data-orbit-phase={view.phase}
+            aria-hidden
+          >
+            <span className="live-call-orbit-ring" />
+            <span className="live-call-orbit-ring live-call-orbit-ring--tilt" />
+            <div className="live-call-mark">
               {peerAvatarSrc ? (
                 <img src={peerAvatarSrc} alt="" />
               ) : (
                 initial
               )}
             </div>
-          )}
+            <span className="live-call-orbit-opal">
+              <OrbMark size={26} />
+            </span>
+          </div>
+          {view.showTimer ? (
+            <p className="live-call-timer" data-testid="call-timer">
+              {minutes}:{seconds}
+            </p>
+          ) : null}
           {note ? (
             <p className="live-call-note" data-testid="call-accept-error" role="status">
               {note}
+            </p>
+          ) : null}
+          {view.phase !== "connected" ? (
+            <p className="live-call-capture-note" data-testid="call-capture-note" role="status">
+              Opal doesn’t record calls. Graphing — Opal noting plans from what’s said —
+              starts only once you’re connected, and only if you both allow it.
             </p>
           ) : null}
           {view.phase === "connected" && assistCallId ? (

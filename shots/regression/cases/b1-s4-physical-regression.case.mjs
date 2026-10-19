@@ -35,7 +35,7 @@ export default {
 
     // Suite citizenship: no plans in the shared A<->B walk-pair
     // thread - a fresh group thread hosts this case's plan.
-    const third0 = await h.freshDirectConversation(A, "+12025550105", "Regression Fifth");
+    const third0 = await h.freshDirectConversation(A, "+12025550105", "Owen Parker");
     assert.check("setup third member", !!third0?.userId, "group setup needs a third synthetic user");
     const mainGroup = await h.createGroup(A, [ctx.sessions.b.userId, third0.userId], `B1 S4 physical ${ctx.tag}`);
     assert.check("setup group conversation", !!mainGroup.conversationId, "setup needs a group conversation");
@@ -57,7 +57,7 @@ export default {
 
       // Journey leg: birth the agreed journey plan for this venue
       // through the real activate path in a fresh group thread.
-      const fresh = await h.freshDirectConversation(A, "+12025550108", "Regression Third");
+      const fresh = await h.freshDirectConversation(A, "+12025550108", "Clara Jensen");
       assert.check("setup fresh conversation", !!fresh?.conversationId, "journey leg needs a fresh plan-free conversation (synthetic provisioning)");
       const act = await h.activateJourney(A, {
         conversation_id: fresh.conversationId,

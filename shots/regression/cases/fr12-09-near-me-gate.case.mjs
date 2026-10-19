@@ -14,7 +14,7 @@ export default {
   surfaces: ["Center", "POST /opal/location"],
   async run(ctx) {
     const { A, h, assert } = ctx;
-    const fresh = await ctx.freshClient("+12025550103", "Regression NearMe");
+    const fresh = await ctx.freshClient("+12025550103", "David Kim");
     const client = fresh || A;
     if (!fresh) assert.note("no fresh synthetic account available; running the no-permission leg on session A (valid only if A holds no grant on this stack)");
     await h.centerNewChat(client);

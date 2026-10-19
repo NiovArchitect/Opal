@@ -26,7 +26,7 @@
  *
  * Isolation repair (Repair #18 dir1-casefix): on the shared suite
  * pair the before-plan legs bound to foreign plans (the founder
- * seed's "Dinner with Regression", a sibling case's plan, or this
+ * seed's "Dinner at Juniper & Ivy", a sibling case's plan, or this
  * case's own plan from an earlier run) - the find-or-create /
  * first-match contamination class the casefix wave repaired for
  * FR-18-02-revision. The case now provisions its OWN synthetic pair
@@ -62,9 +62,9 @@ export default {
     // dedicated numbers no other case uses, and a group thread that
     // is brand-new for this run, so no earlier run's or case's plan
     // can bind to the surfaces below.
-    const ownA = await ctx.freshClient("+12025550115", "Regression DIR1 Lead");
-    const ownB = await ctx.freshClient("+12025550116", "Regression DIR1 Invited");
-    const ownThird = await ctx.freshClient("+12025550117", "Regression DIR1 Third");
+    const ownA = await ctx.freshClient("+12025550115", "Hannah Cole");
+    const ownB = await ctx.freshClient("+12025550116", "Victor Hughes");
+    const ownThird = await ctx.freshClient("+12025550117", "Emma Sullivan");
     let groupId = null;
     if (ownA && ownB) {
       A = ownA;

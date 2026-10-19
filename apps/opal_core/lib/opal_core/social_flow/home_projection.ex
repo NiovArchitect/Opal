@@ -51,7 +51,13 @@ defmodule OpalCore.SocialFlow.HomeProjection do
         place["state"] == "locked" and is_binary(place["value"]) and
         commitment in ["aligned", "execution_ready"]
 
-    if eligible do
+    # Repair #19 W20 (JA-02) — FIX-A's creator-only private
+    # predicate on the plan feed: when the card's backing plan row
+    # is private and the viewer is not its creator, the card is
+    # sealed entirely (no title/time/place in the participant's
+    # live payloads). The creator's own card is unchanged.
+    if eligible and
+         not sealed_private?(alignment, conversation_id, Keyword.get(opts, :viewer_id)) do
       date = alignment["date"] || %{}
       change_proposal = alignment["change_proposal"]
       arb = PlanStateArbitration.evaluate(alignment)
@@ -141,6 +147,20 @@ defmodule OpalCore.SocialFlow.HomeProjection do
   def from_plan_row(%SharedPlan{} = plan, conversation_id, member_count, opts)
       when is_binary(conversation_id) and is_integer(member_count) do
     viewer_id = Keyword.get(opts, :viewer_id)
+
+    # Repair #19 W20 (JA-02) — FIX-A's creator-only private
+    # predicate: a privatized plan yields NO card for anyone but
+    # its creator (this projection re-reads the plan's current row,
+    # so an unguarded card would disclose post-privatization
+    # title/time/place to the very parties the flag excludes).
+    if plan.is_private and plan.created_by_user_id != viewer_id do
+      nil
+    else
+      from_plan_row_visible(plan, conversation_id, member_count, viewer_id)
+    end
+  end
+
+  defp from_plan_row_visible(%SharedPlan{} = plan, conversation_id, member_count, viewer_id) do
     contract = JourneyAuthority.attendance_contract(plan.id, viewer_id)
 
     if contract == %{} do
@@ -227,6 +247,22 @@ defmodule OpalCore.SocialFlow.HomeProjection do
     # Pure-projection call sites (unit tests without a DB sandbox) keep the
     # pre-R18 card shape: no plan rows are readable, so no counts are shown.
     _ -> card
+  end
+
+  # JA-02: true when the card's backing plan is creator-private
+  # for this viewer. Pure-projection call sites (no DB sandbox)
+  # keep the pre-JA-02 shape — no plan row is readable, so nothing
+  # can be sealed (mirrors maybe_put_plan_truth's rescue law).
+  defp sealed_private?(alignment, conversation_id, viewer_id) do
+    case attendance_plan(alignment, conversation_id) do
+      %SharedPlan{is_private: true, created_by_user_id: creator_id} ->
+        creator_id != viewer_id
+
+      _ ->
+        false
+    end
+  rescue
+    _ -> false
   end
 
   # The alignment's lineage_id IS the SharedPlan id once the fold has

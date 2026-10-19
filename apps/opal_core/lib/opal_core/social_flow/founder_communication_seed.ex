@@ -9,6 +9,14 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   Stable peer identities (display names match Home founder fixture people).
   Physical founder path: provisions ALL five walk directs + Juniper/Saturday group
   so FE remap binds live ids (not seed-chat-* only).
+
+  Repair #19 (W1, human seed world): the founder rejected the machine-speak
+  review world ("Regression A", plans named after run tags). Every display
+  string this seed writes is a believable human string: peers carry full
+  names (Chanelle Brooks, Maya Torres, Jordan Ellis, Sabrina Nguyen,
+  Alex Rivera), messages are sentences people actually send, and the group
+  plan is "Dinner at Juniper & Ivy". Internal binding keys (stable UUIDs,
+  handles, client_message_ids) are unchanged — only display strings moved.
   """
 
   import Ecto.Query
@@ -121,11 +129,11 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   end
 
   defp ensure_peers! do
-    chanelle = upsert_user!(@chanelle_id, "founder-chanelle", "Chanelle")
-    maya = upsert_user!(@maya_id, "user-maya", "Maya")
-    jordan = upsert_user!(@jordan_id, "user-jordan", "Jordan")
-    sabrina = upsert_user!(@sabrina_id, "founder-sabrina", "Sabrina")
-    alex = upsert_user!(@alex_id, "founder-alex", "Alex")
+    chanelle = upsert_user!(@chanelle_id, "founder-chanelle", "Chanelle Brooks")
+    maya = upsert_user!(@maya_id, "user-maya", "Maya Torres")
+    jordan = upsert_user!(@jordan_id, "user-jordan", "Jordan Ellis")
+    sabrina = upsert_user!(@sabrina_id, "founder-sabrina", "Sabrina Nguyen")
+    alex = upsert_user!(@alex_id, "founder-alex", "Alex Rivera")
     %{chanelle: chanelle, maya: maya, jordan: jordan, sabrina: sabrina, alex: alex}
   end
 
@@ -185,15 +193,44 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
   end
 
   defp seed_direct_messages!(:chanelle, conversation_id, viewer_id, peer_id) do
-    seed_msg(conversation_id, viewer_id, "founder-direct-you-1", "Juniper tonight?")
-    seed_msg(conversation_id, peer_id, "founder-direct-peer-1", "I can do 7:30.")
-    seed_msg(conversation_id, viewer_id, "founder-direct-you-2", "Perfect. I'll grab a table.")
+    seed_msg(conversation_id, viewer_id, "founder-direct-you-1", "Juniper & Ivy on Saturday?")
+
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-direct-peer-1",
+      "I can do 7:30 — I booked it under my name."
+    )
+
+    seed_msg(
+      conversation_id,
+      viewer_id,
+      "founder-direct-you-2",
+      "Perfect. I'll get there early and grab us a table."
+    )
   end
 
   defp seed_direct_messages!(:maya, conversation_id, viewer_id, peer_id) do
-    seed_msg(conversation_id, peer_id, "founder-maya-1", "Saturday morning. farmers market?")
-    seed_msg(conversation_id, viewer_id, "founder-maya-2", "Yes. then the coast if it's clear.")
-    seed_msg(conversation_id, peer_id, "founder-maya-3", "I'm free after 10")
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-maya-1",
+      "Farmers market Saturday morning? The flower stall alone is worth it."
+    )
+
+    seed_msg(
+      conversation_id,
+      viewer_id,
+      "founder-maya-2",
+      "Yes — and the coast after, if it stays clear."
+    )
+
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-maya-3",
+      "I'm free after 10. Bring the big tote bag this time."
+    )
   end
 
   defp seed_direct_messages!(:sabrina, conversation_id, viewer_id, peer_id) do
@@ -201,17 +238,40 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
       conversation_id,
       peer_id,
       "founder-sabrina-1",
-      "Okay this place just opened two blocks away"
+      "Okay, that little bakery two blocks from me finally opened"
     )
 
-    seed_msg(conversation_id, viewer_id, "founder-sabrina-2", "Send it")
-    seed_msg(conversation_id, peer_id, "founder-sabrina-3", "Sent a photo")
+    seed_msg(conversation_id, viewer_id, "founder-sabrina-2", "Send me a photo of the menu")
+
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-sabrina-3",
+      "Sent — the cardamom bun is the one, trust me"
+    )
   end
 
   defp seed_direct_messages!(:alex, conversation_id, viewer_id, peer_id) do
-    seed_msg(conversation_id, peer_id, "founder-alex-1", "Still thinking about that week")
-    seed_msg(conversation_id, viewer_id, "founder-alex-2", "The rooftop at dusk?")
-    seed_msg(conversation_id, peer_id, "founder-alex-3", "Mexico City was unreal")
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-alex-1",
+      "Still thinking about that week in Mexico City"
+    )
+
+    seed_msg(
+      conversation_id,
+      viewer_id,
+      "founder-alex-2",
+      "The rooftop at dusk? Same. We have to go back."
+    )
+
+    seed_msg(
+      conversation_id,
+      peer_id,
+      "founder-alex-3",
+      "Next spring. I'm putting it in writing so we actually do it"
+    )
   end
 
   defp seed_group_messages!(conversation_id, peers) do
@@ -219,11 +279,17 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
       conversation_id,
       peers.maya.id,
       "founder-group-maya-1",
-      "Table for four at Juniper Saturday?"
+      "Table for four at Juniper & Ivy on Saturday — who's in?"
     )
 
     seed_msg(conversation_id, peers.jordan.id, "founder-group-jordan-1", "I can make 7:30")
-    seed_msg(conversation_id, peers.chanelle.id, "founder-group-chanelle-1", "I'm in.")
+
+    seed_msg(
+      conversation_id,
+      peers.chanelle.id,
+      "founder-group-chanelle-1",
+      "I'm in. I already booked it under my name."
+    )
   end
 
   # Repair #18 (Division A): the Juniper crew scenario gets REAL plan rows.
@@ -253,9 +319,10 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
             %SharedPlan{}
             |> SharedPlan.changeset(%{
               conversation_id: conversation_id,
-              title: "Meetup",
+              title: "Dinner at Juniper & Ivy",
               status: "agreed",
-              location: "Juniper",
+              location: "Juniper & Ivy",
+              start_at: next_saturday_evening(),
               time_label: "Saturday · 7:30 PM",
               timezone: "America/Los_Angeles",
               created_by_user_id: viewer_user_id,
@@ -318,10 +385,24 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
       },
       "date" => locked.("Saturday"),
       "exact_time" => locked.("7:30 PM"),
-      "place" => locked.("Juniper"),
+      "place" => locked.("Juniper & Ivy"),
       "commitment" => "aligned",
       "plan_version" => 1
     }
+  end
+
+  # Next Saturday at 19:30 UTC (the plan's own time_label carries the
+  # human "Saturday · 7:30 PM"; start_at exists so the state family can
+  # derive ready/happening honestly from the window, never from a label).
+  defp next_saturday_evening do
+    today = DateTime.utc_now() |> DateTime.to_date()
+    days = rem(6 - Date.day_of_week(today) + 7, 7)
+    days = if days == 0, do: 7, else: days
+
+    today
+    |> Date.add(days)
+    |> DateTime.new!(~T[19:30:00], "Etc/UTC")
+    |> DateTime.truncate(:microsecond)
   end
 
   defp seed_msg(conversation_id, sender_user_id, client_message_id, body) do

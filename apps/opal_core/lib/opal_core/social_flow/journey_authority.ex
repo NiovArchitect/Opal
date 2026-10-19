@@ -1169,6 +1169,18 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   # Plan-scoped access: conversation membership when conversation_id present;
   # PlanParticipant (or creator) when conversation_id is nil (trip_leg source).
   # Never fabricates a conversation_id.
+  #
+  # Repair #19 FIX-A (BS-03) — this authority carries its own copy of
+  # the access law, so the private gate sits here too, ahead of every
+  # membership clause: a private plan resolves for its creator only.
+  # The conversation-peer variant below routes through this function
+  # for private plans as well (its direct membership shortcut is
+  # skipped), so no Journey path re-opens a private plan.
+  defp ensure_plan_access(%SharedPlan{is_private: true} = plan, user_id)
+       when is_binary(user_id) do
+    if plan.created_by_user_id == user_id, do: :ok, else: {:error, :forbidden}
+  end
+
   defp ensure_plan_access(%SharedPlan{conversation_id: cid}, user_id)
        when is_binary(cid) and cid != "" and is_binary(user_id) do
     ensure_member(cid, user_id)
@@ -1187,6 +1199,10 @@ defmodule OpalCore.SocialFlow.JourneyAuthority do
   defp ensure_plan_access(_, _), do: {:error, :forbidden}
 
   # assign_co_lead may invite a conversation peer who is not yet a PlanParticipant.
+  # BS-03: a private plan never takes the conversation-peer shortcut.
+  defp ensure_plan_access_or_conversation_peer(%SharedPlan{is_private: true} = plan, user_id),
+    do: ensure_plan_access(plan, user_id)
+
   defp ensure_plan_access_or_conversation_peer(%SharedPlan{conversation_id: cid} = plan, user_id)
        when is_binary(cid) and cid != "" do
     case ensure_member(cid, user_id) do

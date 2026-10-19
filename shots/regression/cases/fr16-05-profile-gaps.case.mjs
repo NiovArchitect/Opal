@@ -13,11 +13,11 @@ export default {
   surfaces: ["POST /profile-gaps/assess", "POST /profile-gaps/answer", "POST /profile-gaps/skip", "GET /celebrations"],
   async run(ctx) {
     const { assert } = ctx;
-    const fresh = await ctx.freshClient("+12025550108", "Regression Gaps");
+    const fresh = await ctx.freshClient("+12025550108", "Laura Benson");
     const client = fresh || ctx.A;
     if (!fresh) assert.note("no fresh synthetic account; running on session A - ask-once legs are only meaningful on an account that has not answered/skipped before");
     const personId = ctx.sessions.b?.userId || ctx.sessions.a.userId;
-    const assess = await client.post("/profile-gaps/assess", { person_id: personId, fact_key: "birthday", person_name: "Regression Contact" });
+    const assess = await client.post("/profile-gaps/assess", { person_id: personId, fact_key: "birthday", person_name: "Ray Thompson" });
     assert.check("POST /profile-gaps/assess", assess.status === 200 || assess.status === 201,
       `assess must answer for a real account; got ${assess.status}: ${JSON.stringify(assess.json).slice(0, 160)}`);
     const gaps = assess.json.gaps || assess.json.asks || assess.json.missing || [];
@@ -26,7 +26,7 @@ export default {
     assert.check("POST /profile-gaps/skip", skip.status === 200 || skip.status === 201 || skip.status === 422,
       `skip must answer honestly; got ${skip.status}`);
     if (skip.status === 200 || skip.status === 201) {
-      const again = await client.post("/profile-gaps/assess", { person_id: personId, fact_key: "birthday", person_name: "Regression Contact" });
+      const again = await client.post("/profile-gaps/assess", { person_id: personId, fact_key: "birthday", person_name: "Ray Thompson" });
       const blob = JSON.stringify(again.json);
       assert.check("POST /profile-gaps/assess (after skip)", !/"birthday"[^]]*"pending"|"ask".*birthday/i.test(blob) || gaps.length === 0,
         "a skipped fact must never be asked again");

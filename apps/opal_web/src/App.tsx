@@ -1,10 +1,8 @@
 import React from "react";
-import { OpalApp } from "./OpalApp";
 import { AvailabilityReview } from "./availability/AvailabilityReview";
 import { C2FoundationGallery } from "./c2/C2FoundationGallery";
 import { C2Shell } from "./c2/shell/C2Shell";
 import { C2ShellReview } from "./c2/shell/C2ShellReview";
-import { isC2ShellEnabled } from "./theme/c2Shell";
 import { C1Review } from "./opalUi/c1/C1Review";
 
 /** Public Opal product surface — conversation-native shell only. */
@@ -30,11 +28,10 @@ export function App() {
   if (params?.get("review") === "c1") {
     return <C1Review />;
   }
-  // Repair #18 Division C2 shell (track-c2 section 3.1): renders ONLY
-  // when the shell flag is present in the served build config. Absence
-  // renders the R17 shell exactly as today.
-  if (isC2ShellEnabled()) {
-    return <C2Shell />;
-  }
-  return <OpalApp />;
+  // Repair #19 W15: the C2 shell is the ONLY member shell this build
+  // serves. The R17 legacy shell (OpalApp) is no longer mounted here
+  // and the ?shell=r17 override that gated it is retired (see
+  // theme/c2Shell.ts). The R17 fallback lives at branch level
+  // (muse/repair-17), never as an in-app side door.
+  return <C2Shell />;
 }

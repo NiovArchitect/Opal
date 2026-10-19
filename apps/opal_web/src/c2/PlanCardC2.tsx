@@ -11,7 +11,7 @@
  * label "Needs a look" and logs the value (section 2.4 unknown-state
  * law) - it never defaults silently to ready.
  */
-import React from "react";
+import React, { useState } from "react";
 import { FireLine, StateStone } from "../brand/orb/FireLine";
 
 export type PlanStateFamilyC2 = "forming" | "action" | "ready" | "happening" | "past";
@@ -37,6 +37,30 @@ export const PLAN_STATE_GLYPH_C2: Record<PlanStateFamilyC2, string> = {
   past: "■",
 };
 
+/**
+ * Repair #19 (W9) - the record's own imagery for a plan card. Set
+ * ONLY from a URL-shaped image field on the plan record itself (see
+ * shellData.planImageFromRecord for the field precedence and its
+ * provenance stamp). Absent = the card renders no media well at
+ * all; there is no placeholder image and no text-in-a-hole.
+ */
+export type PlanCardMediaC2 = {
+  photoUrl: string;
+  /** Which record field supplied the image (build vocabulary,
+   *  rendered only as a data attribute, never on screen). */
+  provenance: string;
+};
+
+/** One real person on the plan, from the record (organizer today;
+ *  the list contract carries no roster - see the W9 report gap). */
+export type PlanCardPersonC2 = {
+  name: string;
+  initials: string;
+  /** Person tint token suffix 1-6, or null. */
+  tint: number | null;
+  photoUrl?: string | null;
+};
+
 export type PlanCardC2Input = {
   /** Derived state family from the one projection/derivation. Required. */
   stateFamily: PlanStateFamilyC2 | string;
@@ -54,6 +78,13 @@ export type PlanCardC2Input = {
   attendanceLine?: string | null;
   /** The one primary action label for the state, or null. */
   primaryActionLabel?: string | null;
+  /** Repair #19 (W9) - the record's own image, or absent. */
+  media?: PlanCardMediaC2 | null;
+  /** Repair #19 (W9) - real people on the plan, from the record. */
+  people?: PlanCardPersonC2[];
+  /** Repair #19 (W9) - finished people line from the record
+   *  (the plan contract's who_label), or null. */
+  peopleLine?: string | null;
 };
 
 export function PlanStatePillC2({
@@ -97,6 +128,12 @@ export function PlanCardC2({
   const family: PlanStateFamilyC2 = isPlanStateFamilyC2(input.stateFamily)
     ? input.stateFamily
     : "forming";
+  // Repair #19 W20 (JA-12): a failed image must not collapse the
+  // media well to 0 height or leave a broken-image hole — on
+  // error the well keeps its designed height and takes the
+  // designed no-image treatment (the plan's state stone + title
+  // initial, the card-grammar analogue of the memory monogram).
+  const [mediaFailed, setMediaFailed] = useState(false);
   return (
     <article
       className="c2-plan-card"
@@ -114,11 +151,66 @@ export function PlanCardC2({
           <FireLine />
         </div>
       ) : null}
+      {input.media?.photoUrl ? (
+        <div
+          className="c2-plan-media"
+          data-testid="c2-plan-media"
+          data-media-provenance={input.media.provenance}
+          data-media-state={mediaFailed ? "fallback" : "photo"}
+        >
+          {mediaFailed ? (
+            <span
+              className="c2-plan-media-fallback"
+              data-testid="c2-plan-media-fallback"
+              aria-hidden
+            >
+              <StateStone state={family} size={28} />
+              <span className="c2-plan-media-fallback-initial">
+                {input.title.slice(0, 1).toUpperCase()}
+              </span>
+            </span>
+          ) : (
+            <img
+              src={input.media.photoUrl}
+              alt=""
+              draggable={false}
+              onError={() => setMediaFailed(true)}
+            />
+          )}
+        </div>
+      ) : null}
       <h3 className="c2-plan-title">{input.title}</h3>
       <p className="c2-plan-when">{input.whenLine}</p>
       {input.whereLine ? <p className="c2-plan-where">{input.whereLine}</p> : null}
       {input.attendanceLine ? (
         <p className="c2-plan-attendance">{input.attendanceLine}</p>
+      ) : null}
+      {input.people && input.people.length > 0 ? (
+        <div className="c2-plan-people" data-testid="c2-plan-people">
+          <span className="c2-plan-people-faces" aria-hidden>
+            {input.people.slice(0, 4).map((person) => (
+              <span
+                key={person.name}
+                className="c2-plan-person"
+                data-tint={person.tint ?? undefined}
+                title={person.name}
+              >
+                {person.photoUrl ? (
+                  <img src={person.photoUrl} alt="" draggable={false} />
+                ) : (
+                  person.initials
+                )}
+              </span>
+            ))}
+          </span>
+          <span className="c2-plan-people-line">
+            {input.peopleLine ?? input.people.map((p) => p.name).join(", ")}
+          </span>
+        </div>
+      ) : input.peopleLine ? (
+        <p className="c2-plan-attendance" data-testid="c2-plan-people-line">
+          {input.peopleLine}
+        </p>
       ) : null}
       {input.primaryActionLabel ? (
         <button

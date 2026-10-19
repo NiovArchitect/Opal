@@ -139,7 +139,7 @@ defmodule OpalCore.SocialFlow.CheckinSuggestion do
          :ok <- gate_no_recent_sweep(organizer_id, circle_key),
          :ok <- gate_once_per_circle(organizer_id, circle_key),
          :ok <- gate_minor_majority(organizer_id, source),
-         :ok <- gate_quiet_hours_now() do
+         :ok <- gate_quiet_hours_now(organizer_id) do
       %{
         "kind" => "checkin_sweep",
         "circle_key" => circle_key,
@@ -269,15 +269,15 @@ defmodule OpalCore.SocialFlow.CheckinSuggestion do
     end
   end
 
-  defp gate_quiet_hours_now do
-    tz = "America/Los_Angeles"
-
-    case DateTime.shift_zone(Clock.utc_now(), tz) do
-      {:ok, local} ->
-        if local.hour >= 8 and local.hour < 22, do: :ok, else: {:suppressed, :quiet_hours}
-
-      _ ->
-        :ok
+  # Repair #19 FIX-A (BS-04) — the surface gate asks the ONE
+  # quiet-hours resolver for the organizer's stored Soul window.
+  # The old local copy hardcoded an 8–22 awake window in
+  # America/Los_Angeles and is retired.
+  defp gate_quiet_hours_now(organizer_id) do
+    if OpalCore.SocialFlow.QuietHours.quiet_now?(organizer_id) do
+      {:suppressed, :quiet_hours}
+    else
+      :ok
     end
   end
 

@@ -153,7 +153,7 @@ defmodule OpalCore.Settings.Connections do
         {"Opal's thinking (DeepSeek)", "intelligence",
          "Reads your messages and helps Opal reply, plan, and remember decisions."},
       "deepgram_batch" =>
-        {"Listening to voice notes (Deepgram)", "voice",
+        {"Transcribing voice notes (Deepgram)", "voice",
          "Turns voice notes and recordings into words Opal can read."},
       "elevenlabs" =>
         {"Opal's voice (ElevenLabs)", "voice",
@@ -214,7 +214,7 @@ defmodule OpalCore.Settings.Connections do
     if DeepgramClient.configured?() do
       base(
         "deepgram_batch",
-        "Listening to voice notes (Deepgram)",
+        "Transcribing voice notes (Deepgram)",
         "voice",
         "Turns voice notes and recordings into words Opal can read."
       )

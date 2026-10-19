@@ -36,7 +36,7 @@ defmodule OpalCoreWeb.SoulMemoryController do
         "capsule_count" => length(capsules)
       })
     else
-      _ -> render_error(conn, 422, "soul_unavailable", "Your Soul and Memory could not load.")
+      _ -> render_error(conn, 422, "soul_unavailable", "Your Soul and Memory settings could not load.")
     end
   end
 

@@ -332,10 +332,17 @@ defmodule OpalCore.Artifacts do
         {:error, :not_found}
 
       %SharedPlan{} = plan ->
-        if plan.created_by_user_id == user_id or plan_participant?(plan_id, user_id) do
-          {:ok, plan}
-        else
+        # Repair #19 FIX-A (BS-03) — this local reader bypassed
+        # SocialFlow.ensure_plan_access/2: a private plan's facts are
+        # collectable by its creator only, never by a participant.
+        if plan.is_private == true and plan.created_by_user_id != user_id do
           {:error, :not_found}
+        else
+          if plan.created_by_user_id == user_id or plan_participant?(plan_id, user_id) do
+            {:ok, plan}
+          else
+            {:error, :not_found}
+          end
         end
     end
   end

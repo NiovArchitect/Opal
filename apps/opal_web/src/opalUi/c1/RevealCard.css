@@ -54,10 +54,82 @@
   gap: 12px;
   margin-top: 8px;
 }
+/* R19 W5-06: the chats-list takeover is a MINI-CARD, not a line.
+ * Layout contract (pinned by r19ChatsThread.test.tsx):
+ *  - the card is a full-width flex COLUMN (width: 100%, min-width: 0
+ *    so the row's flex chain can never squeeze it to min-content);
+ *  - the title owns its own line at the card's full width and wraps
+ *    by phrase (overflow-wrap: anywhere only for unbroken strings);
+ *  - actions live in ONE deliberate row at the card's foot: the
+ *    primary action pill first, Dismiss last (margin-left: auto) -
+ *    Dismiss never floats beside the text column.
+ * The state edge/fill mix FROM --reveal-state (PLAN_STATE_HEX via
+ * the component), at ambient intensity - no hex lives here. */
 .reveal-list-line {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--reveal-state, var(--line-2)) 52%, transparent);
+  border-left: 3px solid var(--reveal-state, var(--line-2));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--reveal-state, transparent) 9%, transparent);
+  text-align: left;
+}
+.reveal-row-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-left: 2px solid var(--reveal-state, var(--line-2));
-  padding-left: 8px;
+  min-width: 0;
+}
+.reveal-row-title {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-weight: 650;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.reveal-row-substance {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  opacity: 0.85;
+}
+.reveal-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.reveal-row-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--reveal-state, var(--line-2)) 55%, transparent);
+  font-weight: 650;
+  white-space: nowrap;
+}
+.reveal-dismiss--line {
+  margin-left: auto;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
 }

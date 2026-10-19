@@ -33,7 +33,7 @@ export default {
     const direct = await h.ensureDirect(A, ctx.sessions.b.userId);
     assert.check("POST /conversations/direct", !!direct.conversationId, "a real direct conversation with the named person is required");
     const convId = direct.conversationId;
-    const peerName = ctx.sessions.b.name || "Regression B";
+    const peerName = ctx.sessions.b.name || "Maya Torres";
 
     const msgsBefore = await h.getHumanMessages(A, convId);
     const idsBefore = (msgsBefore.messages || []).map((m) => m.id).join(",");

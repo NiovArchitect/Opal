@@ -195,6 +195,89 @@ defmodule OpalCoreWeb.GraphPeopleController do
     end
   end
 
+  # --- R19 W7: private graphs, graph lock, location sharing --------
+
+  alias OpalCore.SocialFlow
+  alias OpalCore.SocialFlow.GraphLock
+  alias OpalCore.SocialFlow.PlanLocationShare
+
+  def set_plan_private(conn, %{"id" => id, "is_private" => is_private})
+      when is_boolean(is_private) do
+    user_id = conn.assigns.current_user_id
+
+    case SocialFlow.set_plan_private(id, user_id, is_private) do
+      {:ok, plan} -> json(conn, %{"plan" => plan})
+      {:error, :not_found} -> not_found(conn)
+      {:error, :not_authorized} -> conn |> put_status(:forbidden) |> json(%{"error" => "not_authorized"})
+      {:error, reason} -> conn |> put_status(422) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def set_plan_private(conn, _params) do
+    conn |> put_status(422) |> json(%{"error" => "is_private_required"})
+  end
+
+  def graph_lock_status(conn, _params) do
+    user_id = conn.assigns.current_user_id
+    json(conn, %{"passcode_set" => GraphLock.set?(user_id)})
+  end
+
+  def set_graph_lock(conn, %{"code" => code}) do
+    user_id = conn.assigns.current_user_id
+
+    case GraphLock.set_passcode(user_id, code) do
+      :ok -> json(conn, %{"ok" => true, "passcode_set" => true})
+      {:error, reason} -> conn |> put_status(422) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def set_graph_lock(conn, _params) do
+    conn |> put_status(422) |> json(%{"error" => "code_required"})
+  end
+
+  def verify_graph_lock(conn, %{"code" => code}) do
+    user_id = conn.assigns.current_user_id
+
+    if GraphLock.verify(user_id, code) do
+      json(conn, %{"unlocked" => true})
+    else
+      conn |> put_status(403) |> json(%{"unlocked" => false, "error" => "wrong_code"})
+    end
+  end
+
+  def verify_graph_lock(conn, _params) do
+    conn |> put_status(403) |> json(%{"unlocked" => false, "error" => "wrong_code"})
+  end
+
+  def share_plan_location(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, _plan} <- SocialFlow.get_plan_for_user(id, user_id),
+         {:ok, share} <- PlanLocationShare.share(id, user_id, params) do
+      json(conn, %{
+        "sharing" => true,
+        "expires_at" => DateTime.to_iso8601(share.expires_at)
+      })
+    else
+      {:error, :not_found} -> not_found(conn)
+      {:error, reason} when reason in [:forbidden, :not_a_member] ->
+        conn |> put_status(:forbidden) |> json(%{"error" => to_string(reason)})
+      {:error, reason} -> conn |> put_status(422) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def stop_plan_location(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    with {:ok, _plan} <- SocialFlow.get_plan_for_user(id, user_id) do
+      :ok = PlanLocationShare.stop(id, user_id)
+      json(conn, %{"sharing" => false})
+    else
+      {:error, :not_found} -> not_found(conn)
+      {:error, _} -> conn |> put_status(:forbidden) |> json(%{"error" => "forbidden"})
+    end
+  end
+
   # --- 4.C1 holding ----------------------------------------------------------
 
   def holding(conn, _params) do

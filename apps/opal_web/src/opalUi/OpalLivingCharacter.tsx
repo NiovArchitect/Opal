@@ -333,7 +333,7 @@ export function OpalLivingCharacter({
   const status =
     machine.permissionPrompt ||
     (state === "listening"
-      ? "Listening"
+      ? "Voice input is on"
       : state === "processing"
         ? LIVING_STATE_COPY.processing
         : state === "thinking"
@@ -360,7 +360,7 @@ export function OpalLivingCharacter({
           machine.permissionPrompt
             ? machine.permissionPrompt
             : state === "listening"
-              ? "Stop listening"
+              ? "Stop voice input"
               : "Talk to Opal"
         }
         style={

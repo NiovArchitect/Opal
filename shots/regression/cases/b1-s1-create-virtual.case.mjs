@@ -43,7 +43,7 @@ export default {
     // Suite citizenship: never leave plans in the shared A<->B
     // walk-pair thread (FR cases adopt its first plan). Work in a
     // fresh group thread instead.
-    const third = await h.freshDirectConversation(A, "+12025550105", "Regression Fifth");
+    const third = await h.freshDirectConversation(A, "+12025550105", "Owen Parker");
     assert.check("setup third member", !!third?.userId, "group setup needs a third synthetic user");
     const group = await h.createGroup(A, [ctx.sessions.b.userId, third.userId], `B1 S1 create ${ctx.tag}`);
     assert.check("POST /conversations/group", !!group.conversationId, "setup needs a group conversation");
@@ -86,7 +86,7 @@ export default {
       // The journey surface serves agreed plans. Birth one through
       // the real activate path in a fresh group thread and read the
       // journey back: it must carry the same virtual truth.
-      const fresh = await h.freshDirectConversation(A, "+12025550104", "Regression Third");
+      const fresh = await h.freshDirectConversation(A, "+12025550104", "Clara Jensen");
       assert.check("setup fresh conversation", !!fresh?.conversationId, "journey leg needs a fresh plan-free conversation (synthetic provisioning)");
       const act = await h.activateJourney(A, {
         conversation_id: fresh.conversationId,

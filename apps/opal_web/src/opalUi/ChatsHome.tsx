@@ -8,6 +8,7 @@ import { PRODUCT_COPY } from "../designTokens";
 import { type CallsContinuityRow } from "./callsContinuitySeed";
 import { PlanAwareness } from "./c1/PlanAwareness";
 import type { NextPlanFact } from "../api/productClient";
+import { planStateFamily } from "../theme/planStateColors";
 import { MutedBell } from "./MutedBell";
 import { formatUnread } from "./dockUnreadDisplay";
 import { isTestResidueConversation } from "./realChatPath";
@@ -575,6 +576,17 @@ export function ChatsHome({
             const pill = r.planConsequence;
             const pillTone = pill?.tone;
             const pillId = pill?.planId;
+            /* R19 W5-06: the row's plan state for the ambient border
+             * (theme/unifyChats.css, [data-plan-state] rules) comes
+             * ONLY from the row's existing single-source plan facts:
+             * the DIR-1 next_plan fact, else the plan-consequence
+             * pill - normalized through the one planStateFamily.
+             * No plan fact, no attribute, no state border. */
+            const rowState = r.nextPlan
+              ? planStateFamily(r.nextPlan.state)
+              : pill
+                ? planStateFamily(pill.state)
+                : null;
             return (
               <li key={r.id} className="chats-home-item">
                 <button
@@ -585,6 +597,7 @@ export function ChatsHome({
                   data-name={r.name}
                   data-unread={r.unread ? String(r.unread) : "0"}
                   data-preview={r.preview}
+                  data-plan-state={rowState ?? undefined}
                   onClick={() => onOpenChat(r.id)}
                 >
                   <span
@@ -619,13 +632,13 @@ export function ChatsHome({
                       >
                         {defaultRelLabel(r)}
                       </span>
-                      {r.nextPlan ? (
-                        <PlanAwareness
-                          fact={r.nextPlan}
-                          entityTint={r.entityTint}
-                          variant="row"
-                        />
-                      ) : pill ? (
+                      {/* R19 W5-06: the DIR-1 row mini-card no longer
+                          renders inside this flex meta-row (its
+                          full-width card was squeezed beside the
+                          connection label); it renders below the
+                          meta-row, at the copy column's full width.
+                          The legacy pill fallback stays in the row. */}
+                      {r.nextPlan ? null : pill ? (
                         <span
                           role="link"
                           tabIndex={0}
@@ -658,6 +671,13 @@ export function ChatsHome({
                         </span>
                       ) : null}
                     </span>
+                    {r.nextPlan ? (
+                      <PlanAwareness
+                        fact={r.nextPlan}
+                        entityTint={r.entityTint}
+                        variant="row"
+                      />
+                    ) : null}
                     {pill?.attendanceLabel ? (
                       <span
                         className="chats-home-plan-attendance"

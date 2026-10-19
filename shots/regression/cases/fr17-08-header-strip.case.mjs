@@ -12,7 +12,7 @@ export default {
   surfaces: ["GET /calendar/today"],
   async run(ctx) {
     const { A, h, assert } = ctx;
-    const fresh = await ctx.freshClient("+12025550104", "Regression Strip");
+    const fresh = await ctx.freshClient("+12025550104", "Chris Palmer");
     const client = fresh || A;
     const today = await h.calendarToday(client);
     assert.eq("GET /calendar/today", today.status, 200, "strip projection must load");

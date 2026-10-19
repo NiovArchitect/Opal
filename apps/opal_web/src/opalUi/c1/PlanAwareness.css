@@ -60,3 +60,47 @@
   box-sizing: border-box;
   padding: 6px 10px;
 }
+/* R19 W5-06: the ROW variant is a mini-card inside the chats row -
+ * a full-width flex column with breathing room, NOT the compact
+ * one-line pill. Layout contract (pinned by r19ChatsThread.test):
+ * width 100% + min-width 0 (the row's flex chain can never squeeze
+ * it to min-content), title on its own full-width line wrapping by
+ * phrase, meta on its own line. The state border/fill at ambient
+ * intensity is layered on by theme/unifyChats.css from --pa-state;
+ * the radius steps up from pill to card because the content is now
+ * a card, not a pill. */
+.plan-awareness[data-variant="row"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+.plan-awareness-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.plan-awareness-title {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-weight: 650;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.plan-awareness-meta {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  opacity: 0.85;
+}

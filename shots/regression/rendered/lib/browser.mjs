@@ -41,7 +41,7 @@
  * screenshot set is always tied to the build that produced it.
  */
 import { chromium } from "playwright-core";
-import { loadConfig, loadSessions, runFounderSeed, ApiClient } from "../../lib/harness.mjs";
+import { loadConfig, loadSessions, runFounderSeed, scanSeedWorld, ApiClient } from "../../lib/harness.mjs";
 
 export const VIEWPORT = { width: 390, height: 844 };
 
@@ -85,6 +85,19 @@ export async function provisionRenderedSessions(config) {
       err.harness = true;
       throw err;
     }
+    // Repair #19 (W1) permanent gate: no rendered capture may be taken
+    // from a seed world containing machine-speak. This is the check
+    // that would have caught the rejected full-pack ("Regression A",
+    // "…macreplay1" titles) before it reached the founder.
+    const gateHits = await scanSeedWorld(seedClient);
+    if (gateHits.length > 0) {
+      const err = new Error(
+        `rendered harness: machine-speak in seed world (${gateHits.length} hits): ` +
+          gateHits.slice(0, 5).map((h) => `${h.surface} "${h.token}" in "${h.value}"`).join("; "),
+      );
+      err.harness = true;
+      throw err;
+    }
   }
   return { sessions, seedInfo };
 }
@@ -124,7 +137,7 @@ export async function newAuthedContext(browser, config, session, mode) {
   });
   const profile = {
     user_id: session.userId,
-    display_name: session.name || "Regression A",
+    display_name: session.name || "Ethan Walker",
     handle: session.handle || null,
     session_id: null,
   };

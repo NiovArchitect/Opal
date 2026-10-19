@@ -41,13 +41,13 @@ export default {
     const { A, B, h, assert, config } = ctx;
     if (!B) throw new Error("FR-B3-01 needs session B (member) - two-party case");
 
-    const C = await freshSyntheticClient(config, PHONES.c, "Member Cee");
-    const D = await freshSyntheticClient(config, PHONES.d, "Member Dee");
-    const E = await freshSyntheticClient(config, PHONES.e, "Member Ee");
+    const C = await freshSyntheticClient(config, PHONES.c, "Celia Ruiz");
+    const D = await freshSyntheticClient(config, PHONES.d, "Derek Ruiz");
+    const E = await freshSyntheticClient(config, PHONES.e, "Elena Ruiz");
     const POOL = {
-      f6: await freshSyntheticClient(config, PHONES.f, "Member Eff"),
-      g7: await freshSyntheticClient(config, PHONES.outsider, "Outsider Gee"),
-      h8: await freshSyntheticClient(config, "+12025550108", "Member Aitch"),
+      f6: await freshSyntheticClient(config, PHONES.f, "Felix Ruiz"),
+      g7: await freshSyntheticClient(config, PHONES.outsider, "Gavin Cole"),
+      h8: await freshSyntheticClient(config, "+12025550108", "Henry Ruiz"),
     };
     if (!C || !D || !E || !POOL.f6 || !POOL.g7 || !POOL.h8) {
       throw new Error(
@@ -269,7 +269,7 @@ export default {
     assert.eq("unanswered visibility", fRow.response_status, "asked", "the silent member is still 'asked', never marked answered or declined");
     // Name-source repair (Repair #18 apifix): the line names the
     // member by the SERVER's display name for that account. The
-    // case's locally-assumed fixture name ("Member Eff" / F.session
+    // case's locally-assumed fixture name ("Felix Ruiz" / F.session
     // .name) is not what the server holds in suite context - the
     // synthetic phone pool is shared, an earlier case provisions
     // each pool phone first, and activation verify keeps the

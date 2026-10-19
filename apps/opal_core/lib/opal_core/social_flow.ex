@@ -2358,6 +2358,40 @@ defmodule OpalCore.SocialFlow do
   # F12-61 — catch-all after the main clause: non-map / shape-wrong input.
   def cancel_plan(_), do: {:error, :invalid}
 
+  @doc """
+  Repair #19 W7 - set or clear a plan's private flag. Creator-only:
+  privacy is the owner's call about their own graph (a participant
+  cannot hide a shared plan from its owner, and the owner hiding it
+  removes it from every other participant's list - see
+  list_plans_for_user/2). Returns the updated plan contract.
+  """
+  def set_plan_private(plan_id, user_id, is_private)
+      when is_binary(plan_id) and is_binary(user_id) and is_boolean(is_private) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{} = plan ->
+        cond do
+          plan.created_by_user_id != user_id ->
+            {:error, :not_authorized}
+
+          plan.is_private == is_private ->
+            {:ok, plan_payload(plan)}
+
+          true ->
+            case plan
+                 |> SharedPlan.changeset(%{is_private: is_private})
+                 |> Repo.update() do
+              {:ok, updated} -> {:ok, plan_payload(updated)}
+              {:error, _} -> {:error, :invalid}
+            end
+        end
+
+      _ ->
+        {:error, :not_found}
+    end
+  end
+
+  def set_plan_private(_, _, _), do: {:error, :invalid}
+
   defp cancel_notify_user_ids(%SharedPlan{} = plan) do
     participant_ids =
       from(pp in PlanParticipant, where: pp.plan_id == ^plan.id, select: pp.user_id)
@@ -3048,7 +3082,13 @@ defmodule OpalCore.SocialFlow do
 
     q =
       from(p in SharedPlan,
-        where: p.created_by_user_id == ^user_id or p.id in ^participant_plan_ids,
+        # R19 W7: a private graph is the creator's alone - other
+        # participants never receive it in their plan lists at all.
+        # The creator's own list carries it, flagged is_private, and
+        # their Graphs surface gates it behind the Private area.
+        where:
+          p.created_by_user_id == ^user_id or
+            (p.id in ^participant_plan_ids and p.is_private == false),
         # Repair #18 residuals #2 (FR-18-04, law F18-06) - status tier
         # FIRST, using the codebase's own commitment rank (the same
         # agreed > changed > tentative ranking sort_survivor_first/1
@@ -4371,6 +4411,20 @@ defmodule OpalCore.SocialFlow do
 
   # Plan access for both chat plans (conversation members) and center plans
   # (conversation_id nil: creator or participant).
+  #
+  # Repair #19 FIX-A (BS-03) — the private gate sits at this ONE
+  # chokepoint, ahead of every membership clause: a plan its creator
+  # made private is invisible to everyone but the creator, on every
+  # path that resolves access through here (detail via
+  # get_plan_for_user/2, PlanHistory, food steps, location sharing,
+  # edits/cancel/revisions — every ensure_plan_access/2 caller).
+  # Participants get the same :not_a_member the membership check
+  # gives a stranger, so the detail read maps it to :forbidden
+  # exactly as the list exclusion already implied.
+  defp ensure_plan_access(%SharedPlan{is_private: true} = plan, user_id) do
+    if plan.created_by_user_id == user_id, do: :ok, else: {:error, :not_a_member}
+  end
+
   defp ensure_plan_access(%SharedPlan{conversation_id: nil} = plan, user_id) do
     cond do
       plan.created_by_user_id == user_id -> :ok

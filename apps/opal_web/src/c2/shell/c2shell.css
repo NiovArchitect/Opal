@@ -129,14 +129,38 @@
     bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     height: var(--dock-h);
     border-radius: var(--radius-sheet);
-    background: var(--surface-1);
+    /* R19 CHROME GLASS (founder, 2026-10-18 23:50 PDT): the pad is
+     * frosted glass - the chrome-glass tokens (theme/c2Tokens.css),
+     * TRUE backdrop blur + per-mode tint, never a bare translucent
+     * fill: content scrolling under the pad melts and dissolves
+     * (never legible), the pad keeps depth without noise.
+     * Performance budget: every backdrop-filter site in the app is
+     * enumerated in the sanctioned-glass registry (theme/
+     * unifyDrift.test.ts) with its reason - a new unlisted glass
+     * site fails that test by name. The raised orb disc above it
+     * stays solid (presence device, protected). */
+    background: var(--chrome-glass-tint);
+    -webkit-backdrop-filter: blur(var(--chrome-glass-blur)) saturate(1.35);
+    backdrop-filter: blur(var(--chrome-glass-blur)) saturate(1.35);
     /* UNIFY HALO FIX (founder, 2026-10-18 13:46 PDT): the top border
      * segment is NOT drawn by the dock's own border - the raised
      * center orb device (disc margin-top -18px) sits across the top
      * edge, and the full border line rendered straight THROUGH its
      * transparent halo. The ::before/::after segments below draw the
-     * top edge only up to the disc's edge (disc radius 28px + 8px
-     * halo gap each side); no line crosses the halo. */
+     * top edge only up to the disc's edge; no line crosses the halo.
+     * R19 HALO GEOMETRY (founder, 2026-10-18 review of the unify
+     * pack): the R18 terminus (center -36px) read BROKEN/FLOATING -
+     * at the top border line the disc's edge is not at its full
+     * radius: the disc (56px, r 28) sits with its border-box top at
+     * -5px (flex margin-box centering: (62 - (56 - 18)) / 2 - 18 + 1;
+     * rendered probe, unify pack: discZone top -5), so its center is
+     * 23px below the line and the circle's half-chord AT THE LINE is
+     * sqrt(28^2 - 23^2) = 15.97px. The old 36px offset therefore left
+     * a ~20px gap at the line. Segments now terminate at the chord
+     * edge + the one shared gap token: 16px (chord, rounded up 0.03
+     * to the safe side) + the --dock-halo-gap token. Reason the border
+     * exists at all: containment of the pad field - it must hug the
+     * device it breaks around, or it reads as two broken stubs. */
     border: 1px solid var(--line-1);
     border-top-color: transparent;
     box-shadow: var(--shadow-card);
@@ -154,14 +178,14 @@
   }
   .c2s-dock::before {
     left: -1px;
-    width: calc(50% - 36px);
+    width: calc(50% - 16px - var(--dock-halo-gap));
     border-top: 1px solid var(--line-1);
     border-left: 1px solid var(--line-1);
     border-top-left-radius: var(--radius-sheet);
   }
   .c2s-dock::after {
     right: -1px;
-    width: calc(50% - 36px);
+    width: calc(50% - 16px - var(--dock-halo-gap));
     border-top: 1px solid var(--line-1);
     border-right: 1px solid var(--line-1);
     border-top-right-radius: var(--radius-sheet);
@@ -270,9 +294,16 @@
     cursor: pointer;
   }
   .c2s-chip[data-active="1"] {
-    background: var(--ink-1);
-    color: var(--canvas);
-    border-color: var(--ink-1);
+    /* Selected treatment lives in background/border/shadow, never in
+       text color: the global button reset (styles.css, unlayered)
+       owns `color` for buttons and beats every layered rule, so an
+       inverted ink/canvas pair renders the label invisible (ink text
+       on an ink pill - the blank white/black pill found by the R19 W8
+       rendered capture, both modes). This is the segmented pattern:
+       surface-1 on surface-2, set apart by border and shadow. */
+    background: var(--surface-1);
+    border-color: var(--ink-2);
+    box-shadow: var(--shadow-card);
   }
 
   /* ---------- sheets and flows (sections 3.2, 7.2) ---------- */
@@ -280,7 +311,9 @@
     position: fixed;
     inset: 0;
     background: var(--scrim);
-    backdrop-filter: blur(8px);
+    /* Scrim material (--scrim-blur, c2Tokens.css): a dim layer, not
+       chrome glass - see the sanctioned-glass registry. */
+    backdrop-filter: blur(var(--scrim-blur));
     z-index: var(--layer-sheet);
     display: flex;
     align-items: flex-end;
@@ -457,6 +490,80 @@
     width: 100%;
     display: block;
   }
+  /* ---------- W9 social composition: bylines, no-image treatment,
+   * live ambient (reasons recorded in C2Home HOME_AMBIENT_ELEMENTS).
+   * Canon tokens only; ambient intensity; QUIET-capped motion. --- */
+  .c2s-card-byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  /* No-image treatment: the author's monogram in their entity tint
+   * over a map-like motif (contour rings + a place pin dot drawn in
+   * CSS, in the same tint). A designed treatment - never text in an
+   * image-shaped hole, never a stock photo. */
+  .c2s-media-monogram {
+    position: relative;
+    width: 100%;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at 78% 22%, color-mix(in srgb, var(--monogram-tint, var(--person-tint-1)) 34%, transparent) 0 7px, transparent 8px),
+      repeating-radial-gradient(circle at 24% 118%, transparent 0 26px, color-mix(in srgb, var(--monogram-tint, var(--person-tint-1)) 16%, transparent) 26px 27px),
+      color-mix(in srgb, var(--monogram-tint, var(--person-tint-1)) 12%, var(--surface-2));
+  }
+  .c2s-media-monogram[data-tint="1"] { --monogram-tint: var(--person-tint-1); }
+  .c2s-media-monogram[data-tint="2"] { --monogram-tint: var(--person-tint-2); }
+  .c2s-media-monogram[data-tint="3"] { --monogram-tint: var(--person-tint-3); }
+  .c2s-media-monogram[data-tint="4"] { --monogram-tint: var(--person-tint-4); }
+  .c2s-media-monogram[data-tint="5"] { --monogram-tint: var(--person-tint-5); }
+  .c2s-media-monogram[data-tint="6"] { --monogram-tint: var(--person-tint-6); }
+  .c2s-media-monogram-initial {
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 650;
+    color: var(--ink-1);
+    background: color-mix(in srgb, var(--monogram-tint, var(--person-tint-1)) 24%, var(--surface-1));
+    border: 1px solid color-mix(in srgb, var(--monogram-tint, var(--person-tint-1)) 45%, transparent);
+  }
+  /* Live: happening-state ambient border (same token + intensity as
+   * the happening plan card) and one soft pulse on the live dot -
+   * the window is short, the signal is the state, nothing else
+   * moves (QUIET). */
+  .c2s-live-card {
+    border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 50%, transparent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
+  }
+  .c2s-live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font: var(--type-pill);
+    background: var(--state-happening-tint);
+    border: 1px solid var(--state-happening);
+    color: var(--state-happening-ink);
+  }
+  .c2s-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--state-happening);
+    animation: c2s-live-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes c2s-live-pulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
   .c2s-card-action {
     margin-top: var(--space-3);
     border: 1px solid var(--line-2);
@@ -550,6 +657,47 @@
   }
 
   /* ---------- Graphs (section 8) ---------- */
+  /* R19 W7 - the future thread. Reason (ambient law): the rail is
+     the timeline of the group - it carries SEQUENCE; each node is
+     filled with its plan's state token - it carries STATE. Both are
+     information, not decoration; no other color enters the thread. */
+  .c2s-thread {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-left: 22px;
+  }
+  .c2s-thread::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: var(--line-1);
+    border-radius: 2px;
+  }
+  .c2s-thread-row {
+    position: relative;
+  }
+  .c2s-thread-node {
+    position: absolute;
+    left: -22px;
+    top: 16px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--state-forming);
+    border: 2px solid var(--surface-1);
+  }
+  .c2s-thread-node[data-plan-state="action"] { background: var(--state-action); }
+  .c2s-thread-node[data-plan-state="ready"] { background: var(--state-ready); }
+  .c2s-thread-node[data-plan-state="happening"] { background: var(--state-happening); }
+  .c2s-thread-node[data-plan-state="past"] { background: var(--state-past); }
+  .c2s-thread-card {
+    min-width: 0;
+  }
   .c2s-lens-row {
     display: flex;
     gap: var(--space-2);
@@ -726,6 +874,25 @@
     color: var(--state-action-ink);
     margin: var(--space-2) 0 0;
   }
+  /* JA-05: the runtime crash boundary's face — the shell's own
+   * column measure and tokens, so a crash lands in the current
+   * design in both modes (the .c2s-root behind it carries the
+   * mode's canvas/ink). */
+  .c2s-boundary {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-4);
+    box-sizing: border-box;
+  }
+  .c2s-boundary-title {
+    font: var(--type-title);
+    color: var(--ink-1);
+    margin: 0 0 var(--space-3);
+  }
   .c2s-saving-line {
     font: var(--type-caption);
     color: var(--ink-3);
@@ -787,6 +954,36 @@
     background: var(--surface-1);
     color: var(--ink-1);
     box-shadow: var(--shadow-card);
+  }
+
+  /* ---------- Soul room field groups (Repair #19 W8) ----------
+   * Every Soul control sits in a labeled group: a persistent label,
+   * a reason in plain words, then the control. Reason: a first-time
+   * reader must be able to answer "what does this change?" from the
+   * room alone - no placeholder-only fields, no raw-value pills. */
+  .c2s-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .c2s-field-label {
+    font: var(--type-body);
+    font-weight: 650;
+    color: var(--ink-1);
+    margin: 0;
+    display: block;
+  }
+  .c2s-field-sublabel {
+    font: var(--type-callout);
+    font-weight: 600;
+    color: var(--ink-1);
+    display: block;
+    margin-top: var(--space-2);
+  }
+  .c2s-field-reason {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    margin: 0;
   }
 
   /* ---------- onboarding entry (section 6) ---------- */
@@ -936,6 +1133,9 @@
     }
     .c2s-toggle::after {
       transition: none;
+    }
+    .c2s-live-dot {
+      animation: none;
     }
   }
 
@@ -1146,3 +1346,21 @@
     }
   }
 }
+
+/* Repair #19 W13 - recreated share card + person profile. Tokens
+   only; both modes inherit from :root[data-mode] like every c2
+   surface. Nothing here introduces a new color or border language. */
+/* Share card glass: ONE material - the chrome-glass token, no
+   literal (W18-FIX). The card is frosted glass over the state field
+   (founder rider on EventShareCard); its tint is the plan card's own
+   surface, so only the blur is consumed here. Sanctioned site -
+   see the registry in theme/unifyDrift.test.ts. */
+.r19-share-card { backdrop-filter: blur(var(--chrome-glass-blur)); -webkit-backdrop-filter: blur(var(--chrome-glass-blur)); }
+.r19-share-brand { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.r19-share-wordmark { font-weight: 650; font-size: 13px; color: var(--ink-2, inherit); }
+.r19-profile-hero { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 8px 0 4px; }
+.r19-profile-name { margin: 8px 0 0; font-size: 22px; font-weight: 700; }
+.r19-profile-section { margin-top: 16px; }
+.r19-profile-next-row { display: flex; gap: 10px; align-items: flex-start; margin-top: 6px; }
+.r19-profile-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.c1-avatar-btn { border: none; cursor: pointer; padding: 0; }

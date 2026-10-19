@@ -159,6 +159,91 @@
   }
 }
 
+/* ---- Living rings v2 rotors (Repair #19, splash animation v2) ----
+ * ALL v2 motion is CSS/WAAPI transforms - compositor-driven, no
+ * SMIL, no per-frame JS. The circular ring's points are children
+ * of .orb-ring-rotor: the rotor's rotation IS the ring's angle
+ * (transform-origin = the measured ring center (101,100) in
+ * viewBox units via transform-box: view-box), so a point's angle
+ * is its base angle + the rotor angle by construction - it
+ * cannot leave the ring. Hero rotors run ONCE, displaced -> rest
+ * (0deg), fill both ways, delayed by the 0.45s fade beat so the
+ * motion starts with the layer, never before first paint.
+ * Ambient rotors turn indefinitely at QUIET laps. The ellipse
+ * riders are WAAPI (component-side, parametric samples) and have
+ * no CSS here beyond the pause law below. */
+.orb-ring-rotor,
+.orb-ring-arc {
+  transform-box: view-box;
+  transform-origin: 101px 100px;
+  will-change: transform;
+}
+.orb-ring-rotor--hero {
+  animation: orb-rotor-settle-circle 15s cubic-bezier(0.33, 1, 0.68, 1) 0.45s both;
+}
+@keyframes orb-rotor-settle-circle {
+  from {
+    transform: rotate(-60deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+.orb-ring-rotor--ambient {
+  animation: orb-rotor-spin 96s linear infinite;
+}
+@keyframes orb-rotor-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* The arc precesses on the circular ring's own axis (center
+ * (101,100)), counter-rotating against the circle rotor. Hero it
+ * lands at 0deg faded out - the rest composition has no live
+ * arc; ambient it precesses in reverse indefinitely. */
+.orb-ring-arc--hero {
+  animation: orb-arc-settle 15s cubic-bezier(0.33, 1, 0.68, 1) 0.45s both;
+}
+@keyframes orb-arc-settle {
+  0% {
+    transform: rotate(55deg);
+    opacity: 0.4;
+  }
+  70% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: rotate(0deg);
+    opacity: 0;
+  }
+}
+.orb-ring-arc--ambient {
+  animation: orb-rotor-spin-rev 160s linear infinite;
+}
+@keyframes orb-rotor-spin-rev {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+/* Pause law: hidden document / off-screen layer - nothing turns.
+ * (WAAPI ellipse riders are paused from the component.) */
+.orb-living-rings[data-paused="true"] .orb-ring-rotor,
+.orb-living-rings[data-paused="true"] .orb-ring-arc {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-ring-rotor,
+  .orb-ring-arc {
+    animation: none;
+  }
+}
+
 /* Dock mark wrapper: the living layer is clipped to the mark's own
  * square, well inside the 56px disc - traveler halos (max extent
  * ~17px from center at 40px render) never reach the disc border. */
@@ -169,4 +254,168 @@
 }
 .orb-dock-mark .orb-living-rings {
   inset: 0;
+}
+
+/* ---- Ellipse riders: CSS keyframes sampled from the ring ----
+ * The horizontal ring's points cannot ride a CSS rotation (a
+ * rotated ellipse leaves itself), so their keyframes are SAMPLES
+ * OF THE RING'S PARAMETRIC EQUATION, generated deterministically
+ * (pos(phi) = (101 + 86cos(phi), 106 + 11sin(phi)), 41 samples,
+ * phi(t) with the easeOutCubic settle profile baked in for hero,
+ * linear for the ambient lap; values rounded to 3dp). Every
+ * sample lies on the measured ellipse; the compositor
+ * interpolates transforms between samples (max chord deviation
+ * < 0.05 viewBox units - sub-pixel at splash scale). The unit
+ * tests re-derive every sample from the equation and pin this
+ * block to it, so the CSS can never drift off the ring. Hero
+ * riders land exactly on their rest endpoints; the ambient
+ * rider's lap starts and ends at its rest point. */
+.orb-ellipse-rider {
+  will-change: transform;
+}
+.orb-ellipse-rider--hero-0 {
+  animation: orb-ellipse-hero-0 15s linear 0.45s both;
+}
+.orb-ellipse-rider--hero-180 {
+  animation: orb-ellipse-hero-180 15s linear 0.45s both;
+}
+.orb-ellipse-rider--ambient-0 {
+  animation: orb-ellipse-ambient-0 72s linear infinite;
+}
+.orb-living-rings[data-paused="true"] .orb-ellipse-rider {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-ellipse-rider {
+    animation: none;
+  }
+}
+@keyframes orb-ellipse-hero-0 {
+  0.0% { transform: translate(15px, 106px); }
+  2.5% { transform: translate(17.26px, 103.495px); }
+  5.0% { transform: translate(23.489px, 101.235px); }
+  7.5% { transform: translate(32.807px, 99.298px); }
+  10.0% { transform: translate(44.33px, 97.726px); }
+  12.5% { transform: translate(57.241px, 96.53px); }
+  15.0% { transform: translate(70.822px, 95.699px); }
+  17.5% { transform: translate(84.483px, 95.205px); }
+  20.0% { transform: translate(97.759px, 95.008px); }
+  22.5% { transform: translate(110.307px, 95.065px); }
+  25.0% { transform: translate(121.896px, 95.33px); }
+  27.5% { transform: translate(132.388px, 95.759px); }
+  30.0% { transform: translate(141.719px, 96.311px); }
+  32.5% { transform: translate(149.886px, 96.95px); }
+  35.0% { transform: translate(156.93px, 97.644px); }
+  37.5% { transform: translate(162.92px, 98.366px); }
+  40.0% { transform: translate(167.948px, 99.095px); }
+  42.5% { transform: translate(172.112px, 99.814px); }
+  45.0% { transform: translate(175.518px, 100.509px); }
+  47.5% { transform: translate(178.266px, 101.17px); }
+  50.0% { transform: translate(180.454px, 101.79px); }
+  52.5% { transform: translate(182.171px, 102.366px); }
+  55.0% { transform: translate(183.5px, 102.894px); }
+  57.5% { transform: translate(184.511px, 103.373px); }
+  60.0% { transform: translate(185.268px, 103.803px); }
+  62.5% { transform: translate(185.822px, 104.186px); }
+  65.0% { transform: translate(186.221px, 104.523px); }
+  67.5% { transform: translate(186.5px, 104.816px); }
+  70.0% { transform: translate(186.691px, 105.068px); }
+  72.5% { transform: translate(186.817px, 105.282px); }
+  75.0% { transform: translate(186.896px, 105.46px); }
+  77.5% { transform: translate(186.945px, 105.606px); }
+  80.0% { transform: translate(186.973px, 105.724px); }
+  82.5% { transform: translate(186.988px, 105.815px); }
+  85.0% { transform: translate(186.995px, 105.883px); }
+  87.5% { transform: translate(186.998px, 105.933px); }
+  90.0% { transform: translate(187px, 105.965px); }
+  92.5% { transform: translate(187px, 105.985px); }
+  95.0% { transform: translate(187px, 105.996px); }
+  97.5% { transform: translate(187px, 105.999px); }
+  100.0% { transform: translate(187px, 106px); }
+}
+@keyframes orb-ellipse-hero-180 {
+  0.0% { transform: translate(187px, 106px); }
+  2.5% { transform: translate(184.74px, 108.505px); }
+  5.0% { transform: translate(178.511px, 110.765px); }
+  7.5% { transform: translate(169.193px, 112.702px); }
+  10.0% { transform: translate(157.67px, 114.274px); }
+  12.5% { transform: translate(144.759px, 115.47px); }
+  15.0% { transform: translate(131.178px, 116.301px); }
+  17.5% { transform: translate(117.517px, 116.795px); }
+  20.0% { transform: translate(104.241px, 116.992px); }
+  22.5% { transform: translate(91.693px, 116.935px); }
+  25.0% { transform: translate(80.104px, 116.67px); }
+  27.5% { transform: translate(69.612px, 116.241px); }
+  30.0% { transform: translate(60.281px, 115.689px); }
+  32.5% { transform: translate(52.114px, 115.05px); }
+  35.0% { transform: translate(45.07px, 114.356px); }
+  37.5% { transform: translate(39.08px, 113.634px); }
+  40.0% { transform: translate(34.052px, 112.905px); }
+  42.5% { transform: translate(29.888px, 112.186px); }
+  45.0% { transform: translate(26.482px, 111.491px); }
+  47.5% { transform: translate(23.734px, 110.83px); }
+  50.0% { transform: translate(21.546px, 110.21px); }
+  52.5% { transform: translate(19.829px, 109.634px); }
+  55.0% { transform: translate(18.5px, 109.106px); }
+  57.5% { transform: translate(17.489px, 108.627px); }
+  60.0% { transform: translate(16.732px, 108.197px); }
+  62.5% { transform: translate(16.178px, 107.814px); }
+  65.0% { transform: translate(15.779px, 107.477px); }
+  67.5% { transform: translate(15.5px, 107.184px); }
+  70.0% { transform: translate(15.309px, 106.932px); }
+  72.5% { transform: translate(15.183px, 106.718px); }
+  75.0% { transform: translate(15.104px, 106.54px); }
+  77.5% { transform: translate(15.055px, 106.394px); }
+  80.0% { transform: translate(15.027px, 106.276px); }
+  82.5% { transform: translate(15.012px, 106.185px); }
+  85.0% { transform: translate(15.005px, 106.117px); }
+  87.5% { transform: translate(15.002px, 106.067px); }
+  90.0% { transform: translate(15px, 106.035px); }
+  92.5% { transform: translate(15px, 106.015px); }
+  95.0% { transform: translate(15px, 106.004px); }
+  97.5% { transform: translate(15px, 106.001px); }
+  100.0% { transform: translate(15px, 106px); }
+}
+@keyframes orb-ellipse-ambient-0 {
+  0.0% { transform: translate(187px, 106px); }
+  2.5% { transform: translate(185.941px, 104.279px); }
+  5.0% { transform: translate(182.791px, 102.601px); }
+  7.5% { transform: translate(177.627px, 101.006px); }
+  10.0% { transform: translate(170.575px, 99.534px); }
+  12.5% { transform: translate(161.811px, 98.222px); }
+  15.0% { transform: translate(151.55px, 97.101px); }
+  17.5% { transform: translate(140.043px, 96.199px); }
+  20.0% { transform: translate(127.575px, 95.538px); }
+  22.5% { transform: translate(114.453px, 95.135px); }
+  25.0% { transform: translate(101px, 95px); }
+  27.5% { transform: translate(87.547px, 95.135px); }
+  30.0% { transform: translate(74.425px, 95.538px); }
+  32.5% { transform: translate(61.957px, 96.199px); }
+  35.0% { transform: translate(50.45px, 97.101px); }
+  37.5% { transform: translate(40.189px, 98.222px); }
+  40.0% { transform: translate(31.425px, 99.534px); }
+  42.5% { transform: translate(24.373px, 101.006px); }
+  45.0% { transform: translate(19.209px, 102.601px); }
+  47.5% { transform: translate(16.059px, 104.279px); }
+  50.0% { transform: translate(15px, 106px); }
+  52.5% { transform: translate(16.059px, 107.721px); }
+  55.0% { transform: translate(19.209px, 109.399px); }
+  57.5% { transform: translate(24.373px, 110.994px); }
+  60.0% { transform: translate(31.425px, 112.466px); }
+  62.5% { transform: translate(40.189px, 113.778px); }
+  65.0% { transform: translate(50.45px, 114.899px); }
+  67.5% { transform: translate(61.957px, 115.801px); }
+  70.0% { transform: translate(74.425px, 116.462px); }
+  72.5% { transform: translate(87.547px, 116.865px); }
+  75.0% { transform: translate(101px, 117px); }
+  77.5% { transform: translate(114.453px, 116.865px); }
+  80.0% { transform: translate(127.575px, 116.462px); }
+  82.5% { transform: translate(140.043px, 115.801px); }
+  85.0% { transform: translate(151.55px, 114.899px); }
+  87.5% { transform: translate(161.811px, 113.778px); }
+  90.0% { transform: translate(170.575px, 112.466px); }
+  92.5% { transform: translate(177.627px, 110.994px); }
+  95.0% { transform: translate(182.791px, 109.399px); }
+  97.5% { transform: translate(185.941px, 107.721px); }
+  100.0% { transform: translate(187px, 106px); }
 }

@@ -64,7 +64,25 @@
  *    new dynamic asset ships only by adding its row here):
  *      - Next Together strip: a plan projection for this thread has an
  *        upcoming plan. Exits when the plan passes, is cancelled, or the
- *        thread's projection no longer carries it.
+ *        thread's projection no longer carries it. R19 W5-07 form
+ *        (founder review 2026-10-18 22:47 PDT, superseding the deckfix
+ *        F2b in-flow form): in the C1 thread the strip is ANCHORED at
+ *        the top of the scroll column (sticky, the one sanctioned
+ *        sticky inside the thread) and SOLID - its ground is the
+ *        opaque field token var(--canvas) in both modes, so messages
+ *        scrolling under it never bleed through. Its state treatment
+ *        (border/glow from the plan's --pa-state) is kept; anchoring
+ *        without an opaque ground is the defect, in either direction.
+ *      - Chats-row state border (R19 W5-06): a chats row (C1 list and
+ *        legacy ChatsHome alike) whose existing single-source plan
+ *        fact (DIR-4 reveal / DIR-1 next_plan / plan projection or
+ *        consequence) carries a state wears an ambient border mixed
+ *        from the canonical --orb-indicator-<state> token. Reason per
+ *        state: action = your answer is pending on this conversation's
+ *        plan; ready = the plan is agreed and complete; forming = the
+ *        plan is still taking shape; happening = the plan is in its
+ *        live window; past = the plan has settled. A row with no plan
+ *        wears NO state border - the border exits with the fact.
  *      - Plan-awareness element (DIR-1: chats row, thread Next
  *        Together strip, call-log row): the backend contract carries
  *        a shared upcoming plan fact (next_plan) for this
@@ -73,6 +91,17 @@
  *        contract - the plan passes, is cancelled, or completes.
  *        No fact, no element: never a painted or empty pill. Exactly
  *        one per row / thread (it replaces the row pill).
+ *      - Call-row state border (Repair #19: the C2 call log's rows):
+ *        the backend contract carries a call-state fact (call_state)
+ *        for every real call row, derived once in the service layer
+ *        (Calls.CallState) from the call's governed record, its
+ *        shared upcoming plan fact, and whether a later call with
+ *        the same peer connected. The border's color/pattern IS the
+ *        fact, at ambient intensity; it changes on the next read
+ *        the moment the fact changes (a miss is resolved by a later
+ *        connected call, a plan is cancelled, a plan goes live).
+ *        Settled ("past") is a rendered state, not an absence; a
+ *        contract row without the fact renders the quiet edge.
  *      - "Check availability" pill: an availability ask for the current
  *        proposal is outstanding AND actionable by this viewer. Exits
  *        the moment the ask is answered, superseded, or withdrawn.

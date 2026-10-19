@@ -85,14 +85,139 @@ for (const mode of ["dark", "light"]) {
         const dr = dock.getBoundingClientRect(); const cr = disc.getBoundingClientRect();
         const cs = getComputedStyle(dock);
         const before = getComputedStyle(dock, "::before"); const after = getComputedStyle(dock, "::after");
+        // R19 haloGap: the MEASURED segment-to-disc gap AT the top
+        // border line. The disc is a circle raised across the line,
+        // so its edge at the line is the chord point, not its
+        // bounding-box edge (the R18 bbox proxy is what let a ~20px
+        // gap pass as "at the disc edge"). Segment terminus (dock
+        // border-box rel) = pseudo content width + 1 (its own border;
+        // left:-1 against the padding box cancels the dock's border).
+        // pass = BOTH gaps within 1.5-4.5px rendered (source pin:
+        // unifyDrift.test.ts, nominal 3.03px, range 2-4): fails on
+        // crossing (< 1.5) AND on floating (> 4.5; R18 measured ~20).
+        const lineY = dr.top - 0.5;
+        const cx = (cr.left + cr.right) / 2; const cy = (cr.top + cr.bottom) / 2;
+        const r = (cr.right - cr.left) / 2;
+        const chordHalf = Math.sqrt(Math.max(r * r - (cy - lineY) ** 2, 0));
+        const bw = parseFloat(before.width); const aw = parseFloat(after.width);
+        const gapL = (cx - chordHalf) - (dr.left + bw + 1);
+        const gapR = (dr.right - aw - 1) - (cx + chordHalf);
+        const haloGap = {
+          left: Math.round(gapL * 100) / 100,
+          right: Math.round(gapR * 100) / 100,
+          chordHalf: Math.round(chordHalf * 100) / 100,
+          centerDepth: Math.round((cy - lineY) * 100) / 100,
+          pass: gapL >= 1.5 && gapL <= 4.5 && gapR >= 1.5 && gapR <= 4.5,
+        };
+        // R19 glass: computed material check - the dock's backdrop
+        // blur must be the --chrome-glass-blur token value and its
+        // background the translucent --chrome-glass-tint (alpha in
+        // the glass range 0.55-0.85: not a solid fill, not a whisper).
+        const blurTok = getComputedStyle(document.documentElement).getPropertyValue("--chrome-glass-blur").trim();
+        const tintM = cs.backgroundColor.match(/rgba?\(([^)]+)\)/);
+        const tintAlpha = tintM ? (tintM[1].split(",").length === 4 ? parseFloat(tintM[1].split(",")[3]) : 1) : null;
+        const glass = {
+          backdropFilter: cs.backdropFilter,
+          tint: cs.backgroundColor,
+          tintAlpha,
+          blurToken: blurTok,
+          pass: (cs.backdropFilter || "").includes(`blur(${blurTok})`) && tintAlpha !== null && tintAlpha >= 0.55 && tintAlpha <= 0.85,
+        };
         return {
           dockBorderTopColor: cs.borderTopColor,
           before: { borderTopColor: before.borderTopColor, width: before.width, left: before.left },
           after: { borderTopColor: after.borderTopColor, width: after.width },
           discZone: { left: Math.round(cr.left - dr.left), right: Math.round(cr.right - dr.left), top: Math.round(cr.top - dr.top) },
           dockW: Math.round(dr.width),
+          haloGap,
+          glass,
         };
       }).catch(() => null);
+      // R19 GLASS PIXEL + PERF PROBES (home surface, both modes).
+      // Legibility proxy (stated honestly): high-frequency luminance
+      // energy is what makes glyphs legible; frosted glass collapses
+      // it. Method: scroll live card content behind the dock, shoot
+      // the viewport, decode the PNG inside Chromium (canvas), and
+      // compare mean |dLum/dx| in the dock's top strips (where bleed-
+      // through would show) against a live text-bearing card region
+      // above the dock. pass = glass HF <= 35% of control HF.
+      // Perf method: rAF delta sampling during a scripted 360px
+      // scroll of .c2s-scroll with the glass live - recorded
+      // (frames/p95/max), not gated; the budget itself (backdrop-
+      // filter on the chrome layer only) is pinned in the web test.
+      let glassPixel = null; let glassPerf = null;
+      try {
+        glassPerf = await page.evaluate(async () => {
+          const sc = document.querySelector(".c2s-scroll");
+          if (!sc) return null;
+          const deltas = []; let last = performance.now(); let y = 0;
+          return await new Promise((res) => {
+            const step = (t) => {
+              deltas.push(t - last); last = t; y += 6; sc.scrollTop = y;
+              if (y < 360) requestAnimationFrame(step);
+              else { const s = [...deltas].sort((a, b) => a - b); res({ frames: s.length, p95ms: Math.round(s[Math.floor(s.length * 0.95)] * 10) / 10, maxMs: Math.round(s[s.length - 1] * 10) / 10 }); }
+            };
+            requestAnimationFrame(step);
+          });
+        }).catch(() => null);
+        await page.evaluate(() => { const sc = document.querySelector(".c2s-scroll"); if (sc) sc.scrollTop = 360; });
+        await page.waitForTimeout(350);
+        const rects = await page.evaluate(() => {
+          const dock = document.querySelector('[data-testid="c2-dock"]');
+          if (!dock) return null;
+          const dr = dock.getBoundingClientRect();
+          const card = [...document.querySelectorAll('[data-testid="c2-plan-card"]')].find((c) => { const r = c.getBoundingClientRect(); return r.bottom < dr.top - 12 && r.height > 60; });
+          const crd = card ? card.getBoundingClientRect() : null;
+          return {
+            strips: [
+              { x: dr.left + 16, y: dr.top + 2, w: 70, h: 6 },
+              { x: dr.right - 86, y: dr.top + 2, w: 70, h: 6 },
+            ],
+            control: crd ? { x: crd.left + 16, y: crd.top + 30, w: Math.min(300, crd.width - 32), h: 24 } : { x: dr.left + 16, y: Math.max(0, dr.top - 90), w: 300, h: 24 },
+            vw: window.innerWidth,
+          };
+        }).catch(() => null);
+        if (rects) {
+          const shot = await page.screenshot({ path: path.join(OUT, `dock-glass-${mode}.png`) });
+          const probePage = await context.newPage();
+          glassPixel = await probePage.evaluate(async ({ b64, strips, control, vw }) => {
+            const img = new Image();
+            await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = "data:image/png;base64," + b64; });
+            const cv = document.createElement("canvas");
+            cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+            const ctx = cv.getContext("2d", { willReadFrequently: true });
+            ctx.drawImage(img, 0, 0);
+            const scale = img.naturalWidth / vw;
+            const hf = (r) => {
+              const d = ctx.getImageData(Math.round(r.x * scale), Math.round(r.y * scale), Math.round(r.w * scale), Math.round(r.h * scale)).data;
+              const w = Math.round(r.w * scale); const h = Math.round(r.h * scale);
+              let sum = 0; let n = 0;
+              for (let yy = 0; yy < h; yy++) {
+                for (let xx = 0; xx < w - 1; xx++) {
+                  const i = (yy * w + xx) * 4; const j = i + 4;
+                  const l1 = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+                  const l2 = 0.2126 * d[j] + 0.7152 * d[j + 1] + 0.0722 * d[j + 2];
+                  sum += Math.abs(l2 - l1); n++;
+                }
+              }
+              return n ? sum / n : null;
+            };
+            const stripHF = strips.map(hf);
+            const controlHF = hf(control);
+            const glassHF = stripHF.reduce((a, b) => a + b, 0) / stripHF.length;
+            return {
+              stripHF: stripHF.map((v) => Math.round(v * 100) / 100),
+              glassHF: Math.round(glassHF * 100) / 100,
+              controlHF: controlHF === null ? null : Math.round(controlHF * 100) / 100,
+              ratio: controlHF ? Math.round((glassHF / controlHF) * 1000) / 1000 : null,
+              pass: controlHF !== null && controlHF > 1 && glassHF <= 0.35 * controlHF,
+            };
+          }, { b64: shot.toString("base64"), strips: rects.strips, control: rects.control, vw: rects.vw }).catch(() => null);
+          await probePage.close().catch(() => {});
+        }
+        await page.evaluate(() => { const sc = document.querySelector(".c2s-scroll"); if (sc) sc.scrollTop = 0; });
+        await page.waitForTimeout(300);
+      } catch { glassPixel = null; }
       await page.screenshot({ path: path.join(OUT, `home-${mode}.png`) });
       const homeProbe = await page.evaluate(() => {
         return [...document.querySelectorAll('[data-testid="c2-plan-card"]')].slice(0, 6).map((c) => {
@@ -102,7 +227,10 @@ for (const mode of ["dark", "light"]) {
         });
       }).catch(() => []);
       const hp = await commonProbes(page, '[data-testid="c2-route-home"]', `home-${mode}`, mode);
-      manifest.surfaces.push({ label: "home", mode, stamp, halo, planCards: homeProbe, drift: await driftProbe(page), ...hp });
+      if (halo && halo.haloGap && !halo.haloGap.pass) hp.failures.push(`haloGap out of range: ${JSON.stringify(halo.haloGap)}`);
+      if (halo && halo.glass && !halo.glass.pass) hp.failures.push(`glass material out of spec: ${JSON.stringify(halo.glass)}`);
+      if (glassPixel && !glassPixel.pass) hp.failures.push(`glass legibility proxy failed: ${JSON.stringify(glassPixel)}`);
+      manifest.surfaces.push({ label: "home", mode, stamp, halo, glassPixel, glassPerf, planCards: homeProbe, drift: await driftProbe(page), ...hp });
       // Chats (C1 list inside C2)
       const chatsBtn = page.locator('[data-testid="c2-dock-chats"]');
       if (await chatsBtn.count()) { await chatsBtn.click(); await page.waitForTimeout(3500); }
@@ -151,6 +279,42 @@ for (const mode of ["dark", "light"]) {
         const barCs = getComputedStyle(bar);
         const opal = document.querySelector(".tabbar-option-b .dock-opal");
         const br = bar.getBoundingClientRect(); const or_ = opal ? opal.getBoundingClientRect() : null;
+        // R19 haloGap: the MEASURED segment-to-device gap for the
+        // legacy pad. The device edge is the VISIBLE center mark
+        // (.dock-opal-center-mark, 46px, centered in the bar) - NOT
+        // the transparent 86px hit zone (opalZone, kept for context;
+        // the R18 zone proxy measured a ~40px gap to the mark as
+        // "before the zone"). Terminus formula as the C2 probe.
+        // pass = BOTH gaps within 1.5-4.5px rendered (source pin:
+        // unifyDrift.test.ts, nominal 3px, range 2-4): fails on
+        // crossing AND on floating (R18 measured ~40px to the mark).
+        const mark = document.querySelector(".tabbar-option-b .dock-opal-center-mark");
+        const mr = mark ? mark.getBoundingClientRect() : null;
+        let haloGap = null;
+        if (mr) {
+          const bw = parseFloat(before.width); const aw = parseFloat(after.width);
+          const gapL = mr.left - (br.left + bw + 1);
+          const gapR = (br.right - aw - 1) - mr.right;
+          haloGap = {
+            left: Math.round(gapL * 100) / 100,
+            right: Math.round(gapR * 100) / 100,
+            markZone: { left: Math.round(mr.left - br.left), right: Math.round(mr.right - br.left), top: Math.round(mr.top - br.top) },
+            pass: gapL >= 1.5 && gapL <= 4.5 && gapR >= 1.5 && gapR <= 4.5,
+          };
+        }
+        // R19 glass: the legacy pad must carry the SAME blur token;
+        // its tint is the legacy dark field fill (alpha >= 0.9 - the
+        // dark member of the glass family, dark in both modes).
+        const blurTok = getComputedStyle(document.documentElement).getPropertyValue("--chrome-glass-blur").trim();
+        const tintM = barCs.backgroundColor.match(/rgba?\(([^)]+)\)/);
+        const tintAlpha = tintM ? (tintM[1].split(",").length === 4 ? parseFloat(tintM[1].split(",")[3]) : 1) : null;
+        const glass = {
+          backdropFilter: barCs.backdropFilter,
+          tint: barCs.backgroundColor,
+          tintAlpha,
+          blurToken: blurTok,
+          pass: (barCs.backdropFilter || "").includes(`blur(${blurTok})`) && tintAlpha !== null && tintAlpha >= 0.9,
+        };
         return {
           ringBackground: before.backgroundImage.slice(0, 120),
           barBorderTopColor: barCs.borderTopColor,
@@ -159,6 +323,8 @@ for (const mode of ["dark", "light"]) {
           segmentAfter: { width: after.width, borderTopColor: after.borderTopColor },
           opalZone: or_ ? { left: Math.round(or_.left - br.left), right: Math.round(or_.right - br.left) } : null,
           barW: Math.round(br.width),
+          haloGap,
+          glass,
         };
       }).catch(() => null);
       await page.screenshot({ path: path.join(OUT, `chats-list-${mode}.png`) });
@@ -175,6 +341,8 @@ for (const mode of ["dark", "light"]) {
         return out;
       }).catch(() => ({}));
       const lp = await commonProbes(page, '[data-testid="chats-home"]', `chats-list-${mode}`, mode);
+      if (legacyHalo && legacyHalo.haloGap && !legacyHalo.haloGap.pass) lp.failures.push(`haloGap out of range: ${JSON.stringify(legacyHalo.haloGap)}`);
+      if (legacyHalo && legacyHalo.glass && !legacyHalo.glass.pass) lp.failures.push(`legacy glass out of spec: ${JSON.stringify(legacyHalo.glass)}`);
       manifest.surfaces.push({ label: "chats-list", mode, stamp, legacyHalo, treatments: listTreat, drift: await driftProbe(page), ...lp });
       // Legacy dock close-up
       const dockEl2 = page.locator(".tabbar-option-b").first();

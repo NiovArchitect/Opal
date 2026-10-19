@@ -1352,7 +1352,7 @@ export function OpalCenterChat({
         : !online
           ? VOICE_OFFLINE_COPY
           : listening
-            ? "Stop listening"
+            ? "Stop voice input"
             : "Talk to Opal";
 
   // Repair #17 W6 — real "Opal is still working" signal for the header

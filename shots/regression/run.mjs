@@ -23,6 +23,7 @@ import {
   loadConfig,
   loadSessions,
   runFounderSeed,
+  scanSeedWorld,
   freshSyntheticClient,
   CaseAssert,
   makeCtx,
@@ -115,6 +116,23 @@ async function main() {
       );
       process.exit(2);
     }
+    // Repair #19 (W1) permanent gate: the seeded review world must not
+    // contain machine-speak on any served surface. Runs BEFORE the
+    // cases, on the seed world exactly as a reviewer would be served
+    // it. A hit is a harness error (exit 2): the run's evidence is
+    // invalid for review, never a product pass.
+    const { ApiClient: GateClient } = await import("./lib/harness.mjs");
+    const gateHits = await scanSeedWorld(new GateClient(config, sessions.a));
+    if (gateHits.length > 0) {
+      console.error(
+        `HARNESS ERROR: machine-speak in seed world (${gateHits.length} hits):`,
+      );
+      for (const h of gateHits.slice(0, 20)) {
+        console.error(`  ${h.surface} ${h.path}: "${h.token}" in "${h.value}"`);
+      }
+      process.exit(2);
+    }
+    console.log("seed world machine-speak gate: clean (0 hits)");
   }
 
   let anyFail = false;

@@ -30,7 +30,11 @@ export function entityTintVar(tint: number | null | undefined): string | null {
   return `var(--person-tint-${tint})`;
 }
 
-const PATTERN_BY_STATE: Record<string, string> = {
+/** The indicator pattern per state family - the secondary cue.
+ *  Exported for the Repair #19 call log, whose rows wear the same
+ *  pattern language on their ambient border (one language, every
+ *  surface - no per-surface pattern invention). */
+export const PATTERN_BY_STATE: Record<string, string> = {
   forming: "dashed",
   action: "solid-bold",
   ready: "solid",
@@ -55,16 +59,11 @@ export function PlanAwareness({
   const parts = [fact.title, fact.when_label, fact.where_label].filter(
     (p): p is string => typeof p === "string" && p.trim() !== "",
   );
-  return (
-    <span
-      className="plan-awareness"
-      data-testid="plan-awareness"
-      data-variant={variant}
-      data-plan-id={fact.plan_id}
-      data-plan-state={family}
-      data-pattern={PATTERN_BY_STATE[family] ?? "solid"}
-      style={{ "--pa-state": color } as React.CSSProperties}
-    >
+  const metaParts = [fact.when_label, fact.where_label].filter(
+    (p): p is string => typeof p === "string" && p.trim() !== "",
+  );
+  const head = (
+    <>
       <span
         className="plan-awareness-entity"
         data-testid="plan-awareness-entity"
@@ -81,7 +80,44 @@ export function PlanAwareness({
         </span>
         <span className="plan-awareness-state">{meta.label}</span>
       </span>
-      <span className="plan-awareness-text">{parts.join(" - ")}</span>
+    </>
+  );
+  return (
+    <span
+      className="plan-awareness"
+      data-testid="plan-awareness"
+      data-variant={variant}
+      data-plan-id={fact.plan_id}
+      data-plan-state={family}
+      data-pattern={PATTERN_BY_STATE[family] ?? "solid"}
+      style={{ "--pa-state": color } as React.CSSProperties}
+    >
+      {variant === "row" ? (
+        /* R19 W5-06: the row variant is a mini-card (PlanAwareness.css
+         * [data-variant="row"]): the state pill owns the head line,
+         * the plan TITLE owns its own full-width line, and when/where
+         * ride a separate meta line. The pre-fix row rendered one
+         * nowrap text run ("Title - When - Where") inside an
+         * inline-flex pill - the same squeeze class as the reveal
+         * line: no width contract, single-line pressure in a narrow
+         * row. Strip/call keep the compact one-line form. */
+        <>
+          <span className="plan-awareness-head">{head}</span>
+          <span className="plan-awareness-title" data-testid="plan-awareness-title">
+            {fact.title}
+          </span>
+          {metaParts.length > 0 ? (
+            <span className="plan-awareness-meta" data-testid="plan-awareness-meta">
+              {metaParts.join(" - ")}
+            </span>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {head}
+          <span className="plan-awareness-text">{parts.join(" - ")}</span>
+        </>
+      )}
     </span>
   );
 }

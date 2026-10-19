@@ -75,10 +75,18 @@ defmodule OpalCoreWeb.PlanExecutionController do
   defp fetch_member_plan(plan_id, user_id) do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
-        if plan_member?(plan, user_id) do
-          {:ok, plan}
-        else
-          {:error, :forbidden}
+        cond do
+          # Repair #19 FIX-A (BS-03) — this surface read the plan row
+          # directly, bypassing SocialFlow.ensure_plan_access/2: a
+          # private plan resolves here for its creator only.
+          plan.is_private == true and plan.created_by_user_id != user_id ->
+            {:error, :forbidden}
+
+          plan_member?(plan, user_id) ->
+            {:ok, plan}
+
+          true ->
+            {:error, :forbidden}
         end
 
       nil ->

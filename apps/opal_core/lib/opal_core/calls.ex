@@ -267,7 +267,7 @@ defmodule OpalCore.Calls do
   def list_for(user_id) when is_binary(user_id) do
     # A harness session lets a final transcript use the production path.
     # It is not a call anyone placed, so it stays out of call history.
-    rows =
+    sessions =
       from(c in CallSession,
         where:
           (c.caller_user_id == ^user_id or c.callee_user_id == ^user_id) and
@@ -276,7 +276,28 @@ defmodule OpalCore.Calls do
         limit: 50
       )
       |> Repo.all()
-      |> Enum.map(&project(&1, user_id))
+
+    # Repair #19: whether a NEWER call with the same peer actually
+    # connected (media_connected_at set). Rows are newest-first, so a
+    # single scan keeps the peers connected SINCE each row: a missed
+    # call with a later connected call behind it is resolved business.
+    {sessions, _connected_peers} =
+      Enum.map_reduce(sessions, MapSet.new(), fn session, connected_peers ->
+        peer_id = peer_user_id(session, user_id)
+        resolved? = is_binary(peer_id) and MapSet.member?(connected_peers, peer_id)
+
+        connected_peers =
+          if session.media_connected_at && is_binary(peer_id) do
+            MapSet.put(connected_peers, peer_id)
+          else
+            connected_peers
+          end
+
+        {{session, resolved?}, connected_peers}
+      end)
+
+    rows = Enum.map(sessions, fn {session, _resolved?} -> project(session, user_id) end)
+    resolved_by_id = Map.new(sessions, fn {session, resolved?} -> {session.id, resolved?} end)
 
     # Repair #18 DIR-1: each call row carries, per peer, the SAME
     # shared upcoming plan fact the chats list and thread carry
@@ -291,10 +312,19 @@ defmodule OpalCore.Calls do
 
     Enum.map(rows, fn row ->
       peer_id = row["peer_user_id"]
+      next_plan = if(is_binary(peer_id), do: Map.get(facts, peer_id))
 
       row
-      |> Map.put("next_plan", if(is_binary(peer_id), do: Map.get(facts, peer_id)))
+      |> Map.put("next_plan", next_plan)
       |> Map.put("peer_tint", OpalCore.SocialFlow.NextPlan.entity_tint(peer_id))
+      # Repair #19: the row's ONE call-state fact (Calls.CallState -
+      # the single derivation every surface renders as the row's
+      # ambient border). Present on every row; "past"/settled is a
+      # real state, not an absence.
+      |> Map.put(
+        "call_state",
+        OpalCore.Calls.CallState.derive(row, next_plan, Map.get(resolved_by_id, row["id"], false))
+      )
     end)
   end
 

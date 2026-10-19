@@ -15,7 +15,7 @@ export default {
   async run(ctx) {
     const { assert } = ctx;
     assert.note("Continue-gating leg plugs into this file on the staging web stack; OS prompt result stays on the phone checklist");
-    const fresh = await ctx.freshClient("+12025550107", "Regression Perms");
+    const fresh = await ctx.freshClient("+12025550107", "Megan Hart");
     const client = fresh || ctx.A;
     const assist = await client.get("/preferences/assist");
     assert.eq("GET /preferences/assist", assist.status, 200, "assist preference must load for a fresh account");

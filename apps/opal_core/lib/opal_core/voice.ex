@@ -14,9 +14,9 @@ defmodule OpalCore.Voice do
   without waiting on ElevenLabs provisioning. Brand voice ID stays ElevenLabs-
   first (founder-tunable comment on the ElevenLabs module).
 
-  **Listen path:** receiving others' voice notes needs Deepgram. Without
+  **Transcription path:** receiving others' voice notes needs Deepgram. Without
   `DEEPGRAM_API_KEY`, `listen/1` returns an honest disabled message
-  (`"I can't listen to voice notes yet"`). See BLOCKED.md.
+  (`"I can't transcribe voice notes yet"`). See BLOCKED.md.
   """
 
   alias OpalCore.Intelligence.DeepgramClient
@@ -24,7 +24,7 @@ defmodule OpalCore.Voice do
   alias OpalCore.Messaging.Message
   alias OpalCore.Voice.{AudioStore, ElevenLabs, OpenAITTS, PromptGuard}
 
-  @listen_disabled "I can't listen to voice notes yet"
+  @listen_disabled "I can't transcribe voice notes yet"
 
   @doc """
   Synthesize approved text to audio.

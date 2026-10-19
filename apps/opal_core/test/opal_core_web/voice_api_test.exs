@@ -100,7 +100,7 @@ defmodule OpalCoreWeb.VoiceApiTest do
     conn = build_conn() |> auth(token) |> get("/api/v1/product/voice/listen")
     listen = json_response(conn, 200)
     assert listen["status"] == "disabled"
-    assert listen["message"] == "I can't listen to voice notes yet"
+    assert listen["message"] == "I can't transcribe voice notes yet"
 
     if prior_dg, do: System.put_env("DEEPGRAM_API_KEY", prior_dg)
   end

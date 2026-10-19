@@ -29,6 +29,8 @@ const mocks = vi.hoisted(() => ({
   getGoogleCalendarStatus: vi.fn(),
   getMessagingPreferences: vi.fn(),
   getSoulMemory: vi.fn(),
+  getGraphingPolicy: vi.fn(),
+  getAccountActivity: vi.fn(),
 }));
 
 vi.mock("../../api/productClient", async (importOriginal) => {
@@ -40,6 +42,8 @@ vi.mock("../../api/productClient", async (importOriginal) => {
     getGoogleCalendarStatus: mocks.getGoogleCalendarStatus,
     getMessagingPreferences: mocks.getMessagingPreferences,
     getSoulMemory: mocks.getSoulMemory,
+    getGraphingPolicy: mocks.getGraphingPolicy,
+    getAccountActivity: mocks.getAccountActivity,
   };
 });
 
@@ -72,6 +76,29 @@ beforeEach(() => {
   mocks.getAssistPreference.mockReset();
   mocks.getGoogleCalendarStatus.mockReset();
   mocks.getMessagingPreferences.mockReset();
+  mocks.getGraphingPolicy.mockReset();
+  mocks.getGraphingPolicy.mockResolvedValue({
+    graphing: { call_mode: "ask_each", chat_mode: "ask_each", global_paused: false },
+  });
+  mocks.getAccountActivity.mockReset();
+  mocks.getAccountActivity.mockResolvedValue({
+    activity: [
+      {
+        id: "act-1",
+        kind: "credential_used",
+        subject: "mail.example.org",
+        detail: {},
+        at: "2026-10-18T15:49:00Z",
+      },
+      {
+        id: "act-2",
+        kind: "device_revoked",
+        subject: "9b2f1c3a-1111-4222-8333-444455556666",
+        detail: {},
+        at: "2026-10-17T09:05:00Z",
+      },
+    ],
+  });
   mocks.getSoulMemory.mockReset();
   mocks.getSoulMemory.mockResolvedValue({
     wallet: { id: "w1", owner_user_id: "u1", created_at: null },
@@ -123,7 +150,8 @@ function setInputValue(input: HTMLInputElement, value: string) {
 const SECTION_KEYS = [
   "edit-profile",
   "appearance",
-  "soul-memory",
+  "soul",
+  "memory",
   "what-opal-remembers",
   "how-opal-helps",
   "calls-assist",
@@ -164,7 +192,10 @@ describe("Settings architecture - doorway reachability (entry 19)", () => {
     ).toBeGreaterThan(0);
     expect(container.textContent).toMatch(/Connections/);
     setInputValue(input, "soul");
-    expect(container.textContent).toMatch(/Soul \+ Memory/);
+    expect(container.textContent).toMatch(/Soul/);
+    expect(container.textContent).not.toMatch(/Soul \+ Memory/);
+    setInputValue(input, "memory");
+    expect(container.textContent).toMatch(/Memory/);
     setInputValue(input, "quiet");
     expect(container.textContent).toMatch(/Quiet/);
   });
@@ -329,19 +360,62 @@ describe("Connections section - DOM status equals payload status", () => {
 });
 
 describe("Honest gated sections - no painted controls", () => {
-  it("Soul + Memory is BUILT (SM scoped build): real soul form, zero switches, no gate copy", async () => {
-    const section = await buildSettingsSection("soul-memory", { session: null });
-    await render(<C2SettingsSection section={section} events={events} />);
+  it("Soul and Memory are SEPARATE built rooms (R19 W8): soul form in Soul only, capsules in Memory only", async () => {
+    const soul = await buildSettingsSection("soul", { session: null });
+    expect(soul.title).toBe("Soul");
+    await render(<C2SettingsSection section={soul} events={events} />);
     expect(container.textContent).not.toMatch(/not built yet/);
     expect(container.querySelector('[data-testid="c2-soul-form"]')).toBeTruthy();
+    // JA-07 inventory correction: exactly one switch — the real,
+    // wired quiet-hours on/off (the W8-era zero-switch claim is
+    // superseded now that the toggle exists and saves).
+    expect(container.querySelectorAll('[role="switch"]')).toHaveLength(1);
+    expect(
+      container.querySelector('[role="switch"]')!.getAttribute("data-testid"),
+    ).toBe("c2-soul-quiet-toggle");
+    const memory = await buildSettingsSection("memory", { session: null });
+    expect(memory.title).toBe("Memory");
+    await render(<C2SettingsSection section={memory} events={events} />);
+    expect(container.querySelector('[data-testid="c2-soul-form"]')).toBeNull();
+    expect(container.textContent).toMatch(/not holding any memories/);
+  });
+
+  it("Activity is BUILT from the real trail (R19 W8); approvals stay honestly gated, zero switches", async () => {
+    const section = await buildSettingsSection("approvals-activity", {
+      session: null,
+      bearer: "t",
+    });
+    expect(section.title).toBe("Activity");
+    await render(<C2SettingsSection section={section} events={events} />);
+    const text = container.textContent || "";
+    // Real entries, in plain words, with when - no machine strings.
+    expect(text).toMatch(/Opal used a saved login/);
+    expect(text).toMatch(/For mail\.example\.org/);
+    expect(text).toMatch(/Oct 18, 2026 at 3:49 PM/);
+    expect(text).toMatch(/A device was signed out/);
+    expect(text).not.toMatch(/9b2f1c3a/);
+    expect(text).not.toMatch(/credential_used/);
+    expect(text).not.toMatch(/device_revoked/);
+    // The approvals queue is still honestly absent, in plain words.
+    expect(text).toMatch(/not built yet/);
     expect(container.querySelectorAll('[role="switch"]')).toHaveLength(0);
   });
 
-  it("Approvals + activity is gated in plain words with zero switches", async () => {
-    const section = await buildSettingsSection("approvals-activity", { session: null });
-    await render(<C2SettingsSection section={section} events={events} />);
-    expect(container.textContent).toMatch(/not built yet/);
-    expect(container.querySelectorAll('[role="switch"]')).toHaveLength(0);
+  it("Activity empty state teaches what will appear, and a failed read is one honest line", async () => {
+    mocks.getAccountActivity.mockResolvedValue({ activity: [] });
+    const empty = await buildSettingsSection("approvals-activity", {
+      session: null,
+      bearer: "t",
+    });
+    await render(<C2SettingsSection section={empty} events={events} />);
+    expect(container.textContent).toMatch(/Nothing here yet/);
+    mocks.getAccountActivity.mockRejectedValue(new Error("network"));
+    const failed = await buildSettingsSection("approvals-activity", {
+      session: null,
+      bearer: "t",
+    });
+    await render(<C2SettingsSection section={failed} events={events} />);
+    expect(container.textContent).toMatch(/could not load/);
   });
 
   it("How Opal helps ships NO modes picker (D-8 blocker) - only the true Assist switch", async () => {
@@ -358,10 +432,13 @@ describe("Honest gated sections - no painted controls", () => {
     expect(text).not.toMatch(/Check with me first/);
     expect(text).not.toMatch(/Handle the small things/);
     expect(text).not.toMatch(/Keep things moving for me/);
-    expect(text).toMatch(/not built yet/);
+    // R19 W8: how-forward now lives in its own Soul room - this page
+    // links there instead of claiming the control is not built.
+    expect(container.querySelector('[data-testid="c2-setting-row-soul"]')).toBeTruthy();
+    expect(text).toMatch(/lives in Soul/);
   });
 
-  it("What Opal hears names each source with its honest state", async () => {
+  it("What Opal graphs names each source with its honest state (R19 W6: no listening frame)", async () => {
     const section = await buildSettingsSection("what-opal-hears", { session: null });
     await render(<C2SettingsSection section={section} events={events} />);
     const text = container.textContent || "";
@@ -369,6 +446,10 @@ describe("Honest gated sections - no painted controls", () => {
     expect(text).toMatch(/Not wired yet/);
     expect(text).toMatch(/Waiting on a sending number/);
     expect(text).toMatch(/Not in Opal today/);
+    expect(text).toMatch(/What Opal graphs/);
+    expect(text).toMatch(/Meetings are not a page in Opal/);
+    expect(text).not.toMatch(/Listening/);
+    expect(text).not.toMatch(/What Opal hears/);
     expect(container.querySelectorAll('[role="switch"]')).toHaveLength(0);
   });
 });
@@ -521,5 +602,86 @@ describe("Muse settings audit Group A (4.A1-4.A9)", () => {
     } finally {
       document.documentElement.removeAttribute("data-git-head");
     }
+  });
+});
+
+describe("R19 W8 breadth scan - no raw values anywhere in the Settings family", () => {
+  // The founder's defect class was a CLASS: raw machine values as
+  // unlabeled boxes ("22:00" / "3" / "standard"). This scan renders
+  // the whole Settings family the way the rooms render and asserts
+  // the class is absent from visible text on every one of them -
+  // not just the Soul form from the screenshot. (Input VALUES are
+  // not visible text; a time field's value is the control itself,
+  // under its persistent label.)
+  const RAW_PATTERNS: Array<[string, RegExp]> = [
+    ["24-hour clock as prose", /(?<![\d:])22:00(?![\d:])|(?<![\d:])08:00(?![\d:])/],
+    ["completion_feedback enum", /\bstandard\b|\breduced\b/],
+    ["graphing mode enums", /\bask_each\b|\bauto_eligible\b|\bselected_only\b/],
+    ["assistance enums", /\bminimal\b|\bproactive\b/],
+    ["snake_case kinds", /\b[a-z]+_[a-z]+_[a-z]+\b/],
+  ];
+
+  it("scans hub + soul + memory + activity + quiet + appearance + privacy + connections", async () => {
+    mocks.getSettingsConnections.mockResolvedValue(PAYLOAD);
+    const keys = [
+      "soul",
+      "memory",
+      "approvals-activity",
+      "notifications",
+      "appearance",
+      "privacy",
+      "connections",
+      "how-opal-helps",
+      "calls-assist",
+    ];
+    for (const key of keys) {
+      const section = await buildSettingsSection(key, { session: null, bearer: "t" });
+      await render(<C2SettingsSection section={section} events={events} />);
+      const text = container.textContent || "";
+      for (const [name, pattern] of RAW_PATTERNS) {
+        expect(text, `${key}: ${name}`).not.toMatch(pattern);
+      }
+      // The timezone may appear only inside its human label.
+      if (text.includes("America/Los_Angeles")) {
+        expect(text, `${key}: timezone labeled`).toMatch(
+          /Los Angeles \(America\/Los_Angeles\)/,
+        );
+      }
+      act(() => root.unmount());
+      container.remove();
+      container = document.createElement("div");
+      document.body.appendChild(container);
+      root = createRoot(container);
+    }
+    const hub = youHubFromSession(null, false);
+    await render(<C2YouHub projection={hub} events={events} />);
+    const hubText = container.textContent || "";
+    for (const [name, pattern] of RAW_PATTERNS) {
+      expect(hubText, `hub: ${name}`).not.toMatch(pattern);
+    }
+    expect(hubText).not.toMatch(/Soul \+ Memory/);
+  });
+
+  it("selected chips never pair ink text on an ink pill (the blank-pill class)", async () => {
+    // Source-level guard for the defect the R19 W8 rendered capture
+    // caught in both modes: .c2s-chip[data-active] set an ink
+    // background with a canvas text color, but the unlayered global
+    // button reset owns `color` for buttons and beats every layered
+    // rule - the label computed to the same ink as the pill and was
+    // invisible. jsdom cannot compute that cascade, so the guard is
+    // on the stylesheet itself: the active-chip block must carry no
+    // text-color declaration and must use the segmented pattern
+    // (surface-1 background).
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const css = readFileSync(
+      resolve(process.cwd(), "src/c2/shell/c2shell.css"),
+      "utf8",
+    );
+    const block = css.match(/\.c2s-chip\[data-active="1"\]\s*\{([^}]*)\}/);
+    expect(block, "active chip rule exists").not.toBeNull();
+    const declarations = block![1].replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(declarations).not.toMatch(/(^|;)\s*color\s*:/);
+    expect(declarations).toMatch(/background:\s*var\(--surface-1\)/);
   });
 });

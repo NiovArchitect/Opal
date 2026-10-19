@@ -28,7 +28,7 @@ async function ownThread(ctx, label) {
   // scenario in the suite then folded over the same replayed
   // history (and shared one spam-throttle bucket). A third pool
   // member makes each scenario's group real and isolated.
-  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const third = await ctx.freshClient("+12025550108", "Henry Ruiz");
   const g = await ctx.h.createGroup(
     ctx.A,
     [ctx.sessions.b.userId, third?.session?.userId],

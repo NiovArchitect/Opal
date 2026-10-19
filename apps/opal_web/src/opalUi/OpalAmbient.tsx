@@ -875,18 +875,18 @@ export function OpalAmbient({
         <button
           type="button"
           className={`opal-voice ${listening ? "is-listening" : ""}`}
-          data-testid="opal-listen"
+          data-testid="opal-voice-input"
           data-control-status="DEPENDENCY"
-          aria-label={listening ? "Stop listening" : "Voice input"}
+          aria-label={listening ? "Stop voice input" : "Voice input"}
           aria-pressed={listening}
           onClick={() => {
             if (listening) {
               setListening(false);
-              setNote("Listening ended. Speech recognition is a system dependency when unavailable.");
+              setNote("Voice input ended. Speech recognition is a system dependency when unavailable.");
               return;
             }
             setListening(true);
-            setNote("Listening UI on. Real ASR is a system dependency - not pretended transcription.");
+            setNote("Voice input on. Real ASR is a system dependency - not pretended transcription.");
           }}
         >
           <span className="opal-voice-wave" aria-hidden />

@@ -36,7 +36,7 @@ async function ownThread(ctx, label) {
   // case's change/confirm traffic - the pending/apply behavior then
   // depended on suite history instead of this scenario. A third pool
   // member makes the group real, as in the sibling Center cases.
-  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const third = await ctx.freshClient("+12025550108", "Henry Ruiz");
   const memberIds = [ctx.sessions.b.userId];
   if (third?.session?.userId) memberIds.push(third.session.userId);
   const g = await ctx.h.createGroup(ctx.A, memberIds, label);

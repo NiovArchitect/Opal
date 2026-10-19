@@ -72,7 +72,9 @@ defmodule OpalCore.Settings.IngestionStatus do
   defp title("calls"), do: "Phone calls"
   defp title("call_transcription"), do: "Call transcription"
   defp title("texts"), do: "Texts"
-  defp title("room"), do: "Listening in the room"
+  # R19 W6: no listening frame - Opal graphs. This source is the
+  # honest absence of room capture, named for the place, not a sense.
+  defp title("room"), do: "In the room"
   defp title("meetings"), do: "Meetings"
 
   # D-ING: in-app chats are REAL (channels/REST -> messages -> Center).
@@ -161,7 +163,7 @@ defmodule OpalCore.Settings.IngestionStatus do
       "room",
       "absent",
       "Not in Opal today",
-      "There is no room listening in Opal, hidden or otherwise."
+      "Opal does not capture room audio, hidden or otherwise."
     )
   end
 

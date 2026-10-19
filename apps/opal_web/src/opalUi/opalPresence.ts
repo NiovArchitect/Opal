@@ -90,7 +90,7 @@ export function presenceStateForLivingState(
 /** Calm consumer copy per presence state (status line under the character). */
 export const OPAL_PRESENCE_COPY: Record<OpalPresenceState, string> = {
   idle: "Opal is ready.",
-  listening: "Listening",
+  listening: "Voice input is on",
   thinking: "Finding the best response.",
   responding: "Responding",
 };

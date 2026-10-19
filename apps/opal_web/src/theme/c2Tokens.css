@@ -63,6 +63,39 @@
     --header-h: 60px;
     --dock-h: 64px;
     --dock-clearance: calc(var(--dock-h) + 16px + env(safe-area-inset-bottom, 0px));
+    /* R19 halo gap: the ONE distance at which a dock pad's top-border
+     * segments terminate from the center device's edge at the top
+     * border line - same value, both pads (C2 dock + legacy dock-bar),
+     * both sides, both modes. Small enough to read as one coherent
+     * break around the orb, never zero (the line never crosses the
+     * device). Derivation per pad lives with each pad's segments
+     * (c2shell.css / unifyChats.css) and is pinned by
+     * theme/unifyDrift.test.ts (gap must stay within 2-4px: the check
+     * fails on crossing AND on floating). */
+    --dock-halo-gap: 3px;
+    /* R19 CHROME GLASS (founder, 2026-10-18 23:50 PDT): the material
+     * of floating chrome - TRUE frosted glass, not a translucent
+     * fill. One token family, named for its consumers: the
+     * navigation pad consumes it now; top-of-screen chrome and the
+     * conversation chrome (W14) consume the SAME tokens - never a
+     * per-surface blur or tint. --chrome-glass-blur is mode-free
+     * geometry; --chrome-glass-tint is defined per mode below (it is
+     * a semantic token: both modes, no cross-mode fallback).
+     * 18px blur against the 15px body type: a glyph under the pad is
+     * blurred by more than its own size, so scrolling content melts
+     * and dissolves behind the pad and can NEVER read as legible
+     * text, while the tint (62-68%) keeps the pad's own field quiet
+     * and the depth visible. Depth without noise - that is the job.
+     * Chrome only: readability surfaces (cards, strips) stay solid. */
+    --chrome-glass-blur: 18px;
+    /* W18-FIX SCRIM MATERIAL: a sheet scrim is NOT chrome glass - its
+     * job is dimming + depth separation behind a solid sheet, not a
+     * readable frosted field, so it carries its own lighter blur
+     * token (8px). One scrim material, shared by the C2 sheet scrim
+     * (.c2s-scrim) and the C1 sheet scrim (.c1-sheet-scrim); the
+     * sanctioned-sites registry in theme/unifyDrift.test.ts records
+     * this divergence and fails any unlisted backdrop-blur site. */
+    --scrim-blur: 8px;
     --content-max: 430px;
     --space-1: 4px;
     --space-2: 8px;
@@ -103,6 +136,7 @@
     color-scheme: light;
     --canvas: #fffefb;
     --canvas-stage: #f5f0e8;
+    --chrome-glass-tint: rgba(255, 254, 251, 0.68); /* paper-0 at 68% over the chrome-glass blur - light glass */
     --surface-1: #faf7f2;
     --surface-2: #f1ece4;
     --line-1: #e5ded2;
@@ -156,6 +190,7 @@
      * <=17%. No large-area element may exceed these values. */
     --canvas: #18141c; /* sampled field (--orb-field): the shell sits on the stone's night */
     --canvas-stage: #0d0b12;
+    --chrome-glass-tint: rgba(32, 26, 39, 0.62); /* surface-1 #201a27 at 62% over the chrome-glass blur - dark glass, genuinely dark */
     --surface-1: #201a27; /* quiet step of the sampled field */
     --surface-2: #2a2333; /* quiet step of the sampled field */
     --line-1: rgba(255, 255, 255, 0.1);

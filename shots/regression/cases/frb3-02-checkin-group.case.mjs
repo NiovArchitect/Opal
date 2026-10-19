@@ -33,9 +33,9 @@ export default {
     const { A, B, h, assert, config } = ctx;
     if (!B) throw new Error("FR-B3-02 needs session B");
 
-    const C = await freshSyntheticClient(config, "+12025550103", "Member Cee");
-    const D = await freshSyntheticClient(config, "+12025550104", "Member Dee");
-    const E = await freshSyntheticClient(config, "+12025550105", "Member Ee");
+    const C = await freshSyntheticClient(config, "+12025550103", "Celia Ruiz");
+    const D = await freshSyntheticClient(config, "+12025550104", "Derek Ruiz");
+    const E = await freshSyntheticClient(config, "+12025550105", "Elena Ruiz");
     if (!C || !D || !E) {
       throw new Error("FR-B3-02 needs OPAL_SESSION_PROVISION=synthetic");
     }

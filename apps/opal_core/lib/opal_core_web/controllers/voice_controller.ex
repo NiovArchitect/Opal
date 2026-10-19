@@ -60,7 +60,7 @@ defmodule OpalCoreWeb.VoiceController do
   @doc """
   GET /api/v1/product/voice/status - ST-I/ST-H provider truth: whether
   TTS (ElevenLabs/OpenAI) and transcription (Deepgram) are configured.
-  The web Listen control renders only when tts_configured is true.
+  The web read-aloud control renders only when tts_configured is true.
   """
   def status(conn, _params) do
     json(conn, %{

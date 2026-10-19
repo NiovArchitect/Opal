@@ -50,11 +50,11 @@ export default {
     // Own provisioned trio + silent thirds (isolation repair above):
     // dedicated numbers no other case uses, so the A-B and A-C
     // threads, plans and call rows below are private to this case.
-    const ownA = await ctx.freshClient("+12025550118", "Regression DIR1 Scope A");
-    const ownB = await ctx.freshClient("+12025550119", "Regression DIR1 Scope B");
-    const ownC = await ctx.freshClient("+12025550120", "Regression DIR1 Scope C");
-    const silentAB = await ctx.freshClient("+12025550121", "Regression DIR1 Scope Silent AB");
-    const silentAC = await ctx.freshClient("+12025550122", "Regression DIR1 Scope Silent AC");
+    const ownA = await ctx.freshClient("+12025550118", "Aaron Blake");
+    const ownB = await ctx.freshClient("+12025550119", "Bella Cruz");
+    const ownC = await ctx.freshClient("+12025550120", "Caleb Ortiz");
+    const silentAB = await ctx.freshClient("+12025550121", "Dana Kim");
+    const silentAC = await ctx.freshClient("+12025550122", "Eli Ford");
     if (ownA && ownB) {
       A = ownA;
       B = ownB;
@@ -83,7 +83,7 @@ export default {
       }
       third.conversationId = convAC;
     } else {
-      third = await h.freshDirectConversation(A, "+12025550107", "Regression DIR1 Third");
+      third = await h.freshDirectConversation(A, "+12025550107", "Emma Sullivan");
       convAC = third?.conversationId || null;
     }
     assert.check("fresh third person", !!third?.conversationId, "setup needs synthetic provisioning for the third person");

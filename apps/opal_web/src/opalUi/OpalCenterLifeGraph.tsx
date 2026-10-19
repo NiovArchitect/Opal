@@ -533,7 +533,7 @@ export function OpalCenterLifeGraph({
       return;
     }
     setListening(true);
-    setAttachNote("Listening…");
+    setAttachNote("Voice input is on…");
     try {
       const result = await listenOnce();
       setListening(false);
@@ -1179,7 +1179,7 @@ export function OpalCenterLifeGraph({
             type="button"
             className={`opal-center-mic ${listening ? "is-listening" : ""}`}
             data-testid="opal-center-voice"
-            aria-label={listening ? "Stop listening" : "Speak to Opal"}
+            aria-label={listening ? "Stop voice input" : "Speak to Opal"}
             aria-pressed={listening}
             onClick={() => void onLifeGraphMic()}
           >

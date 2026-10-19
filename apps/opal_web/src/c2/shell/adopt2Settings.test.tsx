@@ -152,7 +152,7 @@ describe("adoption wave 2 settings", () => {
   it("SF-A: hears renders each source's own line from the per-source read", async () => {
     mocks.getIngestionStatus.mockResolvedValue([
       { source: "chats", title: "Chats in the app", state: "working", state_label: "Working now", progress: "Caught up - 3 messages of yours are in Opal's working memory.", error: null, retryable: false },
-      { source: "room", title: "Listening in the room", state: "absent", state_label: "Not in Opal today", progress: "There is no room listening in Opal, hidden or otherwise.", error: null, retryable: false },
+      { source: "room", title: "In the room", state: "absent", state_label: "Not in Opal today", progress: "Opal does not capture room audio, hidden or otherwise.", error: null, retryable: false },
       { source: "texts", title: "Texts", state: "error", state_label: "Something went wrong reading this source", progress: "This source could not be read just now. The others are unaffected.", error: "source_read_failed", retryable: true },
     ]);
     const section = await buildSettingsSection("what-opal-hears", { session: null, bearer: "t" });

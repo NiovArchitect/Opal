@@ -153,6 +153,12 @@
     box-shadow: var(--shadow-card); box-sizing: border-box; min-height: 68px;
   }
   [data-design="r18"] .c1-session-row-active { border-left: 3px solid var(--accent-1); }
+  /* R19 W20 (JA-03): the chats row stacks — identity line on top,
+   * the in-row plan card below at the row's full content width.
+   * Without this, the card lived in the flex:1 main column beside
+   * the timestamp and measured ~142px at 390px served breadth. */
+  [data-design="r18"] .c1-chat-row { flex-direction: column; }
+  [data-design="r18"] .c1-chat-row-top { display: flex; gap: 12px; align-items: flex-start; width: 100%; min-width: 0; box-sizing: border-box; }
   [data-design="r18"] .c1-session-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   [data-design="r18"] .c1-session-title { font: var(--opal-type-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   [data-design="r18"] .c1-unread-name { font-weight: 700; }
@@ -161,6 +167,10 @@
   [data-design="r18"] .c1-session-time { font: var(--opal-type-meta); color: var(--ink-3); flex: none; }
   [data-design="r18"] .c1-segment { display: flex; gap: 4px; background: var(--surface-2); border-radius: 999px; padding: 4px; }
   [data-design="r18"] .c1-segment span { flex: 1; text-align: center; padding: 8px; border-radius: 999px; font: var(--opal-type-label); color: var(--ink-2); }
+  /* Repair #19: the Chats/Calls segment is two real tabs when the
+   * host wires both surfaces - the button carries the same box and
+   * type as the span it replaces, so the bar never changes shape. */
+  [data-design="r18"] .c1-segment button { flex: 1; text-align: center; padding: 8px; border: 0; border-radius: 999px; font: var(--opal-type-label); color: var(--ink-2); background: transparent; cursor: pointer; }
   [data-design="r18"] .c1-segment .c1-segment-active { background: var(--surface-1); color: var(--ink-1); }
   [data-design="r18"] .c1-avatar {
     position: relative; width: 48px; height: 48px; border-radius: 50%; flex: none;
@@ -198,14 +208,150 @@
     border-radius: 20px; border-bottom-right-radius: 6px; border-bottom-left-radius: 20px;
   }
   [data-design="r18"] .c1-opal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grad-current); flex: none; margin-top: 7px; }
+  /* R19 W6 - the "Listen" rail is dead. Read aloud (the re-homed
+   * TTS function) is its own horizontal action row BELOW an Opal
+   * bubble, and the button itself can never be crushed into a
+   * vertical rail again: nowrap + flex none + natural width, in a
+   * row of its own. An empty row (no TTS provider - the control is
+   * honestly absent) takes no space at all. */
+  [data-design="r18"] .c1-message-actions { display: flex; margin: -4px 0 2px 22px; }
+  [data-design="r18"] .c1-message-actions:empty { display: none; }
+  [data-design="r18"] .c1-read-aloud-btn,
+  [data-design="r18"] .c1-inline-action-btn {
+    white-space: nowrap; flex: none; align-self: flex-start;
+    min-height: 36px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+    background: var(--surface-1); border: 1px solid var(--line-2);
+    color: var(--ink-2); font: var(--opal-type-meta);
+  }
+  /* The presence mark the control speaks from: the same iris
+   * gradient as the Opal dot / PresenceMark, sized to the row.
+   * While audio plays it pulses (c1-pulse) - the speaking state
+   * lives on Opal's mark, not on a player chrome. */
+  [data-design="r18"] .c1-read-aloud-btn { display: inline-flex; align-items: center; gap: 8px; }
+  [data-design="r18"] .c1-read-aloud-orb {
+    width: 14px; height: 14px; border-radius: 50%; flex: none;
+    background: var(--opal-iris-gradient);
+  }
+  [data-design="r18"] .c1-read-aloud-orb.is-speaking { animation: c1-pulse 1.2s ease-in-out infinite; }
   [data-design="r18"] .c1-system-line { text-align: center; color: var(--ink-3); font: var(--opal-type-meta); margin: 2px 0; }
-  /* Deckfix F2b: the Next Together strip is IN FLOW at the head of
-   * the thread's scroll column - never sticky, never an overlay.
-   * As a sticky element it stayed pinned while messages scrolled
-   * beneath it, and with no ground of its own the first bubble's
-   * text showed through it (full-pack F2). In flow, the column's
-   * gap gives the first message strict clearance below the strip. */
-  [data-design="r18"] .c1-next-strip { display: flex; flex-direction: column; gap: 8px; flex: none; }
+  /* R19 W5-07 (supersedes deckfix F2b's in-flow form, founder review
+   * 2026-10-18 22:47 PDT): the Next Together strip is ANCHORED at
+   * the top of the thread's scroll column - sticky, so it stays at
+   * its designed place while messages scroll UNDER it - and SOLID:
+   * its ground is the thread field itself, var(--canvas), a fully
+   * opaque token in both modes (no rgba, no color-mix toward
+   * transparent, no backdrop filter), so scrolled content can never
+   * bleed through it. F2b's defect was never the anchoring - it was
+   * anchoring with NO ground (the old strip and its plan-awareness
+   * pill both painted transparent). The strip's state treatment
+   * (the plan-awareness border/glow from --pa-state, layered in
+   * theme/unifyChats.css) is untouched, and the YOUR MOVE
+   * fire-frame card inside the thread is untouched. z-index is the
+   * layer token only (L1): --layer-chrome, the header band's own
+   * band, because the strip is thread chrome, not content. */
+  [data-design="r18"] .c1-next-strip {
+    position: sticky; top: 0; z-index: var(--layer-chrome);
+    display: flex; flex-direction: column; gap: 8px; flex: none;
+    background: var(--canvas);
+    padding: 8px 0 10px;
+    border-bottom: 1px solid var(--line-1);
+  }
+  /* Repair #19 W14 — the thread doorway + the Opal context chip.
+     Quiet text buttons: no fill, no border of their own; they sit
+     inside the plan-awareness zone / under the Opal chat header and
+     carry no state color (they are doors, not plan elements). */
+  [data-design="r18"] .c1-opal-doorway {
+    align-self: flex-start; background: none; border: none; padding: 2px 0;
+    color: var(--ink-1); font: 600 13px/18px system-ui, sans-serif; cursor: pointer;
+    text-align: left;
+  }
+  [data-design="r18"] .c1-opal-doorway-quiet { color: var(--ink-2); font-weight: 500; }
+  [data-design="r18"] .c1-context-chip {
+    display: flex; flex-direction: column; gap: 4px; flex: none;
+    padding: 10px 16px; background: var(--surface-2); color: var(--ink-1);
+    font: 500 13px/18px system-ui, sans-serif;
+  }
+  /* Repair #19 (frosted glass addition), UNIFIED at the W14 merge
+     with W3's chrome glass (theme/c2Tokens.css): W14's wave-local
+     tint/blur literals are gone - the --opal-glass-* names its
+     consumers use are now plain aliases of the ONE token family,
+     --chrome-glass-tint / --chrome-glass-blur (18px; tint defined
+     per mode in c2Tokens.css), so conversation chrome, the pad,
+     and the sheets all frost identically. Glass is ONLY for
+     chrome (overflow circle, overflow menu, navigator rail, nav
+     button): readability surfaces (strip, cards, bubbles) stay
+     solid — ghost-through there is the flagged defect. The blur is
+     a composited backdrop filter on small, fixed chrome elements:
+     no per-scroll work, no jank. */
+  [data-design="r18"] {
+    --opal-glass-tint: var(--chrome-glass-tint);
+    --opal-glass-blur: var(--chrome-glass-blur);
+  }
+  [data-design="r18"] .c1-glass {
+    background: var(--opal-glass-tint);
+    backdrop-filter: blur(var(--opal-glass-blur)) saturate(1.35);
+    -webkit-backdrop-filter: blur(var(--opal-glass-blur)) saturate(1.35);
+  }
+  [data-design="r18"] .c1-overflow-btn, [data-design="r18"] .c1-nav-btn {
+    flex: none; width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--line-2);
+    color: var(--ink-1); cursor: pointer; font: 600 13px/1 system-ui, sans-serif;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  [data-design="r18"] .c1-overflow-menu {
+    display: flex; flex-direction: column; gap: 2px; flex: none; margin: 6px 12px;
+    padding: 8px; border-radius: var(--radius-card); border: 1px solid var(--line-2);
+    color: var(--ink-1); font: 500 14px/20px system-ui, sans-serif;
+  }
+  [data-design="r18"] .c1-overflow-menu button {
+    align-self: flex-start; background: none; border: none; padding: 6px 4px; cursor: pointer;
+    color: var(--ink-1); font: 600 14px/20px system-ui, sans-serif;
+  }
+  [data-design="r18"] .c1-overflow-menu input {
+    background: var(--surface-1); color: var(--ink-1); border: 1px solid var(--line-2);
+    border-radius: 8px; padding: 6px 8px; font: 500 14px/20px system-ui, sans-serif;
+  }
+  [data-design="r18"] .c1-anchor-notice, [data-design="r18"] .c1-anchor-proposal {
+    display: flex; align-items: center; gap: 10px; flex: none; flex-wrap: wrap;
+    padding: 8px 16px; color: var(--ink-1); font: 500 13px/18px system-ui, sans-serif;
+  }
+  [data-design="r18"] .c1-anchor-notice button, [data-design="r18"] .c1-anchor-proposal button,
+  [data-design="r18"] .c1-anchor-picker button {
+    background: none; border: none; padding: 2px 0; cursor: pointer;
+    color: var(--ink-1); font: 600 13px/18px system-ui, sans-serif;
+  }
+  [data-design="r18"] .c1-anchor-picker { display: flex; flex-direction: column; gap: 4px; padding: 4px 16px 8px; }
+  [data-design="r18"] .c1-orbit-group { display: flex; flex-direction: column; }
+  [data-design="r18"] .c1-orbit-header {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: none; border: none; padding: 10px 0; cursor: pointer; color: var(--ink-1);
+  }
+  [data-design="r18"] .c1-orbit-disc {
+    flex: none; width: 34px; height: 34px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--surface-2); color: var(--ink-1);
+    font: 700 12px/1 system-ui, sans-serif; border: 1px solid var(--line-2);
+  }
+  [data-design="r18"] .c1-orbit-rows { display: flex; flex-direction: column; padding-left: 44px; }
+  [data-design="r18"] .c1-orbit-open-sheet {
+    align-self: flex-start; background: none; border: none; padding: 6px 0; cursor: pointer;
+    color: var(--ink-2); font: 500 13px/18px system-ui, sans-serif;
+  }
+  [data-design="r18"] .c1-rail-scrim {
+    position: fixed; inset: 0; z-index: var(--layer-sheet, 60);
+    background: rgba(0, 0, 0, 0.35); display: flex; justify-content: flex-start;
+  }
+  [data-design="r18"] .c1-rail-panel {
+    width: min(340px, 88vw); height: 100%; overflow-y: auto; padding: 12px 14px;
+    color: var(--ink-1); border-right: 1px solid var(--line-2);
+  }
+  [data-design="r18"] .c1-rail-close {
+    background: none; border: none; cursor: pointer; color: var(--ink-2);
+    font: 500 13px/18px system-ui, sans-serif; padding: 4px 0;
+  }
+  [data-design="r18"] .c1-context-chip-action {
+    align-self: flex-start; background: none; border: none; padding: 2px 0;
+    color: var(--ink-1); font: 600 13px/18px system-ui, sans-serif; cursor: pointer;
+  }
   [data-design="r18"] .c1-private-guidance {
     display: flex; flex-direction: column; gap: 4px;
     background: var(--surface-2); border: 1px solid var(--line-2);
@@ -279,7 +425,10 @@
   /* Sheet (TopLayer only) */
   [data-design="r18"] .c1-sheet-scrim {
     position: fixed; inset: 0; background: var(--scrim); z-index: var(--layer-sheet);
-    backdrop-filter: blur(8px);
+    /* Scrim material (--scrim-blur, c2Tokens.css): a dim layer, not
+       chrome glass - see the sanctioned-glass registry in
+       theme/unifyDrift.test.ts. */
+    backdrop-filter: blur(var(--scrim-blur));
   }
   [data-design="r18"] .c1-sheet {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--layer-sheet);

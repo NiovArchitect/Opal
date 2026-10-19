@@ -96,6 +96,36 @@
 .chats-home .chats-home-row:hover {
   background: var(--unify-surface-2);
 }
+/* R19 W5-06: legacy chats rows carry the SAME state-coded ambient
+ * border as the C1 rows (section 5): data-plan-state is the row's
+ * existing single-source plan state (DIR-1 next_plan fact, else the
+ * plan-consequence pill - ChatsHome reads it, this sheet only
+ * paints it), mixed from the canonical --orb-indicator-<state>
+ * token at ambient intensity. No state, no border: the border: 0
+ * rule above governs plan-less rows. Same reasons as section 5:
+ * action = your answer pending, ready = agreed and complete,
+ * forming = still taking shape (dashed), happening = live window,
+ * past = settled (canon white at ambient strength, no glow). */
+.chats-home .chats-home-row[data-plan-state="action"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-action-glow) 40%, transparent);
+}
+.chats-home .chats-home-row[data-plan-state="ready"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-ready) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-ready-glow) 40%, transparent);
+}
+.chats-home .chats-home-row[data-plan-state="forming"] {
+  border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-forming-glow) 40%, transparent);
+}
+.chats-home .chats-home-row[data-plan-state="happening"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-happening-glow) 40%, transparent);
+}
+.chats-home .chats-home-row[data-plan-state="past"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-past) 40%, transparent);
+  box-shadow: none;
+}
 .chats-home .calls-continuity-row {
   background: var(--unify-surface-1);
   border: 0 !important; /* beats the retired per-name inline borderColor */
@@ -364,23 +394,44 @@
 /*    (cyan/gold/magenta) that ran straight THROUGH the raised        */
 /*    center Opal device. Now: the ring is the sampled ring metal     */
 /*    at ambient strength, and the top segment is MASKED OUT across   */
-/*    the center device zone (opal 86/370 + halo gap) - the border    */
-/*    breaks cleanly around the device; no line crosses its halo,     */
-/*    in either mode (the legacy shell's field is dark in both).      */
+/*    the center device - the border breaks cleanly around the        */
+/*    device; no line crosses its halo, in either mode (the legacy   */
+/*    shell's field is dark in both).                                 */
 /* ================================================================== */
 /* Segmented ring (same construction as the C2 dock): the bar's own
  * border carries the sides + bottom in the ring metal; its top is
  * transparent; ::before/::after draw the top edge only outside the
- * center device zone (each segment ends at 33% / starts at 67% of
- * the bar - the device zone is 38.4%-61.6% - leaving a clean halo
- * gap on both sides). An earlier mask-notch construction was
- * rejected on rendered proof: mask-composite exclude XORs a
- * disjoint notch IN instead of out. */
+ * center device. R19 HALO GEOMETRY (founder, 2026-10-18 review):
+ * the R18 segments (width 33%) terminated at the edge of the
+ * device's 86px HIT zone - 19.9px short of it at the 370px
+ * reference bar, and ~40px short of the VISIBLE device: the center
+ * mark (.dock-opal-center-mark, 46px wide, centered in the bar at
+ * every width on the native/proportional layout) - so the line read
+ * broken and floating. The hit zone is transparent; it is not the
+ * halo. Segments now terminate at the mark's edge + the one shared
+ * gap token: the segment width is 50% minus 23px minus the
+ * --dock-halo-gap token; 23px = the mark's half-width - the same
+ * token and the same measured gap
+ * as the C2 pad (see c2shell.css), both sides, both modes. An
+ * earlier mask-notch construction was rejected on rendered proof:
+ * mask-composite exclude XORs a disjoint notch IN instead of out. */
 .tabbar-option-b .dock-bar,
 html.opal-native-host .tabbar-option-b .dock-bar {
   border: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
   border-top-color: transparent;
   box-sizing: border-box;
+  /* R19 CHROME GLASS (founder, 2026-10-18 23:50 PDT): the legacy pad
+   * consumes the SAME glass blur token as the C2 pad (the sheets'
+   * hard-coded blur(9px) is superseded by --chrome-glass-blur here,
+   * the last-loaded treatment). Its tint stays the legacy dark field
+   * fill (rgba(8, 13, 30, 0.94)): this shell's field is dark in BOTH
+   * modes by design (section 2 note), so its glass is the dark
+   * member of the glass family - at 94% over an 18px blur nothing
+   * behind the bar can read as text. When the Calls path lands in
+   * the C2 shell (sibling wave), its pad is the C2 dock and takes
+   * the full per-mode --chrome-glass-tint. */
+  -webkit-backdrop-filter: blur(var(--chrome-glass-blur)) saturate(1.35);
+  backdrop-filter: blur(var(--chrome-glass-blur)) saturate(1.35);
 }
 .tabbar-option-b .dock-bar::before,
 html.opal-native-host .tabbar-option-b .dock-bar::before {
@@ -388,7 +439,7 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
   position: absolute;
   top: -1px;
   left: -1px;
-  width: 33%;
+  width: calc(50% - 23px - var(--dock-halo-gap));
   height: 27px;
   padding: 0;
   background: transparent;
@@ -404,7 +455,7 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
   position: absolute;
   top: -1px;
   right: -1px;
-  width: 33%;
+  width: calc(50% - 23px - var(--dock-halo-gap));
   height: 27px;
   border-top: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
   border-right: 1px solid color-mix(in srgb, var(--orb-ring-metal) 42%, transparent);
@@ -427,9 +478,49 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
 /* ================================================================== */
 /* Chat/session rows: the card border served no purpose beyond the
  * surface step - removed, with the card shadow. */
-[data-design="r18"] .c1-chat-row,
+[data-design="r18"] .c1-chat-row:not([data-plan-state]),
 [data-design="r18"] .c1-session-row {
   border: 0;
+  box-shadow: none;
+}
+/* R19 W5-06: a chats row WITH a plan wears the state-coded AMBIENT
+ * border the founder asked back ("that special border around it,
+ * that were color coded") - the row's existing single-source plan
+ * state (DIR-4 reveal / DIR-1 next_plan / plan projection, read by
+ * PeopleChatsList into data-plan-state; NO per-surface derivation)
+ * at ambient intensity: border mixed from the canonical
+ * --orb-indicator-<state> token (== PLAN_STATE_HEX, drift-pinned)
+ * at 52%, plus the token's own glow at 40%. A row with no plan has
+ * no data-plan-state and keeps the borderless form above (presence
+ * discipline: the border appears when its condition - this
+ * conversation has a plan in this state - is true, and exits when
+ * it ends). Reasons, one per state:
+ *  - action: your answer is pending on this conversation's plan.
+ *  - ready: this conversation's plan is agreed and complete.
+ *  - forming: this conversation's plan is still taking shape
+ *    (dashed, the forming pattern cue).
+ *  - happening: this conversation's plan is in its live window.
+ *  - past: this conversation's plan has settled (the stone at
+ *    rest - canon white quieted against the row's line token, no
+ *    glow). */
+[data-design="r18"] .c1-chat-row[data-plan-state="action"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-action-glow) 40%, transparent);
+}
+[data-design="r18"] .c1-chat-row[data-plan-state="ready"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-ready) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-ready-glow) 40%, transparent);
+}
+[data-design="r18"] .c1-chat-row[data-plan-state="forming"] {
+  border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-forming-glow) 40%, transparent);
+}
+[data-design="r18"] .c1-chat-row[data-plan-state="happening"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 52%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-happening-glow) 40%, transparent);
+}
+[data-design="r18"] .c1-chat-row[data-plan-state="past"] {
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-past) 55%, var(--line-2));
   box-shadow: none;
 }
 /* The active session keeps a functional edge (where you are). */

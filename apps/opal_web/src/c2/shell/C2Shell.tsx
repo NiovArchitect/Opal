@@ -47,8 +47,14 @@ import {
   deleteIntention,
   deleteWorkingGoal,
   executeDeletion,
+  getGraphLock,
   getPlanHistory,
   getShelf,
+  setGraphLock,
+  setPlanPrivate,
+  sharePlanLocation,
+  stopPlanLocation,
+  verifyGraphLock,
   linkGoalPlan,
   listIntentions,
   listWorkingGoals,
@@ -68,6 +74,7 @@ import {
   startGoogleCalendarConnect,
   submitSupportReport as submitSupportReportRequest,
   updateAssistPreference,
+  updateGraphingPolicy,
   updateHomeTimezone,
   updateSoul,
   updateMessagingPreferences,
@@ -77,6 +84,7 @@ import {
   type ProductSession,
   type ShelfStarterContract,
 } from "../../api/productClient";
+import { getDeviceCoords } from "../../device/deviceLocation";
 import "./c2shell.css";
 import type { Adopt1Projection, C2Route, GraphDetailProjection } from "./projections";
 import {
@@ -99,6 +107,7 @@ import { C2Onboarding } from "./C2Onboarding";
 import {
   CenterHost,
   ChatsHost,
+  type CenterOpenRequest,
   CheckinSummarySheet,
   conversationPreviewLabel,
 } from "./C1ShellHosts";
@@ -129,6 +138,9 @@ export function C2Shell() {
   const [createKind, setCreateKind] = useState<null | "plan" | "trip" | "idea">(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number } | null>(null);
+  // Repair #19 — a thread doorway / orbit-sheet request to land in a
+  // scoped Opal conversation (the Center host consumes it by nonce).
+  const [opalOpenRequest, setOpalOpenRequest] = useState<CenterOpenRequest | null>(null);
   const [activityOpen, setActivityOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [homeNonce, setHomeNonce] = useState(0);
@@ -204,13 +216,104 @@ export function C2Shell() {
     }
   }, [bearer]);
 
+  // R19 W7 - the Private area's lock state (whether a passcode
+  // exists) is read once per session; the code itself is never held.
+  const [graphLockSet, setGraphLockSet] = useState<boolean | null>(null);
+  const refreshGraphLock = useCallback(async () => {
+    try {
+      const res = await getGraphLock(bearer);
+      setGraphLockSet(res.passcode_set === true);
+    } catch {
+      setGraphLockSet(null);
+    }
+  }, [bearer]);
+
   useEffect(() => {
     if (stage === "member") {
       void refreshPlans();
       void refreshConversations();
       void refreshAdopt1();
+      void refreshGraphLock();
     }
-  }, [stage, bearer, refreshPlans, refreshConversations, refreshAdopt1, homeNonce]);
+  }, [stage, bearer, refreshPlans, refreshConversations, refreshAdopt1, refreshGraphLock, homeNonce]);
+
+  /** R19 W7 - re-read the open detail's Who/History from the ONE
+   *  plan-history projection (after a location share changes it). */
+  const refreshDetailHistory = useCallback(
+    async (cardId: string) => {
+      try {
+        const history = await getPlanHistory(cardId, bearer);
+        setDetail((current) =>
+          current && current.id === cardId ? detailWithHistory(current, history) : current,
+        );
+      } catch {
+        // The previous projection stands; absence is never painted.
+      }
+    },
+    [bearer],
+  );
+
+  /** R19 W7 - private graphs + living-detail handlers. Every one
+   *  runs the real API, then re-reads the server's truth. */
+  const r19Events = useMemo(
+    () => ({
+      setPlanPrivate: async (cardId: string, isPrivate: boolean) => {
+        await setPlanPrivate(cardId, isPrivate, bearer);
+        await refreshPlans();
+        setDetail((current) =>
+          current && current.id === cardId ? { ...current, isPrivate } : current,
+        );
+      },
+      graphLockPasscodeSet: graphLockSet,
+      unlockPrivate: async (code: string): Promise<boolean> => {
+        try {
+          const res = await verifyGraphLock(code, bearer);
+          return res.unlocked === true;
+        } catch {
+          return false;
+        }
+      },
+      setPrivatePasscode: async (code: string): Promise<boolean> => {
+        try {
+          await setGraphLock(code, bearer);
+          setGraphLockSet(true);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      shareMyLocation: async (cardId: string): Promise<string> => {
+        const coords = await getDeviceCoords();
+        if (!coords) {
+          return "Location is not available here - permission was not given, or this device has no fix.";
+        }
+        try {
+          await sharePlanLocation(cardId, { lat: coords.lat, lon: coords.lng }, bearer);
+        } catch {
+          return "Sharing did not start. Try again.";
+        }
+        await refreshDetailHistory(cardId);
+        // JA-09 honesty: the share is ONE fix (getDeviceCoords —
+        // no position watch exists anywhere in the web source),
+        // posted once. The record itself lives until the user
+        // stops it or its real 4-hour expiry passes
+        // (PlanLocationShare @share_window_seconds) — the copy
+        // says exactly that, never implying the position follows
+        // the user for 4 hours.
+        return "You shared where you are now for this plan. It's a one-time snapshot, not live tracking — it stays shared until you stop it or 4 hours pass.";
+      },
+      stopMyLocation: async (cardId: string): Promise<string> => {
+        try {
+          await stopPlanLocation(cardId, bearer);
+        } catch {
+          return "Stopping sharing did not work. Try again.";
+        }
+        await refreshDetailHistory(cardId);
+        return "You stopped sharing your location for this plan.";
+      },
+    }),
+    [bearer, refreshPlans, refreshDetailHistory, graphLockSet],
+  );
 
   const shell = useMemo(() => shellFromSession(session, route), [session, route]);
   const graphList = useMemo(() => {
@@ -236,7 +339,9 @@ export function C2Shell() {
     return { ...graphListFromPlans(listPlans), listError: plansError, adopt1 };
   }, [plans, plansError, adopt1Data, conversations]);
   const opening = useMemo(
-    () => openingFromPlans(plans, session?.display_name ?? ""),
+    // R19 W7: private graphs stay out of the Center deck too - the
+    // gated Private area on Graphs is their only list home.
+    () => openingFromPlans(plans.filter((p) => p.is_private !== true), session?.display_name ?? ""),
     [plans, session],
   );
 
@@ -483,6 +588,14 @@ export function C2Shell() {
                 conversations={conversations}
                 onConversationsChanged={() => void refreshConversations()}
                 openRequest={chatOpenRequest}
+                onOpenMemoryControls={() => {
+                  goRoute("you");
+                  setSettingKey("what-opal-remembers");
+                }}
+                onTalkToOpal={(request) => {
+                  setOpalOpenRequest({ request, nonce: Date.now() });
+                  goRoute("center");
+                }}
               />
               )}
             </div>
@@ -503,6 +616,11 @@ export function C2Shell() {
               ) : (
               <CenterHost
                 bearer={bearer}
+                openRequest={opalOpenRequest}
+                onOpenPersonThread={(conversationId) => {
+                  setChatOpenRequest({ conversationId, nonce: Date.now() });
+                  goRoute("chats");
+                }}
                 opening={opening}
                 plans={plans}
                 onOpenGraph={(id) => openGraph(id, "center")}
@@ -522,12 +640,13 @@ export function C2Shell() {
                   openGraph: (id) => openGraph(id, "center"),
                   makeSomethingHappen: () => setCreateKind("plan"),
                   completeSlot: (id) => openGraph(id, "center"),
-                  // SM doorway, first form: the center character
-                  // (and the dock orb that lands here) reaches the
-                  // Soul + Memory cards in Settings.
+                  // W8 doorway: the center character (and the dock
+                  // orb that lands here) reaches Settings at the
+                  // Soul room - the doorway copy is "How Opal works
+                  // for you"; Memory is its own room beside it.
                   openSoulMemory: () => {
                     goRoute("you");
-                    setSettingKey("soul-memory");
+                    setSettingKey("soul");
                   },
                 }}
               />
@@ -553,6 +672,7 @@ export function C2Shell() {
                   retryLoad: () => void refreshPlans(),
                   convertPlan,
                   ...adopt1Events,
+                  ...r19Events,
                 }}
               />
             </div>
@@ -660,6 +780,7 @@ export function C2Shell() {
             addPeople: () => undefined,
             retryLoad: () => void refreshPlans(),
             convertPlan,
+            ...r19Events,
             openChatForPlan: () => {
               setDetail(null);
               goRoute("chats");
@@ -948,7 +1069,9 @@ function HomeRoute(props: {
         openSearch: props.onSearch,
         openActivity: props.onActivity,
         openGraph: props.onOpenGraph,
-        feedAction: () => undefined,
+        // JA-06: no feedAction is wired — there is no live viewer
+        // yet (J2 named exception), so C2Home renders no action
+        // button on feed cards instead of a dead one.
         onShared: props.onShared,
         bearer: props.bearer,
       }}
@@ -1113,8 +1236,13 @@ function YouRoute(props: {
         // First tap only arms the confirmation — nothing is forgotten yet.
         setActionError(null);
         setPendingForgetId(rowId.slice("forget-".length));
-      } else if (sectionKey === "soul-memory" && rowId.startsWith("forget-capsule-")) {
-        // SM: first tap only arms the same confirmation - the
+      } else if (
+        (sectionKey === "memory" ||
+          sectionKey === "soul" ||
+          sectionKey === "soul-memory") &&
+        rowId.startsWith("forget-capsule-")
+      ) {
+        // SM/W8: first tap only arms the same confirmation - the
         // capsule is forgotten (truly deleted) only on confirm.
         setActionError(null);
         setPendingForgetCapsuleId(rowId.slice("forget-capsule-".length));
@@ -1147,6 +1275,16 @@ function YouRoute(props: {
     saveSoulPreferences: async (attrs: Record<string, string>) => {
       await updateSoul(attrs, props.bearer);
       // The refreshed projection is the read-back (toggle truth).
+      setSectionNonce((n) => n + 1);
+    },
+    saveCallGraphingMode: async (callMode: string) => {
+      // Item 16: the response IS the saved policy (read-back); the
+      // refreshed projection re-seeds the room from the same truth.
+      await updateGraphingPolicy({ call_mode: callMode }, props.bearer);
+      setSectionNonce((n) => n + 1);
+    },
+    setGraphingPaused: async (paused: boolean) => {
+      await updateGraphingPolicy({ global_paused: paused }, props.bearer);
       setSectionNonce((n) => n + 1);
     },
     addSavedLogin: async (host: string, secret: string) => {

@@ -3684,7 +3684,12 @@ button.plan-card-btn:focus-visible {
   padding: 10px 16px;
   border: none;
   border-bottom: 1px solid var(--border);
-  background: rgba(110, 231, 245, 0.04);
+  /* R19 W5-07: SOLID - a Next Together strip never paints a
+   * translucent tint (the old rgba(110,231,245,0.04) ground let
+   * scrolled message content show through). The ground is the
+   * opaque raised surface token, the same law the live
+   * .next-plan-strip got in F12-08. */
+  background: var(--surface-raised);
   text-align: left;
   color: var(--text);
 }
@@ -19624,7 +19629,14 @@ button.alignment-choice:focus-visible,
     calc(16px + env(safe-area-inset-top, 0px))
     20px
     calc(16px + env(safe-area-inset-bottom, 0px));
-  background: #070b14;
+  /* Repair #19 W12 identity: Opal's own field — the orb's fire held at
+     breath level in the deep field (violet upper-left, cyan right),
+     never a flat phone-app black and never decoration above a whisper. */
+  background:
+    radial-gradient(120% 55% at 18% -4%, rgba(125, 77, 206, 0.17), transparent 62%),
+    radial-gradient(95% 50% at 88% 26%, rgba(96, 185, 216, 0.1), transparent 60%),
+    radial-gradient(80% 40% at 50% 108%, rgba(241, 170, 98, 0.07), transparent 65%),
+    #070b14;
   color: #f4f7fa;
 }
 
@@ -19656,13 +19668,14 @@ button.alignment-choice:focus-visible,
   width: 112px;
   height: 112px;
   aspect-ratio: 1;
-  margin: 28px auto 0;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
   place-items: center;
   background: #142033;
   font-size: 42px;
+  position: relative;
+  z-index: 1;
 }
 
 .live-call-mark img {
@@ -19671,10 +19684,75 @@ button.alignment-choice:focus-visible,
   object-fit: cover;
 }
 
+/* Repair #19 W12 — the orbit stage (see CallSurfaces.tsx): the peer at
+   the center of the orb's two gyroscope rings; Opal's mark a point on
+   the ring. The tilted ring turns slowly ONLY while the call is
+   waiting to connect (motion = waiting); connected rings are still. */
+.live-call-orbit {
+  position: relative;
+  flex: 0 0 auto;
+  width: 176px;
+  height: 176px;
+  margin: 26px auto 0;
+  display: grid;
+  place-items: center;
+}
+
+.live-call-orbit-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--orb-ring-metal, #dbae8e) 52%, transparent);
+  pointer-events: none;
+}
+
+.live-call-orbit-ring--tilt {
+  border-color: color-mix(in srgb, var(--orb-ring-metal, #dbae8e) 38%, transparent);
+  transform: rotate(-16deg) scaleY(0.44);
+}
+
+.live-call-orbit[data-orbit-phase="incoming_ringing"] .live-call-orbit-ring--tilt,
+.live-call-orbit[data-orbit-phase="outgoing_ringing"] .live-call-orbit-ring--tilt,
+.live-call-orbit[data-orbit-phase="connecting"] .live-call-orbit-ring--tilt {
+  animation: live-call-orbit-turn 26s linear infinite;
+}
+
+.live-call-orbit[data-orbit-phase="failed"] {
+  opacity: 0.55;
+}
+
+@keyframes live-call-orbit-turn {
+  from {
+    transform: rotate(-16deg) scaleY(0.44);
+  }
+  to {
+    transform: rotate(344deg) scaleY(0.44);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-call-orbit-ring--tilt {
+    animation: none !important;
+  }
+}
+
+.live-call-orbit-opal {
+  position: absolute;
+  top: 1.5%;
+  right: 6.5%;
+  z-index: 2;
+  line-height: 0;
+  filter: drop-shadow(0 0 6px rgba(255, 241, 208, 0.35));
+}
+
+/* Time recedes: the person is the subject of a call, the clock is a
+   footnote. Quiet tabular line under the orbit. */
 .live-call-timer {
   flex: 0 0 auto;
-  margin: 28px 0 0;
-  font-size: 40px;
+  margin: 14px 0 0;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  color: rgba(244, 247, 250, 0.66);
   font-variant-numeric: tabular-nums;
 }
 
@@ -19708,6 +19786,15 @@ button.alignment-choice:focus-visible,
   align-items: center;
   gap: 6px;
   margin: 16px 0 8px;
+  /* Frosted glass (Opal physics): the assist/graphing panel is a pane
+     of glass over the call's field, not a card borrowed from a phone
+     app. */
+  padding: 14px 18px;
+  border-radius: 20px;
+  background: rgba(244, 247, 250, 0.055);
+  border: 1px solid rgba(244, 247, 250, 0.09);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .live-call-assist-kicker {
@@ -19729,6 +19816,54 @@ button.alignment-choice:focus-visible,
   margin: 0;
   color: rgba(244, 247, 250, 0.72);
   font-size: 12px;
+}
+
+/* Repair #19 W12 — the graphing light. QUIET ambient indicator: one
+   small point + one word of label; paused is a hollow ring (held, not
+   broken), graphing a soft spectral point, waiting/off dim. It informs
+   every participant identically; it never alarms. */
+.graphing-light {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.graphing-light-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(244, 247, 250, 0.28);
+  box-sizing: border-box;
+}
+
+.graphing-light[data-graphing-tone="on"] .graphing-light-dot {
+  background: #9ff3ea;
+  box-shadow: 0 0 10px rgba(159, 243, 234, 0.45);
+}
+
+.graphing-light[data-graphing-tone="paused"] .graphing-light-dot {
+  background: transparent;
+  border: 2px solid #ffc86b;
+}
+
+.graphing-light[data-graphing-tone="waiting"] .graphing-light-dot {
+  background: rgba(159, 243, 234, 0.4);
+}
+
+.graphing-light-label {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: rgba(244, 247, 250, 0.85);
+}
+
+.live-call-capture-note {
+  margin: 14px 0 0;
+  max-width: 300px;
+  color: rgba(244, 247, 250, 0.6);
+  font-size: 12.5px;
+  line-height: 1.45;
 }
 
 @media (min-width: 840px) {

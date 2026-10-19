@@ -7,10 +7,10 @@ defmodule OpalCore.Push.NotificationIntelligence do
   - `:normal` — new message, RSVP, Opal suggestion → push unless user active in-app
   - `:low` — vibe moment, memory, trip teaser → daily digest only
 
-  Quiet hours (local):
-  - default 22:00–08:00
-  - sleep_bias `late` → 00:00–09:00
-  - sleep_bias `early` → 21:00–07:00
+  Quiet hours: the user's stored Soul window, judged by the ONE
+  resolver (`OpalCore.SocialFlow.QuietHours`) — Repair #19 FIX-A
+  (BS-04). The old vibe sleep-bias window was a divergent second
+  truth and is retired.
 
   Mute is absolute: muted thread → zero pushes all tiers.
   """
@@ -23,7 +23,6 @@ defmodule OpalCore.Push.NotificationIntelligence do
   alias OpalCore.Push.Workers.DeliverPushWorker
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.Clock
-  alias OpalCore.Trips.VibeProfiles
 
   @tiers ~w(urgent normal low)a
 
@@ -59,34 +58,36 @@ defmodule OpalCore.Push.NotificationIntelligence do
   def normalize_tier("low"), do: :low
   def normalize_tier(_), do: :normal
 
-  @doc "Quiet hours window for user from vibe sleep_bias."
+  @doc """
+  Quiet hours window for the user as {start_hour, end_hour} —
+  read from the ONE quiet-hours truth
+  (`OpalCore.SocialFlow.QuietHours`, the user's stored Soul
+  window). Kept for the digest worker's flush timing; the window
+  itself no longer comes from a vibe sleep bias (BS-04: that was a
+  second, divergent truth).
+  """
   def quiet_window(user_id) when is_binary(user_id) do
-    bias =
-      case VibeProfiles.get(user_id) do
-        {:ok, %{sleep_bias: b}} when is_binary(b) -> b
-        _ -> "flexible"
-      end
-
-    case bias do
-      "late" -> {0, 9}
-      "early" -> {21, 7}
-      _ -> {22, 8}
-    end
+    window = OpalCore.SocialFlow.QuietHours.window_for(user_id)
+    {div(window.start_minutes, 60), div(window.end_minutes, 60)}
   end
 
-  def quiet_window(_), do: {22, 8}
+  def quiet_window(_) do
+    window = OpalCore.SocialFlow.QuietHours.default_window()
+    {div(window.start_minutes, 60), div(window.end_minutes, 60)}
+  end
 
+  @doc "Quiet now for this user — the one resolver (BS-04)."
   def quiet_hours?(user_id) do
-    {start_h, end_h} = quiet_window(user_id)
-    hour = local_hour(user_id)
-    in_quiet_range?(hour, start_h, end_h)
+    OpalCore.SocialFlow.QuietHours.quiet_now?(user_id)
   end
 
-  def in_quiet_range?(hour, start_h, end_h) when start_h > end_h do
-    hour >= start_h or hour < end_h
+  @doc """
+  Hour-granularity range check, delegated to the one resolver's
+  core so the edge rule (start == end = disabled) is shared.
+  """
+  def in_quiet_range?(hour, start_h, end_h) do
+    OpalCore.SocialFlow.QuietHours.in_window?(hour * 60, start_h * 60, end_h * 60)
   end
-
-  def in_quiet_range?(hour, start_h, end_h), do: hour >= start_h and hour < end_h
 
   @doc "Mark user as active in-app (FE heartbeat). TTL ~90s via ETS."
   def touch_active(user_id) when is_binary(user_id) do
@@ -189,25 +190,6 @@ defmodule OpalCore.Push.NotificationIntelligence do
   end
 
   defp held_key(user_id), do: user_id
-
-  defp local_hour(_user_id) do
-    # Device TZ not always known — use America/Los_Angeles as product default for quiet hours.
-    # Without tzdata, never fall back to raw UTC hour (that falsely triggers 22–08 quiet
-    # every evening UTC and drops DeliverPushWorker in foundation tests / prod-like envs).
-    utc = Clock.utc_now()
-
-    case DateTime.shift_zone(utc, "America/Los_Angeles") do
-      {:ok, dt} ->
-        dt.hour
-
-      _ ->
-        offset_h = if pacific_dst_approx?(utc), do: -7, else: -8
-        DateTime.add(utc, offset_h * 3600, :second).hour
-    end
-  end
-
-  defp pacific_dst_approx?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
-  defp pacific_dst_approx?(%DateTime{}), do: false
 
   defp ensure_table do
     case :ets.whereis(:opal_push_active) do

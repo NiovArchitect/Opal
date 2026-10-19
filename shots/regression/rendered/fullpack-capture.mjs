@@ -246,7 +246,7 @@ for (const mode of ["dark", "light"]) {
       await page.waitForTimeout(1500);
       const input = page.locator('[data-testid="c2-search-input"]');
       if (await input.count()) {
-        for (const q of ["dinner", "Regression", "a"]) {
+        for (const q of ["dinner", "Maya", "a"]) {
           await input.fill(q);
           await page.waitForTimeout(1600);
           const groups = await page.evaluate(() => ({

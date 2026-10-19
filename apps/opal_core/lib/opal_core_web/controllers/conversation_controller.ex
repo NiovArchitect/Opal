@@ -35,6 +35,11 @@ defmodule OpalCoreWeb.ConversationController do
         |> ConversationAlignment.sync_conversation()
         |> ConversationAlignment.dedupe_pending_presentation()
         |> put_place_projection(conversation_id)
+        # Repair #19 W20 (JA-02): the creator-only private
+        # predicate on the alignment read output (incl. the live
+        # place projection put above) — participants of a
+        # privatized plan read a sealed payload.
+        |> ConversationAlignment.seal_private_for_viewer(conversation_id, user_id)
 
       json(conn, %{
         "alignment" => alignment,

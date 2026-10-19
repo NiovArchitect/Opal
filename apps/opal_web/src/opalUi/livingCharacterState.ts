@@ -27,7 +27,7 @@ export const LIVING_STATE_COPY: Record<LivingCharacterState, string> = {
   idle: "Opal is ready.",
   notice: "User taps.",
   prepare: "Opal puts on headphones.",
-  listening: "Actively listening.",
+  listening: "Voice input is on.",
   processing: "Understanding.",
   thinking: "Finding the best response.",
   response_ready: "Got it!",

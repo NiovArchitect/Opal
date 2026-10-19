@@ -37,7 +37,7 @@ export default {
   surfaces: ["Home", "Chats list", "Graphs", "GET /opal/plans", "GET /home/feed", "GET /calendar/today"],
   async run(ctx) {
     const { A, h, assert } = ctx;
-    const fresh = await ctx.freshClient("+12025550103", "Regression Fresh");
+    const fresh = await ctx.freshClient("+12025550103", "Anna Lindqvist");
     const client = fresh || A;
     if (!fresh) assert.note("synthetic provisioning unavailable; running fixture scan on session A (seed content may lawfully name real people)");
 

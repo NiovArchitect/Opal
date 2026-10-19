@@ -2,7 +2,8 @@ defmodule OpalCore.Push.Workers.DigestWorker do
   @moduledoc """
   Daily digest / morning summary flush.
 
-  Cron: hourly; only delivers around 9 AM local (vibe-adjusted via quiet window end).
+  Cron: hourly; only delivers around 9 AM local (adjusted via the
+  stored quiet window's end, from the one QuietHours resolver).
   Deep-link opens Attention Center digest surface (`opal://attention/digest`).
   """
 
@@ -35,12 +36,11 @@ defmodule OpalCore.Push.Workers.DigestWorker do
 
   defp should_flush_now?(user_id) do
     {_start, end_h} = NotificationIntelligence.quiet_window(user_id)
-    # Flush at quiet-end hour (morning summary). Default end 8 → flush at 8–9.
-    hour =
-      case DateTime.shift_zone(Clock.utc_now(), "America/Los_Angeles") do
-        {:ok, dt} -> dt.hour
-        _ -> Clock.utc_now().hour
-      end
+    # Flush at quiet-end hour (morning summary), in the user's own
+    # timezone from the ONE quiet-hours resolver (BS-04) — the old
+    # hardcoded America/Los_Angeles shift is retired.
+    window = OpalCore.SocialFlow.QuietHours.window_for(user_id)
+    hour = OpalCore.SocialFlow.QuietHours.local_now(window, Clock.utc_now()).hour
 
     hour == end_h or hour == 9
   end

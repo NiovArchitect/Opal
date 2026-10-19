@@ -63,15 +63,51 @@ const SYNTHETIC_CODES = {
   "+12025550122": "000000",
 };
 
+/**
+ * Repair #19 (W1): the run tag reaches RENDERED surfaces — cases append
+ * it to plan titles, group labels, story captions and person names —
+ * so the default tag is a human phrase a person would actually write
+ * ("Dinner with the Saturday crew at the pier"), never a machine slug.
+ * The old default (`r<base36><base36>`, e.g. the Mac replay's
+ * "macreplay1") is exactly the machine-speak the founder rejected.
+ * Review/capture runs should set OPAL_RUN_TAG to a fresh human phrase
+ * per run (uniqueness across runs on a reused DB comes from the phrase
+ * choice, the same way a person would title a new plan differently).
+ * Internal-only uses (device labels, idempotency keys) slugify it.
+ */
+const HUMAN_TAG_A = [
+  "with the Saturday crew",
+  "with everyone",
+  "with the usual crew",
+  "with friends",
+  "with the family",
+];
+const HUMAN_TAG_B = [
+  "at the pier",
+  "at golden hour",
+  "downtown",
+  "by the water",
+  "after the market",
+  "on the coast",
+];
+
+export function humanRunTag() {
+  const a = HUMAN_TAG_A[Math.floor(Math.random() * HUMAN_TAG_A.length)];
+  const b = HUMAN_TAG_B[Math.floor(Math.random() * HUMAN_TAG_B.length)];
+  return `${a} ${b}`;
+}
+
+export function slugifyTag(tag) {
+  return String(tag).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "run";
+}
+
 export function loadConfig(env = process.env) {
   const apiBase = (env.OPAL_API_BASE || "http://127.0.0.1:4000").replace(/\/$/, "");
   return {
     apiBase,
     webBase: (env.OPAL_WEB_BASE || "").replace(/\/$/, "") || null,
     seedMode: env.OPAL_SEED_MODE === "1",
-    runTag:
-      env.OPAL_RUN_TAG ||
-      `r${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`,
+    runTag: env.OPAL_RUN_TAG || humanRunTag(),
     env,
   };
 }
@@ -139,7 +175,7 @@ async function provisionSynthetic(config, phone, name) {
   // Unique per provision call: a reused device label / idempotency key
   // makes the backend hand back the already-consumed challenge (409
   // replay) instead of a fresh one.
-  const deviceLabel = `r18-regression-${config.runTag}-${Math.floor(
+  const deviceLabel = `r18-regression-${slugifyTag(config.runTag)}-${Math.floor(
     Math.random() * 1e9,
   ).toString(36)}`;
   const chRes = await fetch(`${base}/activation/challenges`, {
@@ -232,7 +268,13 @@ export async function loadSessions(config) {
     const s = await provisionSynthetic(
       config,
       env.OPAL_PHONE_A || "+12025550101",
-      env.OPAL_NAME_A || "Regression A",
+      // Repair #19 (W1): session display names are RENDERED on every
+      // surface the founder reviews (chats, graphs, call log, history
+      // lines). They are people, not test scaffolding: the viewer is
+      // Ethan Walker and the second account is Maya Torres — the same
+      // Maya who exists in the founder seed cast, so the two accounts'
+      // worlds interlock by name as well as by shared plans.
+      env.OPAL_NAME_A || "Ethan Walker",
     );
     sessions.a = { role: "a", ...s, source: "synthetic" };
   }
@@ -240,7 +282,7 @@ export async function loadSessions(config) {
     const s = await provisionSynthetic(
       config,
       env.OPAL_PHONE_B || "+12025550102",
-      env.OPAL_NAME_B || "Regression B",
+      env.OPAL_NAME_B || "Maya Torres",
     );
     sessions.b = { role: "b", ...s, source: "synthetic" };
   }
@@ -277,6 +319,75 @@ export async function freshSyntheticClient(config, phone, name) {
   if (config.env.OPAL_SESSION_PROVISION !== "synthetic") return null;
   const s = await provisionSynthetic(config, phone, name);
   return new ApiClient(config, { role: "extra", ...s, source: "synthetic" });
+}
+
+/**
+ * Repair #19 (W1) — PERMANENT machine-speak gate.
+ *
+ * The founder rejected the review world for machine-speak reaching
+ * rendered surfaces: a person named "Regression A", people named
+ * "User A", plan titles carrying a run tag ("…macreplay1"), thread
+ * spam "R18REG …". This is the check that would have caught it: it
+ * scans the SERVED API output the surfaces render (session identity,
+ * conversations list incl. plan projections, human messages, plans,
+ * center conversation) for the seed world of the given client and
+ * returns every offending string. Runners fail the run (harness
+ * error, never a silent pass) when the list is non-empty.
+ *
+ * Tokens are display-string tokens only — internal binding keys (ids,
+ * handles, correlation ids) are not scanned and may stay internal.
+ */
+export const MACHINE_SPEAK_TOKENS = [
+  "macreplay",
+  "R18REG",
+  "Regression A",
+  "Regression B",
+  "Regression Third",
+  "Regression Fourth",
+  "Regression Fifth",
+  "Regression Stranger",
+  "Regression Fresh",
+  "Regression Contact",
+  "User A",
+  "User B",
+];
+
+export function findMachineSpeak(value, path = "$", out = []) {
+  if (typeof value === "string") {
+    for (const token of MACHINE_SPEAK_TOKENS) {
+      if (value.includes(token)) out.push({ path, token, value: value.slice(0, 160) });
+    }
+  } else if (Array.isArray(value)) {
+    value.forEach((v, i) => findMachineSpeak(v, `${path}[${i}]`, out));
+  } else if (value && typeof value === "object") {
+    for (const [k, v] of Object.entries(value)) findMachineSpeak(v, `${path}.${k}`, out);
+  }
+  return out;
+}
+
+/** Scan the seed-world surfaces served for one client. Returns hits. */
+export async function scanSeedWorld(client) {
+  const hits = [];
+  const surfaces = [
+    ["GET /session", await client.get("/session")],
+    ["GET /conversations", await client.get("/conversations")],
+    ["GET /opal/plans?status=all", await client.get("/opal/plans?status=all")],
+    ["GET /opal/conversation", await client.get("/opal/conversation")],
+  ];
+  for (const [label, r] of surfaces) {
+    for (const hit of findMachineSpeak(r.json)) hits.push({ surface: label, ...hit });
+  }
+  // Human message bodies in every conversation the viewer belongs to.
+  const convs = surfaces[1][1].json?.conversations || [];
+  for (const c of convs.slice(0, 30)) {
+    const cid = c.id || c.conversation_id;
+    if (!cid) continue;
+    const msgs = await client.get(`/conversations/${encodeURIComponent(cid)}/messages`);
+    for (const hit of findMachineSpeak(msgs.json)) {
+      hits.push({ surface: `GET /conversations/${cid}/messages`, ...hit });
+    }
+  }
+  return hits;
 }
 
 /** Founder seed provisioning for session A (seed mode only). Idempotent
@@ -493,8 +604,20 @@ export function makeCtx(config, sessions, assert) {
     assert,
     h: helpers,
     tag: config.runTag,
-    /** Unique marker text for this run, e.g. marker("topic") -> "R18T <tag> topic" */
-    marker: (label) => `R18REG ${config.runTag} ${label}`,
+    /**
+     * Marker text for this run. Repair #19 (W1): markers are posted as
+     * real human messages, group labels and story captions, so they
+     * must read as something a person would send — the old
+     * "R18REG <tag> <label>" prefix is the exact thread spam the
+     * founder rejected ("R18REG macreplay1 order 0"). The label stays
+     * the discriminating text cases search back for, and the run's
+     * human tag phrase rides along as the tail ("... — with the
+     * Saturday crew at the pier") because several cases read their
+     * sent messages back by filtering bodies on ctx.tag — the tag
+     * must be IN the body for that read-back to find them, exactly as
+     * it was when the tag rode inside the old machine prefix.
+     */
+    marker: (label) => `${label} — ${config.runTag}`,
   };
 }
 

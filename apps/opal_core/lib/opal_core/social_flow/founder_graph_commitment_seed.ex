@@ -27,7 +27,10 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
   }
 
   @card_id "seed-jordan-market"
-  @plan_title "Saturday opens like this"
+  # Repair #19 (W1): human title — this plan is the viewer's needs-you
+  # item (viewer stays pending below), so its title is what the reveal
+  # and the deck render. Internal card_id binding is unchanged.
+  @plan_title "Saturday morning at Oceanside Farmers Market"
   @location "Oceanside Farmers Market"
   @time_label "Saturday · Oceanside"
   @lock_in_label "Lock-in Friday · 6 PM"
@@ -69,8 +72,8 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
     maya = Repo.get!(User, peers.maya)
     chanelle = Repo.get!(User, peers.chanelle)
     sabrina = Repo.get!(User, peers.sabrina)
-    nina = upsert_user!(@nina_id, "founder-nina", "Nina")
-    alex = upsert_user!(@alex_id, "founder-alex", "Alex")
+    nina = upsert_user!(@nina_id, "founder-nina", "Nina Patel")
+    alex = upsert_user!(@alex_id, "founder-alex", "Alex Rivera")
 
     member_ids =
       Enum.uniq([
@@ -104,6 +107,20 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
       end
 
     ensure_participants!(plan, jordan.id, going_ids, interested_ids)
+
+    # Repair #19 (W1): layer the believable human seed world (state
+    # distribution across forming / ready / happening / past, calls,
+    # stories) onto the same viewer. Seed-gated by this module's own
+    # allowed?/explicit_opt_in gate — HumanSeedWorld has no other caller.
+    world =
+      OpalCore.SocialFlow.HumanSeedWorld.ensure!(viewer_user_id, %{
+        chanelle: chanelle.id,
+        maya: maya.id,
+        jordan: jordan.id,
+        sabrina: sabrina.id,
+        alex: alex.id,
+        nina: nina.id
+      })
 
     me = Repo.get_by(PlanParticipant, plan_id: plan.id, user_id: viewer_user_id)
     counts = JourneyAuthority.participation_counts(plan.id, viewer_user_id)
@@ -140,6 +157,7 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
        "commitment_phase" => commitment?,
        "journey_available" => eligible?,
        "participation_phase" => phase,
+       "world" => world,
        "shared_plan_duplicated" => false,
        "reality_duplicated" => false,
        "parallel_graph_owner" => false,

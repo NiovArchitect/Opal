@@ -56,6 +56,13 @@ defmodule OpalCore.SocialFlow.PlanProjection do
   # ONE derivation of a plan's own history + Who list — audited: it
   # reads the plan row, its audit events, its revisions, and its
   # participant rows, and takes counts/names from JourneyAuthority.
+  # Added 2026-10-19 (R19 W1): social_flow/human_seed_world.ex — the
+  # seed-gated human review world layered on the founder graph seed.
+  # Audited: its plan-table queries are seed idempotency lookups
+  # (find-by conversation+title, participant presence) against the
+  # single store; it renders nothing and keeps no shadow copy — every
+  # surface still derives state from the rows through the ONE
+  # derivations above.
   @read_files ~w(
     lib/opal_core/artifacts.ex
     lib/opal_core/graph_people.ex
@@ -75,6 +82,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/follow_through.ex
     lib/opal_core/social_flow/founder_communication_seed.ex
     lib/opal_core/social_flow/founder_graph_commitment_seed.ex
+    lib/opal_core/social_flow/human_seed_world.ex
     lib/opal_core/social_flow/home_projection.ex
     lib/opal_core/social_flow/household_context.ex
     lib/opal_core/social_flow/households.ex
@@ -122,6 +130,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "fold current-plan ordering (latest_plan/1 delegates to it)"},
       {OpalCore.SocialFlow.SharedPlan, :to_contract, 2, "canonical plan contract"},
       {OpalCore.SocialFlow.SharedPlan, :viewer_card, 3, "per-viewer plan card"},
+      {OpalCore.SocialFlow.SharedPlan, :plan_media_authorized?, 2,
+       "Repair #19 BS-05: existence-only media byte authorization for the plan's own people (renders no plan state)"},
       {OpalCore.SocialFlow.JourneyAuthority, :project, 3, "journey projection"},
       {OpalCore.SocialFlow.HomeProjection, :from_alignment, 4,
        "chats list / thread / graphs card projection; Repair #18 attendance " <>

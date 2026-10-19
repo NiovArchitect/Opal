@@ -102,7 +102,11 @@ export const REVIEW_PLANS: Record<string, PlanProjection> = {
 const THREAD_MESSAGES: ThreadMsg[] = [
   { id: "m1", authorKind: "person", body: "Dinner Thursday still good for everyone?" },
   { id: "m2", authorKind: "person", own: true, body: "Yes - Juniper and Ivy at 7:30 works for me." },
-  { id: "m3", authorKind: "opal", body: "", planId: "plan-dinner" },
+  // Repair #19 W14 — separation: a person thread never carries an
+  // Opal-authored message. The thread's plan card rides a PERSON
+  // message (the graph record belongs to the thread's people); the
+  // Opal-authored form lives only in CENTER_MESSAGES below.
+  { id: "m3", authorKind: "person", body: "", planId: "plan-dinner" },
   { id: "m4", authorKind: "system", body: "Time updated to 7:30 PM." },
   { id: "m5", authorKind: "person", body: "Perfect, see you there." },
 ];
@@ -135,9 +139,9 @@ export function C1Review() {
       return wrap(
         <CenterSessionList
           sessions={[
-            { id: "s1", title: "Dinner with Maya and Jordan", preview: "Here is what is set so far.", timeLabel: "4:12 PM", isActive: true },
-            { id: "s2", title: "Weekend hike ideas", preview: "Torrey Pines on Saturday morning?", timeLabel: "11:02 AM", isActive: false },
-            { id: "s3", title: "Chat on Wed, Oct 14", preview: "Flights for the Dallas trip.", timeLabel: "Wed", isActive: false },
+            { id: "s1", title: "Dinner with Maya and Jordan", preview: "Here is what is set so far.", timeLabel: "4:12 PM", isActive: true, context: null },
+            { id: "s2", title: "Weekend hike ideas", preview: "Torrey Pines on Saturday morning?", timeLabel: "11:02 AM", isActive: false, context: { personId: "u-maya", personName: "Maya Chen" }, anchor: { type: "person", id: "u-maya", label: "Maya Chen" } },
+            { id: "s3", title: "Chat on Wed, Oct 14", preview: "Flights for the Dallas trip.", timeLabel: "Wed", isActive: false, context: { personId: "u-maya", personName: "Maya Chen" }, anchor: { type: "person", id: "u-maya", label: "Maya Chen" } },
           ]}
         />,
       );

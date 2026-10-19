@@ -31,16 +31,25 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeedTest do
     assert payload["parallel_chat_owner"] == false
     assert payload["via"] == "Messages"
     assert payload["founder_phone_chat_rows"] == 5
-    assert payload["direct"]["peer_display_name"] == "Chanelle"
+    # Repair #19 (W1): peers carry full human names — the display
+    # strings are what the founder reviews on every surface.
+    assert payload["direct"]["peer_display_name"] == "Chanelle Brooks"
     assert is_binary(payload["direct"]["conversation_id"])
     assert payload["group"]["label"] == "Saturday Crew"
     assert length(payload["group"]["member_ids"]) >= 3
 
     directs = payload["directs"]
     assert is_map(directs)
+
     for key <- ["chanelle", "maya", "sabrina", "alex"] do
       assert is_binary(directs[key]["conversation_id"])
-      assert directs[key]["peer_display_name"] in ["Chanelle", "Maya", "Sabrina", "Alex"]
+
+      assert directs[key]["peer_display_name"] in [
+               "Chanelle Brooks",
+               "Maya Torres",
+               "Sabrina Nguyen",
+               "Alex Rivera"
+             ]
     end
 
     convs = Messages.list_conversations(viewer.id)
@@ -68,8 +77,10 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeedTest do
 
     assert first["direct"]["conversation_id"] == second["direct"]["conversation_id"]
     assert first["group"]["conversation_id"] == second["group"]["conversation_id"]
+
     assert first["directs"]["maya"]["conversation_id"] ==
              second["directs"]["maya"]["conversation_id"]
+
     assert length(Messages.list_conversations(viewer.id)) >= 5
   end
 end

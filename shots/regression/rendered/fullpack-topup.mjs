@@ -41,7 +41,7 @@ const save = () => fs.writeFileSync(path.join(OUT, "manifest-topup.json"), JSON.
 // celebration -> shelf starter (real API)
 const A = new ApiClient(config, sessions.a);
 try {
-  const cel = await A.post("/celebrations", { person_name: "Regression B", kind: "birthday", month: 11, day: 2 });
+  const cel = await A.post("/celebrations", { person_name: "Maya Torres", kind: "birthday", month: 11, day: 2 });
   manifest.setup.celebrationStatus = cel.status;
   manifest.setup.celebration = cel.json.celebration || cel.json;
   const shelf = await A.get("/graph/shelf");

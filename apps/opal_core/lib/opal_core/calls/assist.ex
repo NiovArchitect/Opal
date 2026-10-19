@@ -28,6 +28,7 @@ defmodule OpalCore.Calls.Assist do
 
   def set_allowed(call_id, user_id, allowed, scope \\ "call") when is_boolean(allowed) do
     with {:ok, call} <- connected_call(call_id, user_id) do
+      graphing_before = OpalCore.Calls.Graphing.graphing_state(call)
       if scope == "account" do
         _ = set_account_default(user_id, allowed)
       end
@@ -56,11 +57,38 @@ defmodule OpalCore.Calls.Assist do
         end
 
       case row |> AssistConsent.changeset(attrs) |> Repo.insert_or_update() do
-        {:ok, _} -> {:ok, view(call, user_id)}
-        {:error, changeset} -> {:error, changeset}
+        {:ok, _} ->
+          # Repair #19 W12 (item 16): every graphing transition leaves
+          # consent lineage and is broadcast on the call channel so all
+          # participants' lights agree. Best-effort by design — the
+          # consent write above is the authority; a lineage/broadcast
+          # failure must never un-write consent.
+          _ =
+            OpalCore.Calls.Graphing.record_transition(
+              call,
+              user_id,
+              graphing_action(graphing_before, allowed),
+              scope
+            )
+
+          {:ok, view(call, user_id)}
+
+        {:error, changeset} ->
+          {:error, changeset}
       end
     end
   end
+
+  # Name the transition for the lineage from the state before the write:
+  # turning off while graphing (or while an allow stood) is a PAUSE when
+  # this participant had allowed before — Graphing.graphing_state/1 makes
+  # that same distinction — otherwise it is a plain off. Turning on from
+  # :paused is a resume; from anywhere else it is graphing on.
+  defp graphing_action(before, true),
+    do: if(before == :paused, do: "graphing_resumed", else: "graphing_on")
+
+  defp graphing_action(before, false),
+    do: if(before in [:graphing, :paused], do: "graphing_paused", else: "graphing_off")
 
   def apply_defaults(%CallSession{} = call) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -91,6 +119,9 @@ defmodule OpalCore.Calls.Assist do
     %{
       call: call,
       assist: assist_state(call, user_id),
+      # Repair #19 W12: the one graphing derivation, carried verbatim in
+      # every projection so surfaces never re-derive it (gyroscope law).
+      graphing: OpalCore.Calls.Graphing.graphing_state(call),
       account_default: account_default(user_id),
       self_allowed: allowed?(self),
       self_paused: paused?(self)

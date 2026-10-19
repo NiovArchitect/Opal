@@ -122,6 +122,7 @@ function reviewGraphList(): GraphListProjection {
       },
       { id: "g-past", kind: "past", title: "Past", cards: [REVIEW_CARDS.past] },
     ],
+    privateCards: [],
     lensCounts: { all: 6, action: 3, ready: 2, past: 1 },
     timelineAvailable: true,
   };
@@ -158,7 +159,7 @@ function reviewHome(): HomeProjection {
     rail: {
       self: { avatar: avatarOf("Sadeil Lewis"), hasLiveStory: false, liveStoryLabel: null },
       stories: [
-        { id: "s1", personName: "Maya Chen", avatar: avatarOf("Maya Chen", 1), seen: false, ringKind: "unseen", storyCount: 2 },
+        { id: "s1", personName: "Maya Chen", avatar: avatarOf("Maya Chen", 1), seen: false, ringKind: "unseen", storyCount: 2, mediaUrl: "/figma-v2/home-201/media-maya.png", caption: "At the pier" },
         { id: "s2", personName: "Jordan Lee", avatar: avatarOf("Jordan Lee", 2), seen: false, ringKind: "happening", storyCount: 1 },
         { id: "s3", personName: "Sam Rivera", avatar: avatarOf("Sam Rivera", 3), seen: true, ringKind: "seen", storyCount: 1 },
         { id: "s4", personName: "Alex Park", avatar: avatarOf("Alex Park", 4), seen: true, ringKind: "seen", storyCount: 3 },
@@ -166,21 +167,54 @@ function reviewHome(): HomeProjection {
       capabilities: { canPost: true, canStory: true },
     },
     feed: [
-      { kind: "plan", id: REVIEW_CARDS.happening.id, card: REVIEW_CARDS.happening },
+      {
+        kind: "live",
+        id: "live-review-1",
+        title: "Live now: rooftop session",
+        contextLine: "Jordan Lee is live from Zilker Park Rooftop",
+        actionLabel: "Watch",
+        actionId: "watch:review-1",
+        hostName: "Jordan Lee",
+        hostAvatar: avatarOf("Jordan Lee", 2),
+        placeLabel: "Zilker Park Rooftop",
+        mine: false,
+      },
+      {
+        kind: "plan",
+        id: REVIEW_CARDS.happening.id,
+        card: {
+          ...REVIEW_CARDS.happening,
+          media: {
+            photoUrl: "/figma-v2/home-201/media-live-city-1728.png",
+            provenance: "plan.place.photo_url",
+          },
+          people: [{ name: "Jordan Lee", initials: "JL", tint: 2 }],
+          peopleLine: "Jordan Lee and 11 others",
+        },
+      },
       {
         kind: "memory",
         id: "m1",
+        photoUrl: "/figma-v2/home-201/media-maya-618-130-v2.png",
+        photoProvenance: "moment.media_ref",
         contextLine: "Golden hour at the pier, last Sunday",
-        authorLine: "Maya Chen - with you and Jordan",
+        authorLine: "Maya Chen",
+        authorName: "Maya Chen",
+        authorAvatar: avatarOf("Maya Chen", 1),
+      },
+      {
+        kind: "memory",
+        id: "m2",
+        contextLine: "Race night dinner was unreal - rematch soon",
+        authorLine: "Sam Rivera",
+        authorName: "Sam Rivera",
+        authorAvatar: avatarOf("Sam Rivera", 3),
       },
       { kind: "plan", id: REVIEW_CARDS.ready.id, card: REVIEW_CARDS.ready },
       {
-        kind: "live",
-        id: "l1",
-        title: "Live now: rooftop session",
-        contextLine: "Jordan is live from Zilker Park Rooftop",
-        actionLabel: "Watch",
-        actionId: "watch",
+        kind: "plan",
+        id: REVIEW_CARDS.formingTime.id,
+        card: { ...REVIEW_CARDS.formingTime, peopleLine: "With Maya Chen" },
       },
     ],
   };
@@ -210,7 +244,8 @@ export function C2ShellReview({ surface }: { surface: string }) {
           openSearch: noop,
           openActivity: noop,
           openGraph: noop,
-          feedAction: noop,
+          // JA-06: no feedAction in the review fixture either —
+          // the live card renders without a dead Watch button.
           onShared: noop,
         }}
       />

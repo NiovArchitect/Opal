@@ -21,6 +21,14 @@ import type {
 import { Avatar, IconBack, IconChevron } from "./bits";
 import { OrbMark, OrbMarkMono } from "../../brand/orb/OrbMark";
 import { PlanCardC2 } from "../PlanCardC2";
+import {
+  CALL_GRAPHING_MODES,
+  CALL_GRAPHING_REASON,
+  SOUL_LEVEL_COPY,
+  formatClockTime,
+  humanTimezoneLabel,
+  quietHoursSentence,
+} from "./shellData";
 
 /**
  * Audit A9 — the served build identity, read from the same build
@@ -61,6 +69,13 @@ export type C2YouEvents = {
   /** Repair #18 SM scoped build - saves the Soul form to the real
    * assistance-preference truth (PATCH /memory-wallet/soul). */
   saveSoulPreferences?: (attrs: Record<string, string>) => Promise<void>;
+  /** Repair #19 W8 (item 16) - the standing call-graphing
+   * permission: saves call_mode to the real GraphingPolicy truth
+   * (PATCH /relationship-access/graphing). Immediate-save, like the
+   * legacy standing-permission section; failure restores the
+   * projected value with one error line. */
+  saveCallGraphingMode?: (callMode: string) => Promise<void>;
+  setGraphingPaused?: (paused: boolean) => Promise<void>;
   addSavedLogin?: (host: string, secret: string) => Promise<void>;
   redeemInviteCode?: (code: string) => Promise<{ credit_line: string }>;
   executeDeletion?: (
@@ -81,9 +96,9 @@ export type C2YouEvents = {
  */
 export const HUB_GROUPS: Array<{ label: string; keys: string[] }> = [
   { label: "You", keys: ["edit-profile", "appearance", "your-moments", "your-library"] },
-  { label: "Soul and memory", keys: ["soul-memory", "what-opal-remembers"] },
+  { label: "How Opal works for you", keys: ["soul", "memory", "what-opal-remembers"] },
   { label: "How Opal helps", keys: ["how-opal-helps", "calls-assist", "approvals-activity"] },
-  { label: "What Opal hears", keys: ["what-opal-hears", "connections", "connected-sources"] },
+  { label: "What Opal graphs", keys: ["what-opal-hears", "connections", "connected-sources"] },
   { label: "Quiet and privacy", keys: ["notifications", "privacy", "linked-devices", "location-travel"] },
   { label: "Care and account", keys: ["care", "account-security", "saved-logins", "invite-code", "delete-account", "help-support"] },
 ];
@@ -249,12 +264,38 @@ export function C2SettingsSection({
   const [soulLevel, setSoulLevel] = useState<string>(() => rowValue("assistance_level") || "balanced");
   const [soulQuietStart, setSoulQuietStart] = useState<string>(() => rowValue("quiet_hours_start"));
   const [soulQuietEnd, setSoulQuietEnd] = useState<string>(() => rowValue("quiet_hours_end"));
+  // Repair #19 W20 (JA-07) — the quiet-hours on/off the room never
+  // had. The backend resolver's disabled state is start == end
+  // (SocialFlow.QuietHours edge rule), so OFF is a real state of
+  // the same record, not a new field: the form seeds ON unless the
+  // saved window is already the disabled one, and Save writes
+  // end == start when OFF. The last real window is remembered so
+  // turning back ON restores it (or the product default window
+  // when the saved state was off with nothing to restore).
+  const [soulQuietOn, setSoulQuietOn] = useState<boolean>(() => {
+    const s = rowValue("quiet_hours_start");
+    const e = rowValue("quiet_hours_end");
+    return !(s !== "" && s === e);
+  });
+  const [soulQuietWindow, setSoulQuietWindow] = useState<{ start: string; end: string }>(() => {
+    const s = rowValue("quiet_hours_start");
+    const e = rowValue("quiet_hours_end");
+    return s && e && s !== e ? { start: s, end: e } : { start: "22:00", end: "08:00" };
+  });
   const [soulTimezone, setSoulTimezone] = useState<string>(() => rowValue("timezone"));
   const [soulMaxPerDay, setSoulMaxPerDay] = useState<string>(() =>
     rowValue("max_proactive_signals_per_day"),
   );
   const [soulFeedback, setSoulFeedback] = useState<string>(() => rowValue("completion_feedback"));
   const [soulSaved, setSoulSaved] = useState(false);
+  // Repair #19 W8 (item 16) - call-graphing standing permission
+  // state, seeded from the Memory section's own value rows (the
+  // server's read of the real GraphingPolicy record).
+  const [graphingMode, setGraphingMode] = useState<string>(() => rowValue("graphing_call_mode"));
+  const [graphingPaused, setGraphingPaused] = useState<boolean>(
+    () => rowValue("graphing_global_paused") === "true",
+  );
+  const [graphingBusy, setGraphingBusy] = useState(false);
   const [deleteMode, setDeleteMode] = useState<"data" | "account">("data");
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [deleteReceipt, setDeleteReceipt] = useState<string | null>(null);
@@ -394,74 +435,203 @@ export function C2SettingsSection({
           </div>
         ) : null}
 
-        {section.key === "soul-memory" &&
+        {(section.key === "soul" || section.key === "soul-memory") &&
         section.rows.some((r) => r.kind === "value" && r.id === "assistance_level") ? (
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)", marginBottom: "var(--space-4)" }}
             data-testid="c2-soul-form"
           >
-            <p className="c2s-group-label">Your Soul - how Opal is with you</p>
-            <div className="c2s-segmented" role="radiogroup" aria-label="How forward Opal may be" data-testid="c2-soul-level">
-              {(
-                [
-                  ["minimal", "Only when I ask"],
-                  ["balanced", "Balanced"],
-                  ["proactive", "More forward"],
-                ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={soulLevel === value}
-                  data-active={soulLevel === value ? "1" : undefined}
-                  data-testid={`c2-soul-level-${value}`}
-                  onClick={() => setSoulLevel(value)}
-                >
-                  {label}
-                </button>
-              ))}
+            {/* Repair #19 W8 (W5-11): every control carries a
+                persistent visible label AND its reason. No control
+                is a bare field whose only label was placeholder
+                text, and no raw enum ("standard", "22:00") reaches
+                the glass unlabeled - the white-pill fields of the
+                combined page are gone. */}
+            <div className="c2s-field-group">
+              <p className="c2s-field-label" id="c2-soul-level-label">
+                How forward may Opal be?
+              </p>
+              <p className="c2s-field-reason">
+                This is the main dial for how Opal is with you. It changes how
+                often Opal offers help on its own - it never changes what your
+                people can send you.
+              </p>
+              <div className="c2s-segmented" role="radiogroup" aria-labelledby="c2-soul-level-label" data-testid="c2-soul-level">
+                {(["minimal", "balanced", "proactive"] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={soulLevel === value}
+                    data-active={soulLevel === value ? "1" : undefined}
+                    data-testid={`c2-soul-level-${value}`}
+                    onClick={() => setSoulLevel(value)}
+                  >
+                    {SOUL_LEVEL_COPY[value].label}
+                  </button>
+                ))}
+              </div>
+              <p className="c2s-field-reason" data-testid="c2-soul-level-reason">
+                {SOUL_LEVEL_COPY[soulLevel]?.reason ?? SOUL_LEVEL_COPY.balanced.reason}
+              </p>
             </div>
-            <input
-              className="c2s-field"
-              data-testid="c2-soul-quiet-start"
-              placeholder="Quiet hours start, like 22:00"
-              value={soulQuietStart}
-              onChange={(e) => setSoulQuietStart(e.target.value)}
-              aria-label="Quiet hours start"
-            />
-            <input
-              className="c2s-field"
-              data-testid="c2-soul-quiet-end"
-              placeholder="Quiet hours end, like 08:00"
-              value={soulQuietEnd}
-              onChange={(e) => setSoulQuietEnd(e.target.value)}
-              aria-label="Quiet hours end"
-            />
-            <input
-              className="c2s-field"
-              data-testid="c2-soul-timezone"
-              placeholder="Home time zone, like America/Los_Angeles"
-              value={soulTimezone}
-              onChange={(e) => setSoulTimezone(e.target.value)}
-              aria-label="Home time zone"
-            />
-            <input
-              className="c2s-field"
-              data-testid="c2-soul-max-per-day"
-              placeholder="Proactive notes per day, at most"
-              value={soulMaxPerDay}
-              onChange={(e) => setSoulMaxPerDay(e.target.value)}
-              aria-label="Proactive notes per day, at most"
-            />
-            <input
-              className="c2s-field"
-              data-testid="c2-soul-feedback"
-              placeholder="Completion feedback - standard or reduced"
-              value={soulFeedback}
-              onChange={(e) => setSoulFeedback(e.target.value)}
-              aria-label="Completion feedback"
-            />
+
+            <div className="c2s-field-group">
+              <p className="c2s-field-label">Quiet hours</p>
+              <div className="c2s-row" style={{ padding: 0 }}>
+                <span className="c2s-row-main">
+                  <span className="c2s-row-title">Quiet hours: {soulQuietOn ? "On" : "Off"}</span>
+                  <span className="c2s-row-sub">
+                    {soulQuietOn
+                      ? "Opal holds non-urgent things during your quiet hours."
+                      : "Opal may bring you non-urgent things at any hour."}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="c2s-toggle"
+                  data-on={soulQuietOn ? "1" : undefined}
+                  role="switch"
+                  aria-checked={soulQuietOn}
+                  aria-label="Quiet hours"
+                  data-testid="c2-soul-quiet-toggle"
+                  onClick={() => {
+                    if (soulQuietOn) {
+                      // Turning OFF: remember the real window so
+                      // ON restores it; the saved state becomes
+                      // start == end (the resolver's disabled state).
+                      if (soulQuietStart && soulQuietEnd && soulQuietStart !== soulQuietEnd) {
+                        setSoulQuietWindow({ start: soulQuietStart, end: soulQuietEnd });
+                      }
+                      setSoulQuietOn(false);
+                    } else {
+                      setSoulQuietStart(soulQuietWindow.start);
+                      setSoulQuietEnd(soulQuietWindow.end);
+                      setSoulQuietOn(true);
+                    }
+                    setSoulSaved(false);
+                  }}
+                />
+              </div>
+              <p className="c2s-field-reason" data-testid="c2-soul-quiet-sentence">
+                {quietHoursSentence(
+                  soulQuietStart,
+                  soulQuietOn ? soulQuietEnd : soulQuietStart,
+                )}
+                . People can still reach you - this only holds what Opal itself
+                brings you.
+              </p>
+              <label className="c2s-field-sublabel" htmlFor="c2-soul-quiet-start-input">
+                Quiet hours start - Opal starts holding non-urgent things at{" "}
+                {formatClockTime(soulQuietStart)}
+              </label>
+              <input
+                id="c2-soul-quiet-start-input"
+                className="c2s-field"
+                type="time"
+                data-testid="c2-soul-quiet-start"
+                value={soulQuietStart}
+                onChange={(e) => setSoulQuietStart(e.target.value)}
+                aria-label="Quiet hours start"
+                disabled={!soulQuietOn}
+              />
+              <label className="c2s-field-sublabel" htmlFor="c2-soul-quiet-end-input">
+                Quiet hours end - Opal can bring things to you again at{" "}
+                {formatClockTime(soulQuietEnd)}
+              </label>
+              <input
+                id="c2-soul-quiet-end-input"
+                className="c2s-field"
+                type="time"
+                data-testid="c2-soul-quiet-end"
+                value={soulQuietEnd}
+                onChange={(e) => setSoulQuietEnd(e.target.value)}
+                aria-label="Quiet hours end"
+                disabled={!soulQuietOn}
+              />
+            </div>
+
+            <div className="c2s-field-group">
+              <label className="c2s-field-label" htmlFor="c2-soul-timezone-input">
+                Home time zone
+              </label>
+              <p className="c2s-field-reason">
+                Opal judges your quiet hours and plan times in this time zone.
+              </p>
+              <input
+                id="c2-soul-timezone-input"
+                className="c2s-field"
+                data-testid="c2-soul-timezone"
+                value={soulTimezone}
+                onChange={(e) => setSoulTimezone(e.target.value)}
+                aria-label="Home time zone"
+              />
+              <p className="c2s-field-reason" data-testid="c2-soul-timezone-human">
+                That is {humanTimezoneLabel(soulTimezone)} time.
+              </p>
+            </div>
+
+            <div className="c2s-field-group">
+              <label className="c2s-field-label" htmlFor="c2-soul-max-per-day-input">
+                Proactive notes per day, at most
+              </label>
+              <p className="c2s-field-reason">
+                The most times in one day Opal may bring you something you did
+                not ask for. Things that need your answer from your people are
+                not counted here.
+              </p>
+              <input
+                id="c2-soul-max-per-day-input"
+                className="c2s-field"
+                type="number"
+                min={1}
+                max={10}
+                data-testid="c2-soul-max-per-day"
+                value={soulMaxPerDay}
+                onChange={(e) => setSoulMaxPerDay(e.target.value)}
+                aria-label="Proactive notes per day, at most"
+              />
+              <p className="c2s-field-reason" data-testid="c2-soul-max-human">
+                At most {soulMaxPerDay || "0"}{" "}
+                {soulMaxPerDay === "1" ? "note" : "notes"} a day from Opal on its
+                own.
+              </p>
+            </div>
+
+            <div className="c2s-field-group">
+              <p className="c2s-field-label" id="c2-soul-feedback-label">
+                When something is done
+              </p>
+              <p className="c2s-field-reason">
+                How much Opal tells you when it finishes something for you.
+              </p>
+              <div
+                className="c2s-segmented"
+                role="radiogroup"
+                aria-labelledby="c2-soul-feedback-label"
+                data-testid="c2-soul-feedback"
+              >
+                {(
+                  [
+                    ["standard", "Tell me when things are done"],
+                    ["reduced", "Keep it brief"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={soulFeedback === value}
+                    data-active={soulFeedback === value ? "1" : undefined}
+                    data-testid={`c2-soul-feedback-${value}`}
+                    onClick={() => setSoulFeedback(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button
               type="button"
               className="c2s-btn-primary"
@@ -478,7 +648,9 @@ export function C2SettingsSection({
                   await events.saveSoulPreferences({
                     assistance_level: soulLevel,
                     quiet_hours_start: soulQuietStart,
-                    quiet_hours_end: soulQuietEnd,
+                    // JA-07: OFF writes the disabled state the
+                    // resolver honors — end == start.
+                    quiet_hours_end: soulQuietOn ? soulQuietEnd : soulQuietStart,
                     timezone: soulTimezone,
                     max_proactive_signals_per_day: soulMaxPerDay,
                     completion_feedback: soulFeedback,
@@ -491,13 +663,115 @@ export function C2SettingsSection({
                 }
               }}
             >
-              Save your Soul
+              Save Soul settings
             </button>
             {soulSaved ? (
               <p className="c2s-note" data-testid="c2-soul-saved">
                 Saved. This is how Opal will be with you now.
               </p>
             ) : null}
+          </div>
+        ) : null}
+
+        {section.key === "memory" &&
+        section.rows.some((r) => r.kind === "value" && r.id === "graphing_call_mode") ? (
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)", marginBottom: "var(--space-4)" }}
+            data-testid="c2-graphing-form"
+          >
+            <div className="c2s-field-group">
+              <p className="c2s-field-label" id="c2-graphing-label">
+                Call graphing
+              </p>
+              <p className="c2s-field-reason">{CALL_GRAPHING_REASON}</p>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}
+                role="radiogroup"
+                aria-labelledby="c2-graphing-label"
+                data-testid="c2-graphing-mode"
+              >
+                {CALL_GRAPHING_MODES.map((mode) => (
+                  <button
+                    key={mode.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={graphingMode === mode.value}
+                    data-active={graphingMode === mode.value ? "1" : undefined}
+                    data-testid={`c2-graphing-mode-${mode.value}`}
+                    className="c2s-chip"
+                    style={{ textAlign: "left", minHeight: 44 }}
+                    disabled={graphingBusy}
+                    onClick={async () => {
+                      if (!events.saveCallGraphingMode) {
+                        setError("That did not save. Try again.");
+                        return;
+                      }
+                      const previous = graphingMode;
+                      setGraphingMode(mode.value);
+                      setGraphingBusy(true);
+                      setError(null);
+                      try {
+                        await events.saveCallGraphingMode(mode.value);
+                      } catch {
+                        setGraphingMode(previous);
+                        setError("That did not save. Try again.");
+                      } finally {
+                        setGraphingBusy(false);
+                      }
+                    }}
+                  >
+                    {mode.label}
+                  </button>
+                ))}
+              </div>
+              <p className="c2s-field-reason" data-testid="c2-graphing-mode-reason">
+                {CALL_GRAPHING_MODES.find((m) => m.value === graphingMode)?.reason ??
+                  CALL_GRAPHING_MODES[1].reason}
+              </p>
+            </div>
+            <div className="c2s-field-group">
+              <p className="c2s-field-label">Pause all graphing</p>
+              <p className="c2s-field-reason">
+                Pauses graphing for every call until you turn this off. This wins
+                over the choice above - and pausing during one call, for that call
+                only, is on the call itself.
+              </p>
+              <div className="c2s-row" style={{ border: "1px solid var(--line-1)", borderRadius: "var(--radius-card)" }}>
+                <span className="c2s-row-main">
+                  <span className="c2s-row-title">
+                    {graphingPaused ? "Graphing is paused" : "Graphing is not paused"}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="c2s-toggle"
+                  data-on={graphingPaused ? "1" : undefined}
+                  role="switch"
+                  aria-checked={graphingPaused}
+                  aria-label="Pause all graphing"
+                  data-testid="c2-graphing-pause-toggle"
+                  disabled={graphingBusy}
+                  onClick={async () => {
+                    if (!events.setGraphingPaused) {
+                      setError("That did not save. Try again.");
+                      return;
+                    }
+                    const next = !graphingPaused;
+                    setGraphingPaused(next);
+                    setGraphingBusy(true);
+                    setError(null);
+                    try {
+                      await events.setGraphingPaused(next);
+                    } catch {
+                      setGraphingPaused(!next);
+                      setError("That did not save. Try again.");
+                    } finally {
+                      setGraphingBusy(false);
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -562,14 +836,25 @@ export function C2SettingsSection({
               if (section.key === "edit-profile" && (row.id === "name" || row.id === "handle")) {
                 return null;
               }
-              // SM: the Soul fields are edited in the Soul form above;
-              // do not render them twice either.
+              // W8 item 16: the graphing seeds are edited in the
+              // graphing control above; never as raw rows either
+              // ("ask_each" must never reach the glass).
               if (
-                section.key === "soul-memory" &&
+                section.key === "memory" &&
+                (row.id === "graphing_call_mode" || row.id === "graphing_global_paused")
+              ) {
+                return null;
+              }
+              // SM/W8: the Soul fields are edited in the Soul form
+              // above; do not render them twice - and never as raw
+              // value rows (that was the combined page's defect).
+              if (
+                (section.key === "soul" || section.key === "soul-memory") &&
                 [
                   "assistance_level",
                   "quiet_hours_start",
                   "quiet_hours_end",
+                  "quiet_hours_on_off",
                   "timezone",
                   "max_proactive_signals_per_day",
                   "completion_feedback",

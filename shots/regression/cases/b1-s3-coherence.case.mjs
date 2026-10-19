@@ -33,7 +33,7 @@ export default {
 
     // Suite citizenship: no plans in the shared A<->B walk-pair
     // thread - a fresh group thread hosts this case's pair.
-    const third0 = await h.freshDirectConversation(A, "+12025550105", "Regression Fifth");
+    const third0 = await h.freshDirectConversation(A, "+12025550105", "Owen Parker");
     assert.check("setup third member", !!third0?.userId, "group setup needs a third synthetic user");
     const mainGroup = await h.createGroup(A, [ctx.sessions.b.userId, third0.userId], `B1 S3 pair ${ctx.tag}`);
     assert.check("setup group conversation", !!mainGroup.conversationId, "setup needs a group conversation");
@@ -73,7 +73,7 @@ export default {
     // each kind through the real activate path in fresh group
     // threads and read them back as the OTHER participant.
     const journeyIds = {};
-    const third = await h.freshDirectConversation(A, "+12025550104", "Regression Third");
+    const third = await h.freshDirectConversation(A, "+12025550104", "Clara Jensen");
     assert.check("setup third user", !!third?.userId, "journey legs need a third synthetic user for group threads");
     for (const [label, attrs] of [
       ["virtual", { plan_type: "virtual", meeting_link: "https://teams.microsoft.com/l/meetup-join/coherence", time_label: "Sunday 7:00 PM", title: `Coherence virtual journey ${ctx.tag}` }],

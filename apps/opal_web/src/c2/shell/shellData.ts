@@ -28,8 +28,11 @@
  */
 import {
   fetchHomeFeed,
+  getAccountActivity,
   getAssistPreference,
+  getLivesVisible,
   getDeviceRoster,
+  getGraphingPolicy,
   getSoulMemory,
   getGoogleCalendarStatus,
   getHomeTimezone,
@@ -68,6 +71,209 @@ export function avatarOf(name: string, seed = 0): AvatarRef {
   return { initials: initialsOf(name), tint: (seed % 6) + 1 };
 }
 
+/**
+ * Repair #19 W8 (W5-11) - plain-language formatters for the Soul and
+ * Memory rooms. The founder's review of the combined page was that it
+ * rendered RAW VALUES as unlabeled boxes ("22:00", "08:00",
+ * "America/Los_Angeles", "3", "standard"). These are the ONE place
+ * those raw truths become finished human sentences; the rooms render
+ * only what these return, never the raw string beside a label.
+ */
+
+/** "22:00" -> "10:00 PM"; "08:00" -> "8:00 AM". Unparseable input is
+ *  returned as-is (it is the server's value, never invented). */
+export function formatClockTime(raw: string): string {
+  const m = /^(\d{1,2}):(\d{2})$/.exec((raw ?? "").trim());
+  if (!m) return raw;
+  const hour24 = Number(m[1]);
+  if (Number.isNaN(hour24) || hour24 < 0 || hour24 > 23) return raw;
+  const suffix = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  return `${hour12}:${m[2]} ${suffix}`;
+}
+
+/** The quiet-hours sentence the Soul room carries as its reason. */
+export function quietHoursSentence(start: string, end: string): string {
+  // JA-07: start == end is the backend resolver's DISABLED state
+  // (SocialFlow.QuietHours edge rule) — the sentence says so
+  // honestly instead of describing a zero-length window.
+  if (start && start === end) return "Quiet hours are off";
+  return `Opal holds non-urgent things from ${formatClockTime(start)} to ${formatClockTime(end)}`;
+}
+
+/** "America/Los_Angeles" -> "Los Angeles (America/Los_Angeles)".
+ *  The human city name leads; the exact zone stays visible in
+ *  parentheses because it is the value Opal actually saves. */
+export function humanTimezoneLabel(tz: string): string {
+  const raw = (tz ?? "").trim();
+  if (!raw) return "Not set";
+  if (raw === "UTC") return "UTC (Coordinated Universal Time)";
+  const city = raw.split("/").pop()!.replace(/_/g, " ");
+  return city && city !== raw ? `${city} (${raw})` : raw;
+}
+
+/** completion_feedback enum -> the words a person would choose. */
+export function feedbackStyleLabel(value: string): string {
+  return value === "reduced"
+    ? "Keep it brief - a short note when something is done"
+    : "Tell me when things are done";
+}
+
+export function feedbackStyleForLabel(value: string): string {
+  return value === "reduced" ? "reduced" : "standard";
+}
+
+/** assistance_level enum -> plain label (mirrors the backend's own
+ *  assistance_level_label, kept here for the selected-state reason). */
+export const SOUL_LEVEL_COPY: Record<
+  string,
+  { label: string; reason: string }
+> = {
+  minimal: {
+    label: "Only when I ask",
+    reason: "Opal only helps when you ask. It does not offer or start things on its own.",
+  },
+  balanced: {
+    label: "Balanced",
+    reason:
+      "Opal offers help as things come up, and waits for your say-so before it acts.",
+  },
+  proactive: {
+    label: "More forward",
+    reason:
+      "Opal steps forward more often with ideas and follow-ups, always inside your quiet hours and your daily cap below.",
+  },
+};
+
+/** ISO timestamp -> "Saved Oct 18, 2026". Absent/unparseable -> null
+ *  (the row simply carries no date, never a guessed one). */
+export function capsuleSavedLabel(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const month = d.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  return `Saved ${month} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+/** A capsule's scope kind, from the contract's own fields only. */
+export function capsuleScopeKind(capsule: {
+  scope_kind?: string | null;
+  scope_policy?: Record<string, unknown>;
+}): string {
+  const direct = capsule.scope_kind;
+  if (typeof direct === "string" && direct) return direct;
+  const policy = capsule.scope_policy ?? {};
+  const scope = policy["scope"] as Record<string, unknown> | undefined;
+  const kind = scope?.["kind"] ?? policy["scope_kind"];
+  return typeof kind === "string" && kind ? kind : "user";
+}
+
+export type CapsuleGroup = "about-you" | "with-people" | "from-plans";
+
+export function capsuleGroupOf(kind: string): CapsuleGroup {
+  if (kind === "relationship" || kind === "conversation" || kind === "group")
+    return "with-people";
+  if (kind === "user" || kind === "personal") return "about-you";
+  return "from-plans";
+}
+
+export const CAPSULE_GROUP_HEADINGS: Record<CapsuleGroup, string> = {
+  "about-you": "About you",
+  "with-people": "Tied to a person",
+  "from-plans": "From your plans and activities",
+};
+
+/**
+ * Repair #19 W8 (item 16) - CALL GRAPHING standing permission copy.
+ * The truth is the existing GraphingPolicy record (call_mode +
+ * global_paused, GET/PATCH /relationship-access/graphing) - the same
+ * record the legacy standing-permission section writes and
+ * graphing_decision consults on every call. W12 owns the in-call
+ * pause; this is its standing counterpart in Settings.
+ */
+export const CALL_GRAPHING_MODES: Array<{
+  value: string;
+  label: string;
+  reason: string;
+}> = [
+  {
+    value: "never",
+    label: "Never",
+    reason: "Opal never graphs your calls.",
+  },
+  {
+    value: "ask_each",
+    label: "Ask me each time",
+    reason: "Opal asks before graphing a call, every time.",
+  },
+  {
+    value: "auto_eligible",
+    label: "On, when a call can be graphed",
+    reason:
+      "Opal may graph a call without asking first, when the call and the people on it allow it.",
+  },
+  {
+    value: "selected_only",
+    label: "Only people I choose",
+    reason:
+      "Opal graphs calls only with people you have allowed. If no one is allowed, nothing is graphed.",
+  },
+];
+
+export const CALL_GRAPHING_REASON =
+  "Graphing a call means the call becomes part of your graph - who was on it, what was decided, and what to follow up - so your plans and memories stay connected. It is not a recording kept for listening back, and the other people on a call are always told.";
+
+/** Account-activity kinds -> plain titles. Unknown kinds fall back to
+ *  their words with underscores spaced - never a raw machine string
+ *  with underscores on the glass. */
+export function activityKindLabel(kind: string): string {
+  switch (kind) {
+    case "credential_used":
+      return "Opal used a saved login";
+    case "device_revoked":
+      return "A device was signed out";
+    case "account_deleted":
+      return "Account deletion completed";
+    case "data_deleted":
+      return "Data deletion completed";
+    case "invite_redeemed":
+      return "An invite code was redeemed";
+    default: {
+      const words = kind.replace(/_/g, " ").trim();
+      return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Account activity";
+    }
+  }
+}
+
+const UUID_LIKE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** An activity subject is shown only when it reads as something a
+ *  person would recognize (a site host, a name). A session id or any
+ *  UUID-shaped subject is machine-speak and never reaches the glass. */
+export function activitySubjectLabel(
+  kind: string,
+  subject: string | null | undefined,
+): string | null {
+  if (!subject) return null;
+  if (UUID_LIKE.test(subject.trim())) return null;
+  if (kind === "credential_used") return `For ${subject}`;
+  if (kind === "device_revoked") return null;
+  return subject;
+}
+
+/** ISO timestamp -> "Oct 18, 2026 at 3:49 PM" (UTC, as stored). */
+export function activityWhenLabel(iso: string | null | undefined): string {
+  const saved = capsuleSavedLabel(iso)?.replace(/^Saved /, "");
+  if (!saved || !iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return saved;
+  let h = d.getUTCHours();
+  const suffix = h >= 12 ? "PM" : "AM";
+  h = h % 12 === 0 ? 12 : h % 12;
+  const mins = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${saved} at ${h}:${mins} ${suffix}`;
+}
+
 const FAMILY_BY_STATUS: Record<string, PlanStateFamilyC2> = {
   idea: "forming",
   forming: "forming",
@@ -82,6 +288,33 @@ const FAMILY_BY_STATUS: Record<string, PlanStateFamilyC2> = {
   past: "past",
   settled: "past",
   ended: "past",
+  // R19 W7: the backend's own terminal statuses (SharedPlan
+  // @statuses) - a completed plan IS past; without these rows a
+  // finished plan rendered as "forming" and the Past view missed it.
+  completed: "past",
+  expired: "past",
+  // R19 W18-FIX (W13 sweep finding): the GOVERNED statuses (SharedPlan
+  // @statuses = tentative/agreed/changed/cancelled/completed/expired)
+  // reach this function raw from the plans list (list_plans_for_user
+  // excludes only cancelled/expired), and tentative/agreed/changed
+  // were unmapped - an AGREED plan fell through to "forming" and wore
+  // forming violet instead of ready gold. Canon, mirroring the
+  // backend's ONE indicator derivation (NextPlan.indicator_state):
+  // agreed -> ready (its explicit leg); tentative -> forming and
+  // changed -> forming (its fall-through leg: "everything else
+  // active (tentative / changed)"). changed is NOT action here:
+  // NextPlan's action leg is the VIEWER's pending participant
+  // response and its happening leg is the live window - viewer/time
+  // facts a status-only derivation never receives. JourneyAuthority's
+  // reconfirm-after-change is likewise per-participant response
+  // state, not plan status; a changed plan whose viewer already
+  // reconfirmed must not wear action. Pinned in familyOfStatus.test.ts.
+  tentative: "forming",
+  agreed: "ready",
+  changed: "forming",
+  // Canon vocabulary alias: a needs-action status IS the action family.
+  "needs-action": "action",
+  needs_action: "action",
 };
 
 const LABEL_BY_FAMILY: Record<PlanStateFamilyC2, string> = {
@@ -95,6 +328,158 @@ const LABEL_BY_FAMILY: Record<PlanStateFamilyC2, string> = {
 export function familyOfStatus(status: string | null | undefined): PlanStateFamilyC2 {
   return FAMILY_BY_STATUS[(status ?? "").toLowerCase()] ?? "forming";
 }
+
+/**
+ * Repair #19 (W9) - REAL IMAGERY, the plan path. A plan card's image
+ * comes from the plan RECORD's own fields, in this precedence:
+ *   1. plan.image_url            (record-level image, W1 seed world)
+ *   2. plan.place.photo_url      (the place projection's photo)
+ *   3. plan.place_image_url      (flat venue photo on the record)
+ *   4. plan.place.image_url      (place projection, alternate key)
+ *   5. plan.media_url            (record media URL)
+ * A value counts only when it is URL-shaped (/, data:, http) - the
+ * same renderability rule the story rail and the feed already use.
+ * `media_id` is deliberately NOT in this list: it is an opaque id
+ * and this client has no resolver that turns a plan's media_id
+ * into a URL, so promoting it would paint a broken or guessed
+ * image. When no field qualifies, the result is null and the card
+ * renders NO media well (the designed no-image state) - never a
+ * stock photo keyed by title, never text in an image-shaped hole.
+ * The returned provenance names the exact field that supplied the
+ * image; it is build vocabulary (a data attribute in tests), never
+ * screen copy.
+ */
+export function planImageFromRecord(
+  plan: OpalPlanContract,
+): { photoUrl: string; provenance: string } | null {
+  const candidates: Array<[string, string | null | undefined]> = [
+    ["plan.image_url", plan.image_url],
+    ["plan.place.photo_url", plan.place?.photo_url],
+    ["plan.place_image_url", plan.place_image_url],
+    ["plan.place.image_url", plan.place?.image_url],
+    ["plan.media_url", plan.media_url],
+  ];
+  for (const [provenance, value] of candidates) {
+    if (
+      typeof value === "string" &&
+      value &&
+      (value.startsWith("/") || value.startsWith("data:") || value.startsWith("http"))
+    ) {
+      return { photoUrl: value, provenance };
+    }
+  }
+  return null;
+}
+
+/**
+ * Repair #19 (W9) - the Home form of a plan card: the shared card
+ * plus the record's own imagery and people. Only Home sets these
+ * fields today, so Graphs/Center cards are byte-identical to
+ * before; the fields are additive on the one card grammar.
+ * People: the list contract carries the organizer's name and a
+ * finished who_label, NOT a participant roster (the roster lives
+ * on the plan-history projection the detail reads). So the faces
+ * row carries exactly the people the record names - the organizer
+ * - and the who_label renders verbatim beside them. No face is
+ * ever invented to fill the row.
+ */
+export function homeCardFromPlan(
+  plan: OpalPlanContract,
+): PlanCardC2Input & { id: string } {
+  const card = cardFromPlan(plan);
+  const media = planImageFromRecord(plan);
+  const organizer = plan.organizer_name?.trim() ? plan.organizer_name.trim() : null;
+  return {
+    ...card,
+    media,
+    people: organizer ? [avatarPerson(organizer, 0)] : [],
+    peopleLine: plan.who_label?.trim() ? plan.who_label.trim() : null,
+  };
+}
+
+function avatarPerson(name: string, seed: number): { name: string; initials: string; tint: number | null } {
+  const avatar = avatarOf(name, seed);
+  return { name, initials: avatar.initials, tint: avatar.tint };
+}
+
+/**
+ * Repair #19 (W9) - LIVE surfacing truth. Maps the visible-lives
+ * read (GET /api/v1/product/lives/visible - the same Paste K /
+ * W4-05 Go-live machinery the legacy Home hydrates from) into Home
+ * feed cards. Gating is strict presence discipline (L8):
+ *  - a room renders ONLY when its record carries an id AND its
+ *    status is exactly "live" (an ended/flagged/absent-status room
+ *    never renders - the server already filters to live, and this
+ *    adapter re-checks rather than trusting the envelope);
+ *  - the place line comes from the room's own place_label, else
+ *    its venue's display_name / name - honouring the host's
+ *    location precision exactly as the server projected it. When
+ *    the record carries no place, placeLabel is null and NO place
+ *    line renders (the legacy mapper's "Somewhere nearby" filler
+ *    is not carried into C2: an invented place is a FALSE);
+ *  - the host line comes from host_display_name / host_handle on
+ *    the record; absent both, the card still renders (anchored by
+ *    its place/title) without naming a person it cannot name.
+ * Pure and exported for tests; homeFromSession is its only caller.
+ */
+export function liveFeedFromRooms(
+  rows: Array<{ live_room?: Record<string, unknown> } | Record<string, unknown>> | null | undefined,
+): Extract<import("./projections").FeedCardProjection, { kind: "live" }>[] {
+  const out: Extract<import("./projections").FeedCardProjection, { kind: "live" }>[] = [];
+  for (const row of rows ?? []) {
+    const room = (
+      row && typeof row === "object" && "live_room" in row
+        ? (row as { live_room: Record<string, unknown> }).live_room
+        : row
+    ) as Record<string, unknown> | undefined;
+    if (!room || typeof room.id !== "string" || !room.id) continue;
+    if (room.status !== "live") continue;
+    const venue = (room.venue ?? {}) as Record<string, unknown>;
+    const placeLabel =
+      (typeof room.place_label === "string" && room.place_label) ||
+      (typeof venue.display_name === "string" && venue.display_name) ||
+      (typeof venue.name === "string" && venue.name) ||
+      null;
+    const hostName =
+      (typeof room.host_display_name === "string" && room.host_display_name) ||
+      (typeof room.host_handle === "string" && room.host_handle) ||
+      null;
+    const title =
+      (typeof room.title === "string" && room.title) ||
+      (placeLabel ? `Live at ${placeLabel}` : "Live now");
+    const contextLine = hostName
+      ? placeLabel
+        ? `${hostName} is live from ${placeLabel}`
+        : `${hostName} is live now`
+      : placeLabel
+        ? `Live now from ${placeLabel}`
+        : "Live now";
+    out.push({
+      kind: "live",
+      id: `live-${room.id}`,
+      title,
+      contextLine,
+      actionLabel: "Watch",
+      actionId: `watch:${room.id}`,
+      hostName,
+      hostAvatar: hostName ? avatarOf(hostName, out.length + 1) : null,
+      placeLabel,
+      mine: room.mine === true,
+    });
+  }
+  return out;
+}
+
+/** State rank for Home composition (W9): what is happening now and
+ *  what needs the user lead; past settles last. This ORDERS finished
+ *  cards only - it never changes a card's state family or label. */
+const HOME_FAMILY_RANK: Record<PlanStateFamilyC2, number> = {
+  happening: 0,
+  action: 1,
+  ready: 2,
+  forming: 3,
+  past: 4,
+};
 
 export function cardFromPlan(plan: OpalPlanContract): PlanCardC2Input & { id: string } {
   const family = familyOfStatus(plan.status);
@@ -157,7 +542,23 @@ export function planDroppable(plan: OpalPlanContract): boolean {
 }
 
 export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjection {
-  const cards = plans.map((plan) => {
+  // R19 W7: private graphs are separated HERE, at the one adapter -
+  // they never enter a group or a lens count, so no lens (including
+  // Past) can surface them outside the gated Private area.
+  const privateCards = plans
+    .filter((plan) => plan.is_private === true)
+    .map((plan) => {
+      const card = cardFromPlan(plan);
+      const family = familyOfStatus(plan.status);
+      return {
+        ...card,
+        completionAction: family === "forming" ? missingSlot(plan) : null,
+        droppable: planDroppable(plan),
+        isPrivate: true as const,
+      };
+    });
+  const visiblePlans = plans.filter((plan) => plan.is_private !== true);
+  const cards = visiblePlans.map((plan) => {
     const card = cardFromPlan(plan);
     const family = familyOfStatus(plan.status);
     const completion = family === "forming" ? missingSlot(plan) : null;
@@ -211,6 +612,7 @@ export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjecti
   );
   const count = (f: (c: (typeof cards)[number]) => boolean) => cards.filter(f).length;
   return {
+    privateCards,
     groups,
     lensCounts: {
       all: cards.length,
@@ -253,6 +655,7 @@ export function detailFromPlan(
     // Who section is omitted cleanly until the Division A detail
     // projection lands (named gap, spec section 8.2 omission rule).
     who: [],
+    isPrivate: plan.is_private === true,
     nextAction: null,
     activity: [],
     history: [],
@@ -278,6 +681,10 @@ export function detailWithHistory(
       name: person.name,
       avatar: avatarOf(person.name, i + 1),
       responseLabel: person.response_label,
+      // R19 W7: the finished location line rides verbatim - the
+      // surface never derives a position or distance itself.
+      locationLabel: person.location_label ?? null,
+      locationState: person.location_state ?? null,
     })),
     history: history.history.map((row) => ({ line: row.line })),
     attendanceLine:
@@ -376,9 +783,17 @@ export async function homeFromSession(
   const name = session?.display_name ?? "You";
   const self = avatarOf(name);
   let stories: HomeProjection["rail"]["stories"] = [];
+  // Repair #19 W20 (JA-11): the viewer's OWN story record feeds
+  // the self cell — it never ALSO renders as a named rail cell
+  // (the rail showed "Your story · Add" AND the viewer's own
+  // seeded story as a separate named circle). One entry per
+  // person: multiple records by one author collapse into one
+  // cell carrying their count.
+  let ownStory: { storyCount: number; mediaUrl: string | null; caption: string | null } | null =
+    null;
   try {
     const res = await listTemporaryStories(bearer);
-    stories = (res.stories ?? [])
+    const records = (res.stories ?? [])
       .map((record, i) => {
         const r = record as Record<string, unknown>;
         const personName =
@@ -399,6 +814,7 @@ export async function homeFromSession(
             : null;
         return {
           id: r.id,
+          authorId: typeof r.author_user_id === "string" ? r.author_user_id : null,
           personName,
           avatar: avatarOf(personName, i + 1),
           seen: Boolean(r.seen),
@@ -409,11 +825,39 @@ export async function homeFromSession(
         };
       })
       .filter((s): s is NonNullable<typeof s> => Boolean(s));
+
+    const mine = records.filter(
+      (s) => session?.user_id && s.authorId === session.user_id,
+    );
+    if (mine.length > 0) {
+      ownStory = {
+        storyCount: mine.length,
+        mediaUrl: mine[0].mediaUrl,
+        caption: mine[0].caption,
+      };
+    }
+
+    const byPerson = new Map<string, (typeof records)[number]>();
+    for (const s of records) {
+      if (session?.user_id && s.authorId === session.user_id) continue;
+      const key = s.authorId ?? s.personName;
+      const existing = byPerson.get(key);
+      if (existing) {
+        existing.storyCount += 1;
+        existing.seen = existing.seen && s.seen;
+        existing.ringKind = existing.seen ? "seen" : "unseen";
+      } else {
+        byPerson.set(key, { ...s });
+      }
+    }
+    stories = [...byPerson.values()];
   } catch {
     stories = [];
+    ownStory = null;
   }
   const plansResult = await loadPlansResult(bearer);
-  const plans = plansResult.plans;
+  // R19 W7: private graphs never enter the Home feed either.
+  const plans = plansResult.plans.filter((p) => p.is_private !== true);
   // Hunt-fix B-11: the feed reads back what the user and their people
   // actually posted (fetchHomeFeed moments), with plan cards as their
   // own kind. The previous build composed the feed from the user's
@@ -425,12 +869,18 @@ export async function homeFromSession(
     const feedRes = await fetchHomeFeed({ limit: 20, bearer });
     moments = (feedRes.objects ?? [])
       .filter((o) => o.object_type === "memory" || !o.object_type)
-      .map((o) => {
+      .map((o, i) => {
         const actor = (o.actor ?? {}) as Record<string, unknown>;
         const authorName =
           typeof actor.display_name === "string" && actor.display_name
             ? actor.display_name
             : "Someone";
+        // W9 imagery path (moments): the feed record's own
+        // media_ref IS the moment's image - the backend feed card
+        // builds it from the moment's media_urls, else its media
+        // endpoint URL (HomeFeed.to_feed_card). Provenance:
+        // "moment.media_ref". Absent/not URL-shaped = no photo,
+        // and the card renders its designed monogram treatment.
         const rawMedia = typeof o.media_ref === "string" ? o.media_ref : null;
         const photoUrl =
           rawMedia &&
@@ -441,30 +891,64 @@ export async function homeFromSession(
           kind: "memory" as const,
           id: String(o.id),
           photoUrl,
+          photoProvenance: photoUrl ? "moment.media_ref" : null,
           contextLine:
             typeof o.caption === "string" && o.caption ? o.caption : "Memory",
           authorLine: authorName,
+          authorName,
+          authorAvatar: avatarOf(authorName, i + 1),
         };
       })
       .filter((m) => m.id && m.id !== "undefined");
   } catch {
     feedError = feedError ?? "Your feed did not load. Check your connection and try again.";
   }
+  // W9 LIVE: the visible-lives read is its own leg. A failed read
+  // means no live cards (honestly absent) - it never fails the feed
+  // and never paints a live that was not read back.
+  let lives: HomeProjection["feed"] = [];
+  try {
+    const livesRes = await getLivesVisible(bearer);
+    lives = liveFeedFromRooms(livesRes.lives ?? []);
+  } catch {
+    lives = [];
+  }
+  // W9 composition (state variety): the old composition put every
+  // moment first and sliced plans off the end, so a moment-heavy
+  // feed filtered Home into ONE bucket and plans - with all their
+  // states - could vanish entirely. Now: live first (it is true
+  // only inside its window), then plans ordered by state rank
+  // (stable within a family; states are never relabeled), then
+  // moments fill the remaining room. The cap is unchanged (14).
+  const planCards: HomeProjection["feed"] = plans
+    .map((plan, index) => ({ plan, index }))
+    .sort(
+      (a, b) =>
+        HOME_FAMILY_RANK[familyOfStatus(a.plan.status)] -
+          HOME_FAMILY_RANK[familyOfStatus(b.plan.status)] ||
+        a.index - b.index,
+    )
+    .slice(0, 10)
+    .map(({ plan }) => ({
+      kind: "plan" as const,
+      id: plan.id,
+      card: homeCardFromPlan(plan),
+    }));
   return {
     header: { ownAvatar: self },
     rail: {
-      self: { avatar: self, hasLiveStory: false, liveStoryLabel: null },
+      self: {
+        avatar: self,
+        // JA-11: fed from the viewer's own story record (above) —
+        // "Add" remains only the truly-empty case.
+        hasLiveStory: ownStory !== null,
+        liveStoryLabel: null,
+        story: ownStory,
+      },
       stories,
       capabilities: { canPost: true, canStory: true },
     },
-    feed: [
-      ...moments,
-      ...plans.slice(0, 10).map((plan) => ({
-        kind: "plan" as const,
-        id: plan.id,
-        card: cardFromPlan(plan),
-      })),
-    ].slice(0, 14),
+    feed: [...lives.slice(0, 3), ...planCards, ...moments].slice(0, 14),
     feedError,
   };
 }
@@ -494,12 +978,13 @@ export function youHubFromSession(
       { key: "your-moments", title: "Your moments", subtitle: "Your posts and stories, kept", keywords: "moments archive posts stories shared media photos" },
       { key: "your-library", title: "Your library", subtitle: "Made by Opal, and your media", keywords: "library artifacts made by opal drafts lists exports media photos videos stories" },
       { key: "appearance", title: "Appearance", subtitle: "Pick your light", keywords: "mode light dark theme appearance" },
-      { key: "soul-memory", title: "Soul + Memory", subtitle: "How Opal is with you, and what it holds", keywords: "soul memory persona tone how opal speaks" },
+      { key: "soul", title: "Soul", subtitle: "How Opal is with you", keywords: "soul how opal is with you forward quiet hours timezone feedback persona tone how opal speaks" },
+      { key: "memory", title: "Memory", subtitle: "What Opal holds for you", keywords: "memory what opal holds remembers capsules forget provenance" },
       { key: "what-opal-remembers", title: "What Opal remembers", subtitle: "Facts Opal keeps, and forgetting them", keywords: "memory remembers forget facts permissions" },
       { key: "how-opal-helps", title: "How Opal helps", subtitle: "How forward Opal may be", keywords: "helps proactive forward assist offers suggestions" },
       { key: "calls-assist", title: "Opal Assist and calls", subtitle: "Help on calls, only when you say so", keywords: "assist calls phone" },
-      { key: "approvals-activity", title: "Approvals + activity", subtitle: "What Opal did, and what awaits you", keywords: "approvals activity trail history export" },
-      { key: "what-opal-hears", title: "What Opal hears", subtitle: "Where Opal's memory comes from", keywords: "hears listens chats calls texts room meetings sources" },
+      { key: "approvals-activity", title: "Activity", subtitle: "What Opal did for you, written down", keywords: "approvals activity trail history export what opal did" },
+      { key: "what-opal-hears", title: "What Opal graphs", subtitle: "Where Opal's graphs come from", keywords: "graphs sources chats calls texts room meetings ingested transcripts" },
       { key: "connections", title: "Connections", subtitle: "Every connection, with its real status", keywords: "connections connected sources google deepseek twilio places flights status" },
       { key: "care", title: "Care and household", subtitle: "Check-in rotations and your household pod", keywords: "care rotation household pod family check in" },
       { key: "connected-sources", title: "Connected sources", subtitle: googleConnected === "simulated" ? "Google Calendar - simulated, not real" : googleConnected ? "Google Calendar connected" : "Google Calendar", keywords: "connected sources google calendar email" },
@@ -618,7 +1103,14 @@ export async function buildSettingsSection(
             {
               kind: "note",
               id: "quiet-hours-note",
-              text: "Opal already keeps quiet hours (10 PM to 8 AM) for anything it brings you. Setting your own hours here is not built yet, so there is no switch for it that would change nothing.",
+              text: "Opal keeps quiet hours for anything it brings you. Your own hours live in Soul, where you set when they start and end.",
+            },
+            {
+              kind: "nav",
+              id: "soul-quiet",
+              title: "Your quiet hours",
+              subtitle: "In Soul - how Opal is with you",
+              target: "soul",
             },
           ],
         };
@@ -915,27 +1407,30 @@ export async function buildSettingsSection(
         };
       }
     }
+    case "soul":
     case "soul-memory": {
-      // 12.2 - Repair #18 SM scoped build (W-GAP-31 first form): the
-      // Soul card edits the REAL assistance-preference truth (the
-      // same record Opal's help already follows - no parallel store),
-      // and the Memory card lists this account's capsules with their
-      // provenance, each forgettable for real through the wallet
-      // API. Value rows below carry the soul fields the C2You form
-      // edits (the edit-profile pattern); capsule rows are actions
-      // whose first tap only arms the confirm in the shell.
+      // 12.2 - Repair #19 W8 (W5-11): SOUL is its own room - "how Opal
+      // is with you". It edits the REAL assistance-preference truth
+      // (the same record Opal's help already follows - no parallel
+      // store, Repair #18 SM contracts unchanged). The legacy
+      // "soul-memory" key is an alias that lands here, in the Soul
+      // room only; Memory is the separate room below. Value rows
+      // carry the raw fields ONLY as the form's seed (the
+      // edit-profile pattern) - C2You renders the form instead of
+      // these rows, so a raw value ("22:00", "3", "standard") never
+      // reaches the glass as an unlabeled box.
       try {
         const res = await getSoulMemory(bearer);
         const soul = res.soul;
         return {
           key,
-          title: "Soul + Memory",
-          lede: "How Opal is with you, and what it holds - yours to read, change, and forget.",
+          title: "Soul",
+          lede: "How Opal is with you. Every setting here is one Opal already follows - change it and the saved setting is what Opal uses.",
           rows: [
             {
               kind: "value",
               id: "assistance_level",
-              title: "How forward Opal may be",
+              title: "How forward may Opal be?",
               value: soul.assistance_level,
             },
             {
@@ -950,6 +1445,19 @@ export async function buildSettingsSection(
               title: "Quiet hours end",
               value: soul.quiet_hours_end,
             },
+            {
+              // JA-07: the on/off truth, carried in the section
+              // inventory itself (the W8-era claim of a toggle is
+              // now REAL — the Soul form renders this switch; the
+              // resolver's disabled state is start == end).
+              kind: "value",
+              id: "quiet_hours_on_off",
+              title: "Quiet hours on/off",
+              value:
+                soul.quiet_hours_start && soul.quiet_hours_start === soul.quiet_hours_end
+                  ? "off"
+                  : "on",
+            },
             { kind: "value", id: "timezone", title: "Home time zone", value: soul.timezone },
             {
               kind: "value",
@@ -960,36 +1468,164 @@ export async function buildSettingsSection(
             {
               kind: "value",
               id: "completion_feedback",
-              title: "Completion feedback",
+              title: "When something is done",
               value: soul.completion_feedback,
             },
             {
-              kind: "note",
-              id: "memory-heading",
-              text:
-                res.capsules.length === 0
-                  ? "What Opal remembers - Opal is not keeping any memories for you yet."
-                  : `What Opal remembers - ${res.capsule_count} ${res.capsule_count === 1 ? "memory" : "memories"}, each with where it came from. Tap one, then confirm, to forget it for good.`,
+              kind: "nav",
+              id: "to-memory",
+              title: "Memory - what Opal holds for you",
+              subtitle: "The separate room for everything Opal remembers",
+              target: "memory",
             },
-            ...res.capsules.map((capsule) => ({
-              kind: "action" as const,
-              id: `forget-capsule-${capsule.id}`,
-              title: capsule.summary ?? "A memory",
-              subtitle: `${capsule.provenance_label ?? "Saved with Opal"} - tap, then confirm to forget`,
-            })),
-            { kind: "nav", id: "remembers", title: "What Opal remembers", target: "what-opal-remembers" },
           ],
         };
       } catch {
         return {
           key,
-          title: "Soul + Memory",
-          lede: "How Opal is with you, and what it holds - yours to read, change, and forget.",
+          title: "Soul",
+          lede: "How Opal is with you.",
           rows: [
             {
               kind: "note",
               id: "load-failed",
-              text: "Soul + Memory could not load. Head back and try again.",
+              text: "Your Soul settings could not load. Head back and try again.",
+            },
+          ],
+        };
+      }
+    }
+    case "memory": {
+      // 12.2 - Repair #19 W8 (W5-11): MEMORY is its own room - "what
+      // Opal holds". Capsules are grouped by what they are about,
+      // each row naming what it is, where it came from (provenance
+      // in plain words), and when it was saved. Forget is the
+      // existing owner path: the first tap only arms the shell's
+      // two-step confirm; confirming hard-deletes through the
+      // wallet API. Per-person memories (relationship-scoped
+      // capsules) get their own group - the SM design provides no
+      // separate per-person toggle truth, so none is painted; the
+      // per-item forget IS the per-person control that exists.
+      // Item 16: the standing call-graphing permission lives in
+      // this room (what Opal may add to your graph is a memory
+      // decision). Its read is its OWN leg (ER-2): if it fails, the
+      // room still renders and the control is honestly absent -
+      // never a toggle seeded from a guess.
+      let graphingRows: SettingsSectionProjection["rows"] = [];
+      try {
+        const g = await getGraphingPolicy(bearer);
+        graphingRows = [
+          {
+            kind: "value",
+            id: "graphing_call_mode",
+            title: "Call graphing",
+            value: g.graphing.call_mode ?? "ask_each",
+          },
+          {
+            kind: "value",
+            id: "graphing_global_paused",
+            title: "Pause all graphing",
+            value: g.graphing.global_paused ? "true" : "false",
+          },
+        ];
+      } catch {
+        graphingRows = [];
+      }
+      try {
+        const res = await getSoulMemory(bearer);
+        if (res.capsules.length === 0) {
+          return {
+            key,
+            title: "Memory",
+            lede: "What Opal holds for you.",
+            rows: [
+              ...graphingRows,
+              {
+                kind: "note",
+                id: "memory-empty",
+                text: "Opal is not holding any memories for you yet. When you tell Opal something to remember, or Opal saves a preference for you, it will appear here - with where it came from and when - and you can forget it here, for good.",
+              },
+              {
+                kind: "nav",
+                id: "remembers",
+                title: "What Opal remembers",
+                subtitle: "Facts Opal keeps, and forgetting them",
+                target: "what-opal-remembers",
+              },
+              {
+                kind: "nav",
+                id: "to-soul",
+                title: "Soul - how Opal is with you",
+                target: "soul",
+              },
+            ],
+          };
+        }
+        const groups: CapsuleGroup[] = ["about-you", "with-people", "from-plans"];
+        const rows: SettingsSectionProjection["rows"] = [
+          ...graphingRows,
+          {
+            kind: "note",
+            id: "memory-heading",
+            text: `${res.capsule_count} ${res.capsule_count === 1 ? "memory" : "memories"}. Each one says where it came from. Tap one, then confirm, to forget it for good - forgetting deletes it, it is not just hidden.`,
+          },
+        ];
+        for (const group of groups) {
+          const inGroup = res.capsules.filter(
+            (c) => capsuleGroupOf(capsuleScopeKind(c)) === group,
+          );
+          if (inGroup.length === 0) continue;
+          rows.push({
+            kind: "note",
+            id: `memory-group-${group}`,
+            text: CAPSULE_GROUP_HEADINGS[group],
+          });
+          for (const capsule of inGroup) {
+            const saved = capsuleSavedLabel(capsule.created_at);
+            const provenance = capsule.provenance_label ?? "Saved with Opal";
+            rows.push({
+              kind: "action" as const,
+              id: `forget-capsule-${capsule.id}`,
+              title: capsule.summary ?? "A memory",
+              subtitle: [
+                `${provenance}${saved ? ` - ${saved}` : ""}.`,
+                capsule.because ? `${capsule.because}.` : null,
+                "Tap, then confirm, to forget it for good.",
+              ]
+                .filter(Boolean)
+                .join(" "),
+            });
+          }
+        }
+        rows.push({
+          kind: "nav",
+          id: "remembers",
+          title: "What Opal remembers",
+          subtitle: "Facts Opal keeps, and forgetting them",
+          target: "what-opal-remembers",
+        });
+        rows.push({
+          kind: "nav",
+          id: "to-soul",
+          title: "Soul - how Opal is with you",
+          target: "soul",
+        });
+        return {
+          key,
+          title: "Memory",
+          lede: "What Opal holds for you - yours to read and to forget.",
+          rows,
+        };
+      } catch {
+        return {
+          key,
+          title: "Memory",
+          lede: "What Opal holds for you.",
+          rows: [
+            {
+              kind: "note",
+              id: "load-failed",
+              text: "What Opal holds could not load. Head back and try again.",
             },
           ],
         };
@@ -1017,9 +1653,16 @@ export async function buildSettingsSection(
             { kind: "nav", id: "calls", title: "Opal Assist and calls", target: "calls-assist" },
             { kind: "nav", id: "quiet", title: "Quiet", target: "notifications" },
             {
+              kind: "nav",
+              id: "soul",
+              title: "Soul - how forward Opal may be",
+              subtitle: "How forward, quiet hours, and your daily cap, in one room",
+              target: "soul",
+            },
+            {
               kind: "note",
               id: "modes-gate",
-              text: "Choosing how forward Opal may be in one place is not built yet. Until it is, Opal's offers stay off unless you turn them on, Opal asks once and never nags, and a no is final.",
+              text: "How forward Opal may be lives in Soul. Opal's offers stay off unless you turn them on, Opal asks once and never nags, and a no is final.",
             },
           ],
         };
@@ -1032,26 +1675,92 @@ export async function buildSettingsSection(
         };
       }
     }
-    case "approvals-activity":
-      // 12.5 — no page holds approvals or the activity trail yet
-      // (gap F-GAP-5). Honest gated destination, no painted queue.
-      return {
-        key,
-        title: "Approvals + activity",
-        lede: "What Opal did, and what awaits you.",
-        rows: [
-          {
-            kind: "note",
-            id: "approvals-gate",
-            text: "Anything Opal needs your say-so for appears where the work happens - on a plan's page or in a check-in. One place for approvals, what you decided before, and a plain trail of what Opal has done is not built yet, so nothing here is listed as if it were.",
-          },
-          {
-            kind: "note",
-            id: "export-gate",
-            text: "Getting your data out will live under Privacy + account. It is not built yet either - there is no export button here, because a button that does not export would be a lie.",
-          },
-        ],
-      };
+    case "approvals-activity": {
+      // 12.5 - Repair #19 W8 (settings sharpening, audit rows
+      // 40/41): the ACTIVITY window is a settings room and is built
+      // here against the real account-activity trail (adoption
+      // wave 2: entries written at execution time - saved-login
+      // use, device sign-out - read from GET /settings/activity).
+      // It is NOT the DIR-4 P6 report (a one-line visit-scoped
+      // reveal on the deck) and not Opal's Home's trail lens
+      // (4.B10, MT-01) - this room renders the account entries
+      // themselves. The APPROVALS window is ADOPTED-DEFERRED:
+      // approvals live where the work happens (plan page, check-in)
+      // and their Home lens belongs to the Opal's Home build
+      // (MT-01); no approvals queue store exists to list here, so
+      // none is painted - the gate note below stands.
+      const approvalsGate: SettingsSectionProjection["rows"] = [
+        {
+          kind: "note",
+          id: "approvals-gate",
+          text: "Approvals - what Opal is waiting on you for - appear where the work happens: on a plan's page or in a check-in. A single approvals queue in Settings is not built yet, so nothing here is listed as if it were.",
+        },
+        {
+          kind: "note",
+          id: "export-gate",
+          text: "Getting your data out will live under Privacy + account. It is not built yet either - there is no export button here, because a button that does not export would be a lie.",
+        },
+      ];
+      if (!bearer) {
+        return {
+          key,
+          title: "Activity",
+          lede: "What Opal did for you, written down when it happened.",
+          rows: [
+            {
+              kind: "note",
+              id: "activity-signin",
+              text: "Your activity loads with your account. When Opal uses a saved login for you or signs a device out, it will be listed here with when it happened.",
+            },
+            ...approvalsGate,
+          ],
+        };
+      }
+      try {
+        const res = await getAccountActivity(bearer);
+        const entries = res.activity ?? [];
+        return {
+          key,
+          title: "Activity",
+          lede: "What Opal did for you, written down when it happened.",
+          rows: [
+            ...(entries.length === 0
+              ? [
+                  {
+                    kind: "note" as const,
+                    id: "activity-empty",
+                    text: "Nothing here yet. When Opal uses a saved login for you, signs a device out, or does other account work for you, it will be listed here with when it happened.",
+                  },
+                ]
+              : entries.map((entry) => {
+                  const subject = activitySubjectLabel(entry.kind, entry.subject);
+                  return {
+                    kind: "value" as const,
+                    id: `activity-${entry.id}`,
+                    title: activityKindLabel(entry.kind),
+                    ...(subject ? { subtitle: subject } : {}),
+                    value: activityWhenLabel(entry.at),
+                  };
+                })),
+            ...approvalsGate,
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "Activity",
+          lede: "What Opal did for you, written down when it happened.",
+          rows: [
+            {
+              kind: "note",
+              id: "load-failed",
+              text: "Your activity could not load. Head back and try again.",
+            },
+            ...approvalsGate,
+          ],
+        };
+      }
+    }
     case "what-opal-hears": {
       // 12.6 + spec SF-A — each source carries its OWN state line and
       // progress in words, rendered from that source's own read
@@ -1066,8 +1775,8 @@ export async function buildSettingsSection(
           const sources = await getIngestionStatus(bearer);
           return {
             key,
-            title: "What Opal hears",
-            lede: "Where Opal's memory comes from - each source with its own state, read on its own.",
+            title: "What Opal graphs",
+            lede: "Where Opal's graphs and memory come from - each source with its own state, read on its own.",
             rows: [
               ...sources.flatMap((line) => [
                 {
@@ -1093,22 +1802,22 @@ export async function buildSettingsSection(
         } catch {
           return {
             key,
-            title: "What Opal hears",
-            lede: "Where Opal's memory comes from - each source with its real state.",
-            rows: [{ kind: "note", id: "load-failed", text: "What Opal hears could not load. Head back and try again." }],
+            title: "What Opal graphs",
+            lede: "Where Opal's graphs and memory come from - each source with its real state.",
+            rows: [{ kind: "note", id: "load-failed", text: "What Opal graphs could not load. Head back and try again." }],
           };
         }
       }
       return {
         key,
-        title: "What Opal hears",
-        lede: "Where Opal's memory comes from - each source with its real state.",
+        title: "What Opal graphs",
+        lede: "Where Opal's graphs and memory come from - each source with its real state.",
         rows: [
           { kind: "value", id: "chats", title: "Chats in the app", subtitle: "Your conversations here are Opal's working source today.", value: "Working now" },
-          { kind: "value", id: "calls", title: "Phone calls", subtitle: "Opal cannot listen to or write down a live call yet. Nothing is recorded in secret.", value: "Not wired yet" },
+          { kind: "value", id: "calls", title: "Phone calls", subtitle: "Opal does not transcribe a live call here. Nothing is recorded in secret.", value: "Not wired yet" },
           { kind: "value", id: "texts", title: "Texts", subtitle: "Texts do not reach Opal today, and are never faked.", value: "Waiting on a sending number" },
-          { kind: "value", id: "room", title: "Listening in the room", subtitle: "There is no room listening in Opal, hidden or otherwise.", value: "Not in Opal today" },
-          { kind: "value", id: "meetings", title: "Meetings", subtitle: "Zoom and other meetings are a future source, named here so the place exists.", value: "Coming later" },
+          { kind: "value", id: "room", title: "In the room", subtitle: "Opal does not capture room audio, hidden or otherwise.", value: "Not in Opal today" },
+          { kind: "value", id: "meetings", title: "Meetings", subtitle: "Meetings are not a page in Opal. A meeting enters only as an ingested transcript or summary record in a conversation, with its source named - and that is not wired yet.", value: "Not wired yet" },
           { kind: "nav", id: "connections", title: "Connections", target: "connections" },
           { kind: "nav", id: "assist", title: "Opal Assist and calls", target: "calls-assist" },
         ],
@@ -1319,3 +2028,45 @@ export async function buildSettingsSection(
 
 export { loadProfile };
 export type { ProductSession };
+
+/**
+ * Repair #19 W13 - the ONE share-card adapter. Input is the plan's
+ * real GraphDetailProjection (itself built from the plan contract +
+ * the history projection's real roster). Output is finished strings
+ * only. Rules: people line names at most the first three roster
+ * names, then "+ N more"; no roster -> null (the card renders no
+ * people row, never a guessed guest list); the text artifact is the
+ * same lines the card shows, plus the state label - what you see is
+ * exactly what Copy shares.
+ */
+export function shareCardFromDetail(
+  detail: GraphDetailProjection,
+): import("./projections").EventShareCardProjection {
+  const names = detail.who.map((p) => p.name).filter(Boolean);
+  const peopleLine =
+    names.length === 0
+      ? null
+      : names.length <= 3
+        ? names.join(", ")
+        : `${names.slice(0, 3).join(", ")} + ${names.length - 3} more`;
+  const whereLine = detail.where?.label?.trim() ? detail.where.label : null;
+  const textLines = [
+    detail.title,
+    detail.card.stateLabel,
+    detail.whenLine,
+    ...(whereLine ? [whereLine] : []),
+    ...(detail.attendanceLine ? [detail.attendanceLine] : []),
+    ...(peopleLine ? [`With ${peopleLine}`] : []),
+  ];
+  return {
+    planId: detail.id,
+    stateFamily: detail.card.stateFamily,
+    stateLabel: detail.card.stateLabel,
+    title: detail.title,
+    whenLine: detail.whenLine,
+    whereLine,
+    attendanceLine: detail.attendanceLine ?? null,
+    peopleLine,
+    textLines,
+  };
+}

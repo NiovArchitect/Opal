@@ -1,16 +1,26 @@
 /**
- * Repair #18 - Division C2 - shell flag (track-c2 section 3.1).
+ * Repair #18 - Division C2 - shell flag (track-c2 section 3.1),
+ * as amended by Repair #19 W15 (the deletion sweep).
  *
- * The C2 shell renders only when the build flag shell=c2 is present in
- * the served build config. Absence renders the R17 shell exactly as
- * today. The flag is a build and serve choice, never a user setting
- * and never stored on the account. Recognized sources, in order:
+ * The C2 shell is the only shell this build serves. Recognized
+ * sources for the C2 path, in order:
  *   1. Vite build env VITE_OPAL_SHELL=c2 (served build config)
  *   2. URL query ?shell=c2 (walk / QA override; also persists the
  *      device-local shell marker so later navigations keep the shell)
  *   3. Device-local marker opal.c2.shell.v1=c2 (set by source 2 or by
  *      public/c2-boot.js, which runs before first paint)
- * The R17 fallback build never sets any of these.
+ * The flag is a build and serve choice, never a user setting
+ * and never stored on the account. It now gates only the C2
+ * pre-paint mode/icon setup in main.tsx; App.tsx renders C2Shell
+ * unconditionally.
+ *
+ * RETIRED in R19 W15: the ?shell=r17 QA/walk override. It forced
+ * the ENTIRE R17 legacy shell inside the served build - legacy
+ * surviving by a side door. The drill-tested R17 fallback lives
+ * at branch level (muse/repair-17, deliberately untouched, plus
+ * its preview worktree); there is no in-app legacy flag anymore.
+ * A ?shell=r17 query is now inert: it neither clears the C2
+ * marker nor selects any other shell.
  */
 
 import { C2_SHELL_STORAGE_KEY } from "./c2Mode";
@@ -35,24 +45,6 @@ export function buildShellFlag(): string {
 export function isC2ShellEnabled(
   search: string = typeof window !== "undefined" ? window.location.search : "",
 ): boolean {
-  // Repair #18 STEP 0 (founder visible-proof tranche): the explicit
-  // ?shell=r17 QA/walk override must win over the served build flag -
-  // checked first, it was unreachable whenever the build set shell=c2,
-  // which made the R17 shell (and its ChatsHome call log) unreachable
-  // in the served app. The override branch below is unchanged.
-  try {
-    const q = new URLSearchParams(search);
-    if (q.get("shell") === "r17") {
-      try {
-        localStorage.removeItem(C2_SHELL_STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
-      return false;
-    }
-  } catch {
-    /* ignore */
-  }
   if (buildShellFlag() === "c2") return true;
   try {
     const q = new URLSearchParams(search);
@@ -63,14 +55,6 @@ export function isC2ShellEnabled(
         /* ignore */
       }
       return true;
-    }
-    if (q.get("shell") === "r17") {
-      try {
-        localStorage.removeItem(C2_SHELL_STORAGE_KEY);
-      } catch {
-        /* ignore */
-      }
-      return false;
     }
   } catch {
     /* ignore */

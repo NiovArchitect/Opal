@@ -189,6 +189,9 @@ defmodule OpalCoreWeb.CallController do
   defp assist_json(view) do
     %{
       "assist" => Atom.to_string(view.assist),
+      # Repair #19 W12: the one graphing state (server-derived; the
+      # surface renders it verbatim and never re-derives it).
+      "graphing" => Atom.to_string(view.graphing),
       "account_default" => view.account_default,
       "self_allowed" => view.self_allowed,
       "self_paused" => view.self_paused

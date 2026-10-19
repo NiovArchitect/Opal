@@ -474,6 +474,16 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
           ) ->
             MediaLocalStore.read(media.storage_key)
 
+          # Plan path (Repair #19 BS-05): a plan carrying this media
+          # in its alignment authorizes exactly the plan's own people
+          # — its creator and its participants. Deny-by-default for
+          # everyone else, the same shape as the story leg above.
+          OpalCore.SocialFlow.SharedPlan.plan_media_authorized?(
+            media_id,
+            viewer_user_id
+          ) ->
+            MediaLocalStore.read(media.storage_key)
+
           true ->
             {:error, :not_found}
         end

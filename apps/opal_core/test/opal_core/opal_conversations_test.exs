@@ -197,6 +197,123 @@ defmodule OpalCore.OpalConversationsTest do
     assert after_count == before + 1
   end
 
+  describe "BS-09 bounded sessions list" do
+    alias OpalCore.OpalConversations.OpalConversation
+    alias OpalCore.OpalConversations.OpalMessage
+    alias OpalCore.Repo
+
+    @scale_sessions 205
+    @scale_messages 50
+
+    defp seed_scale_user! do
+      user_id = Ecto.UUID.generate()
+
+      %OpalCore.Accounts.User{}
+      |> OpalCore.Accounts.User.changeset(%{
+        id: user_id,
+        handle: "scale-#{String.slice(user_id, 0, 8)}",
+        display_name: "Scale"
+      })
+      |> Repo.insert!()
+
+      base = ~U[2026-06-01 00:00:00.000000Z]
+
+      session_rows =
+        for i <- 0..(@scale_sessions - 1) do
+          at = DateTime.add(base, i * 60, :second)
+
+          %{
+            id: Ecto.UUID.generate(),
+            user_id: user_id,
+            title: "scale-#{i}",
+            archived_at: at,
+            inserted_at: at,
+            updated_at: at
+          }
+        end
+
+      Repo.insert_all(OpalConversation, session_rows)
+
+      # One conversation carries a long history of long bodies; its
+      # LAST message is the only body the preview may ever ship.
+      big = Enum.max_by(session_rows, & &1.updated_at, DateTime)
+
+      long_body = fn tag -> "#{tag} " <> String.duplicate("x", 400) end
+
+      message_rows =
+        for i <- 1..@scale_messages do
+          at = DateTime.add(base, i * 60, :second)
+
+          body =
+            if i == @scale_messages,
+              do: "  latest preview " <> String.duplicate("y", 200),
+              else: long_body.("body-#{i}")
+
+          %{
+            id: Ecto.UUID.generate(),
+            conversation_id: big.id,
+            role: "user",
+            body: body,
+            inserted_at: at
+          }
+        end
+
+      Repo.insert_all(OpalMessage, message_rows)
+      {user_id, big}
+    end
+
+    test "default page is bounded at 200, total is exact, pages tile the whole set" do
+      {user_id, _big} = seed_scale_user!()
+
+      assert OpalConversations.count_sessions(user_id) == @scale_sessions
+
+      page1 = OpalConversations.list_sessions(user_id)
+      assert length(page1) == 200
+
+      page2 = OpalConversations.list_sessions(user_id, offset: 200)
+      assert length(page2) == @scale_sessions - 200
+
+      ids = Enum.map(page1 ++ page2, & &1["id"])
+      assert length(Enum.uniq(ids)) == @scale_sessions
+
+      # Explicit limit/offset paging works and clamps.
+      assert length(OpalConversations.list_sessions(user_id, limit: 10)) == 10
+      assert length(OpalConversations.list_sessions(user_id, limit: 10, offset: 10)) == 10
+      assert length(OpalConversations.list_sessions(user_id, limit: 99_999)) == 205
+    end
+
+    test "preview is the last message only, truncated, and the payload does not ship the corpus" do
+      {user_id, big} = seed_scale_user!()
+
+      page = OpalConversations.list_sessions(user_id, limit: 500)
+      row = Enum.find(page, &(&1["id"] == big.id))
+      assert row["message_count"] == @scale_messages
+
+      # session_preview semantics preserved: trimmed, 80 chars + ellipsis.
+      assert row["last_message_preview"] ==
+               "latest preview " <> String.duplicate("y", 65) <> "…"
+
+      assert String.length(row["last_message_preview"]) == 81
+
+      # Payload bound: 205 sessions exist and one history alone holds
+      # ~20KB of bodies, yet a page of summaries stays small — full
+      # bodies never cross the wire.
+      encoded = Jason.encode!(OpalConversations.list_sessions(user_id))
+      assert byte_size(encoded) < 100_000
+    end
+
+    test "session_summary finds a session beyond the default page bound" do
+      {user_id, _big} = seed_scale_user!()
+
+      all_ids =
+        OpalConversations.list_sessions(user_id, limit: 500) |> Enum.map(& &1["id"])
+
+      beyond = List.last(all_ids)
+      summary = OpalConversations.session_summary(user_id, beyond)
+      assert summary["id"] == beyond
+    end
+  end
+
   test "chat hello never returns OC-1 placeholder (screenshot bug 5)" do
     assert {:ok, {_conv, _user_msg, opal_msg}} =
              OpalConversations.create_user_message(alex(), "Hello")

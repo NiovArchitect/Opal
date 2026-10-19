@@ -19,8 +19,8 @@ export default {
     // Prefer a fresh pair with NO shared history: on the suite's A/B
     // pair a lawful shared direct conversation exists (both are
     // participants), which must not be mistaken for a leak.
-    const C = await ctx.freshClient("+12025550106", "Regression Iso C");
-    const D = await ctx.freshClient("+12025550107", "Regression Iso D");
+    const C = await ctx.freshClient("+12025550106", "Sarah Kim");
+    const D = await ctx.freshClient("+12025550107", "James Wright");
     const owner = C || A;
     const stranger = D || B;
     if (!C) assert.note("no fresh pair available; falling back to A/B - shared-conversation exclusion relies on the fresh-stack ordering");

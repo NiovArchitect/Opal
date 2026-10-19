@@ -27,7 +27,7 @@ async function ownThread(ctx, label) {
   // group create succeed. (The old two-person attempt 422'd
   // group_too_small and silently fell back to the shared A-B direct
   // thread, so every scenario in the suite shared one conversation.)
-  const third = await ctx.freshClient("+12025550108", "Member Aitch");
+  const third = await ctx.freshClient("+12025550108", "Henry Ruiz");
   const g = await ctx.h.createGroup(
     ctx.A,
     [ctx.sessions.b.userId, third?.session?.userId],

@@ -108,8 +108,11 @@ export type C2CenterOpeningEvents = {
   completeSlot: (cardId: string, slotKind: string) => void;
   /** Optional at integration (C1 chat). Absent = no control renders. */
   openCenterChat?: () => void;
-  /** Repair #18 SM - the Opal's Home doorway, first form: the center
-   * character opens the Soul + Memory cards. Absent = no doorway. */
+  /** Repair #18 SM / Repair #19 W8 - the Opal's Home doorway: the
+   * center character opens Settings at the Soul room ("How Opal
+   * works for you" - the first-time-clear doorway copy; Soul and
+   * Memory keep their names inside Settings). Absent = no doorway.
+   * The event name is internal and stays. */
   openSoulMemory?: () => void;
   /** DIR-4: permanent dismissal through the reveals endpoint. */
   dismissReveal?: (item: RevealItem) => void;
@@ -185,7 +188,7 @@ export function C2CenterOpening({
           <button
             type="button"
             data-testid="c2-center-orb-doorway"
-            aria-label="Open Soul + Memory"
+            aria-label="How Opal works for you - open your Soul and Memory settings"
             onClick={events.openSoulMemory}
             style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
           >
@@ -232,7 +235,7 @@ export function C2CenterOpening({
               data-testid="c2-opening-soul-memory"
               onClick={events.openSoulMemory}
             >
-              Soul + Memory
+              How Opal works for you
             </button>
           ) : null}
         </div>

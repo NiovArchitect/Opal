@@ -58,9 +58,219 @@ defmodule OpalCoreWeb.OpalConversationController do
   Repair #17 (W4-7) — list the caller's Opal chat sessions (active first).
   Owner-scoped: only the caller's own sessions are ever returned.
   """
-  def list_sessions(conn, _params) do
+  def list_sessions(conn, params) do
     user_id = conn.assigns.current_user_id
-    json(conn, %{"conversations" => OpalConversations.list_sessions(user_id)})
+    # Repair #19 — ?person_id= narrows to that person's orbit only.
+    # Repair #19 FIX-A (BS-09) — ?limit= / ?offset= page the bounded
+    # sessions list server-side; the response shape is unchanged
+    # ("conversations" is the page) with one additive field,
+    # "sessions_total", carrying the unpaged total under the same
+    # filters so the web log can page without guessing. No params =
+    # the default page, exactly what existing clients already read.
+    opts =
+      case Map.get(params, "person_id") do
+        id when is_binary(id) and id != "" -> [person_id: id]
+        _ -> []
+      end
+
+    opts =
+      opts
+      |> maybe_page_opt(:limit, Map.get(params, "limit"))
+      |> maybe_page_opt(:offset, Map.get(params, "offset"))
+
+    json(conn, %{
+      "conversations" => OpalConversations.list_sessions(user_id, opts),
+      "sessions_total" => OpalConversations.count_sessions(user_id, opts)
+    })
+  end
+
+  defp maybe_page_opt(opts, _key, value) when not is_binary(value), do: opts
+
+  defp maybe_page_opt(opts, key, value) do
+    case Integer.parse(value) do
+      {n, ""} when n >= 0 -> Keyword.put(opts, key, n)
+      _ -> opts
+    end
+  end
+
+  @doc """
+  Repair #19 (W14 + Orbits) — start a NEW Opal session scoped to a
+  person (doorway / orbit-index birth; also the landing path for
+  ingestion-born Opal chats). Body: {person_id, plan_id?,
+  conversation_id?}. Scope mismatches are fail-closed 422
+  invalid_scope; an unknown person is 404 (existence across
+  accounts is never revealed).
+  """
+  def create_scoped_session(conn, params) do
+    user_id = conn.assigns.current_user_id
+    scope = Map.take(params, ["person_id", "plan_id", "conversation_id"])
+
+    case OpalConversations.create_scoped_session(user_id, scope) do
+      {:ok, %{conversation: c}} ->
+        conn
+        |> put_status(201)
+        |> json(%{
+          "ok" => true,
+          "conversation" => OpalConversations.to_conversation_contract(c, [])
+        })
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, _} ->
+        conn
+        |> put_status(422)
+        |> json(%{"error_code" => "invalid_scope"})
+    end
+  end
+
+  @doc """
+  Repair #19 (Orbits) — accept / redirect / clear the primary anchor
+  of ONE of the caller's own sessions. Body: {anchor: {type, id,
+  label?} | null}. Anchoring is an explicit user action only; this
+  endpoint is its one write path.
+  """
+  def set_anchor(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalConversations.set_anchor(user_id, id, Map.get(params, "anchor")) do
+      {:ok, conversation} ->
+        json(conn, %{
+          "ok" => true,
+          "conversation" => OpalConversations.session_summary(user_id, conversation)
+        })
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid_anchor"})
+    end
+  end
+
+  @doc """
+  Repair #19 (Addition A clear-out) — remove ONE of the caller's own
+  Opal sessions for real: messages + session row deleted; person
+  threads, plans and graph records untouched.
+  """
+  def remove_session(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalConversations.remove_session(user_id, id) do
+      {:ok, %{deleted_messages: n}} ->
+        json(conn, %{"ok" => true, "removed" => true, "deleted_messages" => n})
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  @doc """
+  Repair #19 (chrome) — pin/unpin one of the caller's own sessions.
+  Body: {pinned: boolean}. The response is the updated session
+  summary (the one sessions-list shape), so every listing re-renders
+  from this single write.
+  """
+  def set_pinned(conn, %{"id" => id} = params) do
+    chrome_write(conn, id, fn user_id ->
+      OpalConversations.set_pinned(user_id, id, Map.get(params, "pinned") == true)
+    end)
+  end
+
+  @doc """
+  Repair #19 (chrome) — archive/unarchive one of the caller's own
+  sessions. Body: {archived: boolean}. This is the ONE archive the
+  overflow menu and the orbit sheet both use.
+  """
+  def set_archived(conn, %{"id" => id} = params) do
+    chrome_write(conn, id, fn user_id ->
+      OpalConversations.set_user_archived(user_id, id, Map.get(params, "archived") == true)
+    end)
+  end
+
+  defp chrome_write(conn, _id, write) do
+    user_id = conn.assigns.current_user_id
+
+    case write.(user_id) do
+      {:ok, conversation} ->
+        json(conn, %{
+          "ok" => true,
+          "conversation" => OpalConversations.session_summary(user_id, conversation)
+        })
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  @doc """
+  Repair #19 (Orbits privacy seam) — set the private flag for a
+  whole orbit. Body: {anchor_type, anchor_id, private}. Stores the
+  flag only; the item-9 verification gate is wired at integration.
+  """
+  def set_orbit_private(conn, params) do
+    user_id = conn.assigns.current_user_id
+
+    result =
+      OpalConversations.set_orbit_private(
+        user_id,
+        Map.get(params, "anchor_type"),
+        Map.get(params, "anchor_id"),
+        Map.get(params, "private") == true
+      )
+
+    case result do
+      {:ok, count} -> json(conn, %{"ok" => true, "updated" => count})
+      {:error, _} -> conn |> put_status(422) |> json(%{"error_code" => "invalid_anchor"})
+    end
+  end
+
+  @doc """
+  Repair #19 FIX-A (BS-02) — verify the caller's graph-lock passcode
+  to unlock ONE of the caller's own orbits. Body: {anchor_type,
+  anchor_id, code}. Same response pattern as POST /opal/graph-lock/
+  verify (200 unlocked:true; 403 wrong code), plus the orbit scope:
+  an orbit the caller does not hold is a 404 — another account's
+  orbit can never be unlocked, or probed, by this verification.
+  The passcode is the ONE graph lock (GraphLock); no orbit-specific
+  code exists.
+  """
+  def verify_orbit_unlock(conn, params) do
+    user_id = conn.assigns.current_user_id
+
+    result =
+      OpalConversations.verify_orbit_unlock(
+        user_id,
+        Map.get(params, "anchor_type"),
+        Map.get(params, "anchor_id"),
+        Map.get(params, "code")
+      )
+
+    case result do
+      :ok ->
+        json(conn, %{
+          "unlocked" => true,
+          "anchor_type" => Map.get(params, "anchor_type"),
+          "anchor_id" => Map.get(params, "anchor_id")
+        })
+
+      {:error, :not_found} ->
+        conn
+        |> put_status(404)
+        |> json(%{"unlocked" => false, "error_code" => "not_found", "error" => "not_found"})
+
+      {:error, :wrong_code} ->
+        conn |> put_status(403) |> json(%{"unlocked" => false, "error" => "wrong_code"})
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"unlocked" => false, "error_code" => "invalid_anchor"})
+    end
   end
 
   @doc """

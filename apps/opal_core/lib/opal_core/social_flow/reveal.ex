@@ -234,7 +234,12 @@ defmodule OpalCore.SocialFlow.Reveal do
       from(p in SharedPlan,
         where:
           p.status in ^NextPlan.active_statuses() and
-            (p.created_by_user_id == ^viewer_id or p.id in ^participant_plan_ids)
+            (p.created_by_user_id == ^viewer_id or p.id in ^participant_plan_ids) and
+            # Repair #19 W20 (JA-02) — FIX-A's creator-only private
+            # predicate: a privatized plan never becomes a reveal
+            # item for its participants (the creator's own branch
+            # above still carries it for the creator).
+            (p.is_private == false or p.created_by_user_id == ^viewer_id)
       )
       |> Repo.all()
       |> Enum.filter(&NextPlan.upcoming?(&1, now))

@@ -2023,6 +2023,26 @@ export async function createConversationCall(conversationId: string, bearer?: st
   });
 }
 
+/**
+ * Repair #19 - the ONE call-state fact. Derived in the service layer
+ * (Calls.CallState) from the call's own governed record, the row's
+ * DIR-1 next_plan fact, and whether a later call with the same peer
+ * connected. Surfaces render it as the row's ambient border and
+ * never re-derive it from the raw row fields (MP-3). Present on
+ * every real call row: "past" (settled) is a real state, not an
+ * absence.
+ */
+export type CallStateFact = {
+  /** Indicator family: forming | action | ready | happening | past. */
+  state: string;
+  /** missed_unresolved | call_live | plan_action | plan_forming |
+   *  plan_ready | plan_happening | settled. */
+  reason: string;
+  /** Finished label from the service layer ("Call back", "Ready",
+   *  "Settled", ...). */
+  label: string;
+};
+
 export type ProductCallHistory = {
   id: string;
   conversation_id?: string | null;
@@ -2040,6 +2060,8 @@ export type ProductCallHistory = {
   next_plan?: NextPlanFact | null;
   /** DIR-1: the peer's stable entity tint. */
   peer_tint?: number | null;
+  /** Repair #19: the row's call-state fact (ambient border). */
+  call_state?: CallStateFact | null;
 };
 
 export async function listCalls(bearer?: string) {
@@ -2078,8 +2100,17 @@ export async function declineCall(callId: string, bearer?: string) {
 
 export type CallAssistState = "off" | "waiting_for_other" | "active";
 
+/**
+ * Repair #19 W12: the call's graphing state, derived once on the server
+ * (OpalCore.Calls.Graphing) and carried verbatim in this projection and
+ * in the call-channel "graphing" broadcast. Surfaces render it; they
+ * never re-derive it.
+ */
+export type CallGraphingState = "graphing" | "paused" | "waiting_for_other" | "off";
+
 export type CallAssistView = {
   assist: CallAssistState;
+  graphing: CallGraphingState;
   account_default: boolean | null;
   self_allowed: boolean;
   self_paused: boolean;
@@ -4046,6 +4077,9 @@ export type MemoryCapsuleContract = {
   provenance_label: string | null;
   provenance: Record<string, unknown>;
   scope_policy: Record<string, unknown>;
+  /** The backend capsule contract's own scope kind (user, personal,
+   *  relationship, conversation, group, plan, ...). */
+  scope_kind?: string | null;
   purpose: string | null;
   because: string | null;
   created_at: string | null;
@@ -4077,6 +4111,22 @@ export async function forgetCapsule(capsuleId: string, bearer?: string) {
     `/api/v1/product/memory-wallet/capsules/${encodeURIComponent(capsuleId)}`,
     { method: "DELETE", bearer: resolveBearer(bearer) },
   );
+}
+
+/** Adoption wave 2 account activity trail (GET /settings/activity) -
+ *  entries written at execution time by the actions they record. */
+export type AccountActivityEntry = {
+  id: string;
+  kind: string;
+  subject: string | null;
+  detail: Record<string, unknown>;
+  at: string | null;
+};
+
+export async function getAccountActivity(bearer?: string) {
+  return request<{ activity: AccountActivityEntry[] }>("/api/v1/product/settings/activity", {
+    bearer: resolveBearer(bearer),
+  });
 }
 
 export async function forgetMemoryFact(factId: string, bearer?: string) {
@@ -4624,6 +4674,21 @@ export async function curateCelebration(id: string, bearer?: string) {
   );
 }
 
+/**
+ * Repair #19 W14 — the scoped context an Opal conversation carries:
+ * the person it is about, optionally the one plan (from the thread's
+ * own DIR-1 fact) and the person-thread conversation it came from.
+ * Stored server-side on the Opal session (additive scope columns);
+ * names/titles are re-derived live by the backend on every contract.
+ */
+export type OpalChatContextContract = {
+  person_id: string;
+  person_name?: string | null;
+  plan_id?: string | null;
+  plan_title?: string | null;
+  conversation_id?: string | null;
+};
+
 /** Phase OC-1 — Opal Center conversational shell (one conversation per user). */
 export type OpalChatMessage = {
   id: string;
@@ -4640,6 +4705,13 @@ export type OpalChatConversation = {
   title?: string | null;
   inserted_at?: string | null;
   updated_at?: string | null;
+  /** Repair #19 W14 — the scope this Opal conversation carries, or null. */
+  context?: OpalChatContextContract | null;
+  /** Repair #19 Orbits + chrome, on the open conversation contract. */
+  anchor?: OpalAnchorContract | null;
+  pinned?: boolean | null;
+  pinned_at?: string | null;
+  user_archived?: boolean | null;
   messages: OpalChatMessage[];
 };
 
@@ -4729,6 +4801,24 @@ export type OpalChatSessionSummary = {
   updated_at?: string | null;
   /** Repair #17 backend list contract: true for the one active session. */
   active?: boolean | null;
+  /** Repair #19 W14 — the scope this session carries, or null. The
+   *  person index is a filter over this field, never a second store. */
+  context?: OpalChatContextContract | null;
+  /** Repair #19 Orbits — the ONE primary anchor (filing truth). */
+  anchor?: OpalAnchorContract | null;
+  /** Repair #19 chrome — the one pin + user-archive truth. */
+  pinned?: boolean | null;
+  pinned_at?: string | null;
+  user_archived?: boolean | null;
+  user_archived_at?: string | null;
+};
+
+/** Repair #19 Orbits — a conversation's primary anchor, from the contract. */
+export type OpalAnchorContract = {
+  type: "person" | "plan" | "place" | string;
+  id: string;
+  label?: string | null;
+  private?: boolean;
 };
 
 /**
@@ -4762,10 +4852,60 @@ export async function postOpalLocation(
   );
 }
 
-export async function listOpalChatSessions(bearer?: string) {
+export async function listOpalChatSessions(bearer?: string, personId?: string) {
+  const qs = personId ? `?person_id=${encodeURIComponent(personId)}` : "";
   return request<{ conversations: OpalChatSessionSummary[] }>(
-    "/api/v1/product/opal/conversations",
+    `/api/v1/product/opal/conversations${qs}`,
     { bearer: resolveBearer(bearer), method: "GET" },
+  );
+}
+
+/**
+ * Repair #19 W14 — start a NEW Opal conversation scoped to a person
+ * (optionally to one plan + the person-thread conversation). The
+ * backend validates the binding fail-closed: the plan must be one
+ * the caller shares with that person, and the conversation, when
+ * given, must be a thread of the caller's with that person in it.
+ * The previous active session is archived and retained, exactly as
+ * with a plain new chat.
+ */
+export async function createScopedOpalChatSession(
+  scope: {
+    personId: string;
+    planId?: string | null;
+    conversationId?: string | null;
+  },
+  bearer?: string,
+) {
+  return request<{ ok: boolean; conversation: OpalChatConversation }>(
+    "/api/v1/product/opal/conversations/scoped",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        person_id: scope.personId,
+        ...(scope.planId ? { plan_id: scope.planId } : {}),
+        ...(scope.conversationId ? { conversation_id: scope.conversationId } : {}),
+      }),
+    },
+  );
+}
+
+/**
+ * Repair #19 W14 (Addition A) — remove ONE of the caller's own Opal
+ * sessions for real: its messages and the session row are deleted
+ * server-side, so it leaves every listing (person index + sessions
+ * list). Person threads, plans, and graph records are untouched.
+ * Foreign/unknown ids → 404.
+ */
+export async function removeOpalChatSession(sessionId: string, bearer?: string) {
+  return request<{ ok: boolean; removed: boolean; deleted_messages?: number }>(
+    `/api/v1/product/opal/conversations/${encodeURIComponent(sessionId)}/remove`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({}),
+    },
   );
 }
 
@@ -4849,6 +4989,74 @@ export async function postOpalSessionMessage(
       method: "POST",
       bearer: resolveBearer(bearer),
       body: JSON.stringify(payload),
+    },
+  );
+}
+
+/**
+ * Repair #19 Orbits — set/clear ONE session's primary anchor (the
+ * proposal accept / redirect / unanchor write path). `anchor: null`
+ * unanchors. The response is the updated session summary.
+ */
+export async function setOpalChatAnchor(
+  sessionId: string,
+  anchor: { type: string; id: string; label?: string | null } | null,
+  bearer?: string,
+) {
+  return request<{ ok: boolean; conversation: OpalChatSessionSummary }>(
+    `/api/v1/product/opal/conversations/${encodeURIComponent(sessionId)}/anchor`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ anchor }),
+    },
+  );
+}
+
+/** Repair #19 chrome — pin or unpin ONE session (one pin truth). */
+export async function setOpalChatPinned(sessionId: string, pinned: boolean, bearer?: string) {
+  return request<{ ok: boolean; conversation: OpalChatSessionSummary }>(
+    `/api/v1/product/opal/conversations/${encodeURIComponent(sessionId)}/pin`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ pinned }),
+    },
+  );
+}
+
+/** Repair #19 chrome — archive or unarchive ONE session (the ONE archive). */
+export async function setOpalChatArchived(sessionId: string, archived: boolean, bearer?: string) {
+  return request<{ ok: boolean; conversation: OpalChatSessionSummary }>(
+    `/api/v1/product/opal/conversations/${encodeURIComponent(sessionId)}/archive`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ archived }),
+    },
+  );
+}
+
+/**
+ * Repair #19 Orbits — set the private flag for a WHOLE orbit. Stores
+ * the flag only; the item-9 verification gate is wired at integration
+ * (W7 seam).
+ */
+export async function setOrbitPrivate(
+  anchor: { type: string; id: string },
+  isPrivate: boolean,
+  bearer?: string,
+) {
+  return request<{ ok: boolean; updated: number }>(
+    "/api/v1/product/opal/conversations/orbit-private",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        anchor_type: anchor.type,
+        anchor_id: anchor.id,
+        private: isPrivate,
+      }),
     },
   );
 }
@@ -4956,6 +5164,34 @@ export type OpalPlanContract = {
   completion?: {
     driven_at?: string | null;
     steps: Array<Record<string, unknown> & { id: string; status: string }>;
+  } | null;
+  /** Repair #19 W7 — the owner's per-graph private flag. */
+  is_private?: boolean;
+  /** Repair #19 W7 — the place's coordinates when a real place
+   *  record carries them; absent/null means no distance to the
+   *  place can be computed for anyone. */
+  place_lat?: number | null;
+  place_lon?: number | null;
+  /**
+   * Repair #19 (W9) — additive venue imagery on the record itself.
+   * These optional fields are the client side of that contract:
+   * when a record carries one of them as a URL-shaped string, Home
+   * renders THAT image for the plan. Absent = the designed no-image
+   * treatment renders instead. Never derived from the title.
+   * Repair #19 BS-05 — the backend contract now carries image_url
+   * for plans that hold a real photo as a media record (seeded
+   * venue plans): SharedPlan.to_contract projects it from the
+   * plan's media_id, served by the product's own media endpoint.
+   * `media_id` alone is still never promoted to an image client-side.
+   */
+  image_url?: string | null;
+  place_image_url?: string | null;
+  media_url?: string | null;
+  place?: {
+    kind?: string | null;
+    label?: string | null;
+    photo_url?: string | null;
+    image_url?: string | null;
   } | null;
 };
 
@@ -5343,6 +5579,12 @@ export type PlanHistoryContract = {
     role: string;
     response_state: string | null;
     response_label: string;
+    /** R19 W7 — finished by the backend from the per-plan sharing
+     *  backbone only. "not_sharing" always carries a null distance. */
+    location_state?: "sharing" | "not_sharing" | string;
+    location_label?: string;
+    distance_label?: string | null;
+    distance_basis?: "measured" | null;
   }>;
   counts: {
     going_count?: number;
@@ -5466,6 +5708,97 @@ export async function getHolding(bearer?: string) {
     method: "GET",
     bearer: resolveBearer(bearer),
   });
+}
+
+/** Repair #19 W7 — private graphs + living detail client. The lock
+ *  endpoints verify server-side; verify returns only a boolean (the
+ *  client never holds or checks a code itself). */
+export async function setPlanPrivate(planId: string, isPrivate: boolean, bearer?: string) {
+  return request<{ plan: OpalPlanContract }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/private`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ is_private: isPrivate }),
+    },
+  );
+}
+
+export async function getGraphLock(bearer?: string) {
+  return request<{ passcode_set: boolean }>("/api/v1/product/opal/graph-lock", {
+    method: "GET",
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function setGraphLock(code: string, bearer?: string) {
+  return request<{ ok: boolean; passcode_set: boolean }>("/api/v1/product/opal/graph-lock", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ code }),
+  });
+}
+
+export async function verifyGraphLock(code: string, bearer?: string) {
+  return request<{ unlocked: boolean }>("/api/v1/product/opal/graph-lock/verify", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ code }),
+  });
+}
+
+/**
+ * Repair #19 BS-02 / W20 JA-01 — orbit unlock verification, the
+ * orbit leg of W7's ONE lock truth. The REAL route (router.ex) is
+ * POST /api/v1/product/opal/conversations/orbit-verify and it
+ * requires the anchor with the code — body
+ * { anchor_type, anchor_id, code }: success 200 { unlocked: true },
+ * wrong code 403 { unlocked: false }, an anchor the caller does
+ * not own 404, a missing anchor 422. Verified server-side against
+ * the same account passcode the Graphs Private area uses. The
+ * client's request shape is pinned to this route contract by
+ * orbitVerifyContract.test.ts (the JA-01 joint test).
+ */
+export async function verifyOrbitLock(
+  anchorType: string,
+  anchorId: string,
+  code: string,
+  bearer?: string,
+) {
+  return request<{ unlocked: boolean }>(
+    "/api/v1/product/opal/conversations/orbit-verify",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        anchor_type: anchorType,
+        anchor_id: anchorId,
+        code,
+      }),
+    },
+  );
+}
+
+export async function sharePlanLocation(
+  planId: string,
+  coords: { lat: number; lon: number },
+  bearer?: string,
+) {
+  return request<{ sharing: boolean; expires_at?: string }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/location-share`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ lat: coords.lat, lon: coords.lon }),
+    },
+  );
+}
+
+export async function stopPlanLocation(planId: string, bearer?: string) {
+  return request<{ sharing: boolean }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/location-share`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
 }
 
 /** Paste K — Lives (placed-only), stickers, venue pay. */

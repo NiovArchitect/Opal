@@ -353,9 +353,9 @@ export default {
     // by construction. Where synthetic provisioning is unavailable
     // (minted walk sessions on staging), the primary pair is the
     // suite's two sessions - the walk pair this case was written for.
-    const ownP = await ctx.freshClient("+12025550109", "Regression Revision Proposer");
-    const ownC = await ctx.freshClient("+12025550110", "Regression Revision Confirmer");
-    const ownThird = await ctx.freshClient("+12025550111", "Regression Revision Third");
+    const ownP = await ctx.freshClient("+12025550109", "Rachel Moore");
+    const ownC = await ctx.freshClient("+12025550110", "Daniel Reyes");
+    const ownThird = await ctx.freshClient("+12025550111", "Sofia Reyes");
     const primary =
       ownP && ownC
         ? { P: ownP, C: ownC, peer: ownC.session.userId, third: ownThird, label: "own pair" }
@@ -366,9 +366,9 @@ export default {
     // Throttled on the primary pair: re-run on a second dedicated
     // account pair when the suite can provision them (local/dev
     // synthetic mode) - never on the shared suite pair or pool.
-    const C = await ctx.freshClient("+12025550112", "Regression Revision Fallback C");
-    const D = await ctx.freshClient("+12025550113", "Regression Revision Fallback D");
-    const fallbackThird = await ctx.freshClient("+12025550114", "Regression Revision Fallback Third");
+    const C = await ctx.freshClient("+12025550112", "Rachel Moore");
+    const D = await ctx.freshClient("+12025550113", "Daniel Reyes");
+    const fallbackThird = await ctx.freshClient("+12025550114", "Sofia Reyes");
     if (C && D) {
       assert.note("re-running the flow on a fresh account pair (seed/throttle isolation)");
       const doneFresh = await flow(C, D, D.session.userId, "fresh pair", fallbackThird);

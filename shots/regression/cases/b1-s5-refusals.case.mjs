@@ -38,7 +38,7 @@ export default {
 
     // Suite citizenship: no plans in the shared A<->B walk-pair
     // thread - a fresh group thread hosts this case's probes.
-    const third0 = await h.freshDirectConversation(A, "+12025550105", "Regression Fifth");
+    const third0 = await h.freshDirectConversation(A, "+12025550105", "Owen Parker");
     assert.check("setup third member", !!third0?.userId, "group setup needs a third synthetic user");
     const mainGroup = await h.createGroup(A, [ctx.sessions.b.userId, third0.userId], `B1 S5 probes ${ctx.tag}`);
     assert.check("setup group conversation", !!mainGroup.conversationId, "setup needs a group conversation");
@@ -63,7 +63,7 @@ export default {
       // Journey leg: the same both-at-once input through the
       // born-agreed activate path must also resolve to ONE virtual
       // record (type wins over the venue string).
-      const fresh1 = await h.freshDirectConversation(A, "+12025550106", "Regression Third");
+      const fresh1 = await h.freshDirectConversation(A, "+12025550106", "Clara Jensen");
       assert.check("both-at-once fresh conversation", !!fresh1?.conversationId, "journey leg needs a fresh plan-free conversation (synthetic provisioning)");
       const act1 = await h.activateJourney(A, {
         conversation_id: fresh1.conversationId,
@@ -97,7 +97,7 @@ export default {
       const entry = plans.plans.find((p) => p.id === linkless.plan.id);
       const p = entry ? extractPlace(entry) : null;
       assert.check("linkless join_available false", !!p && p.join_available === false && p.meeting_link == null, `link-less plan reads as joinable: ${JSON.stringify(p)}`);
-      const fresh2 = await h.freshDirectConversation(A, "+12025550107", "Regression Fourth");
+      const fresh2 = await h.freshDirectConversation(A, "+12025550107", "Ben Okafor");
       assert.check("linkless fresh conversation", !!fresh2?.conversationId, "journey leg needs a fresh plan-free conversation (synthetic provisioning)");
       const act2 = await h.activateJourney(A, {
         conversation_id: fresh2.conversationId,
@@ -127,7 +127,7 @@ export default {
       assert.eq("bogus type wrote nothing", entry?.plan_type, "in_person", "a refused conversion changed the plan");
 
       // -- Cross-account probe -----------------------------------------
-      const stranger = await freshSyntheticClient(ctx.config, "+12025550103", "Regression Stranger");
+      const stranger = await freshSyntheticClient(ctx.config, "+12025550103", "Paul Whitaker");
       if (stranger) {
         const probe = await h.convertPlaceType(stranger, solo.plan.id, { to_plan_type: "virtual" });
         assert.check("cross-account conversion refused", probe.status === 403 || probe.status === 404, `a stranger converted someone else's plan (got ${probe.status})`);

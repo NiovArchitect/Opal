@@ -79,7 +79,15 @@ defmodule OpalCore.MemoryWallet.Soul do
 
     Map.merge(base, %{
       "assistance_level_label" => @level_labels[pref.assistance_level] || pref.assistance_level,
-      "quiet_hours_label" => "Quiet hours - #{pref.quiet_hours_start} to #{pref.quiet_hours_end}"
+      # Repair #19 W20 (JA-07): start == end is the resolver's
+      # DISABLED state (SocialFlow.QuietHours edge rule) — the
+      # read-back label says so honestly instead of printing a
+      # zero-length window as if it were a real one.
+      "quiet_hours_label" =>
+        if(pref.quiet_hours_start == pref.quiet_hours_end,
+          do: "Quiet hours are off",
+          else: "Quiet hours - #{pref.quiet_hours_start} to #{pref.quiet_hours_end}"
+        )
     })
   end
 

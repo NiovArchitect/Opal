@@ -12,12 +12,14 @@
  * action opens detail on the missing slot, Drop it asks once in a
  * sheet and then runs the real plan cancel through the API.
  */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { PlanCardC2 } from "../PlanCardC2";
 import { completionStep, FoodStepPanel } from "../../opalUi/FoodStepPanel";
 import { CheckinCircleRow } from "../../opalUi/CheckinCircleRow";
 import type { GraphDetailProjection, GraphListProjection } from "./projections";
+import { SharePlanSheet } from "./EventShareCard";
+import { shareCardFromDetail } from "./shellData";
 import { Avatar, EmptyBlock, IconBack } from "./bits";
 
 type Lens = "all" | "action" | "ready" | "past";
@@ -62,6 +64,18 @@ export type C2GraphsEvents = {
   unlinkGoalPlan?: (goalId: string, planId: string) => Promise<void>;
   promoteSpark?: (sparkId: string) => Promise<void>;
   startStarter?: (starterId: string) => void;
+  /** R19 W7 — private graphs. setPlanPrivate runs the real API and
+   *  the surface re-reads; the lock handlers verify/set the passcode
+   *  SERVER-side (this surface never checks a code itself). Absent
+   *  handlers = the Private area does not render. */
+  setPlanPrivate?: (cardId: string, isPrivate: boolean) => Promise<void>;
+  graphLockPasscodeSet?: boolean | null;
+  unlockPrivate?: (code: string) => Promise<boolean>;
+  setPrivatePasscode?: (code: string) => Promise<boolean>;
+  /** R19 W7 — living detail: share/stop MY location for this plan.
+   *  Each resolves the plain-language status line to show. */
+  shareMyLocation?: (cardId: string) => Promise<string>;
+  stopMyLocation?: (cardId: string) => Promise<string>;
 };
 
 const LENSES: Array<{ key: Lens; label: string }> = [
@@ -91,6 +105,46 @@ export function C2Graphs({
   const [intentionCadence, setIntentionCadence] = useState("");
   const [goalTitle, setGoalTitle] = useState("");
   const [goalPickerOpen, setGoalPickerOpen] = useState<string | null>(null);
+  // R19 W7 - Private area gate state. `unlocked` lives only in this
+  // surface's memory: leaving the surface (unmount) or the app going
+  // to the background relocks it. The code itself is never kept -
+  // it is handed to the server verify call and dropped.
+  const [privateUnlocked, setPrivateUnlocked] = useState(false);
+  const [privateCode, setPrivateCode] = useState("");
+  const [privateGateError, setPrivateGateError] = useState<string | null>(null);
+  const [privateGateBusy, setPrivateGateBusy] = useState(false);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) setPrivateUnlocked(false);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      setPrivateUnlocked(false);
+    };
+  }, []);
+
+  const tryUnlockPrivate = async () => {
+    if (privateGateBusy || !privateCode.trim()) return;
+    setPrivateGateBusy(true);
+    setPrivateGateError(null);
+    const setting = events.graphLockPasscodeSet === false;
+    const ok = setting
+      ? await events.setPrivatePasscode!(privateCode.trim())
+      : await events.unlockPrivate!(privateCode.trim());
+    setPrivateGateBusy(false);
+    setPrivateCode("");
+    if (ok) {
+      setPrivateUnlocked(true);
+    } else {
+      setPrivateGateError(
+        setting
+          ? "That passcode could not be set. Use at least 4 characters."
+          : "That code did not open it.",
+      );
+    }
+  };
 
   const closeDropSheet = () => {
     setDropTarget(null);
@@ -178,7 +232,7 @@ export function C2Graphs({
             actionLabel={events.retryLoad ? "Try again" : undefined}
             onAction={events.retryLoad}
           />
-        ) : totalCards === 0 ? (
+        ) : totalCards === 0 && projection.privateCards.length === 0 ? (
           <EmptyBlock
             testId="c2-graphs-empty"
             headline="Nothing here yet."
@@ -186,14 +240,28 @@ export function C2Graphs({
             actionLabel="New plan"
             onAction={() => setCreateOpen(true)}
           />
-        ) : visibleGroups.length === 0 ? (
+        ) : visibleGroups.length === 0 && lens !== "past" ? (
           <EmptyBlock
             testId="c2-graphs-lens-empty"
             headline="Nothing coming up."
             line="Past plans are below when you want them."
           />
         ) : (
-          visibleGroups.map((group) => {
+          <>
+            {lens === "past" ? (
+              <div data-testid="c2-graphs-past-view">
+                <h2 className="c2s-group-title">Completed and past plans</h2>
+                <p className="c2s-card-line">
+                  Everything that already happened, in the order it settled.
+                </p>
+                {visibleGroups.length === 0 ? (
+                  <p className="c2s-card-line" data-testid="c2-graphs-past-empty">
+                    Nothing completed yet.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {visibleGroups.map((group) => {
             const isPast = group.kind === "past";
             if (isPast && !pastOpen && lens === "all") {
               return (
@@ -213,9 +281,20 @@ export function C2Graphs({
             return (
               <section key={group.id} data-testid="c2-graphs-group">
                 <h2 className="c2s-group-title">{group.title}</h2>
-                <div className="c2s-group-cards">
+                {/* R19 W7 - the future thread: one line running
+                    forward through the group, a node per plan in
+                    its state color. The thread is the graph: nodes
+                    carry state (the color IS the plan's state), the
+                    line carries sequence. */}
+                <div className="c2s-thread" data-testid="c2-graphs-thread">
                   {group.cards.map((card) => (
-                    <div key={card.id}>
+                    <div key={card.id} className="c2s-thread-row">
+                      <span
+                        className="c2s-thread-node"
+                        data-plan-state={card.stateFamily}
+                        aria-hidden
+                      />
+                      <div className="c2s-thread-card">
                       <PlanCardC2
                         input={card}
                         onOpen={() => events.openGraph(card.id, "graphs")}
@@ -225,25 +304,117 @@ export function C2Graphs({
                             : undefined
                         }
                       />
-                      {card.droppable ? (
+                      {card.droppable || events.setPlanPrivate ? (
                         <div className="c2s-completion-row">
-                          <button
-                            type="button"
-                            className="c2s-btn-text"
-                            data-testid="c2-graph-drop"
-                            onClick={() => setDropTarget(card.id)}
-                          >
-                            Drop it
-                          </button>
+                          {card.droppable ? (
+                            <button
+                              type="button"
+                              className="c2s-btn-text"
+                              data-testid="c2-graph-drop"
+                              onClick={() => setDropTarget(card.id)}
+                            >
+                              Drop it
+                            </button>
+                          ) : null}
+                          {events.setPlanPrivate ? (
+                            <button
+                              type="button"
+                              className="c2s-btn-text"
+                              data-testid="c2-graph-make-private"
+                              onClick={() => void events.setPlanPrivate!(card.id, true)}
+                            >
+                              Make private
+                            </button>
+                          ) : null}
                         </div>
                       ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>
               </section>
             );
-          })
+            })}
+          </>
         )}
+
+        {events.unlockPrivate && events.setPrivatePasscode ? (
+          <section data-testid="c2-graphs-private">
+            <h2 className="c2s-group-title">Private graphs</h2>
+            {!privateUnlocked ? (
+              <div className="c2s-group-cards">
+                <p className="c2s-card-line">
+                  {projection.privateCards.length > 0
+                    ? `${projection.privateCards.length} ${projection.privateCards.length === 1 ? "graph is" : "graphs are"} kept here, out of your other lists.`
+                    : "Graphs you make private live here, out of your other lists."}
+                </p>
+                <p className="c2s-card-line">
+                  {events.graphLockPasscodeSet === false
+                    ? "Set a passcode to open this area. It is checked by Opal's server - the code itself is never stored."
+                    : "Enter your passcode to open this area."}
+                </p>
+                <input
+                  className="c2s-field"
+                  type="password"
+                  data-testid="c2-private-code"
+                  aria-label="Private graphs passcode"
+                  autoComplete="off"
+                  value={privateCode}
+                  onChange={(e) => setPrivateCode(e.target.value)}
+                />
+                {privateGateError ? (
+                  <p className="c2s-card-line" role="alert" data-testid="c2-private-error">
+                    {privateGateError}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  className="c2s-btn-primary"
+                  data-testid="c2-private-unlock"
+                  disabled={privateGateBusy || !privateCode.trim()}
+                  onClick={() => void tryUnlockPrivate()}
+                >
+                  {events.graphLockPasscodeSet === false ? "Set passcode and open" : "Open private graphs"}
+                </button>
+              </div>
+            ) : (
+              <div className="c2s-group-cards">
+                {projection.privateCards.length === 0 ? (
+                  <p className="c2s-card-line" data-testid="c2-private-empty">
+                    No private graphs yet. Make any graph private and it moves here.
+                  </p>
+                ) : (
+                  projection.privateCards.map((card) => (
+                    <div key={card.id}>
+                      <PlanCardC2
+                        input={card}
+                        onOpen={() => events.openGraph(card.id, "graphs")}
+                      />
+                      <div className="c2s-completion-row">
+                        <button
+                          type="button"
+                          className="c2s-btn-text"
+                          data-testid="c2-graph-make-visible"
+                          onClick={() => void events.setPlanPrivate!(card.id, false)}
+                        >
+                          Make visible
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <button
+                  type="button"
+                  className="c2s-btn-text"
+                  data-testid="c2-private-lock"
+                  onClick={() => setPrivateUnlocked(false)}
+                >
+                  Lock private graphs
+                </button>
+              </div>
+            )}
+          </section>
+        ) : null}
 
         {projection.adopt1 ? (
           <>
@@ -603,6 +774,16 @@ export function C2GraphDetail({
   onOpenCheckinSummary?: (sweepId: string) => void;
 }) {
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [shareNote, setShareNote] = useState<string | null>(null);
+  const shareMine = async () => {
+    if (!events.shareMyLocation) return;
+    setShareNote(await events.shareMyLocation(detail.id));
+  };
+  const stopMine = async () => {
+    if (!events.stopMyLocation) return;
+    setShareNote(await events.stopMyLocation(detail.id));
+  };
+  const [shareOpen, setShareOpen] = useState(false);
   const [convertNote, setConvertNote] = useState<string | null>(null);
   const [convertBusy, setConvertBusy] = useState(false);
   const foodStep = completionStep(
@@ -623,8 +804,20 @@ export function C2GraphDetail({
             <IconBack />
           </button>
           <span style={{ fontWeight: 650 }}>Graph</span>
+          <button
+            type="button"
+            className="c2s-btn-text"
+            data-testid="r19-detail-share"
+            onClick={() => setShareOpen(true)}
+            style={{ marginLeft: "auto" }}
+          >
+            Share
+          </button>
         </header>
         <div style={{ paddingBottom: "var(--space-7)" }}>
+          {shareOpen ? (
+            <SharePlanSheet card={shareCardFromDetail(detail)} onClose={() => setShareOpen(false)} />
+          ) : null}
           <div className="c2s-detail-section">
             <PlanCardC2 input={detail.card} />
             {detail.attendanceLine ? (
@@ -704,12 +897,20 @@ export function C2GraphDetail({
 
           {detail.who.length > 0 ? (
             <div className="c2s-detail-section">
-              <p className="c2s-detail-kicker">Who</p>
+              <p className="c2s-detail-kicker">Who is coming, and where they are</p>
               {detail.who.map((person) => (
                 <div className="c2s-who-row" key={person.name}>
                   <Avatar avatar={person.avatar} size={36} />
                   <span className="c2s-who-name">{person.name}</span>
-                  <span className="c2s-who-resp">{person.responseLabel}</span>
+                  <span className="c2s-who-resp">
+                    {person.responseLabel}
+                    {person.locationLabel ? (
+                      <span className="c2s-who-loc" data-testid="c2-detail-who-location">
+                        {" · "}
+                        {person.locationLabel}
+                      </span>
+                    ) : null}
+                  </span>
                 </div>
               ))}
               <button
@@ -720,6 +921,57 @@ export function C2GraphDetail({
               >
                 Add people
               </button>
+              {events.shareMyLocation ? (
+                <div data-testid="c2-detail-share-location">
+                  <p className="c2s-card-line">
+                    Sharing your location is per plan and shares where you are right
+                    now, once — a snapshot, not live tracking. Only people on this
+                    plan see it, until you stop sharing or 4 hours pass.
+                  </p>
+                  <button
+                    type="button"
+                    className="c2s-btn-text"
+                    data-testid="c2-detail-share-location-btn"
+                    onClick={() => void shareMine()}
+                  >
+                    Share my location for this plan
+                  </button>
+                  {events.stopMyLocation ? (
+                    <button
+                      type="button"
+                      className="c2s-btn-text"
+                      data-testid="c2-detail-stop-location-btn"
+                      onClick={() => void stopMine()}
+                    >
+                      Stop sharing
+                    </button>
+                  ) : null}
+                  {shareNote ? (
+                    <p className="c2s-card-line" role="status" data-testid="c2-detail-share-note">
+                      {shareNote}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {events.setPlanPrivate ? (
+            <div className="c2s-detail-section">
+              <button
+                type="button"
+                className="c2s-btn-text"
+                data-testid="c2-detail-private-toggle"
+                onClick={() => void events.setPlanPrivate!(detail.id, !detail.isPrivate)}
+              >
+                {detail.isPrivate ? "Make this graph visible" : "Make this graph private"}
+              </button>
+              {detail.isPrivate ? (
+                <p className="c2s-card-line">
+                  Private: this graph lives in your Private area and is not in anyone
+                  else's plan list.
+                </p>
+              ) : null}
             </div>
           ) : null}
 

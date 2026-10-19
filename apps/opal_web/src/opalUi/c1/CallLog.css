@@ -1,0 +1,101 @@
+/*
+ * Repair #19 - the C2 call log's row treatments.
+ *
+ * The row's ambient border IS the call's state: its color arrives
+ * via the --call-state custom property, set from the ONE token
+ * source (theme/planStateColors PLAN_STATE_HEX) by PeopleCallsList -
+ * no hex lives here, and no other source may color this border
+ * (drift-pinned by r19Calls.test.tsx). Intensity is the unify wave's
+ * ambient register, identical to the PlanAwareness element beside
+ * it: 52% border / 9% fill / 12% glow (color-mix over the surface),
+ * so a call row, a chats row, and a thread strip in the same state
+ * read as the same meaning at the same strength, in both modes
+ * (the hues are mode-invariant; the field beneath them is the
+ * mode's own). Patterns are the indicator family's secondary cue,
+ * carried on data-pattern from the same map PlanAwareness uses:
+ * forming = dashed, action = solid with a heavy leading edge,
+ * happening = solid + the live dot in the state label, ready =
+ * solid, past = solid at rest (settled history; the same mixes,
+ * spent on white, read calm against the field by design).
+ *
+ * Reason register (founder ambient rule - every element states its
+ * job): this border exists to tell the user, peripherally and
+ * before reading a word, whether a call still wants something from
+ * them (action), is live (happening), is prepared (ready), is still
+ * taking shape (forming), or is settled history (past). It answers
+ * to exactly one live condition: the row's server-derived
+ * call_state fact. No fact, no state border - the row falls back
+ * to the quiet default edge below.
+ */
+[data-design="r18"] .c1-call-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  background: var(--surface-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  color: var(--ink-1);
+  box-shadow: var(--shadow-card);
+  box-sizing: border-box;
+  min-height: 68px;
+}
+[data-design="r18"] .c1-call-row[data-call-state] {
+  border-color: color-mix(in srgb, var(--call-state) 52%, transparent);
+  background: color-mix(in srgb, var(--call-state) 9%, var(--surface-1));
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--call-state) 12%, transparent),
+    var(--shadow-card);
+}
+[data-design="r18"] .c1-call-row[data-pattern="dashed"] {
+  border-style: dashed;
+}
+[data-design="r18"] .c1-call-row[data-pattern="solid-bold"] {
+  border-left-width: 3px;
+}
+[data-design="r18"] .c1-call-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+[data-design="r18"] button.c1-call-main {
+  cursor: pointer;
+}
+[data-design="r18"] .c1-call-state-label {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: var(--opal-type-meta);
+  font-weight: 650;
+  color: var(--call-state, var(--ink-2));
+}
+[data-design="r18"] .c1-call-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--call-state);
+  display: inline-block;
+}
+[data-design="r18"] .c1-call-back {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--surface-2);
+  color: var(--ink-1);
+  font-size: 16px;
+  border: 1px solid
+    color-mix(in srgb, var(--call-state, var(--line-2)) 52%, transparent);
+}

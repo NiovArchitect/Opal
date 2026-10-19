@@ -1,7 +1,8 @@
-import React, { Component, type ErrorInfo, type ReactNode } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 import { applyFounderRuntimeCheckpoint } from "./runtime/founderRuntimeCheckpoint";
 import { installRuntimeAuthority } from "./runtime/runtimeAuthority";
+import { OpalErrorBoundary } from "./runtime/OpalErrorBoundary";
 import { persistFounderSeedFromUrl } from "./opalUi/founderGraphSeed";
 import { App } from "./App";
 import { FirstRunSplashPage } from "./onboarding/FirstRunSplashPage";
@@ -193,68 +194,6 @@ function PromiseIsolationProbe() {
       />
     </div>
   );
-}
-
-class OpalErrorBoundary extends Component<
-  { children: ReactNode },
-  { error: Error | null }
-> {
-  state: { error: Error | null } = { error: null };
-
-  static getDerivedStateFromError(error: Error) {
-    return { error };
-  }
-
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[opal-runtime-boundary]", error, info.componentStack);
-  }
-
-  render() {
-    if (this.state.error) {
-      return (
-        <div
-          className="app app-futura app-premember"
-          data-testid="runtime-error-boundary"
-          style={{
-            minHeight: "100dvh",
-            background: "#050816",
-            color: "#f4f7fb",
-            padding: "48px 24px",
-            fontFamily: "system-ui, sans-serif",
-          }}
-        >
-          <p role="alert" style={{ fontSize: 18, marginBottom: 12 }}>
-            Something interrupted Opal.
-          </p>
-          <p style={{ opacity: 0.72, marginBottom: 24, maxWidth: 420 }}>
-            The product should never stay on a blank screen. You can retry without
-            losing the design system.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              this.setState({ error: null });
-              window.location.href = "/?opal_reset_first_run=1";
-            }}
-            style={{
-              // Harmony2 drift fix: the sampled brand accent, not
-              // the happening state hex - state color is meaning
-              // only, and this button means "restart", not "live now".
-              background: "#7d4dce",
-              color: "#ffffff",
-              border: 0,
-              borderRadius: 999,
-              padding: "12px 20px",
-              fontWeight: 600,
-            }}
-          >
-            Restart first run
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
 }
 
 const root = document.getElementById("root");

@@ -76,6 +76,10 @@ export function ActiveCallOverlay({
           setMediaReady(true);
           onRemoteAnsweredRef.current?.({ ...callRef.current, id: ownedId, status: "answered" });
         });
+        ch.on("graphing", (payload: unknown) => {
+          if (cancelled || callIdRef.current !== ownedId) return;
+          window.dispatchEvent(new CustomEvent("opal:call-graphing", { detail: payload }));
+        });
         ch.on("ended", () => {
           if (cancelled || callIdRef.current !== ownedId) return;
           onEndedRef.current(ownedId);
@@ -143,6 +147,14 @@ export function ActiveCallOverlay({
         ch.on("ended", () => {
           if (cancelled || callIdRef.current !== ownedId) return;
           onEndedRef.current(ownedId);
+        });
+        // Repair #19 W12: the server broadcasts every graphing
+        // transition on this topic; forward it so the in-call
+        // surface's graphing light refreshes in real time, in step
+        // with the other participant's surface.
+        ch.on("graphing", (payload: unknown) => {
+          if (cancelled || callIdRef.current !== ownedId) return;
+          window.dispatchEvent(new CustomEvent("opal:call-graphing", { detail: payload }));
         });
         client.setRemoteAudioElement(audioRef.current);
         await client.start(ch, asOfferer);

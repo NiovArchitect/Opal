@@ -41,7 +41,7 @@ export default {
     // its shared-plan work in a fresh group thread (A + B + a third
     // synthetic member) - which also makes the conversion a genuine
     // multi-approver propose/hold/accept.
-    const third = await h.freshDirectConversation(A, "+12025550105", "Regression Fifth");
+    const third = await h.freshDirectConversation(A, "+12025550105", "Owen Parker");
     assert.check("setup third member", !!third?.userId, "group setup needs a third synthetic user");
     const C = third.client;
     const group = await h.createGroup(A, [ctx.sessions.b.userId, third.userId], `B1 S2 convert ${ctx.tag}`);

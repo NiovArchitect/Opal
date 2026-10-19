@@ -15,7 +15,7 @@
  * existing product API session only; absent data renders the spec
  * empty states, never fixtures.
  */
-import type { PlanCardC2Input } from "../PlanCardC2";
+import type { PlanCardC2Input, PlanStateFamilyC2 } from "../PlanCardC2";
 import type {
   IntentionContract,
   OpalPlanContract,
@@ -71,6 +71,11 @@ export type StoryRailProjection = {
     hasLiveStory: boolean;
     /** Finished label, for example "2h" - never computed here. */
     liveStoryLabel?: string | null;
+    /** JA-11: the viewer's own story record, carried so the self
+     *  cell can open the viewer on it (the same media the rail
+     *  would have shown in the duplicate named cell). Null = the
+     *  viewer has no live story; "Add" is the empty case. */
+    story?: { storyCount: number; mediaUrl: string | null; caption: string | null } | null;
   };
   stories: Array<{
     id: string;
@@ -92,9 +97,18 @@ export type FeedCardProjection =
   | {
       kind: "memory";
       id: string;
+      /** The moment record's own media (its media_ref - see the
+       *  adapter's provenance note). Absent = the designed
+       *  monogram treatment, never text in the image well. */
       photoUrl?: string | null;
+      /** Build vocabulary: which record field supplied photoUrl. */
+      photoProvenance?: string | null;
       contextLine: string;
       authorLine: string;
+      /** Repair #19 (W9) - the author as a person (avatar + name),
+       *  from the feed record's actor. */
+      authorName?: string | null;
+      authorAvatar?: AvatarRef | null;
     }
   | {
       kind: "live";
@@ -103,6 +117,19 @@ export type FeedCardProjection =
       contextLine: string;
       actionLabel: string;
       actionId: string;
+      /** Repair #19 (W9) - Opal Live truth, from the live room
+       *  record itself (GET /lives/visible). A live card exists
+       *  ONLY when a room with status "live" was read back; the
+       *  adapter never composes one from anything else. */
+      hostName?: string | null;
+      hostAvatar?: AvatarRef | null;
+      /** The place the live is anchored to (the room's place_label
+       *  / venue name, honouring the host's location precision),
+       *  or null when the record carries no place - then no place
+       *  line renders; a place is never invented. */
+      placeLabel?: string | null;
+      /** True when the room is the viewer's own live. */
+      mine?: boolean;
     }
   | {
       kind: "discovery";
@@ -138,9 +165,23 @@ export type GraphListProjection = {
          *  slot, or null. Label names the slot in plain words. */
         completionAction?: { label: string; slotKind: string } | null;
         droppable?: boolean;
+        /** R19 W7: true only on cards in privateCards below. */
+        isPrivate?: boolean;
       }
     >;
   }>;
+  /** R19 W7 — private graphs, separated by the adapter from the
+   *  plan contract's is_private flag. They NEVER appear in groups
+   *  or lensCounts; the surface renders them only inside the
+   *  unlocked Private area. */
+  privateCards: Array<
+    PlanCardC2Input & {
+      id: string;
+      completionAction?: { label: string; slotKind: string } | null;
+      droppable?: boolean;
+      isPrivate: true;
+    }
+  >;
   lensCounts: { all: number; action: number; ready: number; past: number };
   timelineAvailable: boolean;
   listError?: string | null;
@@ -165,7 +206,21 @@ export type GraphDetailProjection = {
   viewerUserId?: string | null;
   whenLine: string;
   where?: { label: string; kind: "place" | "virtual"; handoffLabel?: string | null } | null;
-  who: Array<{ name: string; avatar: AvatarRef; responseLabel: string }>;
+  who: Array<{
+    name: string;
+    avatar: AvatarRef;
+    responseLabel: string;
+    /** R19 W7 — the finished location line from the plan-history
+     *  projection (per-plan sharing backbone). Absent until the
+     *  history read lands; "Not sharing location" is a real state,
+     *  never accompanied by a distance. */
+    locationLabel?: string | null;
+    locationState?: string | null;
+  }>;
+  /** R19 W7 — the viewer's own location-sharing state for this plan
+   *  is not carried here; the detail's share control renders only
+   *  when the shell wires the share events. */
+  isPrivate?: boolean;
   nextAction?: { id: string; label: string } | null;
   activity: Array<{ line: string; timeLabel: string }>;
   history: Array<{ line: string }>;
@@ -219,4 +274,69 @@ export type AuthProjection = {
   codeLength: number;
   resendAvailableAt?: string | null;
   profileDraft: { name: string; handle: string; photoState: "initials" | "photo" };
+};
+
+/**
+ * Repair #19 W13 - EVENT SHARE CARD projection. Every field is a
+ * finished string built by the ONE adapter (shareCardFromDetail in
+ * shellData.ts) from the plan's real detail projection. The card
+ * renders exactly what it is given: no people row when the roster is
+ * absent, no place row when unset, and NO share URL - the plan
+ * contract carries no share code, so none is ever fabricated.
+ */
+export type EventShareCardProjection = {
+  planId: string;
+  stateFamily: PlanStateFamilyC2 | string;
+  stateLabel: string;
+  title: string;
+  whenLine: string;
+  whereLine: string | null;
+  attendanceLine: string | null;
+  /** Finished people line from the real roster ("Maya, Jordan + 2 more"), or null. */
+  peopleLine: string | null;
+  /** The plain-text share artifact, lines joined - exactly what Copy places on the clipboard. */
+  textLines: string[];
+};
+
+/**
+ * Repair #19 BS-11 - CONVERSATION SHARE CARD projection, the
+ * conversation leg of W13's share-card law. Built by the ONE
+ * adapter (conversationShareCard in C1ShellHosts.ts) from the open
+ * conversation's real record: its title, its anchor, and — when the
+ * anchor is a plan the host holds — that plan's own card lines.
+ * A conversation has no share code or URL, so none is fabricated;
+ * the card's one action is Copy details, and its opening line
+ * states in words what the recipient gets (the details, inside
+ * Opal — not a link). Message content is never on the card: an
+ * Opal conversation is private to its account.
+ */
+export type ConversationShareCardProjection = {
+  title: string;
+  /** "Filed under X" from the conversation's anchor, or null when unanchored. */
+  anchorLine: string | null;
+  /** The anchor plan's own card block, when the anchor resolves to a held plan. */
+  plan: {
+    title: string;
+    stateLabel: string;
+    whenLine: string | null;
+    whereLine: string | null;
+  } | null;
+  /** The plain-text share artifact — exactly what Copy places on the clipboard. */
+  textLines: string[];
+};
+
+/**
+ * Repair #19 W13 - PERSON PROFILE projection. Built by the Chats
+ * host adapter from the conversation record, the relationship rows,
+ * and the thread's shared next-plan fact - real data only. Absent
+ * facts are null and render nothing.
+ */
+export type PersonProfileProjection = {
+  name: string;
+  handle: string | null;
+  avatar: AvatarRef;
+  relationshipLabel: string | null;
+  /** The shared upcoming plan fact for this conversation, or null. */
+  nextTogether: { title: string; whenLine: string; stateFamily: string; stateLabel: string } | null;
+  peerCount: number;
 };

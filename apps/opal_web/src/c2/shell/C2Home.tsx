@@ -17,7 +17,7 @@ import {
   publishSocialMoment,
   uploadSocialMomentMedia,
 } from "../../api/productClient";
-import type { HomeProjection, StoryRailProjection } from "./projections";
+import type { FeedCardProjection, HomeProjection, StoryRailProjection } from "./projections";
 import {
   Avatar,
   EmptyBlock,
@@ -28,17 +28,131 @@ import {
   IconSearch,
 } from "./bits";
 
+/**
+ * Repair #19 (W9) - the AMBIENT SOCIAL SYSTEM on Home, each element
+ * with its recorded reason (the founder's ambient law: an ambient
+ * element that cannot state its reason in one sentence is cut).
+ * All treatments use ONLY the canon indicator tokens
+ * (--orb-indicator-* / --state-*) at ambient intensity, the same
+ * tokens and meanings as the plan cards, chats, thread, calls and
+ * graphs treatments (indicator persistence law: a state keeps its
+ * color and meaning on every surface). Motion obeys QUIET: the
+ * only loops are the forming breath (already canon on plan cards)
+ * and the live pulse below - both slow, both opacity-only, both
+ * off under prefers-reduced-motion.
+ */
+export const HOME_AMBIENT_ELEMENTS: ReadonlyArray<{
+  element: string;
+  reason: string;
+}> = [
+  {
+    element: "plan card state border + fire line (per state family)",
+    reason:
+      "Tells you the plan's state at a glance, in the same color and pattern as everywhere else in Opal, so alignment reads before words do.",
+  },
+  {
+    element: "forming plan fire-line breath (5s, opacity only)",
+    reason:
+      "A forming plan is still taking shape; the slow breath marks anticipation - it is alive and waiting on one thing, not settled.",
+  },
+  {
+    element: "live card happening border + soft pulse",
+    reason:
+      "Someone is live at a place right now and the window is short; the pulse says the moment is happening, not scheduled.",
+  },
+  {
+    element: "story ring (iridescent unseen, happening ring for a live story)",
+    reason:
+      "Shows whose story is new or happening before you read a name, so people come before chrome.",
+  },
+  {
+    element: "memory card author tint on the no-image monogram",
+    reason:
+      "When a post has no photo, the author's own tint and initial keep it recognisably theirs - a designed place treatment, never a caption sitting in an image hole.",
+  },
+  {
+    element: "activity badge count on the header",
+    reason:
+      "Something changed since you last looked; the count is the ambient signal, and it is absent when nothing is new (presence discipline).",
+  },
+];
+
 export type C2HomeEvents = {
   openYou: () => void;
   openSearch: () => void;
   openActivity: () => void;
   openGraph: (cardId: string) => void;
-  feedAction: (cardId: string, actionId: string) => void;
+  /** Repair #19 W20 (JA-06): a feed card's action button renders
+   *  ONLY when the host wires this to a real outcome. Watching a
+   *  Live has no viewer surface yet (J2's named exception), so the
+   *  production shell wires nothing and the live card renders no
+   *  button at all — a dead Watch button on Home was the defect.
+   *  Hosts must never pass a no-op here. */
+  feedAction?: (cardId: string, actionId: string) => void;
   /** Called after a story or post really published, so the shell
    *  re-requests the Home projection and re-renders from it. */
   onShared: () => void;
   bearer?: string;
 };
+
+type MemoryFeedItem = Extract<FeedCardProjection, { kind: "memory" }>;
+
+/**
+ * The Home memory card. JA-12: when the card's image FAILS to
+ * load, the well keeps its designed height and renders the same
+ * designed monogram treatment the no-photo case uses — never a
+ * collapsed well or a broken-image hole.
+ */
+function MemoryFeedCard({ item }: { item: MemoryFeedItem }) {
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const showPhoto = Boolean(item.photoUrl) && !photoFailed;
+  return (
+    <article
+      className="c2s-card c2s-memory-card"
+      data-testid="c2-feed-memory"
+      data-media={showPhoto ? "photo" : "monogram"}
+    >
+      <div className="c2s-card-byline">
+        {item.authorAvatar ? <Avatar avatar={item.authorAvatar} size={32} /> : null}
+        <p className="c2s-card-line" style={{ margin: 0 }}>
+          {item.authorLine}
+        </p>
+      </div>
+      <div
+        className="c2s-media-well"
+        data-testid="c2-feed-memory-media"
+        data-media-provenance={item.photoProvenance ?? undefined}
+      >
+        {showPhoto ? (
+          <img
+            src={item.photoUrl!}
+            alt=""
+            draggable={false}
+            onError={() => setPhotoFailed(true)}
+          />
+        ) : (
+          /* W9 no-image treatment: a designed place treatment - the
+           * author's monogram in their entity tint over a map-like
+           * motif. NEVER a text paragraph in an image-shaped hole
+           * (the founder's "Race night dinner" defect) and never a
+           * stock photo. JA-12: a FAILED photo lands here too. */
+          <span
+            className="c2s-media-monogram"
+            data-testid="c2-feed-memory-monogram"
+            data-tint={item.authorAvatar?.tint ?? undefined}
+            aria-hidden
+          >
+            <span className="c2s-media-monogram-initial">
+              {item.authorAvatar?.initials ??
+                (item.authorName ?? item.authorLine).slice(0, 1).toUpperCase()}
+            </span>
+          </span>
+        )}
+      </div>
+      <p className="c2s-card-title">{item.contextLine}</p>
+    </article>
+  );
+}
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -70,10 +184,19 @@ export function C2Home({
   const rail = projection.rail;
 
   const openSelf = () => {
-    // Hunt-fix B-10: your own live story opens the viewer only when
-    // the rail carries its media (the adapter never sets hasLiveStory
-    // without media today); otherwise the tap goes to create — never
-    // to an empty stage.
+    // Hunt-fix B-10 + JA-11: your own live story opens the viewer
+    // on its own record when the rail carries its media; a live
+    // story without renderable media, and the no-story case, go
+    // to create — never to an empty stage.
+    if (rail.self.hasLiveStory && rail.self.story?.mediaUrl) {
+      setViewer({
+        personName: "You",
+        storyCount: rail.self.story.storyCount,
+        mediaUrl: rail.self.story.mediaUrl,
+        caption: rail.self.story.caption,
+      });
+      return;
+    }
     if (rail.self.hasLiveStory) return;
     if (rail.capabilities.canPost && rail.capabilities.canStory) {
       setSheet("create");
@@ -153,17 +276,40 @@ export function C2Home({
                 );
               }
               if (item.kind === "memory") {
+                return <MemoryFeedCard key={item.id} item={item} />;
+              }
+              if (item.kind === "live") {
                 return (
-                  <article key={item.id} className="c2s-card" data-testid="c2-feed-memory">
-                    <div className="c2s-media-well">
-                      {item.photoUrl ? (
-                        <img src={item.photoUrl} alt="" draggable={false} />
-                      ) : (
-                        <span>{item.contextLine}</span>
-                      )}
+                  <article
+                    key={item.id}
+                    className="c2s-card c2s-live-card"
+                    data-testid="c2-feed-live"
+                    data-plan-state="happening"
+                  >
+                    <div className="c2s-card-byline">
+                      {item.hostAvatar ? <Avatar avatar={item.hostAvatar} size={32} /> : null}
+                      <span className="c2s-live-pill" data-testid="c2-live-pill">
+                        <span className="c2s-live-dot" aria-hidden />
+                        Live now
+                      </span>
+                      {item.mine ? <span className="c2s-card-line">Your live</span> : null}
                     </div>
-                    <p className="c2s-card-title">{item.contextLine}</p>
-                    <p className="c2s-card-line">{item.authorLine}</p>
+                    <p className="c2s-card-title">{item.title}</p>
+                    <p className="c2s-card-line">{item.contextLine}</p>
+                    {item.placeLabel ? (
+                      <p className="c2s-card-line" data-testid="c2-live-place">
+                        At {item.placeLabel}
+                      </p>
+                    ) : null}
+                    {events.feedAction ? (
+                      <button
+                        type="button"
+                        className="c2s-card-action"
+                        onClick={() => events.feedAction!(item.id, item.actionId)}
+                      >
+                        {item.actionLabel}
+                      </button>
+                    ) : null}
                   </article>
                 );
               }
@@ -171,13 +317,15 @@ export function C2Home({
                 <article key={item.id} className="c2s-card" data-testid={`c2-feed-${item.kind}`}>
                   <p className="c2s-card-title">{item.title}</p>
                   <p className="c2s-card-line">{item.contextLine}</p>
-                  <button
-                    type="button"
-                    className="c2s-card-action"
-                    onClick={() => events.feedAction(item.id, item.actionId)}
-                  >
-                    {item.actionLabel}
-                  </button>
+                  {events.feedAction ? (
+                    <button
+                      type="button"
+                      className="c2s-card-action"
+                      onClick={() => events.feedAction!(item.id, item.actionId)}
+                    >
+                      {item.actionLabel}
+                    </button>
+                  ) : null}
                 </article>
               );
             })

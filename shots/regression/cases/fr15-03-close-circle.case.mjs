@@ -42,7 +42,7 @@ export default {
     // assertion is unchanged; the viewer is an account with no CLOSE
     // relationship to the author (a plain "friend" typing is not a
     // close type and must not admit it to a close-circle story).
-    const outsider = await ctx.freshClient("+12025550107", "Outsider Gee");
+    const outsider = await ctx.freshClient("+12025550107", "Gavin Cole");
     if (outsider) {
       const oFeed = await outsider.get("/home/feed");
       const leaked = (oFeed.json.stories || []).filter(thisStory);

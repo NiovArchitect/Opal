@@ -6,9 +6,12 @@
  *    human history line (the call log's derivation) as a system
  *    line - never the raw "call:<uuid>" signaling body, never a
  *    person bubble.
- *  - F2b: the thread's Next Together strip is in flow, not sticky:
- *    pinned at the CSS source (jsdom has no layout; the rendered
- *    geometry is proven in the pack re-capture).
+ *  - F2b: the thread's Next Together strip is in flow, not sticky -
+ *    SUPERSEDED by R19 W5-07 (founder review 2026-10-18 22:47 PDT):
+ *    the strip is now anchored (sticky) AND solid (opaque
+ *    var(--canvas) ground); the F2b bleed-through defect is closed
+ *    by the opaque ground, not by un-anchoring. The amended pin
+ *    lives in the F2b test below and in r19ChatsThread.test.tsx.
  *  - F3: the Center deck's rest fold lands in a text-free window
  *    by rhythm (hero min-height), with the port full-height so the
  *    probe's fold and the viewport bottom agree - pinned at source,
@@ -40,7 +43,7 @@ const callRecord: ProductCallHistory = {
   conversation_id: "conv-1",
   direction: "outgoing",
   peer_user_id: "u2",
-  peer_name: "Regression B",
+  peer_name: "Maya Torres",
   status: "missed",
   ended_reason: "missed",
   history_label: "No answer",
@@ -99,7 +102,7 @@ describe("deckfix F2a - in-thread call records render the human call line", () =
   it("ordinary messages pass through untouched as person messages", () => {
     const msg = threadMsgFromProductMessage(
       { ...inviteMessage, id: "m1", body: "Saturday works for me", message_type: "text" },
-      { viewerUserId: "u1", names: new Map([["u1", "Regression A"]]), callLineById: new Map() },
+      { viewerUserId: "u1", names: new Map([["u1", "Ethan Walker"]]), callLineById: new Map() },
     );
     expect(msg.authorKind).toBe("person");
     expect(msg.body).toBe("Saturday works for me");
@@ -121,11 +124,11 @@ describe("deckfix F2a - in-thread call records render the human call line", () =
     ];
     const html = renderToString(
       <ThreadShell
-        name="Regression B"
+        name="Maya Torres"
         initials="RB"
         messages={messages}
         plansById={new Map()}
-        composerPlaceholder="Message Regression B"
+        composerPlaceholder="Message Maya Torres"
       />,
     );
     expect(html).toContain("c1-system-line");
@@ -171,11 +174,20 @@ describe("deckfix F2b/F3/F7 - occlusion discipline at the CSS source", () => {
   const c1css = readFileSync(join(process.cwd(), "src/opalUi/c1/c1.css"), "utf8");
   const shellCss = readFileSync(join(process.cwd(), "src/c2/shell/c2shell.css"), "utf8");
 
-  it("F2b: the Next Together strip is in flow - no sticky positioning", () => {
+  it("F2b as amended by R19 W5-07: the Next Together strip is anchored (sticky) AND solid (opaque canvas ground)", () => {
+    // Founder finding W5-07: the in-flow strip read as translucent
+    // on scroll. The strip now anchors at the scroll column's top
+    // and paints the opaque field token - content passes UNDER it
+    // without bleed. F2b's underlying law (no see-through strip)
+    // is preserved by the ground, and this pin replaces the
+    // in-flow pin it superseded.
     const rule = c1css.match(/\[data-design="r18"\] \.c1-next-strip \{[^}]*\}/)?.[0] ?? "";
     expect(rule).toContain("flex: none");
-    expect(rule).not.toContain("sticky");
-    expect(c1css).not.toMatch(/\.c1-next-strip \{[^}]*position:\s*sticky/);
+    expect(rule).toContain("position: sticky");
+    expect(rule).toContain("top: 0");
+    expect(rule).toContain("background: var(--canvas)");
+    expect(rule).not.toContain("transparent");
+    expect(rule).not.toContain("backdrop-filter");
   });
 
   it("F3: the deck port stays full-height (no inset) and the rest rhythm is pinned in the hero", () => {

@@ -32,7 +32,7 @@ export default {
     const { A, B, h, assert, config } = ctx;
     if (!B) throw new Error("FR-B3-03 needs session B");
 
-    const C = await freshSyntheticClient(config, "+12025550103", "Member Cee");
+    const C = await freshSyntheticClient(config, "+12025550103", "Celia Ruiz");
     if (!C) throw new Error("FR-B3-03 needs OPAL_SESSION_PROVISION=synthetic");
 
     const direct = await h.ensureDirect(A, B.session.userId);

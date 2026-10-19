@@ -161,11 +161,23 @@ export function RevealCard({
 }
 
 /** The chats-list form (entry 7): a P1 item takes over the row's
- *  plan line - same slot, the named action as the line's text. It
- *  never adds a line of its own. The line's left rule is the
- *  plan's STATE color (indicator language, the DIR-1 row
- *  treatment), not fire: the list line never carries fire and
- *  never counts against the one-lit ceiling. */
+ *  plan line - same slot, never a fourth line. R19 W5-06 redesign:
+ *  the takeover is a properly formatted MINI-CARD inside the row,
+ *  in the same grammar as RevealCard (kicker head, title on its own
+ *  full-width line, substance line, deliberate actions row) - NOT a
+ *  single flattened text run. The pre-fix form concatenated
+ *  `${action} - ${title}` into one flex line whose text span had no
+ *  width contract (no flex/min-width/wrap rules) beside a floated
+ *  Dismiss button; inside the row's flex main column the line
+ *  collapsed to its min-content width and wrapped word-per-line
+ *  ("Confirm / - / Dinner / at / Juniper / and Ivy") with Dismiss
+ *  floating beside the column. The card's state edge is the plan's
+ *  STATE color (indicator language, the DIR-1 row treatment), not
+ *  fire: the list form never carries fire and never counts against
+ *  the one-lit ceiling. The primary action is a styled label, not
+ *  a nested button - the row itself is the open target (the host's
+ *  row activation), and Dismiss is the card's one real button,
+ *  placed at the end of the actions row. */
 export function RevealListLine({
   item,
   onDismiss,
@@ -174,9 +186,10 @@ export function RevealListLine({
   onDismiss?: (item: RevealItem) => void;
 }) {
   const planFamily = item.plan_state ? planStateFamily(item.plan_state) : null;
+  const tintVar = entityTintVar(item.entity_tint);
   return (
     <span
-      className="reveal-list-line"
+      className="reveal-list-line reveal-row-card"
       data-testid="reveal-list-line"
       data-category={item.category}
       data-plan-state={planFamily ?? undefined}
@@ -187,22 +200,54 @@ export function RevealListLine({
           : undefined
       }
     >
-      <span className="reveal-list-text">
-        {item.action_label ? `${item.action_label} - ` : ""}
+      <span className="reveal-row-head">
+        <span className="reveal-glyph" aria-hidden="true">
+          {GLYPH_BY_CATEGORY[item.category] ?? "○"}
+        </span>
+        <span className="reveal-kicker" data-testid="reveal-list-kicker">
+          {item.kicker}
+        </span>
+        {tintVar ? (
+          <span
+            className="reveal-entity"
+            data-testid="reveal-list-entity"
+            aria-hidden="true"
+            style={{ background: tintVar }}
+          />
+        ) : null}
+        {planFamily ? (
+          <span className="reveal-state" data-testid="reveal-list-state">
+            {planFamily}
+          </span>
+        ) : null}
+      </span>
+      <span className="reveal-row-title" data-testid="reveal-list-title">
         {item.title}
       </span>
-      <button
-        type="button"
-        className="reveal-dismiss reveal-dismiss--line"
-        data-testid="reveal-dismiss"
-        aria-label="Dismiss"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDismiss?.(item);
-        }}
-      >
-        Dismiss
-      </button>
+      {item.substance ? (
+        <span className="reveal-row-substance" data-testid="reveal-list-substance">
+          {item.substance}
+        </span>
+      ) : null}
+      <span className="reveal-row-actions">
+        {item.action_label ? (
+          <span className="reveal-row-action" data-testid="reveal-list-action">
+            {item.action_label}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          className="reveal-dismiss reveal-dismiss--line"
+          data-testid="reveal-dismiss"
+          aria-label="Dismiss"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDismiss?.(item);
+          }}
+        >
+          Dismiss
+        </button>
+      </span>
     </span>
   );
 }

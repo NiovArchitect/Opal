@@ -197,7 +197,7 @@ for (const mode of ["dark", "light"]) {
     // Title-clip diagnosis: scroll the fold-crossing Center card fully
     // into view above the dock and re-probe + re-shoot.
     try {
-      const title = page.locator('[data-testid="c2-route-center"] .c2-plan-title', { hasText: "Plan with User A" }).first();
+      const title = page.locator('[data-testid="c2-route-center"] .c2-plan-title', { hasText: "Dinner at Juniper & Ivy" }).first();
       if (await title.count()) {
         await title.scrollIntoViewIfNeeded();
         await page.waitForTimeout(900);
@@ -211,7 +211,7 @@ for (const mode of ["dark", "light"]) {
         await page.evaluate(() => document.querySelector('[data-testid="c2-route-center"] .c2s-scroll')?.scrollTo({ top: 0 }));
         await page.waitForTimeout(600);
       } else {
-        manifest.surfaces.push({ label: "center-card-title-scrolled", mode, failures: ["no Plan with User A title on center route"] });
+        manifest.surfaces.push({ label: "center-card-title-scrolled", mode, failures: ["no Dinner at Juniper & Ivy title on center route"] });
       }
     } catch (e) {
       manifest.surfaces.push({ label: "center-card-title-scrolled", mode, failures: [String(e).slice(0, 200)] });

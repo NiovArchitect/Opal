@@ -33,7 +33,7 @@ const light = tokensIn(blockFor(':root[data-mode="light"]'));
 const dark = tokensIn(blockFor(':root[data-mode="dark"]'));
 
 const SEMANTIC = [
-  "--canvas", "--canvas-stage", "--surface-1", "--surface-2",
+  "--canvas", "--canvas-stage", "--chrome-glass-tint", "--surface-1", "--surface-2",
   "--line-1", "--line-2", "--ink-1", "--ink-2", "--ink-3",
   "--scrim", "--shadow-card", "--accent-1", "--accent-1-ink",
   "--accent-press", "--accent-quiet", "--primary-fill", "--primary-ink",

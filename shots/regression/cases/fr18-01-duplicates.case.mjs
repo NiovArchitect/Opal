@@ -24,7 +24,7 @@ export default {
   surfaces: ["Graphs", "Center", "human threads", "GET /opal/plans"],
   async run(ctx) {
     const { A, h, assert } = ctx;
-    const title = `Regression dinner ${ctx.tag}`;
+    const title = `Dinner at Campfire ${ctx.tag}`;
 
     const before = await h.listPlans(A);
     assert.eq("GET /opal/plans", before.status, 200, "plan listing must load");
