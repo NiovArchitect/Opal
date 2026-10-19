@@ -47,9 +47,193 @@ surface.
 
 This ledger is a HANDOVER GATE. Every complaint the founder has raised across
 the whole program is listed here, mapped to a permanent check, with its status
-ON THE INTEGRATED TIP (`muse/repair-18` @ local `86f3614f`, GitHub mirror
-tree-identical) and the evidence for that status. No complaint without a
+ON THE INTEGRATED TIP and the evidence for that status. No complaint without a
 mapped check. No check marked green without evidence.
+
+**REFRESHED 2026-10-18 (close-out phase 9, map-trace pass, branch
+`muse/r18-acceptance` off `fa3f0912`):** the tip of record is now
+`muse/repair-18` @ `fa3f0912` (tree `9f56b5d4`, mirror-verified on
+GitHub as `ad927478`). Every row's status below has been re-derived
+from current evidence in the Refresh section immediately following
+the Gate rule; where the Refresh section and an older row body
+disagree, **the Refresh section governs** (older bodies are kept as
+the historical record of what was true when they were written).
+FOUNDER_ACCEPTED stays NO.
+
+
+---
+
+## Refresh — phase 9 re-derivation (2026-10-18, tip `fa3f0912`) — GOVERNS
+
+**Evidence base for every re-derivation below:**
+final-battery-report.md (backend pinned 02:00 LA **3,170/0**,
+pinned 14:00 LA **3,170/0**; unpinned 3,170/1 = one proven
+contention flake, isolated 12/12 and green in both pinned runs,
+reported not re-run away; web exact baseline 23/16 files, 1,483
+passed; typecheck exactly 9; mobile 105/105; **API regression
+101/101 PASS in-suite**; posture 118 explained), casefix-report.md,
+dir1-casefix-report.md, dir1-report.md, dir4-report.md,
+adopt1/2/3-report.md, sm-report.md, hardening-report.md,
+harmony0/unify/splash/harmony2 reports + packs, huntfix-be/web
+reports. Map-trace: coordination/repair18/maptrace-report.md
+(findings MT-01…MT-23).
+
+### What the final battery changes, as a rule
+
+The old bodies' dominant statuses — PENDING-RUN ("the full API
+suite has not yet completed a run on the integrated tip") and
+CARRIED ("proven on Division A tip `808c7bd6`; integrated re-run
+owed") — rested on one missing proof: the integrated-tip
+real-path run. **That run now exists and is 101/101 in-suite.**
+Therefore every Section A/B row whose check is an automatable
+case in that suite, and whose status was PENDING-RUN, CARRIED, or
+"PASS on muse/r18-api-fix (clean run)" **for that reason**, is
+re-derived **GREEN** below. Rows whose blocker was never the
+suite run keep their honest status by name. Nothing is marked
+green without the pointer in the right-hand column.
+
+### Section A rows — re-derived
+
+| Rows | New status | Closing / governing evidence |
+|---|---|---|
+| FR-05-01, FR-11-01, FR-17-01, FR-12-01, FR-15-01, FR-11-02, FR-11-03, FR-13-02, FR-14-01, FR-12-03, FR-11-05, FR-17-02, FR-12-06, FR-12-07, FR-07-01, FR-07-02, FR-17-06, FR-10-02, FR-12-08, FR-12-09, FR-17-08, FR-07-03, FR-07-04, FR-11-06, FR-12-11, FR-07-05, FR-09-03, FR-08-02 (case leg), FR-17-09, FR-17-10, FR-12-12, FR-12-13, FR-16-01, FR-16-02, FR-16-03, FR-15-04, FR-15-05, FR-16-04, FR-18-06, FR-13-04, FR-16-05, FR-16-06, FR-14-02, FR-14-03, FR-14-04, FR-14-05, FR-12-14, FR-14-06, FR-17-15, FR-09-01, FR-09-02 | **GREEN** (was PENDING-RUN) | Case in the permanent suite; API regression **101/101 PASS in-suite** at `fa3f0912` (final-battery Leg 7). FR-07-01's live-Places caveat is unchanged: live results still depend on founder-side Places enablement/billing |
+| FR-13-01, FR-11-04, FR-12-04, FR-12-05, FR-06-01, FR-17-05, FR-15-03, FR-11-08, FR-18-B2-01, FR-18-B2-03, FR-B3-01 | **GREEN** (was PASS on muse/r18-api-fix) | Apifix clean-run proof (bodies below) **plus** in-suite confirmation at 101/101 — the confirmation those rows were owed is discharged |
+| FR-12-02, FR-18-01, FR-18-02, FR-18-04, FR-12-10 | **GREEN** (was CARRIED) | Division A + Mac replay #4 proof (bodies below) **plus** in-suite 101/101 at the integrated tip — the CARRIED caveat ("integrated re-run still owed") is discharged |
+| FR-18-03 | **GREEN in its suite leg; the capability residue is F-16-adjacent and stays named** (was CARRIED + OPEN) | RF-1/RF-3 fixed (`34519b59`) + 101/101. "Center never actually thought" as a *live-LLM* claim still rests on keyed/provider exercise, which no battery leg claims — stated here so GREEN is not over-read |
+| FR-06-02, FR-08-01, FR-10-01, FR-17-03, FR-13-03, FR-17-04 | **GREEN** (was PENDING-RUN with RF fixes landed) | RF-2/RF-3/RF-4 fixed (`34519b59`) + 101/101 in-suite confirmation — OPEN-1's remaining leg, discharged (see below) |
+| FR-17-07 | **GREEN at suite level; rendered leg pack-proven in part** (was PENDING-RUN) | Case re-pinned to Division C state hues, in-suite at 101/101; unify drift pins (13/13) + rendered-identical captures (unify pack). The full rendered sweep leg remains MT-10/MT-11 in the map-trace — named, not hidden |
+| FR-17-11, FR-18-05, FR-08-03, FR-17-12 | **GREEN — unchanged** | Bodies below already GREEN; final battery is consistent (pinned-clock runs are now the battery's own legs 2–3) |
+| FR-05-02, FR-11-07, FR-06-03, FR-15-02 | **PHONE — unchanged, by design** | Phone-checklist only; no refresh evidence can or should move them |
+| FR-17-13, FR-17-14 | **PACK-PROVEN, FOUNDER-JUDGED — not machine-GREEN** (was OPEN) | Splash/wordmark/character were replaced wholesale (orb system, splash rebuild, harmony0/2); their proof is the packs (delta / splash / harmony2) and the founder's judgment of them. Deliberately not pre-claimed green, per the original rows' own terms |
+| FR-18-02-revision | **GREEN — CLOSED** (was STANDING CASE-DEFECT) | Row body above rewritten: casefix isolation repair + final battery in-suite 29/29 |
+| B1-S1..S5, FR-18-B4, FR-18-B5A, FR-18-B5B, W4-04a..c | **GREEN — unchanged/confirmed** | Branch proofs below + suite inclusion at 101/101; B2-02 and B3-02/B3-03 (already passing in full runs) confirmed in-suite |
+| **FR-18-DIR1-01 / FR-18-DIR1-02** (new rows, added by this refresh — the DIR-1 cases postdate the ledger's first writing) | **GREEN — CLOSED at 101/101** | dir1-report.md (build); dir1-casefix-report.md (isolation repair, **zero assertions changed**: standalone 17/17 + 14/14, in-suite-order 2/2, back-to-back 2/2, poisoned-DB 2/2 + 2/2; pinned-clock flake confirm ×3 PASS); final-battery Leg 7 (both pass **in-suite**, no workaround) |
+
+### Section B rows (Walk #4) — re-derived
+
+| Item | New status | Evidence |
+|---|---|---|
+| W4-01 | **GREEN — unchanged, now in-suite** | Body below + 101/101 |
+| W4-02 | **PARTIALLY PROVEN — stays a declared exception** | Rendered case has teeth (failed as designed on the pre-redesign base); no recorded integrated-shell case run at `fa3f0912`; unify/harmony2 pack geometry is partial cover. Map-trace MT-10 |
+| W4-03 | **PARTIALLY PROVEN — stays a declared exception** | Same shape as W4-02. Map-trace MT-10 |
+| W4-04 | **GREEN — unchanged** | Body below (W4-04a..c) |
+| W4-05 | **PARTIALLY PROVEN** (was PENDING-RUN) | Named controls wired/removed (`2ef18331`); C2 dead-control family fixed (huntfix-web B-10/B-13/B-14). Whole-app tappable inventory as a single completed sweep is still not recorded. Map-trace MT-11 |
+| W4-06 | **SUPERSEDED — unchanged** | Founder escalation 2026-10-17 23:27 PDT; body below |
+
+### Section C rows — re-derived
+
+| Complaint | New status | Evidence |
+|---|---|---|
+| OTP autofill | **PHONE — unchanged** | FR-15-02 |
+| Fake toggles / settings that don't change anything | **GREEN at suite level** | BS honesty fixes + settings build (every rendered control TRUE or HIDDEN, wallet map §S verdict) + 101/101; classification confirmation is the battery itself |
+| Seed fixtures painted on real surfaces | **PARTIALLY PROVEN — residue named** | C2 face: BS-4 deleted, huntfix B-01…B-09 legs fixed/gated. Residue: MP-2 posture count is still **81** seed-flow sites (seed mode) — the largest remaining contamination class, map-trace MT-19. Not rounded to green |
+| Internal states leaking into UI copy | **GREEN at suite level; L12 gate leg partial** | RF-3 + L12 contract; HB-17/18/19 violations fixed (huntfix-web). The rendered/copy *gate run* as a single sweep is MT-11 |
+| Location claimed wired when it was not | **GREEN** (was PENDING-RUN) | FR-12-08/09 in-suite at 101/101; the standing evidence discipline (pipeline report, not code path) is unchanged |
+| QUIET law violations | **GREEN — unchanged, extended** | Body below + DIR-4 ceilings/dismissal-permanence cases (FR-18-DIR4-04/05) at the final battery |
+| UX bar (2026-10-18 03:48) | **PARTIALLY PROVEN** (was PENDING-RUN) | Spec + L12 encoded; DIR-4 §9 copy audit against the Home brief passed with no copy changes; rendered/copy sweep run remains MT-11 |
+
+### Section D — meta-complaints and the OPEN items
+
+- M-1…M-6: **RULE ACTIVE — unchanged.** M-5's "GREEN at branch
+  level" is upgraded to **GREEN at tip level** by the final
+  battery + refreshed Section F below.
+- **OPEN-1 — CLOSED.** RF-1..RF-4 fixed and merged (`34519b59`),
+  RF-5 refuted with DB evidence, and the only remaining leg —
+  integrated full-suite + API confirmation — is discharged:
+  backend 3,170/0 at both pins, API 101/101 in-suite.
+- **OPEN-2 — CLOSED.** HTTP cancel route landed (`34519b59`) and
+  the Drop-it web wiring merged (status file, ~04:50 PDT:
+  drop-it merged; wallet map W-GAP-28 CONVERTED: real POST +
+  droppable derivation + read-back). The adapter's
+  `droppable: false` interim state no longer describes the tip.
+- **OPEN-9 — CLOSED.** The `ambient/execution_compose.ex`
+  silent-default site was FIXED → TRUE by huntfix-be (its report,
+  OPEN-9 section).
+- **OPEN-4 — CLOSED in its DIR-1 leg; residue renamed.** The two
+  contract gaps (people-row plan pill; shell-thread Next
+  Together strip) were made mandatory product by DIR-1 and
+  built + API-proven (101/101). What remains of this family is
+  the wider W-GAP-29 set (dock-unread, D5 grouped list, care
+  name directory) — carried as map-trace MT-08/MT-12, not as
+  this item.
+- **OPEN-3 — STAYS OPEN, narrowed.** Pack-phase rendered proof
+  now exists for the principal surfaces (delta / unify / splash /
+  harmony2 packs), but W4-02/W4-03's own rendered-case runs
+  against the integrated shell are still not recorded (MT-10),
+  and sweeps (a)/(b)/(e) as single full runs are MT-11.
+
+### Section E sweeps — re-derived
+
+| Sweep | New status |
+|---|---|
+| (a) Rendered overlap/clipping/off-box | **PARTIAL** — machinery + teeth (base run) + pack geometry proof on principal surfaces (unify halo PASS, harmony2 0/0 probes on its surfaces); full integrated rendered-suite run still owed (MT-10/MT-11) |
+| (b) Dead-control + journey (L11) | **PARTIAL** — huntfix B-10…B-16 were this sweep enforced piecemeal; whole-app inventory + journey audit as one run still owed (MT-11) |
+| (c) Send/idempotency | **GREEN — unchanged, widened:** Center + thread composers (body below); hardening wave added the same pattern to support intake (idempotency key, 6 permanent tests) |
+| (d) Editability | **PARTIAL — unchanged in shape:** plan titles GREEN (W4-04); named exceptions stand verbatim in the body below (schedule via revision system on purpose; graph titles / beyond-title details not yet editable) |
+| (e) Rendered-copy (L12-extended) | **PARTIAL** — W4-03 case + pack captures; full run owed (MT-11) |
+| (f) Handover-integrity | **ACTIVE — unchanged; exercised by this refresh** | This refresh + WALK_ACCEPTANCE list every non-green row up front (below) |
+
+### Section F — re-derived at `fa3f0912`
+
+- F-01…F-05, F-10…F-15: **ELIMINATED — as recorded in the bodies
+  below** (merges `fa98d6c3` / `34519b59`), with the three
+  recurrences (REC-1/2/3) each subsequently **fixed and cited**:
+  REC-1 → huntfix-web B-02; REC-2's boundary leg (HA-06) remains
+  **contested C-2** — no later report settles its reachability,
+  so this refresh does **not** mark the HA-06 leg closed
+  (map-trace MT-22); REC-3 → huntfix-web B-09; OPEN-9 (the F-11
+  follow-up site) → huntfix-be, closed above.
+- F-06…F-09: **FIXED + CONFIRMED** — the integrated confirmation
+  those rows carried as PENDING-RUN is discharged at 101/101.
+- **F-16 (TOP-TIER) — STAYS OPEN, unchanged, and stays the
+  named top-tier open FALSE.** Live call transcription is not
+  wired; no live call has ever exercised the Deepgram grant +
+  websocket path (connections-verification report: Deepgram-live
+  ABSENT as a function, batch TRUE — the two rows must never be
+  merged). Call surfaces remain honestly gated until it is
+  wired. This row does not move on any evidence in this refresh.
+- Classification counts: the sweep-era counts (38 TRUE / 43
+  HONESTLY ABSENT / 15 FALSE / 41 UNPROVEN, 137 items) are
+  **not restated as current** — the FALSE count at this tip is
+  **1 open class (F-16)** per the dispositions above, and the
+  UNPROVEN concentration (integrated runs) has materially
+  shrunk because those runs now exist; a fresh whole-app
+  classification sweep was not part of this refresh and no new
+  counts are claimed.
+
+### Declared exceptions at this refresh (supersedes the list below)
+
+The "Declared exceptions" list further down is the
+pre-refresh record and is **superseded by this list**:
+
+1. **F-16** — live call transcription not wired; honestly gated
+   (map-trace MT-02).
+2. **Full Opal's Home deferred** — doorway + Soul/Memory cards
+   shipped; presence/status, trail, upcoming, approvals
+   deferred (MT-01).
+3. **W4-02 / W4-03** integrated rendered-case runs not recorded;
+   **W4-05** whole-app inventory partial; sweeps (a)/(b)/(e)
+   partial (MT-10/MT-11).
+4. **DIR-4 register-held forms** unbuilt by design sequence
+   (push D-4, modes D-8, call forms D-2/D-6, trail/Home D-3,
+   basis lines D-5, quiet-hours copy D-7) + the P3 stall-window
+   simplification in the shipped build (MT-04/MT-03).
+5. **Replay + revert-drill rows PENDING-COORDINATOR** — no
+   replay-drill report existed at refresh time (MT-21).
+6. **Mobile lockfile desync** — `npm ci` fails at this tip
+   (pre-existing `expo-location` lock gap); 105/105 was run via
+   the identical tip's installed modules (MT-06).
+7. **Backend unpinned leg 3,170/1** — proven contention flake,
+   reported, not re-run away (MT-23).
+8. FR-17-13 / FR-17-14 — pack-proven, **founder-judged**, not
+   machine-green (above).
+9. Remaining bounded residues, each with its cover specified in
+   the map-trace findings: MT-05, MT-07…MT-09, MT-12…MT-20,
+   MT-22.
+
+FOUNDER_ACCEPTED = NO. FREEZE = HOLD. PASS2 = NO.
+
+---
 
 ## Capstone rule (founder, 2026-10-18 03:43 PDT): "full true functionality"
 
@@ -189,7 +373,7 @@ the R17 mistake: unit proof presented as app proof.
 | FR-17-14 | Center character read as a static image; presence states could stick forever | OPEN | New character + presence in Division C; founder-judged via the pack |
 | FR-17-15 | TestFlight blocked repo-side (expo-notifications undeclared, no testflight profile) | PENDING-RUN | Case in suite; TestFlight execution itself remains founder-side |
 | B1-S1..S5 | Virtual place first-class: create, convert both ways, surface agreement, physical unchanged, honesty refusals | GREEN | B1 branch proof (24/24 targeted incl. post-seam-fix); cases in suite; integrated-tip API run still owed (suite-level status PENDING-RUN) |
-| FR-18-02-revision | A confirmed change to 8 PM must read 8 PM on every surface | STANDING CASE-DEFECT VERDICT (apifix clean run 2026-10-18, 98/99): on the shared suite pair its find-or-create binds to a FOREIGN case's agreed plan, so the case cannot isolate its own revision; the contract it guards is PROVEN in-suite by FR-12-02 / FR-12-04 / FR-13-01 on isolated threads. Isolation repair commissioned (fresh-pair provisioning, assertions unchanged); until it lands this row stays amber BY NAME, never silently green | Mac replay #4 green on Division A tip; apifix-report.md verdict + probes |
+| FR-18-02-revision | A confirmed change to 8 PM must read 8 PM on every surface | **CLOSED (phase-9 refresh) — GREEN at the final battery.** The isolation repair landed (casefix wave: fresh-pair provisioning, own thread per run, plan binding by id-set difference, assertions unchanged — casefix-report.md) and the case passes **in-suite 29/29** at the final battery on `fa3f0912` (final-battery-report.md Leg 7, 101/101). The former STANDING CASE-DEFECT verdict is superseded by that battery proof; it is retained in git history, not in this row. | casefix-report.md; final-battery-report.md Leg 7 (101/101, FR-18-02-revision 29 checks) |
 | FR-18-B2-01..03 | Virtual dinner completes at home: join + per-person food handoff; no fake order; no addresses anywhere | MIXED ON THE INTEGRATED TIP: B2-02 passes in the full API runs; **B2-01 + B2-03 PASS on muse/r18-api-fix (clean run)**: REAL seam defect fixed - entities_from_pending dropped food_at_home/food_question so confirm-born plans lost the food signal; FoodHandoff 422-for-no-restaurant became the honest no-rail 200 fact. Case defects also repaired (confirm turn sent; plans targeted by id-set difference) | B2 branch proof (16/16 post-seam); FoodStepPanel mounted by wiring `b5e5a824`; full-run logs /tmp/r18-api-clean.log |
 | FR-18-B4 | Care rotation: siblings rotate a parent check-in; a miss surfaces once to exactly the set | GREEN | B45 branch proof; CareRotationView mounted in YOU hub by wiring |
 | FR-18-B5A | Household pod: declared + accepted only; pod supply plan + home defaults | GREEN | B45 branch proof; HouseholdPodView mounted by wiring |
