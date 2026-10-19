@@ -1,0 +1,2605 @@
+{
+  "pack": "Repair #18 FULL SCREENSHOT PACK (close-out phase 10)",
+  "branch": "muse/r18-fullpack",
+  "app_tip": "db701d4d34ec0a59a02a1a24b82610648b95db6d",
+  "app_tree": "e16d767d4f6b43d830f79b10e885a1dec03be318",
+  "served_mirror_commit": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+  "served_stamp_in_captures": "seed - 18dc95d",
+  "mirror_verification": "Mac preview HEAD^{tree} == db701d4d^{tree} (e16d767d...) computed locally; BEAM pid 51585 started 2026-10-18 18:34:26 PDT, 31s after mirror commit 18dc95d8 (18:33:55 PDT); GET /health ok/db up/synthetic_development; migrations 110 up / 0 down",
+  "stack": "Mac opal-r18-preview worktree; Phoenix :4100 (r1a1.env, synthetic mode), Vite :5174 VITE_OPAL_SHELL=c2; LAN 192.168.0.33; captures at 390x844 DSF2, headless-shell 1217",
+  "sessions": {
+    "a": "130503fb-c784-429d-86a9-c46d116b1bde",
+    "b": "743f5f29-fc4e-40c5-bb96-12ce80f03244"
+  },
+  "seed": {
+    "comm": 200,
+    "graph": 200
+  },
+  "setup": {
+    "directConversationId": "39692baf-bb36-41e0-ba22-3b70fddf69d4",
+    "directStatus": 200,
+    "messages": [
+      201,
+      201
+    ],
+    "planStatus": 201,
+    "plan": {
+      "cancelled_at": null,
+      "completed_at": null,
+      "conflict": {
+        "time_label": "Saturday 6:00 PM",
+        "title": "Shared dinner macreplay1",
+        "with_plan_id": "bcc0872d-9f65-48c9-816d-c113aecc928f"
+      },
+      "conversation_id": "39692baf-bb36-41e0-ba22-3b70fddf69d4",
+      "created_at": "2026-10-19T02:03:26.052321Z",
+      "created_by_user_id": "743f5f29-fc4e-40c5-bb96-12ce80f03244",
+      "created_from_proposal_id": null,
+      "current_revision_id": null,
+      "dedupe_key": "0477be1cbea74dfa929c825f",
+      "end_at": null,
+      "going_count": 1,
+      "id": "d39df6d7-2626-4143-93ed-85427b910dbd",
+      "interested_count": 1,
+      "lead_user_id": "743f5f29-fc4e-40c5-bb96-12ce80f03244",
+      "location": "Juniper and Ivy",
+      "meeting_link": null,
+      "meeting_provider": null,
+      "online": false,
+      "organizer_name": "Regression A",
+      "place": {
+        "directions_available": true,
+        "join_available": false,
+        "kind": "physical",
+        "label": "Juniper and Ivy",
+        "meeting_link": null,
+        "meeting_provider": null
+      },
+      "place_changed_at": null,
+      "plan_type": "in_person",
+      "schema_version": "0.1.0",
+      "source": "conversation",
+      "start_at": null,
+      "status": "tentative",
+      "time_label": "Saturday 7:30 PM",
+      "timezone": "UTC",
+      "title": "Dinner at Juniper and Ivy",
+      "total_count": 2,
+      "trip_leg_id": null
+    },
+    "callStatus": 201,
+    "revealsStatus": 200,
+    "revealsForA": [
+      {
+        "reveal_key": "plan:6e3b03bf-6c13-4477-b32a-809d50046268:needs-answer",
+        "category": "P1",
+        "lit": true,
+        "kicker": "Your move"
+      },
+      {
+        "reveal_key": "plan:fcd2e939-b967-42e0-90eb-a9a7366ba49c:needs-answer",
+        "category": "P1",
+        "lit": false,
+        "kicker": "Your move"
+      },
+      {
+        "reveal_key": "plan:d39df6d7-2626-4143-93ed-85427b910dbd:needs-answer",
+        "category": "P1",
+        "lit": false,
+        "kicker": "Your move"
+      },
+      {
+        "reveal_key": "plan:a7369517-d086-475f-ae0d-7aaeb10feea6:ready",
+        "category": "P2",
+        "lit": false,
+        "kicker": "Ready for you"
+      },
+      {
+        "reveal_key": "plan:5861cb2c-01a7-4351-ae13-b1a1fb29b231:ready",
+        "category": "P2",
+        "lit": false,
+        "kicker": "Ready for you"
+      },
+      {
+        "reveal_key": "plan:ddb01614-8c60-4c5a-af94-29336ca36eba:ready",
+        "category": "P2",
+        "lit": false,
+        "kicker": "Ready for you"
+      },
+      {
+        "reveal_key": "plan:bf521ad3-4d60-44b7-8591-d2167be68c6a:missing-place",
+        "category": "P3",
+        "lit": false,
+        "kicker": "One thing left"
+      },
+      {
+        "reveal_key": "plan:39184c54-bfaf-4a4a-90a1-94ca97513736:missing-time",
+        "category": "P3",
+        "lit": false,
+        "kicker": "One thing left"
+      },
+      {
+        "reveal_key": "plan:d2b0b63f-d0b1-48ac-ba43-648066022485:missing-place",
+        "category": "P3",
+        "lit": false,
+        "kicker": "One thing left"
+      },
+      {
+        "reveal_key": "report:16e90601-99bd-480a-b576-e878b63ed4dd",
+        "category": "P6",
+        "lit": false,
+        "kicker": "Opal update"
+      }
+    ],
+    "celebration": {
+      "date_label": "Nov 2",
+      "day": 2,
+      "id": "9fbc1990-ad2d-46b0-9f18-8482632c8aa6",
+      "inserted_at": "2026-10-19T02:54:46.543022Z",
+      "kind": "birthday",
+      "month": 11,
+      "notes": null,
+      "person_name": "Regression B",
+      "updated_at": "2026-10-19T02:54:46.543022Z",
+      "user_id": "130503fb-c784-429d-86a9-c46d116b1bde",
+      "year": null
+    },
+    "shelfStartersAfterCelebration": [
+      {
+        "id": "celebration-9fbc1990-ad2d-46b0-9f18-8482632c8aa6",
+        "title": "Plan something for Regression B",
+        "basis_line": "You saved Regression B's birthday - it is coming up on Nov 2."
+      }
+    ],
+    "goalInFrame": "Working-toward shows the pre-existing real goal 'Harmony proof goal' (created by the harmony2 wave through the same UI) with 1 plan linked; no new goal was created by this pack - the create branch never triggered because a picker already existed."
+  },
+  "lockupGate": "pass - zero [data-orb-lockup=\"full\"] side-by-side lockups on any probed surface in any pass",
+  "lockupViolations": [],
+  "reprobes": {
+    "centerDeckClipped": {
+      "replay": "dark 1 / light 0",
+      "thisPack": "dark 1 / light 1 at deck rest (sample 'Expiry macreplay1'); 0 in both modes when scrolled",
+      "verdict": "REAL element, not a mode asymmetry: the third Taking-shape card's title sits clipped at the deck's rest fold in both modes; the replay's light=0 did not reproduce."
+    },
+    "soulForm": {
+      "replay": "dark true / light false",
+      "thisPack": "true in BOTH modes once the section finished loading (dark needed a 60s-budget wait; the section first paints 'Loading.')",
+      "verdict": "ARTIFACT - load timing, in both the replay and this pack's first passes."
+    },
+    "centerChatOpened": {
+      "replay": "dark true / light false",
+      "thisPack": "true in both modes",
+      "verdict": "ARTIFACT - the replay's light=false did not reproduce; Center chat opens in both modes."
+    }
+  },
+  "capturePasses": [
+    "main (fullpack-capture.mjs, ONE provision + ONE founder-seed call set)",
+    "topup (fullpack-topup.mjs - deck FireFrame probe, R17-path call log, delete arm, celebration+shelf; sessions only, no re-seed)",
+    "youfix (fresh navigation per You section after the main loop stuck on the Your-moments archive)",
+    "homefix (Home waited to loaded state; wide pair via sidebar nav)",
+    "microfix/scrollfix (dark soul-memory waited; light calls-assist via hub settings search; Home scrolled via native scrollIntoView)",
+    "threaddiag (thread lit-reveal + FireFrame element captures, both modes)"
+  ],
+  "surfaces": [
+    {
+      "label": "splash-1-probes",
+      "mode": "dark",
+      "fieldAttr": "night-master",
+      "rootBg": "rgb(5, 3, 15)",
+      "enterOpalCount": "0",
+      "stageBox": {
+        "x": 14,
+        "y": 14,
+        "w": 362,
+        "h": 362
+      },
+      "marginContained": true,
+      "lockupStacked": {
+        "stacked": true,
+        "centerDeltaX": 0
+      },
+      "gitHeadFull": "18dc95d8458412b7537076bd25d3da6a1e600dd7"
+    },
+    {
+      "label": "splash-1",
+      "mode": "dark",
+      "file": "splash-1-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "splash-2-entry",
+      "mode": "dark",
+      "file": "splash-2-entry-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "enterButtons": 1,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "splash-1-probes",
+      "mode": "light",
+      "fieldAttr": "night-master",
+      "rootBg": "rgb(5, 3, 15)",
+      "enterOpalCount": "0",
+      "stageBox": {
+        "x": 14,
+        "y": 14,
+        "w": 362,
+        "h": 362
+      },
+      "marginContained": true,
+      "lockupStacked": {
+        "stacked": true,
+        "centerDeltaX": 0
+      },
+      "gitHeadFull": "18dc95d8458412b7537076bd25d3da6a1e600dd7"
+    },
+    {
+      "label": "splash-1",
+      "mode": "light",
+      "file": "splash-1-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "splash-2-entry",
+      "mode": "light",
+      "file": "splash-2-entry-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "enterButtons": 1,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "search-groups",
+      "mode": "dark",
+      "query": "dinner",
+      "groups": {
+        "plans": 1,
+        "chats": 1,
+        "people": 0,
+        "intentions": 0,
+        "planRows": 30,
+        "chatRows": 5,
+        "personRows": 0
+      }
+    },
+    {
+      "label": "search-groups",
+      "mode": "dark",
+      "query": "Regression",
+      "groups": {
+        "plans": 1,
+        "chats": 1,
+        "people": 1,
+        "intentions": 0,
+        "planRows": 2,
+        "chatRows": 6,
+        "personRows": 6
+      }
+    },
+    {
+      "label": "search",
+      "mode": "dark",
+      "file": "search-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [
+        "wordmark"
+      ],
+      "fullCount": 0,
+      "query": "Regression",
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-deck-reveals",
+      "mode": "dark",
+      "reveals": [
+        {
+          "lit": "false",
+          "category": "P6",
+          "text": "\u25cbOpal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss",
+          "inViewport": false
+        }
+      ]
+    },
+    {
+      "label": "center-deck",
+      "mode": "dark",
+      "file": "center-deck-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 1,
+      "clippedSample": [
+        "Expiry macreplay1"
+      ],
+      "lockups": [],
+      "fullCount": 0,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-deck-scrolled",
+      "mode": "dark",
+      "file": "center-deck-scrolled-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "fold": {
+        "ok": true,
+        "cardBottom": 734,
+        "dockTop": 772,
+        "scrollHeight": 1175,
+        "clientHeight": 844
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-chat",
+      "mode": "dark",
+      "file": "center-chat-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "chatProbe": {
+        "opened": true,
+        "holdingChips": 0
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-chat-exchange",
+      "mode": "dark",
+      "file": "center-chat-exchange-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "exchange": {
+        "holdingChips": 4,
+        "chipLabels": [
+          "107 plans in motion",
+          "7 waiting on your answer",
+          "0 memories held",
+          "0 sources connected"
+        ],
+        "chatTextTail": " me to retry?Listen\u25cbFormingFinal name macreplay1\u25f7 Friday 7:30 PM\u2316 Juniper & Ivy1 of 2 going - 1 interestedView planListenWhat are you holding for me?Here is what I am holding for you: 107 plans in motion, 7 waiting on your answer, 0 memories held, and 0 sources connected.Listen107 plans in motion7 waiting on your answer0 memories held0 sources connectedZoom standup with the team Tuesday macreplay1"
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "file": "chats-list-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "planAwareness": [
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "c8416547-d993-4455-9d01-6bdb3959667d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
+          "state": "forming",
+          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
+          "state": "forming",
+          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ad3f84db-b595-4d15-9f39-3235906fce5c",
+          "state": "ready",
+          "text": "\u2713ReadyLinkless virtual journey macreplay1 - Friday 9:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "02e80ce2-6680-40fe-ba14-47e06584af1f",
+          "state": "ready",
+          "text": "\u2713ReadySplit probe journey macreplay1 - Friday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "3f038d36-8c0d-402f-ad4f-784697b7036b",
+          "state": "ready",
+          "text": "\u2713ReadyPhysical dinner journey macreplay1 - Saturday 7:30 PM - Juniper and Ivy",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
+          "state": "ready",
+          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
+          "state": "ready",
+          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "22d6ea64-ed36-4b2e-ae90-fcdf64e470b0",
+          "state": "ready",
+          "text": "\u2713ReadyVideo dinner journey macreplay1 - Tuesday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
+          "state": "ready",
+          "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
+          "state": "ready",
+          "text": "\u2713ReadyMeetup - Saturday \u00b7 7:30 PM - Juniper",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "f95b1cb8-fdc9-41a7-a541-48a688380518",
+          "state": "forming",
+          "text": "\u25cbFormingDate night with Chanelle - tonight 5 PM - date night",
+          "isSetupPlan": false
+        }
+      ],
+      "lockupGate": "pass"
+    },
+    {
+      "label": "thread",
+      "mode": "dark",
+      "file": "thread-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "thread": {
+        "threadShell": true,
+        "stripPresent": true,
+        "stripText": "NEXT TOGETHER\u2713ReadyRaceAccept macreplay1 - tomorrow 8:00 PM - Dinner",
+        "threadRevealPresent": true,
+        "threadRevealText": "\u25c6Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs",
+      "mode": "dark",
+      "file": "graphs-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "graphs": {
+        "planCards": 100,
+        "statePills": [
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming"
+        ],
+        "groups": [
+          "Needs a day or a detail\u25cbFormingJuniper & Ivy7 PM1 of 3 going",
+          "Someday\u25cbFormingRevPlan macreplay19:00 PMRevPlan macreplay11 "
+        ]
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs-intentions",
+      "mode": "dark",
+      "file": "graphs-intentions-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "plan-detail",
+      "mode": "dark",
+      "file": "plan-detail-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "detail": {
+        "textHead": "Graph\u25cbFormingJuniper & Ivy7 PM1 of 3 going1 of 3 goingWhen7 PMWhoUAUser AGoingRARegression AWaiting to answerRFRegression FifthWaiting to answerAdd peopleOpen the chat for this planHistory - hideUser A set the day to 7 PM.Created by User A.Check inCheck in with everyone",
+        "hasWho": true,
+        "attendancePresent": true,
+        "historyLines": 1
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs-working-toward",
+      "mode": "dark",
+      "file": "graphs-working-toward-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "goals": {
+        "text": "Working towardHarmony proof goalNext up: Plan with User A - tomorrow after 10 PM. Nothing linked has finished yet.1 linked - changeRemoveAdd goal",
+        "pickers": 1
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs-goal-picker",
+      "mode": "dark",
+      "file": "graphs-goal-picker-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "picker": {
+        "linkButtons": 100,
+        "pickerListPresent": true
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "search-groups",
+      "mode": "light",
+      "query": "dinner",
+      "groups": {
+        "plans": 1,
+        "chats": 1,
+        "people": 0,
+        "intentions": 0,
+        "planRows": 30,
+        "chatRows": 5,
+        "personRows": 0
+      }
+    },
+    {
+      "label": "search-groups",
+      "mode": "light",
+      "query": "Regression",
+      "groups": {
+        "plans": 1,
+        "chats": 1,
+        "people": 1,
+        "intentions": 0,
+        "planRows": 2,
+        "chatRows": 6,
+        "personRows": 6
+      }
+    },
+    {
+      "label": "search",
+      "mode": "light",
+      "file": "search-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [
+        "wordmark"
+      ],
+      "fullCount": 0,
+      "query": "Regression",
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-deck-reveals",
+      "mode": "light",
+      "reveals": [
+        {
+          "lit": "false",
+          "category": "P6",
+          "text": "\u25cbOpal updateFinal name macreplay1Final name macreplay1 was renamed.Got itDismiss",
+          "inViewport": false
+        }
+      ]
+    },
+    {
+      "label": "center-deck",
+      "mode": "light",
+      "file": "center-deck-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 1,
+      "clippedSample": [
+        "Expiry macreplay1"
+      ],
+      "lockups": [],
+      "fullCount": 0,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-deck-scrolled",
+      "mode": "light",
+      "file": "center-deck-scrolled-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "fold": {
+        "ok": true,
+        "cardBottom": 734,
+        "dockTop": 772,
+        "scrollHeight": 1175,
+        "clientHeight": 844
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-chat",
+      "mode": "light",
+      "file": "center-chat-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "chatProbe": {
+        "opened": true,
+        "holdingChips": 4
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-chat-exchange",
+      "mode": "light",
+      "file": "center-chat-exchange-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "exchange": {
+        "holdingChips": 8,
+        "chipLabels": [
+          "107 plans in motion",
+          "7 waiting on your answer",
+          "0 memories held",
+          "0 sources connected",
+          "107 plans in motion",
+          "7 waiting on your answer",
+          "0 memories held",
+          "0 sources connected"
+        ],
+        "chatTextTail": "emories held, and 0 sources connected.Listen107 plans in motion7 waiting on your answer0 memories held0 sources connectedWhat are you holding for me?Here is what I am holding for you: 107 plans in motion, 7 waiting on your answer, 0 memories held, and 0 sources connected.Listen107 plans in motion7 waiting on your answer0 memories held0 sources connectedZoom standup with the team Tuesday macreplay1"
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "file": "chats-list-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "planAwareness": [
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "c8416547-d993-4455-9d01-6bdb3959667d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
+          "state": "forming",
+          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "636634d0-ea82-4b61-82a7-fe97a3448da1",
+          "state": "forming",
+          "text": "\u25cbFormingJuniper & Ivy - tomorrow 8:00 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "634c41e9-611c-437f-8361-0cd89a4b638d",
+          "state": "forming",
+          "text": "\u25cbFormingDinner - 7:00 AM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ea2c663c-f2ab-4b39-8174-a3b5775a0aa9",
+          "state": "forming",
+          "text": "\u25cbFormingLeadership macreplay1 - Thursday 8:30 PM - Dinner",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "ad3f84db-b595-4d15-9f39-3235906fce5c",
+          "state": "ready",
+          "text": "\u2713ReadyLinkless virtual journey macreplay1 - Friday 9:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "02e80ce2-6680-40fe-ba14-47e06584af1f",
+          "state": "ready",
+          "text": "\u2713ReadySplit probe journey macreplay1 - Friday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "3f038d36-8c0d-402f-ad4f-784697b7036b",
+          "state": "ready",
+          "text": "\u2713ReadyPhysical dinner journey macreplay1 - Saturday 7:30 PM - Juniper and Ivy",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
+          "state": "ready",
+          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "08082c22-47ec-4892-96ba-defa5707cfe4",
+          "state": "ready",
+          "text": "\u2713ReadyCoherence virtual journey macreplay1 - Sunday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "22d6ea64-ed36-4b2e-ae90-fcdf64e470b0",
+          "state": "ready",
+          "text": "\u2713ReadyVideo dinner journey macreplay1 - Tuesday 7:00 PM - Online",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "9581f60f-b23e-4ca3-8bb3-3159cb0ca480",
+          "state": "ready",
+          "text": "\u2713ReadyJuniper & Ivy - 7 PM",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
+          "state": "ready",
+          "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "a7369517-d086-475f-ae0d-7aaeb10feea6",
+          "state": "ready",
+          "text": "\u2713ReadyMeetup - Saturday \u00b7 7:30 PM - Juniper",
+          "isSetupPlan": false
+        },
+        {
+          "variant": "row",
+          "planId": "f95b1cb8-fdc9-41a7-a541-48a688380518",
+          "state": "forming",
+          "text": "\u25cbFormingDate night with Chanelle - tonight 5 PM - date night",
+          "isSetupPlan": false
+        }
+      ],
+      "lockupGate": "pass"
+    },
+    {
+      "label": "thread",
+      "mode": "light",
+      "file": "thread-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "thread": {
+        "threadShell": true,
+        "stripPresent": true,
+        "stripText": "NEXT TOGETHER\u2713ReadyRaceAccept macreplay1 - tomorrow 8:00 PM - Dinner",
+        "threadRevealPresent": true,
+        "threadRevealText": "\u25c6Your moveactionDinner at Juniper and IvySaturday 7:30 PM - Juniper and IvyConfirmDismiss"
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs",
+      "mode": "light",
+      "file": "graphs-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "graphs": {
+        "planCards": 100,
+        "statePills": [
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming",
+          "\u25cbForming"
+        ],
+        "groups": [
+          "Needs a day or a detail\u25cbFormingJuniper & Ivy7 PM1 of 3 going",
+          "Someday\u25cbFormingRevPlan macreplay19:00 PMRevPlan macreplay11 "
+        ]
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs-intentions",
+      "mode": "light",
+      "file": "graphs-intentions-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "lockupGate": "pass"
+    },
+    {
+      "label": "plan-detail",
+      "mode": "light",
+      "file": "plan-detail-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "detail": {
+        "textHead": "Graph\u25cbFormingJuniper & Ivy7 PM1 of 3 going1 of 3 goingWhen7 PMWhoUAUser AGoingRARegression AWaiting to answerRFRegression FifthWaiting to answerAdd peopleOpen the chat for this planHistory - hideUser A set the day to 7 PM.Created by User A.Check inCheck in with everyone",
+        "hasWho": true,
+        "attendancePresent": true,
+        "historyLines": 1
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs-working-toward",
+      "mode": "light",
+      "file": "graphs-working-toward-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "goals": {
+        "text": "Working towardHarmony proof goalNext up: Plan with User A - tomorrow after 10 PM. Nothing linked has finished yet.1 linked - changeRemoveAdd goal",
+        "pickers": 1
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "graphs-goal-picker",
+      "mode": "light",
+      "file": "graphs-goal-picker-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "escapees": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "picker": {
+        "linkButtons": 100,
+        "pickerListPresent": true
+      },
+      "lockupGate": "pass"
+    },
+    {
+      "label": "center-deck-fireframes",
+      "mode": "dark",
+      "frames": [],
+      "pass": "topup"
+    },
+    {
+      "label": "center-deck-fireframes",
+      "mode": "light",
+      "frames": [],
+      "pass": "topup"
+    },
+    {
+      "label": "thread-lit-reveal",
+      "mode": "dark",
+      "file": "thread-lit-reveal-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "threaddiag",
+      "reveal": {
+        "data-lit": "true",
+        "fireFrames": 1,
+        "kicker": "Your move",
+        "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
+      }
+    },
+    {
+      "label": "thread-lit-reveal",
+      "mode": "light",
+      "file": "thread-lit-reveal-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "threaddiag",
+      "reveal": {
+        "data-lit": "true",
+        "fireFrames": 1,
+        "kicker": "Your move",
+        "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
+      }
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "dark",
+      "file": "splash-1-motion-dark.webm",
+      "stamp": "d0bcc9981082fe220005047879ee4e484d35f841",
+      "pass": "carried-from-splash-pack",
+      "note": "Carried into this pack per task instruction from shots/repair18/splash-pack/ (captured on the splash wave's side stack, mirror d0bcc998 of the same integrated tree lineage); splash stills in THIS pack are from the served 18dc95d8 mirror."
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "light",
+      "file": "splash-1-motion-light.webm",
+      "stamp": "d0bcc9981082fe220005047879ee4e484d35f841",
+      "pass": "carried-from-splash-pack",
+      "note": "Carried into this pack per task instruction from shots/repair18/splash-pack/ (captured on the splash wave's side stack, mirror d0bcc998 of the same integrated tree lineage); splash stills in THIS pack are from the served 18dc95d8 mirror."
+    },
+    {
+      "label": "sidebyside-master-vs-splash1",
+      "mode": "dark",
+      "file": "sidebyside-master-vs-splash1-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-master-vs-dock",
+      "mode": "dark",
+      "file": "sidebyside-master-vs-dock-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-fireframe-notification",
+      "mode": "dark",
+      "file": "sidebyside-fireframe-notification-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-master-vs-splash1",
+      "mode": "light",
+      "file": "sidebyside-master-vs-splash1-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-master-vs-dock",
+      "mode": "light",
+      "file": "sidebyside-master-vs-dock-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-fireframe-notification",
+      "mode": "light",
+      "file": "sidebyside-fireframe-notification-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "center-deck-fireframes",
+      "mode": "dark",
+      "frames": [],
+      "pass": "topup"
+    },
+    {
+      "label": "graphs-someday-shelf",
+      "mode": "dark",
+      "file": "graphs-someday-shelf-dark.png",
+      "shelf": {
+        "text": "Someday - the shelfPlan something for Regression BYou saved Regression B's birthday - it is coming up on Nov 2.Start a plan",
+        "starters": 1
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "pass": "topup"
+    },
+    {
+      "label": "call-log",
+      "mode": "dark",
+      "file": "call-log-dark.png",
+      "path": "r17-shell ChatsHome calls mode (as served)",
+      "callLog": {
+        "listPresent": true,
+        "rows": 8,
+        "found": [
+          {
+            "planId": "c8416547-d993-4455-9d01-6bdb3959667d",
+            "state": "happening",
+            "text": "HappeningDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home"
+          },
+          {
+            "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
+            "state": "ready",
+            "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market"
+          }
+        ]
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "pass": "topup"
+    },
+    {
+      "label": "center-deck-fireframes",
+      "mode": "light",
+      "frames": [],
+      "pass": "topup"
+    },
+    {
+      "label": "graphs-someday-shelf",
+      "mode": "light",
+      "file": "graphs-someday-shelf-light.png",
+      "shelf": {
+        "text": "Someday - the shelfPlan something for Regression BYou saved Regression B's birthday - it is coming up on Nov 2.Start a plan",
+        "starters": 1
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "pass": "topup"
+    },
+    {
+      "label": "call-log",
+      "mode": "light",
+      "file": "call-log-light.png",
+      "path": "r17-shell ChatsHome calls mode (as served)",
+      "callLog": {
+        "listPresent": true,
+        "rows": 8,
+        "found": [
+          {
+            "planId": "c8416547-d993-4455-9d01-6bdb3959667d",
+            "state": "happening",
+            "text": "HappeningDinner macreplay1 - Mon, Oct 19, 02:54 AM - Home"
+          },
+          {
+            "planId": "5861cb2c-01a7-4351-ae13-b1a1fb29b231",
+            "state": "ready",
+            "text": "\u2713ReadySaturday opens like this - Saturday \u00b7 Oceanside - Oceanside Farmers Market"
+          }
+        ]
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "lockups": [],
+      "fullCount": 0,
+      "pass": "topup"
+    },
+    {
+      "label": "you-edit-profile",
+      "mode": "dark",
+      "file": "you-edit-profile-dark.png",
+      "head": {
+        "title": "Edit profile",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-appearance",
+      "mode": "dark",
+      "file": "you-appearance-dark.png",
+      "head": {
+        "title": "Appearance",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-your-moments",
+      "mode": "dark",
+      "file": "you-your-moments-dark.png",
+      "head": {
+        "title": "Your moments",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-your-library",
+      "mode": "dark",
+      "file": "you-your-library-dark.png",
+      "head": {
+        "title": "Your library",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-what-opal-remembers",
+      "mode": "dark",
+      "file": "you-what-opal-remembers-dark.png",
+      "head": {
+        "title": "What Opal remembers",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "soulForm": false,
+      "rememberRows": 0,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-how-opal-helps",
+      "mode": "dark",
+      "file": "you-how-opal-helps-dark.png",
+      "head": {
+        "title": "How Opal helps",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-approvals-activity",
+      "mode": "dark",
+      "file": "you-approvals-activity-dark.png",
+      "head": {
+        "title": "Approvals + activity",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-what-opal-hears",
+      "mode": "dark",
+      "file": "you-what-opal-hears-dark.png",
+      "head": {
+        "title": "What Opal hears",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-connections",
+      "mode": "dark",
+      "file": "you-connections-dark.png",
+      "head": {
+        "title": "Connections",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "connectionRows": [
+        {
+          "id": "c2-setting-row-google-connect",
+          "text": "Connect Google"
+        }
+      ],
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-connected-sources",
+      "mode": "dark",
+      "file": "you-connected-sources-dark.png",
+      "head": {
+        "title": "Connected sources",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-notifications",
+      "mode": "dark",
+      "file": "you-notifications-dark.png",
+      "head": {
+        "title": "Quiet",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-privacy",
+      "mode": "dark",
+      "file": "you-privacy-dark.png",
+      "head": {
+        "title": "Privacy",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-linked-devices",
+      "mode": "dark",
+      "file": "you-linked-devices-dark.png",
+      "head": {
+        "title": "Linked devices",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-location-travel",
+      "mode": "dark",
+      "file": "you-location-travel-dark.png",
+      "head": {
+        "title": "Location and travel",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-care",
+      "mode": "dark",
+      "file": "you-care-dark.png",
+      "head": {
+        "title": "Care and household",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-account-security",
+      "mode": "dark",
+      "file": "you-account-security-dark.png",
+      "head": {
+        "title": "Account and security",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-saved-logins",
+      "mode": "dark",
+      "file": "you-saved-logins-dark.png",
+      "head": {
+        "title": "Saved logins",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-invite-code",
+      "mode": "dark",
+      "file": "you-invite-code-dark.png",
+      "head": {
+        "title": "Your invite code",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-delete-account",
+      "mode": "dark",
+      "file": "you-delete-account-dark.png",
+      "head": {
+        "title": "Delete my data or account",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "armed": true,
+      "confirmVisible": true,
+      "note": "ARMED ONLY - confirm/execute NOT clicked; nothing deleted",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-help-support",
+      "mode": "dark",
+      "file": "you-help-support-dark.png",
+      "head": {
+        "title": "Help & support",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-edit-profile",
+      "mode": "light",
+      "file": "you-edit-profile-light.png",
+      "head": {
+        "title": "Edit profile",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-appearance",
+      "mode": "light",
+      "file": "you-appearance-light.png",
+      "head": {
+        "title": "Appearance",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-your-moments",
+      "mode": "light",
+      "file": "you-your-moments-light.png",
+      "head": {
+        "title": "Your moments",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-your-library",
+      "mode": "light",
+      "file": "you-your-library-light.png",
+      "head": {
+        "title": "Your library",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-soul-memory",
+      "mode": "light",
+      "file": "you-soul-memory-light.png",
+      "head": {
+        "title": "Soul + Memory",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "soulForm": true,
+      "rememberRows": 1,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-what-opal-remembers",
+      "mode": "light",
+      "file": "you-what-opal-remembers-light.png",
+      "head": {
+        "title": "What Opal remembers",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "soulForm": false,
+      "rememberRows": 0,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-how-opal-helps",
+      "mode": "light",
+      "file": "you-how-opal-helps-light.png",
+      "head": {
+        "title": "How Opal helps",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-approvals-activity",
+      "mode": "light",
+      "file": "you-approvals-activity-light.png",
+      "head": {
+        "title": "Approvals + activity",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-what-opal-hears",
+      "mode": "light",
+      "file": "you-what-opal-hears-light.png",
+      "head": {
+        "title": "What Opal hears",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-connections",
+      "mode": "light",
+      "file": "you-connections-light.png",
+      "head": {
+        "title": "Connections",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "connectionRows": [
+        {
+          "id": "c2-setting-row-google-connect",
+          "text": "Connect Google"
+        }
+      ],
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-connected-sources",
+      "mode": "light",
+      "file": "you-connected-sources-light.png",
+      "head": {
+        "title": "Connected sources",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-notifications",
+      "mode": "light",
+      "file": "you-notifications-light.png",
+      "head": {
+        "title": "Quiet",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-privacy",
+      "mode": "light",
+      "file": "you-privacy-light.png",
+      "head": {
+        "title": "Privacy",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-linked-devices",
+      "mode": "light",
+      "file": "you-linked-devices-light.png",
+      "head": {
+        "title": "Linked devices",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-location-travel",
+      "mode": "light",
+      "file": "you-location-travel-light.png",
+      "head": {
+        "title": "Location and travel",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-care",
+      "mode": "light",
+      "file": "you-care-light.png",
+      "head": {
+        "title": "Care and household",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-account-security",
+      "mode": "light",
+      "file": "you-account-security-light.png",
+      "head": {
+        "title": "Account and security",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-saved-logins",
+      "mode": "light",
+      "file": "you-saved-logins-light.png",
+      "head": {
+        "title": "Saved logins",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-invite-code",
+      "mode": "light",
+      "file": "you-invite-code-light.png",
+      "head": {
+        "title": "Your invite code",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-delete-account",
+      "mode": "light",
+      "file": "you-delete-account-light.png",
+      "head": {
+        "title": "Delete my data or account",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "armed": true,
+      "confirmVisible": true,
+      "note": "ARMED ONLY - confirm/execute NOT clicked; nothing deleted",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-help-support",
+      "mode": "light",
+      "file": "you-help-support-light.png",
+      "head": {
+        "title": "Help & support",
+        "routeTextHead": "All settingsYouEdit profileAppearanceYour momentsYour librarySoul and memorySoul"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "youfix"
+    },
+    {
+      "label": "you-calls-assist",
+      "mode": "light",
+      "title": "Opal Assist and calls",
+      "via": "You hub settings search (real user path)",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "microfix"
+    },
+    {
+      "label": "you-soul-memory",
+      "mode": "dark",
+      "file": "you-soul-memory-dark.png",
+      "soulForm": true,
+      "title": "Soul + Memory",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "microfix",
+      "note": "Re-captured with waitForSelector on c2-soul-form (60s budget); the youfix dark frame fired while the section still read 'Loading.'"
+    },
+    {
+      "label": "you-calls-assist",
+      "mode": "dark",
+      "title": "Opal Assist and calls",
+      "via": "You hub settings search (real user path)",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "microfix4"
+    },
+    {
+      "label": "dock-closeup",
+      "mode": "dark",
+      "file": "dock-closeup-dark.png",
+      "halo": {
+        "discPresent": true,
+        "discVisible": true,
+        "discBox": {
+          "x": 167,
+          "y": 767,
+          "w": 56,
+          "h": 56
+        },
+        "markInsideDisc": true,
+        "ringsPresent": true,
+        "discBorderTopWidth": "1px",
+        "discBorderTopColor": "color(srgb 0.858824 0.682353 0.556863 / 0.45)"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "microfix4"
+    },
+    {
+      "label": "dock-closeup",
+      "mode": "light",
+      "file": "dock-closeup-light.png",
+      "halo": {
+        "discPresent": true,
+        "discVisible": true,
+        "discBox": {
+          "x": 167,
+          "y": 767,
+          "w": 56,
+          "h": 56
+        },
+        "markInsideDisc": true,
+        "ringsPresent": true,
+        "discBorderTopWidth": "1px",
+        "discBorderTopColor": "color(srgb 0.858824 0.682353 0.556863 / 0.45)"
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "microfix4"
+    },
+    {
+      "label": "home",
+      "mode": "dark",
+      "file": "home-dark.png",
+      "loaded": true,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "homefix"
+    },
+    {
+      "label": "home-scrolled",
+      "mode": "dark",
+      "file": "home-scrolled-dark.png",
+      "scroller": {
+        "found": true,
+        "scrollTop": 0,
+        "scrollHeight": 3823
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "homefix"
+    },
+    {
+      "label": "wide-home",
+      "mode": "dark",
+      "file": "wide-home-dark.png",
+      "loaded": true,
+      "wide": {
+        "sidebarWidth": 232,
+        "dockDisplay": "none",
+        "routeHome": true
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "homefix"
+    },
+    {
+      "label": "wide-you",
+      "mode": "dark",
+      "file": "wide-you-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 2,
+      "clippedSample": [
+        "Regression A",
+        "Edit profile"
+      ],
+      "pass": "homefix"
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "file": "home-light.png",
+      "loaded": true,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "homefix"
+    },
+    {
+      "label": "home-scrolled",
+      "mode": "light",
+      "file": "home-scrolled-light.png",
+      "scroller": {
+        "found": true,
+        "scrollTop": 0,
+        "scrollHeight": 3823
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "homefix"
+    },
+    {
+      "label": "wide-home",
+      "mode": "light",
+      "file": "wide-home-light.png",
+      "loaded": true,
+      "wide": {
+        "sidebarWidth": 232,
+        "dockDisplay": "none",
+        "routeHome": true
+      },
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "clippedSample": [],
+      "pass": "homefix"
+    },
+    {
+      "label": "wide-you",
+      "mode": "light",
+      "file": "wide-you-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "docOverflow": 0,
+      "clippedCount": 2,
+      "clippedSample": [
+        "Regression A",
+        "Edit profile"
+      ],
+      "pass": "homefix"
+    },
+    {
+      "label": "home-scrolled",
+      "mode": "dark",
+      "method": "scrollIntoViewIfNeeded on 4th feed child",
+      "railTopBefore": 60,
+      "railTopAfter": -635,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "scrollfix"
+    },
+    {
+      "label": "home-scrolled",
+      "mode": "light",
+      "method": "scrollIntoViewIfNeeded on 4th feed child",
+      "railTopBefore": 60,
+      "railTopAfter": -635,
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "scrollfix"
+    },
+    {
+      "label": "thread-lit-reveal",
+      "mode": "dark",
+      "file": "thread-lit-reveal-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "threaddiag",
+      "reveal": {
+        "data-lit": "true",
+        "fireFrames": 1,
+        "kicker": "Your move",
+        "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
+      }
+    },
+    {
+      "label": "fireframe-element",
+      "mode": "dark",
+      "file": "fireframe-element-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "threaddiag",
+      "note": "Element screenshot of the lit thread reveal's FireFrame (reveal-fire-frame)"
+    },
+    {
+      "label": "thread-lit-reveal",
+      "mode": "light",
+      "file": "thread-lit-reveal-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "threaddiag",
+      "reveal": {
+        "data-lit": "true",
+        "fireFrames": 1,
+        "kicker": "Your move",
+        "plan": "Dinner at Juniper and Ivy (pack setup plan d39df6d7-2626-4143-93ed-85427b910dbd)"
+      }
+    },
+    {
+      "label": "fireframe-element",
+      "mode": "light",
+      "file": "fireframe-element-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "threaddiag",
+      "note": "Element screenshot of the lit thread reveal's FireFrame (reveal-fire-frame)"
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "dark",
+      "file": "splash-1-motion-dark.webm",
+      "stamp": "d0bcc9981082fe220005047879ee4e484d35f841",
+      "pass": "carried-from-splash-pack",
+      "note": "Carried into this pack per task instruction from shots/repair18/splash-pack/ (captured on the splash wave's side stack, mirror d0bcc998 of the same integrated tree lineage); splash stills in THIS pack are from the served 18dc95d8 mirror."
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "light",
+      "file": "splash-1-motion-light.webm",
+      "stamp": "d0bcc9981082fe220005047879ee4e484d35f841",
+      "pass": "carried-from-splash-pack",
+      "note": "Carried into this pack per task instruction from shots/repair18/splash-pack/ (captured on the splash wave's side stack, mirror d0bcc998 of the same integrated tree lineage); splash stills in THIS pack are from the served 18dc95d8 mirror."
+    },
+    {
+      "label": "sidebyside-master-vs-splash1",
+      "mode": "dark",
+      "file": "sidebyside-master-vs-splash1-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-master-vs-dock",
+      "mode": "dark",
+      "file": "sidebyside-master-vs-dock-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-fireframe-notification",
+      "mode": "dark",
+      "file": "sidebyside-fireframe-notification-dark.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-master-vs-splash1",
+      "mode": "light",
+      "file": "sidebyside-master-vs-splash1-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-master-vs-dock",
+      "mode": "light",
+      "file": "sidebyside-master-vs-dock-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    },
+    {
+      "label": "sidebyside-fireframe-notification",
+      "mode": "light",
+      "file": "sidebyside-fireframe-notification-light.png",
+      "stamp": "18dc95d8458412b7537076bd25d3da6a1e600dd7",
+      "pass": "composed-locally-from-pack-captures"
+    }
+  ],
+  "excluded": [
+    {
+      "file": "dock-full-dark.png / dock-full-light.png",
+      "reason": "Main-run frames taken while navigation was stuck on the Your-moments archive (no dock in frame); superseded by the verified dock close-ups + halo probes in manifest-microfix4 records. Excluded rather than shipped mislabeled."
+    }
+  ]
+}
