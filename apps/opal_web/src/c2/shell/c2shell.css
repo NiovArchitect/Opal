@@ -1094,6 +1094,34 @@
     font: var(--type-callout);
     text-align: center;
     padding: var(--space-4);
+    /* W21 (F1 follow-through): once record imagery actually loads,
+       the media fills the well absolutely and the caption overlays
+       it — as a flex row the img (width:100%) + caption overflowed
+       the well's right edge, a defect the bearer block had masked
+       (the well never held a real photo). */
+    position: relative;
+    overflow: hidden;
+  }
+  .c2s-viewer-media img,
+  .c2s-viewer-media video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .c2s-viewer-caption {
+    position: absolute;
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: var(--space-4);
+    margin: 0;
+    z-index: var(--layer-raised);
+    color: var(--accent-1-ink);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 55%);
+    font: var(--type-callout);
+    text-align: center;
+    pointer-events: none;
   }
 
   /* ---------- Center landing (entry point only; C1 owns internals) --- */
