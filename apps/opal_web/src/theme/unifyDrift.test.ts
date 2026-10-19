@@ -49,7 +49,8 @@ describe("unify: indicator drift - one token source", () => {
 
   it("PlanAwareness ambient treatment mixes FROM --pa-state (the component's PLAN_STATE_HEX value)", () => {
     expect(unify).toContain("color-mix(in srgb, var(--pa-state) 52%, transparent)");
-    expect(unify).toContain("color-mix(in srgb, var(--pa-state) 9%, transparent)");
+    // P7 at-rest: the fill is 14% (fill envelope top-ward, still from --pa-state).
+    expect(unify).toContain("color-mix(in srgb, var(--pa-state) 14%, transparent)");
   });
 
   it("Home plan-card treatments derive every state from its --orb-indicator token", () => {

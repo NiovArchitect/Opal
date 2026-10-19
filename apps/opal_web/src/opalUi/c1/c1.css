@@ -399,7 +399,11 @@
   [data-design="r18"] .c1-plan-card[data-plan-state="ready"] { border-color: var(--state-ready); }
   /* AT-15/AR-F5: happening's double-ring pattern (outer halo ring)
    * on the C1 card too - ready stays solid single everywhere. */
-  [data-design="r18"] .c1-plan-card[data-plan-state="happening"] { border-color: var(--state-happening); box-shadow: 0 0 0 3px color-mix(in srgb, var(--state-happening) 30%, transparent); }
+  /* P7 AT-REST (R19 polish): the halo ring's mix 30% -> 45% so the
+   * happening PATTERN channel (AR-F5: double ring vs ready's solid
+   * single) reads in a still frame, in greyscale, without motion -
+   * derived from the state token itself, ring geometry unchanged. */
+  [data-design="r18"] .c1-plan-card[data-plan-state="happening"] { border-color: var(--state-happening); box-shadow: 0 0 0 3px color-mix(in srgb, var(--state-happening) 45%, transparent); }
   [data-design="r18"] .c1-plan-card[data-plan-state="past"] { border-color: var(--state-past); }
   [data-design="r18"] .c1-plan-past { opacity: 0.72; }
   [data-design="r18"] .c1-plan-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

@@ -37,8 +37,8 @@
 /* ================================================================== */
 .plan-awareness[data-testid="plan-awareness"] {
   border-color: color-mix(in srgb, var(--pa-state) 52%, transparent);
-  background: color-mix(in srgb, var(--pa-state) 9%, transparent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--pa-state) 12%, transparent);
+  background: color-mix(in srgb, var(--pa-state) 14%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--pa-state) 25%, transparent);
 }
 .plan-awareness[data-testid="plan-awareness"][data-pattern="dashed"] {
   border-style: dashed; /* forming keeps its pattern cue */
@@ -50,7 +50,7 @@
 .plan-awareness[data-testid="plan-awareness"][data-variant="strip"] {
   /* The thread strip is the surface's one plan element: it carries
    * the fire-line family - a soft state glow under the strip. */
-  box-shadow: 0 1px 12px color-mix(in srgb, var(--pa-state) 14%, transparent);
+  box-shadow: 0 1px 16px color-mix(in srgb, var(--pa-state) 28%, transparent);
 }
 
 /* ================================================================== */
@@ -108,19 +108,19 @@
  * past = settled (canon white at ambient strength, no glow). */
 .chats-home .chats-home-row[data-plan-state="action"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-action-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-action-glow) 55%, transparent);
 }
 .chats-home .chats-home-row[data-plan-state="ready"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-ready) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-ready-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-ready-glow) 55%, transparent);
 }
 .chats-home .chats-home-row[data-plan-state="forming"] {
   border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-forming-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-forming-glow) 55%, transparent);
 }
 .chats-home .chats-home-row[data-plan-state="happening"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-happening-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
 }
 .chats-home .chats-home-row[data-plan-state="past"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-past) 40%, transparent);
@@ -505,19 +505,19 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
  *    glow). */
 [data-design="r18"] .c1-chat-row[data-plan-state="action"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-action-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-action-glow) 55%, transparent);
 }
 [data-design="r18"] .c1-chat-row[data-plan-state="ready"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-ready) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-ready-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-ready-glow) 55%, transparent);
 }
 [data-design="r18"] .c1-chat-row[data-plan-state="forming"] {
   border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-forming-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-forming-glow) 55%, transparent);
 }
 [data-design="r18"] .c1-chat-row[data-plan-state="happening"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 52%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--orb-indicator-happening-glow) 40%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
 }
 [data-design="r18"] .c1-chat-row[data-plan-state="past"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-past) 55%, var(--line-2));
@@ -551,6 +551,20 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
   border-color: color-mix(in srgb, currentColor 55%, transparent);
 }
 
+/* P7 AT-REST LEGIBILITY (R19 polish wave, founder 2026-10-19 16:27):
+ * rest intensities in sections 1, 2, 5 and 6 raised to the TOP of
+ * the Ambient Rulebook envelope (AR-00.2: fills 6-20%, border mixes
+ * 42-55%, glows <= 18px at <= 55% strength) - never past it - so a
+ * state reads in a STILL frame, not only in motion: row/card glows
+ * 12px at 40% -> 16px at 55%; the C2 action border 42% -> 52% and
+ * its glow to 18px at 55%; ready to 18px at 55%; the forming/ready
+ * tinted grounds 6-7% -> 12% (fill envelope); plan-awareness fill
+ * 9% -> 14% and its glows to 16px. Every value still derives from
+ * the canon --orb-indicator-* / --pa-state tokens (no new hue, no
+ * decorative color); past keeps NO glow (AR-10 rest); the AT-10
+ * capped card still sheds glow/ground (border-only) - coalescence
+ * is untouched. Static treatments: reduced-motion parity is
+ * automatic (AR-00.6). */
 /* ================================================================== */
 /* 6. HOME plan-state treatments (C2 PlanCardC2): every state gets    */
 /*    its own ambient register in the orb system. States are NEVER    */
@@ -566,7 +580,7 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
 /* ================================================================== */
 .c2s-root .c2-plan-card[data-plan-state="forming"] {
   border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-forming) 7%, var(--surface-1)), var(--surface-1));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-forming) 12%, var(--surface-1)), var(--surface-1));
   box-shadow: 0 0 18px color-mix(in srgb, var(--orb-indicator-forming-glow) 55%, transparent);
 }
 .c2s-root .c2-plan-card[data-plan-state="forming"] .orb-state-rule {
@@ -577,14 +591,14 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
   50% { opacity: 1; }
 }
 .c2s-root .c2-plan-card[data-plan-state="action"] {
-  border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--orb-indicator-action) 52%, transparent);
   border-left: 3px solid color-mix(in srgb, var(--orb-indicator-action) 78%, transparent);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--orb-indicator-action-glow) 45%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--orb-indicator-action-glow) 55%, transparent);
 }
 .c2s-root .c2-plan-card[data-plan-state="ready"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-ready) 50%, transparent);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-ready) 6%, var(--surface-1)), var(--surface-1));
-  box-shadow: 0 0 14px color-mix(in srgb, var(--orb-indicator-ready-glow) 50%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-ready) 12%, var(--surface-1)), var(--surface-1));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--orb-indicator-ready-glow) 55%, transparent);
 }
 .c2s-root .c2-plan-card[data-plan-state="happening"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 50%, transparent);

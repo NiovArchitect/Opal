@@ -73,7 +73,8 @@ describe("AT-15 + AT-18 - ready (solid) vs happening (double ring + live pulse)"
       '.c2s-root .c2-plan-card[data-plan-state="happening"] {\n  border: 1px solid',
     );
     expect(unify).toContain("0 0 0 3px color-mix(in srgb, var(--orb-indicator-happening) 30%");
-    expect(c1).toContain("0 0 0 3px color-mix(in srgb, var(--state-happening) 30%");
+    // P7 at-rest: the C1 halo mix is 45% (pattern readable in a still).
+    expect(c1).toContain("0 0 0 3px color-mix(in srgb, var(--state-happening) 45%");
   });
   it("the happening pulse is the LIVE key (2.4s, opacity .55-1), killed under reduced motion", () => {
     expect(unify).toContain("animation: unify-happening-pulse 2.4s ease-in-out infinite");
