@@ -1121,6 +1121,11 @@ export type PeopleChatSummary = {
   nextPlan?: NextPlanFact | null;
   /** DIR-1: the conversation entity's stable tint (L9). */
   entityTint?: number | null;
+  /** Repair #19 W24 (DL-03) — a quiet tie cue beside the person's
+   *  name ("Chanelle Brooks · Family - Sister"), finished by the
+   *  host adapter from the relationship rows. Absent = no cue; the
+   *  row grammar (two lines + plan slot) is unchanged. */
+  tieLabel?: string | null;
   /** DIR-4: a P1 reveal about this conversation's people, from the
    *  ONE derivation. When present it takes over the row's plan line
    *  (entry 7: same slot, never a fourth line). */
@@ -1142,6 +1147,35 @@ export function PeopleChatsList({
    *  words only, exactly as before (review surfaces). */
   onShowCalls?: () => void;
 }) {
+  /* R19 W25 (FA-01): the search field is WIRED — it filters the
+   * list in place, the exact pattern the Calls log below and the
+   * Center log already prove (query state in the component, rows
+   * derived from it). It was rendered with no value/onChange and
+   * filtered nothing (W22 J4, charged). The needle matches the
+   * row's own finished text only: the person's name, the preview,
+   * the tie cue, and the plan text the row itself carries (the
+   * DIR-4 reveal, the DIR-1 next-plan fact, or the plan
+   * projection) — never a fact the row does not show. */
+  const [q, setQ] = useState("");
+  const needle = q.trim().toLowerCase();
+  const visible = needle
+    ? chats.filter((c) => {
+        const haystack = [
+          c.name,
+          c.preview,
+          c.tieLabel ?? "",
+          c.reveal?.title ?? "",
+          c.reveal?.substance ?? "",
+          c.nextPlan?.title ?? "",
+          c.nextPlan?.when_label ?? "",
+          c.nextPlan?.where_label ?? "",
+          c.plan?.title ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(needle);
+      })
+    : chats;
   return (
     <div className="c1-surface" data-testid="people-chats-list">
       <div className="c1-list-head">
@@ -1172,15 +1206,26 @@ export function PeopleChatsList({
           <span>Calls</span>
         )}
       </div>
-      <input className="c1-search" placeholder="Search people or conversations" aria-label="Search people or conversations" />
+      <input
+        className="c1-search"
+        placeholder="Search people or conversations"
+        aria-label="Search people or conversations"
+        data-testid="chats-search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
       {chats.length === 0 ? (
         <div className="c1-empty">
           <p className="c1-empty-title">No chats yet.</p>
           <p className="c1-empty-line">Start a chat.</p>
         </div>
+      ) : visible.length === 0 ? (
+        <div className="c1-empty" data-testid="chats-search-empty">
+          <p className="c1-empty-line">No chat matches that search.</p>
+        </div>
       ) : (
         <div className="c1-rows">
-          {chats.map((c) => {
+          {visible.map((c) => {
             /* R19 W5-06: the row's plan state comes ONLY from the
              * row's existing single-source plan facts, in the order
              * the row already renders them (the DIR-4 reveal that
@@ -1245,6 +1290,11 @@ export function PeopleChatsList({
                   <span className="c1-session-main">
                     <span className={`c1-session-title${c.unread ? " c1-unread-name" : ""}`}>
                       {c.name}
+                      {c.tieLabel ? (
+                        <span className="c1-session-tie" data-testid="chats-row-tie">
+                          {` · ${c.tieLabel}`}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="c1-session-preview">{c.preview}</span>
                   </span>

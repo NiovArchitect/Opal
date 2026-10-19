@@ -93,26 +93,27 @@ describe("c2Tokens (track-c2 sections 2.6 and 2.7)", () => {
     expect(hslLightness(dark.get("--ink-3")!)).toBeLessThanOrEqual(65);
   });
 
-  it("state hues match the section 2.4 per-mode table exactly", () => {
-    expect(light.get("--state-forming")).toBe("#6d5df0");
+  it("state hues are canon aliases in BOTH modes (R19 W27 AT-02 convergence)", () => {
+    // The pre-W27 per-mode derivative table (light #6d5df0/#0a7c6e,
+    // grey past, dark tints) is dead: --state-* now alias the canon
+    // --orb-indicator-* tokens, so the resolved hue is PLAN_STATE_HEX
+    // in both modes. Only the *-ink text derivatives stay per-mode.
+    for (const mode of [light, dark]) {
+      expect(mode.get("--state-forming")).toBe("var(--orb-indicator-forming)");
+      expect(mode.get("--state-action")).toBe("var(--orb-indicator-action)");
+      expect(mode.get("--state-ready")).toBe("var(--orb-indicator-ready)");
+      expect(mode.get("--state-happening")).toBe("var(--orb-indicator-happening)");
+      expect(mode.get("--state-past")).toBe("var(--orb-indicator-past)");
+    }
     expect(light.get("--state-forming-ink")).toBe("#5546d8");
-    expect(light.get("--state-action")).toBe("#e8323f");
     expect(light.get("--state-action-ink")).toBe("#c81e2b");
-    expect(light.get("--state-ready")).toBe("#b77900");
     expect(light.get("--state-ready-ink")).toBe("#8a5e00");
-    expect(light.get("--state-happening")).toBe("#0a7c6e");
-    expect(light.get("--state-happening-ink")).toBe("#07665a");
-    expect(light.get("--state-past")).toBe("#78716c");
+    expect(light.get("--state-happening-ink")).toBe("#07758c");
     expect(light.get("--state-past-ink")).toBe("#57534e");
-    expect(dark.get("--state-forming")).toBe("#9d94ff");
     expect(dark.get("--state-forming-ink")).toBe("#c4beff");
-    expect(dark.get("--state-action")).toBe("#ff7a85");
     expect(dark.get("--state-action-ink")).toBe("#ffb0b7");
-    expect(dark.get("--state-ready")).toBe("#f5b93f");
     expect(dark.get("--state-ready-ink")).toBe("#ffd88a");
-    expect(dark.get("--state-happening")).toBe("#4adecb");
-    expect(dark.get("--state-happening-ink")).toBe("#8af0e2");
-    expect(dark.get("--state-past")).toBe("#a8a29e");
+    expect(dark.get("--state-happening-ink")).toBe("#8be9f7");
     expect(dark.get("--state-past-ink")).toBe("#d6d0c8");
   });
 

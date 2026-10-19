@@ -18,9 +18,13 @@
   --border-bright: rgba(110, 232, 245, 0.7);
   --text: #f4f7fa;
   --muted: #8a96a8;
-  --accent: #00e5ff;
-  --accent-deep: #2a8fa3;
-  --accent-soft: #9ae8f2;
+  /* R19 W27 (AT-09): --accent was canon happening cyan #00e5ff, so
+   * every generic link/button/dock-active read as "happening".
+   * The legacy accent is now the legacy brand violet family
+   * (--iris), which carries no state meaning. */
+  --accent: #8b7cff;
+  --accent-deep: #5a48d7;
+  --accent-soft: #bdb2ff;
   --pearl: #e8d6c4;
   --iris: #8b7cff;
   --signal: #ffc86b;
@@ -8276,8 +8280,13 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 .gprof-action:disabled { opacity: 0.45; cursor: not-allowed; }
 .gprof-action-icon { width: 18px; height: 18px; display: block; }
 .gprof-action-label { font-size: 11px; line-height: 13px; font-weight: 600; color: #d1d9e5; }
-.gprof-action-message .gprof-action-label { color: #00e5ff; }
-.gprof-action-plan .gprof-action-label { color: #ffc86b; }
+/* AT-09: gprof labels are LABELS, not states - the message/plan
+ * action labels and the graph section title/when line wore canon
+ * happening cyan, ready gold and forming violet. They now wear the
+ * legacy brand violet (--iris family) and pearl: identity/chrome
+ * colors that no state owns. */
+.gprof-action-message .gprof-action-label { color: #8b7cff; }
+.gprof-action-plan .gprof-action-label { color: #e8d6c4; }
 .gprof-section-graph { position: absolute; left: 20px; top: 336px; width: 350px; z-index: 2; }
 .gprof-section-memories {
   position: absolute;
@@ -8289,7 +8298,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 }
 .gprof-section-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
 .gprof-section-title { margin: 0; font-size: 18px; font-weight: 600; color: #f8faff; letter-spacing: 0; text-transform: none; }
-.gprof-section-graph .gprof-section-title { color: #8b5cf6; }
+.gprof-section-graph .gprof-section-title { color: #8b7cff; }
 .gprof-section-memories .gprof-section-title { color: #d946ff; }
 .gprof-section-sub { margin: 0; font-size: 12px; color: #a9b4c8; }
 .gprof-graph-card {
@@ -8312,7 +8321,7 @@ html.opal-native-host .fr-auth-v4.fr-phone .fr-skip-for-now {
 }
 .gprof-graph-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding-top: 8px; }
 .gprof-graph-copy strong { font-size: 20px; line-height: 24px; font-weight: 600; color: #f4f7fa; }
-.gprof-when { font-size: 14px; font-weight: 600; color: #8b5cf6; }
+.gprof-when { font-size: 14px; font-weight: 600; color: #8b7cff; }
 .gprof-graph-ago { font-size: 12px; color: #8a96a8; }
 .gprof-chip {
   display: inline-flex; align-items: center; justify-content: center; width: 126px; margin-top: 8px; height: 28px;
@@ -10710,6 +10719,14 @@ html.opal-native-host .comm-sticky-chrome:has(.chats-plus-sheet) {
   padding: 13px 15px;
   cursor: pointer;
   box-sizing: border-box;
+}
+/* R19 W27 (AT-13): the graph CARD surface carries its state - the
+ * same 2px inset state edge as the chats row (AR-09), keyed to the
+ * button's own data-plan-state; --plan-state-color resolves from
+ * the canon family via the shared [data-plan-state] token blocks.
+ * Before this the card's state lived only in its pill. */
+.graphs-home-card-btn[data-plan-state] {
+  box-shadow: inset 2px 0 0 var(--plan-state-color, transparent);
 }
 .graphs-card-top {
   display: flex;
@@ -20780,9 +20797,9 @@ button.alignment-choice:focus-visible,
   border-radius: 50%;
   background: #7ec8ff;
   box-shadow: 0 0 10px rgba(126, 200, 255, 0.8);
-  animation: opal-action-pulse 1.2s ease-in-out infinite;
+  animation: opal-working-pulse 1.2s ease-in-out infinite;
 }
-@keyframes opal-action-pulse {
+@keyframes opal-working-pulse {
   0%, 100% { opacity: 0.45; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1.1); }
 }
@@ -20960,11 +20977,11 @@ button.alignment-choice:focus-visible,
   border-radius: 50%;
   background: #8993a3;
   display: block;
-  animation: opal-center-chat-pulse 1.1s ease-in-out infinite;
+  animation: opal-center-chat-typing-pulse 1.1s ease-in-out infinite;
 }
 .opal-center-chat-typing-dots i:nth-child(2) { animation-delay: 0.15s; }
 .opal-center-chat-typing-dots i:nth-child(3) { animation-delay: 0.3s; }
-@keyframes opal-center-chat-pulse {
+@keyframes opal-center-chat-typing-pulse {
   0%, 100% { opacity: 0.35; }
   50% { opacity: 1; }
 }
@@ -24091,7 +24108,7 @@ html.opal-native-host .fr-auth-v4.fr-verify .fr-primary {
   filter: brightness(1.15);
 }
 .opal-living-listening .opal-living-border {
-  animation: opal-living-mic-pulse 0.9s ease-in-out infinite;
+  animation: opal-living-mic-pulse 1s ease-in-out infinite;
   opacity: calc(0.4 + var(--opal-living-pulse, 0.5) * 0.6);
 }
 .opal-living-processing .opal-living-border {

@@ -65,12 +65,79 @@
   width: min(220px, 60%);
 }
 
+/* The plan-card state rule (AT-08): the card's state hue at ambient
+ * strength - a register line, never iris fire. Fire (above) is
+ * reserved for lit items; this rule is what ordinary cards carry. */
+.orb-state-rule {
+  display: block;
+  height: var(--orb-fire-line-width);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--orb-indicator-forming) 55%, transparent);
+}
+.orb-state-rule[data-orb-state="action"] { background: color-mix(in srgb, var(--orb-indicator-action) 55%, transparent); }
+.orb-state-rule[data-orb-state="ready"] { background: color-mix(in srgb, var(--orb-indicator-ready) 55%, transparent); }
+.orb-state-rule[data-orb-state="happening"] { background: color-mix(in srgb, var(--orb-indicator-happening) 55%, transparent); }
+.orb-state-rule[data-orb-state="past"] { background: color-mix(in srgb, var(--orb-indicator-past) 40%, transparent); }
+
 .orb-fire-frame {
   position: relative;
   border-radius: var(--radius-card);
   background: var(--surface-1);
   box-shadow: var(--orb-fire-glow);
   padding: var(--space-4);
+  /* AR-F1 IGNITION (R19 W27, AT-04): the completion/reveal is an
+   * EVENT, not a pre-lit still. On mount the glow blooms 16px ->
+   * 24px -> 16px over 900ms, once, and settles INTO the resting lit
+   * state (the 100% keyframe IS the resting shadow, so the frame
+   * never snaps). One-shot, fill both; never loops, never repeats
+   * while mounted. The protected YOUR MOVE card's resting
+   * composition is unchanged - only its arrival gains the event. */
+  animation: orb-fire-ignite 900ms var(--ease-c2, ease-out) 1 both;
+}
+@keyframes orb-fire-ignite {
+  0% {
+    box-shadow: 0 0 24px var(--orb-ignite-color, rgba(125, 77, 206, 0.45));
+  }
+  100% {
+    box-shadow: var(--orb-fire-glow);
+  }
+}
+/* The traveling light: a bright segment sweeps the fire ring once
+ * (background-position travel inside the same 1px ring mask as
+ * ::before), 600ms inside the 900ms bloom envelope, then it is
+ * gone - the ring that remains is the resting fire line. */
+.orb-fire-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--orb-fire-line-width);
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    var(--orb-point-light) 50%,
+    transparent 58%
+  );
+  background-size: 300% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  animation: orb-fire-ignite-travel 600ms ease-out 1 both;
+}
+@keyframes orb-fire-ignite-travel {
+  0% {
+    background-position: 110% 0;
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -10% 0;
+    opacity: 0;
+  }
 }
 /* The fire line itself: a gradient border ring, 1px, no fill flood. */
 .orb-fire-frame::before {
@@ -87,10 +154,37 @@
 }
 /* State-tinted glow when the frame carries an indicator state. */
 .orb-fire-frame[data-orb-state] {
+  --orb-ignite-color: var(--orb-frame-glow);
   box-shadow: 0 0 16px var(--orb-frame-glow, transparent);
+  animation-name: orb-fire-ignite-state;
+}
+@keyframes orb-fire-ignite-state {
+  0% {
+    box-shadow: 0 0 24px var(--orb-frame-glow, transparent);
+  }
+  100% {
+    box-shadow: 0 0 16px var(--orb-frame-glow, transparent);
+  }
 }
 .orb-fire-frame[data-orb-state="past"] {
   box-shadow: none; /* past = the stone at rest */
+  animation: none; /* rest does not ignite */
+}
+.orb-fire-frame[data-orb-state="past"]::after {
+  animation: none;
+  opacity: 0;
+}
+/* Reduced-motion parity (AR-00.6): kill the motion only - the
+ * resting lit frame (ring + glow) renders identically, so the
+ * completion still reads; only the travel/bloom are lost. */
+@media (prefers-reduced-motion: reduce) {
+  .orb-fire-frame,
+  .orb-fire-frame::after {
+    animation: none;
+  }
+  .orb-fire-frame::after {
+    opacity: 0;
+  }
 }
 
 .orb-state-stone {
@@ -231,6 +325,36 @@
     transform: rotate(0deg);
   }
 }
+/* ---- AT-06 (R19 W27): the ambient rings are STATE-KEYED ----
+ * REST signature (nothing live): every lap slows 4x and the
+ * points dim - presence at rest, never state-blind looping at
+ * full signature. The orb stays alive; it stops pretending.
+ * LIVE signature (a state family): normal laps, and the arc +
+ * halo carry that family's canon tint (second channel: the lap
+ * rate itself - rest vs live reads without color). Reduced
+ * motion still renders the ambient layer as nothing, and the
+ * rings carry no information a static form would owe (AR-12). */
+.orb-living-rings[data-ambient-state="rest"] .orb-ring-rotor--ambient {
+  animation-duration: 384s;
+}
+.orb-living-rings[data-ambient-state="rest"] .orb-ring-arc--ambient {
+  animation-duration: 640s;
+}
+.orb-living-rings[data-ambient-state="rest"] .orb-ellipse-rider--ambient-0 {
+  animation-duration: 288s;
+}
+.orb-living-rings[data-ambient-state="rest"] [data-ring-point] {
+  opacity: 0.45;
+}
+.orb-living-rings[data-ambient-state="action"] .orb-ring-arc path { stroke: var(--orb-indicator-action); }
+.orb-living-rings[data-ambient-state="happening"] .orb-ring-arc path { stroke: var(--orb-indicator-happening); }
+.orb-living-rings[data-ambient-state="ready"] .orb-ring-arc path { stroke: var(--orb-indicator-ready); }
+.orb-living-rings[data-ambient-state="forming"] .orb-ring-arc path { stroke: var(--orb-indicator-forming); }
+.orb-living-rings[data-ambient-state="action"] { filter: drop-shadow(0 0 5px var(--orb-indicator-action-glow)); }
+.orb-living-rings[data-ambient-state="happening"] { filter: drop-shadow(0 0 5px var(--orb-indicator-happening-glow)); }
+.orb-living-rings[data-ambient-state="ready"] { filter: drop-shadow(0 0 5px var(--orb-indicator-ready-glow)); }
+.orb-living-rings[data-ambient-state="forming"] { filter: drop-shadow(0 0 5px var(--orb-indicator-forming-glow)); }
+
 /* Pause law: hidden document / off-screen layer - nothing turns.
  * (WAAPI ellipse riders are paused from the component.) */
 .orb-living-rings[data-paused="true"] .orb-ring-rotor,

@@ -56,15 +56,18 @@ function HeadphonesOverlay() {
       height="100%"
       aria-hidden
     >
+      {/* AT-09: the character's paints are the orb's SAMPLED FIRE
+          (brand), never canon state hues - cyan #60B9D8 is the fire
+          sector peak, violet #7D4DCE the fire violet peak. */}
       <path
         d="M12 30c0-11 9-20 20-20s20 9 20 20"
         fill="none"
-        stroke="#00E5FF"
+        stroke="#60B9D8"
         strokeWidth="3"
         strokeLinecap="round"
       />
-      <rect x="8" y="28" width="10" height="16" rx="4" fill="#8B5CF6" opacity="0.92" />
-      <rect x="46" y="28" width="10" height="16" rx="4" fill="#8B5CF6" opacity="0.92" />
+      <rect x="8" y="28" width="10" height="16" rx="4" fill="#7D4DCE" opacity="0.92" />
+      <rect x="46" y="28" width="10" height="16" rx="4" fill="#7D4DCE" opacity="0.92" />
     </svg>
   );
 }
@@ -76,7 +79,7 @@ function LightbulbMotif() {
         <path
           d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.8c.6.5 1 1.2 1.1 2h4.8c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3z"
           fill="none"
-          stroke="#FFC86B"
+          stroke="#F1AA62"
           strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"

@@ -48,8 +48,10 @@ import {
   listMessages,
   listReveals,
   listOpalChatSessions,
+  ensureDirectConversation,
   listPeople,
   listRelationships,
+  setRelationshipType,
   patchOpalConversationTitle,
   postOpalSessionMessage,
   removeOpalChatSession,
@@ -106,6 +108,11 @@ import {
 } from "../../opalUi/c1/C1Surfaces";
 import type { PlanProjection } from "../../opalUi/c1/planProjection";
 import { CheckinCircleRow } from "../../opalUi/CheckinCircleRow";
+import {
+  isCloseCircleType,
+  relationshipGroupLabel,
+  tieLabel,
+} from "../../opalUi/relationshipTypes";
 import { PersonProfileSheet } from "./PersonProfile";
 import type { ConversationShareCardProjection, PersonProfileProjection } from "./projections";
 import { avatarOf } from "./shellData";
@@ -123,19 +130,15 @@ import { EmptyBlock } from "./bits";
 /** Finished short label for an ISO timestamp, built by the adapter. */
 /**
  * Hunt-fix B-17: relationship types are internal enum values
- * (close_friend, …). The circle header shows finished words, built
- * here in the adapter — an unknown type renders NO header, never
- * the raw slug.
+ * (close_friend, …). The circle header shows finished words — an
+ * unknown type renders NO header, never the raw slug.
+ *
+ * Repair #19 W24 (DL-12): the map itself now lives in ONE place
+ * (opalUi/relationshipTypes) beside the singular map. This export
+ * keeps the B-17 GROUP semantics for circle headers ("Close
+ * friends" names a circle); person surfaces use tieLabel's
+ * SINGULAR forms ("Close friend" names a person).
  */
-const RELATIONSHIP_TYPE_LABELS: Record<string, string> = {
-  spouse: "Spouse",
-  partner: "Partners",
-  family: "Family",
-  close_friend: "Close friends",
-  friend: "Friends",
-  business: "Work",
-  acquaintance: "Acquaintances",
-};
 
 /**
  * Harmony-0 (named glass finding ii): a conversation whose last
@@ -162,7 +165,7 @@ export function conversationPreviewLabel(chat: {
 }
 
 export function relationshipTypeLabel(type: string): string | null {
-  return RELATIONSHIP_TYPE_LABELS[type] ?? null;
+  return relationshipGroupLabel(type);
 }
 
 /**
@@ -563,7 +566,12 @@ type CenterView =
 export type CenterOpenRequest = { request: OpalOpenRequest; nonce: number };
 
 /** A relationship contact, for anchor-proposal resolution. */
-export type AnchorContact = { contact_user_id: string; display_name: string };
+export type AnchorContact = {
+  contact_user_id: string;
+  display_name: string;
+  /** W24 (DL-03): the finished tie, from the contacts contract. */
+  tieLabel?: string | null;
+};
 
 /**
  * Repair #19 Orbits — anchor DETECTION for the proposal chip, from
@@ -717,10 +725,20 @@ export function CenterHost({
       try {
         const res = await listRelationships(bearer);
         if (!live) return;
-        const list = (res.contacts ?? []).filter(
-          (c): c is AnchorContact =>
-            !!c && typeof c.contact_user_id === "string" && typeof c.display_name === "string",
-        );
+        const list = (res.contacts ?? [])
+          .filter(
+            (c) =>
+              !!c &&
+              typeof c.contact_user_id === "string" &&
+              typeof c.display_name === "string",
+          )
+          .map(
+            (c): AnchorContact => ({
+              contact_user_id: c.contact_user_id,
+              display_name: c.display_name as string,
+              tieLabel: tieLabel(c.type, c.family_subtype),
+            }),
+          );
         setContacts(list);
       } catch {
         if (live) setContacts([]);
@@ -1230,6 +1248,12 @@ export function CenterHost({
       ) : null}
       {orbitSheet ? (
         <OrbitSheet
+          tieLabel={
+            orbitSheet.anchor.type === "person"
+              ? (contacts.find((c) => c.contact_user_id === orbitSheet.anchor.id)
+                  ?.tieLabel ?? null)
+              : null
+          }
           anchor={orbitSheet.anchor}
           context={orbitSheet.context}
           plans={orbitSheet.plans}
@@ -1384,9 +1408,17 @@ const PROFILE_STATE_LABELS: Record<string, string> = {
   past: "Past",
 };
 
+/** One relationship row as the hosts hold it (from listRelationships). */
+export type RelRow = {
+  contact_user_id: string;
+  type: string;
+  family_subtype?: string | null;
+  family_minor?: boolean;
+};
+
 export function profileProjectionFor(
   conversation: ConversationSummary,
-  relRows: Array<{ contact_user_id: string; type: string }>,
+  relRows: RelRow[],
   nextPlan: NextPlanFact | null,
 ): PersonProfileProjection {
   const firstPeer = conversation.peers[0] ?? null;
@@ -1397,7 +1429,12 @@ export function profileProjectionFor(
     name: conversation.title,
     handle: firstPeer?.handle ?? null,
     avatar: avatarOf(conversation.title, conversation.entity_tint ?? 0),
-    relationshipLabel: rel ? relationshipTypeLabel(rel.type) : null,
+    relationshipLabel: rel ? tieLabel(rel.type, rel.family_subtype) : null,
+    personId: conversation.peers.length === 1 ? (firstPeer?.id ?? null) : null,
+    relationshipType: rel?.type ?? null,
+    familySubtype: rel?.family_subtype ?? null,
+    familyMinor: rel?.family_minor === true,
+    closeCircle: rel ? isCloseCircleType(rel.type) : false,
     nextTogether: nextPlan
       ? {
           title: nextPlan.title,
@@ -1408,6 +1445,76 @@ export function profileProjectionFor(
       : null,
     peerCount: conversation.peers.length,
   };
+}
+
+/**
+ * Repair #19 W24 (DL-04 / DL-08) — THE one "my people" universe for
+ * pickers. Before W24 the new-chat picker read GET /people.connected
+ * (establishment-only) and dead-ended at "No one connected yet" on
+ * accounts with ten live conversations, while every other surface
+ * read conversations. The union truth the product now uses for every
+ * picker: conversation peers (each carrying their conversation, so a
+ * tap opens the real thread) ∪ relationship contacts and rows (a tap
+ * ensures the real direct conversation). Deduped by person id; a
+ * person with a conversation always carries it.
+ */
+export type PickerPerson = {
+  personId: string;
+  name: string;
+  conversationId: string | null;
+  tieLabel: string | null;
+};
+
+export function peopleUniverse(input: {
+  conversations: Array<{
+    id: string;
+    peers?: Array<{ id: string; display_name: string }>;
+  }>;
+  contacts: Array<{
+    contact_user_id: string;
+    display_name?: string | null;
+    type?: string | null;
+    family_subtype?: string | null;
+  }>;
+  relRows: RelRow[];
+}): PickerPerson[] {
+  const byId = new Map<string, PickerPerson>();
+  const tieById = new Map<string, string | null>(
+    input.relRows.map((r) => [
+      r.contact_user_id,
+      tieLabel(r.type, r.family_subtype),
+    ]),
+  );
+  for (const conv of input.conversations) {
+    for (const peer of conv.peers ?? []) {
+      if (!peer.id || !peer.display_name?.trim()) continue;
+      const existing = byId.get(peer.id);
+      if (existing) {
+        if (!existing.conversationId) existing.conversationId = conv.id;
+      } else {
+        byId.set(peer.id, {
+          personId: peer.id,
+          name: peer.display_name.trim(),
+          conversationId: conv.id,
+          tieLabel: tieById.get(peer.id) ?? null,
+        });
+      }
+    }
+  }
+  for (const contact of input.contacts) {
+    if (!contact.contact_user_id || byId.has(contact.contact_user_id)) continue;
+    const name = contact.display_name?.trim();
+    if (!name) continue;
+    byId.set(contact.contact_user_id, {
+      personId: contact.contact_user_id,
+      name,
+      conversationId: null,
+      tieLabel:
+        tieById.get(contact.contact_user_id) ??
+        tieLabel(contact.type, contact.family_subtype),
+    });
+  }
+  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function ChatsHost({
@@ -1439,11 +1546,9 @@ export function ChatsHost({
   const [threadNextPlan, setThreadNextPlan] = useState<NextPlanFact | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [people, setPeople] = useState<
-    Array<{ relationship_id: string; conversation_id: string; display_name?: string }>
-  >([]);
+  const [people, setPeople] = useState<PickerPerson[]>([]);
   const [relTypes, setRelTypes] = useState<string[]>([]);
-  const [relRows, setRelRows] = useState<Array<{ contact_user_id: string; type: string }>>([]);
+  const [relRows, setRelRows] = useState<RelRow[]>([]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [summarySweepId, setSummarySweepId] = useState<string | null>(null);
   // Repair #19 — this thread's orbit sheet (person anchor), fed by
@@ -1540,6 +1645,8 @@ export function ChatsHost({
           (res.relationships ?? []).map((r) => ({
             contact_user_id: r.contact_user_id,
             type: typeof r.type === "string" ? r.type : "",
+            family_subtype: r.family_subtype ?? null,
+            family_minor: r.family_minor === true,
           })),
         );
         const types = [
@@ -1637,13 +1744,119 @@ export function ChatsHost({
 
   const openPicker = useCallback(async () => {
     setPickerOpen(true);
+    // DL-04/DL-08: the picker reads the ONE union universe. The
+    // conversation peers are already in this host's hands; the
+    // relationship contacts/rows and the establishment list are
+    // read fresh so a just-typed or just-connected person appears.
+    let contacts: Array<{
+      contact_user_id: string;
+      display_name?: string | null;
+      type?: string | null;
+      family_subtype?: string | null;
+    }> = [];
+    let rows: RelRow[] = relRows;
+    try {
+      const res = await listRelationships(bearer);
+      contacts = res.contacts ?? [];
+      rows = (res.relationships ?? []).map((r) => ({
+        contact_user_id: r.contact_user_id,
+        type: typeof r.type === "string" ? r.type : "",
+        family_subtype: r.family_subtype ?? null,
+        family_minor: r.family_minor === true,
+      }));
+      setRelRows(rows);
+    } catch {
+      /* conversations alone still populate the picker */
+    }
     try {
       const res = await listPeople(bearer);
-      setPeople(res.connected ?? []);
+      const established = (res.connected ?? [])
+        .map((c) => {
+          const anyC = c as unknown as Record<string, unknown>;
+          const id =
+            (typeof anyC.peer_user_id === "string" && anyC.peer_user_id) ||
+            (typeof anyC.contact_user_id === "string" && anyC.contact_user_id) ||
+            "";
+          return id
+            ? {
+                contact_user_id: id,
+                display_name:
+                  typeof anyC.display_name === "string" ? anyC.display_name : null,
+              }
+            : null;
+        })
+        .filter((c): c is { contact_user_id: string; display_name: string | null } =>
+          Boolean(c),
+        );
+      contacts = [...contacts, ...established];
     } catch {
-      setPeople([]);
+      /* the union stands on conversations + relationships */
     }
-  }, [bearer]);
+    setPeople(peopleUniverse({ conversations, contacts, relRows: rows }));
+  }, [bearer, conversations, relRows]);
+
+  /** A picker tap: an existing conversation opens; a contact with
+   *  none ensures the REAL direct conversation, then opens it. */
+  const openPickerPerson = useCallback(
+    async (person: PickerPerson) => {
+      setPickerOpen(false);
+      if (person.conversationId) {
+        void openThread(person.conversationId);
+        return;
+      }
+      try {
+        const res = await ensureDirectConversation(person.personId, bearer);
+        const cid =
+          (res as { conversation_id?: string; conversation?: { id?: string } })
+            .conversation_id ??
+          (res as { conversation?: { id?: string } }).conversation?.id;
+        if (cid) {
+          onConversationsChanged();
+          void openThread(cid);
+        } else {
+          setError("That chat could not open. Try again.");
+        }
+      } catch {
+        setError("That chat could not open. Try again.");
+      }
+    },
+    [bearer, openThread, onConversationsChanged],
+  );
+
+  /** Repair #19 W24 (DL-01) — THE one relationship write for this
+   *  host: resolves the relationship from the PERSON (the peer id),
+   *  through setRelationshipType (PUT /relationships/:contact id,
+   *  family leg included), then re-reads the relationship rows so
+   *  every tie on screen is the server's read-back. */
+  const saveRelationship = useCallback(
+    async (personId: string, input: { type: string; familySubtype: string | null; familyMinor: boolean }) => {
+      await setRelationshipType(personId, input.type, undefined, bearer, {
+        familySubtype: input.familySubtype,
+        familyMinor: input.familyMinor,
+      });
+      try {
+        const res = await listRelationships(bearer);
+        setRelRows(
+          (res.relationships ?? []).map((r) => ({
+            contact_user_id: r.contact_user_id,
+            type: typeof r.type === "string" ? r.type : "",
+            family_subtype: r.family_subtype ?? null,
+            family_minor: r.family_minor === true,
+          })),
+        );
+        setRelTypes([
+          ...new Set(
+            (res.relationships ?? [])
+              .map((r) => (typeof r.type === "string" ? r.type : ""))
+              .filter(Boolean),
+          ),
+        ]);
+      } catch {
+        /* the write landed; the next host load re-reads the rows */
+      }
+    },
+    [bearer],
+  );
 
   /** Repair #19: call-log rows for the Calls tab, adapted from the
    *  real GET /calls contract only - the finished history line from
@@ -1676,6 +1889,19 @@ export function ChatsHost({
   const summaries: PeopleChatSummary[] = conversations.map((chat) => ({
     id: chat.id,
     name: chat.title,
+    // DL-03: a quiet tie cue on the row, from the same rows the
+    // profile reads. A dyad's single peer carries the tie; a group
+    // row names no one person's tie.
+    tieLabel:
+      chat.peers?.length === 1
+        ? (relRows.find((r) => r.contact_user_id === chat.peers[0].id)
+            ? tieLabel(
+                relRows.find((r) => r.contact_user_id === chat.peers[0].id)!.type,
+                relRows.find((r) => r.contact_user_id === chat.peers[0].id)!
+                  .family_subtype,
+              )
+            : null)
+        : null,
     initials: initialsOf(chat.title),
     preview: conversationPreviewLabel(chat),
     timeLabel: timeLabelFor(chat.updated_at),
@@ -1735,9 +1961,21 @@ export function ChatsHost({
             name={selected.title}
             initials={initialsOf(selected.title)}
             sharedLine={
-              selected.peers.length > 0
-                ? selected.peers.map((p) => p.display_name).join(", ")
-                : null
+              // DL-14 / DL-03: a 1:1 thread's sub-line is the TIE
+              // when one is set (it replaces the peer-name repeat,
+              // which carried zero information); group threads keep
+              // the peer-names line.
+              selected.peers.length === 1
+                ? (tieLabel(
+                    relRows.find((r) => r.contact_user_id === selected.peers[0].id)
+                      ?.type ?? null,
+                    relRows.find((r) => r.contact_user_id === selected.peers[0].id)
+                      ?.family_subtype,
+                  ) ??
+                  selected.peers.map((p) => p.display_name).join(", "))
+                : selected.peers.length > 0
+                  ? selected.peers.map((p) => p.display_name).join(", ")
+                  : null
             }
             nextPlanFact={threadNextPlan ?? selected.next_plan ?? null}
             entityTint={selected.entity_tint ?? null}
@@ -1769,6 +2007,11 @@ export function ChatsHost({
           {profileOpen ? (
             <PersonProfileSheet
               profile={profileProjectionFor(selected, relRows, threadNextPlan ?? selected.next_plan ?? null)}
+              onSaveRelationship={
+                selected.peers.length === 1
+                  ? (input) => saveRelationship(selected.peers[0].id, input)
+                  : undefined
+              }
               onClose={() => setProfileOpen(false)}
               onMessage={() => setProfileOpen(false)}
               onOpenMemoryControls={
@@ -1790,6 +2033,16 @@ export function ChatsHost({
           </div>
           {threadOrbit && threadPersonContext ? (
             <OrbitSheet
+              tieLabel={
+                threadPerson
+                  ? tieLabel(
+                      relRows.find((r) => r.contact_user_id === threadPerson.personId)
+                        ?.type ?? null,
+                      relRows.find((r) => r.contact_user_id === threadPerson.personId)
+                        ?.family_subtype,
+                    )
+                  : null
+              }
               anchor={{
                 type: "person",
                 id: threadOrbit.context.personId,
@@ -1923,16 +2176,16 @@ export function ChatsHost({
               ) : (
                 people.map((person) => (
                   <button
-                    key={person.relationship_id}
+                    key={person.personId}
                     type="button"
                     className="c2s-sheet-row"
                     data-testid="c2-c1-people-row"
-                    onClick={() => {
-                      setPickerOpen(false);
-                      void openThread(person.conversation_id);
-                    }}
+                    onClick={() => void openPickerPerson(person)}
                   >
-                    <span>{person.display_name ?? "Connected person"}</span>
+                    <span>
+                      {person.name}
+                      {person.tieLabel ? <small>{person.tieLabel}</small> : null}
+                    </span>
                   </button>
                 ))
               )}

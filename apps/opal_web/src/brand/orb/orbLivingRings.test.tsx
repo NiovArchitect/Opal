@@ -30,6 +30,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   OrbLivingRings,
+  orbAmbientStateFromFamilies,
   buildEllipseTravelKeyframes,
   circleBaseAngleDeg,
   ellipsePoint,
@@ -320,5 +321,40 @@ describe("OrbLivingRings v2 - dots ride their rings", () => {
     const svg = el.querySelector('[data-orb-living-rings="ambient"]');
     expect(svg?.getAttribute("data-motion")).toBe("rest");
     expect(el.querySelectorAll("animateMotion, animateTransform, circle")).toHaveLength(0);
+  });
+});
+
+describe("AT-06 (R19 W27) - ambient rings are state-keyed, never state-blind", () => {
+  it("strongest live family wins by reveal priority; past/empty rest", () => {
+    expect(orbAmbientStateFromFamilies(["forming", "ready"])).toBe("ready");
+    expect(orbAmbientStateFromFamilies(["ready", "happening"])).toBe("happening");
+    expect(orbAmbientStateFromFamilies(["happening", "action"])).toBe("action");
+    expect(orbAmbientStateFromFamilies(["past", "past"])).toBeNull();
+    expect(orbAmbientStateFromFamilies([])).toBeNull();
+    expect(orbAmbientStateFromFamilies([null, undefined])).toBeNull();
+  });
+
+  it("ambient renders data-ambient-state=rest with no live state, the family with one", async () => {
+    mockReducedMotion(false);
+    const quiet = await render(<OrbLivingRings variant="ambient" />);
+    expect(
+      quiet.querySelector('[data-orb-living-rings="ambient"]')?.getAttribute("data-ambient-state"),
+    ).toBe("rest");
+    const live = await render(<OrbLivingRings variant="ambient" liveState="ready" />);
+    expect(
+      live.querySelector('[data-orb-living-rings="ambient"]')?.getAttribute("data-ambient-state"),
+    ).toBe("ready");
+  });
+
+  it("the rest signature slows every lap 4x in CSS; live families tint the arc", () => {
+    expect(orbCss).toContain('.orb-living-rings[data-ambient-state="rest"] .orb-ring-rotor--ambient');
+    expect(orbCss).toContain("animation-duration: 384s");
+    expect(orbCss).toContain("animation-duration: 288s");
+    expect(orbCss).toContain("animation-duration: 640s");
+    for (const family of ["action", "happening", "ready", "forming"]) {
+      expect(orbCss).toContain(
+        `.orb-living-rings[data-ambient-state="${family}"] .orb-ring-arc path { stroke: var(--orb-indicator-${family}); }`,
+      );
+    }
   });
 });

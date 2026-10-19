@@ -17,7 +17,10 @@
  *  1. the token pairs themselves (--primary-fill/--primary-ink and
  *     --primary-stage-fill/--primary-stage-ink) must be legible
  *     (WCAG contrast >= 4.5) in BOTH modes, resolved from
- *     c2Tokens.css;
+ *     c2Tokens.css — following the AT-02 (R19 W27) --state-* aliases
+ *     into the --orb-indicator-* canon whose home is orbTokens.css
+ *     (a token counts as defined only if it resolves to a concrete
+ *     value in one of the two files);
  *  2. each shared primary class (.c2s-btn-primary, .c2-btn-primary)
  *     must carry its pairing in an UNLAYERED rule, so the pairing
  *     survives the global button reset.
@@ -88,6 +91,32 @@ function contrast(a: string, b: string): number {
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
+/**
+ * The mode-invariant canon tokens from orbTokens.css's base :root
+ * block. AT-02 made c2Tokens' --state-* aliases of the
+ * --orb-indicator-* canon; the resolver follows an alias into this
+ * file rather than treating the alias target as undefined.
+ */
+function orbCanonTokens(): Map<string, string> {
+  const css = read("src/theme/orbTokens.css");
+  const start = css.indexOf(":root {");
+  expect(start, "orbTokens.css base :root block exists").toBeGreaterThanOrEqual(0);
+  let depth = 0;
+  let end = start;
+  for (; end < css.length; end += 1) {
+    if (css[end] === "{") depth += 1;
+    else if (css[end] === "}") {
+      depth -= 1;
+      if (depth === 0) break;
+    }
+  }
+  const tokens = new Map<string, string>();
+  for (const decl of css.slice(start, end + 1).matchAll(/--([\w-]+):\s*([^;]+);/g)) {
+    tokens.set(decl[1], decl[2].trim());
+  }
+  return tokens;
+}
+
 /** Resolve the per-mode token values from c2Tokens.css. */
 function modeTokens(css: string, mode: "light" | "dark"): Map<string, string> {
   const blockRe =
@@ -102,8 +131,10 @@ function modeTokens(css: string, mode: "light" | "dark"): Map<string, string> {
   for (const decl of m![1].matchAll(/--([\w-]+):\s*([^;]+);/g)) {
     tokens.set(decl[1], decl[2].trim());
   }
+  const canon = orbCanonTokens();
+  const lookup = (name: string): string | undefined => tokens.get(name) ?? canon.get(name);
   const resolveVar = (name: string, seen = new Set<string>()): string => {
-    const raw = tokens.get(name);
+    const raw = lookup(name);
     expect(raw, `--${name} defined in ${mode}`).toBeTruthy();
     const varRef = /^var\(--([\w-]+)\)$/.exec(raw!);
     if (varRef && !seen.has(varRef[1])) {

@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   normalizeMessage,
+  normalizePlanState,
   reconcileMessages,
   type ChannelMessage,
 } from "./RealtimeClient";
@@ -112,6 +113,41 @@ describe("realtime client architecture", () => {
     expect(ctrl).toMatch(/message:new/);
     expect(ctrl).toMatch(/Inbox\.fanout_message/);
     expect(ctrl).toMatch(/Endpoint\.broadcast/);
+  });
+});
+
+describe("AT-03 plan_state normalization (R19 W27)", () => {
+  it("derives the canon family from the forwarded plan contract, once", () => {
+    expect(
+      normalizePlanState({
+        event: "social_flow:plan",
+        payload: { plan: { id: "p1", status: "agreed" } },
+      }),
+    ).toEqual({ event: "social_flow:plan", plan_id: "p1", status: "agreed", family: "ready" });
+    expect(
+      normalizePlanState({
+        event: "social_flow:plan",
+        payload: { plan: { id: "p2", status: "tentative" } },
+      })?.family,
+    ).toBe("forming");
+  });
+
+  it("non-plan events still count as crossings (family null); junk is rejected", () => {
+    expect(
+      normalizePlanState({ event: "social_flow:revision", payload: { revision: { id: "r1" } } }),
+    ).toEqual({ event: "social_flow:revision", plan_id: undefined, status: undefined, family: null });
+    expect(normalizePlanState(null)).toBeNull();
+    expect(normalizePlanState({ payload: {} })).toBeNull();
+  });
+
+  it("the client wires inbox:plan_state on the user channel and the shell subscribes", () => {
+    const rt = readFileSync(resolve(root, "src/realtime/RealtimeClient.ts"), "utf8");
+    expect(rt).toContain('ch.on("inbox:plan_state"');
+    expect(rt).toContain("onPlanState(");
+    const shell = readFileSync(resolve(root, "src/c2/shell/C2Shell.tsx"), "utf8");
+    expect(shell).toContain("productRealtime.onPlanState(");
+    expect(shell).toContain("productRealtime.onInboxPlan(");
+    expect(shell).toContain("data-dock-echo");
   });
 });
 

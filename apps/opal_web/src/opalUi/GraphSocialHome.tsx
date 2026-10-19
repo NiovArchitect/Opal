@@ -885,7 +885,9 @@ function FeedCard({
             {nodes.map((n, i) => {
               const accent =
                 n.accent ||
-                (["#00E5FF", "#5FAECF", "#8B5CF6", "#FFC86B"] as const)[i % 4];
+                // AT-09: entity palette only - never a canon state hue
+                // (this cycle spent happening/forming/ready as decor).
+                (["#2DD4BF", "#818CF8", "#C084FC", "#F0ABFC"] as const)[i % 4];
               return (
                 <li
                   key={`${card.id}-node-${i}-${n.primary}`}

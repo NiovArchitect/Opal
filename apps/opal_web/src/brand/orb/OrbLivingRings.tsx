@@ -82,6 +82,8 @@
  */
 import React, { useEffect, useRef, useState } from "react";
 import { ORB_HRING, ORB_POINTS, ORB_RING } from "./orbGeometry";
+import type { OrbIndicatorState } from "./orbTokens";
+import { isOrbIndicatorState } from "./FireLine";
 import "./orb.css";
 
 let uid = 0;
@@ -247,12 +249,39 @@ function arcPath(spanDeg: number, startDeg: number): string {
   return `M ${p0.cx} ${p0.cy} A ${ORB_RING.r} ${ORB_RING.r} 0 0 1 ${p1.cx} ${p1.cy}`;
 }
 
+/** R19 W27 (AT-06) - the ambient (dock) rings' state key. The dock
+ *  orb stays alive, but it stops pretending: with NO live state it
+ *  takes the REST signature (laps slow 4x, points dim - presence at
+ *  rest, AR-12's condition), and with a live state it runs the
+ *  normal laps tinted to that state's family. Priority is the
+ *  reveal priority (AR-F4): action > happening > ready > forming;
+ *  past never keys the orb. */
+export const ORB_AMBIENT_STATE_PRIORITY: readonly OrbIndicatorState[] = [
+  "action",
+  "happening",
+  "ready",
+  "forming",
+] as const;
+
+export function orbAmbientStateFromFamilies(
+  families: readonly (string | null | undefined)[],
+): OrbIndicatorState | null {
+  for (const family of ORB_AMBIENT_STATE_PRIORITY) {
+    if (families.includes(family)) return family;
+  }
+  return null;
+}
+
 export function OrbLivingRings({
   variant = "hero",
   className,
+  liveState,
 }: {
   variant?: "hero" | "ambient";
   className?: string;
+  /** AT-06: the strongest live state family, or null when nothing
+   *  is live. Ambient variant only; hero ignores it. */
+  liveState?: OrbIndicatorState | string | null;
 }) {
   const reduced = usePrefersReducedMotion();
   const [settled, setSettled] = useState(false);
@@ -335,6 +364,13 @@ export function OrbLivingRings({
       data-orb-living-rings={variant}
       data-motion={reduced ? "rest" : hero && settled ? "settled" : "living"}
       data-paused={paused ? "true" : "false"}
+      data-ambient-state={
+        hero
+          ? undefined
+          : isOrbIndicatorState(liveState)
+            ? liveState
+            : "rest"
+      }
     >
       <defs>
         <radialGradient id={glowId}>

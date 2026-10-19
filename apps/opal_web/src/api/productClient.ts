@@ -4003,6 +4003,10 @@ export type RelationshipContact = {
   contact_user_id: string;
   display_name?: string | null;
   type?: RelationshipTypeValue | string | null;
+  /** Repair #19 W24 (DL-02) — the family subtype dimension, carried
+   *  by the backend contract; absent/null when not family or unset. */
+  family_subtype?: string | null;
+  family_minor?: boolean;
   communication_bounds?: RelationshipBounds | null;
 };
 
@@ -4011,6 +4015,9 @@ export type RelationshipRow = {
   user_id: string;
   contact_user_id: string;
   type: RelationshipTypeValue | string;
+  /** Repair #19 W24 (DL-02) — round-trips through the PUT write. */
+  family_subtype?: string | null;
+  family_minor?: boolean;
   communication_bounds?: RelationshipBounds | null;
   inserted_at?: string;
   updated_at?: string;
@@ -4021,6 +4028,9 @@ export async function listRelationships(bearer?: string) {
     relationships: RelationshipRow[];
     contacts: RelationshipContact[];
     allowed_types: RelationshipTypeValue[];
+    /** Repair #19 W24 (DL-02) — the backend's family subtype
+     *  vocabulary ([{slug, label}]) for the identification picker. */
+    family_subtypes?: Array<{ slug: string; label: string }>;
   }>("/api/v1/product/relationships", {
     bearer: resolveBearer(bearer),
   });
@@ -4031,13 +4041,28 @@ export async function setRelationshipType(
   type: RelationshipTypeValue | string,
   bounds?: RelationshipBounds,
   bearer?: string,
+  family?: { familySubtype?: string | null; familyMinor?: boolean },
 ) {
   return request<{ relationship: RelationshipRow }>(
     `/api/v1/product/relationships/${encodeURIComponent(contactUserId)}`,
     {
       method: "PUT",
       bearer: resolveBearer(bearer),
-      body: JSON.stringify({ type, bounds: bounds || {} }),
+      body: JSON.stringify({
+        type,
+        bounds: bounds || {},
+        // DL-02: the subtype keys are sent ONLY when the caller is
+        // making a subtype statement — an absent key leaves the
+        // stored subtype under the type write's own rules.
+        ...(family
+          ? {
+              family_subtype: family.familySubtype ?? null,
+              ...(typeof family.familyMinor === "boolean"
+                ? { family_minor: family.familyMinor }
+                : {}),
+            }
+          : {}),
+      }),
     },
   );
 }

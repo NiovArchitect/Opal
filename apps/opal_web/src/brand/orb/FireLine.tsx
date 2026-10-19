@@ -37,9 +37,40 @@ export function isOrbIndicatorState(v: unknown): v is OrbIndicatorState {
   return typeof v === "string" && (ORB_INDICATOR_STATES as readonly string[]).includes(v);
 }
 
-/** The fire line alone: a 1px iridescent rule with the soft glow. */
+/** The fire line alone: a 1px iridescent rule with the soft glow.
+ *  IRIS FIRE IS RESERVED (R19 W27, AT-08 / AR-00.1): the full
+ *  iridescent gradient means "Opal is speaking proactively, right
+ *  now" and renders only on lit items and one-shot event moments
+ *  (the lit FireFrame, the Center celebrate-once line, a share
+ *  card's edge). Ordinary plan cards carry the StateRule below -
+ *  same slot in the grammar, a different form, so the forms never
+ *  share a meaning again. */
 export function FireLine({ className }: { className?: string }) {
   return <span className={`orb-fire-line ${className ?? ""}`.trim()} aria-hidden data-orb="fire-line" />;
+}
+
+/**
+ * The plan-card rule: the card's own state hue at ambient strength
+ * (canon indicator token), NOT iris fire. This is the register a
+ * non-lit card carries; the lit/reveal item alone wears fire.
+ * Unknown families fall to forming, matching the card law.
+ */
+export function StateRule({
+  state,
+  className,
+}: {
+  state: OrbIndicatorState | string;
+  className?: string;
+}) {
+  const family: OrbIndicatorState = isOrbIndicatorState(state) ? state : "forming";
+  return (
+    <span
+      className={`orb-state-rule ${className ?? ""}`.trim()}
+      aria-hidden
+      data-orb="state-rule"
+      data-orb-state={family}
+    />
+  );
 }
 
 /**
@@ -83,9 +114,28 @@ export function FireFrame({
 }
 
 /**
+ * The stone's NON-COLOR channel (R19 W27, AT-14 / AR-00.5): every
+ * family carries a ring pattern/weight keyed to state, so the stone
+ * never stands as color-alone - forming is DASHED (the canon's
+ * forming pattern), action is WEIGHTED (a heavier ring, the canon's
+ * weight cue), ready is SOLID, happening is a DOUBLE ring (AR-F5's
+ * pattern), and past is REST (a plain pale ring - absence of every
+ * active pattern is its pattern). The pattern names are rendered
+ * as data-stone-pattern so surfaces/tests can pin them.
+ */
+export const STONE_PATTERN: Record<OrbIndicatorState, string> = {
+  forming: "dashed",
+  action: "weight",
+  ready: "solid",
+  happening: "double",
+  past: "rest",
+};
+
+/**
  * The state stone: a small orb reduction whose ring carries the
- * indicator hue. Past renders the stone at rest - pale ring, no
- * glow, no fire. Always paired with a label by the caller.
+ * indicator hue AND its family pattern (above). Past renders the
+ * stone at rest - pale ring, no glow, no fire. Always paired with
+ * a label by the caller.
  */
 export function StateStone({
   state,
@@ -108,6 +158,7 @@ export function StateStone({
       data-orb="state-stone"
       data-orb-state={family}
       data-orb-state-known={known ? "1" : "0"}
+      data-stone-pattern={STONE_PATTERN[family]}
       aria-hidden
     >
       <svg viewBox="0 0 200 200" width={size} height={size}>
@@ -121,8 +172,20 @@ export function StateStone({
           r={71}
           fill="none"
           stroke={ORB_INDICATOR[family]}
-          strokeWidth={10}
+          strokeWidth={family === "action" ? 17 : 10}
+          strokeDasharray={family === "forming" ? "7 6" : undefined}
         />
+        {family === "happening" ? (
+          <circle
+            cx={101}
+            cy={100}
+            r={86}
+            fill="none"
+            stroke={ORB_INDICATOR[family]}
+            strokeWidth={4}
+            opacity={0.75}
+          />
+        ) : null}
       </svg>
     </span>
   );

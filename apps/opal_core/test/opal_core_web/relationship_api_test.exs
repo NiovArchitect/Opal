@@ -63,7 +63,9 @@ defmodule OpalCoreWeb.RelationshipApiTest do
     body = json_response(conn, 200)
     assert is_list(body["relationships"])
     assert is_list(body["contacts"])
-    assert body["allowed_types"] == ~w(spouse partner family close_friend friend business acquaintance)
+
+    assert body["allowed_types"] ==
+             ~w(spouse partner family close_friend friend business acquaintance)
 
     # PUT valid
     conn =
@@ -113,6 +115,92 @@ defmodule OpalCoreWeb.RelationshipApiTest do
     body = json_response(conn, 200)
     assert body["relationship"]["id"] == id1
     assert body["relationship"]["type"] == "business"
+  end
+
+  # Repair #19 W24 (DL-02) — the family subtype round-trips through
+  # the ONE relationship write: PUT stores it, the response contract
+  # carries it back, and a fresh GET (rows + contacts) still carries
+  # it. Before the fix the same PUT returned 200 with
+  # family_subtype: null — a write that silently dropped its payload.
+  test "PUT family + family_subtype round-trips (DL-02)", %{conn: conn} do
+    {tok, _user_id} = activate(conn, @alex, "RU1 C", "ru1_c")
+    jordan_id = Fixtures.user_jordan_id()
+
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> put("/api/v1/product/relationships/#{jordan_id}", %{
+        "type" => "family",
+        "family_subtype" => "sibling",
+        "family_minor" => false
+      })
+
+    put_body = json_response(conn, 200)
+    assert put_body["relationship"]["type"] == "family"
+    assert put_body["relationship"]["family_subtype"] == "sibling"
+    assert put_body["relationship"]["family_minor"] == false
+
+    # GET read-back: the row AND the contact contract both carry it.
+    conn = build_conn() |> auth(tok) |> get("/api/v1/product/relationships")
+    body = json_response(conn, 200)
+
+    row = Enum.find(body["relationships"], &(&1["contact_user_id"] == jordan_id))
+    assert row["family_subtype"] == "sibling"
+
+    contact = Enum.find(body["contacts"], &(&1["contact_user_id"] == jordan_id))
+    assert contact["family_subtype"] == "sibling"
+
+    # The index names the real subtype vocabulary for the picker.
+    slugs = Enum.map(body["family_subtypes"], & &1["slug"])
+    assert "sibling" in slugs
+    assert "parent" in slugs
+    assert "co_parent" in slugs
+
+    # The minor flag round-trips too.
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> put("/api/v1/product/relationships/#{jordan_id}", %{
+        "type" => "family",
+        "family_subtype" => "niece_nephew",
+        "family_minor" => true
+      })
+
+    put_body = json_response(conn, 200)
+    assert put_body["relationship"]["family_subtype"] == "niece_nephew"
+    assert put_body["relationship"]["family_minor"] == true
+
+    # An unknown subtype slug is a 422, never a silent drop.
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> put("/api/v1/product/relationships/#{jordan_id}", %{
+        "type" => "family",
+        "family_subtype" => "second_cousin_twice_removed"
+      })
+
+    assert json_response(conn, 422)["error_code"] == "invalid"
+
+    # A subtype under a non-family type is refused, and changing
+    # away from family clears the stored subtype (read-back proves).
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> put("/api/v1/product/relationships/#{jordan_id}", %{
+        "type" => "friend",
+        "family_subtype" => "sibling"
+      })
+
+    assert json_response(conn, 422)["error_code"] == "invalid"
+
+    conn =
+      build_conn()
+      |> auth(tok)
+      |> put("/api/v1/product/relationships/#{jordan_id}", %{"type" => "friend"})
+
+    put_body = json_response(conn, 200)
+    assert put_body["relationship"]["family_subtype"] == nil
+    assert put_body["relationship"]["family_minor"] == false
   end
 
   # silence unused

@@ -52,6 +52,15 @@ describe("planStateColors (Paste W6 canonical law)", () => {
     expect(PLAN_STATE_PILL_TEXT.past).toBe("#E8EAF0");
   });
 
+  it("governed SharedPlan statuses mirror familyOfStatus (AT-03 realtime leg)", () => {
+    expect(planStateFamily("agreed")).toBe("ready");
+    expect(planStateFamily("tentative")).toBe("forming");
+    expect(planStateFamily("changed")).toBe("forming");
+    expect(planStateFamily("completed")).toBe("past");
+    expect(planStateFamily("expired")).toBe("past");
+    expect(planStateFamily("cancelled")).toBe("past");
+  });
+
   it("attrs stay in legal lifecycle; ready is ready not locked", () => {
     expect(planStateAttr("happening")).toBe("happening");
     expect(planStateAttr("forming")).toBe("forming");

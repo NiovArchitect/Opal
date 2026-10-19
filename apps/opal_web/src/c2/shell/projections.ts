@@ -207,9 +207,17 @@ export type GraphDetailProjection = {
   whenLine: string;
   where?: { label: string; kind: "place" | "virtual"; handoffLabel?: string | null } | null;
   who: Array<{
+    /** The person's user id (from the plan-history contract), for
+     *  the Add-people sheet's already-on-this-plan filtering. */
+    userId?: string;
     name: string;
     avatar: AvatarRef;
     responseLabel: string;
+    /** Repair #19 W24 (DL-06) — the viewer's finished tie to this
+     *  person ("Close friend", "Family - Sister") from the viewer's
+     *  relationship rows, or null when unset. Counts stay for
+     *  attendance; the roster names the tie beside the person. */
+    relationshipLabel?: string | null;
     /** R19 W7 — the finished location line from the plan-history
      *  projection (per-plan sharing backbone). Absent until the
      *  history read lands; "Not sharing location" is a real state,
@@ -335,7 +343,20 @@ export type PersonProfileProjection = {
   name: string;
   handle: string | null;
   avatar: AvatarRef;
+  /** The finished SINGULAR tie ("Partner", "Family - Sister") from
+   *  the one label map, or null when unset — renders nothing. */
   relationshipLabel: string | null;
+  /** Repair #19 W24 (DL-01/DL-02/DL-09) — the identification leg:
+   *  the peer's real user id (the write resolves the relationship
+   *  from the person, never from a stored relationship id), the raw
+   *  type + subtype the picker opens on, and the derived
+   *  close-circle cue. personId null (a group thread's profile) =
+   *  no identification row, honestly. */
+  personId: string | null;
+  relationshipType: string | null;
+  familySubtype: string | null;
+  familyMinor: boolean;
+  closeCircle: boolean;
   /** The shared upcoming plan fact for this conversation, or null. */
   nextTogether: { title: string; whenLine: string; stateFamily: string; stateLabel: string } | null;
   peerCount: number;

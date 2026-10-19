@@ -249,6 +249,31 @@
     color: var(--ink-1);
     margin-top: -18px;
   }
+  /* R19 W27 (AT-05 / AR-F3) - the cross-surface echo: when a plan
+   * completes/crosses while the user is on another surface, the
+   * dock orb takes a ONE-SHOT tint in the event's state family.
+   * Arrival blooms once (900ms, the AR-F1 envelope) into a resting
+   * tint at ambient strength; the tint DECAYS on first view of the
+   * reveal surface (the shell clears it when Center opens). It
+   * fires only for a real remote crossing carried by the realtime
+   * plan event (AR-00.9) - never decorative, never a loop. */
+  .c2s-dock-center-disc[data-dock-echo="action"] { --dock-echo: var(--orb-indicator-action); --dock-echo-glow: var(--orb-indicator-action-glow); }
+  .c2s-dock-center-disc[data-dock-echo="happening"] { --dock-echo: var(--orb-indicator-happening); --dock-echo-glow: var(--orb-indicator-happening-glow); }
+  .c2s-dock-center-disc[data-dock-echo="ready"] { --dock-echo: var(--orb-indicator-ready); --dock-echo-glow: var(--orb-indicator-ready-glow); }
+  .c2s-dock-center-disc[data-dock-echo="forming"] { --dock-echo: var(--orb-indicator-forming); --dock-echo-glow: var(--orb-indicator-forming-glow); }
+  .c2s-dock-center-disc[data-dock-echo] {
+    border-color: color-mix(in srgb, var(--dock-echo) 65%, transparent);
+    box-shadow: 0 0 18px var(--dock-echo-glow);
+    animation: c2s-dock-echo-bloom 900ms ease-out 1 both;
+  }
+  @keyframes c2s-dock-echo-bloom {
+    0% { box-shadow: 0 0 26px var(--dock-echo-glow); }
+    100% { box-shadow: 0 0 18px var(--dock-echo-glow); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* parity: the tint (the information) stays; only the bloom dies */
+    .c2s-dock-center-disc[data-dock-echo] { animation: none; }
+  }
   .c2s-dock-badge {
     position: absolute;
     top: 4px;
@@ -770,6 +795,11 @@
     flex: 1;
     font: var(--type-body);
     font-weight: 600;
+  }
+  /* W24 (DL-06): the tie beside the roster name — quieter ink. */
+  .c2s-who-row .c2s-who-tie {
+    font-weight: 400;
+    color: var(--ink-3);
   }
   .c2s-who-row .c2s-who-resp {
     font: var(--type-callout);

@@ -118,6 +118,24 @@ describe("indicator language - canon wins, mode-invariant (MP-11)", () => {
     expect(occurrences(css, "--orb-indicator-past-glow: transparent")).toBe(2);
   });
 
+  it("AT-02: every --state-* in c2Tokens.css resolves to its canon value in both modes", () => {
+    // The divergent second hue family is dead: each --state-* token
+    // (light block AND dark block) is an alias of the canon
+    // --orb-indicator-* token, whose single definition above equals
+    // PLAN_STATE_HEX. No derivative state hex may reappear.
+    const c2 = readFileSync(resolve(webRoot, "src/theme/c2Tokens.css"), "utf8");
+    for (const family of ["forming", "action", "ready", "happening", "past"] as const) {
+      expect(
+        occurrences(c2, `--state-${family}: var(--orb-indicator-${family})`),
+        `--state-${family} alias (light + dark)`,
+      ).toBe(2);
+      expect(PLAN_STATE_HEX[family]).toBe(ORB_INDICATOR[family]);
+    }
+    for (const dead of ["#6d5df0", "#9d94ff", "#e8323f", "#ff7a85", "#b77900", "#f5b93f", "#0a7c6e", "#4adecb"]) {
+      expect(c2.toLowerCase()).not.toContain(dead);
+    }
+  });
+
   it("sampled state anchors are recorded as provenance, not used as indicators", () => {
     expect(ORB_SAMPLED.sampledState.formingVioletMedian).toBe(sampled.fire.violet.hex);
     expect(ORB_SAMPLED.sampledState.happeningCyanMedian).toBe(sampled.fire.cyan.hex);
@@ -148,6 +166,24 @@ describe("standalone reductions carry the same geometry + sampled fills", () => 
     for (const hex of sampled.wordmark.gradientSlices) {
       expect(wordmarkSvg.toLowerCase()).toContain(hex.toLowerCase());
     }
+  });
+});
+
+describe("AR-F1 ignition - the lit frame is an event (R19 W27 AT-04)", () => {
+  const orbCss = readFileSync(resolve(webRoot, "src/brand/orb/orb.css"), "utf8");
+  it("one ignition on mount: travel 600ms + bloom settling at 900ms, once, never a loop", () => {
+    expect(orbCss).toContain("animation: orb-fire-ignite 900ms");
+    expect(orbCss).toContain("animation: orb-fire-ignite-travel 600ms");
+    expect(orbCss).toContain("@keyframes orb-fire-ignite-travel");
+    // the bloom's last keyframe IS the resting shadow (settle, no snap)
+    expect(orbCss).toContain("box-shadow: var(--orb-fire-glow);");
+    expect(orbCss).not.toMatch(/orb-fire-ignite[^{]*infinite/);
+  });
+  it("past never ignites, and reduced motion kills the motion only (resting glow stays)", () => {
+    expect(orbCss).toContain('.orb-fire-frame[data-orb-state="past"]');
+    const rm = orbCss.slice(orbCss.indexOf("@media (prefers-reduced-motion: reduce)", orbCss.indexOf("orb-fire-ignite")));
+    expect(rm).toContain(".orb-fire-frame");
+    expect(rm).toContain("animation: none");
   });
 });
 
@@ -231,6 +267,33 @@ describe("orb components - right asset per job", () => {
     expect(stones[1]?.getAttribute("data-orb-state")).toBe("happening");
     expect(stones[2]?.getAttribute("data-orb-state")).toBe("forming");
     expect(stones[2]?.getAttribute("data-orb-state-known")).toBe("0");
+  });
+
+  it("AT-14: the stone carries a non-color pattern channel per family", async () => {
+    await render(
+      <>
+        <StateStone state="forming" />
+        <StateStone state="action" />
+        <StateStone state="ready" />
+        <StateStone state="happening" />
+        <StateStone state="past" />
+      </>,
+    );
+    const stones = document.querySelectorAll('[data-orb="state-stone"]');
+    expect([...stones].map((s) => s.getAttribute("data-stone-pattern"))).toEqual([
+      "dashed",
+      "weight",
+      "solid",
+      "double",
+      "rest",
+    ]);
+    // forming's ring is really dashed; action's is really heavier;
+    // happening really grows a second ring.
+    const rings = [...stones].map((s) => s.querySelectorAll("circle"));
+    expect(rings[0]?.[2]?.getAttribute("stroke-dasharray")).toBe("7 6");
+    expect(rings[1]?.[2]?.getAttribute("stroke-width")).toBe("17");
+    expect(rings[3]?.length).toBe(4);
+    expect(rings[4]?.length).toBe(2);
   });
 
   it("fire frame carries its state for the tinted glow", async () => {

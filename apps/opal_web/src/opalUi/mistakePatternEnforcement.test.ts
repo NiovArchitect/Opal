@@ -647,11 +647,16 @@ describe("MP-11 (web): canon indicator hexes live only in the token source + nam
       // brand accent #7d4dce, so the file no longer uses a canon
       // hex outside the token source and leaves the allowlist.
       "opalUi/GraphConvoyPanel.tsx",
-      "opalUi/GraphSocialHome.tsx",
-      "opalUi/OpalLivingCharacter.tsx",
+      // "opalUi/GraphSocialHome.tsx", "opalUi/OpalLivingCharacter.tsx"
+      // and "opalUi/founderGraphSeed.ts" RETIRED by R19 W27 (AT-09):
+      // the graph avatar/timeline tone cycle and the seed palette
+      // now cycle the non-canon entity (person-tint) palette, the
+      // gprof labels wear brand violet/pearl, the legacy --accent is
+      // brand violet, and the living character paints the orb's
+      // sampled fire - so none of the three files uses a canon state
+      // hex outside the token source any more.
       "opalUi/callsContinuitySeed.ts",
       "opalUi/founderChatsPlanPills.ts",
-      "opalUi/founderGraphSeed.ts",
       "opalUi/graphConvoyEta.ts",
       "opalUi/graphSurfaceInterop.ts",
       "theme/signalGrammar.ts",

@@ -901,7 +901,14 @@ export function C2GraphDetail({
               {detail.who.map((person) => (
                 <div className="c2s-who-row" key={person.name}>
                   <Avatar avatar={person.avatar} size={36} />
-                  <span className="c2s-who-name">{person.name}</span>
+                  <span className="c2s-who-name">
+                    {person.name}
+                    {person.relationshipLabel ? (
+                      <span className="c2s-who-tie" data-testid="c2-detail-who-tie">
+                        {` · ${person.relationshipLabel}`}
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="c2s-who-resp">
                     {person.responseLabel}
                     {person.locationLabel ? (

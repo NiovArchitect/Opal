@@ -125,7 +125,10 @@ describe("W13 person profile", () => {
     );
     expect(profile.name).toBe("Maya Chen");
     expect(profile.handle).toBe("maya");
-    expect(profile.relationshipLabel).toBe("Close friends");
+    // W24 (DL-12): a PERSON profile carries the SINGULAR tie —
+    // "Close friends" is the circle GROUP header's grammar and was
+    // the bug this wave fixes.
+    expect(profile.relationshipLabel).toBe("Close friend");
     expect(profile.nextTogether?.stateLabel).toBe("Ready");
   });
 

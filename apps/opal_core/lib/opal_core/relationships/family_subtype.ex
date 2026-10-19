@@ -43,8 +43,20 @@ defmodule OpalCore.Relationships.FamilySubtype do
     "co_parent" => %{label: "Co-parent", generation: "same"}
   }
 
+  # Picker order: closest-generation roles first, in the order a
+  # person naming family would reach for them.
+  @ordered ~w(parent child sibling grandparent aunt_uncle cousin niece_nephew co_parent)
+
   @doc "All valid family subtype slugs."
   def all, do: Map.keys(@subtypes)
+
+  @doc "All valid family subtype slugs, in picker order."
+  def ordered, do: @ordered
+
+  @doc "Finished picker options: [%{slug, label}] in picker order."
+  def options do
+    Enum.map(@ordered, fn slug -> %{"slug" => slug, "label" => label(slug)} end)
+  end
 
   def valid?(subtype) when is_binary(subtype), do: Map.has_key?(@subtypes, subtype)
   def valid?(_), do: false

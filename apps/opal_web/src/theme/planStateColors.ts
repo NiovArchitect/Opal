@@ -83,6 +83,19 @@ export function planStateFamily(state: string | null | undefined): PlanStateFami
   if (s === "past" || s === "settled" || s === "ended") {
     return "past";
   }
+  // R19 W27 (AT-03): the GOVERNED SharedPlan statuses, mirroring
+  // familyOfStatus (the shell adapter's map) and the backend's one
+  // indicator derivation (NextPlan) exactly - a raw plan contract
+  // status reaches this map through the realtime plan_state event,
+  // and an AGREED plan must read ready here too, never fall through
+  // to forming (the W18 defect class). tentative/changed are the
+  // fall-through leg (forming); completed/expired/cancelled rest.
+  if (s === "agreed") {
+    return "ready";
+  }
+  if (s === "completed" || s === "expired" || s === "cancelled") {
+    return "past";
+  }
   return "forming";
 }
 

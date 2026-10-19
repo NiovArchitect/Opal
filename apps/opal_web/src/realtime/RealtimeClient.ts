@@ -6,6 +6,7 @@
 
 import { Socket, type Channel } from "phoenix";
 import { fetchSocketTicket, runtimeConfig } from "../api/productClient";
+import { planStateFamily, type PlanStateFamily } from "../theme/planStateColors";
 import {
   IntelligenceChoreography,
   type IntelligenceStoreSnapshot,
@@ -82,6 +83,22 @@ export type InboxPlanEvent = {
   projection: Record<string, unknown> | null;
 };
 
+/**
+ * R19 W27 (AT-03): an owner-scoped plan event forwarded by the
+ * user channel (`inbox:plan_state` - a conversation-less plan
+ * mutation published on `social_flow:user:<id>`). This is the
+ * event the C2 shell's plan/Home projections were missing: a
+ * state crossing caused by ANOTHER person now repaints without
+ * navigation. `family` is derived here, once, through the canon
+ * planStateFamily map - consumers never re-derive state.
+ */
+export type PlanStateEvent = {
+  event: string;
+  plan_id?: string;
+  status?: string;
+  family: PlanStateFamily | null;
+};
+
 export type InboxAttentionEvent = {
   event?: string;
   user_id?: string;
@@ -91,6 +108,7 @@ export type InboxAttentionEvent = {
 type InboxHandler = (ev: InboxMessageEvent) => void;
 type InboxReadHandler = (ev: InboxReadEvent) => void;
 type InboxPlanHandler = (ev: InboxPlanEvent) => void;
+type PlanStateHandler = (ev: PlanStateEvent) => void;
 type InboxAttentionHandler = (ev: InboxAttentionEvent) => void;
 type MessageDeliveredHandler = (ev: MessageDeliveredEvent) => void;
 
@@ -160,6 +178,7 @@ export class RealtimeClient {
   private inboxHandlers = new Set<InboxHandler>();
   private inboxReadHandlers = new Set<InboxReadHandler>();
   private inboxPlanHandlers = new Set<InboxPlanHandler>();
+  private planStateHandlers = new Set<PlanStateHandler>();
   private inboxAttentionHandlers = new Set<InboxAttentionHandler>();
   private messageDeliveredHandlers = new Set<MessageDeliveredHandler>();
   private userChannel: Channel | null = null;
@@ -233,6 +252,12 @@ export class RealtimeClient {
   onInboxPlan(handler: InboxPlanHandler): () => void {
     this.inboxPlanHandlers.add(handler);
     return () => this.inboxPlanHandlers.delete(handler);
+  }
+
+  /** Owner-scoped plan state events (AT-03) - a remote crossing. */
+  onPlanState(handler: PlanStateHandler): () => void {
+    this.planStateHandlers.add(handler);
+    return () => this.planStateHandlers.delete(handler);
   }
 
   /** Attention Center invalidation — refetch canonical projection; no per-feature spam. */
@@ -474,6 +499,11 @@ export class RealtimeClient {
       const event = normalizeInboxPlan(payload);
       if (!event) return;
       this.inboxPlanHandlers.forEach((handler) => handler(event));
+    });
+    ch.on("inbox:plan_state", (payload: unknown) => {
+      const event = normalizePlanState(payload);
+      if (!event) return;
+      this.planStateHandlers.forEach((handler) => handler(event));
     });
     ch.on("inbox:attention", (payload: unknown) => {
       const event = normalizeInboxAttention(payload);
@@ -1020,6 +1050,36 @@ export function normalizeSocialFlowPlan(
       status: text(plan.status),
       organizer_name: text(plan.organizer_name),
     },
+  };
+}
+
+/**
+ * AT-03: normalize an `inbox:plan_state` push (the Contracts event
+ * envelope forwarded by the user channel) into a PlanStateEvent.
+ * The plan contract rides at payload.plan; non-plan events
+ * (revision/commitment) still count as crossings - they carry no
+ * plan status, so family stays null and consumers just repaint.
+ */
+export function normalizePlanState(payload: unknown): PlanStateEvent | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Record<string, unknown>;
+  const event = typeof row.event === "string" ? row.event : null;
+  if (!event) return null;
+  const inner =
+    row.payload && typeof row.payload === "object"
+      ? (row.payload as Record<string, unknown>)
+      : {};
+  const plan =
+    inner.plan && typeof inner.plan === "object"
+      ? (inner.plan as Record<string, unknown>)
+      : null;
+  const status =
+    plan && typeof plan.status === "string" ? plan.status : undefined;
+  return {
+    event,
+    plan_id: plan && typeof plan.id === "string" ? plan.id : undefined,
+    status,
+    family: status ? planStateFamily(status) : null,
   };
 }
 

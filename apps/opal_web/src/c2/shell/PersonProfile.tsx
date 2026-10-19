@@ -13,23 +13,33 @@
  * thread is open behind this sheet; memory controls are real
  * because the host routes to the You > What Opal remembers room.
  */
-import React from "react";
+import React, { useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { PlanStatePillC2 } from "../PlanCardC2";
 import { Avatar } from "./bits";
 import type { PersonProfileProjection } from "./projections";
+import {
+  RelationshipPickerSheet,
+  type RelationshipSave,
+} from "./RelationshipPicker";
 
 export function PersonProfileSheet({
   profile,
   onClose,
   onMessage,
   onOpenMemoryControls,
+  onSaveRelationship,
 }: {
   profile: PersonProfileProjection;
   onClose: () => void;
   onMessage?: () => void;
   onOpenMemoryControls?: () => void;
+  /** Repair #19 W24 (DL-01) — the ONE relationship write, supplied
+   *  by the host when it holds a session. Absent = the
+   *  identification row does not render (no dead control). */
+  onSaveRelationship?: RelationshipSave;
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
   return (
     <TopLayer band="sheet">
       <div className="c2s-scrim" onClick={onClose}>
@@ -56,7 +66,33 @@ export function PersonProfileSheet({
                 {profile.relationshipLabel}
               </p>
             ) : null}
+            {profile.closeCircle ? (
+              <p className="c2s-card-line" data-testid="r19-profile-close-circle">
+                In your close circle
+              </p>
+            ) : null}
           </div>
+
+          {onSaveRelationship && profile.personId ? (
+            <div className="r19-profile-section" data-testid="r19-profile-identify">
+              <p className="c2s-detail-kicker">Who they are to you</p>
+              <button
+                type="button"
+                className="c2s-sheet-row"
+                data-testid="r19-profile-identify-row"
+                onClick={() => setPickerOpen(true)}
+              >
+                <span>
+                  {profile.relationshipLabel ?? "How do you know them?"}
+                  <small>
+                    {profile.relationshipLabel
+                      ? "Tap to change"
+                      : "Say who they are to you"}
+                  </small>
+                </span>
+              </button>
+            </div>
+          ) : null}
 
           {profile.nextTogether ? (
             <div className="r19-profile-section" data-testid="r19-profile-next">
@@ -99,6 +135,16 @@ export function PersonProfileSheet({
               Done
             </button>
           </div>
+          {pickerOpen && onSaveRelationship ? (
+            <RelationshipPickerSheet
+              personName={profile.name}
+              currentType={profile.relationshipType}
+              currentFamilySubtype={profile.familySubtype}
+              currentFamilyMinor={profile.familyMinor}
+              onSave={onSaveRelationship}
+              onClose={() => setPickerOpen(false)}
+            />
+          ) : null}
         </div>
       </div>
     </TopLayer>

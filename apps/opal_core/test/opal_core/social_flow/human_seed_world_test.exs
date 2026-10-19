@@ -491,5 +491,22 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
     maya_contact = Enum.find(contacts, &(&1.display_name == "Maya Torres"))
     assert maya_contact != nil
     assert maya_contact.type == "close_friend"
+
+    # Repair #19 W24 (DL-13): the cast carries a varied typed mix
+    # through the same real path, so the pack's tie-rendering
+    # surfaces show the layer: partner, close friend, friend,
+    # business — and the rest of the cast honestly untyped. NO
+    # family tie is seeded for the viewer: the check-in sweep
+    # resolves the organizer's whole family set, and a seed-typed
+    # family member becomes an extra sweep target in the API
+    # battery's FR-B3-01 world (see the note in human_seed_world.ex).
+    by_name = Map.new(contacts, &{&1.display_name, &1})
+    assert by_name["Chanelle Brooks"].type == "partner"
+    assert by_name["Sabrina Nguyen"].type == "friend"
+    assert by_name["Alex Rivera"].type == "business"
+
+    for name <- ["Jordan Ellis", "Nina Patel", "Priya Shah", "Marcus Lee"] do
+      assert (by_name[name] || %{type: nil}).type == nil
+    end
   end
 end

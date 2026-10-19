@@ -29,7 +29,8 @@ import { C2Splash1 } from "../../onboarding/C2Splash1";
 import { C2Splash2 } from "../../onboarding/C2Splash2";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { OrbMark, OrbWordmark } from "../../brand/orb/OrbMark";
-import { OrbLivingRings } from "../../brand/orb/OrbLivingRings";
+import { OrbLivingRings, orbAmbientStateFromFamilies } from "../../brand/orb/OrbLivingRings";
+import { familyOfStatus } from "./shellData";
 import {
   applyC2Mode,
   readC2ModePreference,
@@ -62,7 +63,9 @@ import {
   unlinkGoalPlan,
   forgetCapsule,
   forgetMemoryFact,
+  journeyAddPeople,
   listConversations,
+  listRelationships,
   loadProfile,
   opalPlanCancelError,
   planConversionLine,
@@ -85,6 +88,8 @@ import {
   type ShelfStarterContract,
 } from "../../api/productClient";
 import { getDeviceCoords } from "../../device/deviceLocation";
+import { productRealtime } from "../../realtime/RealtimeClient";
+import type { PlanStateFamily } from "../../theme/planStateColors";
 import "./c2shell.css";
 import type { Adopt1Projection, C2Route, GraphDetailProjection } from "./projections";
 import {
@@ -107,10 +112,14 @@ import { C2Onboarding } from "./C2Onboarding";
 import {
   CenterHost,
   ChatsHost,
+  peopleUniverse,
   type CenterOpenRequest,
+  type PickerPerson,
+  type RelRow,
   CheckinSummarySheet,
   conversationPreviewLabel,
 } from "./C1ShellHosts";
+import { tieLabel } from "../../opalUi/relationshipTypes";
 import { CareDestination } from "./CareDestination";
 import {
   Avatar,
@@ -144,6 +153,16 @@ export function C2Shell() {
   const [activityOpen, setActivityOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [homeNonce, setHomeNonce] = useState(0);
+  // R19 W27 (AT-05 / AR-F3): the dock echo - set by a remote plan
+  // crossing that lands while the user is NOT on Center (the reveal
+  // surface); cleared on first view of Center. `key` remounts the
+  // disc so the one-shot bloom replays per event.
+  const [dockEcho, setDockEcho] = useState<{ family: PlanStateFamily; key: number } | null>(null);
+  const routeRef = useRef(route);
+  useEffect(() => {
+    routeRef.current = route;
+    if (route === "center") setDockEcho(null);
+  }, [route]);
   const [summarySweepId, setSummarySweepId] = useState<string | null>(null);
   const bearer = session?.access_token;
 
@@ -205,6 +224,32 @@ export function C2Shell() {
     }
   }, [bearer]);
 
+  /** Repair #19 W24 (DL-06) — the viewer's ties by person id, for
+   *  the graph detail roster. Read from the ONE relationships index;
+   *  a failed read leaves the roster without ties (honest absence). */
+  const [relTieById, setRelTieById] = useState<ReadonlyMap<string, string | null>>(
+    new Map(),
+  );
+  const refreshRelTies = useCallback(async () => {
+    try {
+      const res = await listRelationships(bearer);
+      setRelTieById(
+        new Map(
+          (res.relationships ?? []).map((r) => [
+            r.contact_user_id,
+            tieLabel(r.type, r.family_subtype),
+          ]),
+        ),
+      );
+    } catch {
+      /* absence is honest; ties simply do not render */
+    }
+  }, [bearer]);
+
+  useEffect(() => {
+    if (stage === "member") void refreshRelTies();
+  }, [stage, refreshRelTies, homeNonce]);
+
   const refreshConversations = useCallback(async () => {
     try {
       const res = await listConversations(bearer);
@@ -237,6 +282,44 @@ export function C2Shell() {
     }
   }, [stage, bearer, refreshPlans, refreshConversations, refreshAdopt1, refreshGraphLock, homeNonce]);
 
+  // R19 W27 (AT-03): LIVE REPAINT on a remote state crossing. The
+  // shell starts the product realtime socket for the member stage
+  // (the legacy OpalApp tree was the only starter; the C2 shell
+  // never subscribed) and re-reads its plan/Home projections when
+  // the socket reports a crossing: `inbox:plan` (conversation plan
+  // fanout), `inbox:attention` (attention invalidation), and the
+  // new `inbox:plan_state` (owner-scoped plan events, forwarded by
+  // the user channel from SocialFlow.broadcast_plan). No polling:
+  // the repaint is event-driven, and the re-read is the server's
+  // canonical projection, never a local edit.
+  // AT-05 rides the same event: a plan_state crossing with a real
+  // state family, arriving while the user is off Center, sets the
+  // dock echo tint in that family (decays on first Center view).
+  useEffect(() => {
+    if (stage !== "member" || !bearer || !session?.user_id) return;
+    void productRealtime.start(bearer, { userId: session.user_id }).catch(() => {
+      /* offline: projections keep their navigation-driven refresh */
+    });
+    const repaint = () => {
+      void refreshPlans();
+      void refreshConversations();
+      setHomeNonce((n) => n + 1);
+    };
+    const offPlan = productRealtime.onInboxPlan(repaint);
+    const offAttention = productRealtime.onInboxAttention(repaint);
+    const offState = productRealtime.onPlanState((ev) => {
+      repaint();
+      if (ev.family && ev.family !== "past" && routeRef.current !== "center") {
+        setDockEcho({ family: ev.family, key: Date.now() });
+      }
+    });
+    return () => {
+      offPlan();
+      offAttention();
+      offState();
+    };
+  }, [stage, bearer, session?.user_id, refreshPlans, refreshConversations]);
+
   /** R19 W7 - re-read the open detail's Who/History from the ONE
    *  plan-history projection (after a location share changes it). */
   const refreshDetailHistory = useCallback(
@@ -244,13 +327,15 @@ export function C2Shell() {
       try {
         const history = await getPlanHistory(cardId, bearer);
         setDetail((current) =>
-          current && current.id === cardId ? detailWithHistory(current, history) : current,
+          current && current.id === cardId
+            ? detailWithHistory(current, history, relTieById)
+            : current,
         );
       } catch {
         // The previous projection stands; absence is never painted.
       }
     },
-    [bearer],
+    [bearer, relTieById],
   );
 
   /** R19 W7 - private graphs + living-detail handlers. Every one
@@ -345,6 +430,14 @@ export function C2Shell() {
     [plans, session],
   );
 
+  // R19 W27 (AT-06): the dock orb's ambient rings are state-keyed -
+  // they carry the strongest live state family from the SAME plan
+  // projection the surfaces render, and rest when nothing is live.
+  const dockLiveState = useMemo(
+    () => orbAmbientStateFromFamilies(plans.map((p) => familyOfStatus(p.status))),
+    [plans],
+  );
+
   const openGraph = useCallback(
     (cardId: string, origin: C2Route) => {
       const plan = plans.find((p) => p.id === cardId);
@@ -358,14 +451,87 @@ export function C2Shell() {
         try {
           const history = await getPlanHistory(cardId, bearer);
           setDetail((current) =>
-            current && current.id === cardId ? detailWithHistory(current, history) : current,
+            current && current.id === cardId
+              ? detailWithHistory(current, history, relTieById)
+              : current,
           );
         } catch {
           // History stays absent - the plan itself already rendered.
         }
       })();
     },
-    [plans, session, bearer],
+    [plans, session, bearer, relTieById],
+  );
+
+  /** Repair #19 W24 (DL-07) — "Add people" was wired to undefined
+   *  (a dead control at the plan-invite moment). It now opens a
+   *  picker over the ONE people universe and runs the real
+   *  participant add (POST /journeys/:id/add-people via
+   *  journeyAddPeople — PlanParticipant rows, lead-gated server
+   *  side). People already on the plan are not offered. A refusal
+   *  (not the lead) stays in the sheet as a plain line; a success
+   *  re-reads the detail history + plans from the server. */
+  const [addPeoplePlanId, setAddPeoplePlanId] = useState<string | null>(null);
+  const [addPeopleList, setAddPeopleList] = useState<PickerPerson[]>([]);
+  const [addPeopleError, setAddPeopleError] = useState<string | null>(null);
+  const [addPeopleBusy, setAddPeopleBusy] = useState(false);
+  const openAddPeople = useCallback(
+    async (cardId: string) => {
+      setAddPeoplePlanId(cardId);
+      setAddPeopleError(null);
+      setAddPeopleList([]);
+      let contacts: Array<{
+        contact_user_id: string;
+        display_name?: string | null;
+        type?: string | null;
+        family_subtype?: string | null;
+      }> = [];
+      let rows: RelRow[] = [];
+      try {
+        const res = await listRelationships(bearer);
+        contacts = res.contacts ?? [];
+        rows = (res.relationships ?? []).map((r) => ({
+          contact_user_id: r.contact_user_id,
+          type: typeof r.type === "string" ? r.type : "",
+          family_subtype: r.family_subtype ?? null,
+          family_minor: r.family_minor === true,
+        }));
+      } catch {
+        /* conversations alone still populate the picker */
+      }
+      const onPlan = new Set(
+        (detail && detail.id === cardId ? detail.who : [])
+          .map((w) => w.userId)
+          .filter((id): id is string => Boolean(id)),
+      );
+      setAddPeopleList(
+        peopleUniverse({ conversations, contacts, relRows: rows }).filter(
+          (person) => !onPlan.has(person.personId),
+        ),
+      );
+    },
+    [bearer, conversations, detail],
+  );
+  const addPersonToPlan = useCallback(
+    async (person: PickerPerson) => {
+      if (!addPeoplePlanId || addPeopleBusy) return;
+      setAddPeopleBusy(true);
+      setAddPeopleError(null);
+      try {
+        await journeyAddPeople(addPeoplePlanId, [person.personId], bearer);
+        const planId = addPeoplePlanId;
+        setAddPeoplePlanId(null);
+        await refreshDetailHistory(planId);
+        void refreshPlans();
+      } catch {
+        setAddPeopleError(
+          "That person could not be added. Only the plan's lead can add people.",
+        );
+      } finally {
+        setAddPeopleBusy(false);
+      }
+    },
+    [addPeoplePlanId, addPeopleBusy, bearer, refreshDetailHistory, refreshPlans],
   );
 
   /** Adoption wave 1 - Graphs section handlers. Each runs the real
@@ -666,7 +832,7 @@ export function C2Shell() {
                   completeSlot: (id) => openGraph(id, "graphs"),
                   dropPlan,
                   runNextAction: () => undefined,
-                  addPeople: () => undefined,
+                  addPeople: (id) => void openAddPeople(id),
                   openChatForPlan: () => goRoute("chats"),
                   back: () => goRoute("center"),
                   retryLoad: () => void refreshPlans(),
@@ -730,13 +896,19 @@ export function C2Shell() {
             aria-label="Opal Center"
             onClick={() => goRoute("center")}
           >
-            <span className="c2s-dock-center-disc orb-dock-device" data-orb="dock-device">
+            <span
+              key={dockEcho ? `echo-${dockEcho.key}` : "dock-disc"}
+              className="c2s-dock-center-disc orb-dock-device"
+              data-orb="dock-device"
+              data-dock-echo={dockEcho?.family}
+              data-testid="c2-dock-disc"
+            >
               {/* The living rings at ambient subtlety (R18 splash
                * rebuild): the SAME OrbLivingRings system as Splash 1,
                * clipped to the mark's own square inside the disc. */}
               <span className="orb-dock-mark">
                 <OrbMark size={40} />
-                <OrbLivingRings variant="ambient" />
+                <OrbLivingRings variant="ambient" liveState={dockLiveState} />
               </span>
             </span>
           </button>
@@ -777,7 +949,7 @@ export function C2Shell() {
             completeSlot: () => undefined,
             dropPlan,
             runNextAction: () => undefined,
-            addPeople: () => undefined,
+            addPeople: (id) => void openAddPeople(id),
             retryLoad: () => void refreshPlans(),
             convertPlan,
             ...r19Events,
@@ -791,6 +963,56 @@ export function C2Shell() {
             },
           }}
         />
+      ) : null}
+
+      {addPeoplePlanId ? (
+        <TopLayer band="sheet">
+          <div className="c2s-scrim" onClick={() => setAddPeoplePlanId(null)}>
+            <div
+              className="c2s-sheet"
+              role="dialog"
+              aria-label="Add people"
+              data-testid="c2-add-people-sheet"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="c2s-sheet-title">Add people</p>
+              {addPeopleError ? (
+                <p className="c2s-card-line" role="alert" data-testid="c2-add-people-error">
+                  {addPeopleError}
+                </p>
+              ) : null}
+              {addPeopleList.length === 0 ? (
+                <EmptyBlock
+                  headline="No one to add yet."
+                  line="People you talk with will show up here."
+                />
+              ) : (
+                addPeopleList.map((person) => (
+                  <button
+                    key={person.personId}
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-add-people-row"
+                    disabled={addPeopleBusy}
+                    onClick={() => void addPersonToPlan(person)}
+                  >
+                    <span>
+                      {person.name}
+                      {person.tieLabel ? <small>{person.tieLabel}</small> : null}
+                    </span>
+                  </button>
+                ))
+              )}
+              <button
+                type="button"
+                className="c2s-btn-text"
+                onClick={() => setAddPeoplePlanId(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </TopLayer>
       ) : null}
 
       {createKind ? (

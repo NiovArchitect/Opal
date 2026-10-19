@@ -1436,3 +1436,15 @@ describes the founder's patented IP and stays inside his private
 workspace/repos. The validator signed every section above; the
 contested items in §V.4 remain open by name until their settling
 evidence exists.*
+
+---
+
+## ADDENDUM (2026-10-19) - Terms: the multi-agent coordination layer
+
+Recorded by the founder 2026-10-19 13:36 PDT as product architecture (not a build item of Repair #19): Opal runs MULTIPLE AGENTS on the backend for each user - several working in parallel on that user's behalf - and agents of DIFFERENT PARTIES coordinate with each other to reach solutions/resolutions (agent-to-agent alignment over the graph). In this map's terms, all of it runs THROUGH the Memory Wallet: an agent acts only inside its own user's wallet scope and permissions (the Scoped Context Builder's intersection is the agent's whole world); cross-party coordination happens only on shared capsules/plans with consent lineage - never inside another user's private memory; every consequential agent action is ledgered (the signed audit ledger) and, where the user's mode requires, approval-gated; surfacing obeys QUIET (agents work silently; the user sees outcomes and what needs them, not machinery). This is the intelligence-phase architecture the wallet build serves; the sequencing law is unchanged (repairs pristine first).
+
+---
+
+## ADDENDUM (2026-10-19) - Terms: monetization model + value loop
+
+Recorded by the founder 2026-10-19 13:44 PDT, stated precisely: users MONETIZE their own first-party data. Opal brokers sharing ON BEHALF of users, out of their memory wallets, only what is permissioned and only at the granted scope. The reward to the user is MONEY and/or experiences and access, calibrated to the data class and the incentive design. The user is the seller; Opal is their broker; the wallet is both vault and brokerage account. VALUE LOOP: the money users earn through wallet brokering is SPENDABLE - within the applications connected to Memory Wallets (the domain family: Opal, Otzar, and future wallet-connected apps) and to pay for things in the real world. The wallet is therefore also the person's portable value account across the federated domain system: earn in one domain, hold in the wallet, spend anywhere the wallet reaches. (Aligns with the Sovereign Wallets document in the corpus.)

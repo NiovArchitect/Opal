@@ -196,8 +196,30 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
     # was carried. The viewer knows Maya: record that the way the
     # product records it, through Relationships.set_type (the
     # explicit user-set type write; an upsert, so re-seeds hold).
-    # Only Maya is typed — the minimal contact the proposal needs.
+    #
+    # Repair #19 W24 (DL-13): the cast now carries a human, varied
+    # set of ties through the SAME real path (set_type), so every
+    # tie-rendering surface in the review pack — profile, thread
+    # header, chats rows, graph roster, orbit sheet, picker — shows
+    # the relationship layer instead of a single typed contact. The
+    # rest of the cast stays untyped on purpose: honest absence is
+    # part of the demo.
+    #
+    # NO family tie is seeded for the viewer, deliberately: the
+    # check-in sweep resolves the organizer's ENTIRE family set
+    # (SocialFlow.Checkin), and the API battery's family-sweep case
+    # (FR-B3-01) builds its five-person circle from the battery's
+    # own phone-pool accounts — a seed-typed family member becomes
+    # a sixth sweep target and the case fails (proven on a fresh
+    # DB: 100/101 with a family row seeded, Jordan Ellis the sixth
+    # member). Family + subtype is one tap away in the pack through
+    # the DL-01 identification picker, which is the product's own
+    # path for exactly this. Do not re-add a family set_type here
+    # without re-proving FR-B3-01.
     {:ok, _} = OpalCore.Relationships.set_type(viewer_user_id, peers.maya, "close_friend")
+    {:ok, _} = OpalCore.Relationships.set_type(viewer_user_id, peers.chanelle, "partner")
+    {:ok, _} = OpalCore.Relationships.set_type(viewer_user_id, peers.sabrina, "friend")
+    {:ok, _} = OpalCore.Relationships.set_type(viewer_user_id, peers.alex, "business")
 
     opal_conversations = seed_opal_conversations!(viewer_user_id, peers, plans)
 

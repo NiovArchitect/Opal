@@ -128,6 +128,14 @@
     --layer-destination: 60;
     --layer-stage: 90;
     --layer-call: 100;
+
+    /* R19 W27 (AT-05): the dock echo's resting defaults - the
+     * c2shell disc rules bind these to the event family's canon
+     * indicator tokens while an echo is live; at rest they are
+     * transparent (no tint, no glow). Mode-free: the canon hues
+     * they resolve to are mode-invariant. */
+    --dock-echo: transparent;
+    --dock-echo-glow: transparent;
   }
 
   /* ================= LIGHT (default until boot resolves) ============ */
@@ -164,22 +172,29 @@
     --pattern-lines-night: rgba(250, 247, 242, 0.1);
 
     /* State system (section 2.4, Light column). Semantics are locked;
-     * only these visual values evolve. Tint = hue at stated opacity. */
-    --state-forming: #6d5df0;
-    --state-forming-tint: rgba(109, 93, 240, 0.14);
+     * only these visual values evolve. Tint = hue at stated opacity.
+     * R19 W27 (AT-02 CONVERGENCE): the --state-* hues ARE the canon -
+     * each one is an alias of its --orb-indicator-* token (theme/
+     * orbTokens.css, mode-invariant, pinned to PLAN_STATE_HEX), so a
+     * state carries ONE hue on every surface in both modes. The old
+     * per-mode derivative hues (light happening deep-teal, grey past)
+     * are dead. Mode adaptation survives ONLY in the *-ink tokens
+     * (text derivatives, consumed by text alone) and tint alphas. */
+    --state-forming: var(--orb-indicator-forming);
+    --state-forming-tint: rgba(139, 92, 246, 0.14);
     --state-forming-ink: #5546d8;
-    --state-action: #e8323f;
-    --state-action-tint: rgba(232, 50, 63, 0.12);
+    --state-action: var(--orb-indicator-action);
+    --state-action-tint: rgba(255, 77, 94, 0.12);
     --state-action-ink: #c81e2b;
-    --state-ready: #b77900;
-    --state-ready-tint: rgba(183, 121, 0, 0.16);
+    --state-ready: var(--orb-indicator-ready);
+    --state-ready-tint: rgba(255, 200, 107, 0.16);
     --state-ready-ink: #8a5e00;
-    --state-happening: #0a7c6e;
-    --state-happening-tint: rgba(10, 124, 110, 0.14);
-    --state-happening-ink: #07665a;
-    --state-happening-ring: rgba(10, 124, 110, 0.35);
-    --state-past: #78716c;
-    --state-past-tint: rgba(120, 113, 108, 0.1);
+    --state-happening: var(--orb-indicator-happening);
+    --state-happening-tint: rgba(0, 229, 255, 0.14);
+    --state-happening-ink: #07758c;
+    --state-happening-ring: rgba(0, 229, 255, 0.35);
+    --state-past: var(--orb-indicator-past);
+    --state-past-tint: rgba(255, 255, 255, 0.1);
     --state-past-ink: #57534e;
   }
 
@@ -216,23 +231,24 @@
     --pattern-lines: rgba(250, 247, 242, 0.08);
     --pattern-lines-night: rgba(250, 247, 242, 0.08);
 
-    /* State system (section 2.4, Dark column) - night-safe intensity,
-     * tints capped as tabled, no glow except the happening ring. */
-    --state-forming: #9d94ff;
-    --state-forming-tint: rgba(157, 148, 255, 0.18);
+    /* State system (section 2.4, Dark column) - the SAME canon
+     * aliases as Light (AT-02: one hue family, both modes); only
+     * tint alphas and *-ink text derivatives are mode-adapted. */
+    --state-forming: var(--orb-indicator-forming);
+    --state-forming-tint: rgba(139, 92, 246, 0.18);
     --state-forming-ink: #c4beff;
-    --state-action: #ff7a85;
-    --state-action-tint: rgba(255, 122, 133, 0.16);
+    --state-action: var(--orb-indicator-action);
+    --state-action-tint: rgba(255, 77, 94, 0.16);
     --state-action-ink: #ffb0b7;
-    --state-ready: #f5b93f;
-    --state-ready-tint: rgba(245, 185, 63, 0.16);
+    --state-ready: var(--orb-indicator-ready);
+    --state-ready-tint: rgba(255, 200, 107, 0.16);
     --state-ready-ink: #ffd88a;
-    --state-happening: #4adecb;
-    --state-happening-tint: rgba(74, 222, 203, 0.16);
-    --state-happening-ink: #8af0e2;
-    --state-happening-ring: rgba(74, 222, 203, 0.35);
-    --state-past: #a8a29e;
-    --state-past-tint: rgba(168, 162, 158, 0.12);
+    --state-happening: var(--orb-indicator-happening);
+    --state-happening-tint: rgba(0, 229, 255, 0.16);
+    --state-happening-ink: #8be9f7;
+    --state-happening-ring: rgba(0, 229, 255, 0.35);
+    --state-past: var(--orb-indicator-past);
+    --state-past-tint: rgba(255, 255, 255, 0.12);
     --state-past-ink: #d6d0c8;
   }
 

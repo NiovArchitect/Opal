@@ -22,6 +22,96 @@ export function relationshipTypeLabel(type: string | null | undefined): string {
   return hit?.label || type;
 }
 
+/**
+ * Repair #19 W24 (DL-03 / DL-12) — THE one label truth for ties.
+ *
+ * Every served surface that names who a person is to you reads its
+ * words from this module and nowhere else. The singular map above
+ * (RELATIONSHIP_TYPE_OPTIONS) names ONE person ("Partner", "Close
+ * friend"); the group map below names a check-in circle of people
+ * ("Partners", "Close friends") and is used ONLY for circle group
+ * headers. Before W24 the C2 hosts carried their own duplicated
+ * plural map and spent it on single-person surfaces — a partner
+ * rendered as "Partners" on their own profile.
+ */
+
+/** Family subtype slugs + finished labels — the backend's real
+ *  vocabulary (Relationships.FamilySubtype, served on the
+ *  relationships index as `family_subtypes`), in picker order. */
+export const FAMILY_SUBTYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: "parent", label: "Parent" },
+  { value: "child", label: "Child" },
+  { value: "sibling", label: "Sibling" },
+  { value: "grandparent", label: "Grandparent" },
+  { value: "aunt_uncle", label: "Aunt / Uncle" },
+  { value: "cousin", label: "Cousin" },
+  { value: "niece_nephew", label: "Niece / Nephew" },
+  { value: "co_parent", label: "Co-parent" },
+];
+
+export function familySubtypeLabel(
+  subtype: string | null | undefined,
+): string | null {
+  if (!subtype) return null;
+  return FAMILY_SUBTYPE_OPTIONS.find((o) => o.value === subtype)?.label ?? null;
+}
+
+/**
+ * The finished SINGULAR tie for one person: "Partner", "Close
+ * friend", "Family - Sister" (type + subtype). An unset or unknown
+ * type renders NOTHING (null) — a tie is never guessed, and a raw
+ * slug never reaches the glass.
+ */
+export function tieLabel(
+  type: string | null | undefined,
+  familySubtype?: string | null | undefined,
+): string | null {
+  if (!type) return null;
+  const hit = RELATIONSHIP_TYPE_OPTIONS.find((o) => o.value === type);
+  if (!hit) return null;
+  if (type === "family") {
+    const sub = familySubtypeLabel(familySubtype);
+    if (sub) return `Family - ${sub}`;
+  }
+  return hit.label;
+}
+
+/** Plural GROUP words for check-in circle headers only ("Your
+ *  circles" groups name a set of people, never one person). */
+export const RELATIONSHIP_GROUP_LABELS: Record<string, string> = {
+  spouse: "Spouse",
+  partner: "Partners",
+  family: "Family",
+  close_friend: "Close friends",
+  friend: "Friends",
+  business: "Work",
+  acquaintance: "Acquaintances",
+};
+
+export function relationshipGroupLabel(type: string): string | null {
+  return RELATIONSHIP_GROUP_LABELS[type] ?? null;
+}
+
+/**
+ * Repair #19 W24 (DL-09, bounded leg) — close-circle membership is
+ * DERIVED from the type, exactly as the backend derives it
+ * (Lives / TemporaryStoryPublishing: spouse, partner, family,
+ * close_friend). There is no per-person close-circle write path:
+ * choosing one of these types IS the membership write, and any
+ * other type is outside the circle. Surfaces may render the cue
+ * from this derivation; they may not offer a separate toggle.
+ */
+export const CLOSE_CIRCLE_TYPES: ReadonlySet<string> = new Set([
+  "spouse",
+  "partner",
+  "family",
+  "close_friend",
+]);
+
+export function isCloseCircleType(type: string | null | undefined): boolean {
+  return Boolean(type) && CLOSE_CIRCLE_TYPES.has(type as string);
+}
+
 /** Local person meta when no contact_user_id / type yet (seed + offline). */
 const PERSON_META_KEY = "opal.person.contact_meta.v1";
 

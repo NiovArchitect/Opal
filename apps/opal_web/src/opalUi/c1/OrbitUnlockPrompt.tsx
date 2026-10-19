@@ -21,6 +21,7 @@
 import React, { useState } from "react";
 import { TopLayer } from "../TopLayer";
 import { useDismissableSurface } from "./useDismissable";
+import "./OrbitUnlockPrompt.css";
 
 export function OrbitUnlockPrompt({
   orbitLabel,
@@ -65,10 +66,14 @@ export function OrbitUnlockPrompt({
 
   return (
     <TopLayer band="modal">
-      <div className="c1-rail-scrim" data-testid="orbit-unlock-prompt" onClick={onClose}>
+      {/* W25 (FA-02): the prompt's classes are its OWN (OrbitUnlockPrompt.css,
+          unscoped) — it is portaled to body level by TopLayer, outside the
+          [data-design="r18"] wrappers the c1-rail-* rules are scoped to, so
+          those rules never matched it and it rendered static/under the rail. */}
+      <div className="c1-orbit-unlock-scrim" data-testid="orbit-unlock-prompt" onClick={onClose}>
         <div
           ref={panelRef}
-          className="c1-rail-panel c1-glass"
+          className="c1-orbit-unlock-panel"
           role="dialog"
           aria-modal="true"
           aria-label={`Unlock ${orbitLabel}`}

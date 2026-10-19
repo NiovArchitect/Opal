@@ -12,7 +12,7 @@
  * law) - it never defaults silently to ready.
  */
 import React, { useEffect, useState } from "react";
-import { FireLine, StateStone } from "../brand/orb/FireLine";
+import { StateRule, StateStone } from "../brand/orb/FireLine";
 import { AuthedImage } from "../media/AuthedImage";
 
 /** One person face: the record photo through the authenticated
@@ -92,12 +92,50 @@ export type PlanCardC2Input = {
   primaryActionLabel?: string | null;
   /** Repair #19 (W9) - the record's own image, or absent. */
   media?: PlanCardMediaC2 | null;
+  /** R19 W27 (AT-10 / AR-F4): the surface's lit verdict for this
+   *  card. Undefined = the surface does not run the lit cap (the
+   *  card renders its full state register). On a capped surface
+   *  exactly one card is lit:true; every other lit candidate is
+   *  lit:false and rests at border-only. Set by the surface from
+   *  litWinnerId - the card never decides this itself. */
+  lit?: boolean;
   /** Repair #19 (W9) - real people on the plan, from the record. */
   people?: PlanCardPersonC2[];
   /** Repair #19 (W9) - finished people line from the record
    *  (the plan contract's who_label), or null. */
   peopleLine?: string | null;
 };
+
+/**
+ * AT-10 / AR-F4 burst coalescence: among lit candidates (non-past
+ * cards), the ONE lit winner - strongest state by reveal priority
+ * (action > happening > ready > forming); ties go to the earliest
+ * card in projection order (the feed's most-recent-first order).
+ * Past is never a candidate. Returns null when nothing can be lit.
+ */
+export const LIT_STATE_PRIORITY: Record<PlanStateFamilyC2, number> = {
+  action: 0,
+  happening: 1,
+  ready: 2,
+  forming: 3,
+  past: 4,
+};
+
+export function litWinnerId(
+  cards: readonly { id: string; stateFamily: PlanStateFamilyC2 | string }[],
+): string | null {
+  let winner: string | null = null;
+  let winnerRank = Number.POSITIVE_INFINITY;
+  for (const card of cards) {
+    const family = isPlanStateFamilyC2(card.stateFamily) ? card.stateFamily : "forming";
+    const rank = LIT_STATE_PRIORITY[family];
+    if (rank < winnerRank) {
+      winnerRank = rank;
+      winner = card.id;
+    }
+  }
+  return winnerRank <= LIT_STATE_PRIORITY.forming ? winner : null;
+}
 
 export function PlanStatePillC2({
   stateFamily,
@@ -152,6 +190,9 @@ export function PlanCardC2({
     <article
       className="c2-plan-card"
       data-plan-state={family}
+      data-lit={
+        input.lit === undefined ? undefined : input.lit ? "lit" : "capped"
+      }
       data-testid="c2-plan-card"
       onClick={onOpen}
       role={onOpen ? "button" : undefined}
@@ -160,9 +201,12 @@ export function PlanCardC2({
       <div className="c2-plan-card-top">
         <PlanStatePillC2 stateFamily={input.stateFamily} stateLabel={input.stateLabel} />
       </div>
+      {/* AT-08 (R19 W27): iris fire is reserved for lit items -
+       * an ordinary plan card carries its STATE rule (canon hue at
+       * ambient strength), never the fire line. Past rests: no rule. */}
       {family !== "past" ? (
         <div style={{ marginTop: 10 }} aria-hidden>
-          <FireLine />
+          <StateRule state={family} />
         </div>
       ) : null}
       {input.media?.photoUrl ? (

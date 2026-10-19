@@ -556,18 +556,20 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
 /*    its own ambient register in the orb system. States are NEVER    */
 /*    faked - these treatments render only the state the projection   */
 /*    carries. FORMING reads as ANTICIPATION: ambient violet          */
-/*    border-glow family, dashed fire-line pattern cue, and a slow    */
-/*    breath on the card's fire line (L10-honest motion: it animates  */
-/*    only opacity of an element that already exists; reduced-motion  */
-/*    and light mode calm it). One lit element per card: the fire     */
-/*    line + the state stone; the card ground stays a quiet step.     */
+/*    border-glow family, dashed border pattern cue, and a slow       */
+/*    breath on the card's STATE RULE (R19 W27 AT-08: the rule is     */
+/*    state-tinted, never iris fire - fire is reserved for lit        */
+/*    items; L10-honest motion: it animates only opacity of an        */
+/*    element that already exists; reduced-motion and light mode      */
+/*    calm it). One lit element per card: the state rule + the        */
+/*    state stone; the card ground stays a quiet step.               */
 /* ================================================================== */
 .c2s-root .c2-plan-card[data-plan-state="forming"] {
   border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--orb-indicator-forming) 7%, var(--surface-1)), var(--surface-1));
   box-shadow: 0 0 18px color-mix(in srgb, var(--orb-indicator-forming-glow) 55%, transparent);
 }
-.c2s-root .c2-plan-card[data-plan-state="forming"] .orb-fire-line {
+.c2s-root .c2-plan-card[data-plan-state="forming"] .orb-state-rule {
   animation: unify-forming-breath 5s ease-in-out infinite;
 }
 @keyframes unify-forming-breath {
@@ -586,7 +588,24 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
 }
 .c2s-root .c2-plan-card[data-plan-state="happening"] {
   border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 50%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
+  /* AT-15 / AR-F5: happening's own PATTERN - the double ring (an
+   * outer halo ring beyond the border, the .c2-happening-ring
+   * treatment as a border pattern) - so ready (solid single) vs
+   * happening (solid double) differ by pattern alone. */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--orb-indicator-happening) 30%, transparent),
+    0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
+}
+/* AT-18 pulse leg: happening's urgency is carried by PULSE + words,
+ * never by the hue (cyan researches calm/approach - the reframe).
+ * The card's state rule pulses at the LIVE key (2.4s, opacity
+ * 0.55->1 - the exact AR-07 signature the live dot uses), so
+ * "happening now" has ONE pulse wherever it appears. */
+.c2s-root .c2-plan-card[data-plan-state="happening"] .orb-state-rule {
+  animation: unify-happening-pulse 2.4s ease-in-out infinite;
+}
+@keyframes unify-happening-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 .c2s-root .c2-plan-card[data-plan-state="past"] {
   border: 1px solid var(--line-1);
@@ -601,7 +620,26 @@ html.opal-native-host .tabbar-option-b .dock-bar::before {
 .c2s-root .c2-state-pill[data-plan-state="happening"] { border-color: color-mix(in srgb, var(--orb-indicator-happening) 55%, transparent); }
 .c2s-root .c2-state-pill[data-plan-state="past"] { border-color: var(--line-2); }
 @media (prefers-reduced-motion: reduce) {
-  .c2s-root .c2-plan-card[data-plan-state="forming"] .orb-fire-line {
+  .c2s-root .c2-plan-card[data-plan-state="forming"] .orb-state-rule {
     animation: none;
   }
+  /* AT-15 parity: the pulse dies, the double-ring PATTERN (the
+   * meaning's second channel) remains - information survives. */
+  .c2s-root .c2-plan-card[data-plan-state="happening"] .orb-state-rule {
+    animation: none;
+  }
+}
+/* AT-10 (R19 W27) - Home's lit coalescence (AR-F4 / AR-00.2 QUIET):
+ * a capped card rests at BORDER-ONLY - its state border + pattern +
+ * rule + pill all survive (the state still reads in full), but the
+ * glow, the tinted ground, and the forming breath belong to the
+ * surface's ONE lit card. Static equivalent is itself: capping is
+ * a resting state, not a motion, so reduced-motion changes
+ * nothing here. */
+.c2s-root .c2-plan-card[data-lit="capped"] {
+  box-shadow: none;
+  background: var(--surface-1);
+}
+.c2s-root .c2-plan-card[data-lit="capped"] .orb-state-rule {
+  animation: none;
 }

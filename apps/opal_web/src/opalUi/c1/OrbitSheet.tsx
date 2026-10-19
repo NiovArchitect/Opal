@@ -33,6 +33,7 @@ import "./OrbitSheet.css";
 export type OrbitSheetPlan = { id: string; title: string; line?: string | null };
 
 export function OrbitSheet({
+  tieLabel,
   anchor,
   context,
   plans = [],
@@ -46,6 +47,10 @@ export function OrbitSheet({
   onOpenAnchorThread,
   onClose,
 }: {
+  /** Repair #19 W24 (DL-03) — the viewer's finished tie to the
+   *  anchor person ("Family - Sister"), beside their name. Only
+   *  person anchors carry one; absent renders nothing. */
+  tieLabel?: string | null;
   anchor: OpalAnchor;
   context?: OpalConversationContext | null;
   plans?: OrbitSheetPlan[];
@@ -80,7 +85,14 @@ export function OrbitSheet({
         data-anchor-key={`${anchor.type}:${anchor.id}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="orbit-sheet-title">{anchorName}</p>
+        <p className="orbit-sheet-title">
+          {anchorName}
+          {tieLabel ? (
+            <span className="orbit-sheet-tie" data-testid="orbit-sheet-tie">
+              {` · ${tieLabel}`}
+            </span>
+          ) : null}
+        </p>
         <p className="orbit-sheet-sub">
           {anchor.type === "person"
             ? "Plans and Opal conversations about this person. Opal chats live here, never in your chat thread with them."

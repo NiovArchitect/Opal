@@ -1,0 +1,48 @@
+/*
+ * Repair #19 W25 (FA-02) — the orbit unlock prompt's OWN sheet.
+ *
+ * Root cause (W22 J7, charged): TopLayer portals this prompt to
+ * body level, OUTSIDE every [data-design="r18"] host wrapper, so
+ * the only rule that ever positioned it — c1.css's scoped
+ * `[data-design="r18"] .c1-rail-scrim` — never matched: the prompt
+ * computed to position:static, laid out in flow under the rail,
+ * and its submit could not be tapped. Every rule the prompt needs
+ * therefore lives HERE, unscoped, keyed on the prompt's own root
+ * class, and driven only by the :root tokens (mode vars and the
+ * layer registry), which resolve identically at body level in
+ * both modes. This is the layer-token fixed-overlay pattern: the
+ * prompt carries its positioning with it, wherever it is portaled.
+ */
+.c1-orbit-unlock-scrim {
+  position: fixed; inset: 0; z-index: var(--layer-modal);
+  background: var(--scrim);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; box-sizing: border-box;
+}
+.c1-orbit-unlock-panel {
+  width: min(340px, 92vw); max-height: 86dvh; overflow-y: auto;
+  box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 20px;
+  background: var(--surface-1); color: var(--ink-1);
+  border: 1px solid var(--line-2); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  font: var(--opal-type-body);
+}
+.c1-orbit-unlock-panel .c1-display { font: var(--opal-type-display); margin: 0; }
+.c1-orbit-unlock-panel .c1-sublabel { color: var(--ink-3); font: var(--opal-type-meta); margin: 0; }
+.c1-orbit-unlock-panel form { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.c1-orbit-unlock-panel .c1-search {
+  width: 100%; box-sizing: border-box; min-height: 48px; border-radius: 999px;
+  border: 1px solid var(--line-1); background: var(--surface-2); color: var(--ink-1);
+  padding: 0 18px; font: var(--opal-type-body); outline: 0;
+}
+.c1-orbit-unlock-panel .c1-primary-btn {
+  min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--opal-iris-gradient); color: var(--opal-accent-ink); font: var(--opal-type-label);
+}
+.c1-orbit-unlock-panel .c1-primary-btn:disabled { opacity: 0.55; cursor: default; }
+.c1-orbit-unlock-panel .c1-orbit-open-sheet {
+  align-self: flex-start; background: none; border: none; padding: 6px 0; cursor: pointer;
+  color: var(--ink-2); font: 500 13px/18px system-ui, sans-serif;
+}

@@ -46,12 +46,17 @@ export type AlignmentStep = {
   accent?: string;
 };
 
-/** Home Graph timeline accents — actual Figma 618:162–175 paints. */
+/** Home Graph timeline accents. R19 W27 (AT-09): the cycle was
+ *  spending CANON state hues (happening cyan, forming violet,
+ *  ready gold) as decoration where no such states exist. It now
+ *  cycles the non-canon ENTITY palette (the DIR-1 person-tint
+ *  family) - identity colors, which is what a per-step/per-person
+ *  accent on a graph trajectory actually is (AR-15). */
 export const HOME_GRAPH_TIMELINE_COLORS = [
-  "#00E5FF",
-  "#5FAECF",
-  "#8B5CF6",
-  "#FFC86B",
+  "#2DD4BF",
+  "#818CF8",
+  "#C084FC",
+  "#F0ABFC",
 ] as const;
 
 export type SharedHistoryMetrics = {

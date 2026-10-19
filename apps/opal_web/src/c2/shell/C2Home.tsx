@@ -11,7 +11,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { OrbLockup } from "../../brand/orb/OrbMark";
-import { PlanCardC2 } from "../PlanCardC2";
+import { PlanCardC2, litWinnerId } from "../PlanCardC2";
 import {
   createTemporaryStory,
   publishSocialMoment,
@@ -47,12 +47,12 @@ export const HOME_AMBIENT_ELEMENTS: ReadonlyArray<{
   reason: string;
 }> = [
   {
-    element: "plan card state border + fire line (per state family)",
+    element: "plan card state border + state rule (per state family)",
     reason:
       "Tells you the plan's state at a glance, in the same color and pattern as everywhere else in Opal, so alignment reads before words do.",
   },
   {
-    element: "forming plan fire-line breath (5s, opacity only)",
+    element: "forming plan state-rule breath (5s, opacity only)",
     reason:
       "A forming plan is still taking shape; the slow breath marks anticipation - it is alive and waiting on one thing, not settled.",
   },
@@ -75,6 +75,11 @@ export const HOME_AMBIENT_ELEMENTS: ReadonlyArray<{
     element: "activity badge count on the header",
     reason:
       "Something changed since you last looked; the count is the ambient signal, and it is absent when nothing is new (presence discipline).",
+  },
+  {
+    element: "one lit plan card per Home (burst coalescence cap)",
+    reason:
+      "When several plans could glow at once, only the strongest state carries the full lit register and the rest rest at border-only, so importance stays readable instead of everything shouting at once.",
   },
 ];
 
@@ -186,6 +191,20 @@ export function C2Home({
   }>(null);
   const rail = projection.rail;
 
+  // R19 W27 (AT-10 / AR-F4): Home's lit coalescence - at most ONE
+  // plan card on Home carries the full lit register (glow + ground
+  // + breath); the strongest state wins and every other candidate
+  // rests at border-only. The verdict is computed once per render
+  // from the projection's own families - cards never self-elect.
+  const homeLitId = litWinnerId(
+    projection.feed
+      .filter((item) => item.kind === "plan")
+      .map((item) => ({
+        id: item.id,
+        stateFamily: item.kind === "plan" ? item.card.stateFamily : "past",
+      })),
+  );
+
   const openSelf = () => {
     // Hunt-fix B-10 + JA-11: your own live story opens the viewer
     // on its own record when the rail carries its media; a live
@@ -273,7 +292,15 @@ export function C2Home({
                 return (
                   <PlanCardC2
                     key={item.id}
-                    input={item.card}
+                    input={{
+                      ...item.card,
+                      // past is not a capped candidate - it rests
+                      // (no lit verdict at all).
+                      lit:
+                        item.card.stateFamily === "past"
+                          ? undefined
+                          : item.id === homeLitId,
+                    }}
                     onOpen={() => events.openGraph(item.id)}
                   />
                 );

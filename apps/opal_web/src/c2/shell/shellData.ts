@@ -559,7 +559,11 @@ export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjecti
     });
   const visiblePlans = plans.filter((plan) => plan.is_private !== true);
   const cards = visiblePlans.map((plan) => {
-    const card = cardFromPlan(plan);
+    const base = cardFromPlan(plan);
+    const card = {
+      ...base,
+      peopleLine: plan.who_label?.trim() ? plan.who_label.trim() : null,
+    };
     const family = familyOfStatus(plan.status);
     const completion = family === "forming" ? missingSlot(plan) : null;
     // Drop it is wired: confirming calls POST /opal/plans/:id/cancel
@@ -674,13 +678,19 @@ export function detailFromPlan(
 export function detailWithHistory(
   detail: GraphDetailProjection,
   history: import("../../api/productClient").PlanHistoryContract,
+  tieByUserId?: ReadonlyMap<string, string | null>,
 ): GraphDetailProjection {
   return {
     ...detail,
     who: history.who.map((person, i) => ({
+      userId: person.user_id,
       name: person.name,
       avatar: avatarOf(person.name, i + 1),
       responseLabel: person.response_label,
+      // W24 (DL-06): the viewer's tie to this person, from the
+      // viewer's relationship rows — null when unset, and the
+      // roster renders nothing for it.
+      relationshipLabel: tieByUserId?.get(person.user_id) ?? null,
       // R19 W7: the finished location line rides verbatim - the
       // surface never derives a position or distance itself.
       locationLabel: person.location_label ?? null,
