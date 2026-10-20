@@ -1614,6 +1614,7 @@ export function ThreadShell({
   onBack,
   onOpenPlan,
   onSend,
+  composerAccessory,
   onCall,
   onCorrectTranscript,
   onOpenProfile,
@@ -1648,6 +1649,15 @@ export function ThreadShell({
   /** Composer send. Absent = the composer renders read-only (no fake
    *  send path); hosts on a live thread always supply it. */
   onSend?: (text: string) => void;
+  /**
+   * Repair #19 polish (P7) — a REAL composer affordance the host owns,
+   * rendered inside the composer bar directly above the input pill
+   * (the thread's voice-note control is the one tenant today). The
+   * surface renders the node verbatim and invents nothing: a host
+   * with no real affordance passes nothing and the bar is exactly
+   * the input pill, never a painted placeholder.
+   */
+  composerAccessory?: React.ReactNode;
   /** Call controls render only when a host wires the real call path. */
   onCall?: (kind: "video" | "voice") => void;
   onCorrectTranscript?: (messageId: string, text: string) => Promise<void>;
@@ -1688,6 +1698,21 @@ export function ThreadShell({
     setSheetPlan(p);
     onOpenPlan?.(p);
   };
+  /**
+   * Repair #19 polish (P2) — THE HEADER DOORWAY: one small orb-mark
+   * button at the thread header's top-right, opening the Opal
+   * conversation about this person / this chat. It carries the
+   * richest context the host derived from THIS thread: the plan
+   * doorway context when the plan is discussable, else the person
+   * context (the person is always discussable - Addition A). It
+   * renders ONLY when the host derived a context at all: a group
+   * thread or an unknown peer derives neither, and a surface that
+   * wires no Opal route renders nothing - stateful presence per
+   * the doorway rules, never permanent chrome. The strip doorways
+   * below are unchanged (the plan doorway stays attached to the
+   * plan-awareness element it discusses).
+   */
+  const headerDoorway = opalDoorway ?? personContext ?? null;
   return (
     <div className="c1-surface c1-thread" data-testid="thread-shell">
       <header className="c1-header c1-thread-header">
@@ -1732,6 +1757,23 @@ export function ThreadShell({
               ✆
             </button>
           </span>
+        ) : null}
+        {headerDoorway && onTalkToOpal ? (
+          <button
+            type="button"
+            className="c1-thread-opal-btn"
+            data-testid="thread-opal-doorway"
+            data-person-id={headerDoorway.personId}
+            data-plan-id={headerDoorway.planId ?? ""}
+            aria-label={
+              headerDoorway.planTitle
+                ? `Talk to Opal about this plan - ${headerDoorway.planTitle}`
+                : `Talk to Opal about ${headerDoorway.personName}`
+            }
+            onClick={() => onTalkToOpal(headerDoorway)}
+          >
+            <span className="c1-thread-opal-orb" aria-hidden="true" />
+          </button>
         ) : null}
       </header>
       <div className="c1-scroll" ref={scrollRef}>
@@ -1808,6 +1850,7 @@ export function ThreadShell({
         </div>
       ) : null}
       <div className="c1-composer-bar">
+        {composerAccessory}
         <div className="c1-composer">
           <input
             className="c1-composer-input"
