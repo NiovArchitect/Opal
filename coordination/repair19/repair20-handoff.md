@@ -896,3 +896,38 @@ Amendment wave:
 Nothing in the founder's 2026-10-20 conversation is silently
 dropped: every item above is DONE with evidence or DECLARED
 with its reason and its gate.
+
+---
+
+## POSTSCRIPT - Flows label micro-fix (founder decision 2026-10-20 12:51 PDT)
+
+The open question left above ("Flow vs Flows untouched") is
+RESOLVED by the founder: the social surface's navigation name is
+**Flows** - the plural set Flows / Chats / Graphs / You (his
+rationale: everything out there is many; the user is one).
+Branch `muse/r20-flows` from 14ab0ecb; visible naming only -
+route keys, testIds, the IconFlow water glyph, internal
+identifiers, and the product concept "Social Flow" unchanged.
+
+- Web: C2Shell dock slot + wide side-rail slot label Flow ->
+  Flows; C2ShellReview dock label likewise; the slot-order
+  comment updated to match.
+- Mobile: PRIMARY_TABS home tab label + a11y ("Flows, social
+  orientation"), HomeScreen accessibilityLabel, and the
+  releaseReadiness checkLabel updated in step.
+- Pins: c2ShellSurfaces.test.tsx now asserts "Flows" in dock +
+  rail (text, aria-label, and both full label arrays). Results:
+  web shell suite 36 files / 335 tests PASS (incl. the targeted
+  45); mobile full suite 105/105 PASS.
+- Glass proof (served wt-r20-flows dist via vite preview :5173,
+  Phoenix :4000, phone 390x844, seat A): pack-v2 frames
+  flows-rest-dark/light + flows-dock-dark/light; DOM assertion
+  in both modes: dock = [Flows, Chats, Graphs, You], side =
+  [Flows, Chats, Opal, Graphs, You]. Capture note: the on-frame
+  badge reads the base tip (seed - 14ab0ec) because the tag is
+  stack-configured; the rendered "Flows" label is itself the
+  build proof - it cannot render from the pre-fix dist.
+- Environment note: the capture Postgres (:5433) had died after
+  the R20 close; restarted from polish-scratch/pgdata2, and the
+  capture Phoenix was restarted on wall time (the recorded
+  final state). No data touched - all staging data is synthetic.

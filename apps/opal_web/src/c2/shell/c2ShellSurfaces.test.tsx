@@ -117,7 +117,7 @@ describe("C2 shell - member navigation truth", () => {
     expect(q('[data-testid="c2-dock-you"]')?.getAttribute("data-active")).toBe("1");
   });
 
-  it("R20 amendment - the social slot is Flow with the water glyph, in dock and sidebar", async () => {
+  it("R20 amendment - the social slot is Flows with the water glyph, in dock and sidebar", async () => {
     saveProfile({
       access_token: "tok-1",
       user_id: "user-1",
@@ -127,11 +127,11 @@ describe("C2 shell - member navigation truth", () => {
     });
     await render(<C2Shell />);
     await flush();
-    // Dock slot: label Flow (internal testId and route key stay "home").
+    // Dock slot: label Flows (internal testId and route key stay "home").
     const dock = q('[data-testid="c2-dock-home"]')!;
     expect(dock).toBeTruthy();
-    expect(dock.textContent).toContain("Flow");
-    expect(dock.getAttribute("aria-label")).toBe("Flow");
+    expect(dock.textContent).toContain("Flows");
+    expect(dock.getAttribute("aria-label")).toBe("Flows");
     // Water glyph: the two stacked wave paths, and not the retired
     // house glyph paths.
     const dockPaths = [...dock.querySelectorAll("path")].map((p) => p.getAttribute("d"));
@@ -142,7 +142,7 @@ describe("C2 shell - member navigation truth", () => {
     // Sidebar slot: same label and glyph.
     const side = q('[data-testid="c2-side-home"]')!;
     expect(side).toBeTruthy();
-    expect(side.textContent).toContain("Flow");
+    expect(side.textContent).toContain("Flows");
     const sidePaths = [...side.querySelectorAll("path")].map((p) => p.getAttribute("d"));
     expect(sidePaths).toContain("M3 9c2-2.5 4-2.5 6 0s4 2.5 6 0s4-2.5 6 0");
     expect(sidePaths).not.toContain("M4 11.5 12 4l8 7.5");
@@ -150,11 +150,11 @@ describe("C2 shell - member navigation truth", () => {
     const dockLabels = [...document.querySelectorAll('[data-testid="c2-dock"] .c2s-dock-slot')].map(
       (el) => el.getAttribute("aria-label"),
     );
-    expect(dockLabels).toEqual(["Flow", "Chats", "Graphs", "You"]);
+    expect(dockLabels).toEqual(["Flows", "Chats", "Graphs", "You"]);
     const sideLabels = [...document.querySelectorAll(".c2s-side-label")].map((el) =>
       el.textContent?.trim(),
     );
-    expect(sideLabels).toEqual(["Flow", "Chats", "Opal", "Graphs", "You"]);
+    expect(sideLabels).toEqual(["Flows", "Chats", "Opal", "Graphs", "You"]);
     // The slot still routes to the social surface.
     click(dock);
     await flush();

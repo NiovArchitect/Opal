@@ -422,7 +422,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
           <nav className="c2s-dock" aria-label="Main (review)">
             {(
               [
-                { key: "home", label: "Flow" },
+                { key: "home", label: "Flows" },
                 { key: "chats", label: "Chats" },
                 { key: "center", label: "Center" },
                 { key: "graphs", label: "Graphs" },

@@ -182,7 +182,7 @@ describe("accessibility gate", () => {
     const result = runAccessibilityGate([
       checkTouchTarget(44, 48),
       checkTouchTarget(40, 40),
-      checkLabel("Flow, social orientation"),
+      checkLabel("Flows, social orientation"),
       checkLabel(""),
       checkContrastPair("light", "dark_shell"),
       checkReducedMotionCopy(true, false),

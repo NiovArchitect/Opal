@@ -35,7 +35,7 @@ export function HomeScreen({
     <ScrollView
       style={styles.root}
       contentContainerStyle={styles.content}
-      accessibilityLabel="Flow"
+      accessibilityLabel="Flows"
     >
       <Text style={styles.greeting} accessibilityRole="header">
         {home.greeting}

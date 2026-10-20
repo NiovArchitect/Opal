@@ -757,7 +757,7 @@ export function C2Shell() {
     <div className="c2s-root" data-shell="c2" data-testid="c2-shell">
       {/* HA-A wide sidebar (harmony2): at wide geometry the five
        * destinations become a persistent left sidebar in the dock's
-       * order (Flow, Chats, Opal, Graphs, You) - the same surfaces,
+       * order (Flows, Chats, Opal, Graphs, You) - the same surfaces,
        * the same projections, the same handlers; the sidebar is
        * chrome, never a second app. It carries no state hues (the
        * dock law it inherits); the active row is the sampled accent
@@ -767,7 +767,7 @@ export function C2Shell() {
         <div className="c2s-sidebar-brand">
           <OrbWordmark width={76} variant="gradient" />
         </div>
-        <SideSlot label="Flow" active={route === "home"} testId="c2-side-home" onClick={() => goRoute("home")}>
+        <SideSlot label="Flows" active={route === "home"} testId="c2-side-home" onClick={() => goRoute("home")}>
           <IconFlow />
         </SideSlot>
         <SideSlot label="Chats" active={route === "chats"} testId="c2-side-chats" badge={shell.dockUnread} onClick={() => goRoute("chats")}>
@@ -941,7 +941,7 @@ export function C2Shell() {
 
         <nav className="c2s-dock" data-testid="c2-dock" aria-label="Main">
           <DockSlot
-            label="Flow"
+            label="Flows"
             active={route === "home"}
             onClick={() => goRoute("home")}
             testId="c2-dock-home"

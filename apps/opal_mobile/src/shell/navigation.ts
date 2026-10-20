@@ -1,7 +1,7 @@
 import type { PrimaryTab } from "./types";
 
 export const PRIMARY_TABS: { id: PrimaryTab; label: string; a11y: string }[] = [
-  { id: "home", label: "Flow", a11y: "Flow, social orientation" },
+  { id: "home", label: "Flows", a11y: "Flows, social orientation" },
   { id: "chats", label: "Chats", a11y: "Chats, conversations" },
   { id: "plans", label: "Plans", a11y: "Plans, upcoming journeys" },
   { id: "you", label: "You", a11y: "You, account privacy and safety" },
