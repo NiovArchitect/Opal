@@ -231,6 +231,50 @@ defmodule OpalCore.SocialFlow.Availability do
   # ---------------------------------------------------------------------------
 
   @doc """
+  Repair #19 polish (Cluster A, P1) - the alternative windows OTHER
+  parties have shared into this conversation, as shared-safe
+  projections only. This is the one alternatives source the reveal
+  derivation's request-a-change lane reads:
+
+  - the actor must be a conversation member (the same gate every
+    change-proposal path uses) - anyone else gets `:not_a_member`;
+  - only ACTIVE shares whose windows are still usable right now
+    (not expired, not ended - `active_share_rows/1`'s own rule), so
+    when the last alternative window closes the result is empty
+    and the lane disappears with it;
+  - the actor's OWN shares are not alternatives for the actor;
+  - a window starting exactly at `current_start_at` (the plan's
+    current start, when the caller knows it) is not an alternative
+    either - it is the time already on the table.
+
+  Returns `{:ok, [shared_safe_projection]}` (possibly empty).
+  Overlap is never computed here and nothing here authorizes a
+  set or a change: these are candidate times a party offered, for
+  the viewer to propose from through the existing change flow.
+  """
+  def alternative_windows_for(conversation_id, actor_user_id, current_start_at \\ nil)
+
+  def alternative_windows_for(conversation_id, actor_user_id, current_start_at)
+      when is_binary(conversation_id) and is_binary(actor_user_id) do
+    with :ok <- ensure_member(conversation_id, actor_user_id) do
+      windows =
+        conversation_id
+        |> active_share_rows()
+        |> Enum.reject(&(&1.owner_user_id == actor_user_id))
+        |> Enum.reject(fn s ->
+          match?(%DateTime{}, current_start_at) and
+            match?(%DateTime{}, s.availability_window.start_at) and
+            DateTime.compare(s.availability_window.start_at, current_start_at) == :eq
+        end)
+        |> Enum.map(&shared_safe_projection/1)
+
+      {:ok, windows}
+    end
+  end
+
+  def alternative_windows_for(_, _, _), do: {:error, :invalid}
+
+  @doc """
   Compute shared-safe overlaps for a conversation from active shares.
 
   Requires at least two distinct owners with usable shared ranges.

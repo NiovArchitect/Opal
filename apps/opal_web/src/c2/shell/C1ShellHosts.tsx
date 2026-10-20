@@ -169,6 +169,30 @@ export function relationshipTypeLabel(type: string): string | null {
 }
 
 /**
+ * Polish Cluster A (P1) - the request-a-change lane's doorway
+ * context, built ONLY from the backend derivation's finished
+ * change_request object (SocialFlow.Reveal): the scope person the
+ * plan-scoped Opal chat validates against, the conversation the
+ * change machinery scopes to, and the plan itself. Entering that
+ * scoped chat IS entering the existing change-proposal flow (the
+ * Center pipeline routes a spoken change through
+ * apply_nl_schedule_change -> propose_revision / the alignment
+ * fold's committed-change proposals) - there is no second flow.
+ * Null when the item carries no lane: no context, no doorway.
+ */
+export function changeRequestContext(item: RevealItem): OpalConversationContext | null {
+  const lane = item.change_request;
+  if (!lane || !item.plan_id) return null;
+  return {
+    personId: lane.scope_person_id,
+    personName: lane.scope_person_name,
+    conversationId: lane.conversation_id,
+    planId: item.plan_id,
+    planTitle: item.title,
+  };
+}
+
+/**
  * Deckfix F2a: a call in a conversation is stored as a message whose
  * body is the signaling reference "call:<id>" (message_type
  * "call_invite", calls.ex maybe_call_invite_message). The legacy
@@ -1031,6 +1055,10 @@ export function CenterHost({
             dismissReveal: (item) => void dismissDeckReveal(item),
             revealAction: (item) => {
               if (item.plan_id) onOpenGraph(item.plan_id);
+            },
+            requestChangeReveal: (item) => {
+              const ctx = changeRequestContext(item);
+              if (ctx) void openDoorway(ctx);
             },
           }}
         />
@@ -1917,6 +1945,16 @@ export function ChatsHost({
     reveal:
       reveals.find((r) => r.category === "P1" && r.conversation_id === chat.id) ?? null,
     onDismissReveal: (item: RevealItem) => void dismissChatReveal(item),
+    // Polish Cluster A (P1): the row lane enters the plan-scoped
+    // Opal chat (the existing change-proposal flow) through the
+    // shell's Talk-to-Opal routing. No routing handler supplied to
+    // this host = no handler on the row = no button (never dead).
+    onRequestChangeReveal: onTalkToOpal
+      ? (item: RevealItem) => {
+          const ctx = changeRequestContext(item);
+          if (ctx) onTalkToOpal({ context: ctx });
+        }
+      : undefined,
   }));
 
   // Repair #19 — the thread's person + doorway, derived ONLY from
@@ -1984,6 +2022,14 @@ export function ChatsHost({
             onRevealAction={(item) => {
               if (item.plan_id) onConversationsChanged();
             }}
+            onRequestChangeReveal={
+              onTalkToOpal
+                ? (item) => {
+                    const ctx = changeRequestContext(item);
+                    if (ctx) onTalkToOpal({ context: ctx });
+                  }
+                : undefined
+            }
             messages={messages}
             plansById={new Map()}
             composerPlaceholder={`Message ${selected.title}`}

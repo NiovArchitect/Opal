@@ -49,6 +49,32 @@ export type NextPlanFact = {
  * and the lit flag are all decided server side; surfaces render
  * this verbatim and never re-derive any of it.
  */
+/**
+ * Polish Cluster A (P1) - the request-a-change lane on a P1 reveal
+ * item, from the ONE backend derivation (SocialFlow.Reveal). Present
+ * only when the viewer can propose a change to the plan through the
+ * existing conversation change machinery AND a real alternative
+ * time exists (another party's still-open shared availability
+ * window). Absent (null) everywhere else - sender-fixed plans
+ * (no conversation change path), no alternatives, a change already
+ * on the table. Surfaces render it verbatim; they never re-derive
+ * permission or alternatives.
+ */
+export type RevealChangeRequest = {
+  label: string;
+  conversation_id: string;
+  alternatives: Array<{
+    share_id?: string;
+    owner_user_id?: string;
+    display_start?: string | null;
+    display_end?: string | null;
+    open_ended?: boolean;
+    timezone?: string;
+  }>;
+  scope_person_id: string;
+  scope_person_name: string;
+};
+
 export type RevealItem = {
   reveal_key: string;
   category: "P1" | "P2" | "P3" | "P4" | "P5" | "P6" | "P7" | string;
@@ -64,6 +90,8 @@ export type RevealItem = {
   entity_tint?: number | null;
   action_label?: string | null;
   missing_slot?: string | null;
+  /** Polish Cluster A (P1): the request-a-change lane, or null. */
+  change_request?: RevealChangeRequest | null;
   /** Exactly one item per feed carries the fire (QUIET ceiling). */
   lit: boolean;
 };
