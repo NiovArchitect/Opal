@@ -105,6 +105,52 @@ defmodule OpalCore.Relationships do
 
   def set_family_subtype(_, _, _, _), do: {:error, :invalid}
 
+  @doc """
+  Founder Screen Notes N4 - establish (or clear, with `nil`) the
+  age band for a counterpart on the viewer's relationship record.
+
+  The band is a fact about the PERSON as the viewer knows them, so
+  it belongs to the relationship record and is NOT tied to the
+  family type and NOT cleared by type changes (age does not change
+  when the tie label does). Values: "under_13" | "age_13_17" |
+  "adult" (see RelationshipType.age_bands/0); anything else is
+  `{:error, :invalid_age_band}` - fail closed, never stored.
+
+  AFFORDANCE ONLY: nothing in the product reads this value to
+  restrict anything. What bands restrict (messaging, care
+  surfaces, discovery) is a founder-gated policy that binds to
+  this exact shape later.
+  """
+  def set_age_band(user_id, contact_user_id, band)
+      when is_binary(user_id) and is_binary(contact_user_id) do
+    cond do
+      not is_nil(band) and band not in RelationshipType.age_bands() ->
+        {:error, :invalid_age_band}
+
+      true ->
+        case Repo.get_by(RelationshipType, user_id: user_id, contact_user_id: contact_user_id) do
+          %RelationshipType{} = existing ->
+            existing
+            |> RelationshipType.changeset(%{age_band: band})
+            |> Repo.update()
+
+          nil ->
+            {:error, :not_found}
+        end
+    end
+  end
+
+  def set_age_band(_, _, _), do: {:error, :invalid}
+
+  @doc "Age-band vocabulary for the picker: [%{slug, label}], in band order."
+  def age_band_options do
+    [
+      %{slug: "under_13", label: "Under 13"},
+      %{slug: "age_13_17", label: "13-17"},
+      %{slug: "adult", label: "Adult (18 or over)"}
+    ]
+  end
+
   @doc "Family subtype + minor flag for a contact: `%{subtype, minor}` or nil."
   def get_family_subtype(user_id, contact_user_id)
       when is_binary(user_id) and is_binary(contact_user_id) do
@@ -187,6 +233,7 @@ defmodule OpalCore.Relationships do
         type: rel && rel.type,
         family_subtype: rel && rel.family_subtype,
         family_minor: (rel && rel.family_minor) || false,
+        age_band: rel && rel.age_band,
         communication_bounds: rel && rel.communication_bounds,
         id: rel && rel.id
       }
@@ -230,6 +277,7 @@ defmodule OpalCore.Relationships do
       "type" => r.type,
       "family_subtype" => r.family_subtype,
       "family_minor" => r.family_minor || false,
+      "age_band" => r.age_band,
       "communication_bounds" => r.communication_bounds,
       "source" => r.source || "explicit",
       "inference_status" => r.inference_status,
@@ -248,6 +296,7 @@ defmodule OpalCore.Relationships do
       "type" => c[:type] || c["type"],
       "family_subtype" => c[:family_subtype] || c["family_subtype"],
       "family_minor" => c[:family_minor] || c["family_minor"] || false,
+      "age_band" => c[:age_band] || c["age_band"],
       "communication_bounds" => c[:communication_bounds] || c["communication_bounds"]
     }
   end

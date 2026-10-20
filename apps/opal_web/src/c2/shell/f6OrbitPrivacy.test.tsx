@@ -92,7 +92,7 @@ describe("F6a — unknown privacy never asserts Private", () => {
     );
     const header = el.querySelector('[data-testid="orbit-group-header"]')!;
     expect(header.textContent).toContain("help me plan saturday");
-    expect(header.textContent).not.toContain("Private");
+    expect(header.textContent).not.toContain("Opal chats hidden");
     expect(
       el.querySelector('[data-testid="orbit-group"]')!.getAttribute("data-private-known"),
     ).toBe("false");
@@ -118,7 +118,7 @@ describe("F6a — unknown privacy never asserts Private", () => {
       />,
     );
     const header = el.querySelector('[data-testid="orbit-group-header"]')!;
-    expect(header.textContent).toContain("Private");
+    expect(header.textContent).toContain("Opal chats hidden");
     expect(header.textContent).not.toContain("a secret line");
   });
 
@@ -163,8 +163,16 @@ describe("F6b — the sheet reflects the orbit-private write (read-back)", () =>
       />
     );
     const el = await render(sheet({ ...MAYA, private: false }));
+    // Amendment A1: no always-visible private row - the toggle lives
+    // behind the sheet's Orbit options affordance.
+    expect(el.querySelector('[data-testid="orbit-sheet-private-toggle"]')).toBeNull();
+    await act(async () => {
+      el.querySelector('[data-testid="orbit-sheet-options"]')!.dispatchEvent(
+        new window.MouseEvent("click", { bubbles: true }),
+      );
+    });
     const toggle = el.querySelector('[data-testid="orbit-sheet-private-toggle"]')!;
-    expect(toggle.textContent).toContain("Make this orbit private");
+    expect(toggle.textContent).toContain("Hide these Opal chats behind my passcode");
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
     await act(async () => {
       toggle.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
@@ -175,7 +183,7 @@ describe("F6b — the sheet reflects the orbit-private write (read-back)", () =>
       root!.render(sheet({ ...MAYA, private: true }));
     });
     const flipped = el.querySelector('[data-testid="orbit-sheet-private-toggle"]')!;
-    expect(flipped.textContent).toContain("Make this orbit not private");
+    expect(flipped.textContent).toContain("Stop hiding these Opal chats behind my passcode");
     expect(flipped.getAttribute("aria-pressed")).toBe("true");
   });
 });

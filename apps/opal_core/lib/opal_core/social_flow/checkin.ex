@@ -305,14 +305,8 @@ defmodule OpalCore.SocialFlow.Checkin do
         plan.created_by_user_id == organizer_id or organizer_id in participant_ids
 
       cond do
-        # Repair #19 FIX-A (BS-03) — the check-in surface resolved a
-        # plan source directly off the row, bypassing
-        # SocialFlow.ensure_plan_access/2: a private plan can source
-        # a sweep for its creator only; a participant organizer gets
-        # the same :not_a_member as a stranger.
-        plan.is_private == true and plan.created_by_user_id != organizer_id ->
-          {:error, :not_a_member}
-
+        # Polish C P3 (per-viewer vault): vault marks never gate a
+        # check-in sweep - membership (actor_ok?) is the whole rule.
         not actor_ok? ->
           {:error, :not_a_member}
 

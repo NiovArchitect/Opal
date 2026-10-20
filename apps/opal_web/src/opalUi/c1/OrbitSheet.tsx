@@ -17,9 +17,13 @@
  *   confirmation that states what goes and what never does: the
  *   anchor's person thread and plans are different records and are
  *   untouched (proven in the FR-19-W14 backend cases).
- * - The orbit-private toggle: stores the orbit's private flag
- *   (item-9 gate seam — verification is wired at integration; this
- *   surface claims nothing about a gate it does not run).
+ * - The Opal-chats hide toggle (Polish C naming fix): stores the
+ *   orbit_private flag on the viewer's OWN Opal conversations for
+ *   this anchor, so Center hides those chats' contents behind the
+ *   graph-lock passcode. It is NOT graph privacy: it never hides a
+ *   plan or a graph (that is "My private graphs" on Graphs), and
+ *   it never touches the person thread. The copy names exactly
+ *   that effect so the two can never be mistaken for each other.
  */
 import React, { useState } from "react";
 import { useDismissableSurface } from "./useDismissable";
@@ -66,6 +70,10 @@ export function OrbitSheet({
   onClose: () => void;
 }) {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  // Amendment A1: no make-private ROW on this sheet. The orbit-hide
+  // (Opal chats only - see the naming note in the header comment)
+  // lives behind the sheet's own options affordance, opened on tap.
+  const [optionsOpen, setOptionsOpen] = useState(false);
   // BS-08: Escape closes the sheet, focus lands inside on open and
   // returns to the invoking control on close (useDismissableSurface).
   const panelRef = useDismissableSurface<HTMLDivElement>({ open: true, onClose });
@@ -93,12 +101,12 @@ export function OrbitSheet({
             </span>
           ) : null}
         </p>
-        <p className="orbit-sheet-sub">
+        <p className="orbit-sheet-sub" data-testid="orbit-sheet-purpose">
           {anchor.type === "person"
-            ? "Plans and Opal conversations about this person. Opal chats live here, never in your chat thread with them."
+            ? `Everything Opal keeps together about ${anchorName}: your plans with them, and your chats with Opal about them.`
             : anchor.type === "plan"
-              ? "The plan and the Opal conversations filed under it."
-              : "The place and the Opal conversations filed under it."}
+              ? "This plan, and your chats with Opal filed under it."
+              : "This place, and your chats with Opal filed under it."}
         </p>
         {onOpenAnchorThread ? (
           <button
@@ -113,6 +121,11 @@ export function OrbitSheet({
         {plans.length > 0 ? (
           <div data-testid="orbit-sheet-plans">
             <p className="orbit-sheet-section">PLANS</p>
+            <p className="orbit-sheet-section-note" data-testid="orbit-sheet-plans-note">
+              {anchor.type === "person"
+                ? `Plans you share with ${anchorName}. Tap one to open it.`
+                : "Tap a plan to open it."}
+            </p>
             {plans.map((p) =>
               onOpenPlan ? (
                 <button
@@ -135,7 +148,12 @@ export function OrbitSheet({
             )}
           </div>
         ) : null}
-        <p className="orbit-sheet-section">OPAL CONVERSATIONS</p>
+        <p className="orbit-sheet-section">YOUR CHATS WITH OPAL</p>
+        <p className="orbit-sheet-section-note" data-testid="orbit-sheet-chats-note">
+          {anchor.type === "person"
+            ? `Chats between you and Opal about ${anchorName} - never messages to ${anchorName}.`
+            : "Chats between you and Opal in this orbit."}
+        </p>
         {sorted.length === 0 ? (
           <p className="orbit-sheet-empty" data-testid="orbit-sheet-empty">
             No Opal chats in this orbit yet.
@@ -218,15 +236,37 @@ export function OrbitSheet({
             : "Start a new Opal chat in this orbit"}
         </button>
         {onTogglePrivate ? (
-          <button
-            type="button"
-            className="orbit-sheet-private"
-            data-testid="orbit-sheet-private-toggle"
-            aria-pressed={anchor.private === true}
-            onClick={() => onTogglePrivate(!(anchor.private === true))}
-          >
-            {anchor.private ? "Make this orbit not private" : "Make this orbit private"}
-          </button>
+          <>
+            <button
+              type="button"
+              className="orbit-sheet-private"
+              data-testid="orbit-sheet-options"
+              aria-expanded={optionsOpen}
+              onClick={() => setOptionsOpen((v) => !v)}
+            >
+              Orbit options
+            </button>
+            {optionsOpen ? (
+              <>
+                <button
+                  type="button"
+                  className="orbit-sheet-private"
+                  data-testid="orbit-sheet-private-toggle"
+                  aria-pressed={anchor.private === true}
+                  onClick={() => onTogglePrivate(!(anchor.private === true))}
+                >
+                  {anchor.private
+                    ? "Stop hiding these Opal chats behind my passcode"
+                    : "Hide these Opal chats behind my passcode"}
+                </button>
+                <p className="orbit-sheet-section-note" data-testid="orbit-sheet-private-note">
+                  This hides only your chats with Opal in Center. It never hides a plan
+                  or a graph - plans you want hidden live in Private graphs on the
+                  Graphs tab.
+                </p>
+              </>
+            ) : null}
+          </>
         ) : null}
         <button type="button" className="orbit-sheet-close" onClick={onClose}>
           Close

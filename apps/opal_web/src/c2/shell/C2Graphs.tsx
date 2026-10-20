@@ -23,6 +23,7 @@ import { shareCardFromDetail } from "./shellData";
 import { Avatar, EmptyBlock, IconBack } from "./bits";
 import { pastPillsFromCards, type PastPill } from "./density";
 import { PreparationSpine } from "./PreparationSpine";
+import { CardContextMenu, LongPressRegion, type CardMenuItem } from "../CardContextMenu";
 
 type Lens = "all" | "action" | "ready" | "past";
 
@@ -115,6 +116,44 @@ export function C2Graphs({
   const [privateCode, setPrivateCode] = useState("");
   const [privateGateError, setPrivateGateError] = useState<string | null>(null);
   const [privateGateBusy, setPrivateGateBusy] = useState(false);
+  // Amendment A1: privacy actions live ONLY in the long-press card
+  // context menu (and the detail overflow that opens the same menu).
+  // No always-visible make-private / make-public control renders on
+  // any card or in the vault.
+  const [cardMenu, setCardMenu] = useState<{
+    id: string;
+    title: string;
+    isPrivate: boolean;
+    droppable: boolean;
+  } | null>(null);
+
+  const cardMenuItems = (menu: NonNullable<typeof cardMenu>): CardMenuItem[] => {
+    const items: CardMenuItem[] = [
+      {
+        id: "open",
+        label: "Open graph",
+        testId: "c2-graph-menu-open",
+        onSelect: () => events.openGraph(menu.id, "graphs"),
+      },
+    ];
+    if (events.setPlanPrivate) {
+      items.push({
+        id: "privacy",
+        label: menu.isPrivate ? "Make public" : "Make private",
+        testId: menu.isPrivate ? "c2-graph-make-visible" : "c2-graph-make-private",
+        onSelect: () => void events.setPlanPrivate!(menu.id, !menu.isPrivate),
+      });
+    }
+    if (menu.droppable) {
+      items.push({
+        id: "drop",
+        label: "Drop it",
+        testId: "c2-graph-menu-drop",
+        onSelect: () => setDropTarget(menu.id),
+      });
+    }
+    return items;
+  };
 
   useEffect(() => {
     const onVisibility = () => {
@@ -357,7 +396,18 @@ export function C2Graphs({
                         data-plan-state={card.stateFamily}
                         aria-hidden
                       />
-                      <div className="c2s-thread-card">
+                      <LongPressRegion
+                        className="c2s-thread-card"
+                        enabled={Boolean(events.setPlanPrivate)}
+                        onLongPress={() =>
+                          setCardMenu({
+                            id: card.id,
+                            title: card.title,
+                            isPrivate: false,
+                            droppable: Boolean(card.droppable),
+                          })
+                        }
+                      >
                       <PlanCardC2
                         input={card}
                         onOpen={() => events.openGraph(card.id, "graphs")}
@@ -367,31 +417,19 @@ export function C2Graphs({
                             : undefined
                         }
                       />
-                      {card.droppable || events.setPlanPrivate ? (
+                      {card.droppable ? (
                         <div className="c2s-completion-row">
-                          {card.droppable ? (
-                            <button
-                              type="button"
-                              className="c2s-btn-text"
-                              data-testid="c2-graph-drop"
-                              onClick={() => setDropTarget(card.id)}
-                            >
-                              Drop it
-                            </button>
-                          ) : null}
-                          {events.setPlanPrivate ? (
-                            <button
-                              type="button"
-                              className="c2s-btn-text"
-                              data-testid="c2-graph-make-private"
-                              onClick={() => void events.setPlanPrivate!(card.id, true)}
-                            >
-                              Make private
-                            </button>
-                          ) : null}
+                          <button
+                            type="button"
+                            className="c2s-btn-text"
+                            data-testid="c2-graph-drop"
+                            onClick={() => setDropTarget(card.id)}
+                          >
+                            Drop it
+                          </button>
                         </div>
                       ) : null}
-                      </div>
+                      </LongPressRegion>
                     </div>
                   ))}
                 </div>
@@ -415,8 +453,8 @@ export function C2Graphs({
               <div className="c2s-group-cards">
                 <p className="c2s-card-line">
                   {projection.privateCards.length > 0
-                    ? `${projection.privateCards.length} ${projection.privateCards.length === 1 ? "graph is" : "graphs are"} kept here, out of your other lists.`
-                    : "Graphs you make private live here, out of your other lists."}
+                    ? `${projection.privateCards.length} ${projection.privateCards.length === 1 ? "graph is" : "graphs are"} shown only here, and hidden from your other lists.`
+                    : "Private graphs show only here, and stay hidden from your other lists."}
                 </p>
                 <p className="c2s-card-line">
                   {events.graphLockPasscodeSet === false
@@ -444,33 +482,34 @@ export function C2Graphs({
                   disabled={privateGateBusy || !privateCode.trim()}
                   onClick={() => void tryUnlockPrivate()}
                 >
-                  {events.graphLockPasscodeSet === false ? "Set passcode and open" : "Open private graphs"}
+                  {events.graphLockPasscodeSet === false ? "Set passcode and open" : "Open Private graphs"}
                 </button>
               </div>
             ) : (
               <div className="c2s-group-cards">
                 {projection.privateCards.length === 0 ? (
                   <p className="c2s-card-line" data-testid="c2-private-empty">
-                    No private graphs yet. Make any graph private and it moves here.
+                    No private graphs yet. A graph in Private graphs shows only here - it stays fully intact, and everyone else on it keeps their own view.
                   </p>
                 ) : (
                   projection.privateCards.map((card) => (
-                    <div key={card.id}>
+                    <LongPressRegion
+                      key={card.id}
+                      enabled={Boolean(events.setPlanPrivate)}
+                      onLongPress={() =>
+                        setCardMenu({
+                          id: card.id,
+                          title: card.title,
+                          isPrivate: true,
+                          droppable: Boolean(card.droppable),
+                        })
+                      }
+                    >
                       <PlanCardC2
                         input={card}
                         onOpen={() => events.openGraph(card.id, "graphs")}
                       />
-                      <div className="c2s-completion-row">
-                        <button
-                          type="button"
-                          className="c2s-btn-text"
-                          data-testid="c2-graph-make-visible"
-                          onClick={() => void events.setPlanPrivate!(card.id, false)}
-                        >
-                          Make visible
-                        </button>
-                      </div>
-                    </div>
+                    </LongPressRegion>
                   ))
                 )}
                 <button
@@ -479,7 +518,7 @@ export function C2Graphs({
                   data-testid="c2-private-lock"
                   onClick={() => setPrivateUnlocked(false)}
                 >
-                  Lock private graphs
+                  Close Private graphs
                 </button>
               </div>
             )}
@@ -798,6 +837,14 @@ export function C2Graphs({
         </TopLayer>
       ) : null}
 
+      {cardMenu ? (
+        <CardContextMenu
+          title={cardMenu.title}
+          items={cardMenuItems(cardMenu)}
+          onClose={() => setCardMenu(null)}
+        />
+      ) : null}
+
       {dropTarget ? (
         <TopLayer band="sheet">
           <div className="c2s-scrim" data-testid="c2-graphs-drop-sheet" onClick={closeDropSheet}>
@@ -857,6 +904,10 @@ export function C2GraphDetail({
     setShareNote(await events.stopMyLocation(detail.id));
   };
   const [shareOpen, setShareOpen] = useState(false);
+  // Amendment A1: the detail's privacy action lives in the overflow
+  // menu (opened by this section's More actions button, or by
+  // long-pressing the detail's plan card) - never an always-visible row.
+  const [detailMenuOpen, setDetailMenuOpen] = useState(false);
   const [convertNote, setConvertNote] = useState<string | null>(null);
   const [convertBusy, setConvertBusy] = useState(false);
   const foodStep = completionStep(
@@ -892,7 +943,12 @@ export function C2GraphDetail({
             <SharePlanSheet card={shareCardFromDetail(detail)} onClose={() => setShareOpen(false)} />
           ) : null}
           <div className="c2s-detail-section">
-            <PlanCardC2 input={detail.card} />
+            <LongPressRegion
+              enabled={Boolean(events.setPlanPrivate)}
+              onLongPress={() => setDetailMenuOpen(true)}
+            >
+              <PlanCardC2 input={detail.card} />
+            </LongPressRegion>
             {detail.attendanceLine ? (
               <p className="c2s-card-line" data-testid="c2-detail-attendance" style={{ marginTop: 8 }}>
                 {detail.attendanceLine}
@@ -1047,16 +1103,33 @@ export function C2GraphDetail({
               <button
                 type="button"
                 className="c2s-btn-text"
-                data-testid="c2-detail-private-toggle"
-                onClick={() => void events.setPlanPrivate!(detail.id, !detail.isPrivate)}
+                data-testid="c2-detail-overflow"
+                aria-haspopup="menu"
+                onClick={() => setDetailMenuOpen(true)}
               >
-                {detail.isPrivate ? "Make this graph visible" : "Make this graph private"}
+                More actions
               </button>
               {detail.isPrivate ? (
                 <p className="c2s-card-line">
-                  Private: this graph lives in your Private area and is not in anyone
-                  else's plan list.
+                  This graph is in your Private graphs. On your surfaces it
+                  shows only inside that space - everyone else on the plan
+                  keeps their own view of it.
                 </p>
+              ) : null}
+              {detailMenuOpen ? (
+                <CardContextMenu
+                  title={detail.title}
+                  items={[
+                    {
+                      id: "privacy",
+                      label: detail.isPrivate ? "Make public" : "Make private",
+                      testId: "c2-detail-private-toggle",
+                      onSelect: () =>
+                        void events.setPlanPrivate!(detail.id, !detail.isPrivate),
+                    },
+                  ]}
+                  onClose={() => setDetailMenuOpen(false)}
+                />
               ) : null}
             </div>
           ) : null}

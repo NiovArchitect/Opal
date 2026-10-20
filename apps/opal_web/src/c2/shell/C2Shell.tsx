@@ -454,7 +454,12 @@ export function C2Shell() {
   // they carry the strongest live state family from the SAME plan
   // projection the surfaces render, and rest when nothing is live.
   const dockLiveState = useMemo(
-    () => orbAmbientStateFromFamilies(plans.map((p) => familyOfStatus(p.status))),
+    // Polish C P3: a private graph contributes nothing outside the
+    // vault - not even its state family to the dock orb's ambience.
+    () =>
+      orbAmbientStateFromFamilies(
+        plans.filter((p) => p.is_private !== true).map((p) => familyOfStatus(p.status)),
+      ),
     [plans],
   );
 
@@ -515,6 +520,7 @@ export function C2Shell() {
           type: typeof r.type === "string" ? r.type : "",
           family_subtype: r.family_subtype ?? null,
           family_minor: r.family_minor === true,
+          age_band: r.age_band ?? null,
         }));
       } catch {
         /* conversations alone still populate the picker */
@@ -1055,7 +1061,9 @@ export function C2Shell() {
 
       {searchOpen ? (
         <SearchDestination
-          plans={plans}
+          // Polish C P3: search is outside the vault - the viewer's
+          // private graphs never appear as search results.
+          plans={plans.filter((p) => p.is_private !== true)}
           conversations={conversations}
           intentions={(adopt1Data?.intentions ?? []).map((intention) => ({
             id: intention.id,

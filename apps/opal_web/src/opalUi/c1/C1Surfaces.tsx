@@ -410,7 +410,7 @@ export function CenterSessionList({
                       <span className="c1-session-main">
                         <span className="c1-session-title">{g.anchor.label ?? "Untitled anchor"}</span>
                         {locked ? (
-                          <span className="c1-session-preview">Private</span>
+                          <span className="c1-session-preview">Opal chats hidden</span>
                         ) : (
                           <span className="c1-session-preview">{g.latestPreview}</span>
                         )}

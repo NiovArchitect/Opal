@@ -19,9 +19,13 @@
  *    through the one write and closes. A new user is never
  *    examined, never asked to confirm what they just said.
  *  - DEPTH OPENS ONLY ON CHOICE: Family does not save on tap — it
- *    opens the subtype step (DL-02, the backend's real vocabulary)
- *    plus the minor flag below the choices, with the sheet's one
- *    Save. A super user finds the depth without hunting; nobody
+ *    expands INLINE, accordion-style, directly under the Family
+ *    row (Founder Screen Notes N3: expand/collapse in place, never
+ *    a separate step or screen): the subtype choices (DL-02, the
+ *    backend's real vocabulary), the minor flag, and the age-band
+ *    establishment (N4), with the sheet's one Save. Tapping Family
+ *    again collapses the expansion in place; the selection is
+ *    kept. A super user finds the depth without hunting; nobody
  *    else ever sees it.
  *  - CLOSE CIRCLE SITS QUIETLY BELOW, explained in one plain line.
  *    DL-09 truth: membership is DERIVED from the type on the
@@ -49,15 +53,22 @@
 import React, { useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import {
+  AGE_BAND_OPTIONS,
   FAMILY_SUBTYPE_OPTIONS,
   RELATIONSHIP_TYPE_OPTIONS,
   isCloseCircleType,
+  type AgeBandValue,
 } from "../../opalUi/relationshipTypes";
 
 export type RelationshipSave = (input: {
   type: string;
   familySubtype: string | null;
   familyMinor: boolean;
+  /** Founder Screen Notes N4 — the age-band statement, present
+   *  ONLY when the picker is making one (a band was chosen or an
+   *  established band was cleared); undefined = no statement, the
+   *  stored band is left untouched. null = clear the band. */
+  ageBand?: AgeBandValue | null;
 }) => Promise<void>;
 
 /** Types that are in the close circle by who they are — the toggle
@@ -74,6 +85,7 @@ export function RelationshipPickerSheet({
   currentType,
   currentFamilySubtype,
   currentFamilyMinor,
+  currentAgeBand,
   suggestion,
   onSave,
   onClose,
@@ -82,6 +94,9 @@ export function RelationshipPickerSheet({
   currentType: string | null;
   currentFamilySubtype?: string | null;
   currentFamilyMinor?: boolean;
+  /** N4 — the established age band on the relationship record,
+   *  or null when none has been established. */
+  currentAgeBand?: AgeBandValue | null;
   /** DL-11: a real inferred suggestion, when a served source exists. */
   suggestion?: { type: string; familySubtype?: string | null } | null;
   onSave: RelationshipSave;
@@ -99,6 +114,13 @@ export function RelationshipPickerSheet({
       (suggested ? (suggestion!.familySubtype ?? null) : null),
   );
   const [minor, setMinor] = useState<boolean>(currentFamilyMinor === true);
+  // N4: the band being established in this sheet (null = not set).
+  const [ageBand, setAgeBand] = useState<AgeBandValue | null>(currentAgeBand ?? null);
+  // N3: the Family accordion - expanded in place under the Family
+  // row. Opens expanded when Family is the current type.
+  const [familyOpen, setFamilyOpen] = useState<boolean>(
+    (currentType ?? (suggested ? suggestion!.type : null)) === "family",
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** A failed one-tap save earns the sheet's explicit Save (retry)
@@ -118,6 +140,12 @@ export function RelationshipPickerSheet({
         type: nextType,
         familySubtype: nextType === "family" ? nextSubtype : null,
         familyMinor: nextType === "family" ? nextMinor : false,
+        // N4: a family save carries the band statement exactly as
+        // shown (the selected band, or null when none is set). A
+        // non-family one-tap save makes NO band statement - the
+        // stored band is a fact about the person and survives the
+        // tie change untouched.
+        ageBand: nextType === "family" ? ageBand : undefined,
       });
       onClose();
     } catch {
@@ -127,15 +155,34 @@ export function RelationshipPickerSheet({
     }
   };
 
-  /** One tap finishes — except Family, which opens its depth. */
+  /** One tap finishes — except Family, which expands in place. */
   const choose = (value: string) => {
-    setType(value);
     if (value === "family") {
+      if (type === "family") {
+        // N3: tapping Family again collapses the accordion in
+        // place; the selection (and the Save below) stays.
+        setFamilyOpen((v) => !v);
+      } else {
+        setType("family");
+        setFamilyOpen(true);
+      }
       setSaveOffered(false);
       setError(null);
       return;
     }
+    setType(value);
+    setFamilyOpen(false);
     void persist(value, null, false);
+  };
+
+  /** N4: choosing a band is a truthful statement about the person -
+   *  the two minor bands turn the minor flag on, Adult turns it
+   *  off (minor is 17 and under); clearing the band leaves the
+   *  manual minor flag as it stands. */
+  const chooseAgeBand = (band: AgeBandValue | null) => {
+    setAgeBand(band);
+    if (band === "under_13" || band === "age_13_17") setMinor(true);
+    else if (band === "adult") setMinor(false);
   };
 
   const inCircle = isCloseCircleType(type);
@@ -168,64 +215,105 @@ export function RelationshipPickerSheet({
           <p className="c2s-sheet-title">How do you know {firstName}?</p>
           <div role="radiogroup" aria-label="Relationship type">
             {RELATIONSHIP_TYPE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                role="radio"
-                aria-checked={type === opt.value}
-                className="c2s-sheet-row"
-                data-testid={`r19-relationship-option-${opt.value}`}
-                data-selected={type === opt.value ? "true" : undefined}
-                disabled={busy}
-                onClick={() => choose(opt.value)}
-              >
-                <span>
-                  {opt.label}
-                  {suggested && suggestion!.type === opt.value ? (
-                    <small>Opal's suggestion</small>
-                  ) : null}
-                </span>
-              </button>
+              <React.Fragment key={opt.value}>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={type === opt.value}
+                  aria-expanded={opt.value === "family" ? familyOpen : undefined}
+                  className="c2s-sheet-row"
+                  data-testid={`r19-relationship-option-${opt.value}`}
+                  data-selected={type === opt.value ? "true" : undefined}
+                  disabled={busy}
+                  onClick={() => choose(opt.value)}
+                >
+                  <span>
+                    {opt.label}
+                    {suggested && suggestion!.type === opt.value ? (
+                      <small>Opal's suggestion</small>
+                    ) : null}
+                  </span>
+                </button>
+                {opt.value === "family" && type === "family" && familyOpen ? (
+                  <div
+                    data-testid="r19-family-subtype-step"
+                    data-accordion="inline"
+                  >
+                    <p className="c2s-card-line">Family — who are they to you?</p>
+                    <div role="radiogroup" aria-label="Family subtype">
+                      {FAMILY_SUBTYPE_OPTIONS.map((sub) => (
+                        <button
+                          key={sub.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={subtype === sub.value}
+                          className="c2s-sheet-row"
+                          data-testid={`r19-family-subtype-${sub.value}`}
+                          data-selected={subtype === sub.value ? "true" : undefined}
+                          onClick={() => setSubtype(sub.value)}
+                        >
+                          <span>{sub.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="c2s-sheet-row"
+                      data-testid="r19-family-minor"
+                      aria-pressed={minor}
+                      onClick={() => setMinor((v) => !v)}
+                    >
+                      <span>
+                        {firstName} is a minor
+                        <small>
+                          {minor
+                            ? "On — Opal keeps nudges about them to essentials."
+                            : "Off"}
+                        </small>
+                      </span>
+                    </button>
+                    {/* N4 — age-band establishment, next to the minor
+                        flag. A fact about the person, stored on the
+                        relationship record; no policy reads it yet. */}
+                    <p className="c2s-card-line">
+                      {firstName}'s age band
+                      <small>
+                        {ageBand
+                          ? "Recorded on this relationship. It changes nothing about what Opal does today."
+                          : "Not set. Recording it changes nothing about what Opal does today."}
+                      </small>
+                    </p>
+                    <div role="radiogroup" aria-label="Age band" data-testid="r19-age-band">
+                      {AGE_BAND_OPTIONS.map((band) => (
+                        <button
+                          key={band.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={ageBand === band.value}
+                          className="c2s-sheet-row"
+                          data-testid={`r19-age-band-${band.value}`}
+                          data-selected={ageBand === band.value ? "true" : undefined}
+                          onClick={() => chooseAgeBand(band.value)}
+                        >
+                          <span>{band.label}</span>
+                        </button>
+                      ))}
+                      {ageBand ? (
+                        <button
+                          type="button"
+                          className="c2s-sheet-row"
+                          data-testid="r19-age-band-clear"
+                          onClick={() => chooseAgeBand(null)}
+                        >
+                          <span>Not set</span>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </React.Fragment>
             ))}
           </div>
-
-          {type === "family" ? (
-            <div data-testid="r19-family-subtype-step">
-              <p className="c2s-card-line">Family — who are they to you?</p>
-              <div role="radiogroup" aria-label="Family subtype">
-                {FAMILY_SUBTYPE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={subtype === opt.value}
-                    className="c2s-sheet-row"
-                    data-testid={`r19-family-subtype-${opt.value}`}
-                    data-selected={subtype === opt.value ? "true" : undefined}
-                    onClick={() => setSubtype(opt.value)}
-                  >
-                    <span>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                className="c2s-sheet-row"
-                data-testid="r19-family-minor"
-                aria-pressed={minor}
-                onClick={() => setMinor((v) => !v)}
-              >
-                <span>
-                  {firstName} is a minor
-                  <small>
-                    {minor
-                      ? "On — Opal keeps nudges about them to essentials."
-                      : "Off"}
-                  </small>
-                </span>
-              </button>
-            </div>
-          ) : null}
 
           <button
             type="button"

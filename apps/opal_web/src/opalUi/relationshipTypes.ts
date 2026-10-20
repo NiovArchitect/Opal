@@ -57,6 +57,43 @@ export function familySubtypeLabel(
 }
 
 /**
+ * Founder Screen Notes N4 — AGE BANDS (affordance only; what any
+ * band restricts is a founder-gated policy that does not exist yet
+ * and must bind to this exact shape later).
+ *
+ * The band is a fact the viewer establishes about the counterpart
+ * on the viewer's relationship record (`relationship_types.age_band`,
+ * served as `age_band`), one of three values or null (not
+ * established):
+ *  - "under_13": under 13
+ *  - "age_13_17": 13-17
+ *  - "adult": 18 or over
+ * Minor, in the founder's terms, is 17 and under — exactly the two
+ * non-adult bands.
+ */
+export type AgeBandValue = "under_13" | "age_13_17" | "adult";
+
+export const AGE_BAND_OPTIONS: { value: AgeBandValue; label: string }[] = [
+  { value: "under_13", label: "Under 13" },
+  { value: "age_13_17", label: "13-17" },
+  { value: "adult", label: "Adult (18 or over)" },
+];
+
+export function isAgeBandValue(v: unknown): v is AgeBandValue {
+  return v === "under_13" || v === "age_13_17" || v === "adult";
+}
+
+export function ageBandLabel(band: string | null | undefined): string | null {
+  if (!band) return null;
+  return AGE_BAND_OPTIONS.find((o) => o.value === band)?.label ?? null;
+}
+
+/** Minor = 17 and under (founder's terms): the two non-adult bands. */
+export function ageBandIsMinor(band: string | null | undefined): boolean {
+  return band === "under_13" || band === "age_13_17";
+}
+
+/**
  * The finished SINGULAR tie for one person: "Partner", "Close
  * friend", "Family - Sister" (type + subtype). An unset or unknown
  * type renders NOTHING (null) — a tie is never guessed, and a raw

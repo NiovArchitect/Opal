@@ -175,7 +175,7 @@ describe("BS-02 — the orbit gate verifies before it reveals", () => {
   it("locked orbit reveals nothing pre-verification; wrong code stays locked; right code unlocks", async () => {
     await renderCenterToList();
     const header = q('[data-testid="orbit-group-header"]')!;
-    expect(header.textContent).toContain("Private");
+    expect(header.textContent).toContain("Opal chats hidden");
     expect(document.body.textContent).not.toContain("Cy secret one");
     expect(document.body.textContent).not.toContain("cy latest secret");
 

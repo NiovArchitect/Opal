@@ -117,6 +117,54 @@ defmodule OpalCoreWeb.RelationshipApiTest do
     assert body["relationship"]["type"] == "business"
   end
 
+  # Founder Screen Notes N4 — the age band round-trips through the
+  # ONE relationship write, under ANY type (it is a fact about the
+  # person, not the tie), persists across type changes, clears on
+  # an explicit null, and refuses unknown slugs with a 422.
+  test "PUT age_band round-trips, persists across types, clears, and refuses unknown bands (N4)", %{conn: conn} do
+    {tok, _user_id} = activate(conn, @alex, "N4 A", "n4_a")
+    jordan_id = Fixtures.user_jordan_id()
+
+    put_rel = fn params ->
+      build_conn() |> auth(tok) |> put("/api/v1/product/relationships/#{jordan_id}", params)
+    end
+
+    # Establish under family.
+    body =
+      put_rel.(%{"type" => "family", "family_subtype" => "sibling", "age_band" => "age_13_17"})
+      |> json_response(200)
+
+    assert body["relationship"]["age_band"] == "age_13_17"
+
+    # Read-back: row AND contact carry it; index names the vocabulary.
+    body = build_conn() |> auth(tok) |> get("/api/v1/product/relationships") |> json_response(200)
+    row = Enum.find(body["relationships"], &(&1["contact_user_id"] == jordan_id))
+    assert row["age_band"] == "age_13_17"
+    contact = Enum.find(body["contacts"], &(&1["contact_user_id"] == jordan_id))
+    assert contact["age_band"] == "age_13_17"
+    assert Enum.map(body["age_bands"], & &1["slug"]) == ["under_13", "age_13_17", "adult"]
+
+    # A type change with NO band statement leaves the band stored.
+    body = put_rel.(%{"type" => "friend"}) |> json_response(200)
+    assert body["relationship"]["type"] == "friend"
+    body = build_conn() |> auth(tok) |> get("/api/v1/product/relationships") |> json_response(200)
+    assert Enum.find(body["relationships"], &(&1["contact_user_id"] == jordan_id))["age_band"] == "age_13_17"
+
+    # A band statement under a non-family type applies too.
+    body = put_rel.(%{"type" => "friend", "age_band" => "adult"}) |> json_response(200)
+    assert body["relationship"]["age_band"] == "adult"
+
+    # Explicit null clears it.
+    body = put_rel.(%{"type" => "friend", "age_band" => nil}) |> json_response(200)
+    assert body["relationship"]["age_band"] == nil
+
+    # Unknown band is a 422, and nothing was stored by the attempt.
+    conn = put_rel.(%{"type" => "friend", "age_band" => "toddler"})
+    assert json_response(conn, 422)
+    body = build_conn() |> auth(tok) |> get("/api/v1/product/relationships") |> json_response(200)
+    assert Enum.find(body["relationships"], &(&1["contact_user_id"] == jordan_id))["age_band"] == nil
+  end
+
   # Repair #19 W24 (DL-02) — the family subtype round-trips through
   # the ONE relationship write: PUT stores it, the response contract
   # carries it back, and a fresh GET (rows + contacts) still carries

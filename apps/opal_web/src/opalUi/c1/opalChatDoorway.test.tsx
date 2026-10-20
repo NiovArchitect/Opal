@@ -430,7 +430,7 @@ describe("R19 Orbits: the Center conversation log", () => {
     const cyHeader = qa('[data-testid="orbit-group-header"]').find((h) =>
       h.textContent?.includes("Cy"),
     )!;
-    expect(cyHeader.textContent).toContain("Private");
+    expect(cyHeader.textContent).toContain("Opal chats hidden");
     expect(cyHeader.textContent).not.toContain("cy latest");
     await click(cyHeader);
     expect(requestUnlock).toHaveBeenCalledWith("person:user-c");
@@ -557,6 +557,7 @@ describe("R19 Orbits: the orbit sheet operations", () => {
         onClose={vi.fn()}
       />,
     );
+    await click(q('[data-testid="orbit-sheet-options"]')!);
     await click(q('[data-testid="orbit-sheet-private-toggle"]')!);
     expect(onToggle).toHaveBeenCalledWith(true);
   });

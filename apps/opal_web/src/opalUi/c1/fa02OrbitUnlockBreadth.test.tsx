@@ -147,7 +147,7 @@ describe("FA-02 — the orbit unlock prompt renders as a hittable modal at serve
 
         const header = page.locator('[data-testid="orbit-group-header"]');
         await header.waitFor({ state: "visible" });
-        expect(await header.textContent()).toContain("Private");
+        expect(await header.textContent()).toContain("Opal chats hidden");
         expect(await page.locator("body").textContent()).not.toContain("cy latest secret");
 
         // Header TAP opens the prompt (Playwright actionability is
@@ -207,7 +207,7 @@ describe("FA-02 — the orbit unlock prompt renders as a hittable modal at serve
         await page.keyboard.type("2468");
         await page.locator('[data-testid="orbit-unlock-submit"]').click();
         await prompt.waitFor({ state: "detached" });
-        expect(await header.textContent()).not.toContain("Private");
+        expect(await header.textContent()).not.toContain("Opal chats hidden");
         await header.click();
         const group = page.locator('[data-testid="orbit-group"]');
         await page.waitForFunction(

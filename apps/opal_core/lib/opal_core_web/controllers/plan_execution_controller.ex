@@ -76,12 +76,8 @@ defmodule OpalCoreWeb.PlanExecutionController do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
         cond do
-          # Repair #19 FIX-A (BS-03) — this surface read the plan row
-          # directly, bypassing SocialFlow.ensure_plan_access/2: a
-          # private plan resolves here for its creator only.
-          plan.is_private == true and plan.created_by_user_id != user_id ->
-            {:error, :forbidden}
-
+          # Polish C P3 (per-viewer vault): vault marks never gate
+          # execution reads - membership is the whole rule.
           plan_member?(plan, user_id) ->
             {:ok, plan}
 

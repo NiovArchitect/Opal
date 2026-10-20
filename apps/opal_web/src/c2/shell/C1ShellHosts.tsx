@@ -787,7 +787,13 @@ export function CenterHost({
 
   const plansById = useMemo(() => {
     const map = new Map<string, PlanProjection>();
-    for (const plan of plans) map.set(plan.id, planProjectionFromContract(plan));
+    // Polish C P3: Center is outside the vault - a plan in the
+    // viewer's "My private graphs" never resolves into a Center
+    // chip, candidate, or projection here.
+    for (const plan of plans) {
+      if (plan.is_private === true) continue;
+      map.set(plan.id, planProjectionFromContract(plan));
+    }
     return map;
   }, [plans]);
 
@@ -971,11 +977,18 @@ export function CenterHost({
         const rows = (res.conversations ?? []).map(summaryToRow);
         const inOrbit = sessionsForAnchor(rows, anchor);
         const sheetPlans = new Map<string, OrbitSheetPlan>();
-        if (anchor.type === "plan") {
+        // Polish C P3: the orbit sheet is outside the vault - a
+        // plan in the viewer's "My private graphs" (their own
+        // is_private flag on the one plan projection) never appears
+        // as an orbit plan row.
+        const vaultedPlanIds = new Set(
+          plans.filter((p) => p.is_private === true).map((p) => p.id),
+        );
+        if (anchor.type === "plan" && !vaultedPlanIds.has(anchor.id)) {
           sheetPlans.set(anchor.id, { id: anchor.id, title: anchor.label ?? "Plan" });
         }
         for (const r of inOrbit) {
-          if (r.context?.planId && r.context.planTitle) {
+          if (r.context?.planId && r.context.planTitle && !vaultedPlanIds.has(r.context.planId)) {
             sheetPlans.set(r.context.planId, { id: r.context.planId, title: r.context.planTitle });
           }
         }
@@ -989,7 +1002,7 @@ export function CenterHost({
         setOrbitSheet({ anchor, context, sessions: [], plans: [] });
       }
     },
-    [bearer],
+    [bearer, plans],
   );
 
   const refreshOrbitSheet = useCallback(() => {
@@ -1202,9 +1215,11 @@ export function CenterHost({
               ...contacts.map(
                 (c): OpalAnchor => ({ type: "person", id: c.contact_user_id, label: c.display_name }),
               ),
-              ...plans.map(
-                (pl): OpalAnchor => ({ type: "plan", id: pl.id, label: pl.title }),
-              ),
+              ...plans
+                .filter((pl) => pl.is_private !== true)
+                .map(
+                  (pl): OpalAnchor => ({ type: "plan", id: pl.id, label: pl.title }),
+                ),
             ],
             onPickAnchor: (a) =>
               void applyAnchorWrite(
@@ -1442,6 +1457,7 @@ export type RelRow = {
   type: string;
   family_subtype?: string | null;
   family_minor?: boolean;
+  age_band?: string | null;
 };
 
 export function profileProjectionFor(
@@ -1462,6 +1478,10 @@ export function profileProjectionFor(
     relationshipType: rel?.type ?? null,
     familySubtype: rel?.family_subtype ?? null,
     familyMinor: rel?.family_minor === true,
+    ageBand:
+      rel?.age_band === "under_13" || rel?.age_band === "age_13_17" || rel?.age_band === "adult"
+        ? rel.age_band
+        : null,
     closeCircle: rel ? isCloseCircleType(rel.type) : false,
     nextTogether: nextPlan
       ? {
@@ -1679,6 +1699,7 @@ export function ChatsHost({
             type: typeof r.type === "string" ? r.type : "",
             family_subtype: r.family_subtype ?? null,
             family_minor: r.family_minor === true,
+            age_band: r.age_band ?? null,
           })),
         );
         const types = [
@@ -1796,6 +1817,7 @@ export function ChatsHost({
         type: typeof r.type === "string" ? r.type : "",
         family_subtype: r.family_subtype ?? null,
         family_minor: r.family_minor === true,
+        age_band: r.age_band ?? null,
       }));
       setRelRows(rows);
     } catch {
@@ -1881,10 +1903,19 @@ export function ChatsHost({
    *  family leg included), then re-reads the relationship rows so
    *  every tie on screen is the server's read-back. */
   const saveRelationship = useCallback(
-    async (personId: string, input: { type: string; familySubtype: string | null; familyMinor: boolean }) => {
+    async (
+      personId: string,
+      input: {
+        type: string;
+        familySubtype: string | null;
+        familyMinor: boolean;
+        ageBand?: "under_13" | "age_13_17" | "adult" | null;
+      },
+    ) => {
       await setRelationshipType(personId, input.type, undefined, bearer, {
         familySubtype: input.familySubtype,
         familyMinor: input.familyMinor,
+        ageBand: input.ageBand,
       });
       try {
         const res = await listRelationships(bearer);
@@ -1894,6 +1925,7 @@ export function ChatsHost({
             type: typeof r.type === "string" ? r.type : "",
             family_subtype: r.family_subtype ?? null,
             family_minor: r.family_minor === true,
+            age_band: r.age_band ?? null,
           })),
         );
         setRelTypes([

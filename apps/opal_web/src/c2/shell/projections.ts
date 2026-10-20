@@ -379,6 +379,9 @@ export type PersonProfileProjection = {
   relationshipType: string | null;
   familySubtype: string | null;
   familyMinor: boolean;
+  /** N4 — the established age band for this person (the picker's
+   *  vocabulary), or null when none has been established. */
+  ageBand: "under_13" | "age_13_17" | "adult" | null;
   closeCircle: boolean;
   /** The shared upcoming plan fact for this conversation, or null. */
   nextTogether: { title: string; whenLine: string; stateFamily: string; stateLabel: string } | null;

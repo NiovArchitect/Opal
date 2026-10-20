@@ -29,7 +29,8 @@ defmodule OpalCoreWeb.RelationshipController do
       "relationships" => Enum.map(relationships, &Relationships.to_contract/1),
       "contacts" => Enum.map(contacts, &Relationships.to_contact_contract/1),
       "allowed_types" => Relationships.allowed_types(),
-      "family_subtypes" => FamilySubtype.options()
+      "family_subtypes" => FamilySubtype.options(),
+      "age_bands" => Relationships.age_band_options()
     })
   end
 
@@ -39,7 +40,8 @@ defmodule OpalCoreWeb.RelationshipController do
     bounds = params["bounds"] || params["communication_bounds"] || %{}
 
     with {:ok, rel} <- Relationships.set_type(user_id, contact_user_id, type || "", bounds),
-         {:ok, rel} <- apply_family_subtype(user_id, contact_user_id, rel, params) do
+         {:ok, rel} <- apply_family_subtype(user_id, contact_user_id, rel, params),
+         {:ok, rel} <- apply_age_band(user_id, contact_user_id, rel, params) do
       json(conn, %{"relationship" => Relationships.to_contract(rel)})
     else
       {:error, %Ecto.Changeset{} = cs} ->
@@ -85,6 +87,20 @@ defmodule OpalCoreWeb.RelationshipController do
             else: [minor: rel.family_minor || false]
 
         Relationships.set_family_subtype(user_id, contact_user_id, subtype, opts)
+    end
+  end
+
+  # N4: the age-band leg of the one write. An absent key makes no
+  # statement (the stored band is untouched); a present key states
+  # the band (a slug, or null/blank to clear). Unlike the subtype,
+  # the band is a fact about the person, so it applies under ANY
+  # type - an unknown slug is refused ({:error, :invalid_age_band}
+  # falls into the upsert's generic 422), never stored.
+  defp apply_age_band(user_id, contact_user_id, rel, params) do
+    if Map.has_key?(params, "age_band") do
+      Relationships.set_age_band(user_id, contact_user_id, blank_to_nil(params["age_band"]))
+    else
+      {:ok, rel}
     end
   end
 

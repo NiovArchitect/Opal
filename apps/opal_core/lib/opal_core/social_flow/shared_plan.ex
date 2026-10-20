@@ -276,10 +276,13 @@ defmodule OpalCore.SocialFlow.SharedPlan do
       "created_at" => dt(p.inserted_at),
       "cancelled_at" => dt(p.cancelled_at),
       "completed_at" => dt(p.completed_at),
-      # R19 W7 (additive): the private flag rides every contract so
-      # the owner's surfaces can gate the plan; non-owner lists never
-      # receive a private plan at all (list_plans_for_user filter).
-      "is_private" => Map.get(p, :is_private) == true,
+      # Polish C P3 (per-viewer vault): privacy is NOT a plan-global
+      # fact anymore. The bare contract carries false; viewer-scoped
+      # payload builders (SocialFlow.plan_payload/2) stamp the
+      # VIEWER'S OWN mark. The legacy column value is never emitted,
+      # so one party's vault state cannot leak into another party's
+      # contract through a viewer-less projection.
+      "is_private" => false,
       "place_lat" => Map.get(p, :place_lat),
       "place_lon" => Map.get(p, :place_lon)
     }

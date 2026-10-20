@@ -253,11 +253,15 @@ defmodule OpalCore.SocialFlow.Reveal do
         where:
           p.status in ^NextPlan.active_statuses() and
             (p.created_by_user_id == ^viewer_id or p.id in ^participant_plan_ids) and
-            # Repair #19 W20 (JA-02) — FIX-A's creator-only private
-            # predicate: a privatized plan never becomes a reveal
-            # item for its participants (the creator's own branch
-            # above still carries it for the creator).
-            (p.is_private == false or p.created_by_user_id == ^viewer_id)
+            # Polish C P3 (per-viewer vault): a plan the VIEWER
+            # marked private never becomes a reveal item for that
+            # viewer; other parties' marks are never consulted.
+            p.id not in subquery(
+              from(m in OpalCore.SocialFlow.PlanPrivacyMark,
+                where: m.user_id == ^viewer_id,
+                select: m.plan_id
+              )
+            )
       )
       |> Repo.all()
       |> Enum.filter(&NextPlan.upcoming?(&1, now))

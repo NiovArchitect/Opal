@@ -329,6 +329,9 @@ describe("W24 identification (DL-01 / DL-02 / DL-09 / DL-14)", () => {
       type: "family",
       familySubtype: "sibling",
       familyMinor: false,
+      // N4: a family save carries the band statement as shown
+      // (none established here).
+      ageBand: null,
     });
     expect(onClose).toHaveBeenCalled();
   });
@@ -432,7 +435,7 @@ describe("W24 identification (DL-01 / DL-02 / DL-09 / DL-14)", () => {
       "partner",
       undefined,
       "tok",
-      { familySubtype: null, familyMinor: false },
+      { familySubtype: null, familyMinor: false, ageBand: undefined },
     );
     // The picker closed after the save.
     expect(q('[data-testid="r19-relationship-picker"]')).toBeNull();
