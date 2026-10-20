@@ -134,7 +134,8 @@ defmodule OpalCore.SocialFlow.LeaveByTest do
       assert(travel["traffic_class"] == "estimate")
       assert(travel["traffic_model"] == "approximated")
       assert(travel["provider"] == "geoapify")
-      assert travel["computed_at"] == DateTime.to_iso8601(now)
+      assert travel["computed_at"] ==
+               (now |> DateTime.truncate(:second) |> DateTime.to_iso8601())
 
       assert_received {:geoapify_route, params}
       params = Map.new(params)
