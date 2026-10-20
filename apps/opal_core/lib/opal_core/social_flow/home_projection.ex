@@ -148,12 +148,11 @@ defmodule OpalCore.SocialFlow.HomeProjection do
       when is_binary(conversation_id) and is_integer(member_count) do
     viewer_id = Keyword.get(opts, :viewer_id)
 
-    # Repair #19 W20 (JA-02) — FIX-A's creator-only private
-    # predicate: a privatized plan yields NO card for anyone but
-    # its creator (this projection re-reads the plan's current row,
-    # so an unguarded card would disclose post-privatization
-    # title/time/place to the very parties the flag excludes).
-    if plan.is_private and plan.created_by_user_id != viewer_id do
+    # Polish C P3 (per-viewer vault): a plan the VIEWER marked
+    # private yields NO card on the viewer's surfaces - it lives
+    # only in their "My private graphs". Another party's mark has
+    # no effect on this viewer's card.
+    if OpalCore.SocialFlow.PlanPrivacyMark.marked?(viewer_id, plan.id) do
       nil
     else
       from_plan_row_visible(plan, conversation_id, member_count, viewer_id)
@@ -249,14 +248,15 @@ defmodule OpalCore.SocialFlow.HomeProjection do
     _ -> card
   end
 
-  # JA-02: true when the card's backing plan is creator-private
-  # for this viewer. Pure-projection call sites (no DB sandbox)
-  # keep the pre-JA-02 shape — no plan row is readable, so nothing
-  # can be sealed (mirrors maybe_put_plan_truth's rescue law).
+  # Polish C P3 (per-viewer vault): true when the card's backing
+  # plan is in the VIEWER'S OWN vault. Pure-projection call sites
+  # (no DB sandbox) keep the unsealed shape - no plan row is
+  # readable, so nothing can be sealed (mirrors
+  # maybe_put_plan_truth's rescue law).
   defp sealed_private?(alignment, conversation_id, viewer_id) do
     case attendance_plan(alignment, conversation_id) do
-      %SharedPlan{is_private: true, created_by_user_id: creator_id} ->
-        creator_id != viewer_id
+      %SharedPlan{} = plan ->
+        OpalCore.SocialFlow.PlanPrivacyMark.marked?(viewer_id, plan.id)
 
       _ ->
         false

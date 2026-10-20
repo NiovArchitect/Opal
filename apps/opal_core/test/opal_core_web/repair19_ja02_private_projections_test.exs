@@ -1,22 +1,20 @@
 defmodule OpalCoreWeb.Repair19Ja02PrivateProjectionsTest do
   @moduledoc """
-  Repair #19 W20 (JA-02) — FIX-A's creator-only private predicate at
-  the four aggregate projections the journey audit named: NextPlan,
+  Polish C P3 (per-viewer vault) - supersedes the JA-02 creator-global
+  reading at the four aggregate projections: NextPlan,
   ConversationAlignment's read output, Reveal, and HomeProjection.
 
-  These projections re-read the plan's CURRENT row on every load,
-  so before this fix a participant's live payloads kept updating
-  with title/time/place the creator set AFTER privatizing — new
-  disclosure, not retained history. After privatization:
-
-  - the participant's aggregate payloads carry none of the plan's
-    title/time/place in any of the four projections;
-  - the creator's own payloads are unchanged;
-  - the thread's own message record (the bounded exception — the
-    parties' conversation history is not a plan projection) is
-    unchanged;
-  - GraphPeople's counts-only counters are out of scope by the
-    audit's named exception and are not asserted here.
+  Founder's rule: hiding is PER-VIEWER. When A vaults a shared plan:
+  - A's OWN aggregate payloads carry none of the plan (it lives only
+    in A's "My private graphs"): NextPlan nil, no reveal item, no
+    HomeProjection card, the thread alignment sealed, the chats-list
+    row carries no next_plan / plan card.
+  - B's payloads are UNCHANGED - B keeps the plan, live, including
+    facts A sets after marking (B's view is B's own), and B's
+    contracts never carry A's marker (is_private stays false for B).
+  - When B then vaults it for themselves, B's projections seal and
+    A's (after A un-marks) are unchanged - both directions.
+  - The thread's own message record is never rewritten by a mark.
   """
   use OpalCoreWeb.ConnCase, async: false
 
@@ -107,7 +105,6 @@ defmodule OpalCoreWeb.Repair19Ja02PrivateProjectionsTest do
         "time_label" => "Saturday 7:30 PM"
       })["plan"]
 
-    # A pre-privatization shared message in the thread itself.
     post_json(token_a, "/api/v1/product/conversations/#{conv}/messages", %{
       "body" => "See you at Juniper on Saturday!"
     })
@@ -127,109 +124,106 @@ defmodule OpalCoreWeb.Repair19Ja02PrivateProjectionsTest do
     |> Enum.filter(&(&1["plan_id"] == plan_id))
   end
 
-  test "privatize seals all four aggregate projections for the participant; creator unchanged; thread history unchanged" do
+  test "A vaulting seals A's four projections only; B unchanged with no marker; B vaulting seals B's; un-marking restores" do
     w = world()
     plan = Repo.get(SharedPlan, w.plan_id)
 
-    # Sanity (pre-privatization): the participant's live payloads
-    # DO carry the plan — the seal below is a change, not a void.
-    assert %{"title" => "Dinner at Juniper"} =
-             NextPlan.for_conversation(w.user_b, w.conv)
-
+    # Sanity: both parties' live payloads carry the plan.
+    assert %{"title" => "Dinner at Juniper"} = NextPlan.for_conversation(w.user_b, w.conv)
+    assert %{"title" => "Dinner at Juniper"} = NextPlan.for_conversation(w.user_a, w.conv)
     assert reveal_plan_items(w.user_b, w.plan_id) != []
-    creator_reveals_before = reveal_plan_items(w.user_a, w.plan_id)
 
     assert %{"title" => "Dinner at Juniper"} =
              HomeProjection.from_plan_row(plan, w.conv, 2, viewer_id: w.user_b)
 
-    b_row =
-      Messages.list_conversations(w.user_b) |> Enum.find(&(&1["id"] == w.conv))
-
-    assert b_row["next_plan"]["title"] == "Dinner at Juniper"
-
-    # Privatize, then change the plan's facts AFTER privatizing —
-    # the new-disclosure case the audit ruled a defect.
-    assert {:ok, _} = SocialFlow.set_plan_private(w.plan_id, w.user_a, true)
+    # A vaults the plan for themselves, then the plan's facts change.
+    assert {:ok, contract} = SocialFlow.set_plan_private(w.plan_id, w.user_a, true)
+    assert contract["is_private"] == true
 
     plan
     |> SharedPlan.changeset(%{
-      "title" => "Secret new title",
-      "location" => "Undisclosed place",
+      "title" => "Updated dinner title",
+      "location" => "Updated place",
       "time_label" => "Sunday 9:00 PM"
     })
     |> Repo.update!()
 
-    # 1. NextPlan — participant sealed (conversation AND peer legs),
-    # creator unchanged.
-    assert NextPlan.for_conversation(w.user_b, w.conv) == nil
-    assert NextPlan.for_peer(w.user_b, w.user_a) == nil
-    assert %{"title" => "Secret new title"} = NextPlan.for_conversation(w.user_a, w.conv)
-
-    # 2. Reveal — no reveal item for the plan for the participant;
-    # the creator's reveal payload is exactly what it was before
-    # privatization (Reveal gives a lead no item for a fully-formed
-    # tentative plan — unchanged means unchanged, here [] == []).
-    assert reveal_plan_items(w.user_b, w.plan_id) == []
-    assert reveal_plan_items(w.user_a, w.plan_id) == creator_reveals_before
-
-    # 3. HomeProjection — both entry points sealed for the
-    # participant, unchanged for the creator.
     plan = Repo.get(SharedPlan, w.plan_id)
-    assert HomeProjection.from_plan_row(plan, w.conv, 2, viewer_id: w.user_b) == nil
 
-    assert %{"title" => "Secret new title"} =
-             HomeProjection.from_plan_row(plan, w.conv, 2, viewer_id: w.user_a)
+    # 1. NextPlan - sealed for the MARKER (A) on both legs; B's pick
+    # is unchanged and carries the live (updated) plan.
+    assert NextPlan.for_conversation(w.user_a, w.conv) == nil
+    assert NextPlan.for_peer(w.user_a, w.user_b) == nil
+    assert %{"title" => "Updated dinner title"} = NextPlan.for_conversation(w.user_b, w.conv)
+    assert %{"title" => "Updated dinner title"} = NextPlan.for_peer(w.user_b, w.user_a)
+
+    # 2. Reveal - no item for A; B's items remain.
+    assert reveal_plan_items(w.user_a, w.plan_id) == []
+    assert reveal_plan_items(w.user_b, w.plan_id) != []
+
+    # 3. HomeProjection - nil card for A; B's card unchanged (live).
+    assert HomeProjection.from_plan_row(plan, w.conv, 2, viewer_id: w.user_a) == nil
+
+    assert %{"title" => "Updated dinner title"} =
+             HomeProjection.from_plan_row(plan, w.conv, 2, viewer_id: w.user_b)
 
     locked_alignment = %{
       "exact_time" => %{"state" => "locked", "value" => "9:00 PM"},
-      "place" => %{"state" => "locked", "value" => "Undisclosed place"},
+      "place" => %{"state" => "locked", "value" => "Updated place"},
       "date" => %{"value" => "Sunday"},
       "commitment" => "aligned",
       "lineage_id" => w.plan_id
     }
 
-    assert HomeProjection.from_alignment(locked_alignment, w.conv, 2,
-             viewer_id: w.user_b
-           ) == nil
+    assert HomeProjection.from_alignment(locked_alignment, w.conv, 2, viewer_id: w.user_a) ==
+             nil
 
-    assert %{"place" => "Undisclosed place"} =
-             HomeProjection.from_alignment(locked_alignment, w.conv, 2,
-               viewer_id: w.user_a
-             )
+    assert %{"place" => "Updated place"} =
+             HomeProjection.from_alignment(locked_alignment, w.conv, 2, viewer_id: w.user_b)
 
-    # The chats-list row (HomeProjection's plan feed in the real
-    # payload): participant carries no plan card and no next_plan;
-    # the creator's row still carries the plan.
-    b_row =
-      Messages.list_conversations(w.user_b) |> Enum.find(&(&1["id"] == w.conv))
+    # Chats-list rows: A's row carries no plan; B's row carries it,
+    # and B's plan contract shows NO marker from A's vault.
+    a_row = Messages.list_conversations(w.user_a) |> Enum.find(&(&1["id"] == w.conv))
+    assert a_row["next_plan"] == nil
+    assert a_row["plan_projection"] == nil
 
-    assert b_row["next_plan"] == nil
-    assert b_row["plan_projection"] == nil
+    b_row = Messages.list_conversations(w.user_b) |> Enum.find(&(&1["id"] == w.conv))
+    assert b_row["next_plan"]["title"] == "Updated dinner title"
 
-    a_row =
-      Messages.list_conversations(w.user_a) |> Enum.find(&(&1["id"] == w.conv))
+    {:ok, b_plans} = SocialFlow.list_plans_for_user(w.user_b)
+    b_plan_row = Enum.find(b_plans, &(&1["id"] == w.plan_id))
+    assert b_plan_row["is_private"] == false
 
-    assert a_row["next_plan"]["title"] == "Secret new title"
-
-    # 4. ConversationAlignment read output (the thread alignment
-    # endpoint): participant payload is sealed — no place
-    # projection, no locked place/time values, no next_plan;
-    # creator payload unchanged.
-    b_align = get_json(w.token_b, "/api/v1/product/conversations/#{w.conv}/alignment")
-    assert b_align["next_plan"] == nil
-    refute Map.has_key?(b_align["alignment"], "place_projection")
-    assert b_align["alignment"]["place"]["value"] == nil
-    assert b_align["alignment"]["exact_time"]["value"] == nil
-
+    # 4. ConversationAlignment read output: A's thread payload is
+    # sealed (no place projection, no locked values, no next_plan);
+    # B's is unchanged and live.
     a_align = get_json(w.token_a, "/api/v1/product/conversations/#{w.conv}/alignment")
-    assert a_align["next_plan"]["title"] == "Secret new title"
-    assert a_align["alignment"]["place_projection"]["label"] == "Undisclosed place"
+    assert a_align["next_plan"] == nil
+    refute Map.has_key?(a_align["alignment"], "place_projection")
+    assert a_align["alignment"]["place"]["value"] == nil
+    assert a_align["alignment"]["exact_time"]["value"] == nil
 
-    # Bounded exception: the thread's own message record is NOT
-    # rewritten — pre-privatization shared history stays readable
-    # by the participant, verbatim.
-    b_msgs = get_json(w.token_b, "/api/v1/product/conversations/#{w.conv}/messages")
-    bodies = Enum.map(b_msgs["messages"], & &1["body"])
-    assert "See you at Juniper on Saturday!" in bodies
+    b_align = get_json(w.token_b, "/api/v1/product/conversations/#{w.conv}/alignment")
+    assert b_align["next_plan"]["title"] == "Updated dinner title"
+    assert b_align["alignment"]["place_projection"]["label"] == "Updated place"
+
+    # The thread's own message record is untouched for both parties.
+    for token <- [w.token_a, w.token_b] do
+      msgs = get_json(token, "/api/v1/product/conversations/#{w.conv}/messages")
+      assert "See you at Juniper on Saturday!" in Enum.map(msgs["messages"], & &1["body"])
+    end
+
+    # Reverse direction: A un-marks (A's projections restore), then
+    # B vaults it for themselves - B seals, A stays live.
+    assert {:ok, _} = SocialFlow.set_plan_private(w.plan_id, w.user_a, false)
+    assert %{"title" => "Updated dinner title"} = NextPlan.for_conversation(w.user_a, w.conv)
+
+    assert {:ok, _} = SocialFlow.set_plan_private(w.plan_id, w.user_b, true)
+    assert NextPlan.for_conversation(w.user_b, w.conv) == nil
+    assert reveal_plan_items(w.user_b, w.plan_id) == []
+    assert %{"title" => "Updated dinner title"} = NextPlan.for_conversation(w.user_a, w.conv)
+
+    {:ok, a_plans} = SocialFlow.list_plans_for_user(w.user_a)
+    assert Enum.find(a_plans, &(&1["id"] == w.plan_id))["is_private"] == false
   end
 end

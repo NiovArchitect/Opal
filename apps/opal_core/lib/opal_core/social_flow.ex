@@ -20,6 +20,7 @@ defmodule OpalCore.SocialFlow do
     PlanOption,
     PlanOptionResponse,
     PlanParticipant,
+    PlanPrivacyMark,
     PlanIdentity,
     PlanRecentChanges,
     PlanReminder,
@@ -2359,30 +2360,38 @@ defmodule OpalCore.SocialFlow do
   def cancel_plan(_), do: {:error, :invalid}
 
   @doc """
-  Repair #19 W7 - set or clear a plan's private flag. Creator-only:
-  privacy is the owner's call about their own graph (a participant
-  cannot hide a shared plan from its owner, and the owner hiding it
-  removes it from every other participant's list - see
-  list_plans_for_user/2). Returns the updated plan contract.
+  Founder Polish Wave (Cluster C, P3) - set or clear the CALLER's
+  own per-viewer vault mark on a plan (supersedes the W7 plan-global
+  reading of `shared_plans.is_private`).
+
+  PER-VIEWER RULE (founder's spec, recorded here as the law):
+  hiding is per-viewer. The mark lives in `plan_privacy_marks`
+  (PlanPrivacyMark) under the caller's own user id; it governs the
+  caller's surfaces only - the plan leaves their awareness strips,
+  chats list, thread, call log, Center deck, search, Home and
+  orbits, and lives only in their "My private graphs" behind the
+  passcode. Un-marking restores it on each surface. Other parties
+  keep their own view of the shared plan, unchanged, and never
+  receive the marker: their contracts carry `is_private: false`
+  for this plan (the field is computed per viewer, see
+  plan_payload/2).
+
+  Any user who actually has the plan in their world (creator,
+  participant, or a member of its conversation) may vault it for
+  themselves; a stranger gets :not_authorized. The legacy global
+  column is never written here anymore.
   """
   def set_plan_private(plan_id, user_id, is_private)
       when is_binary(plan_id) and is_binary(user_id) and is_boolean(is_private) do
     case Repo.get(SharedPlan, plan_id) do
       %SharedPlan{} = plan ->
-        cond do
-          plan.created_by_user_id != user_id ->
+        case ensure_plan_access(plan, user_id) do
+          :ok ->
+            :ok = PlanPrivacyMark.set_mark(user_id, plan_id, is_private)
+            {:ok, plan_payload(plan, user_id)}
+
+          {:error, _} ->
             {:error, :not_authorized}
-
-          plan.is_private == is_private ->
-            {:ok, plan_payload(plan)}
-
-          true ->
-            case plan
-                 |> SharedPlan.changeset(%{is_private: is_private})
-                 |> Repo.update() do
-              {:ok, updated} -> {:ok, plan_payload(updated)}
-              {:error, _} -> {:error, :invalid}
-            end
         end
 
       _ ->
@@ -3082,13 +3091,15 @@ defmodule OpalCore.SocialFlow do
 
     q =
       from(p in SharedPlan,
-        # R19 W7: a private graph is the creator's alone - other
-        # participants never receive it in their plan lists at all.
-        # The creator's own list carries it, flagged is_private, and
-        # their Graphs surface gates it behind the Private area.
+        # Polish C P3 (per-viewer vault): EVERY party's list carries
+        # the plan - hiding is per-viewer, so no party loses a shared
+        # plan because someone else vaulted it. The viewer's own
+        # marks are stamped per row below (plan_payload/2), and the
+        # Graphs adapter separates the viewer's marked rows into
+        # their "My private graphs" area.
         where:
           p.created_by_user_id == ^user_id or
-            (p.id in ^participant_plan_ids and p.is_private == false),
+            p.id in ^participant_plan_ids,
         # Repair #18 residuals #2 (FR-18-04, law F18-06) - status tier
         # FIRST, using the codebase's own commitment rank (the same
         # agreed > changed > tentative ranking sort_survivor_first/1
@@ -3126,7 +3137,7 @@ defmodule OpalCore.SocialFlow do
      Enum.map(plans, fn plan ->
        payload =
          plan
-         |> plan_payload()
+         |> plan_payload(user_id)
          # Repair #18 (Walk #4, W4-04): the viewer's edit authority on
          # THIS plan, from the same lead model edit_plan_details/1
          # enforces - surfaces render the edit affordance only when the
@@ -3993,6 +4004,19 @@ defmodule OpalCore.SocialFlow do
     |> Map.put("conflict", plan_conflict(plan))
   end
 
+  @doc """
+  Viewer-scoped plan payload (Polish C P3): the contract's
+  `is_private` is the VIEWER'S OWN vault mark on this plan - never
+  the legacy plan-global flag and never another party's mark, so
+  the marker/state cannot leak across accounts. Surfaces acting
+  for a signed-in viewer use this variant.
+  """
+  def plan_payload(%SharedPlan{} = plan, viewer_id) when is_binary(viewer_id) do
+    plan
+    |> plan_payload()
+    |> Map.put("is_private", PlanPrivacyMark.marked?(viewer_id, plan.id))
+  end
+
   # -------------------------------------------------------------------
   # Repair #18 (Division A) - dedupe identity, conflict gate, cleanup
   # -------------------------------------------------------------------
@@ -4412,19 +4436,12 @@ defmodule OpalCore.SocialFlow do
   # Plan access for both chat plans (conversation members) and center plans
   # (conversation_id nil: creator or participant).
   #
-  # Repair #19 FIX-A (BS-03) — the private gate sits at this ONE
-  # chokepoint, ahead of every membership clause: a plan its creator
-  # made private is invisible to everyone but the creator, on every
-  # path that resolves access through here (detail via
-  # get_plan_for_user/2, PlanHistory, food steps, location sharing,
-  # edits/cancel/revisions — every ensure_plan_access/2 caller).
-  # Participants get the same :not_a_member the membership check
-  # gives a stranger, so the detail read maps it to :forbidden
-  # exactly as the list exclusion already implied.
-  defp ensure_plan_access(%SharedPlan{is_private: true} = plan, user_id) do
-    if plan.created_by_user_id == user_id, do: :ok, else: {:error, :not_a_member}
-  end
-
+  # Polish C P3 (per-viewer vault): there is NO private gate at this
+  # chokepoint anymore. The W7/FIX-A creator-global gate is superseded
+  # by the founder's owner-vault spec - a vault mark is per-viewer
+  # surface state, never an access denial: the marker must still open
+  # the plan from inside their vault, and every other party keeps
+  # their access unchanged. Membership below is the whole law here.
   defp ensure_plan_access(%SharedPlan{conversation_id: nil} = plan, user_id) do
     cond do
       plan.created_by_user_id == user_id -> :ok

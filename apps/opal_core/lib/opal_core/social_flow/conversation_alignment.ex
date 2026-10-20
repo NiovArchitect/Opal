@@ -684,48 +684,55 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   different pending change and stays.
   """
   @doc """
-  Repair #19 W20 (JA-02) — FIX-A's creator-only private predicate
-  on this module's READ output (the thread alignment payload).
-  When the conversation's active plan is private and the viewer
-  is not its creator, the plan-derived fields are sealed back to
-  the unknown shape and every live-row overlay (place projection,
-  pending revision, attendance counter, set event) is removed:
-  the payload re-reads the plan's CURRENT row, so leaving it
-  unsealed would disclose title/time/place set after
-  privatization. The thread's own message record is untouched —
-  this seals the projection, never the history. The creator's own
-  payload is returned unchanged.
+  Polish C P3 (per-viewer vault) on this module's READ output
+  (the thread alignment payload). When the conversation's active
+  plan is in the VIEWER'S OWN vault, the plan-derived fields are
+  sealed back to the unknown shape for that viewer and every
+  live-row overlay (place projection, pending revision, attendance
+  counter, set event) is removed: outside the vault the viewer's
+  thread shows no plan indicator at all. Another party's mark is
+  never consulted - their thread payload is returned unchanged.
+  The thread's own message record is untouched - this seals the
+  projection, never the history.
   """
   def seal_private_for_viewer(state, conversation_id, viewer_id)
       when is_map(state) and is_binary(conversation_id) and is_binary(viewer_id) do
     case active_plan_for_conversation(conversation_id) do
-      %SharedPlan{is_private: true, created_by_user_id: creator_id}
-      when creator_id != viewer_id ->
-        sealed =
-          Enum.reduce(~w(activity date time_window exact_time place execution), state, fn key,
-                                                                                          acc ->
-            Map.put(acc, key, field("unknown", nil, nil))
-          end)
-
-        sealed
-        |> Map.delete("place_projection")
-        |> Map.delete("pending_revision")
-        |> Map.delete("change_proposal")
-        |> Map.delete("plan_set_event")
-        |> Map.delete("going_count")
-        |> Map.delete("total_count")
-        |> Map.delete("interested_count")
-        |> Map.delete("viewer_state")
-        |> Map.put("confirmable", false)
-        |> Map.put("prompt", nil)
-        |> Map.put("completion", nil)
-        |> Map.put("next", nil)
+      %SharedPlan{} = plan
+      when is_binary(viewer_id) ->
+        if OpalCore.SocialFlow.PlanPrivacyMark.marked?(viewer_id, plan.id) do
+          seal_thread_state(state)
+        else
+          state
+        end
 
       _ ->
         state
     end
   rescue
     _ -> state
+  end
+
+  defp seal_thread_state(state) do
+    sealed =
+      Enum.reduce(~w(activity date time_window exact_time place execution), state, fn key,
+                                                                                       acc ->
+        Map.put(acc, key, field("unknown", nil, nil))
+      end)
+
+    sealed
+    |> Map.delete("place_projection")
+    |> Map.delete("pending_revision")
+    |> Map.delete("change_proposal")
+    |> Map.delete("plan_set_event")
+    |> Map.delete("going_count")
+    |> Map.delete("total_count")
+    |> Map.delete("interested_count")
+    |> Map.delete("viewer_state")
+    |> Map.put("confirmable", false)
+    |> Map.put("prompt", nil)
+    |> Map.put("completion", nil)
+    |> Map.put("next", nil)
   end
 
   def seal_private_for_viewer(state, _, _), do: state

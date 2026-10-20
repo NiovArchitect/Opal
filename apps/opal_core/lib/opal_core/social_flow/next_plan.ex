@@ -168,15 +168,14 @@ defmodule OpalCore.SocialFlow.NextPlan do
   defp pick_next(candidates, viewer_id, now) do
     candidates
     |> Enum.uniq_by(& &1.id)
-    # Repair #19 W20 (JA-02) — FIX-A's creator-only private
-    # predicate, applied at this ONE pick: a plan its creator made
-    # private projects for the creator alone. Participants' live
-    # payloads (conversation rows, thread, call log) carry none of
-    # its title/time/place — these projections re-read the plan's
-    # current row, so an unfiltered pick would disclose facts set
-    # AFTER privatization (new disclosure, not retained history).
+    # Polish C P3 (per-viewer vault) — applied at this ONE pick:
+    # a plan the VIEWER marked private never projects into the
+    # viewer's awareness surfaces (chats list, thread strip, call
+    # log) - it lives only in their "My private graphs". Other
+    # parties' marks are irrelevant here and never read: their
+    # awareness of the same plan is unchanged.
     |> Enum.filter(fn plan ->
-      not plan.is_private or plan.created_by_user_id == viewer_id
+      not OpalCore.SocialFlow.PlanPrivacyMark.marked?(viewer_id, plan.id)
     end)
     |> Enum.filter(&upcoming?(&1, now))
     |> Enum.sort_by(

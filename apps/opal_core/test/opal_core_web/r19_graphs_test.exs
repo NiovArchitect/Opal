@@ -112,8 +112,13 @@ defmodule OpalCoreWeb.R19GraphsTest do
     plan
   end
 
-  describe "private graphs" do
-    test "creator list flags it, participant list excludes it, contract carries the flag" do
+  describe "private graphs (Polish C P3 - per-viewer vault)" do
+    # Founder's owner-vault spec supersedes the W7 plan-global flag:
+    # hiding is PER-VIEWER. The marker's list flags the plan; every
+    # other party keeps the plan in their list with is_private false
+    # (the marker never leaks); un-marking restores the marker's own
+    # ordinary view. A stranger (no access to the plan) cannot mark.
+    test "marking is per-viewer: marker flagged, other party unchanged and unmarked, un-mark restores" do
       {_t1, owner} = activate("+12025550111", "Owner One", "r19owner")
       {_t2, guest} = activate("+12025550112", "Guest Two", "r19guest")
       plan = plan!(owner, guest)
@@ -128,32 +133,47 @@ defmodule OpalCoreWeb.R19GraphsTest do
       {:ok, owner_plans} = SocialFlow.list_plans_for_user(owner)
       assert Enum.any?(owner_plans, &(&1["id"] == plan.id and &1["is_private"] == true))
 
+      # The other party's view is UNCHANGED and carries no marker.
       {:ok, guest_plans} = SocialFlow.list_plans_for_user(guest)
-      refute Enum.any?(guest_plans, &(&1["id"] == plan.id))
+      guest_row = Enum.find(guest_plans, &(&1["id"] == plan.id))
+      assert guest_row != nil
+      assert guest_row["is_private"] == false
 
-      # Clearing restores the participant's view.
+      # The guest can vault it for THEMSELVES; the owner's flag is
+      # untouched by the guest's mark.
+      assert {:ok, guest_contract} = SocialFlow.set_plan_private(plan.id, guest, true)
+      assert guest_contract["is_private"] == true
+      {:ok, owner_plans2} = SocialFlow.list_plans_for_user(owner)
+      assert Enum.any?(owner_plans2, &(&1["id"] == plan.id and &1["is_private"] == true))
+      assert {:ok, _} = SocialFlow.set_plan_private(plan.id, guest, false)
+
+      # Clearing restores the marker's ordinary (unflagged) row.
       assert {:ok, _} = SocialFlow.set_plan_private(plan.id, owner, false)
-      {:ok, guest_plans2} = SocialFlow.list_plans_for_user(guest)
-      assert Enum.any?(guest_plans2, &(&1["id"] == plan.id))
+      {:ok, owner_plans3} = SocialFlow.list_plans_for_user(owner)
+      owner_row3 = Enum.find(owner_plans3, &(&1["id"] == plan.id))
+      assert owner_row3["is_private"] == false
     end
 
-    test "a non-creator cannot set the flag" do
+    test "a stranger with no access to the plan cannot mark it" do
       {_t1, owner} = activate("+12025550113", "Owner Three", "r19owner3")
       {_t2, guest} = activate("+12025550114", "Guest Four", "r19guest4")
+      {_t3, stranger} = activate("+12025550913", "Stranger", "r19stranger")
       plan = plan!(owner, guest)
 
-      assert {:error, :not_authorized} = SocialFlow.set_plan_private(plan.id, guest, true)
-      assert Repo.get(SharedPlan, plan.id).is_private == false
+      assert {:error, :not_authorized} = SocialFlow.set_plan_private(plan.id, stranger, true)
+      refute OpalCore.SocialFlow.PlanPrivacyMark.marked?(stranger, plan.id)
+      refute OpalCore.SocialFlow.PlanPrivacyMark.marked?(owner, plan.id)
     end
 
-    test "private endpoint: owner sets it, guest is refused" do
+    test "private endpoint: each party marks their own view; a stranger is refused" do
       {owner_token, owner} = activate("+12025550115", "Owner Five", "r19owner5")
       {guest_token, guest} = activate("+12025550116", "Guest Six", "r19guest6")
+      {stranger_token, _stranger} = activate("+12025550915", "Stranger E", "r19strangere")
       plan = plan!(owner, guest)
 
       conn =
         build_conn()
-        |> auth(guest_token)
+        |> auth(stranger_token)
         |> post("/api/v1/product/opal/plans/#{plan.id}/private", %{"is_private" => true})
 
       assert json_response(conn, 403)
@@ -165,6 +185,18 @@ defmodule OpalCoreWeb.R19GraphsTest do
 
       body = json_response(conn, 200)
       assert body["plan"]["is_private"] == true
+
+      # The guest marking their own view does not flag the owner's.
+      conn =
+        build_conn()
+        |> auth(guest_token)
+        |> post("/api/v1/product/opal/plans/#{plan.id}/private", %{"is_private" => true})
+
+      assert json_response(conn, 200)["plan"]["is_private"] == true
+      {:ok, owner_plans} = SocialFlow.list_plans_for_user(owner)
+      assert Enum.any?(owner_plans, &(&1["id"] == plan.id and &1["is_private"] == true))
+      {:ok, guest_plans} = SocialFlow.list_plans_for_user(guest)
+      assert Enum.any?(guest_plans, &(&1["id"] == plan.id and &1["is_private"] == true))
     end
   end
 
@@ -214,12 +246,12 @@ defmodule OpalCoreWeb.R19GraphsTest do
     end
   end
 
-  describe "private plan direct reads (BS-03)" do
+  describe "vault marks never gate direct reads (Polish C P3, supersedes BS-03)" do
     alias OpalCore.Artifacts
     alias OpalCore.SocialFlow.Checkin
     alias OpalCore.SocialFlow.JourneyAuthority
 
-    test "participant detail/history/journey/food/artifact/check-in reads are denied once private; owner and non-private reads unaffected" do
+    test "participant reads are UNAFFECTED once the owner marks it; the marker reads from the vault" do
       {owner_token, owner} = activate("+12025550131", "Priv Owner", "r19privown")
       {guest_token, guest} = activate("+12025550132", "Priv Guest", "r19privguest")
       plan = plan!(owner, guest)
@@ -252,16 +284,19 @@ defmodule OpalCoreWeb.R19GraphsTest do
 
       assert json_response(conn, 200)["plan_id"] == plan.id
 
-      # Make it private: the participant loses EVERY direct read path.
+      # The owner vaults it (per-viewer): the participant keeps EVERY
+      # direct read path - hiding governs the marker's surfaces only.
       assert {:ok, _} = SocialFlow.set_plan_private(plan.id, owner, true)
 
-      assert {:error, :forbidden} = SocialFlow.get_plan_for_user(plan.id, guest)
-      assert {:error, :forbidden} = PlanHistory.for_plan(plan.id, guest)
-      assert {:error, :forbidden} = JourneyAuthority.get(plan.id, guest)
-      assert {:error, :forbidden} = SocialFlow.food_step_for_user(plan.id, guest)
-      assert {:error, :not_found} = Artifacts.collect_facts(guest, "event_plan", plan.id)
+      assert {:ok, _} = SocialFlow.get_plan_for_user(plan.id, guest)
+      assert {:ok, _} = PlanHistory.for_plan(plan.id, guest)
+      assert {:ok, _} = JourneyAuthority.get(plan.id, guest)
+      assert {:ok, _, _} = SocialFlow.food_step_for_user(plan.id, guest)
+      assert {:ok, _} = Artifacts.collect_facts(guest, "event_plan", plan.id)
 
-      assert {:error, :not_a_member} =
+      # The sweep resolves (the pre-mark sweep is still open, so the
+      # honest answer is :already_open - the read path itself works).
+      assert {:ok, _sweep, :already_open} =
                Checkin.create_sweep(
                  guest,
                  %{"kind" => "plan", "ref_id" => plan.id},
@@ -273,26 +308,17 @@ defmodule OpalCoreWeb.R19GraphsTest do
         |> auth(guest_token)
         |> get("/api/v1/product/plans/#{plan.id}/execution")
 
-      assert conn.status == 403
+      assert conn.status == 200
 
       conn =
         build_conn()
         |> auth(guest_token)
         |> get("/api/v1/product/opal/plans/#{plan.id}/history")
 
-      assert json_response(conn, 403)
+      assert json_response(conn, 200)["plan_id"] == plan.id
 
-      conn =
-        build_conn()
-        |> auth(guest_token)
-        |> post("/api/v1/product/opal/plans/#{plan.id}/location-share", %{
-          "lat" => 32.75,
-          "lon" => -117.16
-        })
-
-      assert conn.status == 403
-
-      # The owner's own reads are unaffected on every path.
+      # The owner's own reads are unaffected on every path (the
+      # vault opens the plan; the mark is not an access denial).
       assert {:ok, _} = SocialFlow.get_plan_for_user(plan.id, owner)
       assert {:ok, _} = PlanHistory.for_plan(plan.id, owner)
       assert {:ok, _} = JourneyAuthority.get(plan.id, owner)
@@ -320,13 +346,13 @@ defmodule OpalCoreWeb.R19GraphsTest do
 
       assert json_response(conn, 200)["plan_id"] == plan.id
 
-      # Clearing the flag restores the participant's reads.
+      # Clearing the mark leaves the participant's reads as they were.
       assert {:ok, _} = SocialFlow.set_plan_private(plan.id, owner, false)
       assert {:ok, _} = SocialFlow.get_plan_for_user(plan.id, guest)
       assert {:ok, _} = PlanHistory.for_plan(plan.id, guest)
     end
 
-    test "a conversation plan made private is denied to conversation members who are not its creator" do
+    test "a conversation plan the owner vaults stays readable by its conversation members; a non-member stays denied by membership" do
       {_t1, owner} = activate("+12025550133", "Conv Owner", "r19convown")
       {_t2, guest} = activate("+12025550134", "Conv Guest", "r19convguest")
       {_t3, third} = activate("+12025550135", "Conv Third", "r19convthird")
@@ -345,8 +371,10 @@ defmodule OpalCoreWeb.R19GraphsTest do
       assert {:ok, _} = JourneyAuthority.get(plan.id, guest)
 
       assert {:ok, _} = SocialFlow.set_plan_private(plan.id, owner, true)
-      assert {:error, :forbidden} = SocialFlow.get_plan_for_user(plan.id, guest)
-      assert {:error, :forbidden} = JourneyAuthority.get(plan.id, guest)
+      # Per-viewer: members keep their reads; the non-member's denial
+      # is the ordinary membership denial, unchanged by the mark.
+      assert {:ok, _} = SocialFlow.get_plan_for_user(plan.id, guest)
+      assert {:ok, _} = JourneyAuthority.get(plan.id, guest)
       assert {:error, :forbidden} = SocialFlow.get_plan_for_user(plan.id, third)
       assert {:ok, _} = SocialFlow.get_plan_for_user(plan.id, owner)
     end
