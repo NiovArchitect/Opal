@@ -1546,6 +1546,10 @@ export function ChatsHost({
   const [threadNextPlan, setThreadNextPlan] = useState<NextPlanFact | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  /** P8: the one people picker serves both create entries - chat
+   *  mode opens (or ensures) the thread; call mode places the real
+   *  conversation call for the picked person. */
+  const [pickerMode, setPickerMode] = useState<"chat" | "call">("chat");
   const [people, setPeople] = useState<PickerPerson[]>([]);
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [relRows, setRelRows] = useState<RelRow[]>([]);
@@ -1742,7 +1746,8 @@ export function ChatsHost({
     [bearer, onConversationsChanged, openThread, selectedId],
   );
 
-  const openPicker = useCallback(async () => {
+  const openPicker = useCallback(async (mode: "chat" | "call" = "chat") => {
+    setPickerMode(mode);
     setPickerOpen(true);
     // DL-04/DL-08: the picker reads the ONE union universe. The
     // conversation peers are already in this host's hands; the
@@ -1795,32 +1800,51 @@ export function ChatsHost({
     setPeople(peopleUniverse({ conversations, contacts, relRows: rows }));
   }, [bearer, conversations, relRows]);
 
-  /** A picker tap: an existing conversation opens; a contact with
-   *  none ensures the REAL direct conversation, then opens it. */
+  /** A picker tap: an existing conversation is used; a contact
+   *  with none ensures the REAL direct conversation first. Chat
+   *  mode then opens the thread; call mode places the REAL
+   *  conversation call through the same placeCall path the call
+   *  log's Call button uses, and lands on the Calls tab where the
+   *  outcome note and the re-read log show the result. */
   const openPickerPerson = useCallback(
     async (person: PickerPerson) => {
       setPickerOpen(false);
-      if (person.conversationId) {
-        void openThread(person.conversationId);
+      let cid = person.conversationId;
+      if (!cid) {
+        try {
+          const res = await ensureDirectConversation(person.personId, bearer);
+          cid =
+            (res as { conversation_id?: string; conversation?: { id?: string } })
+              .conversation_id ??
+            (res as { conversation?: { id?: string } }).conversation?.id ??
+            null;
+          if (cid) onConversationsChanged();
+        } catch {
+          cid = null;
+        }
+      }
+      if (!cid) {
+        setError(
+          pickerMode === "call"
+            ? "That call could not start. Try again."
+            : "That chat could not open. Try again.",
+        );
         return;
       }
-      try {
-        const res = await ensureDirectConversation(person.personId, bearer);
-        const cid =
-          (res as { conversation_id?: string; conversation?: { id?: string } })
-            .conversation_id ??
-          (res as { conversation?: { id?: string } }).conversation?.id;
-        if (cid) {
-          onConversationsChanged();
-          void openThread(cid);
-        } else {
-          setError("That chat could not open. Try again.");
-        }
-      } catch {
-        setError("That chat could not open. Try again.");
+      if (pickerMode === "call") {
+        setCommSurface("calls");
+        void placeCall({
+          id: person.personId,
+          name: person.name,
+          initials: initialsOf(person.name),
+          metadata: "",
+          conversationId: cid,
+        });
+        return;
       }
+      void openThread(cid);
     },
-    [bearer, openThread, onConversationsChanged],
+    [bearer, openThread, onConversationsChanged, pickerMode, placeCall],
   );
 
   /** Repair #19 W24 (DL-01) — THE one relationship write for this
@@ -2109,6 +2133,7 @@ export function ChatsHost({
               if (call.conversationId) void openThread(call.conversationId);
             }}
             onCallBack={(call) => void placeCall(call)}
+            onNewCall={() => void openPicker("call")}
           />
           {callNote ? (
             <p
@@ -2163,11 +2188,14 @@ export function ChatsHost({
             <div
               className="c2s-sheet"
               role="dialog"
-              aria-label="Start a chat"
+              aria-label={pickerMode === "call" ? "Start a call" : "Start a chat"}
               data-testid="c2-c1-people-picker"
+              data-picker-mode={pickerMode}
               onClick={(e) => e.stopPropagation()}
             >
-              <p className="c2s-sheet-title">Start a chat</p>
+              <p className="c2s-sheet-title">
+                {pickerMode === "call" ? "Start a call" : "Start a chat"}
+              </p>
               {people.length === 0 ? (
                 <EmptyBlock
                   headline="No one connected yet."

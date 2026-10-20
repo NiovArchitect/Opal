@@ -471,6 +471,13 @@
   gap: 12px;
   padding: 8px 0 24px;
 }
+.intelligence-person-memory-intro {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--opal-soft-white);
+  opacity: 0.85;
+}
 .intelligence-person-memory-section {
   margin: 0;
 }

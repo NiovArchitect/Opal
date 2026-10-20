@@ -132,6 +132,24 @@ describe("adoption wave 2 settings", () => {
     expect(text).not.toMatch(/reward/i);
     expect(text).not.toMatch(/tokens/i);
     expect(container.querySelector('[data-testid="c2-redeem-form"]')).toBeTruthy();
+    // P9: Copy invite link writes the payload's own share_url -
+    // the exact string the value row displays, never a rebuild.
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    const copyBtn = container.querySelector(
+      '[data-testid="c2-invite-copy-link"]',
+    ) as HTMLButtonElement;
+    expect(copyBtn).toBeTruthy();
+    await act(async () => {
+      copyBtn.click();
+    });
+    expect(writeText).toHaveBeenCalledWith("https://example.test/invite/MAYA-AB12");
+    expect(
+      container.querySelector('[data-testid="c2-invite-copy-note"]')?.textContent,
+    ).toMatch(/Copied/);
   });
 
   it("C6: delete page names exactly what goes, incl. shared truth, before any action", async () => {

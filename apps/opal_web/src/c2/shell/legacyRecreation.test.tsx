@@ -149,6 +149,11 @@ describe("W13 person profile", () => {
     expect(getByTestId("r19-profile-name").textContent).toBe("Maya Chen");
     expect(queryByTestId("r19-profile-relationship")).toBeNull();
     expect(queryByTestId("r19-profile-next")).toBeNull();
+    // P6: the memory doorway carries one plain-language line naming
+    // what it opens - the viewer's own memory controls.
+    expect(getByTestId("r19-profile-memory-note").textContent).toBe(
+      "Your memory controls - what Opal keeps, and forgetting it.",
+    );
     getByTestId("r19-profile-message").click();
     getByTestId("r19-profile-memory").click();
     expect(onMessage).toHaveBeenCalledTimes(1);

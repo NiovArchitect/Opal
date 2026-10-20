@@ -1397,7 +1397,7 @@ export async function buildSettingsSection(
         return {
           key,
           title: "What Opal remembers",
-          lede: "Facts Opal keeps for you. Forget any of them, for real.",
+          lede: "Facts Opal keeps from your chats and plans. You control them - forget any of them, for real.",
           rows:
             res.facts.length === 0
               ? [{ kind: "note", id: "none", text: "Opal is not keeping any facts yet." }]
@@ -1412,7 +1412,7 @@ export async function buildSettingsSection(
         return {
           key,
           title: "What Opal remembers",
-          lede: "Facts Opal keeps for you. Forget any of them, for real.",
+          lede: "Facts Opal keeps from your chats and plans. You control them - forget any of them, for real.",
           rows: [{ kind: "note", id: "load-failed", text: "What Opal remembers could not load. Head back and try again." }],
         };
       }

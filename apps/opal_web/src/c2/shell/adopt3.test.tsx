@@ -346,6 +346,61 @@ describe("ST-D one search", () => {
     expect(onOpenGraph).toHaveBeenCalledWith("p1");
   });
 
+  it("places group derives from the viewer's own plan locations; a tap opens that plan; virtual locations are not places", async () => {
+    const onOpenGraph = vi.fn();
+    await render(
+      <SearchDestination
+        plans={[
+          { id: "p1", title: "Dinner with Maya", status: "agreed", time_label: "Sat 7pm", location: "Juniper and Ivy" } as never,
+          { id: "p2", title: "Brunch with Maya", status: "agreed", time_label: "Sun 11am", location: "Juniper and Ivy" } as never,
+          { id: "p3", title: "Video catch-up", status: "agreed", plan_type: "virtual", location: "Juniper and Ivy" } as never,
+          { id: "p4", title: "Picnic", status: "agreed", location: null } as never,
+        ]}
+        conversations={[]}
+        onClose={() => undefined}
+        onOpenGraph={onOpenGraph}
+        onOpenChat={() => undefined}
+      />,
+    );
+    const input = document.querySelector('[data-testid="c2-search-input"]') as HTMLInputElement;
+    await act(async () => {
+      typeQuery(input, "juniper");
+    });
+    const group = document.querySelector('[data-testid="c2-search-group-places"]');
+    expect(group).not.toBeNull();
+    // One row per distinct place, from the first plan carrying it -
+    // the duplicate location and the virtual plan add no rows.
+    const rows = document.querySelectorAll('[data-testid="c2-search-place"]');
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain("Juniper and Ivy");
+    expect(rows[0].textContent).toContain("Dinner with Maya");
+    expect(rows[0].getAttribute("data-plan-id")).toBe("p1");
+    await click(rows[0]);
+    expect(onOpenGraph).toHaveBeenCalledWith("p1");
+  });
+
+  it("no-match state names every group the search actually covers", async () => {
+    await render(
+      <SearchDestination
+        plans={[{ id: "p1", title: "Dinner with Maya", status: "agreed", location: "Juniper and Ivy" } as never]}
+        conversations={[]}
+        onClose={() => undefined}
+        onOpenGraph={() => undefined}
+        onOpenChat={() => undefined}
+      />,
+    );
+    const input = document.querySelector('[data-testid="c2-search-input"]') as HTMLInputElement;
+    await act(async () => {
+      typeQuery(input, "zzz-no-match");
+    });
+    const empty = document.querySelector('[data-testid="c2-search-no-match"]');
+    expect(empty).not.toBeNull();
+    expect(empty!.textContent).toContain(
+      "No match in your plans, chats, people, places, or intentions.",
+    );
+    expect(document.querySelector('[data-testid="c2-search-group-places"]')).toBeNull();
+  });
+
   it("intentions group renders only when intentions exist in the store", async () => {
     await render(
       <SearchDestination

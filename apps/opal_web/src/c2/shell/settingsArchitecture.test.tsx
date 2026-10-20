@@ -321,8 +321,32 @@ describe("Connections section - DOM status equals payload status", () => {
     )!;
     expect(googleStatus.textContent).toBe("Simulated - not a real connection");
     expect(googleStatus.textContent).not.toBe("Connected");
-    // The gated row shows the plain gate reason from the payload.
-    expect(container.textContent).toMatch(/no sender to text invites from yet/);
+    // A3 redesign: the row itself carries only the name and the
+    // verbatim status - the payload's detail text is NOT on the row.
+    const twilioRow = container.querySelector(
+      '[data-testid="connection-row-twilio_messaging"]',
+    )!;
+    expect(twilioRow.textContent).not.toMatch(/no sender to text invites from yet/);
+    expect(
+      container.querySelector('[data-testid="connection-detail-twilio_messaging"]'),
+    ).toBeNull();
+    // Tapping the gated row opens its detail panel, where the plain
+    // gate reason from the payload lives (verbatim, behind the row).
+    await act(async () => {
+      (twilioRow as HTMLButtonElement).click();
+    });
+    const detail = container.querySelector(
+      '[data-testid="connection-detail-twilio_messaging"]',
+    )!;
+    expect(detail).toBeTruthy();
+    expect(detail.textContent).toMatch(/no sender to text invites from yet/);
+    expect(detail.textContent).toMatch(/Texts invitations to people who are not on Opal yet/);
+    expect(detail.textContent).toMatch(/Never checked/);
+    expect(twilioRow.getAttribute("aria-expanded")).toBe("true");
+    // Category headers render as quiet group labels.
+    expect(
+      container.querySelector('[data-testid="connection-category-phone_and_messaging"]'),
+    ).toBeTruthy();
     // The payload's Google disconnect descriptor becomes a real action row.
     expect(
       container.querySelector('[data-testid="c2-setting-row-google-disconnect"]'),

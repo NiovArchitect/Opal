@@ -14926,6 +14926,12 @@ html[data-theme="light"] .you-appearance-option.is-selected {
   line-height: 1.45;
   color: #919eb2;
 }
+.you-memory-note {
+  margin: 4px 20px 8px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #919eb2;
+}
 .you-memory-forget {
   position: absolute;
   right: 8px;
@@ -15210,6 +15216,25 @@ html[data-theme="light"] .you-appearance-option.is-selected {
 .group-info-member-name {
   color: #f8faff;
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* P6: the per-member memory entry names what it opens, in full —
+ * a quiet text button pinned to the row's right edge. */
+.group-info-member-memory {
+  margin-left: auto;
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  padding: 6px 0 6px 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 229, 255, 0.9);
+  white-space: nowrap;
+  cursor: pointer;
 }
 .group-info-member-role {
   color: rgba(226, 232, 240, 0.55);

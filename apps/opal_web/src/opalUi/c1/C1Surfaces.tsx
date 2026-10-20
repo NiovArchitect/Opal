@@ -1360,6 +1360,7 @@ export function PeopleCallsList({
   onShowChats,
   onOpenConversation,
   onCallBack,
+  onNewCall,
 }: {
   calls: PeopleCallSummary[];
   status?: "loading" | "ready" | "error";
@@ -1368,6 +1369,10 @@ export function PeopleCallsList({
   /** Real call placement (the host POSTs the conversation call).
    *  Offered only on rows carrying a conversation to call in. */
   onCallBack?: (call: PeopleCallSummary) => void;
+  /** Start a NEW call (the host opens its people picker in call
+   *  mode and places the real conversation call). Absent = no
+   *  new-call entry renders (review surfaces). */
+  onNewCall?: () => void;
 }) {
   const [q, setQ] = useState("");
   const needle = q.trim().toLowerCase();
@@ -1382,6 +1387,16 @@ export function PeopleCallsList({
     <div className="c1-surface" data-testid="people-calls-list">
       <div className="c1-list-head">
         <h1 className="c1-display">Calls</h1>
+        {onNewCall ? (
+          <button
+            type="button"
+            className="c1-primary-btn c1-primary-outline"
+            data-testid="calls-new-call"
+            onClick={onNewCall}
+          >
+            + New
+          </button>
+        ) : null}
       </div>
       <div className="c1-segment" role="tablist" aria-label="Chats or calls">
         {onShowChats ? (

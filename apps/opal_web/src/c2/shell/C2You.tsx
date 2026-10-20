@@ -236,6 +236,10 @@ export function C2SettingsSection({
   section: SettingsSectionProjection;
   events: C2YouEvents;
 }) {
+  // A3 (founder polish wave) - Connections redesign: one connection's
+  // detail is open at a time, behind its row; the row itself carries
+  // only the name and the verbatim status.
+  const [openConnectionId, setOpenConnectionId] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const rowValue = (id: string) => {
@@ -259,6 +263,7 @@ export function C2SettingsSection({
   const [loginSecret, setLoginSecret] = useState("");
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemLine, setRedeemLine] = useState<string | null>(null);
+  const [inviteCopyNote, setInviteCopyNote] = useState<string | null>(null);
   // Repair #18 SM - Soul form state, seeded from the section's own
   // value rows (the server's read of the real preference truth).
   const [soulLevel, setSoulLevel] = useState<string>(() => rowValue("assistance_level") || "balanced");
@@ -778,6 +783,19 @@ export function C2SettingsSection({
         <div className="c2s-row-block">
           {section.rows.map((row) => {
             if (row.kind === "note") {
+              // A3: on Connections, a category note is a quiet group
+              // label, not body text inside the card.
+              if (section.key === "connections" && row.id.startsWith("cat-")) {
+                return (
+                  <p
+                    key={row.id}
+                    className="c2s-note c2s-connection-cat"
+                    data-testid={`connection-category-${row.id.slice(4)}`}
+                  >
+                    {row.text}
+                  </p>
+                );
+              }
               return (
                 <p key={row.id} className="c2s-note">
                   {row.text}
@@ -805,28 +823,67 @@ export function C2SettingsSection({
               );
             }
             if (row.kind === "connection") {
-              // DIR-2 Connections: status text is the payload's own
-              // status_label, rendered verbatim (DOM == payload).
+              // DIR-2 + A3 Connections: the row carries ONE idea -
+              // the connection's name, with its status legible at a
+              // glance (the payload's own status_label, verbatim:
+              // DOM == payload). Everything else the payload carries
+              // (what it powers, the status detail, the gate reason,
+              // when it was last checked) lives behind the row, in
+              // the detail panel the tap opens. Presentation only:
+              // no status is re-derived, shortened, or repainted.
+              const open = openConnectionId === row.id;
+              const detailId = `connection-detail-${row.id}`;
               return (
-                <div
-                  key={row.id}
-                  className="c2s-row"
-                  data-testid={`connection-row-${row.id}`}
-                  data-connection-status={row.status}
-                >
-                  <span className="c2s-row-main">
-                    <span className="c2s-row-title">{row.title}</span>
-                    {row.subtitle ? <span className="c2s-row-sub">{row.subtitle}</span> : null}
-                    <span className="c2s-row-sub">{row.detail}</span>
-                    {row.gateReason ? <span className="c2s-row-sub">{row.gateReason}</span> : null}
-                    <span className="c2s-row-sub">{row.lastVerifiedLabel}</span>
-                  </span>
-                  <span
-                    className="c2s-row-value"
-                    data-testid={`connection-status-${row.id}`}
+                <div key={row.id} className="c2s-connection">
+                  <button
+                    type="button"
+                    className="c2s-row c2s-connection-row"
+                    data-testid={`connection-row-${row.id}`}
+                    data-connection-status={row.status}
+                    data-open={open ? "1" : undefined}
+                    aria-expanded={open}
+                    aria-controls={detailId}
+                    aria-label={`${row.title} - ${row.statusLabel}. ${open ? "Hide" : "Show"} details`}
+                    onClick={() =>
+                      setOpenConnectionId(open ? null : row.id)
+                    }
                   >
-                    {row.statusLabel}
-                  </span>
+                    <span className="c2s-row-main">
+                      <span className="c2s-row-title">{row.title}</span>
+                    </span>
+                    <span
+                      className="c2s-row-value c2s-connection-status"
+                      data-testid={`connection-status-${row.id}`}
+                    >
+                      {row.statusLabel}
+                    </span>
+                    <IconChevron />
+                  </button>
+                  {open ? (
+                    <div
+                      className="c2s-connection-detail"
+                      id={detailId}
+                      data-testid={detailId}
+                    >
+                      {row.subtitle ? (
+                        <div>
+                          <p className="c2s-detail-kicker">What this powers</p>
+                          <p className="c2s-connection-detail-text">{row.subtitle}</p>
+                        </div>
+                      ) : null}
+                      <div>
+                        <p className="c2s-detail-kicker">Status</p>
+                        <p className="c2s-connection-detail-text">{row.detail}</p>
+                      </div>
+                      {row.gateReason ? (
+                        <div>
+                          <p className="c2s-detail-kicker">What is holding it back</p>
+                          <p className="c2s-connection-detail-text">{row.gateReason}</p>
+                        </div>
+                      ) : null}
+                      <p className="c2s-connection-checked">{row.lastVerifiedLabel}</p>
+                    </div>
+                  ) : null}
                 </div>
               );
             }
@@ -1018,6 +1075,41 @@ export function C2SettingsSection({
         ) : null}
         {section.key === "invite-code" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }} data-testid="c2-redeem-form">
+            {/* P9: the one copy action for this section - it writes
+             * the payload's own share_url (the value row's subtitle),
+             * never a reconstructed link. Absent URL, no button. */}
+            {(() => {
+              const codeRow = section.rows.find(
+                (r) => r.kind === "value" && r.id === "code",
+              );
+              const shareUrl =
+                codeRow && codeRow.kind === "value" ? (codeRow.subtitle ?? "") : "";
+              if (!shareUrl) return null;
+              return (
+                <>
+                  <button
+                    type="button"
+                    className="c2s-btn-text"
+                    data-testid="c2-invite-copy-link"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        setInviteCopyNote("Copied. Paste it anywhere to invite someone.");
+                      } catch {
+                        setInviteCopyNote("Copy was not available here. The link above is the full invite link.");
+                      }
+                    }}
+                  >
+                    Copy invite link
+                  </button>
+                  {inviteCopyNote ? (
+                    <p className="c2s-note" data-testid="c2-invite-copy-note" role="status">
+                      {inviteCopyNote}
+                    </p>
+                  ) : null}
+                </>
+              );
+            })()}
             {redeemLine ? (
               <p className="c2s-note" data-testid="c2-redeem-done">{redeemLine}</p>
             ) : (

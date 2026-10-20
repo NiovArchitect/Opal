@@ -240,6 +240,11 @@ describe("WhatOpalRemembersSection", () => {
     await flush();
 
     expect(container.querySelector('[data-testid="what-opal-remembers"]')).toBeTruthy();
+    // P6: one plain-language note under the heading - where the facts
+    // come from and that the user controls them, per fact and per person.
+    const note = container.querySelector('[data-testid="what-opal-remembers-note"]');
+    expect(note?.textContent).toMatch(/Facts Opal keeps from your chats and plans/);
+    expect(note?.textContent).toMatch(/correct, or remove what Opal holds about them/);
     expect(container.querySelector('[data-testid="memory-fact-label-f1"]')?.textContent).toBe(
       "Prefers Italian food",
     );

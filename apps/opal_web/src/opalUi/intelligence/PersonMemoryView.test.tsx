@@ -82,6 +82,12 @@ describe("PersonMemoryView", () => {
     await flush();
 
     expect(container.querySelector('[data-testid="person-memory-view"]')).toBeTruthy();
+    // P6: the view explains itself in plain language - what Opal
+    // holds, where it came from, and that the user controls it.
+    const intro = container.querySelector('[data-testid="person-memory-intro"]');
+    expect(intro?.textContent).toMatch(/What Opal holds about Maya/);
+    expect(intro?.textContent).toMatch(/chats and plans together/);
+    expect(intro?.textContent).toMatch(/You control it/);
     expect(
       container.querySelector('[data-testid="person-memory-name"]')?.textContent,
     ).toBe("Maya");

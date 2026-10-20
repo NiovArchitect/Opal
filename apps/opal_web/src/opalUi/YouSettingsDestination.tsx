@@ -2384,6 +2384,11 @@ export function WhatOpalRemembersSection({
       data-testid="what-opal-remembers"
     >
       <h3 className="section-label">What Opal remembers</h3>
+      <p className="you-memory-note" data-testid="what-opal-remembers-note">
+        Facts Opal keeps from your chats and plans. Forget any fact here -
+        and open a person below to see, correct, or remove what Opal holds
+        about them.
+      </p>
       {!loaded ? null : facts.length === 0 ? (
         <p className="you-memory-empty" data-testid="memory-empty">
           Nothing stored yet. Preferences land here as you plan.

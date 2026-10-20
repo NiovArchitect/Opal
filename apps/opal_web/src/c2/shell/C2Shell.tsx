@@ -67,9 +67,11 @@ import {
   listConversations,
   listRelationships,
   loadProfile,
+  isProductInviteCode,
   opalPlanCancelError,
   planConversionLine,
   redeemPersonalInviteCode,
+  storeProductInviteCode,
   removeSavedLogin,
   retryIngestionSource,
   revokeDevice,
@@ -163,6 +165,24 @@ export function C2Shell() {
     routeRef.current = route;
     if (route === "center") setDockEcho(null);
   }, [route]);
+  // P9 (founder polish wave) - the external invite landing: a
+  // no-Opal recipient arrives through the personal invite share
+  // URL ({origin}/?invite=CODE). The served shell previously never
+  // read that parameter, so the code was silently dropped and the
+  // connection never happened from the link. The machinery after
+  // this point already exists: verifyChallenge reads the stored
+  // code and sends it with activation, and the server joins the
+  // pair. This effect only captures - it validates nothing, joins
+  // nothing, and paints nothing. Non-product tokens (social share
+  // tokens) are not product codes and are left alone.
+  useEffect(() => {
+    try {
+      const token = new URLSearchParams(window.location.search).get("invite");
+      if (token && isProductInviteCode(token)) storeProductInviteCode(token);
+    } catch {
+      /* no URL to read - nothing to capture */
+    }
+  }, []);
   const [summarySweepId, setSummarySweepId] = useState<string | null>(null);
   const bearer = session?.access_token;
 
@@ -1037,6 +1057,11 @@ export function C2Shell() {
         <SearchDestination
           plans={plans}
           conversations={conversations}
+          intentions={(adopt1Data?.intentions ?? []).map((intention) => ({
+            id: intention.id,
+            title: intention.title,
+            personName: intention.subject_name,
+          }))}
           onClose={() => setSearchOpen(false)}
           onOpenGraph={(id) => {
             setSearchOpen(false);
@@ -1778,10 +1803,33 @@ export function SearchDestination({
   const intentionHits = q
     ? (intentions ?? []).filter((i) => i.title.toLowerCase().includes(q))
     : [];
+  // Places: the real places on the viewer's own plans only - the
+  // plan contract's own location, with the same virtual guard the
+  // plan projection uses (a virtual plan's location is not a
+  // place). One row per distinct place; a tap opens the plan that
+  // carries it. No place directory is searched and no place is
+  // invented - a plan without a location contributes nothing.
+  const placeHits = q
+    ? plans
+        .filter((p) => p.plan_type !== "virtual" && p.online !== true)
+        .flatMap((p) => {
+          const label = p.location?.trim();
+          return label && label.toLowerCase().includes(q)
+            ? [{ label, planId: p.id, planTitle: p.title }]
+            : [];
+        })
+        .filter(
+          (hit, i, all) =>
+            all.findIndex(
+              (h) => h.label.toLowerCase() === hit.label.toLowerCase(),
+            ) === i,
+        )
+    : [];
   const nothing =
     planHits.length === 0 &&
     chatHits.length === 0 &&
     peopleHits.length === 0 &&
+    placeHits.length === 0 &&
     intentionHits.length === 0;
   return (
     <TopLayer band="flow">
@@ -1798,14 +1846,14 @@ export function SearchDestination({
           <input
             className="c2s-search"
             data-testid="c2-search-input"
-            placeholder="Search plans, chats, people, and intentions"
+            placeholder="Search plans, chats, people, places, and intentions"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search plans, chats, people, and intentions"
+            aria-label="Search plans, chats, people, places, and intentions"
           />
           {q && nothing ? (
-            <p className="c2s-lede" style={{ marginTop: "var(--space-4)" }}>
-              No match in your plans, chats, people, or intentions.
+            <p className="c2s-lede" data-testid="c2-search-no-match" style={{ marginTop: "var(--space-4)" }}>
+              No match in your plans, chats, people, places, or intentions.
             </p>
           ) : null}
           {planHits.length > 0 ? (
@@ -1861,6 +1909,25 @@ export function SearchDestination({
                 >
                   <p className="c2s-card-title">{hit.peer.display_name}</p>
                   <p className="c2s-card-line">Open your chat</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {placeHits.length > 0 ? (
+            <div data-testid="c2-search-group-places">
+              <p className="c2s-group-label">Places</p>
+              {placeHits.map((hit) => (
+                <button
+                  key={hit.label.toLowerCase()}
+                  type="button"
+                  className="c2s-card"
+                  data-testid="c2-search-place"
+                  data-plan-id={hit.planId}
+                  style={{ width: "100%", textAlign: "left", cursor: "pointer", marginTop: "var(--space-3)" }}
+                  onClick={() => onOpenGraph(hit.planId)}
+                >
+                  <p className="c2s-card-title">{hit.label}</p>
+                  <p className="c2s-card-line">From your plan: {hit.planTitle}</p>
                 </button>
               ))}
             </div>

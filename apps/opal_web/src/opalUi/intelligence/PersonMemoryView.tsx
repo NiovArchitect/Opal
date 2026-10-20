@@ -192,6 +192,15 @@ export function PersonMemoryView({
         ) : null}
       </div>
 
+      <p
+        className="intelligence-person-memory-intro"
+        data-testid="person-memory-intro"
+      >
+        What Opal holds about {name} - from what you have told Opal and
+        what came up in your chats and plans together. You control it:
+        correct or remove any fact below.
+      </p>
+
       {data?._mock ? (
         <p className="activity-empty" data-testid="person-memory-demo-badge" role="status">
           Demo data — examples only, not what Opal remembers about this person.
@@ -222,7 +231,7 @@ export function PersonMemoryView({
             data-testid="person-memory-knows"
             aria-labelledby="person-memory-knows-label"
           >
-            <h3 id="person-memory-knows-label">Knows about you</h3>
+            <h3 id="person-memory-knows-label">What Opal knows about {name}</h3>
             {/* No bulk forget — founder decision Phase 2.3: per-fact remove only. */}
             <div className="you-consent-rows" aria-live="polite">
               {data.known_facts.length === 0 ? (
