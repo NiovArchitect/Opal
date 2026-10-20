@@ -136,6 +136,27 @@
      * they resolve to are mode-invariant. */
     --dock-echo: transparent;
     --dock-echo-glow: transparent;
+
+    /* R19 polish N5 (founder, 2026-10-19 17:50 PDT) — CONTROL
+     * AMBIENCE: a behavior-changing toggle/slider answers in light.
+     * ON = the controlled behavior is live, so the control lights in
+     * the behavior's canon state color; OFF = settled (no glow, the
+     * component's neutral track). The default behavior state is
+     * HAPPENING — a switched-on behavior is happening now — taken
+     * from the indicator canon (--orb-indicator-*), never a brand /
+     * decorative hue (the C2 toggle's old sampled-violet accent was
+     * exactly that drift). A control whose behavior carries a
+     * different true state re-keys BOTH tokens via its
+     * [data-control-state="…"] rule in the shared toggle sheets
+     * (c2shell.css / styles.css) — the tokens stay canon aliases in
+     * every case. Mode-free here: the canon hues are mode-invariant
+     * and the glow token resolves per-mode in orbTokens.css (dark
+     * 0.45 / light 0.22 alpha), so the answer reads in both modes.
+     * Motion: the flip transition is --motion-tab (160ms, inside the
+     * AR-00.2 QUIET caps); reduced motion swaps instantly with the
+     * same colors (AR-00.6 — pinned by theme/controlAmbience.test.ts). */
+    --control-on: var(--orb-indicator-happening);
+    --control-on-glow: var(--orb-indicator-happening-glow);
   }
 
   /* ================= LIGHT (default until boot resolves) ============ */
@@ -214,7 +235,18 @@
     --ink-2: #cfc8d8;
     --ink-3: #9a93a6;
     --scrim: rgba(13, 11, 18, 0.64);
-    --shadow-card: none;
+    /* Dark register is shadowless BY DESIGN (night budget) — but the
+     * value must never be the keyword `none`: `none` is valid only as
+     * the SOLE box-shadow value, so any consumer composing this token
+     * into a shadow LIST (the call-log state row, CallLog.css:
+     * `0 0 10px <state glow>, var(--shadow-card)`) gets the ENTIRE
+     * list invalidated at computed-value time and loses its glow
+     * layer in dark mode only (verified at source, R19 polish E2;
+     * observed in Chromium by cluster A2). A fully transparent zero
+     * shadow paints exactly nothing — the dark register is unchanged
+     * — and composes safely as a list layer. Pinned by
+     * theme/shadowCardComposition.test.ts. */
+    --shadow-card: 0 0 0 0 rgba(0, 0, 0, 0);
     --accent-1: #7d4dce; /* sampled fire violet, peak (--orb-fire-violet) */
     --accent-1-ink: #fff1d0; /* sampled point light (--orb-point-light) */
     --accent-press: #885cbb; /* sampled fire violet, core */

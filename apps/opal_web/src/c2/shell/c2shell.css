@@ -1025,17 +1025,37 @@
   }
 
   /* Toggle: renders the PROJECTED value only; it never flips locally
-   * (section 10.2 toggle truth). */
+   * (section 10.2 toggle truth).
+   * N5 CONTROL AMBIENCE (founder, 2026-10-19 17:50 PDT): the flip
+   * ANSWERS IN LIGHT — ON lights the track in the controlled
+   * behavior's canon state color (--control-on, theme/c2Tokens.css;
+   * default happening: a switched-on behavior is live now) with its
+   * glow at the AR-00.2 envelope register (12px at 55% of the glow
+   * token — under the 18px / 55% ceiling); OFF is settled (neutral
+   * track, no glow). No decorative hue: the pre-N5 on-state spent
+   * --accent-1, the sampled brand-fire violet, which carries no
+   * state meaning — that was drift under the indicator law.
+   * A control whose behavior carries a different true state sets
+   * data-control-state="<state>" and re-keys both tokens to that
+   * state's canon pair below. The knob position + aria-checked are
+   * the second channel (AR-00.5: never color alone). Transition is
+   * --motion-tab (160ms, QUIET cap); reduced motion swaps instantly
+   * with the same colors (see the reduce block below; AR-00.6). */
   .c2s-toggle {
     width: 52px;
     height: 32px;
     border-radius: 999px;
     border: 1px solid var(--line-2);
     background: var(--surface-2);
+    box-shadow: none;
     position: relative;
     cursor: pointer;
     flex: none;
     padding: 0;
+    transition:
+      background var(--motion-tab),
+      border-color var(--motion-tab),
+      box-shadow var(--motion-tab);
   }
   .c2s-toggle::after {
     content: "";
@@ -1048,9 +1068,30 @@
     background: var(--ink-3);
     transition: left var(--motion-tab);
   }
+  .c2s-toggle[data-control-state="action"] {
+    --control-on: var(--orb-indicator-action);
+    --control-on-glow: var(--orb-indicator-action-glow);
+  }
+  .c2s-toggle[data-control-state="ready"] {
+    --control-on: var(--orb-indicator-ready);
+    --control-on-glow: var(--orb-indicator-ready-glow);
+  }
+  .c2s-toggle[data-control-state="forming"] {
+    --control-on: var(--orb-indicator-forming);
+    --control-on-glow: var(--orb-indicator-forming-glow);
+  }
+  .c2s-toggle[data-control-state="happening"] {
+    --control-on: var(--orb-indicator-happening);
+    --control-on-glow: var(--orb-indicator-happening-glow);
+  }
+  .c2s-toggle[data-control-state="past"] {
+    --control-on: var(--orb-indicator-past);
+    --control-on-glow: var(--orb-indicator-past-glow);
+  }
   .c2s-toggle[data-on="1"] {
-    background: var(--accent-1);
-    border-color: var(--accent-1);
+    background: var(--control-on);
+    border-color: var(--control-on);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--control-on-glow) 55%, transparent);
   }
   .c2s-toggle[data-on="1"]::after {
     left: 23px;
@@ -1289,7 +1330,9 @@
     .c2s-sheet {
       animation: none;
     }
+    .c2s-toggle,
     .c2s-toggle::after {
+      /* N5 / AR-00.6: reduced motion = instant state swap, same colors. */
       transition: none;
     }
     .c2s-live-dot {
