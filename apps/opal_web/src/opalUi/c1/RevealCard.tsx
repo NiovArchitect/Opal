@@ -30,6 +30,7 @@
  */
 import React from "react";
 import type { RevealItem } from "../../api/productClient";
+import { changeRequestAction } from "./changeRequestLane";
 import { FireFrame } from "../../brand/orb/FireLine";
 import { PLAN_STATE_HEX, planStateFamily } from "../../theme/planStateColors";
 import { entityTintVar } from "./PlanAwareness";
@@ -55,20 +56,43 @@ const GLYPH_BY_CATEGORY: Record<string, string> = {
   P7: "♡",
 };
 
+/**
+ * Polish Cluster A (P5) - the lit card's legibility cue. AR-05's
+ * meaning ("Opal is speaking proactively, right now, about
+ * something real") is carried by the fire frame alone today, and
+ * a viewer cannot tell why one card burns and the next does not.
+ * The cue is the rulebook's sanctioned second channel for AR-05
+ * (glyph + label, AR-00.5): a plain micro-label that renders ONLY
+ * on the lit card, inside its fire frame. It adds no fire, no
+ * motion, and no color anywhere else (scarcity doctrine intact).
+ */
+export const LIT_REVEAL_CUE = "Opal's pick";
+
 export function RevealCard({
   item,
   surface,
   onAction,
   onDismiss,
+  onRequestChange,
 }: {
   item: RevealItem;
   surface: "deck" | "thread" | "list";
   onAction?: (item: RevealItem) => void;
   onDismiss?: (item: RevealItem) => void;
+  /** Polish Cluster A (P1): enters the existing change-proposal
+   *  flow for this plan. The button renders only when the item's
+   *  backend change_request lane is present (see
+   *  changeRequestLane.ts) AND this handler is supplied. */
+  onRequestChange?: (item: RevealItem) => void;
 }) {
   const categoryState = REVEAL_CATEGORY_STATE[item.category] ?? null;
   const planFamily = item.plan_state ? planStateFamily(item.plan_state) : null;
   const tintVar = entityTintVar(item.entity_tint);
+  const changeLane = changeRequestAction(item, Boolean(onRequestChange));
+  // The lit cue exists only where the fire frame will actually
+  // render: the derivation's lit item, and never on P6 (its calm
+  // form carries no fire even when marked lit).
+  const showLitCue = item.lit && item.category !== "P6";
   const inner = (
     <>
       <span className="reveal-head">
@@ -95,6 +119,11 @@ export function RevealCard({
             {planFamily}
           </span>
         ) : null}
+        {showLitCue ? (
+          <span className="reveal-lit-cue" data-testid="reveal-lit-cue">
+            {LIT_REVEAL_CUE}
+          </span>
+        ) : null}
       </span>
       <span className="reveal-title" data-testid="reveal-title">
         {item.title}
@@ -113,6 +142,16 @@ export function RevealCard({
             onClick={() => onAction?.(item)}
           >
             {item.action_label}
+          </button>
+        ) : null}
+        {changeLane ? (
+          <button
+            type="button"
+            className="reveal-change-request"
+            data-testid="reveal-change-request"
+            onClick={() => onRequestChange?.(item)}
+          >
+            {changeLane.label}
           </button>
         ) : null}
         <button
@@ -181,12 +220,19 @@ export function RevealCard({
 export function RevealListLine({
   item,
   onDismiss,
+  onRequestChange,
 }: {
   item: RevealItem;
   onDismiss?: (item: RevealItem) => void;
+  /** Polish Cluster A (P1): same lane as the card form - renders
+   *  only when the backend change_request is present AND this
+   *  handler is supplied. The list form never carries fire, so it
+   *  never carries the lit cue either. */
+  onRequestChange?: (item: RevealItem) => void;
 }) {
   const planFamily = item.plan_state ? planStateFamily(item.plan_state) : null;
   const tintVar = entityTintVar(item.entity_tint);
+  const changeLane = changeRequestAction(item, Boolean(onRequestChange));
   return (
     <span
       className="reveal-list-line reveal-row-card"
@@ -234,6 +280,19 @@ export function RevealListLine({
           <span className="reveal-row-action" data-testid="reveal-list-action">
             {item.action_label}
           </span>
+        ) : null}
+        {changeLane ? (
+          <button
+            type="button"
+            className="reveal-change-request reveal-change-request--line"
+            data-testid="reveal-change-request"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRequestChange?.(item);
+            }}
+          >
+            {changeLane.label}
+          </button>
         ) : null}
         <button
           type="button"

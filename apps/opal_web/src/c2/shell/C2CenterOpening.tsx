@@ -117,6 +117,10 @@ export type C2CenterOpeningEvents = {
   /** DIR-4: permanent dismissal through the reveals endpoint. */
   dismissReveal?: (item: RevealItem) => void;
   revealAction?: (item: RevealItem) => void;
+  /** Polish Cluster A (P1): enter the existing change-proposal flow
+   *  for the item's plan. Absent = the lane button does not render
+   *  even when the item carries a change_request (no dead controls). */
+  requestChangeReveal?: (item: RevealItem) => void;
 };
 
 export function C2CenterOpening({
@@ -266,6 +270,7 @@ export function C2CenterOpening({
                     surface="deck"
                     onDismiss={events.dismissReveal}
                     onAction={events.revealAction}
+                    onRequestChange={events.requestChangeReveal}
                   />
                 ) : (
                   <PlanCardC2
@@ -304,7 +309,7 @@ export function C2CenterOpening({
             <div className="c2s-group-cards">
               {comingSlots.map((slot) =>
                 slot.kind === "reveal" ? (
-                  <RevealCard key={slot.item.reveal_key} item={slot.item} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+                  <RevealCard key={slot.item.reveal_key} item={slot.item} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} onRequestChange={events.requestChangeReveal} />
                 ) : (
                   <PlanCardC2 key={slot.card.id} input={slot.card} onOpen={() => events.openGraph(slot.card.id)} />
                 ),
@@ -319,7 +324,7 @@ export function C2CenterOpening({
             <div className="c2s-group-cards">
               {formingSlots.map((slot) =>
                 slot.kind === "reveal" ? (
-                  <RevealCard key={slot.item.reveal_key} item={slot.item} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+                  <RevealCard key={slot.item.reveal_key} item={slot.item} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} onRequestChange={events.requestChangeReveal} />
                 ) : (
                   <PlanCardC2
                     key={slot.card.id}
@@ -344,7 +349,7 @@ export function C2CenterOpening({
               {(projection.reveals ?? [])
                 .filter((r) => r.category === "P7")
                 .map((r) => (
-                  <RevealCard key={r.reveal_key} item={r} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+                  <RevealCard key={r.reveal_key} item={r} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} onRequestChange={events.requestChangeReveal} />
                 ))}
             </div>
           </section>
@@ -357,7 +362,7 @@ export function C2CenterOpening({
               {(projection.reveals ?? [])
                 .filter((r) => r.category === "P5")
                 .map((r) => (
-                  <RevealCard key={r.reveal_key} item={r} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+                  <RevealCard key={r.reveal_key} item={r} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} onRequestChange={events.requestChangeReveal} />
                 ))}
             </div>
           </section>
@@ -369,7 +374,7 @@ export function C2CenterOpening({
               .filter((r) => r.category === "P6")
               .slice(0, 1)
               .map((r) => (
-                <RevealCard key={r.reveal_key} item={r} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} />
+                <RevealCard key={r.reveal_key} item={r} surface="deck" onDismiss={events.dismissReveal} onAction={events.revealAction} onRequestChange={events.requestChangeReveal} />
               ))}
           </section>
         ) : null}

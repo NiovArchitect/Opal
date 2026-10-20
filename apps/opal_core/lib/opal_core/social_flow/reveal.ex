@@ -55,6 +55,14 @@ defmodule OpalCore.SocialFlow.Reveal do
   plan (coalescing, spec 2.4); dismissal is permanent - a
   RevealDismissal row removes the item in every channel forever.
 
+  Polish Cluster A (P1): a P1 plan item may also carry a
+  `change_request` object - the request-a-change lane. It is
+  derived in this module only (see change_request_for/2): the
+  viewer must be able to propose a change through the existing
+  conversation change machinery, and a real alternative time must
+  exist (another party's still-open shared availability window).
+  Every other item carries `change_request: nil`.
+
   Indicator language: plan items carry the NextPlan state family
   and the DIR-1 entity tint (NextPlan.entity_tint/1 on the first
   other participant). P5 carries no plan state; P7 carries no plan
@@ -71,12 +79,14 @@ defmodule OpalCore.SocialFlow.Reveal do
   alias OpalCore.Repo
 
   alias OpalCore.SocialFlow.{
+    Availability,
     CareCheckIn,
     CareRotation,
     CheckinResponse,
     CheckinSweep,
     NextPlan,
     PlanParticipant,
+    PlanRevision,
     RevealDismissal,
     SharedPlan,
     ShellRecentChange
@@ -208,7 +218,15 @@ defmodule OpalCore.SocialFlow.Reveal do
     sorted
     |> Enum.filter(&MapSet.member?(kept_ids, &1["reveal_key"]))
     |> Enum.with_index()
-    |> Enum.map(fn {item, idx} -> Map.put(item, "lit", idx == 0) end)
+    |> Enum.map(fn {item, idx} ->
+      item
+      |> Map.put("lit", idx == 0)
+      # Polish Cluster A (P1): every item carries the lane key -
+      # the object on the one P1 item whose derivation earned it,
+      # nil everywhere else (honest absence, never a missing key a
+      # surface might fill in by guessing).
+      |> Map.put_new("change_request", nil)
+    end)
   end
 
   defp deck(items) do
@@ -275,7 +293,9 @@ defmodule OpalCore.SocialFlow.Reveal do
         item(base, "P4", "plan:#{plan.id}:happening", "View plan", nil)
 
       state == "action" ->
-        item(base, "P1", "plan:#{plan.id}:needs-answer", "Confirm", nil)
+        base
+        |> item("P1", "plan:#{plan.id}:needs-answer", "Confirm", nil)
+        |> Map.put("change_request", change_request_for(plan, viewer_id))
 
       state == "ready" ->
         item(base, "P2", "plan:#{plan.id}:ready", "View plan", nil)
@@ -315,6 +335,99 @@ defmodule OpalCore.SocialFlow.Reveal do
   end
 
   defp live?(_, _), do: false
+
+  # ------------------------------------------------------------------
+  # Polish Cluster A (P1) - the REQUEST-A-CHANGE lane on a P1 item.
+  #
+  # ONE explicit derivation. Inputs: the plan, the viewer, and the
+  # records below. The lane exists ONLY when every input is true:
+  #
+  #   PERMISSION - the viewer can actually propose a change to this
+  #   plan through the existing machinery (ConversationAlignment's
+  #   committed-change proposals and SocialFlow.propose_revision/1,
+  #   entered in the app through the plan-scoped Opal chat). That
+  #   machinery is conversation-scoped and member-gated, so:
+  #     * the plan must carry a conversation (a conversation-less
+  #       plan - Center / trip / solo - is sender-fixed from the
+  #       viewer's seat today: Confirm or Dismiss are its only
+  #       truthful actions, and the lane stays absent for that
+  #       whole class);
+  #     * the viewer must be a member of that conversation (the
+  #       Availability call below enforces exactly that gate and
+  #       answers :not_a_member otherwise);
+  #     * there must be another party to propose TO (a scope
+  #       person: the plan's creator when they are another
+  #       participant, else the first other participant - the same
+  #       other-party the scoped-chat doorway validates against);
+  #     * no change may already be on the table (a PlanRevision in
+  #       "proposed" state owns the respond lane - Accept / Keep -
+  #       not a second request).
+  #
+  #   ALTERNATIVES - at least one real alternative time exists:
+  #   an availability window ANOTHER party shared into this
+  #   conversation, still usable now, that does not start at the
+  #   plan's current start (Availability.alternative_windows_for/3,
+  #   the lane's one alternatives source). When the last such
+  #   window closes (ends, expires, or is revoked), the next read
+  #   derives nil and the action disappears - presence is
+  #   state-driven, never painted.
+  #
+  # The object carries finished truth only: the plain label, the
+  # conversation the change flow scopes to, the alternative windows
+  # (shared-safe projections), and the scope person the doorway
+  # needs. Surfaces render it verbatim; they derive nothing.
+  # ------------------------------------------------------------------
+
+  @change_request_label "Request a change"
+
+  defp change_request_for(%SharedPlan{conversation_id: conversation_id} = plan, viewer_id)
+       when is_binary(conversation_id) do
+    if pending_revision?(plan.id) do
+      nil
+    else
+      with {:ok, [_ | _] = alternatives} <-
+             Availability.alternative_windows_for(conversation_id, viewer_id, plan.start_at),
+           {person_id, person_name} <- change_scope_person(plan, viewer_id) do
+        %{
+          "label" => @change_request_label,
+          "conversation_id" => conversation_id,
+          "alternatives" => alternatives,
+          "scope_person_id" => person_id,
+          "scope_person_name" => person_name
+        }
+      else
+        _ -> nil
+      end
+    end
+  end
+
+  defp change_request_for(%SharedPlan{}, _viewer_id), do: nil
+
+  defp pending_revision?(plan_id) do
+    from(r in PlanRevision, where: r.plan_id == ^plan_id and r.status == "proposed")
+    |> Repo.exists?()
+  end
+
+  # The other party the plan-scoped change doorway scopes to: the
+  # plan's creator when the creator is another participant, else
+  # the first other participant (plan_participant_ids order, the
+  # same order the entity tint reads). Nil when the viewer is the
+  # plan's only party - there is no one to propose a change to.
+  defp change_scope_person(%SharedPlan{} = plan, viewer_id) do
+    others = OpalCore.SocialFlow.plan_participant_ids(plan) -- [viewer_id]
+
+    person_id =
+      cond do
+        plan.created_by_user_id in others -> plan.created_by_user_id
+        others != [] -> List.first(others)
+        true -> nil
+      end
+
+    case person_id && Repo.get(User, person_id) do
+      %User{} = user -> {user.id, user.display_name}
+      _ -> nil
+    end
+  end
 
   defp viewer_response(plan_id, viewer_id) do
     case Repo.get_by(PlanParticipant, plan_id: plan_id, user_id: viewer_id) do

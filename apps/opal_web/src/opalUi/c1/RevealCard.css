@@ -62,6 +62,33 @@
   display: flex;
   gap: 12px;
   margin-top: 8px;
+  flex-wrap: wrap;
+}
+/* Polish Cluster A (P5): the lit card's micro-label - plain words
+ * beside the kicker, no color or fire of its own (the frame is the
+ * fire; the label is only its second, legible channel, AR-00.5). */
+.reveal-lit-cue {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+/* Polish Cluster A (P1): the request-a-change action - a quiet
+ * sibling of Dismiss in the same row, never louder than the
+ * primary action. */
+.reveal-change-request {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+.reveal-change-request--line {
+  min-height: 32px;
+  padding: 4px 8px;
 }
 /* R19 W5-06: the chats-list takeover is a MINI-CARD, not a line.
  * Layout contract (pinned by r19ChatsThread.test.tsx):

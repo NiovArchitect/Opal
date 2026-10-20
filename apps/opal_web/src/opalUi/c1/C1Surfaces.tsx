@@ -1131,6 +1131,9 @@ export type PeopleChatSummary = {
    *  (entry 7: same slot, never a fourth line). */
   reveal?: RevealItem | null;
   onDismissReveal?: (item: RevealItem) => void;
+  /** Polish Cluster A (P1): enter the existing change-proposal flow
+   *  for the row reveal's plan. Absent = no lane button on the row. */
+  onRequestChangeReveal?: (item: RevealItem) => void;
 };
 
 export function PeopleChatsList({
@@ -1301,7 +1304,7 @@ export function PeopleChatsList({
                   <span className="c1-session-time">{c.timeLabel}</span>
                 </span>
                 {c.reveal ? (
-                  <RevealListLine item={c.reveal} onDismiss={c.onDismissReveal} />
+                  <RevealListLine item={c.reveal} onDismiss={c.onDismissReveal} onRequestChange={c.onRequestChangeReveal} />
                 ) : c.nextPlan ? (
                   <PlanAwareness fact={c.nextPlan} entityTint={c.entityTint} variant="row" />
                 ) : c.plan ? (
@@ -1606,6 +1609,7 @@ export function ThreadShell({
   reveals,
   onDismissReveal,
   onRevealAction,
+  onRequestChangeReveal,
   messages,
   plansById,
   contextualChip,
@@ -1639,6 +1643,9 @@ export function ThreadShell({
   reveals?: RevealItem[];
   onDismissReveal?: (item: RevealItem) => void;
   onRevealAction?: (item: RevealItem) => void;
+  /** Polish Cluster A (P1): enter the existing change-proposal flow
+   *  for the thread reveal's plan. Absent = no lane button. */
+  onRequestChangeReveal?: (item: RevealItem) => void;
   messages: ThreadMsg[];
   plansById: Map<string, PlanProjection>;
   contextualChip?: string | null;
@@ -1832,6 +1839,7 @@ export function ThreadShell({
               surface="thread"
               onDismiss={onDismissReveal}
               onAction={onRevealAction}
+              onRequestChange={onRequestChangeReveal}
             />
           </div>
         ) : null}
