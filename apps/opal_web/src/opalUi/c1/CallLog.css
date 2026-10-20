@@ -45,9 +45,28 @@
 [data-design="r18"] .c1-call-row[data-call-state] {
   border-color: color-mix(in srgb, var(--call-state) 52%, transparent);
   background: color-mix(in srgb, var(--call-state) 9%, var(--surface-1));
+  /* Polish A2 (founder, 2026-10-19): the 12% glow is spent INSET.
+   * At the same mix and blur it reads identically as state light,
+   * but it paints INSIDE the row's border box - an outset glow
+   * hangs the row's state treatment outside the row's geometry
+   * (into the inter-row gap and the neighbour's field), which is
+   * the layout contract's strict-containment defect. The state
+   * COLOR language is unchanged: same hue source, same mixes,
+   * same patterns; only the glow's direction is contained. */
   box-shadow:
-    0 0 10px color-mix(in srgb, var(--call-state) 12%, transparent),
+    inset 0 0 10px color-mix(in srgb, var(--call-state) 12%, transparent),
     var(--shadow-card);
+}
+/* Polish A2: the same containment for the row's plan-awareness
+ * pill (the "Happening" badge). Its ambient glow comes from the
+ * unify wave's shared rule (an outset 0 0 10px at the same 12%
+ * mix); inside a call row that halo crossed the pill's own border
+ * and bled past the row's bottom edge zone. Scoped to the call
+ * row only - the pill on other surfaces keeps the unify register -
+ * the glow is spent inset at the identical mix, so the badge and
+ * everything it paints live inside the row's geometry. */
+[data-design="r18"] .c1-call-row .plan-awareness {
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--pa-state) 12%, transparent);
 }
 [data-design="r18"] .c1-call-row[data-pattern="dashed"] {
   border-style: dashed;
