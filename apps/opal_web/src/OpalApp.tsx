@@ -9791,6 +9791,10 @@ export function OpalApp() {
                   caption: plan.caption,
                   online: plan.online === true || plan.plan_type === "virtual",
                   canEdit: plan.can_edit === true,
+                  // I2: the contract's etiquette projection rides the
+                  // descriptor so the response-window control renders
+                  // from the same durable payload as the edit fields.
+                  etiquette: plan.etiquette ?? null,
                 }
               : null;
           })()}

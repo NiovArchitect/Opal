@@ -5250,10 +5250,48 @@ export async function createCenterPlan(
   });
 }
 
+/**
+ * I2 etiquette wiring - the per-viewer etiquette projection the plan
+ * contract carries (SocialFlow.plan_payload/2 ->
+ * NonResponseEtiquette.viewer_projection/3, the registered read
+ * path). Snake_case verbatim from the backend: surfaces render these
+ * finished facts and never re-derive window, limbo or fork state.
+ * Absent/null when the viewer has no etiquette fact on the plan.
+ */
+export type PlanEtiquetteContract = {
+  plan_id: string;
+  plan_title?: string;
+  viewer_role: "requester" | "recipient" | "group_member" | string;
+  requester_user_id?: string | null;
+  recipient_user_id?: string | null;
+  lifecycle_open?: boolean;
+  stage: string | null;
+  fork?: { state: string; available: boolean } | null;
+  limbo: {
+    state: string;
+    treatment: string;
+    pattern_channel: string;
+    window_fraction_remaining: number | null;
+    copy: string;
+  } | null;
+  window: {
+    set: boolean;
+    closes_at: string | null;
+    seconds: number | null;
+    available: boolean;
+    unavailable_reason: string | null;
+  };
+  decline_available?: boolean;
+  fork_available?: boolean;
+  generated_at?: string;
+};
+
 export type OpalPlanContract = {
   id: string;
   title: string;
   status: string;
+  /** I2: the per-viewer etiquette projection (window / limbo / fork). */
+  etiquette?: PlanEtiquetteContract | null;
   location?: string | null;
   plan_type?: string;
   online?: boolean;
@@ -5605,6 +5643,81 @@ export async function cancelOpalPlan(planId: string, bearer?: string) {
       body: JSON.stringify({}),
     },
   );
+}
+
+/**
+ * I2 etiquette wiring - set a creator-opt-in response window on one
+ * pending invitation.
+ *
+ *   POST /api/v1/product/opal/plans/:id/response-window
+ *        body { recipient_id, window_seconds }
+ *        -> { ok, plan: OpalPlanContract }   (the SAME plan_payload
+ *           the listing serves, its etiquette projection now carrying
+ *           the set window - callers re-render from it, no second fetch)
+ *        404 unknown/foreign plan; 403 non-creator with the
+ *        machinery's plain line in `message`; 422 gate refusals
+ *        (outside the creator's circles, consequential + check-first
+ *        mode, outside the 1-hour to 14-day bounds) with the gate's
+ *        own finished words in `message` - never a silent drop.
+ */
+export async function setPlanResponseWindow(
+  planId: string,
+  recipientId: string,
+  windowSeconds: number,
+  bearer?: string,
+) {
+  return request<{ ok: boolean; plan: OpalPlanContract }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/response-window`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({
+        recipient_id: recipientId,
+        window_seconds: windowSeconds,
+      }),
+    },
+  );
+}
+
+/**
+ * I2 etiquette wiring - answer an etiquette fork or escalation.
+ *
+ *   POST /api/v1/product/opal/plans/:id/etiquette/respond
+ *        body { action } - "decline" / "ask_another_time" (the
+ *        recipient's fork answers) or "nudge_again" / "extend" /
+ *        "let_it_go" (the requester's escalation answers)
+ *        -> { ok, plan: OpalPlanContract, outcome }
+ * The machinery decides whose answer an action is; a caller who is
+ * not the answer's owner gets the machinery's refusal, surfaced by
+ * responseWindowError below.
+ */
+export async function respondPlanEtiquette(
+  planId: string,
+  action: "decline" | "ask_another_time" | "nudge_again" | "extend" | "let_it_go",
+  bearer?: string,
+) {
+  return request<{ ok: boolean; plan: OpalPlanContract; outcome: string }>(
+    `/api/v1/product/opal/plans/${encodeURIComponent(planId)}/etiquette/respond`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ action }),
+    },
+  );
+}
+
+/**
+ * I2 - the server's own plain line for an etiquette write refusal:
+ * the backend's `message` verbatim (request() carries it on
+ * serverMessage), never a locally invented substitute. Null when
+ * the error carries no words at all.
+ */
+export function etiquetteWriteError(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const serverMessage = (error as { serverMessage?: unknown }).serverMessage;
+  if (typeof serverMessage === "string" && serverMessage !== "") return serverMessage;
+  const message = (error as { message?: unknown }).message;
+  return typeof message === "string" && message !== "" ? message : null;
 }
 
 /**
