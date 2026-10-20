@@ -1429,6 +1429,7 @@ export type RelRow = {
   type: string;
   family_subtype?: string | null;
   family_minor?: boolean;
+  age_band?: string | null;
 };
 
 export function profileProjectionFor(
@@ -1449,6 +1450,10 @@ export function profileProjectionFor(
     relationshipType: rel?.type ?? null,
     familySubtype: rel?.family_subtype ?? null,
     familyMinor: rel?.family_minor === true,
+    ageBand:
+      rel?.age_band === "under_13" || rel?.age_band === "age_13_17" || rel?.age_band === "adult"
+        ? rel.age_band
+        : null,
     closeCircle: rel ? isCloseCircleType(rel.type) : false,
     nextTogether: nextPlan
       ? {
@@ -1662,6 +1667,7 @@ export function ChatsHost({
             type: typeof r.type === "string" ? r.type : "",
             family_subtype: r.family_subtype ?? null,
             family_minor: r.family_minor === true,
+            age_band: r.age_band ?? null,
           })),
         );
         const types = [
@@ -1778,6 +1784,7 @@ export function ChatsHost({
         type: typeof r.type === "string" ? r.type : "",
         family_subtype: r.family_subtype ?? null,
         family_minor: r.family_minor === true,
+        age_band: r.age_band ?? null,
       }));
       setRelRows(rows);
     } catch {
@@ -1844,10 +1851,19 @@ export function ChatsHost({
    *  family leg included), then re-reads the relationship rows so
    *  every tie on screen is the server's read-back. */
   const saveRelationship = useCallback(
-    async (personId: string, input: { type: string; familySubtype: string | null; familyMinor: boolean }) => {
+    async (
+      personId: string,
+      input: {
+        type: string;
+        familySubtype: string | null;
+        familyMinor: boolean;
+        ageBand?: "under_13" | "age_13_17" | "adult" | null;
+      },
+    ) => {
       await setRelationshipType(personId, input.type, undefined, bearer, {
         familySubtype: input.familySubtype,
         familyMinor: input.familyMinor,
+        ageBand: input.ageBand,
       });
       try {
         const res = await listRelationships(bearer);
@@ -1857,6 +1873,7 @@ export function ChatsHost({
             type: typeof r.type === "string" ? r.type : "",
             family_subtype: r.family_subtype ?? null,
             family_minor: r.family_minor === true,
+            age_band: r.age_band ?? null,
           })),
         );
         setRelTypes([

@@ -500,6 +500,7 @@ export function C2Shell() {
           type: typeof r.type === "string" ? r.type : "",
           family_subtype: r.family_subtype ?? null,
           family_minor: r.family_minor === true,
+          age_band: r.age_band ?? null,
         }));
       } catch {
         /* conversations alone still populate the picker */

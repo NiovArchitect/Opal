@@ -30,6 +30,11 @@ defmodule OpalCore.Relationships.RelationshipType do
     # Relationships.FamilySubtype). Only meaningful when type == "family".
     field :family_subtype, :string
     field :family_minor, :boolean, default: false
+    # Founder Screen Notes N4 - the age band the viewer established
+    # for the counterpart ("under_13" | "age_13_17" | "adult"), or
+    # nil when none has been established. Affordance only: no
+    # policy reads this field yet.
+    field :age_band, :string
     # Paste I 0.4 — noiseless inference
     field :source, :string, default: "explicit"
     field :inference_status, :string
@@ -44,6 +49,9 @@ defmodule OpalCore.Relationships.RelationshipType do
   end
 
   def allowed_types, do: @allowed_types
+
+  @age_bands ~w(under_13 age_13_17 adult)
+  def age_bands, do: @age_bands
   def sources, do: @sources
   def inference_statuses, do: @inference_statuses
 
@@ -56,6 +64,7 @@ defmodule OpalCore.Relationships.RelationshipType do
       :communication_bounds,
       :family_subtype,
       :family_minor,
+      :age_band,
       :source,
       :inference_status,
       :inference_shown_at,
@@ -66,6 +75,7 @@ defmodule OpalCore.Relationships.RelationshipType do
     |> validate_inclusion(:type, @allowed_types)
     |> maybe_validate_source()
     |> maybe_validate_inference_status()
+    |> validate_inclusion(:age_band, ~w(under_13 age_13_17 adult))
     |> validate_not_self()
     |> validate_family_subtype()
     |> validate_bounds()

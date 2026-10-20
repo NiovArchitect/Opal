@@ -4007,6 +4007,10 @@ export type RelationshipContact = {
    *  by the backend contract; absent/null when not family or unset. */
   family_subtype?: string | null;
   family_minor?: boolean;
+  /** Founder Screen Notes N4 - the established age band
+   *  ("under_13" | "age_13_17" | "adult"), or null when none has
+   *  been established. Affordance only: no policy reads it yet. */
+  age_band?: string | null;
   communication_bounds?: RelationshipBounds | null;
 };
 
@@ -4018,6 +4022,8 @@ export type RelationshipRow = {
   /** Repair #19 W24 (DL-02) — round-trips through the PUT write. */
   family_subtype?: string | null;
   family_minor?: boolean;
+  /** N4 — round-trips through the PUT write when stated. */
+  age_band?: string | null;
   communication_bounds?: RelationshipBounds | null;
   inserted_at?: string;
   updated_at?: string;
@@ -4041,7 +4047,13 @@ export async function setRelationshipType(
   type: RelationshipTypeValue | string,
   bounds?: RelationshipBounds,
   bearer?: string,
-  family?: { familySubtype?: string | null; familyMinor?: boolean },
+  family?: {
+    familySubtype?: string | null;
+    familyMinor?: boolean;
+    /** N4 — the age-band statement: a band value, null to clear,
+     *  or undefined for no statement (stored band untouched). */
+    ageBand?: string | null;
+  },
 ) {
   return request<{ relationship: RelationshipRow }>(
     `/api/v1/product/relationships/${encodeURIComponent(contactUserId)}`,
@@ -4060,6 +4072,7 @@ export async function setRelationshipType(
               ...(typeof family.familyMinor === "boolean"
                 ? { family_minor: family.familyMinor }
                 : {}),
+              ...(family.ageBand !== undefined ? { age_band: family.ageBand } : {}),
             }
           : {}),
       }),

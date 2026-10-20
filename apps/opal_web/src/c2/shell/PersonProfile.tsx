@@ -141,6 +141,7 @@ export function PersonProfileSheet({
               currentType={profile.relationshipType}
               currentFamilySubtype={profile.familySubtype}
               currentFamilyMinor={profile.familyMinor}
+              currentAgeBand={profile.ageBand}
               onSave={onSaveRelationship}
               onClose={() => setPickerOpen(false)}
             />
