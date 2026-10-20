@@ -3390,6 +3390,15 @@ export async function createConversationPlan(
     location?: string;
     area?: string;
     time_label?: string;
+    /** Founder Polish G2 — a chosen candidate's own coordinates,
+     *  when the caller holds them (gateway candidates carry lat/lon
+     *  server-side; the web's place-sheet candidates hold only
+     *  id/name/area, so current callers omit these and the server
+     *  writer in ProviderAction.attach_selected_venue stamps the
+     *  pair). Sent as a pair or not at all; the backend rejects a
+     *  lone or out-of-range pair with 422 invalid_place_coordinates. */
+    place_lat?: number;
+    place_lon?: number;
   },
   bearer?: string,
 ) {
@@ -5256,6 +5265,10 @@ export async function createCenterPlan(
     time_label?: string;
     decision_id?: string;
     timezone?: string;
+    /** Founder Polish G2 — a chosen candidate's own coordinates when
+     *  the caller holds them; see createConversationPlan. */
+    place_lat?: number;
+    place_lon?: number;
   },
   bearer?: string,
 ) {
@@ -5481,6 +5494,10 @@ export async function createGraphPlan(
   attrs: {
     title: string;
     location?: string;
+    /** Founder Polish G2 — a chosen candidate's own coordinates when
+     *  the caller holds them; see createConversationPlan. */
+    place_lat?: number;
+    place_lon?: number;
     time_label?: string;
     caption?: string;
     media_id?: string;
@@ -5525,7 +5542,7 @@ export async function listOpalPlans(bearer?: string) {
  * Repair #18 (W4-04) - edit ONE plan's title / core details.
  *
  *   PATCH /api/v1/product/opal/plans/:id
- *         body { title?, location?, caption? }
+ *         body { title?, location?, caption?, place_lat?, place_lon? }
  *         -> { ok, plan: OpalPlanContract }   (the SAME plan_payload
  *             shape the listing renders, so callers re-render from the
  *             returned plan with no second fetch - the conversation
@@ -5541,13 +5558,24 @@ export async function listOpalPlans(bearer?: string) {
  */
 export async function patchOpalPlan(
   planId: string,
-  changes: { title?: string; location?: string; caption?: string },
+  changes: {
+    title?: string;
+    location?: string;
+    caption?: string;
+    /** Founder Polish G2 — the new place's coordinates, as a pair.
+     *  A location change WITHOUT the pair clears the old place's
+     *  coordinates server-side (the new place's are unknown). */
+    place_lat?: number;
+    place_lon?: number;
+  },
   bearer?: string,
 ) {
-  const body: Record<string, string> = {};
+  const body: Record<string, string | number> = {};
   if (typeof changes.title === "string") body.title = changes.title;
   if (typeof changes.location === "string") body.location = changes.location;
   if (typeof changes.caption === "string") body.caption = changes.caption;
+  if (typeof changes.place_lat === "number") body.place_lat = changes.place_lat;
+  if (typeof changes.place_lon === "number") body.place_lon = changes.place_lon;
   return request<{ ok: boolean; plan: OpalPlanContract }>(
     `/api/v1/product/opal/plans/${encodeURIComponent(planId)}`,
     {
@@ -5567,7 +5595,7 @@ export async function patchOpalPlan(
  */
 export function opalPlanEditError(
   error: unknown,
-  field: "title" | "location" | "caption" = "title",
+  field: "title" | "location" | "caption" | "place_lat" = "title",
 ): string | null {
   if (!error || typeof error !== "object") return null;
   const errors = (error as { errors?: unknown }).errors;
