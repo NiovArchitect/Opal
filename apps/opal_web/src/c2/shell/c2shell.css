@@ -1268,6 +1268,21 @@
     display: flex;
     flex-direction: column;
   }
+  /* Repair #19 polish (P7): the ST-H voice-note control renders
+     inside the thread's composer bar (ThreadShell's accessory
+     slot). There it is one quiet row directly above the input
+     pill: its record/review/send states lay out inline and wrap
+     on narrow widths; the recording line takes no vertical
+     margin of its own. */
+  .c1-composer-bar .c2s-voice-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .c1-composer-bar .c2s-voice-note .c2s-card-line {
+    margin: 0;
+  }
   .c2s-c1-checkin-bar {
     flex: none;
     border-top: 1px solid var(--line-1);

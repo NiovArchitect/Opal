@@ -770,6 +770,176 @@ describe("R19 host adapters: doorway target + dyad person", () => {
   });
 });
 
+/* ---------------- Polish P2: the header doorway ---------------- */
+
+const PERSON_CTX: OpalConversationContext = {
+  personId: "user-b",
+  personName: "Bea",
+  conversationId: "conv-ab",
+  planId: null,
+  planTitle: null,
+};
+
+describe("R19 polish P2: the Opal doorway in the thread header top-right", () => {
+  it("renders as a small orb-mark button in the header when only the person context exists", async () => {
+    const onTalk = vi.fn();
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        nextPlanFact={FACT({ state: "ready" })}
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        opalDoorway={null}
+        personContext={PERSON_CTX}
+        onTalkToOpal={onTalk}
+      />,
+    );
+    const header = q(".c1-thread-header")!;
+    const btn = q('[data-testid="thread-opal-doorway"]')!;
+    // Top-right: inside the header, and its last control.
+    expect(header.contains(btn)).toBe(true);
+    expect(header.lastElementChild).toBe(btn);
+    expect(btn.querySelector(".c1-thread-opal-orb")).not.toBeNull();
+    expect(btn.getAttribute("data-person-id")).toBe("user-b");
+    expect(btn.getAttribute("aria-label")).toBe("Talk to Opal about Bea");
+    await click(btn);
+    expect(onTalk).toHaveBeenCalledWith(PERSON_CTX);
+  });
+
+  it("carries the discussable plan context when the host derived one (richest scope wins)", async () => {
+    const onTalk = vi.fn();
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        nextPlanFact={FACT({ state: "action" })}
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        opalDoorway={CTX}
+        personContext={PERSON_CTX}
+        onTalkToOpal={onTalk}
+      />,
+    );
+    const btn = q('[data-testid="thread-opal-doorway"]')!;
+    expect(btn.getAttribute("data-plan-id")).toBe("plan-a");
+    expect(btn.getAttribute("aria-label")).toContain("Dinner at Juniper");
+    await click(btn);
+    expect(onTalk).toHaveBeenCalledWith(CTX);
+    // The strip doorway is untouched: still attached to the strip.
+    const stripBtn = q('[data-testid="opal-doorway"]')!;
+    expect(q('[data-testid="next-together-strip"]')!.contains(stripBtn)).toBe(true);
+  });
+
+  it("absent when the host derived no context at all (group thread / unwired surface)", async () => {
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        opalDoorway={null}
+        personContext={null}
+        onTalkToOpal={vi.fn()}
+      />,
+    );
+    expect(q('[data-testid="thread-opal-doorway"]')).toBeNull();
+  });
+
+  it("absent when no Opal route is wired, even with a context (no dead chrome)", async () => {
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        personContext={PERSON_CTX}
+      />,
+    );
+    expect(q('[data-testid="thread-opal-doorway"]')).toBeNull();
+  });
+
+  it("JOURNEY PIN: person thread -> header doorway -> Opal conversation scoped to that person/chat -> back to the same thread", async () => {
+    const landed: OpalConversationContext[] = [];
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        messages={[{ id: "m1", authorKind: "person", body: "Dinner Thursday?" }]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        personContext={PERSON_CTX}
+        onTalkToOpal={(c) => landed.push(c)}
+      />,
+    );
+    await click(q('[data-testid="thread-opal-doorway"]')!); // tap 1: thread -> Opal
+    expect(landed).toEqual([PERSON_CTX]);
+    const back: OpalConversationContext[] = [];
+    await render(
+      <CenterChat
+        title="Opal"
+        messages={[]}
+        plansById={new Map()}
+        context={landed[0]}
+        onOpenPersonThread={(c) => back.push(c)}
+      />,
+    );
+    // Landed scoped: the chip names the person this chat is about.
+    const chip = q('[data-testid="opal-context-chip"]')!;
+    expect(chip.textContent).toContain("About Bea");
+    expect(chip.getAttribute("data-conversation-id")).toBe("conv-ab");
+    await click(q('[data-testid="opal-context-open-thread"]')!); // tap back
+    // The return carries the SAME thread's conversation id - the
+    // host reopens exactly the thread the doorway was tapped in.
+    expect(back).toEqual([PERSON_CTX]);
+    expect(back[0].conversationId).toBe(PERSON_CTX.conversationId);
+  });
+});
+
+/* ---------------- Polish P7: composer accessory slot ---------------- */
+
+describe("R19 polish P7: real composer affordances render inside the composer bar", () => {
+  it("a host-supplied accessory renders inside the bar, above the input pill", async () => {
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        onSend={vi.fn()}
+        composerAccessory={<div data-testid="vn-slot">Record a voice note</div>}
+      />,
+    );
+    const bar = q(".c1-composer-bar")!;
+    const slot = q('[data-testid="vn-slot"]')!;
+    expect(bar.contains(slot)).toBe(true);
+    expect(bar.contains(q(".c1-composer")!)).toBe(true);
+    // The accessory precedes the pill in the bar's column.
+    expect([...bar.children].indexOf(slot)).toBeLessThan([...bar.children].indexOf(q(".c1-composer")!));
+  });
+
+  it("with no accessory the bar is exactly the input pill (no painted affordance)", async () => {
+    await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        onSend={vi.fn()}
+      />,
+    );
+    const bar = q(".c1-composer-bar")!;
+    expect(bar.children.length).toBe(1);
+    expect(bar.firstElementChild!.className).toContain("c1-composer");
+  });
+});
+
 /* ---------------- Glass discipline ---------------- */
 
 describe("R19 frosted glass: chrome gets frost, readability stays solid", () => {

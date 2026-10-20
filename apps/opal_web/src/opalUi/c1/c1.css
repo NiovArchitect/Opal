@@ -198,6 +198,20 @@
     width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer;
     background: var(--surface-2); color: var(--ink-1); font-size: 16px;
   }
+  /* Repair #19 polish (P2) — the thread header's Opal doorway: a
+     small orb-mark button at the header's top-right. The mark is
+     the same iris gradient the Opal dot / presence carry (token
+     only, no state hue of its own - it is a door, not a plan
+     element); the button itself is bare chrome with a full 44px
+     hit area, so it reads as Opal's mark, not a filled control. */
+  [data-design="r18"] .c1-thread-opal-btn {
+    width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer; flex: none;
+    background: transparent; display: grid; place-items: center; padding: 0;
+  }
+  [data-design="r18"] .c1-thread-opal-orb {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    background: var(--opal-iris-gradient);
+  }
   [data-design="r18"] .c1-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
   [data-design="r18"] .c1-flow { display: flex; flex-direction: column; gap: 10px; }
   [data-design="r18"] .c1-bubble-row { display: flex; }

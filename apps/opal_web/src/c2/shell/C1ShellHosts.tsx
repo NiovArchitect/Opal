@@ -1995,14 +1995,22 @@ export function ChatsHost({
             onTalkToOpal={(ctx) => onTalkToOpal?.({ context: ctx })}
             personContext={threadPersonContext}
             onOpenOpalChats={(ctx) => void openThreadOrbitSheet(ctx)}
-          />
-          <VoiceNoteControl
-            conversationId={selected.id}
-            bearer={bearer}
-            onSent={() => {
-              void openThread(selected.id);
-              onConversationsChanged();
-            }}
+            composerAccessory={
+              /* Repair #19 polish (P7): the ST-H voice-note control is
+                 a REAL composer affordance, so it lives IN the thread
+                 composer bar - not as a stray block under the thread
+                 surface, where it read as page furniture and the send
+                 path was undiscoverable. Same control, same real
+                 sendVoiceNote path, same onSent refresh. */
+              <VoiceNoteControl
+                conversationId={selected.id}
+                bearer={bearer}
+                onSent={() => {
+                  void openThread(selected.id);
+                  onConversationsChanged();
+                }}
+              />
+            }
           />
           {profileOpen ? (
             <PersonProfileSheet
