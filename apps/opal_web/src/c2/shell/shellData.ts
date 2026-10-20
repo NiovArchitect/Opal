@@ -34,7 +34,6 @@ import {
   getDeviceRoster,
   getGraphingPolicy,
   getSoulMemory,
-  getGoogleCalendarStatus,
   getHomeTimezone,
   getIngestionStatus,
   getMessagingPreferences,
@@ -977,7 +976,7 @@ export function youHubFromSession(
     accountNote: null,
     connectedSummary:
       googleConnected === null
-        ? "Connected sources are checked when you open them."
+        ? "Your connections are checked when you open them."
         : googleConnected === "simulated"
           ? "Google Calendar is a simulated stand-in, not a real connection."
           : googleConnected
@@ -994,10 +993,8 @@ export function youHubFromSession(
       { key: "how-opal-helps", title: "How Opal helps", subtitle: "How forward Opal may be", keywords: "helps proactive forward assist offers suggestions" },
       { key: "calls-assist", title: "Opal Assist and calls", subtitle: "Help on calls, only when you say so", keywords: "assist calls phone" },
       { key: "approvals-activity", title: "Activity", subtitle: "What Opal did for you, written down", keywords: "approvals activity trail history export what opal did" },
-      { key: "what-opal-hears", title: "What Opal graphs", subtitle: "Where Opal's graphs come from", keywords: "graphs sources chats calls texts room meetings ingested transcripts" },
-      { key: "connections", title: "Connections", subtitle: "Every connection, with its real status", keywords: "connections connected sources google deepseek twilio places flights status" },
-      { key: "care", title: "Care and household", subtitle: "Check-in rotations and your household pod", keywords: "care rotation household pod family check in" },
-      { key: "connected-sources", title: "Connected sources", subtitle: googleConnected === "simulated" ? "Google Calendar - simulated, not real" : googleConnected ? "Google Calendar connected" : "Google Calendar", keywords: "connected sources google calendar email" },
+      { key: "what-opal-hears", title: "Where Opal reads from", subtitle: "Your chats, calls, and texts - each with its own state", keywords: "reads from sources feeds chats calls texts room meetings ingested transcripts graphs" },
+      { key: "connections", title: "Connections", subtitle: "Apps and tools plugged into Opal, with their real status", keywords: "connections tools apps integrations google deepseek twilio places flights status" },
       { key: "privacy", title: "Privacy", subtitle: "You choose who sees what", keywords: "privacy visibility blocked muted account data rights" },
       { key: "notifications", title: "Quiet", subtitle: "Notifications, and your peace", keywords: "quiet notifications messages calls receipts alerts hours" },
       { key: "linked-devices", title: "Linked devices", subtitle: "Where you are signed in", keywords: "devices sessions phone desktop" },
@@ -1027,6 +1024,11 @@ export async function buildSettingsSection(
   ctx: SettingsContext,
 ): Promise<SettingsSectionProjection> {
   const bearer = ctx.bearer;
+  // Founder naming fix (2026-10-19): "Connected sources" is retired -
+  // it was a second, Google-only room wearing a name a breath away
+  // from Connections. There is exactly ONE Connections room now; any
+  // stored or deep-linked use of the old key lands there.
+  if (key === "connected-sources") key = "connections";
   switch (key) {
     case "edit-profile":
       return {
@@ -1347,50 +1349,6 @@ export async function buildSettingsSection(
           },
         ],
       };
-    case "connected-sources": {
-      try {
-        const status = await getGoogleCalendarStatus(bearer);
-        // HA-01 at the glass (FR-18-09): simulated provenance is
-        // checked BEFORE `connected` — a simulated row also carries
-        // connected=true on the wire and must never paint "Connected".
-        const simulated =
-          status.simulated === true || status.status === "connected_simulated";
-        return {
-          key,
-          title: "Connected sources",
-          lede: "Real connections, with their real status.",
-          rows: [
-            {
-              kind: "value",
-              id: "google-status",
-              title: "Google Calendar",
-              subtitle: simulated
-                ? "A test stand-in, not a real Google sign-in"
-                : status.last_synced_at
-                  ? `Last checked ${status.last_synced_at}`
-                  : "Calendar and email, read only",
-              value: simulated
-                ? "Simulated - not a real connection"
-                : status.connected
-                  ? "Connected"
-                  : "Not connected",
-            },
-            {
-              kind: "action",
-              id: simulated || status.connected ? "google-disconnect" : "google-connect",
-              title: simulated || status.connected ? "Disconnect Google" : "Connect Google",
-            },
-          ],
-        };
-      } catch {
-        return {
-          key,
-          title: "Connected sources",
-          lede: "Real connections, with their real status.",
-          rows: [{ kind: "note", id: "load-failed", text: "Connection status could not load. Head back and try again." }],
-        };
-      }
-    }
     case "what-opal-remembers": {
       try {
         const res = await listMemoryFacts(bearer);
@@ -1398,15 +1356,31 @@ export async function buildSettingsSection(
           key,
           title: "What Opal remembers",
           lede: "Facts Opal keeps from your chats and plans. You control them - forget any of them, for real.",
-          rows:
-            res.facts.length === 0
-              ? [{ kind: "note", id: "none", text: "Opal is not keeping any facts yet." }]
+          rows: [
+            ...(res.facts.length === 0
+              ? [{ kind: "note" as const, id: "none", text: "Opal is not keeping any facts yet." }]
               : res.facts.map((fact) => ({
                   kind: "action" as const,
                   id: `forget-${fact.id}`,
                   title: fact.label,
                   subtitle: `${fact.value} - tap, then confirm to forget`,
-                })),
+                }))),
+            // N7: these facts are Opal-derived and delete-only - the
+            // transparency contract carries no date or source for a
+            // fact, so none is shown. Manual additions live in
+            // Memory, where every entry carries both.
+            {
+              kind: "note" as const,
+              id: "facts-form-note",
+              text: "These facts are the short form - Opal picked them up from your chats and plans, and you can only forget them here, not add to them. The fuller form lives in Memory: one entry per thing remembered, with its source and the date it was saved, including anything you add yourself. As the memory wallet is built, these facts move into that fuller form.",
+            },
+            {
+              kind: "nav" as const,
+              id: "to-memory",
+              title: "Memory - add what Opal should remember",
+              target: "memory",
+            },
+          ],
         };
       } catch {
         return {
@@ -1521,6 +1495,17 @@ export async function buildSettingsSection(
       // decision). Its read is its OWN leg (ER-2): if it fails, the
       // room still renders and the control is honestly absent -
       // never a toggle seeded from a guess.
+      // N7 (founder polish wave): how memory changes are protected,
+      // stated in the room itself. There is NO password check -
+      // Opal accounts sign in with a phone code and have no account
+      // password, and no step-up re-auth exists to check against -
+      // so none is painted. What is true today: changes ride the
+      // signed-in session only, and forgetting is two-step.
+      const memoryProtectionNote: SettingsSectionProjection["rows"][number] = {
+        kind: "note",
+        id: "memory-protection-note",
+        text: "Adding and forgetting here happen only while you are signed in, and forgetting always asks you to confirm first. There is no separate password check for memory yet: Opal signs you in with a code sent to your phone, and your account has no password to check against.",
+      };
       let graphingRows: SettingsSectionProjection["rows"] = [];
       try {
         const g = await getGraphingPolicy(bearer);
@@ -1555,6 +1540,7 @@ export async function buildSettingsSection(
                 id: "memory-empty",
                 text: "Opal is not holding any memories for you yet. When you tell Opal something to remember, or Opal saves a preference for you, it will appear here - with where it came from and when - and you can forget it here, for good.",
               },
+              memoryProtectionNote,
               {
                 kind: "nav",
                 id: "remembers",
@@ -1579,6 +1565,7 @@ export async function buildSettingsSection(
             id: "memory-heading",
             text: `${res.capsule_count} ${res.capsule_count === 1 ? "memory" : "memories"}. Each one says where it came from. Tap one, then confirm, to forget it for good - forgetting deletes it, it is not just hidden.`,
           },
+          memoryProtectionNote,
         ];
         for (const group of groups) {
           const inGroup = res.capsules.filter(
@@ -1785,8 +1772,8 @@ export async function buildSettingsSection(
           const sources = await getIngestionStatus(bearer);
           return {
             key,
-            title: "What Opal graphs",
-            lede: "Where Opal's graphs and memory come from - each source with its own state, read on its own.",
+            title: "Where Opal reads from",
+            lede: "The feeds Opal reads from, in the app - each source with its own state, read on its own. This is not Connections: nothing here is a tool plugged into Opal.",
             rows: [
               ...sources.flatMap((line) => [
                 {
@@ -1812,16 +1799,16 @@ export async function buildSettingsSection(
         } catch {
           return {
             key,
-            title: "What Opal graphs",
-            lede: "Where Opal's graphs and memory come from - each source with its real state.",
-            rows: [{ kind: "note", id: "load-failed", text: "What Opal graphs could not load. Head back and try again." }],
+            title: "Where Opal reads from",
+            lede: "The feeds Opal reads from, in the app - each source with its real state.",
+            rows: [{ kind: "note", id: "load-failed", text: "Where Opal reads from could not load. Head back and try again." }],
           };
         }
       }
       return {
         key,
-        title: "What Opal graphs",
-        lede: "Where Opal's graphs and memory come from - each source with its real state.",
+        title: "Where Opal reads from",
+        lede: "The feeds Opal reads from, in the app - each source with its real state.",
         rows: [
           { kind: "value", id: "chats", title: "Chats in the app", subtitle: "Your conversations here are Opal's working source today.", value: "Working now" },
           { kind: "value", id: "calls", title: "Phone calls", subtitle: "Opal does not transcribe a live call here. Nothing is recorded in secret.", value: "Not wired yet" },
@@ -1928,10 +1915,10 @@ export async function buildSettingsSection(
             // real status and disconnect, and the policy document.
             kind: "note",
             id: "privacy-card",
-            text: "In plain words: what Opal holds for you lives in What Opal remembers, where you can read every fact and forget any of them. What Opal can check outside the app lives in Connected sources and Connections, each with its real status - and disconnecting stops it right away. Opal's full Privacy Policy is one tap below.",
+            text: "In plain words: what Opal holds for you lives in What Opal remembers, where you can read every fact and forget any of them. The apps and tools plugged into Opal live in Connections, each with its real status - and disconnecting stops it right away. Opal's full Privacy Policy is one tap below.",
           },
           { kind: "nav", id: "remembers", title: "What Opal remembers", target: "what-opal-remembers" },
-          { kind: "nav", id: "sources", title: "Connected sources", target: "connected-sources" },
+          { kind: "nav", id: "sources", title: "Connections", target: "connections" },
           { kind: "nav", id: "connections", title: "Connections", target: "connections" },
           {
             // Audit A7 — about Opal's messages. The claims match the

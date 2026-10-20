@@ -2874,6 +2874,42 @@ export async function publishSocialMoment(
   });
 }
 
+/**
+ * N2 (founder polish wave) - manage your own moments. The backend
+ * edit is owner-only (edit_own: caption + visibility, edited_at
+ * stamped server-side); deletes are owner-only too, posts through
+ * the moment record and stories through the story record. Nothing
+ * here can touch another person's moment.
+ */
+export async function updateSocialMoment(
+  momentId: string,
+  attrs: { caption?: string; visibility?: string },
+  bearer?: string,
+) {
+  return request<{ moment: Record<string, unknown> }>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}`,
+    {
+      method: "PATCH",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(attrs),
+    },
+  );
+}
+
+export async function deleteSocialMoment(momentId: string, bearer?: string) {
+  return request<Record<string, unknown>>(
+    `/api/v1/product/social-moments/${encodeURIComponent(momentId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function deleteTemporaryStory(storyId: string, bearer?: string) {
+  return request<{ deleted: boolean; story_id: string }>(
+    `/api/v1/product/stories/${encodeURIComponent(storyId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
 /** Repair #15: media upload for posts — backend LOCAL_DEV store (Pass 17). */
 export async function uploadSocialMomentMedia(
   attrs: { base64: string; mime_type: string },
@@ -4135,6 +4171,26 @@ export async function forgetCapsule(capsuleId: string, bearer?: string) {
   return request<{ forgotten: boolean; source: string }>(
     `/api/v1/product/memory-wallet/capsules/${encodeURIComponent(capsuleId)}`,
     { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+/**
+ * N7 (founder polish wave) - manual memory add: the user tells Opal
+ * something to remember. The wallet stores it as a capsule whose
+ * provenance defaults to "You told Opal" with a stored-at timestamp
+ * (CapsuleRead.remember), and whose contract carries created_at -
+ * so the read-back shows what was added, when, and where it came
+ * from. Owner is always the session's user; there is no parameter
+ * that names another account.
+ */
+export async function createMemoryCapsule(summary: string, bearer?: string) {
+  return request<{ capsule: MemoryCapsuleContract }>(
+    "/api/v1/product/memory-wallet/capsules",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ summary }),
+    },
   );
 }
 

@@ -77,6 +77,10 @@ export type C2YouEvents = {
   saveCallGraphingMode?: (callMode: string) => Promise<void>;
   setGraphingPaused?: (paused: boolean) => Promise<void>;
   addSavedLogin?: (host: string, secret: string) => Promise<void>;
+  /** N7 - manual memory add (POST /memory-wallet/capsules). The
+   *  shell wires it only with a live session; an unwired host gets
+   *  the honest error line on submit, never a painted success. */
+  addMemory?: (text: string) => Promise<void>;
   redeemInviteCode?: (code: string) => Promise<{ credit_line: string }>;
   executeDeletion?: (
     mode: "data" | "account",
@@ -98,9 +102,9 @@ export const HUB_GROUPS: Array<{ label: string; keys: string[] }> = [
   { label: "You", keys: ["edit-profile", "appearance", "your-moments", "your-library"] },
   { label: "How Opal works for you", keys: ["soul", "memory", "what-opal-remembers"] },
   { label: "How Opal helps", keys: ["how-opal-helps", "calls-assist", "approvals-activity"] },
-  { label: "What Opal graphs", keys: ["what-opal-hears", "connections", "connected-sources"] },
+  { label: "Feeds and tools", keys: ["what-opal-hears", "connections"] },
   { label: "Quiet and privacy", keys: ["notifications", "privacy", "linked-devices", "location-travel"] },
-  { label: "Care and account", keys: ["care", "account-security", "saved-logins", "invite-code", "delete-account", "help-support"] },
+  { label: "Account", keys: ["account-security", "saved-logins", "invite-code", "delete-account", "help-support"] },
 ];
 
 export function C2YouHub({
@@ -264,6 +268,8 @@ export function C2SettingsSection({
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemLine, setRedeemLine] = useState<string | null>(null);
   const [inviteCopyNote, setInviteCopyNote] = useState<string | null>(null);
+  const [memoryDraft, setMemoryDraft] = useState("");
+  const [memoryAdded, setMemoryAdded] = useState(false);
   // Repair #18 SM - Soul form state, seeded from the section's own
   // value rows (the server's read of the real preference truth).
   const [soulLevel, setSoulLevel] = useState<string>(() => rowValue("assistance_level") || "balanced");
@@ -1071,6 +1077,52 @@ export function C2SettingsSection({
               Save login
             </button>
             <p className="c2s-caption">The login itself is never shown back - only the site is listed.</p>
+          </div>
+        ) : null}
+        {section.key === "memory" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }} data-testid="c2-memory-add-form">
+            <p className="c2s-note">
+              Tell Opal something to remember. It is saved with today's
+              date and "You told Opal" on it, in the list above.
+            </p>
+            <input
+              className="c2s-field"
+              data-testid="c2-memory-add-input"
+              placeholder="Something Opal should remember"
+              value={memoryDraft}
+              onChange={(e) => {
+                setMemoryDraft(e.target.value);
+                setMemoryAdded(false);
+              }}
+              aria-label="Something Opal should remember"
+            />
+            <button
+              type="button"
+              className="c2s-btn-primary"
+              data-testid="c2-memory-add-submit"
+              disabled={saving === "memory" || memoryDraft.trim() === ""}
+              onClick={async () => {
+                if (!events.addMemory) { setError("Adding a memory is not wired in this build."); return; }
+                setSaving("memory");
+                setError(null);
+                try {
+                  await events.addMemory(memoryDraft.trim());
+                  setMemoryDraft("");
+                  setMemoryAdded(true);
+                } catch {
+                  setError("That memory could not be saved. Check your connection and try again.");
+                } finally {
+                  setSaving(null);
+                }
+              }}
+            >
+              Remember this
+            </button>
+            {memoryAdded ? (
+              <p className="c2s-note" data-testid="c2-memory-added" role="status">
+                Saved. It is in the list above, with today's date on it.
+              </p>
+            ) : null}
           </div>
         ) : null}
         {section.key === "invite-code" ? (

@@ -67,6 +67,7 @@ import {
   listConversations,
   listRelationships,
   loadProfile,
+  createMemoryCapsule,
   isProductInviteCode,
   opalPlanCancelError,
   planConversionLine,
@@ -122,7 +123,6 @@ import {
   conversationPreviewLabel,
 } from "./C1ShellHosts";
 import { tieLabel } from "../../opalUi/relationshipTypes";
-import { CareDestination } from "./CareDestination";
 import {
   Avatar,
   EmptyBlock,
@@ -1375,7 +1375,6 @@ function YouRoute(props: {
   useEffect(() => {
     if (
       !props.settingKey ||
-      props.settingKey === "care" ||
       props.settingKey === "your-moments" ||
       props.settingKey === "your-library"
     ) {
@@ -1543,6 +1542,16 @@ function YouRoute(props: {
       setSectionNonce((n) => n + 1);
       return credit;
     },
+    addMemory: async (text: string) => {
+      // N7: a memory change without a signed-in session is refused
+      // here, before any request - the wallet API is owner-scoped
+      // to the session's user and answers 401 without one.
+      if (!props.bearer) throw new Error("not signed in");
+      await createMemoryCapsule(text, props.bearer);
+      // The refreshed projection is the read-back: the new capsule
+      // renders from the wallet read, with its provenance and date.
+      setSectionNonce((n) => n + 1);
+    },
     executeDeletion: async (mode: "data" | "account") => {
       const receipt = await executeDeletion(mode, "self_serve", props.bearer);
       if (mode === "account") props.onSessionChange();
@@ -1588,12 +1597,12 @@ function YouRoute(props: {
     );
   }
 
-  if (props.settingKey === "care") {
-    return (
-      <CareDestination onBack={() => props.setSettingKey(null)} nonce={sectionNonce} />
-    );
-  }
-
+  // N6 (founder decision, 2026-10-19): the Care room is OUT of
+  // Settings - no hub row, no mount here. The care machinery
+  // (CareDestination, CareRotationView, the check-in reads/writes)
+  // is preserved untouched in code; a stray "care" key falls to the
+  // generic section path below, whose honest answer is that the
+  // section is not part of this build.
   if (props.settingKey) {
     if (!section) {
       return (
