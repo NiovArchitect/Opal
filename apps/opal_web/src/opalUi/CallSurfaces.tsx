@@ -11,6 +11,10 @@ import React from "react";
 import { createPortal } from "react-dom";
 import type { CallView } from "./callView";
 import { CallAssistControl } from "./callAssist";
+import type { CallGraphingState, NextPlanFact } from "../api/productClient";
+import { planStateAttr, planStateLabel } from "../theme/planStateColors";
+import { OrbitTrace, orbitTraceStateFor } from "./orbitTrace";
+import { ParticipantStates, useLocalSpeaking } from "./participantStates";
 import { OrbMark } from "../brand/orb/OrbMark";
 import { overlayCallNote } from "../realtime/callMediaRuntime";
 
@@ -42,6 +46,13 @@ type Props = {
   /** Real connected call only. Absent on ringing and fixture stages. */
   assistCallId?: string | null;
   assistBearer?: string | null;
+  /**
+   * Cluster F (P10a) plan-in-context: the call's ONE plan fact from
+   * the live call projection (ProductCall.next_plan, the DIR-1
+   * NextPlan derivation). Rendered verbatim; null = no shared
+   * upcoming plan, and no element renders.
+   */
+  plan?: NextPlanFact | null;
   /**
    * True only when a real call record backs this surface. Repair #18
    * hunt-fix B-04: with no live call and no live view, the surface
@@ -118,6 +129,7 @@ export function CallSurface({
   statusNote = null,
   assistCallId = null,
   assistBearer = null,
+  plan = null,
   hasLiveCall = false,
 }: Props) {
   const initial = peerName.slice(0, 1).toUpperCase();
@@ -141,6 +153,17 @@ export function CallSurface({
     return () => window.removeEventListener("keydown", onKey);
   }, [isIncoming, onDecline, onEnd]);
 
+  // Cluster F: the connected surface consumes the ONE server-derived
+  // graphing state (reported verbatim by CallAssistControl) for the
+  // orbit trace, and this device's real mic level for its speaking
+  // state. Neither is derived here.
+  const [graphingState, setGraphingState] = React.useState<CallGraphingState | null>(null);
+  const selfSpeaking = useLocalSpeaking(
+    assistCallId ?? null,
+    view?.phase === "connected",
+    muted,
+  );
+
   // FW-D2: immersive call owns the viewport — mark body so underlying thread chrome cannot paint through.
   React.useEffect(() => {
     document.body.dataset.callSurfaceOpen = "1";
@@ -162,6 +185,10 @@ export function CallSurface({
         ? statusNote
         : null;
     const note = overlayCallNote(view.phase, rawNote);
+    const traceState = orbitTraceStateFor({
+      connected: view.phase === "connected",
+      graphing: graphingState,
+    });
     const live = (
       <div
         className="live-call"
@@ -172,6 +199,7 @@ export function CallSurface({
         aria-modal="true"
         aria-label={view.status || peerName}
       >
+        <OrbitTrace state={traceState} />
         <div className="live-call-stage" data-testid="call-stage">
           <h1 className="live-call-name" data-testid="call-incoming-name">
             {peerName}
@@ -227,12 +255,39 @@ export function CallSurface({
               starts only once you’re connected, and only if you both allow it.
             </p>
           ) : null}
+          {plan ? (
+            <div
+              className="live-call-plan"
+              data-testid="call-plan-context"
+              data-plan-state={planStateAttr(plan.state)}
+            >
+              <span className="live-call-plan-kicker">About</span>
+              <span className="live-call-plan-title">{plan.title}</span>
+              {plan.when_label ? (
+                <span className="live-call-plan-when">{plan.when_label}</span>
+              ) : null}
+              {plan.where_label ? (
+                <span className="live-call-plan-where">{plan.where_label}</span>
+              ) : null}
+              <span className="live-call-plan-state">{planStateLabel(planStateAttr(plan.state))}</span>
+            </div>
+          ) : null}
+          {view.phase === "connected" ? (
+            <ParticipantStates peerName={peerName} muted={muted} selfSpeaking={selfSpeaking} />
+          ) : null}
+          {view.phase === "connected" && kind === "video" ? (
+            <p className="live-call-video-truth" data-testid="call-video-truth" role="status">
+              Video is not on for this call - Opal calls are audio only, so there is no
+              camera feed to show.
+            </p>
+          ) : null}
           {view.phase === "connected" && assistCallId ? (
             <CallAssistControl
               callId={assistCallId}
               bearer={assistBearer || undefined}
               peerName={peerName}
               muted={muted}
+              onGraphingChange={setGraphingState}
             />
           ) : null}
           <div className="live-call-actions">

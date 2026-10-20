@@ -1992,6 +1992,9 @@ export type ProductCall = {
   caller_user_id: string;
   callee_user_id: string;
   conversation_id?: string | null;
+  /** Cluster F (P10a): the live call's plan-in-context - the ONE
+   *  DIR-1 NextPlan fact from the call projection, or null. */
+  next_plan?: NextPlanFact | null;
   status: string;
   ended_reason?: string | null;
   correlation_id?: string | null;

@@ -15,13 +15,17 @@ type Props = {
   bearer?: string;
   peerName: string;
   muted?: boolean;
+  /** Cluster F: the connected surface (orbit trace) consumes the
+   *  same server-derived graphing state this control renders.
+   *  Reported verbatim on every refresh/write - never re-derived. */
+  onGraphingChange?: (state: CallGraphingState) => void;
 };
 
 /**
  * Connected-call Assist only. The microphone transcribed here is this device's
  * mic. Remote playback is never sent. The provider key stays on the server.
  */
-export function CallAssistControl({ callId, bearer, peerName, muted = false }: Props) {
+export function CallAssistControl({ callId, bearer, peerName, muted = false, onGraphingChange }: Props) {
   const [assist, setAssist] = React.useState<CallAssistState>("off");
   // Server-derived graphing state (one derivation, every surface). The
   // light renders this verbatim — it is never computed on the client.
@@ -30,6 +34,8 @@ export function CallAssistControl({ callId, bearer, peerName, muted = false }: P
   const [selfPaused, setSelfPaused] = React.useState(false);
   const [note, setNote] = React.useState<string | null>(null);
   const refreshRef = React.useRef<() => void>(() => {});
+  const onGraphingChangeRef = React.useRef(onGraphingChange);
+  onGraphingChangeRef.current = onGraphingChange;
   const assistRef = React.useRef<CallAssistState>("off");
   const mutedRef = React.useRef(muted);
   mutedRef.current = muted;
@@ -125,6 +131,7 @@ export function CallAssistControl({ callId, bearer, peerName, muted = false }: P
         if (stopped) return;
         setAssist(next.assist);
         setGraphing(next.graphing);
+        onGraphingChangeRef.current?.(next.graphing);
         setAccountDefault(next.account_default);
         setSelfPaused(next.self_paused);
         assistRef.current = next.assist;
@@ -148,6 +155,7 @@ export function CallAssistControl({ callId, bearer, peerName, muted = false }: P
           if (stopped) return;
           setAssist(next.assist);
           setGraphing(next.graphing);
+          onGraphingChangeRef.current?.(next.graphing);
           setAccountDefault(next.account_default);
           setSelfPaused(next.self_paused);
           assistRef.current = next.assist;
@@ -178,6 +186,7 @@ export function CallAssistControl({ callId, bearer, peerName, muted = false }: P
       const next = await setCallAssist(callId, allowed, bearer, scope);
       setAssist(next.assist);
       setGraphing(next.graphing);
+      onGraphingChangeRef.current?.(next.graphing);
       setAccountDefault(next.account_default);
       setSelfPaused(next.self_paused);
       assistRef.current = next.assist;
