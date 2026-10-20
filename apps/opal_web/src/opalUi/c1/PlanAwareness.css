@@ -90,6 +90,17 @@
   box-sizing: border-box;
   padding: 6px 10px;
 }
+/* Cluster G (P10c): the leave-by segment in the thread strip - the
+ * backend's finished spoken-style line, verbatim. It keeps its
+ * natural width; the plan text beside it is the flexible element.
+ * At leave-now the segment takes the action color inline (from
+ * the ONE token source in the component) while its words change -
+ * never a color-only cue. */
+.plan-awareness-leaveby {
+  flex: none;
+  white-space: nowrap;
+  font-weight: 650;
+}
 /* R19 W5-06: the ROW variant is a mini-card inside the chats row -
  * a full-width flex column with breathing room, NOT the compact
  * one-line pill. Layout contract (pinned by r19ChatsThread.test):

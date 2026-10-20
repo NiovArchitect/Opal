@@ -697,6 +697,10 @@ export function detailWithHistory(
       locationState: person.location_state ?? null,
     })),
     history: history.history.map((row) => ({ line: row.line })),
+    // Cluster G (P10c): the leave-by projection rides verbatim -
+    // the detail renders the backend's finished line and urgency
+    // and derives no time or distance itself.
+    leaveBy: history.leave_by ?? null,
     attendanceLine:
       typeof history.counts.going_count === "number" &&
       typeof history.counts.total_count === "number"

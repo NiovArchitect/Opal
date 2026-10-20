@@ -13,6 +13,7 @@ defmodule OpalCore.Places.Providers.Geoapify do
 
   @geocode_url "https://api.geoapify.com/v1/geocode/search"
   @places_url "https://api.geoapify.com/v2/places"
+  @routing_url "https://api.geoapify.com/v1/routing"
   @timeout_ms 20_000
 
   @impl true
@@ -24,6 +25,14 @@ defmodule OpalCore.Places.Providers.Geoapify do
       "provider" => id(),
       "geocode" => true,
       "places_search" => true,
+      "routing" => true,
+      # Provider truth (Routing API): the only traffic models are
+      # "free_flow" (optimistic, no traffic influence) and
+      # "approximated" (a model that lowers speeds on potentially
+      # heavy-loaded roads). There is NO live traffic feed, so a
+      # routed duration is never class "live".
+      "live_traffic" => false,
+      "traffic_model" => "approximated",
       "ratings" => false,
       "reservations" => false,
       "billing_required" => false,
@@ -180,6 +189,112 @@ defmodule OpalCore.Places.Providers.Geoapify do
   end
 
   def resolve_exact_entity(_), do: {:error, :invalid}
+
+  @doc """
+  Route between two coordinate pairs (Routing API, mode=drive).
+
+  Provider truth, from the Routing API documentation (checked
+  2026-10-19): the response's `features[0].properties` carries
+  `distance` (meters) and `time` (seconds). The request asks for
+  `traffic=approximated` - Geoapify's modelled traffic (speeds
+  lowered on potentially heavy-loaded roads). The API offers no
+  live traffic on any tier, so the returned duration is classified
+  `"estimate"` here and never `"live"`.
+
+  Transport seam for tests: the `:geoapify_http_fun` app env, a
+  `fun.(url, params) -> {:ok, decoded_body} | {:error, reason}`
+  returning a provider-shaped body (the `:deepgram_http_fun`
+  pattern elsewhere). Production takes the Req branch.
+  """
+  def route(query) when is_map(query) do
+    q = stringify(query)
+    origin = {to_f(q["origin_lat"]), to_f(q["origin_lon"])}
+    destination = {to_f(q["destination_lat"]), to_f(q["destination_lon"])}
+
+    cond do
+      not valid_pair?(origin) or not valid_pair?(destination) ->
+        {:error, :invalid}
+
+      api_key() in [nil, ""] ->
+        {:error, :missing_credential}
+
+      true ->
+        do_route(origin, destination)
+    end
+  end
+
+  def route(_), do: {:error, :invalid}
+
+  defp do_route({olat, olon}, {dlat, dlon}) do
+    params = [
+      {"waypoints", "#{olat},#{olon}|#{dlat},#{dlon}"},
+      {"mode", "drive"},
+      {"traffic", "approximated"},
+      {"apiKey", api_key()}
+    ]
+
+    case routing_get(params) do
+      {:ok, %{"features" => [%{"properties" => props} | _]}} ->
+        if is_number(props["distance"]) and is_number(props["time"]) do
+          {:ok,
+           %{
+             "provider" => id(),
+             "distance_m" => props["distance"] * 1.0,
+             "duration_seconds" => props["time"] * 1.0,
+             # We asked for the approximated model and the API has no
+             # live feed: the honest class is "estimate", always.
+             "traffic_model" => "approximated",
+             "traffic_class" => "estimate",
+             "live_traffic" => false,
+             "attribution" => "Powered by Geoapify"
+           }}
+        else
+          {:error, :no_route}
+        end
+
+      {:ok, %{"features" => []}} ->
+        {:error, :no_route}
+
+      {:ok, %{"message" => msg}} when is_binary(msg) ->
+        {:error, {:provider, msg}}
+
+      {:error, _} = err ->
+        err
+
+      other ->
+        {:error, {:unexpected, other}}
+    end
+  end
+
+  defp routing_get(params) do
+    case Application.get_env(:opal_core, :geoapify_http_fun) do
+      fun when is_function(fun, 2) ->
+        case fun.(@routing_url, params) do
+          {:ok, body} when is_map(body) -> {:ok, body}
+          {:error, _} = err -> err
+          other -> {:error, {:unexpected_transport_result, other}}
+        end
+
+      _ ->
+        http_get(@routing_url, params)
+    end
+  end
+
+  defp valid_pair?({lat, lon}) when is_number(lat) and is_number(lon),
+    do: lat >= -90 and lat <= 90 and lon >= -180 and lon <= 180
+
+  defp valid_pair?(_), do: false
+
+  defp to_f(n) when is_number(n), do: n * 1.0
+
+  defp to_f(n) when is_binary(n) do
+    case Float.parse(n) do
+      {f, _} -> f
+      _ -> nil
+    end
+  end
+
+  defp to_f(_), do: nil
 
   @impl true
   def get_place(place_id) when is_binary(place_id) and place_id != "" do

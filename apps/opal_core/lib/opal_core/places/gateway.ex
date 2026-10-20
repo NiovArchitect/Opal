@@ -107,6 +107,30 @@ defmodule OpalCore.Places.Gateway do
 
   def resolve_exact_entity(_), do: {:error, :invalid}
 
+  @doc """
+  Route between two coordinate pairs through the primary provider.
+
+  Returns the provider's normalized route map (distance in meters,
+  duration in seconds, and the traffic honesty class - the wired
+  provider has no live traffic, so a successful route is class
+  "estimate", never "live").
+  """
+  def route(query) when is_map(query) do
+    case primary_module() do
+      nil ->
+        {:error, :no_provider}
+
+      mod when is_atom(mod) ->
+        if function_exported?(mod, :route, 1) do
+          apply(mod, :route, [query])
+        else
+          {:error, :routing_unsupported}
+        end
+    end
+  end
+
+  def route(_), do: {:error, :invalid}
+
   defp stringify(map) when is_map(map) do
     Map.new(map, fn
       {k, v} when is_atom(k) -> {Atom.to_string(k), v}

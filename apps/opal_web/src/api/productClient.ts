@@ -27,9 +27,42 @@ export type ProductSession = {
  * verbatim; they never re-derive shared / upcoming / next / state.
  * Absent (null) = no shared upcoming plan - no element renders.
  */
+/**
+ * Founder Polish, Cluster G (P10c) - the ONE leave-by derivation
+ * (backend SocialFlow.LeaveBy), carried on the plan detail
+ * projection and, when the thread path asks for it, on the
+ * NextPlanFact. Every field is finished server side; surfaces
+ * render verbatim and never recompute a time, a distance, or the
+ * urgency. Absent states are named states ("needs_location_share",
+ * "no_place_coordinates", "unavailable", ...) whose `label` is the
+ * honest plain line to show; their number fields are null - a
+ * fabricated time would be a defect. traffic_class is "estimate"
+ * for a real route (the wired provider has no live traffic),
+ * "unavailable" when routing failed, never invented "live".
+ */
+export type LeaveByProjection = {
+  state: string;
+  label: string;
+  urgency?: "on_track" | "leave_now" | "started" | null;
+  leave_by_at?: string | null;
+  leave_by_label?: string | null;
+  travel_duration_seconds?: number | null;
+  travel_duration_label?: string | null;
+  travel_distance_m?: number | null;
+  travel_distance_label?: string | null;
+  traffic_class?: "live" | "estimate" | "unavailable" | null;
+  traffic_label?: string | null;
+  buffer_seconds?: number | null;
+  provider?: string | null;
+  computed_at?: string | null;
+};
+
 export type NextPlanFact = {
   plan_id: string;
   title: string;
+  /** Cluster G: present only on the thread fact (the backend opts
+   *  the thread paths in); chats-list and call-log facts omit it. */
+  leave_by?: LeaveByProjection | null;
   /** Finished when string from the service layer (never formatted here). */
   when_label?: string | null;
   starts_at?: string | null;
@@ -5597,6 +5630,8 @@ export type ShelfContract = { sparks: ShelfSparkContract[]; starters: ShelfStart
 
 export type PlanHistoryContract = {
   plan_id: string;
+  /** Cluster G (P10c): the viewer's leave-by projection (LeaveBy). */
+  leave_by?: LeaveByProjection | null;
   history: Array<{ line: string; kind: string; at: string }>;
   who: Array<{
     user_id: string;
