@@ -14343,19 +14343,64 @@ button.you-settings-row {
   transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
   z-index: 1;
 }
-/* Enabled switches — Brand V4 cyan #00E5FF */
+/* Enabled switches — N5 CONTROL AMBIENCE (founder, 2026-10-19
+ * 17:50 PDT): ON answers in light — the track lights in the
+ * controlled behavior's canon state color (--control-on, theme/
+ * c2Tokens.css; default happening #00E5FF: a switched-on behavior
+ * is live now) with a 12px glow at 55% of the behavior's glow token
+ * (AR-00.2 envelope: <= 18px / <= 55%) plus the settled 3px ring at
+ * 22%; OFF is settled (the neutral track above, no glow). The hex
+ * appears ONLY as the var() fallback for sheets loaded without the
+ * C2 token layer, and it is the canon happening hex itself — no
+ * decorative hue. A control whose behavior carries a different
+ * true state sets data-control-state="<state>" (rules below).
+ * This is the shared switch for every Settings room — including
+ * the Opal Assist switch in Calls & Opal Assist — so the treatment
+ * arrives by shared component behavior only; no room's own design
+ * (Appearance / Location & Travel / Privacy included) is touched.
+ * Flip transition stays 160ms (= --motion-tab, QUIET cap);
+ * reduced motion swaps instantly, same colors (block below). */
 .you-settings-toggle.on {
-  background: #00E5FF;
-  border-color: #00E5FF;
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.22);
+  background: var(--control-on, #00E5FF);
+  border-color: var(--control-on, #00E5FF);
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--control-on-glow, rgba(0, 229, 255, 0.45)) 55%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--control-on, #00E5FF) 22%, transparent);
+}
+.you-settings-toggle[data-control-state="action"] {
+  --control-on: var(--orb-indicator-action);
+  --control-on-glow: var(--orb-indicator-action-glow);
+}
+.you-settings-toggle[data-control-state="ready"] {
+  --control-on: var(--orb-indicator-ready);
+  --control-on-glow: var(--orb-indicator-ready-glow);
+}
+.you-settings-toggle[data-control-state="forming"] {
+  --control-on: var(--orb-indicator-forming);
+  --control-on-glow: var(--orb-indicator-forming-glow);
+}
+.you-settings-toggle[data-control-state="happening"] {
+  --control-on: var(--orb-indicator-happening);
+  --control-on-glow: var(--orb-indicator-happening-glow);
+}
+.you-settings-toggle[data-control-state="past"] {
+  --control-on: var(--orb-indicator-past);
+  --control-on-glow: var(--orb-indicator-past-glow);
 }
 .you-hub-consent .you-settings-toggle {
   background: rgba(148, 161, 184, 0.65);
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
 .you-hub-consent .you-settings-toggle.on {
-  background: #00E5FF;
-  border-color: #00E5FF;
+  background: var(--control-on, #00E5FF);
+  border-color: var(--control-on, #00E5FF);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* N5 / AR-00.6: instant state swap, same colors. */
+  .you-settings-toggle,
+  .you-settings-toggle-knob {
+    transition: none;
+  }
 }
 .you-settings-toggle-knob {
   display: block;
@@ -18198,10 +18243,16 @@ html.opal-native-host .fr-auth-v4.fr-find .fr-assist-dismiss {
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
 }
+/* N5: this later aria-checked rule must carry the SAME control
+ * answer as .you-settings-toggle.on above (it wins the cascade for
+ * switch-role toggles) — same canon token, same envelope glow, and
+ * the flip transition brought from 280ms to the 160ms QUIET cap. */
 .you-settings-toggle[aria-checked="true"],
 .you-settings-toggle.is-on {
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
-  transition: box-shadow 280ms ease-out, background 280ms ease-out;
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--control-on-glow, rgba(0, 229, 255, 0.45)) 55%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--control-on, #00E5FF) 22%, transparent);
+  transition: box-shadow 160ms ease-out, background 160ms ease-out;
 }
 .bubble-row {
   animation: opal-bubble-in 260ms ease-out both;
