@@ -15,6 +15,7 @@ defmodule OpalCore.SocialFlow do
     AuditEvent,
     FollowThroughProducers,
     JourneyAuthority,
+    NonResponseEtiquette,
     PlanAgreementTasteBridge,
     PlanCommitment,
     PlanOption,
@@ -4015,7 +4016,151 @@ defmodule OpalCore.SocialFlow do
     plan
     |> plan_payload()
     |> Map.put("is_private", PlanPrivacyMark.marked?(viewer_id, plan.id))
+    # I2 etiquette wiring: the per-viewer etiquette projection (window
+    # state, limbo state, fork state) rides the plan contract through
+    # the registered PlanProjection read path - NonResponseEtiquette is
+    # the registry's sanctioned etiquette reader, so the contract
+    # carries its one projection verbatim and no surface re-derives
+    # limbo or window state. Nil when the viewer has no etiquette fact
+    # on this plan (not a party, or nobody is awaiting an answer).
+    |> Map.put("etiquette", NonResponseEtiquette.viewer_projection(plan.id, viewer_id))
   end
+
+  # -------------------------------------------------------------------
+  # I2 etiquette wiring - the production caller + the HTTP write paths
+  # -------------------------------------------------------------------
+
+  # The production caller for the P13/P14 lifecycle: when a plan is
+  # born with participants in awaiting-response (pending) state, the
+  # etiquette lifecycle opens for each of them. This is a state-change
+  # hook fired post-commit from the plan-creation doors - never a
+  # scanner or poller (production proactivity is event-driven; the
+  # timed stages ride the lifecycle's own Oban stage jobs). Opening is
+  # idempotent per participant, and a failure here never un-commits or
+  # fails the creation it rides on (the FollowThroughProducers
+  # post-commit discipline).
+  defp open_etiquette_requests(%SharedPlan{} = plan, requester_id, participants)
+       when is_list(participants) do
+    participants
+    |> Enum.filter(&PlanParticipant.pending_state?(&1.response_state))
+    |> Enum.map(& &1.user_id)
+    |> Enum.uniq()
+    |> Enum.reject(&(&1 == requester_id))
+    |> Enum.each(fn recipient_id ->
+      _ =
+        NonResponseEtiquette.open_request(%{
+          plan_id: plan.id,
+          requester_id: requester_id,
+          recipient_id: recipient_id
+        })
+    end)
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  @doc """
+  I2 - set a creator-opt-in response window through the HTTP door.
+  Authority and gates are the etiquette machinery's own
+  (`NonResponseEtiquette.set_response_window/2` - creator-only,
+  relationship gate at set time, consequential/mode gate, dosed
+  bounds); this wrapper only hides existence across accounts (a plan
+  the caller is not on reads as :not_found) and returns the plan row
+  so the controller answers with the one plan contract.
+  """
+  def set_plan_response_window(%{
+        plan_id: plan_id,
+        user_id: user_id,
+        recipient_id: recipient_id,
+        window_seconds: window_seconds
+      })
+      when is_binary(plan_id) and is_binary(user_id) and is_binary(recipient_id) do
+    if not OpalCore.IdShape.uuid?(plan_id) or not OpalCore.IdShape.uuid?(recipient_id) do
+      {:error, :not_found}
+    else
+      case Repo.get(SharedPlan, plan_id) do
+        %SharedPlan{} = plan ->
+          case ensure_plan_access(plan, user_id) do
+            :ok ->
+              case NonResponseEtiquette.set_response_window(%{
+                     plan_id: plan.id,
+                     creator_id: user_id,
+                     recipient_id: recipient_id,
+                     window_seconds: window_seconds
+                   }) do
+                {:ok, _participant} -> {:ok, Repo.get(SharedPlan, plan.id) || plan}
+                {:error, _} = err -> err
+              end
+
+            {:error, _} ->
+              {:error, :not_found}
+          end
+
+        nil ->
+          {:error, :not_found}
+      end
+    end
+  end
+
+  def set_plan_response_window(_), do: {:error, :invalid}
+
+  @doc """
+  I2 - answer an etiquette fork/escalation through the HTTP door.
+  The action vocabulary decides whose answer it is - the machinery's
+  own split, not a new one: `decline` / `ask_another_time` are the
+  recipient's fork answers (`respond_as_recipient/2`);
+  `nudge_again` / `extend` / `let_it_go` are the requester's
+  escalation answers (`respond_as_requester/2`). The machinery
+  enforces who may give which answer; this wrapper only hides
+  existence across accounts and returns the plan row.
+  """
+  def respond_to_plan_etiquette(%{plan_id: plan_id, user_id: user_id, action: action})
+      when is_binary(plan_id) and is_binary(user_id) and is_binary(action) do
+    if not OpalCore.IdShape.uuid?(plan_id) do
+      {:error, :not_found}
+    else
+      case Repo.get(SharedPlan, plan_id) do
+        %SharedPlan{} = plan ->
+          case ensure_plan_access(plan, user_id) do
+            :ok ->
+              result =
+                cond do
+                  action in ["decline", "ask_another_time"] ->
+                    NonResponseEtiquette.respond_as_recipient(%{
+                      plan_id: plan.id,
+                      user_id: user_id,
+                      action: action
+                    })
+
+                  action in ["nudge_again", "extend", "let_it_go"] ->
+                    NonResponseEtiquette.respond_as_requester(%{
+                      plan_id: plan.id,
+                      user_id: user_id,
+                      action: action
+                    })
+
+                  true ->
+                    {:error, :invalid_action}
+                end
+
+              case result do
+                {:ok, outcome} -> {:ok, Repo.get(SharedPlan, plan.id) || plan, outcome}
+                {:ok, outcome, _detail} -> {:ok, Repo.get(SharedPlan, plan.id) || plan, outcome}
+                {:error, _} = err -> err
+              end
+
+            {:error, _} ->
+              {:error, :not_found}
+          end
+
+        nil ->
+          {:error, :not_found}
+      end
+    end
+  end
+
+  def respond_to_plan_etiquette(_), do: {:error, :invalid}
 
   # -------------------------------------------------------------------
   # Repair #18 (Division A) - dedupe identity, conflict gate, cleanup
@@ -4646,9 +4791,19 @@ defmodule OpalCore.SocialFlow do
               {plan, participants}
             end)
             |> case do
-              {:ok, {plan, participants}} -> {:ok, plan, participants}
-              {:error, %Ecto.Changeset{} = cs} -> {:error, cs}
-              {:error, reason} -> {:error, reason}
+              {:ok, {plan, participants}} ->
+                # I2 etiquette wiring (production caller): the peers
+                # were just placed in awaiting-response state - the
+                # non-response lifecycle opens for each of them now,
+                # post-commit, as a state-change hook.
+                _ = open_etiquette_requests(plan, user_id, participants)
+                {:ok, plan, participants}
+
+              {:error, %Ecto.Changeset{} = cs} ->
+                {:error, cs}
+
+              {:error, reason} ->
+                {:error, reason}
             end
           end
         end
@@ -5421,6 +5576,11 @@ defmodule OpalCore.SocialFlow do
                 "trace-social-flow-center-1"
               )
 
+              # I2 etiquette wiring (production caller): subject
+              # participants were just placed in awaiting-response
+              # state - open the lifecycle for each, post-commit.
+              _ = open_etiquette_requests(plan, user_id, participants)
+
               {:ok, plan, participants}
 
             {:error, %Ecto.Changeset{} = cs} ->
@@ -5797,6 +5957,11 @@ defmodule OpalCore.SocialFlow do
           %{"plan" => plan_payload(plan), "created" => true},
           "trace-social-flow-graph-create-1"
         )
+
+        # I2 etiquette wiring (production caller): invitees were
+        # just placed in awaiting-response state - open the lifecycle
+        # for each of them now, post-commit.
+        _ = open_etiquette_requests(plan, user_id, participants)
 
         {:ok, plan, participants, false}
 

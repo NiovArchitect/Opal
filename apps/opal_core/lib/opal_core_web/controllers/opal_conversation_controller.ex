@@ -719,6 +719,137 @@ defmodule OpalCoreWeb.OpalConversationController do
     end
   end
 
+  @doc """
+  I2 etiquette wiring - set a creator-opt-in response window on one
+  pending invitation of one of the caller's plans.
+
+  POST /api/v1/product/opal/plans/:id/response-window
+       body { recipient_id, window_seconds }
+       -> 200 { ok, plan } where plan is the SAME plan_payload the
+          listing serves, now carrying the per-viewer etiquette
+          projection with the window set.
+
+  Gates are the etiquette machinery's own (creator-only, the P14
+  relationship gate at set time, the consequential/mode gate, the
+  1-hour to 14-day dosed bounds) - this action translates them, it
+  does not re-decide them. Every refusal carries the machinery's
+  finished plain line in "message" - never a silent drop: unknown or
+  foreign plans 404; a non-creator on the plan 403; gate refusals
+  422 with the gate's own words.
+  """
+  def set_response_window(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+    recipient_id = Map.get(params, "recipient_id")
+    window_seconds = Map.get(params, "window_seconds")
+
+    result =
+      if is_binary(recipient_id) do
+        SocialFlow.set_plan_response_window(%{
+          plan_id: id,
+          user_id: user_id,
+          recipient_id: recipient_id,
+          window_seconds: window_seconds
+        })
+      else
+        {:error, :not_found}
+      end
+
+    case result do
+      {:ok, plan} ->
+        json(conn, %{"ok" => true, "plan" => SocialFlow.plan_payload(plan, user_id)})
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, reason} ->
+        line =
+          OpalCore.SocialFlow.NonResponseEtiquette.window_refusal_line(
+            id,
+            user_id,
+            recipient_id,
+            reason
+          )
+
+        status = if reason == :not_creator, do: 403, else: 422
+
+        conn
+        |> put_status(status)
+        |> json(%{"error_code" => Atom.to_string(reason), "message" => line})
+    end
+  end
+
+  @doc """
+  I2 etiquette wiring - answer an etiquette fork or escalation for
+  one of the caller's plans.
+
+  POST /api/v1/product/opal/plans/:id/etiquette/respond
+       body { action } - "decline" / "ask_another_time" (the
+       recipient's fork answers) or "nudge_again" / "extend" /
+       "let_it_go" (the requester's escalation answers)
+       -> 200 { ok, plan, outcome } with the updated plan contract.
+
+  The machinery decides whose answer an action is and whether that
+  answer is the caller's to give; a foreign plan is 404, an answer
+  that belongs to someone else is 403 with a plain line, and an
+  answer with nothing waiting behind it is 422 with a plain line.
+  """
+  def respond_etiquette(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+    action = Map.get(params, "action")
+
+    result =
+      if is_binary(action) do
+        SocialFlow.respond_to_plan_etiquette(%{
+          plan_id: id,
+          user_id: user_id,
+          action: action
+        })
+      else
+        {:error, :invalid_action}
+      end
+
+    alias OpalCore.SocialFlow.NonResponseEtiquette
+
+    case result do
+      {:ok, plan, outcome} ->
+        json(conn, %{
+          "ok" => true,
+          "plan" => SocialFlow.plan_payload(plan, user_id),
+          "outcome" => Atom.to_string(outcome)
+        })
+
+      {:error, :not_found} ->
+        not_found(conn)
+
+      {:error, :forbidden} ->
+        conn
+        |> put_status(403)
+        |> json(%{
+          "error_code" => "forbidden",
+          "message" => NonResponseEtiquette.respond_not_yours_copy()
+        })
+
+      {:error, :not_escalated} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "not_escalated",
+          "message" => NonResponseEtiquette.respond_nothing_waiting_copy()
+        })
+
+      {:error, :invalid_action} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid_action",
+          "message" => NonResponseEtiquette.respond_nothing_waiting_copy()
+        })
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
   def edit_plan(conn, %{"id" => id} = params) do
     user_id = conn.assigns.current_user_id
 

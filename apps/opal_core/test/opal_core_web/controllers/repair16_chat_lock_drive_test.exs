@@ -148,8 +148,16 @@ defmodule OpalCoreWeb.Repair16ChatLockDriveTest do
     assert by_id["follow_through"]["status"] == "registered"
     assert by_id["coming_up"]["status"] == "projected"
 
-    # TFT loop for the plan, participants complete.
-    assert [loop] = Repo.all(from l in TemporalFollowThroughLoop, where: l.plan_id == ^plan.id)
+    # TFT loop for the plan, participants complete. (I2: the plan
+    # also carries the etiquette invitation_response loop its
+    # creation opened for the pending peer - a different lifecycle,
+    # scoped out here by kind; the drive claim is unchanged.)
+    assert [loop] =
+             Repo.all(
+               from l in TemporalFollowThroughLoop,
+                 where: l.plan_id == ^plan.id and l.kind == "plan_approach"
+             )
+
     assert loop.kind == "plan_approach"
     assert Enum.sort(loop.participant_ids) == Enum.sort(Enum.map(participants, & &1.id))
 
@@ -175,8 +183,16 @@ defmodule OpalCoreWeb.Repair16ChatLockDriveTest do
 
   defp effect_counts(plan) do
     %{
+      # Drive effects only: the lock drive's plan_approach loops.
+      # (I2: plan creation separately opens the etiquette
+      # invitation_response lifecycle - not a drive effect.)
       loops:
-        Repo.aggregate(from(l in TemporalFollowThroughLoop, where: l.plan_id == ^plan.id), :count),
+        Repo.aggregate(
+          from(l in TemporalFollowThroughLoop,
+            where: l.plan_id == ^plan.id and l.kind == "plan_approach"
+          ),
+          :count
+        ),
       coming_up:
         Repo.aggregate(from(i in ShellComingUpItem, where: i.plan_id == ^plan.id), :count),
       commitments:
@@ -222,14 +238,18 @@ defmodule OpalCoreWeb.Repair16ChatLockDriveTest do
     assert conn3.status == 200
 
     # The second lock re-drives: coming-up stays keyed per owner (2),
-    # and exactly one OPEN follow-through loop exists for the plan
-    # (a version bump may supersede the first loop — never duplicate it).
+    # and exactly one OPEN plan_approach loop exists for the plan
+    # (a version bump may supersede the first loop — never duplicate
+    # it). The etiquette invitation_response loop is separate
+    # machinery (I2) and is scoped out by kind below.
     assert effect_counts(plan).coming_up == 2
 
     open_loops =
       Repo.aggregate(
         from(l in TemporalFollowThroughLoop,
-          where: l.plan_id == ^plan.id and l.status == "open"
+          where:
+            l.plan_id == ^plan.id and l.status == "open" and
+              l.kind == "plan_approach"
         ),
         :count
       )
