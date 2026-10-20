@@ -115,6 +115,11 @@ describe("droppable derivation (planDroppable)", () => {
     for (const group of list.groups) {
       for (const card of group.cards) byId.set(card.id, card.droppable);
     }
+    // Polish P11: past cards ride pastPills, not a rows group - the
+    // derivation rides onto them there.
+    for (const pill of list.pastPills ?? []) {
+      for (const card of pill.cards) byId.set(card.id, card.droppable);
+    }
     expect(byId.get("lead-tentative")).toBe(true);
     expect(byId.get("guest-tentative")).toBe(false);
     expect(byId.get("lead-completed")).toBe(false);

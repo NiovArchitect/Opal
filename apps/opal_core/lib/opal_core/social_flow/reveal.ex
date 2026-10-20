@@ -271,7 +271,38 @@ defmodule OpalCore.SocialFlow.Reveal do
     end)
   end
 
+  # Repair #19 polish P12-4 - HORIZON MILESTONE RULE. A far-band
+  # plan (start more than 30 calendar days out - the same threshold
+  # as the web density constitution's far band) is reveal-INELIGIBLE
+  # except on a milestone: it needs this viewer's answer (their
+  # response is pending - a decision is needed), or it is missing
+  # exactly one slot this viewer can supply (also a decision). A
+  # ready or quietly-forming far plan produces NO reveal and NO
+  # countdown noise; it rests in the horizon band until it migrates
+  # nearer or a milestone occurs. Preparation-task completion
+  # milestones ride the P6 report leg (a material ShellRecentChange),
+  # which is not a plan item and is untouched by this gate.
+  @horizon_days 30
+
+  defp far_band?(%SharedPlan{start_at: %DateTime{} = start}, now) do
+    DateTime.to_date(start) |> Date.diff(DateTime.to_date(now)) > @horizon_days
+  end
+
+  defp far_band?(_, _), do: false
+
+  defp horizon_milestone?(%SharedPlan{} = plan, viewer_id) do
+    viewer_response(plan.id, viewer_id) == "pending" or not is_nil(missing_slot(plan))
+  end
+
   defp plan_item(%SharedPlan{} = plan, viewer_id, now) do
+    if far_band?(plan, now) and not horizon_milestone?(plan, viewer_id) do
+      nil
+    else
+      plan_item_near(plan, viewer_id, now)
+    end
+  end
+
+  defp plan_item_near(%SharedPlan{} = plan, viewer_id, now) do
     state = plan_state(plan, viewer_id, now)
     place = SharedPlan.place_projection(plan)
     others = OpalCore.SocialFlow.plan_participant_ids(plan) -- [viewer_id]
