@@ -1074,6 +1074,8 @@ export function OpalApp() {
     liveCallStatus?: string;
     liveCallerUserId?: string;
     liveCalleeUserId?: string;
+    /** Cluster F: plan-in-context from the live call projection. */
+    liveNextPlan?: import("./api/productClient").NextPlanFact | null;
     /** This device accepted. Other ringing devices must stand down. */
     locallyAccepted?: boolean;
   } | null>(null);
@@ -4079,6 +4081,7 @@ export function OpalApp() {
             liveCallStatus: res.call.status,
             liveCallerUserId: res.call.caller_user_id,
             liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
           };
         });
       })
@@ -4536,6 +4539,7 @@ export function OpalApp() {
                   liveCallStatus: res.call.status,
                   liveCallerUserId: res.call.caller_user_id,
                   liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
                 });
                 void refreshCallLog();
               } catch (err) {
@@ -7689,6 +7693,7 @@ export function OpalApp() {
             speakerOn={callSpeakerOn}
             hasLiveCall={!!callSurface.liveCallId}
           assistCallId={callSurface.liveCallId}
+          plan={callSurface.liveNextPlan ?? null}
             assistBearer={session?.access_token}
             onDecline={declineLiveCall}
             onAnswer={answerLiveCall}
@@ -9130,6 +9135,7 @@ export function OpalApp() {
                     liveCallStatus: res.call.status,
                     liveCallerUserId: res.call.caller_user_id,
                     liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
                   });
                   void refreshCallLog();
                 } catch (err) {
@@ -9220,6 +9226,7 @@ export function OpalApp() {
                     liveCallStatus: res.call.status,
                     liveCallerUserId: res.call.caller_user_id,
                     liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
                   });
                   void refreshCallLog();
                 } catch (err) {
@@ -10976,6 +10983,7 @@ export function OpalApp() {
           speakerOn={callSpeakerOn}
           hasLiveCall={!!callSurface.liveCallId}
           assistCallId={callSurface.liveCallId}
+          plan={callSurface.liveNextPlan ?? null}
           assistBearer={session?.access_token}
           onDecline={declineLiveCall}
           onAnswer={answerLiveCall}
@@ -11191,6 +11199,7 @@ export function OpalApp() {
                     liveCallStatus: res.call.status,
                     liveCallerUserId: res.call.caller_user_id,
                     liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
                   });
                 } catch {
                   setCallsGateNote(
@@ -11306,6 +11315,7 @@ export function OpalApp() {
                   liveCallStatus: res.call.status,
                   liveCallerUserId: res.call.caller_user_id,
                   liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
                 });
               } catch {
                 setCallsGateNote(
@@ -11340,6 +11350,7 @@ export function OpalApp() {
                   liveCallStatus: res.call.status,
                   liveCallerUserId: res.call.caller_user_id,
                   liveCalleeUserId: res.call.callee_user_id,
+                  liveNextPlan: res.call.next_plan ?? null,
                 });
               } catch {
                 setCallsGateNote(

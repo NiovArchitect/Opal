@@ -19883,6 +19883,170 @@ button.alignment-choice:focus-visible,
   line-height: 1.45;
 }
 
+/* Repair #19 polish, Cluster F (P10b) - the ORBIT TRACE (draft rule
+   AR-F7). A light travels the connected surface's border for
+   SUSTAINED live states only. The runner is a conic segment clipped
+   to a 2px ring by the mask ring trick (same construction as the
+   FireFrame ring); it rotates via the registered --orbit-trace-angle
+   so the travel is compositor-only. QUIET caps: ring at ambient
+   strength, glow <= 10px at <= 45%, circuits 12s (live) / 9s
+   (graphing) - both far above the 2s loop floor. Live carries the
+   canon happening cyan; graphing carries the opal fire gradient.
+   The component renders nothing when no state is true, so the
+   trace exits the moment the state ends. */
+@property --orbit-trace-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.orbit-trace {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  overflow: hidden;
+}
+.orbit-trace-runner {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--orbit-trace-angle),
+    transparent 0deg,
+    transparent 268deg,
+    color-mix(in srgb, var(--orb-indicator-happening) 55%, transparent) 322deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: orbit-trace-travel-live 12s linear infinite;
+}
+.orbit-trace[data-orbit-trace-state="graphing"] .orbit-trace-runner {
+  background: conic-gradient(
+    from var(--orbit-trace-angle),
+    transparent 0deg,
+    transparent 252deg,
+    var(--orb-fire-violet) 288deg,
+    var(--orb-fire-cyan) 322deg,
+    var(--orb-point-light) 344deg,
+    transparent 360deg
+  );
+  filter: drop-shadow(0 0 6px rgba(125, 77, 206, 0.35));
+  animation-name: orbit-trace-travel-graphing;
+  animation-duration: 9s;
+}
+@keyframes orbit-trace-travel-live {
+  to {
+    --orbit-trace-angle: 360deg;
+  }
+}
+@keyframes orbit-trace-travel-graphing {
+  to {
+    --orbit-trace-angle: 360deg;
+  }
+}
+.orbit-trace[data-orbit-trace-paused="true"] .orbit-trace-runner {
+  animation-play-state: paused;
+}
+/* Reduced-motion parity (AR-00.6): the travel stops; a steady ruled
+   border in the same state color carries the same meaning -
+   solid cyan rule for live presence, fire-gradient rule for
+   graphing. Movement is lost, information is not. */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-trace-runner {
+    animation: none;
+    background: none;
+    border: 2px solid color-mix(in srgb, var(--orb-indicator-happening) 48%, transparent);
+  }
+  .orbit-trace[data-orbit-trace-state="graphing"] .orbit-trace-runner {
+    background: none;
+    border: 2px solid transparent;
+    border-image: var(--orb-fire-gradient) 1;
+    filter: none;
+  }
+}
+
+/* Cluster F (P10a) - plan-in-context: one quiet line under the
+   orbit, recessive by design. The plan fact is verbatim from the
+   live call projection; the state edge is its only color, from
+   the canon indicator family via data-plan-state. */
+.live-call-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 8px;
+  max-width: 320px;
+  margin: 14px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 247, 250, 0.09);
+  border-left: 3px solid color-mix(in srgb, var(--orb-indicator-forming) 55%, transparent);
+  background: rgba(244, 247, 250, 0.045);
+  font-size: 13px;
+}
+.live-call-plan[data-plan-state="action"] { border-left-color: color-mix(in srgb, var(--orb-indicator-action) 55%, transparent); }
+.live-call-plan[data-plan-state="ready"] { border-left-color: color-mix(in srgb, var(--orb-indicator-ready) 55%, transparent); }
+.live-call-plan[data-plan-state="happening"] { border-left-color: color-mix(in srgb, var(--orb-indicator-happening) 55%, transparent); }
+.live-call-plan[data-plan-state="past"] { border-left-color: rgba(244, 247, 250, 0.3); }
+.live-call-plan-kicker {
+  color: rgba(244, 247, 250, 0.55);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.live-call-plan-title { font-weight: 650; }
+.live-call-plan-when,
+.live-call-plan-where { color: rgba(244, 247, 250, 0.72); }
+.live-call-plan-state { color: rgba(244, 247, 250, 0.85); }
+
+/* Cluster F (P10a) - participant states: quiet rows, state words
+   in the indicator language. The dot is a state register, never an
+   animation: speaking is solid spectral, muted is a hollow ring
+   (the same held shape as the paused graphing light), on-call dim. */
+.call-participants {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0 0;
+}
+.call-participant {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+.call-participant-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(244, 247, 250, 0.3);
+  box-sizing: border-box;
+}
+.call-participant-dot[data-participant-tone="speaking"] {
+  background: #9ff3ea;
+  box-shadow: 0 0 8px rgba(159, 243, 234, 0.45);
+}
+.call-participant-dot[data-participant-tone="muted"] {
+  background: transparent;
+  border: 2px solid rgba(244, 247, 250, 0.65);
+}
+.call-participant-name { color: rgba(244, 247, 250, 0.9); }
+.call-participant-state { color: rgba(244, 247, 250, 0.62); }
+
+.live-call-video-truth {
+  margin: 12px 0 0;
+  max-width: 300px;
+  color: rgba(244, 247, 250, 0.6);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
 @media (min-width: 840px) {
   .live-call {
     align-items: center;
