@@ -51,6 +51,13 @@ async function flush() {
     await new Promise((r) => setTimeout(r, 0));
   });
 }
+
+function openCardMenu(cardTestIdEl: Element) {
+  act(() => {
+    cardTestIdEl.dispatchEvent(new window.MouseEvent("contextmenu", { bubbles: true }));
+  });
+}
+
 function setInput(el: HTMLInputElement, value: string) {
   act(() => {
     const setter = Object.getOwnPropertyDescriptor(
@@ -187,9 +194,20 @@ describe("R19 private gate", () => {
     expect(document.body.textContent).toContain("Secret anniversary plan");
   });
 
-  it("Make private / Make visible run the real handler with the flag", async () => {
+  it("Make private / Make public live ONLY in the long-press card menu and run the real handler", async () => {
     const events = gateEvents(true);
     await render(<C2Graphs projection={projection()} events={events} />);
+    // A1 pin: no always-visible make-private control on any card.
+    expect(document.querySelector('[data-testid="c2-graph-make-private"]')).toBeNull();
+    expect(document.querySelector('[data-testid="card-context-menu"]')).toBeNull();
+
+    // Long-press pattern (context-menu event) opens the menu on the card.
+    const readyCard = Array.from(document.querySelectorAll('[data-testid="c2-plan-card"]')).find((c) =>
+      c.textContent?.includes("Dinner at Juniper"),
+    )!;
+    openCardMenu(readyCard);
+    await flush();
+    expect(document.querySelector('[data-testid="card-context-menu"]')).not.toBeNull();
     click(document.querySelector('[data-testid="c2-graph-make-private"]')!);
     await flush();
     expect(events.setPlanPrivate).toHaveBeenCalledWith("p-ready", true);
@@ -198,7 +216,16 @@ describe("R19 private gate", () => {
     setInput(input, "2468");
     click(document.querySelector('[data-testid="c2-private-unlock"]')!);
     await flush();
-    click(document.querySelector('[data-testid="c2-graph-make-visible"]')!);
+    // Inside the vault the reverse action is also menu-only.
+    expect(document.querySelector('[data-testid="c2-graph-make-visible"]')).toBeNull();
+    const secretCard = Array.from(document.querySelectorAll('[data-testid="c2-plan-card"]')).find((c) =>
+      c.textContent?.includes("Secret anniversary plan"),
+    )!;
+    openCardMenu(secretCard);
+    await flush();
+    const makePublic = document.querySelector('[data-testid="c2-graph-make-visible"]')!;
+    expect(makePublic.textContent).toContain("Make public");
+    click(makePublic);
     await flush();
     expect(events.setPlanPrivate).toHaveBeenCalledWith("p-secret", false);
   });
