@@ -238,8 +238,6 @@ defmodule OpalCoreWeb.CallController do
   defp assist_error(conn, :invalid), do: error(conn, 422, "invalid", "Transcript segment is incomplete")
   defp assist_error(conn, reason), do: error(conn, 422, "assist_failed", to_string(reason))
 
-  defp public(s), do: public(s, nil)
-
   # Repair #19 polish (Cluster F, P10a): the LIVE call projection also
   # carries the call's plan-in-context - the ONE DIR-1 NextPlan fact
   # for this call's conversation (or, without a conversation, for the
