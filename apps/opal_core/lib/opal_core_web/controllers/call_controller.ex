@@ -15,7 +15,7 @@ defmodule OpalCoreWeb.CallController do
     user_id = conn.assigns.current_user_id
 
     case Calls.mark_media_connected(id, user_id) do
-      {:ok, session} -> json(conn, %{"call" => public(session)})
+      {:ok, session} -> json(conn, %{"call" => public(session, user_id)})
       {:error, :not_found} -> error(conn, 404, "not_found", "Call not found")
       {:error, :forbidden} -> error(conn, 403, "forbidden", "Not a participant")
       {:error, :invalid_state} -> error(conn, 409, "invalid_state", "Call is not answered")
@@ -38,7 +38,7 @@ defmodule OpalCoreWeb.CallController do
       {:ok, session} ->
         conn
         |> put_status(201)
-        |> json(%{"call" => public(session)})
+        |> json(%{"call" => public(session, user_id)})
 
       {:error, :invalid_callee} ->
         error(conn, 422, "invalid_callee", "Choose someone to call")
@@ -73,7 +73,7 @@ defmodule OpalCoreWeb.CallController do
     user_id = conn.assigns.current_user_id
 
     case Calls.get(id, user_id) do
-      {:ok, session} -> json(conn, %{"call" => public(session)})
+      {:ok, session} -> json(conn, %{"call" => public(session, user_id)})
       {:error, :not_found} -> error(conn, 404, "not_found", "Call not found")
       {:error, :forbidden} -> error(conn, 403, "forbidden", "Not a participant")
     end
@@ -146,7 +146,7 @@ defmodule OpalCoreWeb.CallController do
     reason = params["reason"] || "hangup"
 
     case Calls.end_call_session(id, user_id, reason) do
-      {:ok, session} -> json(conn, %{"call" => public(session)})
+      {:ok, session} -> json(conn, %{"call" => public(session, user_id)})
       {:error, :not_found} -> error(conn, 404, "not_found", "Call not found")
       {:error, :forbidden} -> error(conn, 403, "forbidden", "Not a participant")
       {:error, :invalid_state} -> error(conn, 409, "invalid_state", "Call can’t be ended from this state")
@@ -158,7 +158,7 @@ defmodule OpalCoreWeb.CallController do
     user_id = conn.assigns.current_user_id
 
     case fun.(id, user_id) do
-      {:ok, session} -> json(conn, %{"call" => public(session)})
+      {:ok, session} -> json(conn, %{"call" => public(session, user_id)})
       {:error, :not_found} -> error(conn, 404, "not_found", "Call not found")
       {:error, :forbidden} -> error(conn, 403, "forbidden", "Not allowed")
       {:error, :invalid_state} -> error(conn, 409, "invalid_state", "Call state doesn’t allow that")
@@ -238,7 +238,16 @@ defmodule OpalCoreWeb.CallController do
   defp assist_error(conn, :invalid), do: error(conn, 422, "invalid", "Transcript segment is incomplete")
   defp assist_error(conn, reason), do: error(conn, 422, "assist_failed", to_string(reason))
 
-  defp public(s) do
+  defp public(s), do: public(s, nil)
+
+  # Repair #19 polish (Cluster F, P10a): the LIVE call projection also
+  # carries the call's plan-in-context - the ONE DIR-1 NextPlan fact
+  # for this call's conversation (or, without a conversation, for the
+  # peer), derived in the service layer exactly as the call-log rows
+  # derive it. The connected surface renders it verbatim; it never
+  # re-derives shared / upcoming / next itself. Absent (nil viewer, or
+  # no shared upcoming plan) renders as null and no element appears.
+  defp public(s, viewer_id) do
     %{
       "id" => s.id,
       "caller_user_id" => s.caller_user_id,
@@ -251,8 +260,27 @@ defmodule OpalCoreWeb.CallController do
       "answered_at" => s.answered_at,
       "ended_at" => s.ended_at,
       "media_connected_at" => s.media_connected_at,
-      "history_label" => Calls.history_label(s)
+      "history_label" => Calls.history_label(s),
+      "next_plan" => live_next_plan(s, viewer_id)
     }
+  end
+
+  defp live_next_plan(_s, viewer_id) when not is_binary(viewer_id), do: nil
+
+  defp live_next_plan(s, viewer_id) do
+    cond do
+      is_binary(s.conversation_id) and s.conversation_id != "" ->
+        OpalCore.SocialFlow.NextPlan.for_conversation(viewer_id, s.conversation_id)
+
+      s.caller_user_id == viewer_id and is_binary(s.callee_user_id) ->
+        OpalCore.SocialFlow.NextPlan.for_peer(viewer_id, s.callee_user_id)
+
+      s.callee_user_id == viewer_id and is_binary(s.caller_user_id) ->
+        OpalCore.SocialFlow.NextPlan.for_peer(viewer_id, s.caller_user_id)
+
+      true ->
+        nil
+    end
   end
 
   defp error(conn, status, code, message) do
