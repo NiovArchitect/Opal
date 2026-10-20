@@ -25,6 +25,7 @@
  */
 import React, { useEffect, useRef } from "react";
 import { PlanStatePillC2 } from "./PlanCardC2";
+import { TopLayer } from "../opalUi/TopLayer";
 
 export type CardMenuItem = {
   id: string;
@@ -158,7 +159,19 @@ export function CardContextMenu({
 
   const showState = Boolean(stateFamily && stateLabel);
 
+  // R20A CF (R-4): the menu renders through the ONE TopLayer portal
+  // (sheet band, document.body) like every other sheet-band surface
+  // in the shell - never inline inside the invoking surface's
+  // scrolling subtree. Inline, the scrim's position:fixed resolved
+  // against its scroll-container ancestors (the Graphs .c2s-scroll
+  // subtree for the list menu, the detail's scrolling destination
+  // for the detail menu), so in the founder's long-press frames the
+  // overlay plane - and the dock's relationship to it - displaced
+  // instead of staying viewport-anchored. The panel's markup and
+  // classes are unchanged: the founder-loved card design is
+  // protected exactly; only the mount point moves.
   return (
+    <TopLayer band="sheet">
     <div className="c2s-menu-scrim" data-testid="card-context-menu" onClick={onClose}>
       <div
         className="c2s-menu-panel"
@@ -202,5 +215,6 @@ export function CardContextMenu({
         </button>
       </div>
     </div>
+    </TopLayer>
   );
 }

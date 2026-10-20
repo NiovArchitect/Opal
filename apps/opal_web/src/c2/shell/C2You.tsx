@@ -247,9 +247,10 @@ export function C2SettingsSection({
   section: SettingsSectionProjection;
   events: C2YouEvents;
 }) {
-  // A3 / R20 F-9 - Connectors: one connection's
-  // detail is open at a time, behind its row; the row itself carries
-  // only the name and the verbatim status.
+  // R20 F-9 v2 - Connectors: a View row's detail is open one at a
+  // time, behind its row; the row itself carries only the tool's
+  // icon, its name, and its one action (Connect / Disconnect /
+  // View).
   const [openConnectionId, setOpenConnectionId] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -808,13 +809,7 @@ export function C2SettingsSection({
             data-testid="c2-permissions-form"
           >
             <p className="c2s-field-label" id="c2-permissions-level-label">
-              When Opal acts with a tool you connected, how much should it ask first?
-            </p>
-            <p className="c2s-field-reason">
-              In plain words: "Only when I ask" is Always ask. "Balanced"
-              is Ask for some actions - Opal offers, then waits for your
-              say-so. This writes the one real Soul setting; there is no
-              second permissions store behind it.
+              How forward may Opal be?
             </p>
             <div className="c2s-segmented" role="radiogroup" aria-labelledby="c2-permissions-level-label" data-testid="c2-permissions-level">
               {(["minimal", "balanced", "proactive"] as const).map((value) => (
@@ -851,9 +846,6 @@ export function C2SettingsSection({
                 </button>
               ))}
             </div>
-            <p className="c2s-field-reason" data-testid="c2-permissions-level-reason">
-              {SOUL_LEVEL_COPY[soulLevel]?.reason ?? SOUL_LEVEL_COPY.balanced.reason}
-            </p>
           </div>
         ) : null}
         {section.key === "private-graphs" &&
@@ -1008,47 +1000,69 @@ export function C2SettingsSection({
               );
             }
             if (row.kind === "connection") {
-              // DIR-2 + A3 Connections: the row carries ONE idea -
-              // the connection's name, with its status legible at a
-              // glance (the payload's own status_label, verbatim:
-              // DOM == payload). Everything else the payload carries
-              // (what it powers, the status detail, the gate reason,
-              // when it was last checked) lives behind the row, in
-              // the detail panel the tap opens. Presentation only:
-              // no status is re-derived, shortened, or repainted.
+              // R20 F-9 v2 - a tool row is icon + name + ONE action,
+              // nothing else on its face (no status sentence, no
+              // subtitle, no chevron). The action is Connect or
+              // Disconnect when the payload backed this row with a
+              // real flow (hasRealFlow), and View when it did not:
+              // View opens the row's own short detail (what it
+              // powers, its status, what is holding it back, when it
+              // was last checked) - plain lines, no essay, and the
+              // status and gate lines never repeat one sentence
+              // (the builder already drops a gate reason that merely
+              // restates the status detail).
               const open = openConnectionId === row.id;
               const detailId = `connection-detail-${row.id}`;
               return (
                 <div key={row.id} className="c2s-connection">
-                  <button
-                    type="button"
+                  <div
                     className="c2s-row c2s-connection-row"
                     data-testid={`connection-row-${row.id}`}
                     data-connection-status={row.status}
                     data-has-real-flow={row.hasRealFlow ? "1" : undefined}
-                    data-open={open ? "1" : undefined}
-                    aria-expanded={open}
-                    aria-controls={detailId}
-                    aria-label={`${row.title} - ${row.statusLabel}. ${open ? "Hide" : "Show"} details`}
-                    onClick={() =>
-                      setOpenConnectionId(open ? null : row.id)
-                    }
                   >
                     <span className="c2s-connection-icon" aria-hidden>
-                      {row.title.replace(/^Your /, "").slice(0, 1).toUpperCase()}
+                      {row.title.slice(0, 1).toUpperCase()}
                     </span>
                     <span className="c2s-row-main">
                       <span className="c2s-row-title">{row.title}</span>
                     </span>
+                    {/* The payload's own status label stays in the
+                        DOM verbatim (hidden) so the rendered status
+                        can never drift from the payload's. */}
                     <span
-                      className="c2s-row-value c2s-connection-status"
+                      hidden
                       data-testid={`connection-status-${row.id}`}
                     >
                       {row.statusLabel}
                     </span>
-                    <IconChevron />
-                  </button>
-                  {open ? (
+                    {row.action ? (
+                      <button
+                        type="button"
+                        className="c2s-btn-quiet c2s-connection-action"
+                        data-testid={`connection-action-${row.id}`}
+                        data-action-id={row.action.id}
+                        onClick={() => events.runAction(section.key, row.action!.id)}
+                      >
+                        {row.action.label}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="c2s-btn-quiet c2s-connection-action"
+                        data-testid={`connection-action-${row.id}`}
+                        data-action-id="view"
+                        aria-expanded={open}
+                        aria-controls={detailId}
+                        onClick={() =>
+                          setOpenConnectionId(open ? null : row.id)
+                        }
+                      >
+                        View
+                      </button>
+                    )}
+                  </div>
+                  {open && !row.action ? (
                     <div
                       className="c2s-connection-detail"
                       id={detailId}
@@ -1071,17 +1085,6 @@ export function C2SettingsSection({
                         </div>
                       ) : null}
                       <p className="c2s-connection-checked">{row.lastVerifiedLabel}</p>
-                      {row.action ? (
-                        <button
-                          type="button"
-                          className="c2s-btn-quiet"
-                          data-testid={`connection-action-${row.id}`}
-                          data-action-id={row.action.id}
-                          onClick={() => events.runAction(section.key, row.action!.id)}
-                        >
-                          {row.action.label}
-                        </button>
-                      ) : null}
                     </div>
                   ) : null}
                 </div>

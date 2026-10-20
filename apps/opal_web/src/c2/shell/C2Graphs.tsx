@@ -9,7 +9,7 @@
  *
  * Every control performs its operation or does not render: New opens
  * the create sheet (real create intents), a forming card's completion
- * action opens detail on the missing slot, Drop it asks once in a
+ * action opens detail on the missing slot, Let it go asks once in a
  * sheet and then runs the real plan cancel through the API.
  */
 import React, { useEffect, useMemo, useState } from "react";
@@ -180,7 +180,7 @@ export function C2Graphs({
     if (menu.droppable) {
       items.push({
         id: "drop",
-        label: "Drop it",
+        label: "Let it go",
         testId: "c2-graph-menu-drop",
         onSelect: () => setDropTarget(menu.id),
       });
@@ -536,7 +536,7 @@ export function C2Graphs({
                             data-testid="c2-graph-drop"
                             onClick={() => setDropTarget(card.id)}
                           >
-                            Drop it
+                            Let it go
                           </button>
                         </div>
                       ) : null}
@@ -1048,7 +1048,7 @@ export function C2Graphs({
                 disabled={dropBusy}
                 onClick={() => void confirmDrop()}
               >
-                Drop it
+                Let it go
               </button>
               <button type="button" className="c2s-btn-text" onClick={closeDropSheet}>
                 Keep it

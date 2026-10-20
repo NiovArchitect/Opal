@@ -245,7 +245,7 @@ export function PlanCardC2({
         >
           <p className="c2-plan-limbo-copy">{limbo.copy}</p>
           {limbo.remainingWindowText ? (
-            <p className="c2-plan-limbo-copy" data-testid="c2-plan-limbo-window">
+            <p className="c2-plan-limbo-window" data-testid="c2-plan-limbo-window">
               {limbo.remainingWindowText}
             </p>
           ) : null}

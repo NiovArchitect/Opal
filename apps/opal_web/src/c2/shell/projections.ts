@@ -304,11 +304,15 @@ export type SettingsRowProjection =
   | { kind: "action"; id: string; title: string; subtitle?: string }
   | { kind: "note"; id: string; text: string }
   /**
-   * Repair #18 DIR-2 / R20 F-9 — one Connectors row, rendered VERBATIM from
-   * the server's settings/connections projection (SP-3: the surface
-   * renders the output; it never re-derives a status). `status` and
-   * `statusLabel` are the payload's own values, so DOM status equals
-   * payload status by construction.
+   * Repair #18 DIR-2 / R20 F-9 v2 — one Connectors tool row, built
+   * VERBATIM from the server's settings/connections projection
+   * (SP-3: the surface renders the output; it never re-derives a
+   * status). `status` and `statusLabel` are the payload's own
+   * values, so DOM status equals payload status by construction.
+   * The row's face is icon + name + one action; `subtitle`,
+   * `detail`, `gateReason`, and `lastVerifiedLabel` are the short
+   * lines behind a View action, and the builder drops a gateReason
+   * that merely restates `detail`.
    */
   | {
       kind: "connection";

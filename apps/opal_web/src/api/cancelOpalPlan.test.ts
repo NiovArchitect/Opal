@@ -85,7 +85,7 @@ describe("cancelOpalPlan", () => {
     )) as { code?: string };
     expect(err.code).toBe("not_authorized");
     expect(opalPlanCancelError(err)).toBe(
-      "Only the plan's lead can drop this plan. Ask them to drop it, or keep it for now.",
+      "Only the plan's lead can let this plan go. Ask them to let it go, or keep it for now.",
     );
   });
 });

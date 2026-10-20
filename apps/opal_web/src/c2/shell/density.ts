@@ -274,6 +274,21 @@ export function settledInvitationForPlan(plan: OpalPlanContract): SettledInvitat
  * limbo ends (the record expires, or the viewer answers no), the
  * invitation SETTLES - the settled line above is exactly cooling's
  * end-state, so a user learns one cooling language, not two.
+ *
+ * R20A CF (R-6a) WINDOW LAW: cooling/limbo are WINDOW states, not
+ * plan states. A merely-pending plan - however close its start -
+ * is warm, never cooling and never limbo, unless the backend's one
+ * etiquette projection says a real answer window exists for it:
+ * either the limbo segment itself (etiquette.limbo.state "limbo",
+ * the backend's past-grace ruling) or a set, still-available
+ * response window (etiquette.window). Before this gate the
+ * derivation stamped "cooling" on every pending plan within 7
+ * days of its start and "limbo" on every pending plan past its
+ * start, window or no window - plan state alone wearing the
+ * cooling treatment's vocabulary. The stamp is data today (no
+ * surface renders it), but the vocabulary is the treatment's, so
+ * the gate belongs here, at the derivation, where a future render
+ * would inherit it.
  */
 export type InvitationTemperature = "warm" | "cooling" | "limbo" | "settled";
 
@@ -284,10 +299,15 @@ export function invitationTemperature(
   if (settledKindForPlan(plan)) return "settled";
   const viewer = (plan.viewer_state ?? "").toLowerCase();
   if (viewer !== "pending") return null; // not an open invitation to this viewer
+  const etiquette = plan.etiquette ?? null;
+  if (etiquette?.limbo?.state === "limbo") return "limbo";
+  const windowOpen = Boolean(
+    etiquette?.window?.set && etiquette.window.available !== false,
+  );
+  if (!windowOpen) return "warm"; // pending but unwindowed: no cooling, ever
   const start = parsePlanDate(plan.start_at);
   if (!start) return "warm";
   const d = calendarDayDiff(now, start);
-  if (d < 0) return "limbo"; // past its start, still unanswered - past-grace
   if (d <= 7) return "cooling";
   return "warm";
 }

@@ -230,12 +230,77 @@ describe("heavy persona - density under the fullest graph", () => {
 describe("cooling is one physics with limbo (P14 coordination)", () => {
   const inv = (days: number, extra: Partial<OpalPlanContract> = {}) =>
     plan({ id: "inv", viewer_state: "pending", start_at: at(days).toISOString(), ...extra });
-  it("warm -> cooling -> limbo -> settled along one invitation's life", () => {
-    expect(invitationTemperature(inv(20), NOW)).toBe("warm");
-    expect(invitationTemperature(inv(3), NOW)).toBe("cooling");
-    expect(invitationTemperature(inv(-1), NOW)).toBe("limbo");
+  // R20A CF (R-6a): cooling/limbo exist only inside a real answer
+  // window from the etiquette projection - a set, available window
+  // for cooling; the backend's own limbo state for limbo.
+  const windowed = {
+    etiquette: {
+      plan_id: "inv",
+      viewer_role: "recipient",
+      stage: "awaiting_response",
+      limbo: null,
+      window: {
+        set: true,
+        closes_at: null,
+        seconds: null,
+        available: true,
+        unavailable_reason: null,
+      },
+    },
+  } as Partial<OpalPlanContract>;
+  const inLimbo = {
+    etiquette: {
+      plan_id: "inv",
+      viewer_role: "recipient",
+      stage: "limbo",
+      limbo: {
+        state: "limbo",
+        treatment: "cooling",
+        pattern_channel: "cooling-lines",
+        window_fraction_remaining: 0.2,
+        copy: "Waiting.",
+      },
+      window: {
+        set: true,
+        closes_at: null,
+        seconds: null,
+        available: true,
+        unavailable_reason: null,
+      },
+    },
+  } as Partial<OpalPlanContract>;
+  it("warm -> cooling -> limbo -> settled along one WINDOWED invitation's life", () => {
+    expect(invitationTemperature(inv(20, windowed), NOW)).toBe("warm");
+    expect(invitationTemperature(inv(3, windowed), NOW)).toBe("cooling");
+    expect(invitationTemperature(inv(-1, inLimbo), NOW)).toBe("limbo");
     expect(invitationTemperature(inv(3, { viewer_state: "declined" }), NOW)).toBe("settled");
     expect(invitationTemperature(inv(3, { status: "expired" }), NOW)).toBe("settled");
+  });
+  it("R-6a negative: pending but UNWINDOWED never cools and never enters limbo", () => {
+    // No etiquette fact at all: near start and past start alike.
+    expect(invitationTemperature(inv(3), NOW)).toBe("warm");
+    expect(invitationTemperature(inv(-1), NOW)).toBe("warm");
+    // A window that was never set is not a window.
+    expect(
+      invitationTemperature(
+        inv(3, {
+          etiquette: {
+            plan_id: "inv",
+            viewer_role: "recipient",
+            stage: "awaiting_response",
+            limbo: null,
+            window: {
+              set: false,
+              closes_at: null,
+              seconds: null,
+              available: false,
+              unavailable_reason: "no_window",
+            },
+          },
+        } as Partial<OpalPlanContract>),
+        NOW,
+      ),
+    ).toBe("warm");
   });
   it("the settled end-state is the same line the settle derivation writes", () => {
     const list = graphListFromPlans([inv(-1, { title: "Old invite" })], NOW);

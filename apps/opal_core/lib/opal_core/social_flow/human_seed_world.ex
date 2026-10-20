@@ -187,6 +187,7 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
     )
 
     calls = seed_calls!(viewer_user_id, peers)
+    maya_direct_plan = ensure_maya_direct_plan!(viewer_user_id, peers)
     stories = seed_stories!(viewer_user_id, peers)
 
     # W21 (ABS-1, contacts leg): the anchor-proposal detection
@@ -235,6 +236,7 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
         "Marcus Lee"
       ],
       "plans" => plans,
+      "maya_direct_plan" => maya_direct_plan,
       "calls" => calls,
       "stories" => stories,
       "opal_conversations" => opal_conversations,
@@ -509,6 +511,68 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
     ])
 
     plan_summary(plan, "past")
+  end
+
+  # V-1 identity coherence (Repair #20 amendment): the Maya direct
+  # thread's missed-call open question ("Can we talk tonight about
+  # Saturday?") folds into a plan at read time. Born from the fold
+  # with no locked activity, its fallback title names the OTHER
+  # participant from the question-owner's seat - "Plan with Ethan
+  # Walker" - which the viewer then sees as a plan with THEMSELVES.
+  # A capture world must be identity-coherent: the greeting names
+  # the viewer, and no card may name the viewer as their own
+  # counterparty. So the world carries the plan explicitly, titled
+  # by its subject (Maya's own words), lineage-stamped the way the
+  # Juniper seed stamps its plan, and any fold-born people-titled
+  # row already in the conversation is retitled onto it.
+  defp ensure_maya_direct_plan!(viewer_id, peers) do
+    {:ok, direct} = Messages.ensure_direct_conversation(viewer_id, peers.maya)
+    conv = direct.conversation_id
+    title = "Talk tonight about Saturday"
+
+    fold_born =
+      from(p in SharedPlan,
+        where:
+          p.conversation_id == ^conv and p.status in ^~w(tentative agreed changed) and
+            like(p.title, "Plan with %"),
+        order_by: [desc: p.inserted_at],
+        limit: 1
+      )
+      |> Repo.one()
+
+    plan =
+      case fold_born do
+        %SharedPlan{} = existing ->
+          alignment =
+            (existing.alignment || %{"schema_version" => 1})
+            |> Map.put("lineage_id", existing.id)
+
+          {:ok, retitled} =
+            existing
+            |> SharedPlan.changeset(%{title: title, alignment: alignment})
+            |> Repo.update()
+
+          retitled
+
+        nil ->
+          ensured =
+            ensure_plan!(conv, %{
+              title: title,
+              status: "tentative",
+              location: nil,
+              time_label: "tomorrow after 10 PM",
+              created_by_user_id: peers.maya
+            })
+
+          ensure_participants!(ensured, [
+            {peers.maya, "lead", "accepted"},
+            {viewer_id, "participant", "pending"}
+          ])
+
+          ensured
+      end
+
+    plan_summary(plan, "action")
   end
 
   # --- calls -------------------------------------------------------------

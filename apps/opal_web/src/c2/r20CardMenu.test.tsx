@@ -80,7 +80,7 @@ describe("R20 F-3 - the long-press menu is a finished card carrying the plan's s
         stateLabel="Action needed"
       />,
     );
-    const panel = host!.querySelector(".c2s-menu-panel")!;
+    const panel = document.body.querySelector(".c2s-menu-panel")!;
     expect(panel).not.toBeNull();
     expect(panel.getAttribute("data-plan-state")).toBe("action");
     // AR-03: the state is named, never color alone.
@@ -103,7 +103,7 @@ describe("R20 F-3 - the long-press menu is a finished card carrying the plan's s
 
   it("without a state the menu claims none: no data-plan-state, no pill", async () => {
     await render(<CardContextMenu title="Some card" items={items(() => {})} onClose={() => {}} />);
-    const panel = host!.querySelector(".c2s-menu-panel")!;
+    const panel = document.body.querySelector(".c2s-menu-panel")!;
     expect(panel.hasAttribute("data-plan-state")).toBe(false);
     expect(panel.querySelector('[data-testid="c2-plan-state-pill"]')).toBeNull();
   });
@@ -120,10 +120,10 @@ describe("R20 F-3 - the long-press menu is a finished card carrying the plan's s
         stateLabel="Ready"
       />,
     );
-    await click(host!.querySelector('[data-testid="menu-private"]')!);
+    await click(document.body.querySelector('[data-testid="menu-private"]')!);
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
-    await click(host!.querySelector('[data-testid="card-menu-cancel"]')!);
+    await click(document.body.querySelector('[data-testid="card-menu-cancel"]')!);
     expect(onClose).toHaveBeenCalledTimes(2);
     expect(onSelect).toHaveBeenCalledTimes(1);
   });

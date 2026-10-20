@@ -123,9 +123,20 @@
 
   /* ---------- dock (section 9) ---------- */
   .c2s-dock {
-    position: absolute;
+    /* R20A CF (R-4): viewport-anchored, never layout-anchored. The
+     * pad was position:absolute against .c2s-column, so its anchor
+     * was a layout box inside the shell's content plane - when a
+     * menu or sheet opened (the long-press frames), the pad read
+     * displaced from the bottom of the screen. Fixed + the column's
+     * own max width, centered, keeps the exact phone geometry
+     * (12px gutters inside the 430px column) while the anchor
+     * becomes the viewport itself in every state: menus, sheets,
+     * detail open. The wide layout still retires it (sidebar). */
+    position: fixed;
     left: 12px;
     right: 12px;
+    width: min(calc(100% - 24px), calc(var(--content-max) - 24px));
+    margin-inline: auto;
     bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     height: var(--dock-h);
     border-radius: var(--radius-sheet);
@@ -1051,6 +1062,24 @@
     color: var(--ink-3);
     margin: 0 0 var(--space-2);
   }
+  /* R20A CF (R-5): the spine item's state marker - plain words
+   * (phase - state) in a quiet chip beside the item's label,
+   * replacing the removed bare arc dots. Meaning is text, never
+   * color or position alone. */
+  .c2s-spine-marker {
+    display: inline-block;
+    vertical-align: 2px;
+    margin-left: var(--space-2);
+    padding: 1px 8px;
+    border: 1px solid var(--line-1);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font: var(--type-caption);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
   .c2s-who-row {
     display: flex;
     align-items: center;
@@ -1151,8 +1180,10 @@
     font: var(--type-callout);
     color: var(--ink-2);
   }
-  /* A3 Connections redesign: one quiet row per connection (name +
-   * verbatim status + chevron); the detail lives behind the row. */
+  /* R20 F-9 v2 Connectors: one quiet row per tool - orbit icon,
+   * name, and one action (Connect / Disconnect / View) - and
+   * nothing else on the row's face. A View row's short detail
+   * lives behind it. */
   .c2s-connection {
     border-bottom: 1px solid var(--line-1);
   }
@@ -1162,12 +1193,8 @@
   .c2s-connection .c2s-row {
     border-bottom: 0;
   }
-  .c2s-connection-row > svg {
+  .c2s-connection-action {
     flex: 0 0 auto;
-    color: var(--ink-3);
-  }
-  .c2s-connection-status {
-    text-align: right;
   }
   /* R20 F-9 + DESIGN COMPASS (founder, 2026-10-20): the tool's mark
    * on a Connectors row is an ORBIT mark, not a generic avatar disc -
@@ -1940,20 +1967,63 @@
     display: flex;
     flex-direction: column;
   }
-  /* Repair #19 polish (P7): the ST-H voice-note control renders
-     inside the thread's composer bar (ThreadShell's accessory
-     slot). There it is one quiet row directly above the input
-     pill: its record/review/send states lay out inline and wrap
-     on narrow widths; the recording line takes no vertical
-     margin of its own. */
-  .c1-composer-bar .c2s-voice-note {
+  /* Repair #20A settled composer model (supersedes the P7
+     above-the-pill row): the ST-H voice-note control is the
+     tenant of the thread composer's in-pill action slot. Its
+     root is the anchor for everything it floats: the review
+     pop-up and the error note position against it, above the
+     pill, right-aligned to the slot - the one sanctioned float,
+     because it is anchored to a proper in-composer control.
+     The recording state stays inline in the slot (in the bar):
+     one nowrap line plus the stop circle, no wrap, so the
+     pill's height - the bar's footprint - never changes. */
+  .c2s-voice-note {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 8px;
   }
-  .c1-composer-bar .c2s-voice-note .c2s-card-line {
+  .c2s-voice-note .c2s-card-line {
     margin: 0;
+  }
+  .c2s-voice-recording-line {
+    white-space: nowrap;
+  }
+  .c2s-voice-review {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    z-index: var(--layer-raised);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: max-content;
+    max-width: min(78vw, 300px);
+    padding: 12px;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line-2);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-card);
+  }
+  .c2s-voice-review audio {
+    max-width: 240px;
+  }
+  .c2s-voice-review .c2s-error-line {
+    margin: 0;
+  }
+  .c2s-voice-error {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    z-index: var(--layer-raised);
+    width: max-content;
+    max-width: min(78vw, 300px);
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--line-2);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-card);
   }
   /* R20 F-2: the voice-note control is composer FURNITURE - a
      circular icon button in the composer's own affordance language

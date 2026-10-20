@@ -505,6 +505,11 @@ export function LibraryDestination({
  * ST-H composer control: record (visibly active), review, send.
  * Renders only where the platform can record (MediaRecorder present);
  * where it cannot, the control is absent - never a dead button.
+ * R20A settled composer model: this control is the tenant of the
+ * thread composer's in-pill action slot (ThreadShell's
+ * composerAction) - the mic sits inside the composer bar, the
+ * recording state renders inside the bar, and the review state is
+ * a pop-up anchored to this control inside the composer.
  */
 export function VoiceNoteControl({
   conversationId,
@@ -516,6 +521,10 @@ export function VoiceNoteControl({
   onSent: () => void;
 }) {
   const [phase, setPhase] = useState<"idle" | "recording" | "review" | "sending">("idle");
+  // R20A: the review state is a pop-up anchored to this control
+  // (which lives inside the composer pill's action slot); it opens
+  // the moment a recording is ready and toggles from the anchor.
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [error, setError] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -539,6 +548,7 @@ export function VoiceNoteControl({
       rec.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
         setBlob(new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" }));
+        setReviewOpen(true);
         setPhase("review");
       };
       startedRef.current = Date.now();
@@ -574,19 +584,25 @@ export function VoiceNoteControl({
         bearer,
       );
       setBlob(null);
+      setReviewOpen(false);
       setPhase("idle");
       onSent();
     } catch {
+      setReviewOpen(true);
       setPhase("review");
       setError("That voice note did not send. Try again.");
     }
   };
 
   return (
-    <div className="c2s-voice-note" data-testid="c2-voice-note-control">
+    <div className="c2s-voice-note" data-testid="c2-voice-note-control" data-phase={phase}>
       {phase === "recording" ? (
         <>
-          <p className="c2s-card-line" data-testid="c2-voice-recording" role="status">
+          {/* R20A: the recording state renders INSIDE the composer
+              bar - this root lives in the composer's action slot,
+              so the status line and the stop control are in-bar
+              furniture, never a row above or outside the pill. */}
+          <p className="c2s-card-line c2s-voice-recording-line" data-testid="c2-voice-recording" role="status">
             Recording - speak now.
           </p>
           <button
@@ -602,26 +618,58 @@ export function VoiceNoteControl({
         </>
       ) : phase === "review" && blob ? (
         <>
-          <audio controls src={URL.createObjectURL(blob)} data-testid="c2-voice-review-player" />
+          {/* R20A: the in-composer anchor for the review pop-up.
+              The pop-up below is positioned against THIS control,
+              inside the composer - it is the one thing allowed to
+              float outside the pill, because it is anchored to a
+              proper in-composer control. */}
           <button
             type="button"
-            className="c2s-voice-action"
-            data-testid="c2-voice-send"
-            onClick={() => void send()}
+            className="c2s-voice-mic c2s-voice-review-anchor"
+            data-testid="c2-voice-review-anchor"
+            aria-label="Voice note ready - review"
+            title="Voice note ready - review"
+            aria-expanded={reviewOpen}
+            aria-haspopup="dialog"
+            onClick={() => setReviewOpen((v) => !v)}
           >
-            Send voice note
+            <VoiceMicIcon />
           </button>
-          <button
-            type="button"
-            className="c2s-voice-action c2s-voice-action-quiet"
-            aria-label="Discard voice note"
-            onClick={() => {
-              setBlob(null);
-              setPhase("idle");
-            }}
-          >
-            Discard
-          </button>
+          {reviewOpen ? (
+            <div
+              className="c2s-voice-review"
+              data-testid="c2-voice-review"
+              role="dialog"
+              aria-label="Review voice note"
+            >
+              <audio controls src={URL.createObjectURL(blob)} data-testid="c2-voice-review-player" />
+              <button
+                type="button"
+                className="c2s-voice-action"
+                data-testid="c2-voice-send"
+                onClick={() => void send()}
+              >
+                Send voice note
+              </button>
+              <button
+                type="button"
+                className="c2s-voice-action c2s-voice-action-quiet"
+                aria-label="Discard voice note"
+                onClick={() => {
+                  setBlob(null);
+                  setReviewOpen(false);
+                  setPhase("idle");
+                }}
+              >
+                Discard
+              </button>
+              {error ? (
+                <p className="c2s-error-line" role="alert">
+                  {error}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </>
       ) : (
         <button
@@ -636,8 +684,8 @@ export function VoiceNoteControl({
           <VoiceMicIcon />
         </button>
       )}
-      {error ? (
-        <p className="c2s-error-line" role="alert">
+      {error && phase !== "review" ? (
+        <p className="c2s-error-line c2s-voice-error" role="alert">
           {error}
         </p>
       ) : null}

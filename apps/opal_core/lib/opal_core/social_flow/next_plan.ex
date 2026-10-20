@@ -104,11 +104,13 @@ defmodule OpalCore.SocialFlow.NextPlan do
 
   def for_peer(_, _, _), do: nil
 
+  @all_statuses ~w(tentative agreed changed cancelled completed expired)
+
   # --- candidate sources -------------------------------------------------
 
-  defp plans_by_conversation(conversation_id) do
+  defp plans_by_conversation(conversation_id, statuses \\ @active_statuses) do
     from(p in SharedPlan,
-      where: p.conversation_id == ^conversation_id and p.status in ^@active_statuses
+      where: p.conversation_id == ^conversation_id and p.status in ^statuses
     )
     |> Repo.all()
   end
@@ -121,7 +123,7 @@ defmodule OpalCore.SocialFlow.NextPlan do
   # - :covers (call-log peer) - the viewer and the peer are both
   #   parties; other parties may also be on the plan, because it is
   #   still a plan the two of them share.
-  defp plans_by_participant_set(viewer_id, party_ids, mode) do
+  defp plans_by_participant_set(viewer_id, party_ids, mode, statuses \\ @active_statuses) do
     wanted = MapSet.new(party_ids)
 
     if MapSet.size(wanted) < 2 do
@@ -135,7 +137,7 @@ defmodule OpalCore.SocialFlow.NextPlan do
         |> Repo.all()
 
       from(p in SharedPlan,
-        where: p.id in ^plan_ids and p.status in ^@active_statuses
+        where: p.id in ^plan_ids and p.status in ^statuses
       )
       |> Repo.all()
       |> Enum.filter(fn plan ->
@@ -194,6 +196,55 @@ defmodule OpalCore.SocialFlow.NextPlan do
 
   def all_for_conversation(_, _, _), do: []
 
+  @doc """
+  Repair #20 amendment (Orbit Projection v2) - this conversation's
+  PAST / SETTLED plan facts, most recent first: the SAME candidate
+  scope (bound to the conversation, or party set exactly the
+  conversation's people), the SAME per-viewer vault filter, and the
+  past rule defined as the exact inverse of this module's upcoming
+  rule - a plan is past when `upcoming?/2` is false for it: a
+  terminal status (cancelled / completed / expired), or an active
+  plan whose time has run out under the L8 rule. Each fact is the
+  same `project/4` output with its state honestly set to "past"
+  and its `completed_at` carried when the record has one. A
+  non-member gets [] - there is no past for them either.
+  """
+  def past_for_conversation(viewer_id, conversation_id, opts \\ [])
+
+  def past_for_conversation(viewer_id, conversation_id, opts)
+      when is_binary(viewer_id) and is_binary(conversation_id) do
+    member_ids = Messages.member_user_ids(conversation_id)
+
+    if viewer_id in member_ids do
+      now = Keyword.get(opts, :now) || DateTime.utc_now()
+
+      candidates =
+        plans_by_conversation(conversation_id, @all_statuses) ++
+          plans_by_participant_set(viewer_id, member_ids, :exact, @all_statuses)
+
+      candidates
+      |> Enum.uniq_by(& &1.id)
+      |> Enum.filter(fn plan ->
+        not OpalCore.SocialFlow.PlanPrivacyMark.marked?(viewer_id, plan.id)
+      end)
+      |> Enum.reject(&upcoming?(&1, now))
+      |> Enum.sort_by(fn plan ->
+        moment = plan.start_at || plan.updated_at
+        -DateTime.to_unix(moment, :microsecond)
+      end)
+      |> Enum.map(fn plan ->
+        plan
+        |> project(viewer_id, now, opts)
+        |> Map.put("state", "past")
+        |> Map.put("completed_at", dt(plan.completed_at))
+      end)
+    else
+      []
+    end
+  end
+
+  def past_for_conversation(_, _, _), do: []
+
   # --- the one pick ------------------------------------------------------
 
   defp pick_next(candidates, viewer_id, now, opts \\ []) do
@@ -222,18 +273,16 @@ defmodule OpalCore.SocialFlow.NextPlan do
       not OpalCore.SocialFlow.PlanPrivacyMark.marked?(viewer_id, plan.id)
     end)
     |> Enum.filter(&upcoming?(&1, now))
-    |> Enum.sort_by(
-      fn plan ->
-        {
-          if(match?(%DateTime{}, plan.start_at), do: 0, else: 1),
-          if(match?(%DateTime{}, plan.start_at),
-            do: DateTime.to_unix(plan.start_at, :microsecond),
-            else: 0
-          ),
-          -DateTime.to_unix(plan.updated_at, :microsecond)
-        }
-      end
-    )
+    |> Enum.sort_by(fn plan ->
+      {
+        if(match?(%DateTime{}, plan.start_at), do: 0, else: 1),
+        if(match?(%DateTime{}, plan.start_at),
+          do: DateTime.to_unix(plan.start_at, :microsecond),
+          else: 0
+        ),
+        -DateTime.to_unix(plan.updated_at, :microsecond)
+      }
+    end)
   end
 
   @doc "True while the plan is upcoming under the L8 rule above."

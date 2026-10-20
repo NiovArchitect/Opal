@@ -54,6 +54,17 @@ type Props = {
    */
   plan?: NextPlanFact | null;
   /**
+   * Orbit v2 DOORWAY PARITY: a call is a conversation, so a live
+   * call surface that knows its conversation offers the same
+   * orbit doorway as a thread. GAP (declared): no current caller
+   * passes a conversation id into this surface - the call record's
+   * conversation id is not part of this component's props today -
+   * so the doorway renders only once a caller wires both fields;
+   * the call LOG row carries the live parity route meanwhile.
+   */
+  orbitConversationId?: string | null;
+  onOpenOrbit?: () => void;
+  /**
    * True only when a real call record backs this surface. Repair #18
    * hunt-fix B-04: with no live call and no live view, the surface
    * renders an honest gate — never the Figma stage with its fake
@@ -131,6 +142,8 @@ export function CallSurface({
   assistBearer = null,
   plan = null,
   hasLiveCall = false,
+  orbitConversationId = null,
+  onOpenOrbit,
 }: Props) {
   const initial = peerName.slice(0, 1).toUpperCase();
   const resolvedDirection: CallDirection =
@@ -289,6 +302,18 @@ export function CallSurface({
               muted={muted}
               onGraphingChange={setGraphingState}
             />
+          ) : null}
+          {orbitConversationId && onOpenOrbit ? (
+            <button
+              type="button"
+              className="live-call-orbit-doorway"
+              data-testid="call-open-orbit"
+              data-conversation-id={orbitConversationId}
+              aria-label={`Talk to Opal about this conversation with ${peerName}`}
+              onClick={onOpenOrbit}
+            >
+              <OrbMark size={20} />
+            </button>
           ) : null}
           <div className="live-call-actions">
             {view.showDecline ? (

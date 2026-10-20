@@ -2,12 +2,16 @@
  * @vitest-environment jsdom
  *
  * Repair #20 cluster C4 - founder delta-fix pins:
- *  - F-9 Connectors rebuild: the room is renamed Connectors, renders
- *    ONLY user-facing tools, and FAILS if any infrastructure provider
- *    name renders in the room - or if any row renders a Connect
- *    action without a backing flow in the projection (a payload
- *    action). "Where Opal reads from" lives in the Your device
- *    group. Permissions binds to the real Soul assistance level.
+ *  - F-9 Connectors v2 (founder rebuild, 2026-10-20 - v1 MISSED
+ *    AGAIN): the room is a near-textless list of user-facing tools -
+ *    icon + name + one action (Connect / Disconnect / View) -
+ *    grouped in the founder's categories, rendering ONLY categories
+ *    with real members. It FAILS if any infrastructure provider
+ *    name renders, if any backend-derived content renders (device
+ *    location, meetings, linked devices, phone calls, ingestion
+ *    sources), or if any row renders Connect without a backing
+ *    flow in the projection (a payload action). Permissions binds
+ *    to the real Soul assistance level and carries no essay text.
  *  - F-10 Center assets: Make something happen / Talk to Opal /
  *    How Opal works for you each fire their real handler; the third
  *    is a doorway row, not an action button; all carry the pressed
@@ -155,7 +159,7 @@ async function render(node: React.ReactNode) {
   });
 }
 
-describe("R20 F-9 Connectors", () => {
+describe("R20 F-9 Connectors v2", () => {
   it("PIN: no infrastructure provider name renders in the Connectors room, even when the payload carries them", async () => {
     mocks.getSettingsConnections.mockResolvedValue(payload([
       ...INFRA_ROWS,
@@ -172,39 +176,102 @@ describe("R20 F-9 Connectors", () => {
     for (const row of INFRA_ROWS) {
       expect(container.querySelector(`[data-testid="connection-row-${row.id}"]`)).toBeNull();
     }
-    // The user-facing rows DO render, grouped Your device -> Your accounts -> Permissions -> Custom.
     expect(container.querySelector('[data-testid="connection-row-google_calendar"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="connection-row-gmail"]')).toBeTruthy();
-    const order = ["Your device", "Your accounts", "Permissions", "Custom"].map((t) => text.indexOf(t));
-    expect(order.every((i) => i > -1)).toBe(true);
-    expect(order).toEqual([...order].sort((a, b) => a - b));
-    // Your device group carries the folded "Where Opal reads from" sources.
-    expect(text).toMatch(/Chats in the app/);
-    expect(text).toMatch(/Device location/);
-    expect(text).toMatch(/Not read/);
   });
 
-  it("PIN: no row renders a Connect action without a backing flow in the projection", async () => {
+  it("PIN v2 form: tool rows are icon + name + one action, grouped only in categories with real members, and NO backend-derived content renders", async () => {
+    mocks.getSettingsConnections.mockResolvedValue(payload([
+      conn({ id: "google_calendar", display_name: "Your Google Calendar", powers: "Lets Opal check busy times. Read only." }),
+      conn({ id: "gmail", display_name: "Your Gmail", powers: "Lets Opal watch for booking confirmations. Read only." }),
+    ]));
+    // The room must not even READ the ingestion payload in v2.
+    mocks.getIngestionStatus.mockRejectedValue(new Error("must not be read"));
+    const section = await buildSettingsSection("connections", { session: null, bearer: "t" });
+    expect(mocks.getIngestionStatus).not.toHaveBeenCalled();
+    await render(<C2SettingsSection section={section} events={events} />);
+    const text = container.textContent || "";
+    // Backend-derived content stripped permanently, by name.
+    for (const banned of [
+      "Device location", "Linked devices", "Phone calls", "Texts",
+      "In the room", "Chats in the app", "Where Opal reads from",
+      "Opal Assist and calls", "Not read", "meetings", "Meetings",
+    ]) {
+      expect(text, `backend-derived content ${banned} must not render`).not.toContain(banned);
+    }
+    expect(container.querySelector('[data-testid="c2-setting-row-linked-devices"]')).toBeNull();
+    expect(container.querySelector('[data-testid="c2-setting-row-assist"]')).toBeNull();
+    expect(container.querySelector('[data-testid^="connection-row-device-"]')).toBeNull();
+    // Categories with real members render; empty ones do not.
+    expect(container.querySelector('[data-testid="connection-category-business"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="connection-category-custom"]')).toBeTruthy();
+    expect(text).not.toContain("Your device");
+    expect(text).not.toContain("Social");
+    expect(text).not.toContain("Your accounts");
+    // Each tool row's face: the clean tool name, an orbit icon, and
+    // exactly one action control - no status sentence, no subtitle.
+    for (const [id, name] of [["google_calendar", "Google Calendar"], ["gmail", "Gmail"]] as const) {
+      const row = container.querySelector(`[data-testid="connection-row-${id}"]`)!;
+      expect(row).toBeTruthy();
+      expect(row.querySelector(".c2s-connection-icon")).toBeTruthy();
+      expect(row.querySelector(".c2s-row-title")!.textContent).toBe(name);
+      expect(row.querySelectorAll("button")).toHaveLength(1);
+      // The payload status stays in the DOM only as a hidden
+      // verbatim span - it is not part of the row's face.
+      const statusSpan = row.querySelector(`[data-testid="connection-status-${id}"]`)!;
+      expect(statusSpan.hasAttribute("hidden")).toBe(true);
+      const face = [...row.querySelectorAll(".c2s-row-title, button")].map((el) => el.textContent).join("");
+      expect(face).not.toMatch(/Not connected|Waiting on you|Lets Opal/);
+    }
+    // The one Custom member is the real Saved logins read surface.
+    const saved = container.querySelector('[data-testid="c2-setting-row-saved-logins"]')!;
+    expect(saved).toBeTruthy();
+    expect(saved.textContent).toContain("Saved logins");
+    expect(saved.textContent).not.toMatch(/tap to view|by site only/);
+    // Near-textless: the whole room's visible text stays short.
+    expect(text.length).toBeLessThan(220);
+    expect(text).not.toMatch(/share one Google sign-in|behind-the-scenes|status the server last checked/);
+  });
+
+  it("PIN: Connect appears ONLY for tools with a real flow; without one the row shows View and its detail never repeats a sentence", async () => {
     // Scenario 1: payload carries NO enabled action (OAuth not
     // configured on the server) - no Connect control may appear.
+    // The Gmail fixture reproduces the v1 copy nit: its gate reason
+    // IS its status detail, verbatim.
     mocks.getSettingsConnections.mockResolvedValue(payload([
-      conn({ id: "google_calendar", display_name: "Your Google Calendar", status: "gated", status_label: "Waiting on you", actions: [] }),
-      conn({ id: "gmail", display_name: "Your Gmail", status: "gated", status_label: "Waiting on you", actions: [] }),
+      conn({ id: "google_calendar", display_name: "Your Google Calendar", status: "gated", status_label: "Waiting on you", status_detail: "Google sign-in is not set up on this server yet.", gate: { code: "google_signin_not_set_up", reason_plain: "Google sign-in is not set up on this server yet.", founder_step: "x" }, actions: [] }),
+      conn({ id: "gmail", display_name: "Your Gmail", status: "gated", status_label: "Waiting on you", status_detail: "Google sign-in is not set up on this server yet.", gate: { code: "google_signin_not_set_up", reason_plain: "Google sign-in is not set up on this server yet.", founder_step: "x" }, actions: [] }),
     ]));
     let section = await buildSettingsSection("connections", { session: null, bearer: "t" });
     for (const row of section.rows) {
       if (row.kind === "connection") {
         expect(row.hasRealFlow, row.id).toBe(false);
         expect(row.action, row.id).toBeNull();
+        // The duplicated gate line is dropped at the builder.
+        expect(row.gateReason, row.id).toBeNull();
       }
     }
     await render(<C2SettingsSection section={section} events={events} />);
-    expect(container.querySelector('[data-testid^="connection-action-"]')).toBeNull();
-    expect(container.querySelector('[data-testid="connection-row-google_calendar"]')!.getAttribute("data-has-real-flow")).toBeNull();
+    for (const id of ["google_calendar", "gmail"]) {
+      const btn = container.querySelector<HTMLButtonElement>(`[data-testid="connection-action-${id}"]`)!;
+      expect(btn, id).toBeTruthy();
+      expect(btn.textContent).toBe("View");
+      expect(btn.getAttribute("data-action-id")).toBe("view");
+    }
+    expect(container.textContent).not.toContain("Connect Google");
+    // Tapping Gmail's View opens its detail; the shared sentence
+    // appears exactly once in it (status line only, no repeat
+    // under "What is holding it back").
+    const gmailView = container.querySelector<HTMLButtonElement>('[data-testid="connection-action-gmail"]')!;
+    await act(async () => { gmailView.click(); });
+    const detail = container.querySelector('[data-testid="connection-detail-gmail"]')!;
+    expect(detail).toBeTruthy();
+    expect(detail.textContent!.split("Google sign-in is not set up on this server yet.").length - 1).toBe(1);
+    expect(detail.textContent).not.toContain("What is holding it back");
 
     // Scenario 2: the payload carries the real enabled connect
-    // action - the row shows it, marked as backed, and tapping it
-    // fires the shell's real google-connect action.
+    // action - the row's one action is Connect, marked as backed,
+    // and tapping it fires the shell's real google-connect action.
     const connectAction = {
       kind: "connect", label: "Connect", enabled: true, disabled_reason: null,
       route: "POST /api/v1/product/connectors/google_calendar/start",
@@ -215,38 +282,65 @@ describe("R20 F-9 Connectors", () => {
     ]));
     section = await buildSettingsSection("connections", { session: null, bearer: "t" });
     for (const row of section.rows) {
-      if (row.kind === "connection") expect(row.hasRealFlow, row.id).toBe(true);
+      if (row.kind === "connection") {
+        expect(row.hasRealFlow, row.id).toBe(true);
+        expect(row.action?.label, row.id).toBe("Connect");
+      }
     }
     await render(<C2SettingsSection section={section} events={events} />);
-    const row = container.querySelector<HTMLButtonElement>('[data-testid="connection-row-google_calendar"]')!;
+    const row = container.querySelector('[data-testid="connection-row-google_calendar"]')!;
     expect(row.getAttribute("data-has-real-flow")).toBe("1");
-    await act(async () => { row.click(); });
     const actionBtn = container.querySelector<HTMLButtonElement>('[data-testid="connection-action-google_calendar"]')!;
-    expect(actionBtn).toBeTruthy();
+    expect(actionBtn.textContent).toBe("Connect");
     expect(actionBtn.getAttribute("data-action-id")).toBe("google-connect");
     await act(async () => { actionBtn.click(); });
     expect(events.runAction).toHaveBeenCalledWith("connections", "google-connect");
   });
 
+  it("a failed connectors read shows one short honest line and no tool rows - Custom still renders its real member", async () => {
+    mocks.getSettingsConnections.mockRejectedValue(new Error("network"));
+    const section = await buildSettingsSection("connections", { session: null, bearer: "t" });
+    await render(<C2SettingsSection section={section} events={events} />);
+    expect(container.textContent).toMatch(/Could not check your connectors/);
+    expect(container.querySelector('[data-testid^="connection-row-"]')).toBeNull();
+    expect(container.querySelector('[data-testid="c2-setting-row-saved-logins"]')).toBeTruthy();
+  });
+
   it("the hub row is renamed Connectors and the folded room is gone from the hub", () => {
     const hub = youHubFromSession(null, false);
     expect(hub.index.find((e) => e.key === "connections")?.title).toBe("Connectors");
+    expect(hub.index.find((e) => e.key === "connections")?.subtitle).toBe("Tools you connect yourself");
     expect(hub.index.find((e) => e.key === "what-opal-hears")).toBeUndefined();
     expect(JSON.stringify(hub.index)).not.toMatch(/DeepSeek|Twilio/);
   });
 
-  it("PIN F-9(f): Permissions binds to the real Soul assistance level - choosing a level writes only that setting", async () => {
+  it("PIN F-9(f) v2: Permissions binds to the real Soul assistance level, plain rows only, NO essay text", async () => {
     const section = await buildSettingsSection("connector-permissions", { session: null, bearer: "t" });
     expect(section.title).toBe("Permissions");
+    expect(section.lede).toBe("When Opal asks before it acts.");
     await render(<C2SettingsSection section={section} events={events} />);
     expect(container.querySelector('[data-testid="c2-permissions-form"]')).toBeTruthy();
     // The raw enum seed never reaches the glass as a value row.
     expect(container.querySelector('[data-testid="c2-setting-row-assistance_level"]')).toBeNull();
+    const text = container.textContent || "";
+    // The v1 essay is gone, by name.
+    for (const essay of [
+      "In plain words", "second permissions store", "same setting as Soul's",
+      "no separate per-tool permission switches", "The tools this applies to",
+      "Quiet hours, your daily cap", "Opal offers help as things come up",
+      "how much should it ask first",
+    ]) {
+      expect(text, `essay text ${essay} must not render`).not.toContain(essay);
+    }
+    // Plain-word rows only: the short same-setting line and the
+    // two doorways, with no subtitles.
+    expect(text).toContain("Same setting as Soul.");
+    expect(container.querySelector('[data-testid="c2-setting-row-to-connectors"]')!.textContent).toBe("Connectors");
+    expect(container.querySelector('[data-testid="c2-setting-row-to-soul"]')!.textContent).toBe("Soul");
     const minimal = container.querySelector<HTMLButtonElement>('[data-testid="c2-permissions-level-minimal"]')!;
     expect(minimal.textContent).toMatch(/Only when I ask/);
     await act(async () => { minimal.click(); });
     expect(events.saveSoulPreferences).toHaveBeenCalledWith({ assistance_level: "minimal" });
-    expect(container.textContent).toMatch(/same setting as Soul/);
   });
 });
 

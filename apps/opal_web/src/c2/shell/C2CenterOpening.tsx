@@ -342,7 +342,7 @@ export function C2CenterOpening({
                   </span>
                   {projection.next.card.limbo.remainingWindowText ? (
                     <span
-                      className="c2-plan-limbo-copy"
+                      className="c2-plan-limbo-window"
                       data-testid="c2-opening-next-limbo-window"
                       style={{ display: "block" }}
                     >

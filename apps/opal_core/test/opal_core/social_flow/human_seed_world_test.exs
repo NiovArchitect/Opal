@@ -149,6 +149,18 @@ defmodule OpalCore.SocialFlow.HumanSeedWorldTest do
     assert world["venue_photo"] == "seeded_as_media_records_on_plan_and_story_records"
   end
 
+  test "V-1: no seeded plan names the viewer as their own counterparty", %{viewer: viewer} do
+    assert {:ok, _} =
+             FounderGraphCommitmentSeed.ensure!(viewer.id, explicit_opt_in: true)
+
+    titles = viewer.id |> viewer_plans() |> Enum.map(& &1.title)
+
+    refute Enum.any?(titles, &(&1 == "Plan with Ethan Walker")),
+           "a seeded plan title names the viewer as their own counterparty"
+
+    assert "Talk tonight about Saturday" in titles
+  end
+
   test "BS-05: every seeded plan and story carries a real image on its record",
        %{viewer: viewer} do
     assert {:ok, payload} =

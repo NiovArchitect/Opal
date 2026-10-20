@@ -1,27 +1,40 @@
 /**
  * @vitest-environment jsdom
  *
- * Repair #20 (F-19 + F-21a) pins.
+ * Repair #20 (F-19 v2 + F-21a) pins.
  *
- * F-19: the orbit screen renders its ring FROM the orbit
- * projection — the group party set (every member a light), plan
- * stones in their state, a pending person's limbo cooling on their
- * light (amber arc + legend words, never hue alone) — and the
- * empty orbit invites the first question in the same language,
- * birthing no session until a question is actually asked.
+ * F-19 v2 (founder law, 2026-10-20 review): the orbit room is a
+ * quiet card room whose center is the TOPIC, never a person -
+ * - no ring of people, no center person, no viewer-at-center
+ *   composition renders (the v1 testids are absent);
+ * - the header names the SUBJECT (the next plan's title, else the
+ *   conversation's own title) with the parties in small plain text;
+ * - the where-we-are card renders the state lines and names
+ *   friction plainly (waiting on an answer; a window closing; the
+ *   window closed without an answer - never smoothed);
+ * - what-we-have-done shows a "loved" mark ONLY where the data
+ *   carries enjoyment provenance (repeat or explicit signal);
+ * - the empty orbit is a promise: one teaching line plus the
+ *   first-question invitation, and landing births no session;
+ * - past Opal chats collapse into period pills (depth on intent);
+ * - PUSH TO CHAT: Opal's draft renders in a recommendation box
+ *   (not a bubble); long-press raises its menu; the carry action
+ *   is labeled "Push to chat"; the push path uses no clipboard
+ *   API and sends no message; the thread landing places the words
+ *   in the thread composer, unsent.
  *
- * F-21a: notice routing is ONE derivation and it is exact — a fork
- * notice for conversation X lands in X's orbit, a lane notice
- * lands in its own thread's orbit, and a notice whose identity
- * cannot be trusted lands nowhere (never a generic inbox).
+ * F-21a: notice routing is ONE derivation and it is exact.
  *
  * Rendered with the repo convention (react-dom/client + act).
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { OrbitProjectionContract } from "../../api/productClient";
-import { OrbitScreen } from "./OrbitScreen";
+import { OrbitScreen, periodPillsForSessions } from "./OrbitScreen";
+import { PeopleCallsList, ThreadShell, type PeopleCallSummary } from "./C1Surfaces";
 import {
   routeForEtiquetteSignal,
   routeForPlanEtiquette,
@@ -49,6 +62,7 @@ async function render(node: React.ReactNode) {
 }
 
 afterEach(async () => {
+  vi.useRealTimers();
   if (root) {
     await act(async () => {
       root!.unmount();
@@ -86,7 +100,8 @@ const groupOrbit: OrbitProjectionContract = {
   parties: [
     { user_id: "u-me", display_name: "Me", is_viewer: true, pending: false, limbo: false, entity_tint: 1 },
     { user_id: "u-bea", display_name: "Bea", is_viewer: false, pending: true, limbo: true, limbo_fraction_remaining: 0.4, entity_tint: 2 },
-    { user_id: "u-cy", display_name: "Cy", is_viewer: false, pending: false, limbo: false, entity_tint: 4 },
+    { user_id: "u-cy", display_name: "Cy", is_viewer: false, pending: true, limbo: false, entity_tint: 4 },
+    { user_id: "u-eli", display_name: "Eli", is_viewer: false, pending: true, limbo: true, entity_tint: 3 },
   ],
   plans: [
     {
@@ -99,7 +114,8 @@ const groupOrbit: OrbitProjectionContract = {
       participants: [
         { user_id: "u-me", response_state: "accepted", pending: false, limbo: false },
         { user_id: "u-bea", response_state: "pending", pending: true, limbo: true, limbo_stage: "nudged", limbo_fraction_remaining: 0.4 },
-        { user_id: "u-cy", response_state: "accepted", pending: false, limbo: false },
+        { user_id: "u-cy", response_state: "pending", pending: true, limbo: false },
+        { user_id: "u-eli", response_state: "pending", pending: true, limbo: true, limbo_stage: "closed" },
       ],
     },
   ],
@@ -120,8 +136,8 @@ const noopHandlers = {
   onBackToThread: () => {},
 };
 
-describe("F-19 orbit screen — the ring renders from the projection", () => {
-  it("group thread: EVERY party member is a light; the viewer is the center stone", async () => {
+describe("F-19 v2 orbit screen - the quiet card room, topic at the center", () => {
+  it("NO ring-of-people composition renders: no ring, no center, no person lights, no plan stones", async () => {
     const el = await render(
       <OrbitScreen
         scope={groupScope}
@@ -135,28 +151,80 @@ describe("F-19 orbit screen — the ring renders from the projection", () => {
         <div data-testid="orbit-child-chat" />
       </OrbitScreen>,
     );
-
     expect(q(el, '[data-testid="orbit-screen"]')?.getAttribute("data-composition")).toBe("group");
-    const lights = qa(el, '[data-testid="orbit-person-light"]');
-    // Two non-viewer members on the ring — the full group party set.
-    expect(lights.map((l) => l.getAttribute("data-person-id"))).toEqual(["u-bea", "u-cy"]);
-    expect(q(el, '[data-testid="orbit-center"]')).not.toBeNull();
-
-    const stones = qa(el, '[data-testid="orbit-plan-stone"]');
-    expect(stones).toHaveLength(1);
-    expect(stones[0].getAttribute("data-plan-id")).toBe("plan-hike");
-    expect(stones[0].getAttribute("data-state")).toBe("forming");
-
-    // The conversation lives inside the field, under the purpose line.
-    expect(q(el, '[data-testid="orbit-field"]')?.textContent).toContain("Ask about this conversation.");
-    expect(q(el, '[data-testid="orbit-child-chat"]')).not.toBeNull();
-
-    // The long arc: next together + the limbo line, in words.
-    expect(q(el, '[data-testid="orbit-next-together"]')?.textContent).toContain("Group hike");
-    expect(q(el, '[data-testid="orbit-limbo-line"]')?.textContent).toContain("Bea");
+    for (const gone of [
+      "orbit-ring",
+      "orbit-center",
+      "orbit-person-light",
+      "orbit-plan-stone",
+      "orbit-ring-legend",
+      "orbit-legend-person",
+      "orbit-legend-plan",
+      "orbit-arc",
+    ]) {
+      expect(q(el, `[data-testid="${gone}"]`), `${gone} must not render in v2`).toBeNull();
+    }
+    expect(el.querySelector("svg")).toBeNull();
   });
 
-  it("a person in limbo wears the cooling arc on their light and is named in the legend", async () => {
+  it("the header names the SUBJECT - the next plan's title - with the parties in plain small text", async () => {
+    const el = await render(
+      <OrbitScreen
+        scope={groupScope}
+        orbit={groupOrbit}
+        insight={null}
+        sessions={[]}
+        activeSessionId={null}
+        emptyInvite={null}
+        {...noopHandlers}
+      >
+        <div data-testid="orbit-child-chat" />
+      </OrbitScreen>,
+    );
+    expect(q(el, '[data-testid="orbit-screen-title"]')?.textContent?.trim()).toBe("Group hike");
+    const parties = q(el, '[data-testid="orbit-parties"]')?.textContent ?? "";
+    expect(parties).toContain("Bea");
+    expect(parties).toContain("Cy");
+    expect(parties).toContain("You");
+    // The conversation lives in the field, under the bidirectional purpose line.
+    expect(q(el, '[data-testid="orbit-field"]')?.textContent).toContain(
+      "tell Opal where you're coming from",
+    );
+    expect(q(el, '[data-testid="orbit-child-chat"]')).not.toBeNull();
+    // One-tap return to the thread is intact.
+    expect(q(el, '[data-testid="orbit-back-to-thread"]')).not.toBeNull();
+  });
+
+  it("a dyad with no plan names the conversation itself as the subject", async () => {
+    const dyadScope: OrbitScope = {
+      conversationId: "conv-dyad",
+      title: "Bea",
+      composition: "dyad",
+      party: [
+        { id: "u-bea", name: "Bea", tint: 2, isViewer: false, pending: false, limbo: false, limboFractionRemaining: null },
+      ],
+      personId: "u-bea",
+      personName: "Bea",
+      planId: null,
+      planTitle: null,
+    };
+    const el = await render(
+      <OrbitScreen
+        scope={dyadScope}
+        orbit={null}
+        insight={null}
+        sessions={[]}
+        activeSessionId={null}
+        emptyInvite={null}
+        {...noopHandlers}
+      >
+        <div />
+      </OrbitScreen>,
+    );
+    expect(q(el, '[data-testid="orbit-screen-title"]')?.textContent?.trim()).toBe("Bea");
+  });
+
+  it("where-we-are names the friction plainly: waiting, cooling, and closed without an answer", async () => {
     const el = await render(
       <OrbitScreen
         scope={groupScope}
@@ -170,29 +238,76 @@ describe("F-19 orbit screen — the ring renders from the projection", () => {
         <div />
       </OrbitScreen>,
     );
-
-    const bea = q(el, '[data-testid="orbit-person-light"][data-person-id="u-bea"]');
-    expect(bea?.getAttribute("data-state")).toBe("limbo");
-    const arc = bea?.querySelector(".orbit-light-limbo-arc");
-    expect(arc).not.toBeNull();
-    // The remaining fraction of the window is what the arc shows.
-    expect(arc?.getAttribute("stroke-dasharray")).toBe("40 100");
-
-    const cy = q(el, '[data-testid="orbit-person-light"][data-person-id="u-cy"]');
-    expect(cy?.getAttribute("data-state")).toBe("settled");
-    expect(cy?.querySelector(".orbit-light-limbo-arc")).toBeNull();
-
-    // No hue-only meaning: the legend names every light in words.
-    const legendPeople = qa(el, '[data-testid="orbit-legend-person"]');
-    expect(legendPeople.map((l) => l.getAttribute("data-person-id"))).toEqual(["u-bea", "u-cy"]);
-    expect(legendPeople[0].textContent).toContain("Bea");
-    expect(legendPeople[0].textContent?.toLowerCase()).toContain("limbo");
-    const legendPlans = qa(el, '[data-testid="orbit-legend-plan"]');
-    expect(legendPlans[0].textContent).toContain("Group hike");
-    expect(legendPlans[0].textContent).toContain("Forming");
+    expect(q(el, '[data-testid="orbit-where-card"]')).not.toBeNull();
+    expect(q(el, '[data-testid="orbit-next-together"]')?.textContent).toContain("Group hike");
+    expect(q(el, '[data-testid="orbit-pending-line"]')?.textContent).toContain(
+      "Waiting on an answer from Cy",
+    );
+    const cooling = q(el, '[data-testid="orbit-limbo-line"]')?.textContent ?? "";
+    expect(cooling).toContain("Bea");
+    expect(cooling).toContain("window is closing");
+    expect(cooling).toContain("waiting on an answer");
+    expect(q(el, '[data-testid="orbit-closed-line"]')?.textContent).toContain(
+      "The window closed without an answer from Eli",
+    );
   });
 
-  it("the empty orbit invites the first question — and asks only on submit", async () => {
+  it("what-we-have-done: the loved mark appears ONLY with enjoyment provenance in the data", async () => {
+    const withPast = {
+      ...groupOrbit,
+      past_plans: [
+        { plan_id: "p-brunch", title: "Brunch at Lola", when_label: "Last Sunday", repeated: true },
+        { plan_id: "p-walk", title: "Pier walk", when_label: "Two weeks ago", loved: true, repeated: true, loved_evidence: "repeated" },
+        { plan_id: "p-errand", title: "Hardware run", when_label: "Last month" },
+      ],
+    } as unknown as OrbitProjectionContract;
+    const el = await render(
+      <OrbitScreen
+        scope={groupScope}
+        orbit={withPast}
+        insight={null}
+        sessions={[]}
+        activeSessionId={null}
+        emptyInvite={null}
+        {...noopHandlers}
+      >
+        <div />
+      </OrbitScreen>,
+    );
+    // Collapsed by default (progressive disclosure): the card
+    // header earns its place, the rows wait behind the tap.
+    expect(q(el, '[data-testid="orbit-past-card"]')).not.toBeNull();
+    expect(qa(el, '[data-testid="orbit-past-row"]')).toHaveLength(0);
+    await act(async () => {
+      (q(el, '[data-testid="orbit-past-toggle"]') as HTMLButtonElement).click();
+    });
+    const rows = qa(el, '[data-testid="orbit-past-row"]');
+    expect(rows).toHaveLength(3);
+    const byId = new Map(rows.map((r) => [r.getAttribute("data-plan-id"), r]));
+    expect(byId.get("p-brunch")?.querySelector('[data-testid="orbit-past-loved"]')?.textContent).toContain("Done again");
+    expect(byId.get("p-walk")?.querySelector('[data-testid="orbit-past-loved"]')?.textContent).toContain("Done again");
+    // No signal in the data = no loved mark invented for the row.
+    expect(byId.get("p-errand")?.querySelector('[data-testid="orbit-past-loved"]')).toBeNull();
+  });
+
+  it("no past data at all: the done-and-loved card is honestly absent, never invented", async () => {
+    const el = await render(
+      <OrbitScreen
+        scope={groupScope}
+        orbit={groupOrbit}
+        insight={null}
+        sessions={[]}
+        activeSessionId={null}
+        emptyInvite={null}
+        {...noopHandlers}
+      >
+        <div />
+      </OrbitScreen>,
+    );
+    expect(q(el, '[data-testid="orbit-past-card"]')).toBeNull();
+  });
+
+  it("the empty orbit is a promise: the teaching line plus the first-question invitation", async () => {
     const onAsk = vi.fn();
     const dyadScope: OrbitScope = {
       conversationId: "conv-dyad",
@@ -217,9 +332,14 @@ describe("F-19 orbit screen — the ring renders from the projection", () => {
         {...noopHandlers}
       />,
     );
-
     expect(q(el, '[data-testid="orbit-empty"]')).not.toBeNull();
+    expect(q(el, '[data-testid="orbit-empty-teaching"]')?.textContent).toContain(
+      "keeps what this conversation becomes",
+    );
     expect(q(el, '[data-testid="orbit-empty"]')?.textContent).toContain("Ask the first question");
+    expect(q(el, '[data-testid="orbit-empty"]')?.textContent).toContain(
+      "tell Opal where you're coming from",
+    );
     // Landing alone births nothing.
     expect(onAsk).not.toHaveBeenCalled();
 
@@ -240,27 +360,32 @@ describe("F-19 orbit screen — the ring renders from the projection", () => {
     expect(onAsk).toHaveBeenCalledWith("What did we decide about Saturday?");
   });
 
-  it("the past-chats index lists only this orbit's sessions", async () => {
+  it("past Opal chats collapse into period pills; rows appear only when a pill opens", async () => {
+    const now = new Date();
     const rows: PersonOpalSessionRow[] = [
       {
-        id: "s-group",
+        id: "s-recent",
         title: "Hike planning",
         preview: "",
         timeLabel: "Tue",
         isActive: true,
         context: null,
         conversationScopeId: "conv-group",
+        updatedAt: now.toISOString(),
       },
       {
-        id: "s-other",
-        title: "Someone else entirely",
+        id: "s-old",
+        title: "Old thread",
         preview: "",
-        timeLabel: "Mon",
+        timeLabel: "Jan",
         isActive: true,
-        context: { personId: "u-x", personName: "X", conversationId: "conv-other" },
+        context: null,
+        conversationScopeId: "conv-group",
+        updatedAt: "2025-01-15T10:00:00Z",
       },
     ];
-    expect(sessionsForConversation(rows, "conv-group").map((s) => s.id)).toEqual(["s-group"]);
+    expect(periodPillsForSessions(rows, now).map((p) => p.key)).toEqual(["this-week", "earlier"]);
+    expect(sessionsForConversation(rows, "conv-group").map((s) => s.id)).toEqual(["s-recent", "s-old"]);
 
     const onOpenSession = vi.fn();
     const el = await render(
@@ -268,7 +393,7 @@ describe("F-19 orbit screen — the ring renders from the projection", () => {
         scope={groupScope}
         orbit={groupOrbit}
         insight={null}
-        sessions={sessionsForConversation(rows, "conv-group")}
+        sessions={rows}
         activeSessionId={null}
         emptyInvite={null}
         {...noopHandlers}
@@ -277,9 +402,193 @@ describe("F-19 orbit screen — the ring renders from the projection", () => {
         <div />
       </OrbitScreen>,
     );
+    const pills = qa(el, '[data-testid="orbit-period-pill"]');
+    expect(pills.map((p) => p.getAttribute("data-period"))).toEqual(["this-week", "earlier"]);
+    // Collapsed: no session rows are painted until intent.
+    expect(qa(el, '[data-testid="orbit-index-row"]')).toHaveLength(0);
+    await act(async () => {
+      (pills[0] as HTMLButtonElement).click();
+    });
     const indexRows = qa(el, '[data-testid="orbit-index-row"]');
     expect(indexRows).toHaveLength(1);
-    expect(indexRows[0].getAttribute("data-session-id")).toBe("s-group");
+    expect(indexRows[0].getAttribute("data-session-id")).toBe("s-recent");
+    await act(async () => {
+      (indexRows[0] as HTMLButtonElement).click();
+    });
+    expect(onOpenSession).toHaveBeenCalledWith("s-recent");
+  });
+});
+
+describe("F-19 v2 push to chat - the Voice Law mechanic", () => {
+  it("the draft renders in its own recommendation box; long-press raises the menu; Push to chat carries the words", async () => {
+    vi.useFakeTimers();
+    const onPushToChat = vi.fn();
+    const onShapeRequest = vi.fn();
+    const el = await render(
+      <OrbitScreen
+        scope={groupScope}
+        orbit={groupOrbit}
+        insight={null}
+        sessions={[]}
+        activeSessionId={null}
+        emptyInvite={null}
+        {...noopHandlers}
+        recommendation="Saturday works for me - see you at the trailhead at 9."
+        onShapeRequest={onShapeRequest}
+        onPushToChat={onPushToChat}
+      >
+        <div data-testid="orbit-child-chat" />
+      </OrbitScreen>,
+    );
+
+    // The shape affordance is explicit, above the conversation.
+    const shape = q(el, '[data-testid="orbit-shape-request"]') as HTMLButtonElement;
+    expect(shape?.textContent).toContain("Shape what to say");
+    await act(async () => {
+      shape.click();
+    });
+    expect(onShapeRequest).toHaveBeenCalled();
+
+    const box = q(el, '[data-testid="orbit-recommendation"]') as HTMLElement;
+    expect(box).not.toBeNull();
+    expect(q(el, '[data-testid="orbit-recommendation-text"]')?.textContent).toContain("Saturday works for me");
+    // No menu until the long-press lands.
+    expect(q(el, '[data-testid="orbit-recommendation-menu"]')).toBeNull();
+    await act(async () => {
+      box.dispatchEvent(new window.Event("pointerdown", { bubbles: true }));
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
+    expect(q(el, '[data-testid="orbit-recommendation-menu"]')).not.toBeNull();
+    const push = q(el, '[data-testid="orbit-recommendation-push"]') as HTMLButtonElement;
+    // The carry action is labeled Push to chat - never copy.
+    expect(push?.textContent?.trim()).toBe("Push to chat");
+    await act(async () => {
+      push.click();
+    });
+    expect(onPushToChat).toHaveBeenCalledWith(
+      "Saturday works for me - see you at the trailhead at 9.",
+    );
+  });
+
+  it("adjust edits the draft in Orbit and the edited words are what gets pushed", async () => {
+    vi.useFakeTimers();
+    const onPushToChat = vi.fn();
+    const el = await render(
+      <OrbitScreen
+        scope={groupScope}
+        orbit={groupOrbit}
+        insight={null}
+        sessions={[]}
+        activeSessionId={null}
+        emptyInvite={null}
+        {...noopHandlers}
+        recommendation="first draft"
+        onPushToChat={onPushToChat}
+      >
+        <div />
+      </OrbitScreen>,
+    );
+    const box = q(el, '[data-testid="orbit-recommendation"]') as HTMLElement;
+    await act(async () => {
+      box.dispatchEvent(new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    });
+    await act(async () => {
+      (q(el, '[data-testid="orbit-recommendation-adjust"]') as HTMLButtonElement).click();
+    });
+    const input = q(el, '[data-testid="orbit-recommendation-input"]') as HTMLTextAreaElement;
+    expect(input).not.toBeNull();
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        "value",
+      )!.set!;
+      setter.call(input, "edited words");
+      input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      (q(el, '[data-testid="orbit-recommendation-save"]') as HTMLButtonElement).click();
+    });
+    expect(q(el, '[data-testid="orbit-recommendation-text"]')?.textContent).toContain("edited words");
+    await act(async () => {
+      box.dispatchEvent(new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    });
+    await act(async () => {
+      (q(el, '[data-testid="orbit-recommendation-push"]') as HTMLButtonElement).click();
+    });
+    expect(onPushToChat).toHaveBeenCalledWith("edited words");
+  });
+
+  it("PIN: the push-to-chat source path contains no clipboard API and no thread send", () => {
+    const orbitSrc = readFileSync(
+      resolve(__dirname, "OrbitScreen.tsx"),
+      "utf8",
+    );
+    expect(orbitSrc).not.toContain("navigator.clipboard");
+    expect(orbitSrc).not.toContain("execCommand");
+    expect(orbitSrc).not.toContain("writeText");
+    // OrbitScreen has no send prop or send call anywhere: pushing
+    // carries words into a composer, it never sends them.
+    expect(orbitSrc).not.toMatch(/onSend/);
+    expect(orbitSrc).not.toMatch(/sendMessage/);
+  });
+
+  it("the thread landing places pushed words in the composer, unsent and unmarked", async () => {
+    const onSend = vi.fn();
+    const el = await render(
+      <ThreadShell
+        name="Bea"
+        initials="B"
+        messages={[]}
+        plansById={new Map()}
+        composerPlaceholder="Message Bea"
+        initialDraft="Saturday works for me - see you at 9."
+        onSend={onSend}
+      />,
+    );
+    const input = q(el, '[data-testid="thread-composer-input"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    expect(input.value).toBe("Saturday works for me - see you at 9.");
+    // Placed, not sent; and nothing in the thread marks the help.
+    expect(onSend).not.toHaveBeenCalled();
+    expect(el.textContent).not.toContain("Opal helped");
+    expect(el.textContent).not.toContain("draft from Opal");
+  });
+});
+
+describe("F-19 v2 doorway parity - a call is a conversation", () => {
+  const callRow: PeopleCallSummary = {
+    id: "call-1",
+    name: "Bea",
+    initials: "B",
+    metadata: "Yesterday - 12 min",
+    conversationId: "conv-bea",
+  };
+
+  it("a call row carrying a conversation offers the same orbit doorway, opening that conversation's orbit", async () => {
+    const onOpenOrbit = vi.fn();
+    const el = await render(
+      <PeopleCallsList calls={[callRow]} onOpenOrbit={onOpenOrbit} />,
+    );
+    const doorway = q(el, '[data-testid="calls-open-orbit-call-1"]') as HTMLButtonElement;
+    expect(doorway).not.toBeNull();
+    expect(doorway.getAttribute("data-conversation-id")).toBe("conv-bea");
+    expect(doorway.querySelector(".c1-thread-opal-orb")).not.toBeNull();
+    await act(async () => {
+      doorway.click();
+    });
+    expect(onOpenOrbit).toHaveBeenCalledWith(expect.objectContaining({ id: "call-1" }));
+  });
+
+  it("a call row with no conversation id offers no doorway (honest absence)", async () => {
+    const el = await render(
+      <PeopleCallsList
+        calls={[{ ...callRow, id: "call-2", conversationId: null }]}
+        onOpenOrbit={() => {}}
+      />,
+    );
+    expect(q(el, '[data-testid="calls-open-orbit-call-2"]')).toBeNull();
   });
 });
 

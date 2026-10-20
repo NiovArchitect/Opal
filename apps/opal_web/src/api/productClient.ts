@@ -5925,7 +5925,7 @@ export function opalPlanCancelError(error: unknown): string {
       : null;
   switch (code) {
     case "not_authorized":
-      return "Only the plan's lead can drop this plan. Ask them to drop it, or keep it for now.";
+      return "Only the plan's lead can let this plan go. Ask them to let it go, or keep it for now.";
     case "already_cancelled":
       return "This plan is already dropped. Close this and reopen Graphs to see your list up to date.";
     case "illegal_transition":

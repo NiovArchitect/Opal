@@ -844,12 +844,38 @@ defmodule OpalCore.OpalConversations do
       |> case do
         {:ok, fresh} ->
           _ = OpalCore.Center.PlanningContext.clear_transient(user_id)
+          _ = record_orbit_session_mirror(user_id, fresh)
           {:ok, %{conversation: fresh, archived_conversation_id: current.id}}
 
         {:error, reason} ->
           {:error, reason}
       end
     end
+  end
+
+  # Repair #20 amendment - THE SELF-MIRROR (Orbit Ethics article 3):
+  # a scoped (orbit) session birth is written to the user's OWN
+  # account activity trail, so the user can see in their own
+  # activity if they have leaned on Orbit for a relationship. The
+  # entry is owner-only by construction (AccountActivity reads are
+  # per-user), carries ids and the anchor only - never message
+  # content - and is a mirror, never a lock: nothing reads it to
+  # gate anything. A failed mirror write never fails the session.
+  defp record_orbit_session_mirror(user_id, %OpalConversation{} = session) do
+    OpalCore.Accounts.AccountActivity.record(
+      user_id,
+      "orbit_session_started",
+      session.id,
+      %{
+        "anchor_type" => session.anchor_type,
+        "anchor_id" => session.anchor_id,
+        "context_person_id" => session.context_person_id,
+        "context_conversation_id" => session.context_conversation_id,
+        "context_plan_id" => session.context_plan_id
+      }
+    )
+  rescue
+    _ -> {:error, :mirror_failed}
   end
 
   @doc """

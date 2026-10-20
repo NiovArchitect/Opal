@@ -137,11 +137,24 @@ defmodule OpalCore.Intelligence.PromptBuilder do
   end
 
   defp append_capsule_section(what, account_id, conversation_id) do
+    # Repair #20 amendment (Orbit Sameness fix): the assembly names
+    # BOTH contexts the asker's capsules about this conversation can
+    # lawfully carry - the conversation itself, and (in a dyad) the
+    # asker's relationship with the one other member. Before this, a
+    # relationship-scoped capsule - including every durable-preference
+    # fragment about a person, which the capsule facade converts to
+    # relationship scope - was admissible in NO prompt, so the
+    # asker's own capsules about this person silently never entered
+    # an Orbit answer. Group conversations keep the conversation
+    # context only: per-person depth is stripped for groups above
+    # (the cardinality law), and relationship capsules are
+    # per-person depth.
+    contexts =
+      [[scope_kind: "conversation", scope_id: conversation_id]] ++
+        relationship_contexts(account_id, conversation_id)
+
     section =
-      OpalCore.MemoryWallet.ScopedContext.prompt_section(account_id,
-        scope_kind: "conversation",
-        scope_id: conversation_id
-      )
+      OpalCore.MemoryWallet.ScopedContext.prompt_section_for_contexts(account_id, contexts)
 
     cond do
       not is_binary(section) or section == "" -> what
@@ -150,6 +163,19 @@ defmodule OpalCore.Intelligence.PromptBuilder do
     end
   rescue
     _ -> what
+  end
+
+  # The relationship contexts for one dyad: exactly the conversation's
+  # one other member. Any other shape (no members, a group, a
+  # membership read failure) names no relationship context - fail
+  # closed to the conversation context alone.
+  defp relationship_contexts(account_id, conversation_id) do
+    case OpalCore.Messages.member_user_ids(conversation_id) -- [account_id] do
+      [other_id] -> [[scope_kind: "relationship", scope_id: other_id]]
+      _ -> []
+    end
+  rescue
+    _ -> []
   end
 
   defp maybe_world_sections(text) when is_binary(text) do

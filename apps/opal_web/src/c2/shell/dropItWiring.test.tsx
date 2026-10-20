@@ -214,7 +214,7 @@ describe("C2 shell - Drop it end to end", () => {
     const error = q('[data-testid="c2-graph-drop-error"]');
     expect(error).toBeTruthy();
     expect(error!.textContent).toBe(
-      "Only the plan's lead can drop this plan. Ask them to drop it, or keep it for now.",
+      "Only the plan's lead can let this plan go. Ask them to let it go, or keep it for now.",
     );
     // No read-back was faked and nothing was hidden locally.
     expect(listOpalPlans.mock.calls.length).toBe(listCallsBefore);

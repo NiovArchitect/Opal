@@ -330,33 +330,35 @@ describe("Connections section - DOM status equals payload status", () => {
     )!;
     expect(googleStatus.textContent).toBe("Simulated - not a real connection");
     expect(googleStatus.textContent).not.toBe("Connected");
-    // Tapping the Google row opens its detail panel, where the
-    // payload's powers/detail live behind the row (verbatim).
-    const googleRow = container.querySelector(
+    // V2 form: the status stays in the DOM verbatim but HIDDEN -
+    // the row's face is icon + name + its one action only.
+    expect(googleStatus.hasAttribute("hidden")).toBe(true);
+    const googleRowEl = container.querySelector(
       '[data-testid="connection-row-google_calendar"]',
     )!;
-    await act(async () => {
-      (googleRow as HTMLButtonElement).click();
-    });
-    const detail = container.querySelector(
-      '[data-testid="connection-detail-google_calendar"]',
-    )!;
-    expect(detail).toBeTruthy();
-    expect(detail.textContent).toMatch(/Lets Opal check busy times/);
-    expect(detail.textContent).toMatch(/not a real connection/);
-    expect(googleRow.getAttribute("aria-expanded")).toBe("true");
-    // Category headers render as quiet group labels.
+    expect(googleRowEl.querySelector(".c2s-row-title")!.textContent).toBe("Google Calendar");
+    expect(googleRowEl.querySelectorAll("button")).toHaveLength(1);
+    // The payload's Google disconnect descriptor becomes the row's
+    // one real action (backed by the revoke endpoint). A backed row
+    // has no View/detail panel in v2.
+    const action = container.querySelector('[data-testid="connection-action-google_calendar"]');
+    expect(action).toBeTruthy();
+    expect(action!.textContent).toBe("Disconnect");
+    expect(action!.getAttribute("data-action-id")).toBe("google-disconnect");
+    expect(container.querySelector('[data-testid="connection-detail-google_calendar"]')).toBeNull();
+    // Categories with real members render as quiet group labels:
+    // Business (the Google tool) and Custom (Saved logins). The
+    // v1 Your device group is stripped permanently in v2.
     expect(
-      container.querySelector('[data-testid="connection-category-your_accounts"]'),
+      container.querySelector('[data-testid="connection-category-business"]'),
+    ).toBeTruthy();
+    expect(
+      container.querySelector('[data-testid="connection-category-custom"]'),
     ).toBeTruthy();
     expect(
       container.querySelector('[data-testid="connection-category-your-device"]'),
-    ).toBeTruthy();
-    // The payload's Google disconnect descriptor becomes a real
-    // action in the row's detail (backed by the revoke endpoint).
-    const action = container.querySelector('[data-testid="connection-action-google_calendar"]');
-    expect(action).toBeTruthy();
-    expect(action!.getAttribute("data-action-id")).toBe("google-disconnect");
+    ).toBeNull();
+    expect(container.textContent).not.toMatch(/Device location|Linked devices|Phone calls/);
   });
 
   it("a failed connections read renders one honest unknown, never a guessed list", async () => {
@@ -485,15 +487,12 @@ describe("Honest gated sections - no painted controls", () => {
     expect(text).toMatch(/lives in Soul/);
   });
 
-  it("the folded Your device category names each source with its honest state (R20 F-9e: no listening frame)", async () => {
+  it("v2: the retired what-opal-hears key lands on Connectors with NO device/source content (stripped permanently)", async () => {
     const section = await buildSettingsSection("what-opal-hears", { session: null });
+    expect(section.key).toBe("connections");
     await render(<C2SettingsSection section={section} events={events} />);
     const text = container.textContent || "";
-    expect(text).toMatch(/Your device/);
-    expect(text).toMatch(/Working now/);
-    expect(text).toMatch(/Waiting on a sending number/);
-    expect(text).toMatch(/Not in Opal today/);
-    expect(text).toMatch(/Not read/);
+    expect(text).not.toMatch(/Your device|Device location|Working now|Waiting on a sending number|Not in Opal today|Not read|Phone calls|Chats in the app/);
     expect(text).not.toMatch(/What Opal graphs/);
     expect(text).not.toMatch(/Listening/);
     expect(container.querySelectorAll('[role="switch"]')).toHaveLength(0);
@@ -501,7 +500,7 @@ describe("Honest gated sections - no painted controls", () => {
 });
 
 describe("Muse settings audit Group A (4.A1-4.A9)", () => {
-  it("A1/R20 F-9: connectors render as a categorized directory of exactly the user-facing payload subset", async () => {
+  it("A1/R20 F-9 v2: connectors render as a near-textless directory of exactly the user-facing payload subset, in categories with real members only", async () => {
     mocks.getSettingsConnections.mockResolvedValue(PAYLOAD);
     const section = await buildSettingsSection("connections", {
       session: null,
@@ -515,19 +514,21 @@ describe("Muse settings audit Group A (4.A1-4.A9)", () => {
       (el) => el.getAttribute("data-testid")!.replace("connection-row-", ""),
     );
     expect(renderedIds).toEqual(["google_calendar"]);
-    // Categories group the directory, in room order: Your device,
-    // Your accounts, Permissions, Custom.
+    // Categories group the directory, in room order: Business,
+    // then Custom. Categories with no real member (Your Device,
+    // Social) do not render at all in v2.
     const text = container.textContent || "";
-    const device = text.indexOf("Your device");
-    const accounts = text.indexOf("Your accounts");
-    const permissions = text.indexOf("Permissions");
+    const business = text.indexOf("Business");
     const custom = text.indexOf("Custom");
-    expect(device).toBeGreaterThan(-1);
-    expect(accounts).toBeGreaterThan(device);
-    expect(permissions).toBeGreaterThan(accounts);
-    expect(custom).toBeGreaterThan(permissions);
-    // The custom-connections slot is reserved in words only - no control.
-    expect(text).toMatch(/Connecting a service of your own is not something Opal offers today/);
+    expect(business).toBeGreaterThan(-1);
+    expect(custom).toBeGreaterThan(business);
+    expect(text).not.toContain("Your device");
+    expect(text).not.toContain("Social");
+    expect(text).not.toContain("Your accounts");
+    // The v1 custom-connections essay slot is gone - Custom's one
+    // member is the real Saved logins row, with no prose around it.
+    expect(text).not.toMatch(/Connecting a service of your own is not something Opal offers today/);
+    expect(container.querySelector('[data-testid="c2-setting-row-saved-logins"]')).toBeTruthy();
   });
 
   it("A2: Quiet opens with Pause everything, holding the real flag, per-kind untouched", async () => {

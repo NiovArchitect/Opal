@@ -683,8 +683,10 @@ export function CenterHost({
   onHoldingLink?: (target: string) => void;
   /** Repair #19 — a doorway/index request routed from a person thread. */
   openRequest?: CenterOpenRequest | null;
-  /** Repair #19 — quick-draw back into a person thread (shell routes it). */
-  onOpenPersonThread?: (conversationId: string) => void;
+  /** Repair #19 - quick-draw back into a person thread (shell routes it).
+   *  Orbit v2: opts.composerDraft carries push-to-chat words into
+   *  the thread's composer (placed, unsent, unmarked). */
+  onOpenPersonThread?: (conversationId: string, opts?: { composerDraft?: string }) => void;
 }) {
   const [view, setView] = useState<CenterView>({ kind: "deck" });
   const [sessions, setSessions] = useState<PersonOpalSessionRow[]>([]);
@@ -1323,7 +1325,14 @@ export function CenterHost({
   const chatElementFor = (sessionId: string, title: string, landing: "chat" | "orbit") => (
     <CenterChat
       title={title}
-      messages={messages}
+      composerPlaceholder={
+        landing === "orbit" ? "Ask Opal, or tell Opal where you're coming from" : undefined
+      }
+      messages={
+        landing === "orbit" && orbitRecommendation
+          ? messages.filter((m) => m.id !== orbitRecommendation.id)
+          : messages
+      }
       plansById={plansById}
       onBack={() => setView({ kind: "sessions" })}
       onOpenPlan={(plan) => onOpenGraph(plan.id)}
@@ -1441,6 +1450,41 @@ export function CenterHost({
 
   // Repair #20 (F-19): the orbit screen node for the orbit view —
   // the ring + the arc around the scoped conversation element.
+  // Orbit v2 (Voice Law + push to chat): the orbit's shape flow.
+  // "Shape what to say" sends ONE shaping ask through the existing
+  // Opal session send path; Opal's next reply is captured as the
+  // recommendation (rendered in the orbit's recommendation box,
+  // not as a chat bubble) instead of joining the chat flow.
+  const [orbitRecommendation, setOrbitRecommendation] = useState<{ id: string; text: string } | null>(null);
+  const [shapeBusy, setShapeBusy] = useState(false);
+  const shapeBaselineRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!shapeBaselineRef.current) return;
+    const fresh = messages.filter(
+      (m) => m.authorKind === "opal" && !shapeBaselineRef.current!.has(m.id),
+    );
+    if (fresh.length > 0) {
+      const latest = fresh[fresh.length - 1];
+      setOrbitRecommendation({ id: latest.id, text: latest.body });
+      shapeBaselineRef.current = null;
+      setShapeBusy(false);
+    }
+  }, [messages]);
+  useEffect(() => {
+    setOrbitRecommendation(null);
+    shapeBaselineRef.current = null;
+    setShapeBusy(false);
+  }, [orbitLanding?.scope.conversationId]);
+  const requestOrbitShape = useCallback(() => {
+    shapeBaselineRef.current = new Set(
+      messages.filter((m) => m.authorKind === "opal").map((m) => m.id),
+    );
+    setShapeBusy(true);
+    void send(
+      "Help me shape what to say in this conversation. Draft one reply I could send, in my own voice, based on where this conversation is at. Give me just the draft reply.",
+    );
+  }, [messages, send]);
+
   const orbitNode = (v: { kind: "orbit"; sessionId: string | null; title: string }) => {
     const landing = orbitLanding;
     if (!landing) {
@@ -1477,6 +1521,19 @@ export function CenterHost({
         onOpenPlan={(id) => onOpenGraph(id)}
         onBackToThread={() => {
           if (onOpenPersonThread) onOpenPersonThread(scope.conversationId);
+        }}
+        recommendation={orbitRecommendation?.text ?? null}
+        shapeBusy={shapeBusy}
+        onShapeRequest={v.sessionId ? requestOrbitShape : undefined}
+        onDismissRecommendation={() => setOrbitRecommendation(null)}
+        onPushToChat={(text) => {
+          // Push to chat: carry the words into the thread's
+          // composer and land there - no send, no marker, no
+          // clipboard anywhere in this path.
+          setOrbitRecommendation(null);
+          if (onOpenPersonThread) {
+            onOpenPersonThread(scope.conversationId, { composerDraft: text });
+          }
         }}
         emptyInvite={
           v.sessionId
@@ -1960,7 +2017,7 @@ export function ChatsHost({
    *  thread in the state its row showed. Repair #20 (F-21a): an
    *  `orbit: true` request (a notice deep-link landing) opens the
    *  thread AND its orbit — the notice's exact destination. */
-  openRequest?: { conversationId: string; nonce: number; orbit?: boolean } | null;
+  openRequest?: { conversationId: string; nonce: number; orbit?: boolean; composerDraft?: string | null } | null;
   /** Repair #19 W13: route from a person profile to the memory controls room. */
   onOpenMemoryControls?: () => void;
   /** Repair #19 — the thread doorway / orbit sheet routes into the
@@ -2219,10 +2276,14 @@ export function ChatsHost({
     [bearer, conversations, onTalkToOpal, openThread, orbitScopeFor],
   );
 
+  // Orbit v2 PUSH TO CHAT landing: words carried from an orbit
+  // recommendation, placed in the thread composer by ThreadShell.
+  const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const lastOpenNonce = useRef(0);
   useEffect(() => {
     if (openRequest && openRequest.nonce !== lastOpenNonce.current) {
       lastOpenNonce.current = openRequest.nonce;
+      if (openRequest.composerDraft) setComposerDraft(openRequest.composerDraft);
       if (openRequest.orbit) {
         void openThreadThenOrbit(openRequest.conversationId);
       } else {
@@ -2608,6 +2669,7 @@ export function ChatsHost({
             }
             messages={messages}
             plansById={new Map()}
+            initialDraft={composerDraft}
             composerPlaceholder={`Message ${selected.title}`}
             onBack={() => setSelectedId(null)}
             onOpenProfile={() => setProfileOpen(true)}
@@ -2629,12 +2691,16 @@ export function ChatsHost({
                 onTalkToOpal?.({ context: null, orbit: threadOrbitScope });
               }
             }}
-            composerAccessory={
-              /* Repair #19 polish (P7): the ST-H voice-note control is
-                 a REAL composer affordance, so it lives IN the thread
-                 composer bar - not as a stray block under the thread
-                 surface, where it read as page furniture and the send
-                 path was undiscoverable. Same control, same real
+            composerAction={
+              /* Repair #20A settled composer model (supersedes the
+                 P7 above-the-pill accessory placement): the ST-H
+                 voice-note control is a REAL composer affordance,
+                 so it lives INSIDE the thread composer pill, in
+                 its action slot - the mic shows while the draft
+                 is empty, the slot becomes Send once text is
+                 present, the recording state renders inside the
+                 bar, and the review pop-up anchors to this
+                 in-composer control. Same control, same real
                  sendVoiceNote path, same onSent refresh. */
               <VoiceNoteControl
                 conversationId={selected.id}
@@ -2749,6 +2815,11 @@ export function ChatsHost({
             onShowChats={() => setCommSurface("chats")}
             onOpenConversation={(call) => {
               if (call.conversationId) void openThread(call.conversationId);
+            }}
+            onOpenOrbit={(call) => {
+              // Doorway parity: a call is a conversation - its row
+              // doorway opens the same orbit as the thread's.
+              if (call.conversationId) void openThreadThenOrbit(call.conversationId);
             }}
             onCallBack={(call) => void placeCall(call)}
             onNewCall={() => void openPicker("call")}

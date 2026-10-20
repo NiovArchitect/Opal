@@ -95,6 +95,19 @@ function Glyph({
 export const IconHome = ({ size = 24 }: { size?: number }) => (
   <Glyph size={size} d={["M4 11.5 12 4l8 7.5", "M6.5 10v9h11v-9"]} />
 );
+/** Flow (founder rename, 2026-10-20): the water glyph for the social
+ * surface - stacked wave lines in the same stroke language as the
+ * other dock glyphs; the up-down squiggle reads as moving water and
+ * replaces the house in this slot. */
+export const IconFlow = ({ size = 24 }: { size?: number }) => (
+  <Glyph
+    size={size}
+    d={[
+      "M3 9c2-2.5 4-2.5 6 0s4 2.5 6 0s4-2.5 6 0",
+      "M3 15.5c2-2.5 4-2.5 6 0s4 2.5 6 0s4-2.5 6 0",
+    ]}
+  />
+);
 export const IconChats = ({ size = 24 }: { size?: number }) => (
   <Glyph
     size={size}

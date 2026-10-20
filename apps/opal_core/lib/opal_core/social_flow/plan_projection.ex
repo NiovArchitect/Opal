@@ -168,6 +168,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 adoption wave 1 (ST-G): the one plan history + Who projection, from the plan's own records and JourneyAuthority"},
       {OpalCore.SocialFlow.NextPlan, :all_for_conversation, 3,
        "Repair #20 F-19: every upcoming plan fact for a conversation (the one pick's own pipeline, list form) for the orbit ring"},
+      {OpalCore.SocialFlow.NextPlan, :past_for_conversation, 3,
+       "Repair #20 amendment (Orbit Projection v2): a conversation's past/settled plan facts - the same candidate scope and per-viewer vault filter as the upcoming pipeline, past defined as not-upcoming under the same L8 rule"},
       {OpalCore.SocialFlow.NonResponseEtiquette, :limbo_recipients, 2,
        "Repair #20 F-19: the etiquette machinery's own limbo recipients for one plan (stage set + window fraction from the machinery itself)"},
       {OpalCore.SocialFlow.OrbitProjection, :for_conversation, 3,
@@ -232,7 +234,9 @@ defmodule OpalCore.SocialFlow.PlanProjection do
       {OpalCore.MemoryWallet.CapsuleRead, :read_one, 3,
        "SM: one capsule by id through the same mediation; foreign reads are not_found"},
       {OpalCore.MemoryWallet.ScopedContext, :assemble, 2,
-       "SM: the one scoped-context assembly for capsules (LLM prompt + packages), built only from the facade's reads"}
+       "SM: the one scoped-context assembly for capsules (LLM prompt + packages), built only from the facade's reads"},
+      {OpalCore.MemoryWallet.ScopedContext, :assemble_many, 2,
+       "Repair #20 amendment (Orbit Sameness fix): the same assembly over several named contexts for one account (conversation + dyad relationship), deduplicated by capsule id, built only from the facade's reads"}
     ]
   end
 

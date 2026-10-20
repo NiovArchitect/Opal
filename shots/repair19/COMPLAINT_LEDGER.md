@@ -257,3 +257,95 @@ as machine-proven, pending the founder's phone walk - never as
 acceptance.
 
 **FOUNDER_ACCEPTED stays NO.**
+
+## WALK-7 AMENDMENT (2026-10-20, founder redirect on the interim preview)
+
+The founder reviewed the interim preview and redirected the
+wave (R-1..R-6), added Orbit Laws 2-4, Push to Chat, the
+validation amendments V-1..V-6, R-7 membership dynamics, the
+system-model mapping, and the Flow rename. Dispositions (full
+record: coordination/repair19/repair20-handoff.md, AMENDMENT
+WAVE section):
+
+- W7A-R1 Orbit v2: the v1 ring room REJECTED (Center Law +
+  Calm Law). Quiet card room shipped (CB 697206d4 + CC
+  5cbc2faa, integrator seam fix 2a313be4 charged to the CB-CC
+  seam). Frames: orbit-screen-1to1/group/empty, orbit-return,
+  orbit-where-limbo, orbit-push-to-chat, both modes. V1 frames
+  archived (pack-archive/v1-orbit-room-r20-base), never deleted.
+- W7A-R1L2 Sameness Test: standing species
+  (orbit_sameness_test.exs). First run exposed gyroscope gap
+  ZX-A5 (relationship capsules admissible in NO prompt
+  assembly) - fixed in CC; charged to the Orbit context-
+  assembly check.
+- W7A-R1P Push to Chat: shipped + pinned (no clipboard,
+  no auto-send); frames both modes.
+- W7A-R1G/H Density inheritance + Ethics Constitution:
+  rendered (period pills) + recorded verbatim in
+  orbit-v2-report.md; self-mirror built minimally; fading
+  scaffold declared intelligence-phase.
+- W7A-R1B Bidirectional: composer language rendered;
+  the capsule-filing action declared (no silent wiring),
+  founder-gated.
+- W7A-R1L3 Law 3 (Truth of Misalignment) + W7A-R1L4 Law 4
+  (Two True Perspectives): recorded in orbit-v2-report.md
+  sections 2 + 8; where-lines are shared-record-only
+  (Law-4-conformant sourcing); fuller bilateral rendering
+  declared intelligence-phase.
+- W7A-R2 Connectors v2: shipped (CD 9548e38d); backend-derived
+  content stripped by name; frames room/category/permissions
+  both modes; v1 frames archived. Founder validated the
+  direction ("fantastic"); per-row status table in the handoff
+  (V-6).
+- W7A-R3 Composer model: shipped (CE 0e76bd6a); mic inside the
+  bar, Send on text; frames both modes incl. recording/review.
+- W7A-R4 Dock anchoring: ROOT CAUSE = dock absolute-in-column +
+  the one sheet surface outside TopLayer; fixed (CF e85d8b78);
+  proven at the glass incl. sheets open (cardmenu set).
+- W7A-R5 Stray dots: spine arc nodes removed; labeled phase/
+  state markers replace them (CF).
+- W7A-R6 Limbo precision: derivation violation fixed at the
+  source (no window, no limbo) with negative pins; countdown
+  legibility promoted (body-size window line) - proven in
+  graphs-limbo-card + plan-detail-limbo, both modes.
+- W7A-RENAME Flow: shipped (CA 956ca43d) - dock + rail +
+  mobile, water glyph; "Social" (07:01) superseded by Flow
+  (07:06) on the record. Flow vs Flows left untouched per the
+  founder's open question.
+- W7A-V1 Identity coherence: fold-born title named the viewer
+  as his own counterparty - fixed at the seed source
+  (HumanSeedWorld explicit plan + retitle branch + pin);
+  proven both modes. General remainder (creator-relative
+  titles stored absolutely) recorded as a finding,
+  founder-gated.
+- W7A-V2 Dissolve + inset: scroll-sequence frames; inset audit
+  measured (148px clearance, ~1,100px spare travel).
+- W7A-V3 Dock invariant: same family as R-4; fixed + pinned;
+  etiquette set re-shot on the amended build.
+- W7A-V4 Pack hygiene: live pack version-consistent; archive
+  rule live (pack-archive/ with version labels + README).
+- W7A-V5 Copy: "Drop it" retired for "Let it go" (3 render
+  sites + refusal copy), pinned 13/13, proven at the glass.
+- W7A-R7 Membership dynamics: model recorded
+  (orbit-v2-report.md section 10); membership is real in the
+  backend and the orbit reflects it on read without rebuild;
+  no UI faked; builds founder-gated.
+- W7A-MODEL System model (capsules as sets; likes/dislikes
+  first-class; nouns/verbs; truth-in-model; whole-system
+  coherence): recorded in WALLET_MAP addendum +
+  orbit-v2-report.md section 11.
+- W7A-GEN Generality + reciprocity: three anchors exercised
+  (two person, one group), no person-specific paths; both
+  seats of one conversation captured.
+- Charges this round: the CB-CC field-name seam
+  (loved_evidence) to the orbit integration check; gyroscope
+  gap ZX-A5 to the Orbit context-assembly check; the F-17b
+  stage-job charge from the base wave stands proven again
+  (job 512 enqueued at the re-set window's fork due fired on
+  schedule).
+- Battery (amendment): backend 3,340/0 on the integrated tip;
+  final tip backend 3,341 with 2 load-flakes (standalone 25/25
+  x3); web baseline-exact (23/16); typecheck 9; mobile 105/105;
+  API on fresh DB at close-out.
+
+**FOUNDER_ACCEPTED stays NO.**

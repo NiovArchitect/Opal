@@ -18,7 +18,17 @@
  * so there is nothing to tap.
  */
 import React from "react";
-import type { SpineItem } from "./density";
+import type { SpineItem, SpinePhase } from "./density";
+
+/** R20A CF (R-5): the spine phases in plain words - the marker on
+ *  each item row names its phase and its state, so no bare dot has
+ *  to carry meaning a reader cannot decode. */
+const PHASE_LABEL: Record<SpinePhase, string> = {
+  intent: "Intent",
+  preparation: "Preparation",
+  event: "The event",
+  settling: "Settling into memory",
+};
 
 export function PreparationSpine({
   spine,
@@ -33,29 +43,31 @@ export function PreparationSpine({
   return (
     <div data-testid="c2-preparation-spine">
       <p className="c2s-detail-kicker">How this plan comes together</p>
-      <div className="c2s-spine-arc" aria-hidden style={{ position: "relative", height: 4, margin: "6px 0 10px" }}>
-        {spine.map((item) => (
-          <span
-            key={item.id}
-            data-testid="c2-spine-node"
-            data-spine-phase={item.phase}
-            style={{
-              position: "absolute",
-              left: `${Math.round(item.arcPosition * 100)}%`,
-              width: 8,
-              height: 8,
-              borderRadius: 8,
-              background: "var(--state-forming)",
-              opacity: item.state === "done" ? 1 : 0.45,
-            }}
-          />
-        ))}
-      </div>
+      {/* R20A CF (R-5): the bare arc dots that used to sit under
+       * this kicker are REMOVED. They were 8px circles in one
+       * forming hue for every phase, differing only in opacity,
+       * positioned by arc fraction (two phases sit 0.05 apart and
+       * the end nodes half-overflowed the row): no label, no
+       * pattern, no per-phase meaning a reader could decode - the
+       * founder's unexplained dots. Each item's state now rides
+       * its own row as a labeled marker (phase word + state word
+       * in plain text), so the state a dot only hinted at is
+       * legible beside the item it describes. */}
       {spine.map((item) => {
         const body = (
           <>
             <p className="c2s-card-title" style={{ fontSize: 15 }}>
-              {item.label}
+              {item.label}{" "}
+              <span
+                className="c2s-spine-marker"
+                data-testid="c2-spine-marker"
+                data-spine-state={item.state}
+                data-spine-phase={item.phase}
+              >
+                {PHASE_LABEL[item.phase]}
+                {" - "}
+                {item.state}
+              </span>
             </p>
             <p className="c2s-card-line">
               {item.stateLine} <span style={{ color: "var(--ink-3)" }}>{item.ownerLine}</span>

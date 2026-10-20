@@ -1,10 +1,1301 @@
 {
   "suite": "repair18-founder-regression",
-  "api_base": "http://127.0.0.1:4000",
+  "api_base": "http://127.0.0.1:4109",
   "seed_mode": true,
-  "run_tag": "rmvcz4ykmbk",
-  "at": "2026-10-17T22:35:13.368Z",
+  "run_tag": "with the usual crew at the pier",
+  "at": "2026-10-20T18:58:59.928Z",
   "results": [
+    {
+      "id": "B1-S1",
+      "title": "Create virtual plan end to end: explicit place type, honest join, no physical machinery",
+      "theme": "virtual-place",
+      "class": "B",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /opal/plans",
+        "POST /opal/plans/graph-create",
+        "GET /opal/plans",
+        "GET /journeys/:id",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 44,
+      "failures": [],
+      "notes": [],
+      "ms": 10018
+    },
+    {
+      "id": "B1-S2",
+      "title": "Convert physical dinner to virtual (propose, hold, accept) and back, venue restored",
+      "theme": "virtual-place",
+      "class": "B",
+      "surfaces": [
+        "POST /journeys/:id/convert-place-type",
+        "POST /journeys/:id/revisions/:revision_id/respond",
+        "GET /opal/plans",
+        "GET /journeys/:id",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 45,
+      "failures": [],
+      "notes": [],
+      "ms": 16500
+    },
+    {
+      "id": "B1-S3",
+      "title": "Virtual and physical plans at the same stage agree on every surface; only the affordance differs",
+      "theme": "virtual-place",
+      "class": "B",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /journeys/:id",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment",
+        "GET /calendar/today (NowStrip)"
+      ],
+      "status": "PASS",
+      "checks": 27,
+      "failures": [],
+      "notes": [],
+      "ms": 10107
+    },
+    {
+      "id": "B1-S4",
+      "title": "Physical plans unchanged: in_person defaults, maps/leave intact, completion machinery intact, plus the additive place object",
+      "theme": "virtual-place",
+      "class": "B",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /opal/plans",
+        "POST /opal/plans/graph-create",
+        "GET /journeys/:id",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 22,
+      "failures": [],
+      "notes": [],
+      "ms": 6637
+    },
+    {
+      "id": "B1-S5",
+      "title": "Refusals and honesty: no split physical+virtual record, terminal/cross-account/bogus conversions refused, no fabricated URL",
+      "theme": "virtual-place",
+      "class": "B",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /journeys/:id/convert-place-type",
+        "GET /opal/plans",
+        "POST /journeys/activate",
+        "GET /journeys/:id"
+      ],
+      "status": "PASS",
+      "checks": 25,
+      "failures": [],
+      "notes": [],
+      "ms": 16295
+    },
+    {
+      "id": "FR-05-01",
+      "title": "Center send leaked into a human chat; Center plan bounced him into Chats",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "Graphs",
+        "GET /opal/plans",
+        "GET /conversations"
+      ],
+      "status": "PASS",
+      "checks": 5,
+      "failures": [],
+      "notes": [],
+      "ms": 8586
+    },
+    {
+      "id": "FR-06-01",
+      "title": "Plan leadership was invisible - nobody could tell who leads or controls a plan",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Journey / graph detail",
+        "human thread",
+        "GET /journeys/:id",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 12,
+      "failures": [],
+      "notes": [
+        "roles as rendered: lead view=\"lead\" participant view=\"participant\""
+      ],
+      "ms": 6649
+    },
+    {
+      "id": "FR-06-02",
+      "title": "A generic Friday dinner inherited Maya; a birthday inherited Coronado and Night Hawk",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 4007
+    },
+    {
+      "id": "FR-07-01",
+      "title": "\"Find Nighthawk in Coronado\" returned anything but the real Night Hawk, 1315 Orange Ave",
+      "theme": "Venue search and provider honesty",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "implemented, execution deferred to Mac stack: exact-match leg needs the live Geoapify credential, which exists on the founder's Mac only; locally only the honesty leg executed"
+      ],
+      "ms": 960
+    },
+    {
+      "id": "FR-07-02",
+      "title": "\"Find three Mediterranean restaurants\" returned exact-venue leftovers and invented a day",
+      "theme": "Venue search and provider honesty",
+      "class": "A",
+      "surfaces": [
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [],
+      "ms": 2021
+    },
+    {
+      "id": "FR-07-03",
+      "title": "Chat - plan - Back landed on Graphs instead of back in the chat",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A",
+      "surfaces": [
+        "GET /journeys/:id",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "tap-level Back behavior is a web-client leg for the staging stack; this file proves the return-address contract it depends on"
+      ],
+      "ms": 352
+    },
+    {
+      "id": "FR-07-04",
+      "title": "New messages appeared above older ones in a human thread",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A",
+      "surfaces": [
+        "GET /conversations/:id/messages"
+      ],
+      "status": "PASS",
+      "checks": 10,
+      "failures": [],
+      "notes": [],
+      "ms": 4700
+    },
+    {
+      "id": "FR-07-05",
+      "title": "Multiline text escaped the composer shell",
+      "theme": "Composer, scroll, layering, visual containment",
+      "class": "A",
+      "surfaces": [
+        "POST /opal/conversation/messages",
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 8,
+      "failures": [],
+      "notes": [
+        "composer shell geometry leg plugs into this file on the staging web stack"
+      ],
+      "ms": 2484
+    },
+    {
+      "id": "FR-08-01",
+      "title": "An explicit time was softened: \"The Henry, Sunday 10 AM\" became 7:30",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 1,
+      "failures": [],
+      "notes": [],
+      "ms": 5901
+    },
+    {
+      "id": "FR-08-02",
+      "title": "Things rendered behind other things: graph detail under chrome, story composer behind social screen",
+      "theme": "Composer, scroll, layering, visual containment",
+      "class": "A+P",
+      "surfaces": [
+        "GET /journeys/:id",
+        "GET /home/feed"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [
+        "z-order/portal leg plugs into this file on the staging web stack; payload-completeness contract executes here; visual sign-off stays on the phone checklist"
+      ],
+      "ms": 854
+    },
+    {
+      "id": "FR-08-03",
+      "title": "Center blocked after the first send; double-tapping Send duplicated the message",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "class": "A",
+      "surfaces": [
+        "POST /opal/conversation/messages",
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 6,
+      "failures": [],
+      "notes": [],
+      "ms": 3500
+    },
+    {
+      "id": "FR-09-01",
+      "title": "A stuck search captured the thread: cancel ignored, stale results after New Chat",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [
+        "search turn reply: Looking for Italian restaurants in Coronado…"
+      ],
+      "ms": 3074
+    },
+    {
+      "id": "FR-09-02",
+      "title": "Recall answered the wrong topic: a Maya/birthday question got the sticky Henry venue",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [],
+      "ms": 2414
+    },
+    {
+      "id": "FR-09-03",
+      "title": "Scroll misbehaved: forced to bottom, Jump-to-latest snapped back, late timers re-pinned",
+      "theme": "Composer, scroll, layering, visual containment",
+      "class": "A",
+      "surfaces": [
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 1,
+      "failures": [],
+      "notes": [
+        "scroll physics leg plugs into this file on the staging web stack; window-stability contract executes here"
+      ],
+      "ms": 4486
+    },
+    {
+      "id": "FR-10-01",
+      "title": "Center kept re-engaging an old person/topic after he changed subject",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 7,
+      "failures": [],
+      "notes": [],
+      "ms": 2497
+    },
+    {
+      "id": "FR-10-02",
+      "title": "Unresolved venues: stay honest, keep the requested identity, never fabricate a match",
+      "theme": "Venue search and provider honesty",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [],
+      "ms": 2409
+    },
+    {
+      "id": "FR-11-01",
+      "title": "Messages appeared, moved, then vanished after leaving and re-entering a thread",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "human threads",
+        "GET /conversations/:id/messages",
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 13,
+      "failures": [],
+      "notes": [],
+      "ms": 7795
+    },
+    {
+      "id": "FR-11-02",
+      "title": "Opal claimed things that never happened: 'Locked in!', reminders, bookings",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human threads",
+        "GET /opal/plans",
+        "GET /reminders"
+      ],
+      "status": "PASS",
+      "checks": 10,
+      "failures": [],
+      "notes": [
+        "reminder request produced no set-claim; read-back leg vacuous"
+      ],
+      "ms": 7182
+    },
+    {
+      "id": "FR-11-03",
+      "title": "\"Cancel\" behaved like a sentiment, not a state change; no authority check",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "human thread",
+        "Graphs",
+        "Timeline",
+        "GET /opal/plans",
+        "GET /journeys/:id"
+      ],
+      "status": "PASS",
+      "checks": 7,
+      "failures": [],
+      "notes": [
+        "journey show for the cancelled plan returned 409; listing agreement asserted instead"
+      ],
+      "ms": 12352
+    },
+    {
+      "id": "FR-11-04",
+      "title": "Confirming repeatedly dead-ended; the plan never advanced",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "human thread",
+        "Center",
+        "signal cards",
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 30,
+      "failures": [],
+      "notes": [],
+      "ms": 51969
+    },
+    {
+      "id": "FR-11-05",
+      "title": "Double-accept / repeated opportunity taps created two plans or re-formed a pending plan",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "Graphs",
+        "GET /opal/plans",
+        "POST /opal/plans/graph-create"
+      ],
+      "status": "PASS",
+      "checks": 9,
+      "failures": [],
+      "notes": [
+        "journey attendance not carried on this stack; duplicate-row assertions stand"
+      ],
+      "ms": 12484
+    },
+    {
+      "id": "FR-11-06",
+      "title": "Plan signals never arrived: broadcasts dropped; pre-commit broadcasts painted ghost plans",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A",
+      "surfaces": [
+        "GET /conversations/:id/alignment",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 5,
+      "failures": [],
+      "notes": [
+        "live Phoenix-channel push leg plugs into this file on the staging stack; read-back + ghost legs execute here"
+      ],
+      "ms": 5815
+    },
+    {
+      "id": "FR-11-08",
+      "title": "Structural disease: nil/junk ids crashed public entry points with 500s",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "class": "A",
+      "surfaces": [
+        "GET /journeys/:id",
+        "GET /conversations/:id/alignment",
+        "GET /social-moments/:id",
+        "GET /trips/:id"
+      ],
+      "status": "PASS",
+      "checks": 24,
+      "failures": [],
+      "notes": [],
+      "ms": 4686
+    },
+    {
+      "id": "FR-12-01",
+      "title": "Fixture rows painted as if real: invented presence, ETAs, sample ideas, hollow errors",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "Home",
+        "Chats list",
+        "Graphs",
+        "GET /opal/plans",
+        "GET /home/feed",
+        "GET /calendar/today"
+      ],
+      "status": "PASS",
+      "checks": 28,
+      "failures": [],
+      "notes": [],
+      "ms": 2774
+    },
+    {
+      "id": "FR-12-02",
+      "title": "\"Change dinner to 8 PM\" produced copy but the plan never moved, or reverted to 7:30",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "human thread",
+        "Center",
+        "Next Together strip",
+        "Graphs",
+        "Timeline",
+        "calendar",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 17,
+      "failures": [],
+      "notes": [],
+      "ms": 26335
+    },
+    {
+      "id": "FR-12-03",
+      "title": "A days-old or cancelled plan_id in context hijacked unrelated utterances",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 12,
+      "failures": [],
+      "notes": [
+        "TTL-expiry leg not waited out in-suite (15 min); cancelled-plan binding leg is the deterministic half - see header"
+      ],
+      "ms": 14523
+    },
+    {
+      "id": "FR-12-04",
+      "title": "A change proposal sat at \"Waiting on one response.\" forever",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "proposal history",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 10,
+      "failures": [],
+      "notes": [
+        "past-24h clock-ageing leg deferred: no product clock seam exists; see header for where it is proven"
+      ],
+      "ms": 11500
+    },
+    {
+      "id": "FR-12-05",
+      "title": "Garbage or invented schedules persisted; 'Saturday after 10' invented PM",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "plan cards",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 15,
+      "failures": [],
+      "notes": [],
+      "ms": 27698
+    },
+    {
+      "id": "FR-12-06",
+      "title": "Extraction invented people and places: Henry, Coronado and \"AM\" as people; \"Los Angeles\" truncated",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 1,
+      "failures": [],
+      "notes": [],
+      "ms": 4970
+    },
+    {
+      "id": "FR-12-07",
+      "title": "Plans created in Center were invisible in Graphs, Timeline and the peer's chat",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans",
+        "GET /calendar/today"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [],
+      "ms": 3805
+    },
+    {
+      "id": "FR-12-08",
+      "title": "\"Near me\" never worked: coords dropped, hardcoded travel_minutes: 18 persisted",
+      "theme": "Location",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "POST /opal/location",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 59,
+      "failures": [],
+      "notes": [],
+      "ms": 4102
+    },
+    {
+      "id": "FR-12-09",
+      "title": "\"Three things near me\" without permission must ask honestly; with coords it must actually search",
+      "theme": "Location",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "POST /opal/location"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 3136
+    },
+    {
+      "id": "FR-12-10",
+      "title": "Next Together strip kept showing 7:30 after the move to 8:00; Now card had no who/where",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A",
+      "surfaces": [
+        "GET /calendar/today",
+        "GET /opal/plans",
+        "GET /conversations (plan_projection)"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "no seeded venue plan projects into today's window on this stack; who/where specimen leg not assertable here"
+      ],
+      "ms": 372
+    },
+    {
+      "id": "FR-12-11",
+      "title": "\"Schedule date night\" stalled after creation: no calendar entry, no next steps",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A",
+      "surfaces": [
+        "GET /plans/:id/execution",
+        "GET /opal/plans",
+        "GET /calendar/today"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 3140
+    },
+    {
+      "id": "FR-12-12",
+      "title": "Rendering polish: times with no AM/PM, blank time lines on dateless plans",
+      "theme": "Composer, scroll, layering, visual containment",
+      "class": "A",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /calendar/today"
+      ],
+      "status": "PASS",
+      "checks": 60,
+      "failures": [],
+      "notes": [],
+      "ms": 2867
+    },
+    {
+      "id": "FR-12-13",
+      "title": "Switching accounts leaked the other account's plans; name lookup could attach a stranger",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "class": "A",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /conversations",
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [
+        "web local-storage namespacing leg plugs into this file on the staging stack; API isolation executes here"
+      ],
+      "ms": 4706
+    },
+    {
+      "id": "FR-12-14",
+      "title": "Dateless plans bucketed to \"next week\"; missing graph a hollow sheet; raw exception text",
+      "theme": "Clock, bucketing, misc rendering truth",
+      "class": "A",
+      "surfaces": [
+        "GET /journeys/:id",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [],
+      "ms": 3497
+    },
+    {
+      "id": "FR-13-01",
+      "title": "Fake success on dead plans; superseded revision acceptance rolled the plan back",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "human thread",
+        "Center",
+        "signal cards",
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 14,
+      "failures": [],
+      "notes": [],
+      "ms": 19162
+    },
+    {
+      "id": "FR-13-02",
+      "title": "\"Cancel the dinner plan\" and \"cancel all plans\" started a creation flow; \"move dinner to Saturday\" dead-ended",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "human thread",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 9,
+      "failures": [],
+      "notes": [
+        "after Center cancels: target plan status=tentative time=Saturday"
+      ],
+      "ms": 10204
+    },
+    {
+      "id": "FR-13-03",
+      "title": "\"Who's coming?\" and \"Where is dinner?\" dead-ended at \"Tell me more\"",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 6,
+      "failures": [],
+      "notes": [],
+      "ms": 2877
+    },
+    {
+      "id": "FR-13-04",
+      "title": "Settings lied: fabricated \"1 active session\" and \"No active blocks\"; dead settings screens",
+      "theme": "Settings, profile, proactivity",
+      "class": "A",
+      "surfaces": [
+        "GET /session",
+        "GET /preferences/messaging",
+        "PATCH /preferences/messaging",
+        "GET /celebrations"
+      ],
+      "status": "PASS",
+      "checks": 5,
+      "failures": [],
+      "notes": [
+        "settings probe: before={\"message_notifications_enabled\":true,\"notifications_paused\":false,\"read_receipts_enabled\":true}"
+      ],
+      "ms": 889
+    },
+    {
+      "id": "FR-14-01",
+      "title": "\"Any upcoming plans?\" created a plan instead of answering",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 16,
+      "failures": [],
+      "notes": [],
+      "ms": 4230
+    },
+    {
+      "id": "FR-14-02",
+      "title": "The product only understood HIS circle and HIS places: extraction knew only founder names",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [
+        "Zelda with the usual crew at the pier: plans 60 -> 60",
+        "Quentin with the usual crew at the pier: plans 60 -> 60"
+      ],
+      "ms": 5999
+    },
+    {
+      "id": "FR-14-03",
+      "title": "New users saw the founder's friends and the founder's copy: fabricated who-picker, named fallbacks",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "class": "A",
+      "surfaces": [
+        "GET /people",
+        "GET /trips",
+        "POST /recommendations/curate"
+      ],
+      "status": "PASS",
+      "checks": 13,
+      "failures": [],
+      "notes": [],
+      "ms": 1304
+    },
+    {
+      "id": "FR-14-04",
+      "title": "Coordination behaved differently across relationship types; family was one flat type",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "class": "A",
+      "surfaces": [
+        "PUT /relationships/:id",
+        "GET /relationships"
+      ],
+      "status": "PASS",
+      "checks": 6,
+      "failures": [],
+      "notes": [],
+      "ms": 1430
+    },
+    {
+      "id": "FR-14-05",
+      "title": "The founder seed itself was corrupt: transposed ids renamed Alex to \"Nina\"; re-runs re-fired",
+      "theme": "Person-agnostic behavior, hardcodes, gyroscope",
+      "class": "A",
+      "surfaces": [
+        "POST /dev/founder-communication-seed",
+        "POST /dev/founder-graph-commitment-seed",
+        "GET /conversations",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 6557
+    },
+    {
+      "id": "FR-14-06",
+      "title": "Every voice / listen / transcribe path CRASHED on a non-macOS host",
+      "theme": "Clock, bucketing, misc rendering truth",
+      "class": "A",
+      "surfaces": [
+        "GET /voice/listen",
+        "POST /voice/speak"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [],
+      "ms": 412
+    },
+    {
+      "id": "FR-15-01",
+      "title": "Story share announced 'shared' before the backend answered; Post never persisted",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "Home Post flow",
+        "story composer",
+        "Home feed",
+        "POST /social-moments",
+        "POST /stories"
+      ],
+      "status": "PASS",
+      "checks": 11,
+      "failures": [],
+      "notes": [],
+      "ms": 2522
+    },
+    {
+      "id": "FR-15-03",
+      "title": "Close-circle stories reached NOBODY - eligibility was literally author == viewer",
+      "theme": "Stories, posts, graph-create durability",
+      "class": "A",
+      "surfaces": [
+        "POST /stories",
+        "GET /stories",
+        "GET /home/feed"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [
+        "mutual close-circle member leg needs an established mutual relationship between two provisioned accounts; asserted here: author reach + non-member exclusion"
+      ],
+      "ms": 1525
+    },
+    {
+      "id": "FR-15-04",
+      "title": "Stories broke on real inputs: string ttl 500, born-expired ttl, silent media, no captions",
+      "theme": "Stories, posts, graph-create durability",
+      "class": "A",
+      "surfaces": [
+        "POST /stories",
+        "GET /stories",
+        "GET /home/feed"
+      ],
+      "status": "PASS",
+      "checks": 10,
+      "failures": [],
+      "notes": [],
+      "ms": 3373
+    },
+    {
+      "id": "FR-15-05",
+      "title": "Publish accepted ANY media ids - nonexistent, other users', empty posts persisted",
+      "theme": "Stories, posts, graph-create durability",
+      "class": "A",
+      "surfaces": [
+        "POST /social-moments",
+        "GET /social-moments",
+        "GET /social-moments/media/:id"
+      ],
+      "status": "PASS",
+      "checks": 5,
+      "failures": [],
+      "notes": [],
+      "ms": 1645
+    },
+    {
+      "id": "FR-16-01",
+      "title": "\"Skip for now\" on phone verification was a dead control for every real user",
+      "theme": "Onboarding, OTP, permissions",
+      "class": "A",
+      "surfaces": [
+        "POST /activation/verify"
+      ],
+      "status": "PASS",
+      "checks": 1,
+      "failures": [],
+      "notes": [
+        "onboarding render leg (no Skip affordance seed-off; fixture Skip seed-on) plugs into this file on the staging web stack"
+      ],
+      "ms": 131
+    },
+    {
+      "id": "FR-16-02",
+      "title": "Unreachable onboarding screens duplicated live asks; orphan ActivationFlow duplicated the real flow",
+      "theme": "Onboarding, OTP, permissions",
+      "class": "A",
+      "surfaces": [
+        "apps/opal_web/src/onboarding"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [],
+      "ms": 389
+    },
+    {
+      "id": "FR-16-03",
+      "title": "PermissionBootstrap forced all three permission decisions before any payoff",
+      "theme": "Onboarding, OTP, permissions",
+      "class": "A+P",
+      "surfaces": [
+        "GET /preferences/assist",
+        "GET /preferences/messaging"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "Continue-gating leg plugs into this file on the staging web stack; OS prompt result stays on the phone checklist"
+      ],
+      "ms": 666
+    },
+    {
+      "id": "FR-16-04",
+      "title": "Graph-create completions vanished on navigation - same write-only-state disease as Post",
+      "theme": "Stories, posts, graph-create durability",
+      "class": "A",
+      "surfaces": [
+        "POST /opal/plans/graph-create",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 3107
+    },
+    {
+      "id": "FR-16-05",
+      "title": "Profile facts were all-or-nothing at onboarding; the ask-once mechanism could never fire",
+      "theme": "Settings, profile, proactivity",
+      "class": "A",
+      "surfaces": [
+        "POST /profile-gaps/assess",
+        "POST /profile-gaps/answer",
+        "POST /profile-gaps/skip",
+        "GET /celebrations"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [
+        "assess returned {\"profile_gap\":{\"ask\":{\"asked_once\":true,\"blocking\":false,\"dismissible\":true,\"fact_key\":\"birthday\",\"flow\":\"birthday_plan\",\"prompt\":\"Quick one while we plan — when's Ray Thompson's birthday? I'll remem"
+      ],
+      "ms": 1198
+    },
+    {
+      "id": "FR-16-06",
+      "title": "Proactive machinery was dead or lying: opt-out silently never saved, recent changes empty",
+      "theme": "Settings, profile, proactivity",
+      "class": "A",
+      "surfaces": [
+        "GET /preferences/assist",
+        "PATCH /preferences/assist",
+        "GET /home/feed"
+      ],
+      "status": "PASS",
+      "checks": 5,
+      "failures": [],
+      "notes": [],
+      "ms": 1081
+    },
+    {
+      "id": "FR-17-01",
+      "title": "Center painted fabricated 'Done. X is on your Graph.' replies, even when the send failed",
+      "theme": "No scripted responders, no seed impersonation, no fake success",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/conversation",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 6,
+      "failures": [],
+      "notes": [
+        "plan request produced no Done claim; claim read-back leg vacuous"
+      ],
+      "ms": 3227
+    },
+    {
+      "id": "FR-17-02",
+      "title": "Change-time phrasing failed silently; '8pm' normalized to '8: PM'",
+      "theme": "Plan authority: change time, confirm, cancel, duplicates",
+      "class": "A",
+      "surfaces": [
+        "human thread",
+        "Center",
+        "GET /conversations/:id/alignment",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 45,
+      "failures": [],
+      "notes": [],
+      "ms": 37084
+    },
+    {
+      "id": "FR-17-03",
+      "title": "Category answer \"Food\" lost continuity and re-engaged Maya",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 6,
+      "failures": [],
+      "notes": [
+        "category probe (Food): outstanding question was: Tell me more — I can help you plan or check what's coming up.",
+        "category probe (Outdoors): outstanding question was: Tell me more — I can help you plan or check what's coming up.",
+        "category probe (Nightlife): outstanding question was: Tell me more — I can help you plan or check what's coming up."
+      ],
+      "ms": 3996
+    },
+    {
+      "id": "FR-17-04",
+      "title": "A bare \"yes\" resurrected a dead flow: \"Done. Nighthawk with Maya is set up\"",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 17779
+    },
+    {
+      "id": "FR-17-05",
+      "title": "A NEW request was answered as an update: date night with Chanelle",
+      "theme": "Center routing, sticky context, continuity",
+      "class": "A",
+      "surfaces": [
+        "Center",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 4,
+      "failures": [],
+      "notes": [],
+      "ms": 8861
+    },
+    {
+      "id": "FR-17-06",
+      "title": "\"Dave & Busters near me\" was blocked because the name was not perfect",
+      "theme": "Venue search and provider honesty",
+      "class": "A",
+      "surfaces": [
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 6,
+      "failures": [],
+      "notes": [],
+      "ms": 3613
+    },
+    {
+      "id": "FR-17-07",
+      "title": "\"All the colors are the same\" - state must agree on every surface (automatable part)",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A+P",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/alignment",
+        "GET /journeys/:id"
+      ],
+      "status": "PASS",
+      "checks": 3,
+      "failures": [],
+      "notes": [
+        "phone/visual leg (canon colors per state) stays on the founder phone checklist; this file proves the automatable state-agreement half"
+      ],
+      "ms": 7469
+    },
+    {
+      "id": "FR-17-08",
+      "title": "The Center header strip showed fixture times \"3:30 / 7:30\" instead of his real day",
+      "theme": "Cross-surface consistency and projections",
+      "class": "A",
+      "surfaces": [
+        "GET /calendar/today"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [],
+      "ms": 1107
+    },
+    {
+      "id": "FR-17-09",
+      "title": "Chat-list pill text hung outside its pill: \"farmers market plus coast\" outside the pill",
+      "theme": "Composer, scroll, layering, visual containment",
+      "class": "A",
+      "surfaces": [
+        "GET /conversations (plan_projection)"
+      ],
+      "status": "PASS",
+      "checks": 35,
+      "failures": [],
+      "notes": [
+        "measured containment leg plugs into this file on the staging web stack; label-shape contract executes here",
+        "inspected 38 conversation rows for pill label shape"
+      ],
+      "ms": 2253
+    },
+    {
+      "id": "FR-17-10",
+      "title": "The composer had a stray arrow inside it and typed text clashed under the voice button",
+      "theme": "Composer, scroll, layering, visual containment",
+      "class": "A",
+      "surfaces": [
+        "POST /opal/conversation/messages",
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "composer rendering leg plugs into this file on the staging web stack; byte-fidelity contract executes here"
+      ],
+      "ms": 639
+    },
+    {
+      "id": "FR-17-11",
+      "title": "\"If I wanted to clear the chat with Opal how come it's not clearing\"",
+      "theme": "Chat sessions, Center IA, account isolation",
+      "class": "A",
+      "surfaces": [
+        "POST /opal/conversation/new",
+        "POST /opal/conversation/clear",
+        "GET /opal/conversations",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 5,
+      "failures": [],
+      "notes": [],
+      "ms": 4029
+    },
+    {
+      "id": "FR-17-12",
+      "title": "Tests failed depending on the time of day - quiet-hours gates read the real wall clock",
+      "theme": "Clock, bucketing, misc rendering truth",
+      "class": "A",
+      "surfaces": [
+        "apps/opal_core/lib (clock seam)"
+      ],
+      "status": "PASS",
+      "checks": 1,
+      "failures": [],
+      "notes": [
+        "full proof = backend suite run unpinned + pinned 02:00 LA + pinned 14:00 LA with zero failures (catalog); this guard fails if the seam disappears"
+      ],
+      "ms": 0
+    },
+    {
+      "id": "FR-17-13",
+      "title": "Splash 1 carried no canon logo text - just a character crop with stray fragments",
+      "theme": "Splash, brand, character, TestFlight",
+      "class": "A+P",
+      "surfaces": [
+        "apps/opal_web/src/brand",
+        "apps/opal_web/src (splash)"
+      ],
+      "status": "PASS",
+      "checks": 1,
+      "failures": [],
+      "notes": [
+        "founder visual sign-off on the lockup stays on the phone checklist; repo-side text contract executes here",
+        "Enter Opal appears in: apps/opal_web/src/c2/C2Wordmark.tsx, apps/opal_web/src/onboarding/C2Splash1.tsx, apps/opal_web/src/onboarding/C2Splash2.tsx, apps/opal_web/src/onboarding/FirstRunPromisePage.tsx; lockup source found: true"
+      ],
+      "ms": 488
+    },
+    {
+      "id": "FR-17-14",
+      "title": "The Center character read as a static image; presence states could stick forever",
+      "theme": "Splash, brand, character, TestFlight",
+      "class": "A+P",
+      "surfaces": [
+        "POST /opal/conversation/messages",
+        "GET /opal/conversation"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "presence-state derivation + feels-alive judgment stay on the staging web stack / phone checklist; turn-completion contract executes here"
+      ],
+      "ms": 710
+    },
+    {
+      "id": "FR-17-15",
+      "title": "TestFlight was blocked repo-side: expo-notifications undeclared, no testflight profile",
+      "theme": "Splash, brand, character, TestFlight",
+      "class": "A",
+      "surfaces": [
+        "apps/opal_mobile/app.json",
+        "apps/opal_mobile/eas.json",
+        "apps/opal_mobile/package.json"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "TestFlight upload/install/smoke are founder steps (Apple account + physical phone) and are not asserted here"
+      ],
+      "ms": 9
+    },
     {
       "id": "FR-18-01",
       "title": "Duplicate forming plans for the same intent; opening a conversation mints a plan",
@@ -16,24 +1307,11 @@
         "human threads",
         "GET /opal/plans"
       ],
-      "status": "FAIL",
+      "status": "PASS",
       "checks": 7,
-      "failures": [
-        {
-          "surface": "human thread open (messages + alignment read)",
-          "message": "opening a conversation must create zero plans (expected 0, got 1)"
-        },
-        {
-          "surface": "POST /opal/plans (dedupe)",
-          "message": "re-creating the same intent must return the existing plan, not a second row (expected \"77517601-5f13-46e1-9855-2552b6ffc72a\", got \"99ca44e2-9df4-42ce-832a-61ba8fcbf322\")"
-        },
-        {
-          "surface": "GET /opal/plans (Graphs read-back)",
-          "message": "the same dinner intent across all creation paths must be exactly one plan; found 3: 2ca362db-352e-4ac0-8269-5c309fc1528c, 99ca44e2-9df4-42ce-832a-61ba8fcbf322, 77517601-5f13-46e1-9855-2552b6ffc72a (expected 1, got 3)"
-        }
-      ],
+      "failures": [],
       "notes": [],
-      "ms": 9245
+      "ms": 16048
     },
     {
       "id": "FR-18-02",
@@ -48,24 +1326,34 @@
         "POST /opal/plans",
         "GET /opal/plans"
       ],
-      "status": "FAIL",
+      "status": "PASS",
       "checks": 9,
-      "failures": [
-        {
-          "surface": "POST /opal/plans response",
-          "message": "creating an overlapping plan must surface a double-booking flag in the create response"
-        },
-        {
-          "surface": "GET /opal/plans (Graphs surface)",
-          "message": "Alpha plan entry must carry the double-booking flag on the listing surface"
-        },
-        {
-          "surface": "GET /opal/plans (Graphs surface)",
-          "message": "Beta plan entry must carry the double-booking flag on the listing surface"
-        }
-      ],
+      "failures": [],
       "notes": [],
-      "ms": 2316
+      "ms": 7678
+    },
+    {
+      "id": "FR-18-02-revision",
+      "title": "Revision read-back: a confirmed change to 8 PM must read 8 PM on every surface",
+      "theme": "revision",
+      "class": "A",
+      "surfaces": [
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment",
+        "GET /conversations (plan_projection)",
+        "GET /conversations/:id/messages (signals, chronology)",
+        "GET /calendar/today"
+      ],
+      "status": "PASS",
+      "checks": 29,
+      "failures": [],
+      "notes": [
+        "own pair: isolated group thread e4be2964-1701-4d8f-a115-d8904d6c38c4 (third member silent)",
+        "own pair: plan under test: a9bce9e1-f1c6-426c-aa4d-bbb5a5620d7d (Juniper & Ivy / tomorrow 7:30 PM)",
+        "own pair after confirm: plan does not project into the calendar/today window on this stack; Now strip leg not assertable for a Thursday-labelled plan outside the window",
+        "own pair after unrelated message: plan does not project into the calendar/today window on this stack; Now strip leg not assertable for a Thursday-labelled plan outside the window"
+      ],
+      "ms": 11711
     },
     {
       "id": "FR-18-03",
@@ -77,52 +1365,11 @@
         "GET /opal/conversation",
         "POST /opal/conversation/messages"
       ],
-      "status": "FAIL",
+      "status": "PASS",
       "checks": 21,
-      "failures": [
-        {
-          "surface": "GET /opal/conversation (stored reply)",
-          "message": "reply to \"what city am I currently in?\" must not be the literal template deflection; got: Tell me more — I can help you plan or check what's coming up."
-        },
-        {
-          "surface": "GET /opal/conversation (stored reply)",
-          "message": "stored reply metadata must record real engagement (llm_called / draft_source); got llm_called=false draft_source=\"template\""
-        },
-        {
-          "surface": "GET /opal/conversation (stored reply)",
-          "message": "stored reply metadata must record real engagement (llm_called / draft_source); got llm_called=false draft_source=\"template\""
-        },
-        {
-          "surface": "GET /opal/conversation (stored reply)",
-          "message": "reply to \"what is two plus two?\" must not be the literal template deflection; got: Tell me more — I can help you plan or check what's coming up."
-        },
-        {
-          "surface": "GET /opal/conversation (stored reply)",
-          "message": "stored reply metadata must record real engagement (llm_called / draft_source); got llm_called=false draft_source=\"template\""
-        },
-        {
-          "surface": "Center reply (no location grant)",
-          "message": "without a location grant the city answer must honestly say location is unknown (or answer from real context); got: Tell me more — I can help you plan or check what's coming up."
-        },
-        {
-          "surface": "Center reply (location grant: San Diego)",
-          "message": "with a San Diego location grant the answer must name San Diego; got: Tell me more — I can help you plan or check what's coming up."
-        },
-        {
-          "surface": "Center reply (location grant: San Diego)",
-          "message": "the granted city answer must not be the template deflection"
-        },
-        {
-          "surface": "Center reply (location grant: Los Angeles)",
-          "message": "with a Los Angeles location grant the answer must name Los Angeles; got: Tell me more — I can help you plan or check what's coming up."
-        },
-        {
-          "surface": "Center reply (location grant: Los Angeles)",
-          "message": "the granted city answer must not be the template deflection"
-        }
-      ],
+      "failures": [],
       "notes": [],
-      "ms": 4753
+      "ms": 3934
     },
     {
       "id": "FR-18-04",
@@ -135,38 +1382,13 @@
         "GET /conversations/:id/alignment",
         "GET /journeys/:id"
       ],
-      "status": "FAIL",
-      "checks": 11,
-      "failures": [
-        {
-          "surface": "GET /opal/plans (Graphs)",
-          "message": "before RSVP change: surface output carries no attendance count at all (backend ground truth is 2 of 6)"
-        },
-        {
-          "surface": "GET /conversations plan_projection (Chats list)",
-          "message": "before RSVP change: surface output carries no attendance count at all (backend ground truth is 2 of 6)"
-        },
-        {
-          "surface": "GET /conversations/:id/alignment (thread)",
-          "message": "before RSVP change: surface output carries no attendance count at all (backend ground truth is 2 of 6)"
-        },
-        {
-          "surface": "GET /opal/plans (Graphs)",
-          "message": "after RSVP change: surface output carries no attendance count at all (backend ground truth is 3 of 6)"
-        },
-        {
-          "surface": "GET /conversations plan_projection (Chats list)",
-          "message": "after RSVP change: surface output carries no attendance count at all (backend ground truth is 3 of 6)"
-        },
-        {
-          "surface": "GET /conversations/:id/alignment (thread)",
-          "message": "after RSVP change: surface output carries no attendance count at all (backend ground truth is 3 of 6)"
-        }
-      ],
+      "status": "PASS",
+      "checks": 17,
+      "failures": [],
       "notes": [
-        "setup via founder graph commitment seed: plan=3b616c53-d43a-46f6-a232-92c6cc77e56d going=2 interested=4"
+        "setup via founder graph commitment seed: plan=c8fd8e49-8ba1-4313-9136-7e6fd01964d6 going=2 interested=4"
       ],
-      "ms": 2449
+      "ms": 8502
     },
     {
       "id": "FR-18-05",
@@ -182,73 +1404,345 @@
       "checks": 72,
       "failures": [],
       "notes": [],
-      "ms": 6342
+      "ms": 8944
     },
     {
       "id": "FR-18-06",
-      "title": "Revision read-back: a confirmed change to 8 PM must read 8 PM on every surface",
-      "theme": "revision",
+      "title": "The story composer was buried - not reachable from the home / social entry point",
+      "theme": "Stories, posts, graph-create durability",
       "class": "A",
       "surfaces": [
+        "GET /home/feed",
+        "POST /stories"
+      ],
+      "status": "PASS",
+      "checks": 2,
+      "failures": [],
+      "notes": [
+        "tap-count reachability leg plugs into this file on the staging web stack; entry-surface payload contract executes here"
+      ],
+      "ms": 434
+    },
+    {
+      "id": "FR-18-B2-01",
+      "title": "Virtual dinner completes at home: join + per-person food handoff, no physical steps, no fake order",
+      "theme": "home-completion",
+      "class": "B",
+      "surfaces": [
         "GET /opal/plans",
+        "plan contract completion",
+        "food step endpoints",
+        "Center"
+      ],
+      "status": "PASS",
+      "checks": 21,
+      "failures": [],
+      "notes": [],
+      "ms": 6640
+    },
+    {
+      "id": "FR-18-B2-02",
+      "title": "Food step honesty: handoff only, no fabricated order/confirmation/status, no slug-guessed store URL",
+      "theme": "home-completion-honesty",
+      "class": "B",
+      "surfaces": [
+        "food capability matrix",
+        "food handoff endpoint",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 17,
+      "failures": [],
+      "notes": [],
+      "ms": 4191
+    },
+    {
+      "id": "FR-18-B2-03",
+      "title": "Solo at-home shape, standup gets no food step, physical completion unchanged, zero addresses anywhere",
+      "theme": "home-completion",
+      "class": "B",
+      "surfaces": [
+        "GET /opal/plans",
+        "plan contract completion"
+      ],
+      "status": "PASS",
+      "checks": 9,
+      "failures": [],
+      "notes": [],
+      "ms": 9626
+    },
+    {
+      "id": "FR-18-B4",
+      "title": "Care rotation: siblings rotate a daily parent check-in; a miss surfaces once to exactly the set",
+      "theme": "care-rotation",
+      "class": "B",
+      "surfaces": [
+        "POST /care-rotations",
+        "GET /care-rotations/:id",
+        "POST /care-rotations/:id/check-ins/:key/complete",
+        "POST /care-rotations/:id/check-ins/:key/pass",
+        "GET /attention"
+      ],
+      "status": "PASS",
+      "checks": 65,
+      "failures": [],
+      "notes": [],
+      "ms": 71680
+    },
+    {
+      "id": "FR-18-B5A",
+      "title": "Household pod: declared + accepted only; supply plan and home defaults serve the whole pod",
+      "theme": "household-pod",
+      "class": "B",
+      "surfaces": [
+        "POST /households",
+        "GET /households/:id",
+        "POST /households/:id/accept",
+        "GET /context",
+        "GET /attention",
+        "POST /plans/from-context",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 42,
+      "failures": [],
+      "notes": [],
+      "ms": 12398
+    },
+    {
+      "id": "FR-18-B5B",
+      "title": "Solo context: silence without opt-in; a 7-day check-in rhythm with it; bias exits with the first contact",
+      "theme": "solo-context",
+      "class": "B",
+      "surfaces": [
+        "GET /context",
+        "POST /context/proactive-opt-in",
+        "GET /opal/conversation",
+        "GET /attention",
+        "GET /context/suggestion-order"
+      ],
+      "status": "PASS",
+      "checks": 64,
+      "failures": [],
+      "notes": [],
+      "ms": 17977
+    },
+    {
+      "id": "FR-18-DIR1-01",
+      "title": "Event in conversation: shared upcoming plan reads back in chats list, thread, and call log",
+      "theme": "dir1-plan-awareness",
+      "class": "A",
+      "surfaces": [
+        "GET /conversations (next_plan)",
+        "GET /conversations/:id/messages (next_plan)",
+        "GET /conversations/:id/alignment (next_plan)",
+        "GET /calls (next_plan)"
+      ],
+      "status": "PASS",
+      "checks": 17,
+      "failures": [],
+      "notes": [
+        "own pair: isolated group thread 5e5f1710-4ba7-41e0-a2a7-f752569d91ff (third member silent)",
+        "cleanup: own plan 753c4919-2d99-4f05-af1c-21b4e134535b cancel status=200 (re-run starts clean)"
+      ],
+      "ms": 5241
+    },
+    {
+      "id": "FR-18-DIR1-02",
+      "title": "Plan awareness: a third person's plan never leaks; a cancelled plan exits everywhere",
+      "theme": "dir1-plan-awareness",
+      "class": "A",
+      "surfaces": [
+        "GET /conversations (next_plan)",
+        "GET /conversations/:id/messages (next_plan)",
+        "GET /calls (next_plan)",
+        "POST /opal/plans/:id/cancel"
+      ],
+      "status": "PASS",
+      "checks": 14,
+      "failures": [],
+      "notes": [
+        "own trio: isolated group threads A-C 72ffe353-3e5a-45b7-a748-96717cf45562 / A-B 18a71de7-44c6-4176-8a91-ed23e05cbbe6 (silent thirds)",
+        "cleanup: own A-C plan 162f911a-b3a3-45f3-a0c2-467f2e3cf592 cancel status=200 (re-run starts clean)"
+      ],
+      "ms": 8769
+    },
+    {
+      "id": "FR-18-W4-01a",
+      "title": "W4-01a: 'Schedule 7 am church at Awaken' in a dinner thread creates a new plan (or ASKs) - never a change_proposal on dinner",
+      "theme": "send-intent",
+      "class": "A",
+      "surfaces": [
         "GET /conversations/:id/alignment",
+        "GET /opal/plans",
         "GET /conversations (plan_projection)",
-        "GET /conversations/:id/messages (signals, chronology)",
+        "GET /conversations/:id/messages",
         "GET /calendar/today"
       ],
-      "status": "FAIL",
-      "checks": 32,
-      "failures": [
-        {
-          "surface": "GET /conversations/:id/alignment (pending state)",
-          "message": "fresh pair: a visible pending change must exist on the thread alignment output; pending keys found: none"
-        },
-        {
-          "surface": "GET /opal/plans (before confirm)",
-          "message": "fresh pair: until the other party confirms, the plan must still read 7:30 PM on the listing; got time_label=\"8:00 PM\""
-        },
-        {
-          "surface": "GET /opal/plans (confirmer, Graphs)",
-          "message": "fresh pair after confirm: confirmer's plan listing must read 8:00 PM; got time_label=undefined"
-        },
-        {
-          "surface": "GET /conversations plan_projection (proposer, Chats list)",
-          "message": "fresh pair after confirm: proposer's chats-list projection must read 8:00 PM"
-        },
-        {
-          "surface": "GET /conversations plan_projection (confirmer, Chats list)",
-          "message": "fresh pair after confirm: confirmer's chats-list projection must read 8:00 PM"
-        },
-        {
-          "surface": "GET /conversations/:id/messages (signals + chronology)",
-          "message": "fresh pair after confirm: thread signals/chronology (the bottom-of-screen copy) must not present 7:30 PM as the plan's current time"
-        },
-        {
-          "surface": "GET /opal/plans (confirmer, Graphs)",
-          "message": "fresh pair after unrelated message: confirmer's plan listing must read 8:00 PM; got time_label=undefined"
-        },
-        {
-          "surface": "GET /conversations plan_projection (proposer, Chats list)",
-          "message": "fresh pair after unrelated message: proposer's chats-list projection must read 8:00 PM"
-        },
-        {
-          "surface": "GET /conversations plan_projection (confirmer, Chats list)",
-          "message": "fresh pair after unrelated message: confirmer's chats-list projection must read 8:00 PM"
-        },
-        {
-          "surface": "GET /conversations/:id/messages (signals + chronology)",
-          "message": "fresh pair after unrelated message: thread signals/chronology (the bottom-of-screen copy) must not present 7:30 PM as the plan's current time"
-        }
-      ],
+      "status": "PASS",
+      "checks": 51,
+      "failures": [],
       "notes": [
-        "walk pair: plan under test: 9485ab95-80b6-4bde-b27d-470278b99992 (Juniper and Ivy / Thursday 7:30 PM)",
-        "walk pair: proposer's change send was throttled (429) - the throttle variant; flow cannot proceed on this account pair",
-        "re-running the flow on a fresh account pair (seed/throttle isolation)",
-        "fresh pair: plan under test: b4638148-cb5f-46e7-bb4b-548b0db6032c (Meetup / Thursday 7:30 PM)",
-        "fresh pair after confirm: plan does not project into the calendar/today window on this stack; Now strip leg not assertable for a Thursday-labelled plan outside the window",
-        "fresh pair after unrelated message: plan does not project into the calendar/today window on this stack; Now strip leg not assertable for a Thursday-labelled plan outside the window"
+        "founder exact: calendar/today carries 1 event(s); Thursday/Sunday plans outside the today window are noted, not asserted",
+        "varied brunch: calendar/today carries 1 event(s); Thursday/Sunday plans outside the today window are noted, not asserted",
+        "varied soccer: calendar/today carries 1 event(s); Thursday/Sunday plans outside the today window are noted, not asserted"
       ],
-      "ms": 7443
+      "ms": 43193
+    },
+    {
+      "id": "FR-18-W4-01b",
+      "title": "W4-01b: rapid duplicate sends (same key x5, no-key identical x5, cross-account key collision) apply state exactly once",
+      "theme": "send-intent",
+      "class": "A",
+      "surfaces": [
+        "POST /conversations/:id/messages",
+        "GET /conversations/:id/messages",
+        "GET /opal/plans",
+        "GET /conversations/:id/alignment"
+      ],
+      "status": "PASS",
+      "checks": 18,
+      "failures": [],
+      "notes": [],
+      "ms": 11272
+    },
+    {
+      "id": "FR-18-W4-01c",
+      "title": "W4-01c: Division A revision guards hold; two-candidate ambiguity and the 'Schedule dinner' smuggle ASK with named candidates",
+      "theme": "send-intent",
+      "class": "A",
+      "surfaces": [
+        "POST /conversations/:id/messages",
+        "GET /conversations/:id/alignment",
+        "GET /opal/plans",
+        "GET /conversations (plan_projection)"
+      ],
+      "status": "PASS",
+      "checks": 27,
+      "failures": [],
+      "notes": [],
+      "ms": 35585
+    },
+    {
+      "id": "FR-B3-01",
+      "title": "Check-in sweep: family circle, answers roll into one summary, unanswered stays visible",
+      "theme": "checkin-sweep",
+      "class": "B",
+      "surfaces": [
+        "POST /checkins",
+        "GET /checkins/:id (organizer summary)",
+        "GET /checkins/:id (member view)",
+        "POST /checkins/:id/respond",
+        "POST /checkins/:id/withdraw",
+        "POST /checkins/:id/close",
+        "GET /checkins/for-source",
+        "GET /opal/conversation (member ask card)"
+      ],
+      "status": "PASS",
+      "checks": 88,
+      "failures": [],
+      "notes": [],
+      "ms": 18900
+    },
+    {
+      "id": "FR-B3-02",
+      "title": "Check-in sweep: group circle marker, group replies never count, nag attack re-notifies nobody",
+      "theme": "checkin-sweep",
+      "class": "B",
+      "surfaces": [
+        "POST /conversations/group",
+        "POST /checkins (conversation source)",
+        "GET /conversations/:id/messages (marker)",
+        "POST /conversations/:id/messages (group reply)",
+        "GET /checkins/:id (organizer summary)",
+        "GET /opal/conversation (ask count under nag attack)",
+        "GET /checkins/for-source (suggestion gate, opt-in off)"
+      ],
+      "status": "PASS",
+      "checks": 25,
+      "failures": [],
+      "notes": [],
+      "ms": 9063
+    },
+    {
+      "id": "FR-B3-03",
+      "title": "Check-in sweep: plan participants source, frozen plan label, one open sweep per plan",
+      "theme": "checkin-sweep",
+      "class": "B",
+      "surfaces": [
+        "POST /conversations/:id/plans",
+        "POST /checkins (plan source)",
+        "GET /checkins/:id (organizer summary)",
+        "POST /checkins/:id/respond",
+        "GET /checkins/for-source (plan)"
+      ],
+      "status": "PASS",
+      "checks": 10,
+      "failures": [],
+      "notes": [
+        "plan participants from create: 2"
+      ],
+      "ms": 3053
+    },
+    {
+      "id": "W4-04a",
+      "title": "Plan title edit read back on every surface in both parties' sessions (3 varied shapes)",
+      "theme": "plan-editing",
+      "class": "A",
+      "surfaces": [
+        "PATCH /opal/plans/:id",
+        "GET /opal/plans (plan detail / plans list / Graphs)",
+        "GET /conversations (chats-list projection)",
+        "GET /conversations/:id/alignment (thread)",
+        "GET /calendar/today (home / NowStrip)"
+      ],
+      "status": "PASS",
+      "checks": 69,
+      "failures": [],
+      "notes": [
+        "A (typo fix) NowStrip: plan 9301e6de-4e83-4e65-afd1-d4700a3288fc does not project into today's window on this stack; NowStrip read-back is proven deterministically in backend tests (it reads the plan row title)",
+        "B (typo fix) NowStrip: plan 9301e6de-4e83-4e65-afd1-d4700a3288fc does not project into today's window on this stack; NowStrip read-back is proven deterministically in backend tests (it reads the plan row title)",
+        "A (full rename) NowStrip: plan 0f61a6b4-48d2-4268-9363-37c9ee97e82b does not project into today's window on this stack; NowStrip read-back is proven deterministically in backend tests (it reads the plan row title)",
+        "B (full rename) NowStrip: plan 0f61a6b4-48d2-4268-9363-37c9ee97e82b does not project into today's window on this stack; NowStrip read-back is proven deterministically in backend tests (it reads the plan row title)",
+        "A (person-name correction) NowStrip: plan b59d83ef-f407-4afb-ab78-a4cb969a1c85 does not project into today's window on this stack; NowStrip read-back is proven deterministically in backend tests (it reads the plan row title)",
+        "B (person-name correction) NowStrip: plan b59d83ef-f407-4afb-ab78-a4cb969a1c85 does not project into today's window on this stack; NowStrip read-back is proven deterministically in backend tests (it reads the plan row title)"
+      ],
+      "ms": 30489
+    },
+    {
+      "id": "W4-04b",
+      "title": "Plan edit authority: non-participant and non-lead participant edits rejected, title unchanged",
+      "theme": "plan-editing",
+      "class": "A",
+      "surfaces": [
+        "PATCH /opal/plans/:id",
+        "GET /opal/plans"
+      ],
+      "status": "PASS",
+      "checks": 11,
+      "failures": [],
+      "notes": [
+        "co_lead edit leg: the conversation-plan shape mints exactly one lead; co_lead authority (role in lead/co_lead) is asserted in backend tests for edit_plan_details"
+      ],
+      "ms": 8305
+    },
+    {
+      "id": "W4-04c",
+      "title": "Plan edit input contract: blank/whitespace/over-length rejected, schedule fields refused, terminal plans uneditable, racing revision uncorrupted, duplicate saves idempotent",
+      "theme": "plan-editing",
+      "class": "A",
+      "surfaces": [
+        "PATCH /opal/plans/:id",
+        "GET /opal/plans",
+        "POST /conversations/:id/messages (revision proposal)"
+      ],
+      "status": "PASS",
+      "checks": 25,
+      "failures": [],
+      "notes": [
+        "terminal-plan leg: no HTTP cancel/complete route exists in the product today, so a terminal plan cannot be manufactured through the real client path in this case; cancelled/completed edit refusal is asserted deterministically in backend tests (PlanTransition :edit has no outbound move from terminal statuses)"
+      ],
+      "ms": 25495
     }
   ]
 }

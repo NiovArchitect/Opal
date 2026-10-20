@@ -662,3 +662,65 @@ loads); to run the frozen-clock leave-by staging, that one
 bucket row for the synthetic capture account was deleted in
 the staging database (staging hygiene on synthetic data
 only - no product data touched).
+
+---
+
+## Amendment wave addendum (2026-10-20, Repair #20 amendment)
+
+Frames captured on the amendment build (dist chip 2a313be;
+validation fixes V-1/V-5 rebuilt into the same dist line before
+their re-shoots). Superseded frames were NOT deleted - they
+moved to ../pack-archive/ with version labels (V-4 rule):
+v1-orbit-room-r20-base/ (orbit-screen-1to1/group/empty,
+orbit-return, group-etiquette-limbo-orbit - the rejected v1
+room) and v1-connectors-r20-base/ (connectors room +
+permissions, v1 design).
+
+Orbit v2 (R-1): orbit-screen-1to1-{dark,light} (quiet card
+room: subject = the topic, Where we're at, period-pill index,
+bidirectional composer), orbit-screen-group-{dark,light}
+(Weekend Crew anchor), orbit-screen-empty-{dark,light} (B's
+seat - sparse as promise: teaching line + first-question
+invitation), orbit-return-{dark,light} (one-tap return landing
+in the thread), orbit-where-limbo-{dark,light} (Where we're at
+carrying the limbo truth from the machinery's own lines),
+orbit-push-to-chat-{dark,light} (the thread landing: composer
+populated with the shaped draft, focused, NOT sent; the draft
+is longer than the input field, so its head is scrolled inside
+the field - the frame proves the landing state).
+Generality: two distinct person anchors + one group anchor,
+no person-specific paths; reciprocity exercised from both
+seats of the staged conversation.
+
+Connectors v2 (R-2): connectors-room-{dark,light},
+connectors-category-{dark,light}, connectors-permissions-
+{dark,light}, settings-hub-connectors-{dark,light} - the
+near-textless room; only real rows (Google Calendar + Gmail as
+View in this world - server OAuth unconfigured; Saved logins).
+
+Composer v2 (R-3): composer-thread-empty/text-{dark,light}
+(mic inside the bar; Send on text), composer-voice-recording-
+{dark,light}, composer-voice-review-{dark,light} (anchored
+pop-up), composer-opalchat-empty/text-{dark,light} (honestly
+empty reserved slot while empty).
+
+Glass (R-4/R-5/R-6 + V-2/V-3): cardmenu-graph-forming/action-
+{dark,light} re-shot with the dock bottom-fixed and the sheet
+open (cardmenu-graph-private NOT re-shot - declared: the
+private card sits behind the vault gate and the rig's unlock
+path did not surface it; base frames stand; same component
+proven by the forming/action pair), graphs-limbo-card-
+{dark,light} + plan-detail-limbo-{dark,light} (legible window
+line: "Less than an hour left in the answer window."),
+etiquette-fork-a/b-{dark,light} + etiquette-closure-a/b-dark
+re-shot on the amended build (real Oban fork at a real window
+close; the answer driven through the product respond path -
+outcome "another time"), flow-dissolve-1/2/3-dark (content
+passing under the frosted pad), graphs-inset-audit-dark
+(last card resting 148px clear of the pad), graphs-let-it-go-
+{dark,light} (V-5: "Let it go", "Drop it" nowhere).
+
+Flow rename: flow-rest-{dark,light} (greeting + "Talk tonight
+about Saturday" as the top card after the V-1 world fix),
+dock-closeup-opaque-{dark,light} re-shot (water glyph + Flow
+label + opaque orb).

@@ -169,7 +169,7 @@ describe("adoption wave 2 settings", () => {
     expect(container.querySelector('[data-testid="c2-delete-confirm"]')).toBeNull();
   });
 
-  it("SF-A: hears renders each source's own line from the per-source read (now the Connectors Your device group, R20 F-9e)", async () => {
+  it("SF-A v2: the retired hears key lands on Connectors and NO source/device content renders there (founder v2: backend content stripped from the room)", async () => {
     mocks.getSettingsConnections.mockResolvedValue({ connections: [], generated_at: "", build_ref: "t", environment: "test" });
     mocks.getIngestionStatus.mockResolvedValue([
       { source: "chats", title: "Chats in the app", state: "working", state_label: "Working now", progress: "Caught up - 3 messages of yours are in Opal's working memory.", error: null, retryable: false },
@@ -177,13 +177,13 @@ describe("adoption wave 2 settings", () => {
       { source: "texts", title: "Texts", state: "error", state_label: "Something went wrong reading this source", progress: "This source could not be read just now. The others are unaffected.", error: "source_read_failed", retryable: true },
     ]);
     const section = await buildSettingsSection("what-opal-hears", { session: null, bearer: "t" });
+    expect(section.key).toBe("connections");
+    expect(section.title).toBe("Connectors");
+    // The v2 room never reads the ingestion payload at all.
+    expect(mocks.getIngestionStatus).not.toHaveBeenCalled();
     await render(<C2SettingsSection section={section} events={events} />);
     const text = container.textContent || "";
-    // The failing source does not blank the others (ER-2/SF-A).
-    expect(text).toMatch(/Caught up - 3 messages/);
-    expect(text).toMatch(/Not in Opal today/);
-    expect(text).toMatch(/could not be read just now/);
-    expect(container.querySelector('[data-testid="c2-setting-row-hears-retry-texts"]')).toBeTruthy();
-    expect(text).not.toMatch(/%/);
+    expect(text).not.toMatch(/Chats in the app|In the room|Texts|Caught up|Device location|Working now/);
+    expect(container.querySelector('[data-testid="c2-setting-row-hears-retry-texts"]')).toBeNull();
   });
 });

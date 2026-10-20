@@ -138,3 +138,19 @@
   border: 1px solid
     color-mix(in srgb, var(--call-state, var(--line-2)) 52%, transparent);
 }
+/* Orbit v2 doorway parity: a call is a conversation, so a call row
+   carrying a conversation offers the same orbit doorway (the same
+   quiet orb mark) as a thread. */
+[data-design="r18"] .c1-call-orbit {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}

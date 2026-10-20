@@ -132,6 +132,17 @@
   [data-design="r18"] .c1-send:disabled {
     background: var(--surface-2); color: var(--ink-3); cursor: default;
   }
+  /* R20A settled composer model: the action slot is a reserved
+   * 44px cell INSIDE the composer pill - present in every state
+   * (mic, send, recording, or the Opal chat's honestly empty
+   * slot), so the pill and the bar keep one footprint and the
+   * thread above never shifts when the slot's tenant swaps. */
+  [data-design="r18"] .c1-composer-action-slot {
+    position: relative; flex: none; min-width: 44px; min-height: 44px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  }
+  [data-design="r18"] .c1-composer-action-tenant { display: flex; align-items: center; }
+  [data-design="r18"] .c1-composer-action-tenant[hidden] { display: none; }
   [data-design="r18"] .c1-mic {
     width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer; flex: none;
     background: var(--surface-2); color: var(--accent-1);

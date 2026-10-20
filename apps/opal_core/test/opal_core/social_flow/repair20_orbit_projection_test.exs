@@ -23,6 +23,8 @@ defmodule OpalCore.SocialFlow.Repair20OrbitProjectionTest do
     NextPlan,
     NonResponseEtiquette,
     OrbitProjection,
+    PlanPrivacyMark,
+    SharedPlan,
     TemporalFollowThroughLoop
   }
 
@@ -121,7 +123,9 @@ defmodule OpalCore.SocialFlow.Repair20OrbitProjectionTest do
     orbit = OrbitProjection.for_conversation(a.id, group.id)
     assert orbit["composition"] == "group"
     assert length(orbit["parties"]) == 3
-    assert MapSet.new(Enum.map(orbit["parties"], & &1["user_id"])) == MapSet.new([a.id, b.id, c.id])
+
+    assert MapSet.new(Enum.map(orbit["parties"], & &1["user_id"])) ==
+             MapSet.new([a.id, b.id, c.id])
 
     plan_ids = Enum.map(orbit["plans"], & &1["plan_id"])
     assert group_plan.id in plan_ids
@@ -140,6 +144,143 @@ defmodule OpalCore.SocialFlow.Repair20OrbitProjectionTest do
 
     assert OrbitProjection.for_conversation(outsider.id, conv.id) == nil
     assert OrbitProjection.for_conversation(a.id, Ecto.UUID.generate()) == nil
+  end
+
+  # --- Projection v2 (Repair #20 amendment) ---------------------------
+
+  defp settle_plan!(plan, attrs \\ %{}) do
+    plan
+    |> Ecto.Changeset.change(
+      Map.merge(
+        %{
+          status: "completed",
+          completed_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+        },
+        attrs
+      )
+    )
+    |> Repo.update!()
+  end
+
+  test "v2 subject: the next plan's title, else the conversation's own title, else nil" do
+    a = fresh_user("Ana")
+    b = fresh_user("Bea")
+    conv = conversation_with([a.id, b.id])
+
+    {:ok, plan, _} =
+      SocialFlow.create_tentative_plan_from_conversation(conv.id, a.id, %{
+        "title" => "Subject dinner #{System.unique_integer([:positive])}"
+      })
+
+    # With a next plan, the subject is the plan's topic - never a person.
+    orbit = OrbitProjection.for_conversation(a.id, conv.id)
+    assert orbit["subject"] == plan.title
+    refute orbit["subject"] in ["Ana", "Bea"]
+
+    # No plans: the conversation record's own title. (A FRESH pair -
+    # a second conversation between the same pair legitimately
+    # carries the pair's plans under NextPlan's party-set scope.)
+    c = fresh_user("Cy")
+    d = fresh_user("Dee")
+    empty = conversation_with([c.id, d.id])
+    assert OrbitProjection.for_conversation(c.id, empty.id)["subject"] == empty.label
+
+    # A machine routing label is not a title: subject is honestly nil.
+    machine =
+      empty
+      |> Ecto.Changeset.change(%{label: "direct-#{c.id}"})
+      |> Repo.update!()
+
+    assert OrbitProjection.for_conversation(c.id, machine.id)["subject"] == nil
+  end
+
+  test "v2 where_lines: next together first, then the pending truth in plain words" do
+    a = fresh_user("Ana")
+    b = fresh_user("Bea")
+    conv = conversation_with([a.id, b.id])
+
+    {:ok, plan, _} =
+      SocialFlow.create_tentative_plan_from_conversation(conv.id, a.id, %{
+        "title" => "Where dinner #{System.unique_integer([:positive])}"
+      })
+
+    orbit = OrbitProjection.for_conversation(a.id, conv.id)
+    assert [next_line | rest] = orbit["where_lines"]
+    assert next_line =~ "Next together: #{plan.title}"
+    # Bea has not answered: the card names the standing truth.
+    assert Enum.any?(rest, &(&1 =~ "Bea" and &1 =~ plan.title))
+
+    # No plans at all: one honest line, nothing invented. (Fresh
+    # pair, per the party-set scope note in the subject test.)
+    c = fresh_user("Cy")
+    d = fresh_user("Dee")
+    empty = conversation_with([c.id, d.id])
+
+    assert OrbitProjection.for_conversation(c.id, empty.id)["where_lines"] == [
+             "No next plan is set yet."
+           ]
+  end
+
+  test "v2 past_plans: settled plans are past, loved only with repeat evidence, vault respected" do
+    a = fresh_user("Ana")
+    b = fresh_user("Bea")
+    conv = conversation_with([a.id, b.id])
+
+    {:ok, loved_source, _} =
+      SocialFlow.create_tentative_plan_from_conversation(conv.id, a.id, %{
+        "title" => "Loved picnic #{System.unique_integer([:positive])}"
+      })
+
+    {:ok, plain_source, _} =
+      SocialFlow.create_tentative_plan_from_conversation(conv.id, a.id, %{
+        "title" => "Plain walk #{System.unique_integer([:positive])}"
+      })
+
+    loved_source = settle_plan!(loved_source)
+    plain_source = settle_plan!(plain_source)
+    assert Repo.get!(SharedPlan, loved_source.id).status == "completed"
+
+    orbit = OrbitProjection.for_conversation(a.id, conv.id)
+    past_ids = Enum.map(orbit["past_plans"], & &1["plan_id"])
+    assert loved_source.id in past_ids
+    assert plain_source.id in past_ids
+
+    loved = Enum.find(orbit["past_plans"], &(&1["plan_id"] == loved_source.id))
+    assert loved["state"] == "past"
+    assert loved["status"] == "completed"
+    assert loved["completed_at"]
+    # No repeat yet: NOT loved - no evidence, no mark.
+    assert loved["repeated"] == false
+    assert loved["loved"] == false
+    assert loved["loved_evidence"] == nil
+
+    # The F-15 repeat: a new plan whose provenance points at the source.
+    assert {:ok, _repeat, _parts, false} =
+             SocialFlow.create_plan_from_graph_create(a.id, %{
+               "title" => loved_source.title,
+               "time_label" => "Next Saturday - around 7:00 PM",
+               "participant_user_ids" => [b.id],
+               "source_plan_id" => loved_source.id,
+               "entry" => "repeat"
+             })
+
+    orbit2 = OrbitProjection.for_conversation(a.id, conv.id)
+    loved2 = Enum.find(orbit2["past_plans"], &(&1["plan_id"] == loved_source.id))
+    assert loved2["repeated"] == true
+    assert loved2["loved"] == true
+    assert loved2["loved_evidence"] == "repeated"
+
+    plain2 = Enum.find(orbit2["past_plans"], &(&1["plan_id"] == plain_source.id))
+    assert plain2["repeated"] == false
+    assert plain2["loved"] == false
+
+    # The viewer's own vault mark removes the plan from their past, too.
+    :ok = PlanPrivacyMark.set_mark(a.id, plain_source.id, true)
+    orbit3 = OrbitProjection.for_conversation(a.id, conv.id)
+    refute plain_source.id in Enum.map(orbit3["past_plans"], & &1["plan_id"])
+    # And the other party's past is unchanged by A's mark.
+    orbit_b = OrbitProjection.for_conversation(b.id, conv.id)
+    assert plain_source.id in Enum.map(orbit_b["past_plans"], & &1["plan_id"])
   end
 
   test "limbo: the etiquette machinery's cooling lands on the person's light and stone read" do
@@ -209,5 +350,99 @@ defmodule OpalCore.SocialFlow.Repair20OrbitProjectionTest do
     sam_read = Enum.find(stone["participants"], &(&1["user_id"] == recipient.id))
     assert sam_read["limbo"] == true
     assert sam_read["limbo_stage"] == "nudged"
+
+    # v2 where_lines in limbo: the waiting is named, with the
+    # machinery's own remaining-window line riding along.
+    lines = orbit["where_lines"]
+    assert Enum.any?(lines, &(&1 =~ "Sam has not answered" and &1 =~ plan.title))
+    assert Enum.any?(lines, &(&1 =~ "left in the answer window"))
+  end
+
+  test "v2 where_lines honesty: a presented fork and a window closed unanswered are named plainly" do
+    creator = fresh_user("Cara")
+    recipient = fresh_user("Sam")
+
+    # Sam is in balanced mode (never auto-declines, so a closed
+    # fork window escalates instead), with an empty quiet window so
+    # the pinned-clock advances are never quiet-deferred.
+    {:ok, _} =
+      FollowThrough.update_preferences(recipient.id, %{
+        assistance_level: "balanced",
+        timezone: "UTC",
+        quiet_hours_start: "12:00",
+        quiet_hours_end: "12:00"
+      })
+
+    %RelationshipType{}
+    |> RelationshipType.changeset(%{
+      user_id: creator.id,
+      contact_user_id: recipient.id,
+      type: "friend"
+    })
+    |> Repo.insert!()
+
+    conv = conversation_with([creator.id, recipient.id])
+
+    {:ok, plan, _} =
+      SocialFlow.create_tentative_plan_from_conversation(conv.id, creator.id, %{
+        "title" => "Fork dinner #{System.unique_integer([:positive])}"
+      })
+
+    assert {:ok, _plan} =
+             SocialFlow.set_plan_response_window(%{
+               plan_id: plan.id,
+               user_id: creator.id,
+               recipient_id: recipient.id,
+               window_seconds: 48 * @hour
+             })
+
+    loop = loop_for(plan.id, recipient.id)
+    {:ok, t0, _} = DateTime.from_iso8601(loop.metadata["requested_at"])
+    {:ok, closes, _} = DateTime.from_iso8601(loop.metadata["window_closes_at"])
+
+    # Grace ends mid-window: nudge. Window closes: the fork is presented.
+    {:ok, :nudged} =
+      NonResponseEtiquette.advance(loop.id,
+        now: DateTime.add(t0, 24 * @hour + 60, :second),
+        stage: "awaiting"
+      )
+
+    {:ok, :forked} =
+      NonResponseEtiquette.advance(loop.id,
+        now: DateTime.add(closes, 60, :second),
+        stage: "nudged"
+      )
+
+    orbit =
+      OrbitProjection.for_conversation(creator.id, conv.id,
+        now: DateTime.add(closes, 120, :second)
+      )
+
+    assert Enum.any?(
+             orbit["where_lines"],
+             &(&1 =~ "A choice is in front of Sam" and &1 =~ plan.title and
+                 &1 =~ "still unanswered")
+           ),
+           "fork line missing from: #{inspect(orbit["where_lines"])}"
+
+    # The fork window (24h from presentation) closes unanswered:
+    # balanced mode escalates - and the line names the closure
+    # plainly, with no smoothing language.
+    fork_close = DateTime.add(closes, 24 * @hour + 120, :second)
+
+    {:ok, :escalated} =
+      NonResponseEtiquette.advance(loop.id, now: fork_close, stage: "forked")
+
+    orbit2 =
+      OrbitProjection.for_conversation(creator.id, conv.id,
+        now: DateTime.add(fork_close, 60, :second)
+      )
+
+    assert Enum.any?(
+             orbit2["where_lines"],
+             &(&1 =~ "Sam did not answer" and &1 =~ plan.title and
+                 &1 =~ "answer window closed" and &1 =~ "still unanswered")
+           ),
+           "closed-window line missing from: #{inspect(orbit2["where_lines"])}"
   end
 end

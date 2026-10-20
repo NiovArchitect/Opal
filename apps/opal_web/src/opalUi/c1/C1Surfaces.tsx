@@ -727,6 +727,7 @@ export function CenterChat({
   onOpenPersonThread,
   onOpenOpalChats,
   chrome,
+  composerPlaceholder,
 }: {
   title: string;
   presence?: PresenceState;
@@ -756,6 +757,11 @@ export function CenterChat({
   context?: OpalConversationContext | null;
   onOpenPersonThread?: (context: OpalConversationContext) => void;
   onOpenOpalChats?: (context: OpalConversationContext) => void;
+  /** Orbit v2 (bidirectional law): the orbit host passes a
+   *  placeholder that invites sharing, not only asking - the user
+   *  tells Opal where they are coming from. Absent = the plain
+   *  chat's own placeholder. */
+  composerPlaceholder?: string;
 }) {
   const [draft, setDraft] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1073,10 +1079,10 @@ export function CenterChat({
       <MessageFlow surface="opal-chat" messages={messages} plansById={plansById} onOpenPlan={onOpenPlan} onHoldingLink={onHoldingLink} />
       <div className="c1-composer-bar">
         <span className="c1-destination-pill c1-destination-compact">{title}</span>
-        <div className="c1-composer">
+        <div className="c1-composer" data-testid="opal-chat-composer">
           <input
             className="c1-composer-input"
-            placeholder="Talk to Opal"
+            placeholder={composerPlaceholder ?? "Talk to Opal"}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -1086,27 +1092,33 @@ export function CenterChat({
               }
             }}
           />
-          {/* R20 F-2: same composer furniture as the thread - the
-              send icon is permanent on a live Opal chat and
-              ACTIVATES with text (disabled and quiet while the
-              draft is empty). No mic is painted here: no voice
-              path is wired into this surface by its host, and a
-              painted-but-dead mic is a defect (see R20 report). */}
-          {onSend ? (
-            <button
-              type="button"
-              className={`c1-send${draft.trim() ? " is-active" : ""}`}
-              data-testid="opal-chat-composer-send"
-              aria-label="Send"
-              disabled={!draft.trim()}
-              onClick={() => {
-                onSend(draft.trim());
-                setDraft("");
-              }}
-            >
-              ↑
-            </button>
-          ) : null}
+          {/* R20A settled composer model, Opal-chat divergence
+              (declared): the action slot is the SAME reserved slot
+              the thread composer carries - it lives inside the
+              composer bar and its footprint never changes. The
+              thread slot shows a mic while empty because the
+              thread host wires a real voice-note path; NO voice
+              path is wired into the Opal chat by its host, so this
+              slot renders NO mic while empty (a painted-but-dead
+              mic is a defect) and shows Send only once text is
+              present. The empty slot is reserved space, not a
+              control: nothing in it is tappable at rest. */}
+          <div className="c1-composer-action-slot" data-testid="opal-chat-composer-action-slot">
+            {onSend && draft.trim() ? (
+              <button
+                type="button"
+                className="c1-send is-active"
+                data-testid="opal-chat-composer-send"
+                aria-label="Send"
+                onClick={() => {
+                  onSend(draft.trim());
+                  setDraft("");
+                }}
+              >
+                ↑
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
@@ -1372,11 +1384,17 @@ export function PeopleCallsList({
   onOpenConversation,
   onCallBack,
   onNewCall,
+  onOpenOrbit,
 }: {
   calls: PeopleCallSummary[];
   status?: "loading" | "ready" | "error";
   onShowChats?: () => void;
   onOpenConversation?: (call: PeopleCallSummary) => void;
+  /** Orbit v2 DOORWAY PARITY: a call is a conversation - a row
+   *  carrying a conversation offers the same orbit doorway (same
+   *  orb mark) as a thread, opening that conversation's orbit.
+   *  Absent handler or no conversation id = no doorway. */
+  onOpenOrbit?: (call: PeopleCallSummary) => void;
   /** Real call placement (the host POSTs the conversation call).
    *  Offered only on rows carrying a conversation to call in. */
   onCallBack?: (call: PeopleCallSummary) => void;
@@ -1528,6 +1546,18 @@ export function PeopleCallsList({
                 ) : (
                   <div className="c1-call-main">{main}</div>
                 )}
+                {onOpenOrbit && c.conversationId ? (
+                  <button
+                    type="button"
+                    className="c1-call-orbit"
+                    data-testid={`calls-open-orbit-${c.id}`}
+                    data-conversation-id={c.conversationId}
+                    aria-label={`Talk to Opal about ${c.name}`}
+                    onClick={() => onOpenOrbit(c)}
+                  >
+                    <span className="c1-thread-opal-orb" aria-hidden="true" />
+                  </button>
+                ) : null}
                 {canCall ? (
                   <button
                     type="button"
@@ -1642,6 +1672,8 @@ export function ThreadShell({
   onOpenPlan,
   onSend,
   composerAccessory,
+  composerAction,
+  initialDraft,
   onCall,
   onCorrectTranscript,
   onOpenProfile,
@@ -1690,6 +1722,32 @@ export function ThreadShell({
    * the input pill, never a painted placeholder.
    */
   composerAccessory?: React.ReactNode;
+  /**
+   * Repair #20A settled composer model - the composer's ACTION
+   * SLOT tenant: a REAL in-composer control the host owns (the
+   * thread's voice-note control is the one tenant today), rendered
+   * INSIDE the composer pill in its reserved action slot, never
+   * above or outside the pill. While the draft is empty the slot
+   * shows this control (the mic); once text is present the slot
+   * becomes Send. The control stays mounted across the swap (it is
+   * hidden, not unmounted) so a live recording or an open review
+   * pop-up is never destroyed by typing. A host with no real
+   * in-composer control passes nothing: the slot then carries the
+   * permanent quiet send, and no mic is ever painted without a
+   * real voice path behind it.
+   */
+  composerAction?: React.ReactNode;
+  /**
+   * Orbit v2 PUSH TO CHAT landing + the R20A initial-draft hook:
+   * words carried from the orbit's recommendation box arrive here
+   * as the composer's initial draft - placed in the box, unsent,
+   * with no marker that help was used, cursor in the words. The
+   * host supplies them once via the shell's chat-open request;
+   * each distinct non-empty value is applied as the draft once,
+   * and edits the user makes afterwards stand until the host
+   * passes a new value. Null/absent = the composer opens empty.
+   */
+  initialDraft?: string | null;
   /** Call controls render only when a host wires the real call path. */
   onCall?: (kind: "video" | "voice") => void;
   onCorrectTranscript?: (messageId: string, text: string) => Promise<void>;
@@ -1735,7 +1793,18 @@ export function ThreadShell({
     return () => el.removeEventListener("scroll", fn);
   }, []);
   const [sheetPlan, setSheetPlan] = useState<PlanProjection | null>(null);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(initialDraft ?? "");
+  // R20A initial-draft hook (merged CB/CE): a NEW non-empty
+  // initialDraft value from the host is applied as the draft once;
+  // the same value re-rendering is not re-applied over the user's
+  // own edits, and null never wipes a draft.
+  const appliedInitialDraftRef = useRef(initialDraft);
+  useEffect(() => {
+    if (initialDraft && initialDraft !== appliedInitialDraftRef.current) {
+      appliedInitialDraftRef.current = initialDraft;
+      setDraft(initialDraft);
+    }
+  }, [initialDraft]);
   const open = (p: PlanProjection) => {
     setSheetPlan(p);
     onOpenPlan?.(p);
@@ -1904,14 +1973,23 @@ export function ThreadShell({
           </button>
         </div>
       ) : null}
-      <div className="c1-composer-bar">
+      <div className="c1-composer-bar" data-testid="thread-composer-bar">
         {composerAccessory}
-        <div className="c1-composer">
+        <div className="c1-composer" data-testid="thread-composer">
           <input
             className="c1-composer-input"
+            data-testid="thread-composer-input"
             placeholder={composerPlaceholder}
             value={draft}
             readOnly={!onSend}
+            ref={(el) => {
+              // Push-to-chat landing: cursor lands in the words.
+              if (el && initialDraft && appliedInitialDraftRef.current === initialDraft && document.activeElement !== el) {
+                el.focus();
+                const end = el.value.length;
+                try { el.setSelectionRange(end, end); } catch { /* input state only */ }
+              }
+            }}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && onSend && draft.trim()) {
@@ -1920,30 +1998,52 @@ export function ThreadShell({
               }
             }}
           />
-          {/* R20 F-2: the send control is permanent composer
-              furniture on a live thread - a real icon button that
-              ACTIVATES with text (accent-filled once the draft is
-              non-empty, quiet and disabled while empty), instead
-              of popping into existence only after typing. With no
-              onSend the composer is read-only and renders no send
-              at all (no dead control). No attach button is painted:
-              thread messages have no media carrier (see the R20
-              cards report - attach is honestly absent). */}
-          {onSend ? (
-            <button
-              type="button"
-              className={`c1-send${draft.trim() ? " is-active" : ""}`}
-              data-testid="thread-composer-send"
-              aria-label="Send"
-              disabled={!draft.trim()}
-              onClick={() => {
-                onSend(draft.trim());
-                setDraft("");
-              }}
-            >
-              ↑
-            </button>
-          ) : null}
+          {/* R20A settled composer model: ONE action slot inside
+              the composer pill, and the pill is the same container
+              in every state, so the bar's footprint never moves
+              the thread. Empty draft: the slot shows the host's
+              real in-composer control (composerAction - the mic;
+              tap or long-press records, and the recording state
+              renders inside this bar). Text present: the slot
+              becomes Send. The action control stays MOUNTED across
+              the swap, hidden only, so a live recording or review
+              is never destroyed by the swap itself. With no
+              composerAction the slot carries the R20 F-2 permanent
+              send instead (quiet and disabled while empty, active
+              with text) - no mic is painted without a real voice
+              path. With no onSend the composer is read-only and
+              renders no send at all (no dead control). Nothing
+              floats outside this pill except a pop-up anchored to
+              the in-composer control (the voice review). No attach
+              button is painted: thread messages have no media
+              carrier - attach is honestly absent. */}
+          <div className="c1-composer-action-slot" data-testid="thread-composer-action-slot">
+            {composerAction ? (
+              <div
+                className="c1-composer-action-tenant"
+                data-testid="thread-composer-action-tenant"
+                hidden={!!draft.trim()}
+                aria-hidden={!!draft.trim() || undefined}
+              >
+                {composerAction}
+              </div>
+            ) : null}
+            {onSend && (draft.trim() || !composerAction) ? (
+              <button
+                type="button"
+                className={`c1-send${draft.trim() ? " is-active" : ""}`}
+                data-testid="thread-composer-send"
+                aria-label="Send"
+                disabled={!draft.trim()}
+                onClick={() => {
+                  onSend(draft.trim());
+                  setDraft("");
+                }}
+              >
+                ↑
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
       {sheetPlan ? (

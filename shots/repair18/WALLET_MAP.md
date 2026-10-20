@@ -1454,3 +1454,55 @@ Recorded by the founder 2026-10-19 13:44 PDT, stated precisely: users MONETIZE t
 ## ADDENDUM (2026-10-19) - Terms: phone-number identity doctrine + federation cohesion
 
 Recorded by the founder 2026-10-19 18:01 PDT as standing architecture. (1) PHONE-NUMBER IDENTITY DOCTRINE: people join Opal with their phone numbers, for three stated reasons: TRUST (a verified, hard-to-fake root of identity), DATA CONTINUITY (numbers stay the same for a long time - a stable anchor for a person's data and wallet across years and devices), and SPAM RESISTANCE (verification weeds out most abuse at the door). Opal's existing phone/OTP root conforms to this doctrine. Future identity work (passwords/2FA expansion, on the founder-gated list) builds ON the number, never replaces it as the root. (2) FEDERATION COHESION: future sibling apps (Otzar = the work-domain mode/app) are SEPARATE apps with different uses and some similar functionality, held together by COHESION through the Memory Wallet - one person, one wallet, many domain windows (the corpus's federated thesis). Apps may fork (cf. the N6 care-fork note: a care-focused sibling app), and the wallet is what makes them one system. This is the domain-family principle the roadmap follows; it is the same federation the value-loop addendum's spend-anywhere-the-wallet-reaches assumes.
+
+---
+
+# ADDENDUM - Repair #20 amendment wave (2026-10-20): the system model
+
+Founder mapping task, 2026-10-20 10:59 PDT. The wallet build
+itself remains founder-gated per section F of this map; this
+addendum lays out the model properly and does not overbuild.
+
+## (1) Capsules as sets
+
+A relationship between two people = their SHARED capsules (the
+intersection). A group = overlapping intersections - pairwise
+shared capsules plus the group commons. The Venn of touching
+circles is the canonical picture; the Scoped Context Builder's
+intersection ({relevant} intersect {allowed}) is the same
+geometry at read time.
+
+## (2) Likes and dislikes are both first-class
+
+Capsule content includes aversions - what a person does NOT like
+shapes the path to alignment as much as preferences do.
+Recommendations, orbit understanding, and trivia scope must
+treat negative knowledge with the same care and scope
+discipline.
+
+## (3) Nouns and verbs
+
+Anchors are nouns (persons, places, things/topics); what flows
+between them (messages, calls, plans, revisions) are the verbs.
+Orbits sit on nouns; coordination happens in the overlaps.
+
+## (4) Truth-in-model rule
+
+From the R19 ingestion-coherence law - no blurring: this map
+states plainly what today's machinery truly holds (shared
+capsules today = shared plans + shared conversations + consent
+lineage on them) vs what the wallet build adds (the general
+capsule store). The orbit surfaces may only claim what exists.
+
+## (5) Whole-system coherence at wave close
+
+The map-trace pass at wave close verifies this model end to end
+- every branch (surface/feature) extends the system without
+breaking another; any place the built app contradicts the
+overlap model is named as a finding, not smoothed. The Repair
+#20 handoff's reconciliation checklist carries that pass for
+this wave; its one contradiction finding (fold-born plan titles
+naming a participant, creator-relative but stored absolutely)
+is recorded there with its capture-world fix and its
+founder-gated design remainder (viewer-relative titles at
+projection time).

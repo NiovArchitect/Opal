@@ -480,3 +480,419 @@ divergence is a design call.
 path is founder-proven on phones; the headless rig cannot
 place the call - see Declarations 1). Scheduling, not a
 product decision.
+
+---
+
+# AMENDMENT WAVE - founder redirect of 2026-10-20 (post-review)
+
+The founder reviewed the interim preview on the morning of
+2026-10-20 and redirected three builds, settled three open
+designs, and added laws. This section is the amendment record.
+Gates unchanged: FOUNDER_ACCEPTED = NO, FREEZE = HOLD,
+PASS2 = NO, FOUNDER_PHONE_PASS = NOT_CLAIMED. Nothing merged;
+the founder merges.
+
+## Founder decisions recorded
+
+- 07:01 PDT: the social page renamed "Social" - SUPERSEDED at
+  07:06 by **Flow** ("the product's own name, ownable, the word
+  users will say"). "Home" retires from the social surface.
+- 07:07: the Flow glyph is a WATER icon - the squiggly up-down
+  water-movement mark, drawn in Opal's line language and weight.
+  The earlier "not a generic wave" caution was withdrawn by the
+  founder himself. Scope: dock label, side-rail slot, page
+  title/copy, icon. Timing: walk-prep build, folded into this
+  wave under the containment clause because dock-bearing
+  surfaces were being re-shot anyway (coordinator's call).
+- 07:39: ACCEPTANCE LENS - MOVEMENT CONTINUITY, a named
+  inspection criterion alongside the judges bar: every touched
+  journey's transitions read as one intuitive motion, no dead
+  jumps, no orphaned landings; breaking journeys named.
+- 08:09-08:10: the R-1..R-6 redirect (Orbit v2, Connectors v2,
+  composer model, dock anchoring, stray dots, limbo precision).
+- 08:15 Orbit Law 2 (Sameness Test); 08:17 Push to Chat;
+  08:25 density inheritance + the Orbit Ethics Constitution;
+  08:30 sparse-orbit texture note; 08:31 bidirectional orbit;
+  08:39 Orbit Law 3 (Truth of Misalignment); 10:48 Orbit Law 4
+  (Two True Perspectives); 10:54 Orbit generality + reciprocity
+  confirmed; 10:59 the system model (capsules as sets) mapping
+  task; 11:05 R-7 group membership dynamics + the completion
+  drive; 10:45-10:50 the validation amendments V-1..V-6.
+- PROTECTED PRAISE recorded in the redirect: the answer-window
+  card ("either answer is a kind one"), the boxed Confirm /
+  Request a change / Dismiss lane + "Opal's pick", the
+  long-press card (make private / make public / cancel), and
+  the thread doorway button - none regressed; all re-proven in
+  this wave's frames.
+- Open question riding with the founder (no churn until his
+  decision lands): dock label number agreement, Flow vs Flows;
+  his lean is Flows, parent counsel sent.
+
+## What shipped, by amendment cluster
+
+All six clusters were built on the R20 tip (8bf9186b), SHA-
+verified, and merged onto muse/repair-20; integrated tip before
+validation fixes: 2a313be4.
+
+- CA Rename (956ca43d, merged c1d3fe11): IconFlow (two stacked
+  wave paths in the Glyph helper, stroke 1.8) in the C2 dock +
+  wide sidebar; labels "Flow"; testIds and route keys unchanged;
+  mobile tab label + a11y strings; pin asserts the dock's
+  aria-labels are exactly [Flow, Chats, Graphs, You]. Deliberately
+  left: legacy OpalApp.tsx TABS and opalUi V2Dock "Home" labels
+  (legacy shells - founder-gated below).
+- CB Orbit v2 frontend (697206d4, merged ea4f063c):
+  OrbitScreen.tsx rewritten as the quiet card room - subject
+  header (the TOPIC, never a person; Center Law), parties named
+  plainly, "Where we're at" (state + next + open windows, the
+  praised elements kept), "What we've done - and loved"
+  (repeat-joy only from conversation-confirmed enjoyment),
+  period-pill history index (density inheritance), the Opal
+  conversation, one-tap return, call-doorway parity via the call
+  log row. The people-as-lights ring composition is gone.
+- CC Orbit backend (5cbc2faa, merged 78eaab34): orbit-v2-report.md
+  (in tree) carries the Ethics Constitution verbatim, Laws 2-4,
+  the bidirectional investigation, the self-mirror, and
+  projection v2. THE SAMENESS TEST is a standing regression
+  species (orbit_sameness_test.exs): two askers, same partner,
+  demonstrably different scoped packages, literal substring
+  isolation both ways, the partner's own capsules in neither.
+  Its first run exposed a real gyroscope gap (marker ZX-A5):
+  relationship-scoped capsules were admissible in NO prompt
+  assembly - the exact capsules Law 2 names first never entered
+  an Orbit answer. Fixed minimally (ScopedContext.assemble_many/2;
+  PromptBuilder names the dyad relationship context; groups stay
+  conversation-only; fail-closed otherwise). Projection v2 adds
+  subject / where_lines / past_plans (loved ONLY from repeat
+  provenance - the plan model carries no positive-signal field;
+  checked, stated). Self-mirror built minimally: scoped-session
+  birth records an owner-only activity entry (kind
+  orbit_session_started, scope ids only, no content).
+- CD Connectors v2 (9548e38d, merged 68792975): the room rebuilt
+  to the founder's reference FORM, Opal-branded - near-textless
+  rows (icon + name + Connect/View), his categories. Stripped by
+  name: the entire Your-device group (device chats/calls/texts/
+  room/location), linked devices, the in-room Permissions group,
+  the essay lede. Final inventory is only what is real: Google
+  Calendar + Gmail (Business; Connect only when the payload
+  carries an enabled action, else View), Saved logins (Custom).
+  Permissions sheds its essay (one lede, the real assistance-
+  level control bound to the Soul setting, two doorways).
+- CE Composer (0e76bd6a, merged 923655f8 with an integrator
+  resolution): the mic lives INSIDE the composer in a reserved
+  action slot; empty = mic (tap/long-press records, recording
+  state inside the bar), text present = Send; the review surface
+  is a pop-up anchored to the in-slot control; nothing floats
+  outside. Opal-chat renders no control while empty (honestly
+  empty reserved space - declared divergence, in code + test).
+  Attach renders nowhere (pinned). The merge unified CB's and
+  CE's independently built initialDraft seam into one prop -
+  Push-to-chat's landing contract (a new non-empty draft applies
+  once, never over user edits; null never wipes).
+- CF Glass fixes (e85d8b78, merged 2a062c11): R-4's root cause
+  found - the dock was position:absolute against a content-plane
+  column AND the long-press menu was the one sheet-band surface
+  not rendered through TopLayer. Dock is now position:fixed with
+  identical phone geometry; the menu renders through TopLayer
+  (its design byte-identical - protected). R-5: the stray dots
+  were the preparation spine's unlabeled arc nodes - removed,
+  replaced by labeled phase/state marker chips. R-6: the limbo
+  derivation itself violated the law (cooling stamped from plan
+  state with no window check) - fixed at the derivation with
+  negative pins; the remaining-window text promoted to a legible
+  body-size class on the plan card + Center strip.
+- Integrator fix 2a313be4 (charged to the CB-CC seam): the
+  frontend read loved_reason; the backend serves loved_evidence.
+  Aligned; the orbit suite is 19/19 in the integrated tree.
+
+## Validation fixes (V-1..V-6, 2026-10-20 10:45 PDT)
+
+- V-1 CAPTURE-WORLD IDENTITY COHERENCE: the Flow greeting named
+  the viewer while a plan card named the viewer as his own
+  counterparty ("Plan with Ethan Walker"). Root cause traced,
+  not papered: the seed Maya thread's missed-call open question
+  folds into a plan from the question-owner's seat; born with no
+  locked activity, the fold's people-fallback title named the
+  other participant (the viewer) and the title is stored
+  absolutely, so every seat reads it. Fix at the world source:
+  HumanSeedWorld now carries that plan explicitly, titled by its
+  subject in Maya's own words ("Talk tonight about Saturday"),
+  lineage-stamped (the Juniper pattern), with a retitle branch
+  for already-fold-born rows; pinned in human_seed_world_test.exs
+  ("no seeded plan names the viewer as their own counterparty").
+  Proven at the glass in both modes (flow-rest-*: greeting
+  "Ethan", card "Talk tonight about Saturday"). The general
+  remainder - fold-born people-titles are creator-relative but
+  stored absolutely - is a named finding; viewer-relative titles
+  at projection time are founder-gated below.
+- V-2 PAD DISSOLVE + INSET AUDIT: scroll-sequence frames
+  flow-dissolve-1/2/3-dark show content passing under the
+  frosted pad. Inset audit measured on Graphs: dock top at
+  772px of an 844px viewport; the list's last card rests fully
+  above the pad with 148px clearance (graphs-inset-audit-dark),
+  and the scroll range extends ~1,100px beyond the last card,
+  so no item can be trapped behind the pad.
+- V-3 DOCK POSITION INVARIANT: same family as R-4 - on the base
+  build the dock was anchored to the content column, so on long
+  or sheet routes it could render displaced or absent (the
+  etiquette frames show the base defect: no pad in frame at
+  all). The invariant now: position:fixed against the viewport
+  on every served route, pinned by the r20aGlass CSS-contract
+  tests; proven at the glass in 30+ amendment frames including
+  sheets-open cardmenu frames, and the etiquette fork/closure
+  set was re-shot on the amended build (etiquette-fork-a/b,
+  etiquette-closure-a/b).
+- V-4 PACK HYGIENE + ARCHIVE RULE: the live pack contains only
+  version-consistent frames for every surface this wave touched.
+  Superseded frames were NOT deleted: pack-archive/ holds
+  v1-orbit-room-r20-base/ (10 frames, incl. the v1 group limbo
+  orbit) and v1-connectors-r20-base/ (4 frames), with a README
+  recording the version labels. Frame-version audit line: every
+  connectors / orbit / composer / cardmenu / Flow / limbo / fork
+  frame in pack-v2 was captured 2026-10-20 on the amendment
+  build (dist chip 2a313be; the two late validation fixes were
+  rebuilt into the same dist line before their re-shoots); the
+  only frames not from the amendment build are surfaces the
+  amendment did not touch, which stand from the R20 base build
+  of the same branch.
+- V-5 COPY: "Drop it" (the plan-cancel label) is retired -
+  "Let it go" in all three render sites in C2Graphs.tsx, and the
+  refusal copy aligned ("Only the plan's lead can let this plan
+  go."). Pinned by dropItWiring + cancelOpalPlan (13/13).
+  Proven at the glass (graphs-let-it-go-dark/light; "Drop it"
+  absent). The rest of the etiquette/fork/limbo label audit:
+  Confirm / Request a change / Dismiss (protected, unchanged),
+  Decline / Ask for another time - plain kind words throughout.
+- V-6 CONNECTORS DIRECTION VALIDATED by the founder
+  ("fantastic"). Per-row status, A4 form:
+  | Row | Class | Status |
+  | --- | --- | --- |
+  | Google Calendar (Business) | TRUE where the server carries the grant; View in the capture world | Live flow exists (start + revoke endpoints, readonly scopes); the capture world's server has OAuth unconfigured, so the row honestly reads View |
+  | Gmail (Business) | HONESTLY GATED | Same single Google grant; enabling step is the founder's Google consent + client creation |
+  | Saved logins (Custom) | TRUE | Real read surface (tap-to-view) |
+  | Instagram / Spotify-class tools | HONESTLY ABSENT | No real connect flow exists today; they do not appear in the room; each lands when its connector wires |
+  | Twilio and every infrastructure provider | ABSENT BY LAW | Never user-facing; removed permanently |
+
+## Movement Continuity inspection (named criterion, 07:39)
+
+- Doorway to Orbit to return: one motion - the thread's
+  protected doorway opens the room; the room's first line is
+  "Back to your chat with <Name>"; the return lands in the same
+  thread. No dead jump. (orbit-screen-* + orbit-return-*)
+- Push to chat: the recommendation's long-press menu carries
+  the draft into the thread composer, populated and focused,
+  NOT sent - the landing reads as the same sentence continuing.
+  (orbit-push-to-chat-*)
+- Lane to revision conversation: unchanged from R20, verified
+  there; not re-opened by the amendment.
+- Spine to action surface: unchanged from R20 (F-13/F-20);
+  the spine's dots were replaced by labeled markers (R-5).
+- Dock to Flow: the renamed slot lands on the same social
+  surface, water glyph, one tap. (flow-rest-*)
+- Named break (carried, already gated): the fork's answer
+  controls have no rendered home on the C2 web shell - a user
+  at the fork card cannot answer in place; the respond endpoint
+  works and both closures were driven through it. Founder-gated
+  below; not new in this wave.
+
+## Amendment battery
+
+- Backend: 3,340 tests, 0 failures on the integrated tip
+  (2a313be4) BEFORE the validation fixes; after V-1's seed fix:
+  3,341 tests with 2 failures, both CPU-ratio quality tests
+  (HumanValidationTest longitudinal, CompoundQualityTest dyad
+  maturity) that ran under parallel capture load - standalone
+  25/25 green three times; recorded as load-flakes with the
+  standalone evidence, the same species and protocol as the
+  R20 DeviceReality flakes. The seed suite itself: 10/10
+  including the new V-1 pin.
+- API regression (fresh DB): see the final battery line in the
+  close-out addendum below.
+- Web: 23 failed / 16 files - the baseline set, name-for-name -
+  2,007 passed on 2a313be4; re-run on the final tip after the
+  V-5 rename (dropItWiring + cancelOpalPlan 13/13 targeted):
+  see close-out addendum.
+- Typecheck: exactly 9 (baseline). Mobile: 105/105.
+- Step-zero: no new migrations in the amendment (none needed);
+  the migration count stands at 117 from R20.
+
+## Amendment declarations
+
+- CB's in-call orbit doorway: the live in-call surface accepts
+  the orbit props, but no current caller passes a conversation
+  id into it - parity is live via the call LOG row; the in-call
+  doorway renders once a caller wires both fields. Founder-gated.
+- CC's bidirectional filing: there is no orbit-specific
+  capsule-filing action (no CapsuleWrite door wired to the
+  orbit) - deliberately not wired silently; the explicit user
+  action (surface + endpoint) is intelligence-phase design,
+  founder-gated. The room's composer language already invites
+  "tell Opal where you're coming from" (bidirectional texture,
+  rendered).
+- Self-mirror scope: counts scoped-session births, not
+  messages; message counting is designed, not built.
+- Fading scaffold (Ethics article 4): intelligence-phase
+  design, named, not built.
+- Orbit Law 4's fuller bilateral rendering: the where-lines are
+  built only from the shared record (Law-4-conformant
+  sourcing); both-positions-with-the-gap-named rendering is
+  intelligence-phase design, not claimed.
+- R-7: membership events as orbit record entries, admin-rule
+  removal surface, consent-edge wallet semantics, and
+  born-knowing pairwise inheritance are recorded as model
+  (orbit-v2-report.md section 10); no membership UI was faked.
+- cardmenu-graph-private re-shoot: DECLARED - the private
+  (Sunset picnic) card sits behind the vault gate on Graphs;
+  the rig's unlock path did not surface the card in the list.
+  The base-build frames stand; the menu component and the dock
+  anchoring are proven by the forming/action re-shots on the
+  identical component in this wave.
+- Push-to-chat frame note: the landing frame's composer text
+  is longer than the input field, so the draft's head is
+  scrolled out of view inside the field; the state (thread,
+  composer populated, focused, unsent) is what the frame proves,
+  alongside the no-clipboard / no-auto-send source pins.
+- The staged etiquette choreography in this wave (frozen app
+  clock behind wall time so Oban stage jobs fire on schedule)
+  is capture staging, not product behavior; the machinery
+  itself (jobs enqueued at each transition, due-guarded
+  advance) is the F-17b-proven machinery.
+
+## Founder-gated list - amendment deltas (carried list stands)
+
+1. Legacy shells' "Home" labels (OpalApp.tsx TABS, opalUi
+   V2Dock) - rename to Flow there too, or retire the shells.
+2. The orbit capsule-filing action (bidirectional write leg):
+   surface + endpoint design, intelligence phase.
+3. Fading scaffold (Ethics article 4) - intelligence phase.
+4. The in-call orbit doorway caller wiring (one caller passing
+   conversation id + handler into the live call surface).
+5. Viewer-relative plan titles at projection time (the general
+   form of the V-1 finding: fold-born titles that name a
+   participant are creator-relative but stored absolutely).
+6. Orbit Law 4's bilateral where-we're-at rendering
+   (both positions + the named gap) - intelligence phase.
+7. R-7 builds: membership events in the orbit record, the
+   admin removal surface, consent-edge wallet semantics,
+   born-knowing pairwise inheritance at group-orbit birth.
+8. Dock label number agreement: Flow vs Flows (his lean:
+   Flows) - no label churn until his decision lands.
+
+## CLOSE-OUT ADDENDUM - final battery + reconciliation checklist
+
+Final battery on the amendment tip (integrated 2a313be4 + the
+V-1 seed fix + the V-5 label fix, committed as the final tip):
+
+- Backend: 3,341 tests. Two failures in the loaded full run -
+  HumanValidationTest (longitudinal compound) and
+  CompoundQualityTest (dyad maturity), both CPU-ratio quality
+  tests that ran while the capture rigs were driving the same
+  box; standalone 25/25 green three consecutive times.
+  Recorded as load-flakes with standalone evidence (the R20
+  protocol). Every other suite green, including the new V-1
+  seed pin and the Sameness/self-mirror species.
+- API regression (fresh DB opal_dev_r20api3, virgin accounts):
+  101 PASS / 0 FAIL.
+- Web: 23 failed tests / 16 files - the exact pre-amendment
+  baseline set, name-for-name (all legacy opalUi + activation/
+  availability/designTokens/onboarding/technicolor files; zero
+  amendment-touched files) - 2,007 passed.
+- Typecheck: exactly 9 (baseline). Mobile: 105/105 (mobile
+  sources untouched by the validation fixes; verified on the
+  integrated tip). Step-zero: 117 migrations, none added.
+
+### Reconciliation checklist - every founder item, 2026-10-20
+
+Base wave (full record in the sections above):
+- F-1 lane boxing - DONE (R20 base; protected praise re-proven).
+- F-2 composer furniture - DONE as amended by R-3 (mic inside).
+- F-3 long-press card - DONE (protected design; anchoring fixed
+  under R-4/V-3, menu byte-identical).
+- F-4 vault gate + Settings PIN - DONE (R20 base).
+- F-5 dock orb opacity - DONE (re-proven in dock-closeup set).
+- F-6 duplicate-person integrity - DONE (two distinct accounts,
+  never blended; pinned).
+- F-7 create-plan WHO - DONE (R20 base).
+- F-8 start-a-chat ordering + by-phone - DONE (R20 base).
+- F-9 connectors - DONE as rebuilt by R-2 (v1 rejected; v2 in
+  the handoff's V-6 table).
+- F-10 Center assets - DONE (R20 base).
+- F-11 Horizon/Past as cards - DONE (R20 base).
+- F-12 settled-declined noise - DONE (R20 base).
+- F-13 spine interactivity - DONE (R-5 replaced its stray dots
+  with labeled markers; taps unchanged).
+- F-14 multi-day dates - DONE (R20 base).
+- F-15 repeat a plan - DONE (R20 base).
+- F-16 limbo on plan surfaces - DONE, refined by R-6
+  (derivation fixed; legible countdown).
+- F-17a connected calls - DONE (R20 base frames stand).
+- F-17b fork + closure - DONE; the DEFECT it exposed (stage
+  jobs never rescheduled at window-set) fixed and charged;
+  frames re-shot on the amended build under V-3.
+- F-17c leave-by - DECLARED (staging create path; R20 record).
+- F-18 lightest-true-change - DONE (R20 record).
+- F-19 orbit screen - DONE as rebuilt by R-1 (v1 rejected).
+- F-20 connector-powered spine - DONE as architecture record
+  (section above) + honesty at the taps.
+- F-21a notification deep-links - DONE (pin; R20 record).
+- F-21b group etiquette - DONE by frames in this wave
+  (group limbo orbit + group orbit room).
+- F-21c cold-user legibility - DONE at the rendered inspection
+  (Connectors + Private graphs read cold; recorded in R20).
+
+Amendment wave:
+- R-1 Orbit v2 + Center Law + Calm Law + Voice Law - DONE
+  (CB/CC; frames both modes).
+- Orbit Law 2 (Sameness Test) - DONE; standing species; the
+  ZX-A5 gap it exposed fixed and charged.
+- Push to Chat - DONE (frames both modes; pins hold).
+- R-1(g) density inheritance - DONE (period pills rendered).
+- R-1(h) Ethics Constitution - DONE as recorded; self-mirror
+  BUILT (minimal); articles 1/2/5 are law in the prompt/record;
+  article 4 (fading scaffold) DECLARED intelligence-phase.
+- Sparse-orbit texture (promise, not absence) - DONE (empty
+  orbit frames: teaching line + first-question invitation).
+- Bidirectional orbit - PARTIAL BY RECORD: composer language
+  rendered; the capsule-filing ACTION DECLARED (no silent
+  wiring) and founder-gated.
+- Orbit Law 3 (Truth of Misalignment) - DONE as law in the
+  report + prompt doctrine; escalation guard refined (kind
+  delivery, undiluted content).
+- Orbit Law 4 (Two True Perspectives) - DONE as record +
+  sourcing discipline in the shipped projection; the fuller
+  bilateral rendering DECLARED intelligence-phase.
+- R-1 doorway parity (calls) - DONE via the call log row;
+  the in-call doorway DECLARED (no caller wires it yet),
+  founder-gated.
+- R-2 Connectors v2 - DONE (founder-validated; V-6 table).
+- R-3 Composer model - DONE (frames both modes).
+- R-4 Dock anchoring - DONE (root cause fixed; CSS pins).
+- R-5 Stray dots - DONE (labeled markers).
+- R-6 Limbo precision - DONE (derivation + legibility).
+- R-7 Membership dynamics - DONE as model record (report
+  section 10); builds DECLARED + founder-gated; nothing faked.
+- Rename: Home to Flow + water glyph - DONE (dock/rail/mobile;
+  legacy shells' labels DECLARED founder-gated; Flow vs Flows
+  untouched per the open question).
+- V-1 identity coherence - DONE (seed fix + pin + glass proof).
+- V-2 dissolve + inset audit - DONE (frames + measurements).
+- V-3 dock position invariant - DONE (fixed + pinned + the
+  etiquette set re-shot).
+- V-4 pack hygiene + archive rule - DONE (live pack
+  version-consistent for touched surfaces; pack-archive/ with
+  version labels + README).
+- V-5 "Drop it" to "Let it go" - DONE (3 sites + copy; pins;
+  glass proof).
+- V-6 connectors per-row table - DONE (above).
+- System model (sets/likes-dislikes/nouns-verbs/truth-in-model/
+  coherence) - DONE as records (WALLET_MAP addendum + orbit
+  report section 11); the coherence pass's one contradiction
+  (fold-born titles) named under V-1 with its fix + gated
+  remainder.
+- Movement Continuity lens - DONE (inspection section above;
+  one carried break named: the fork's in-place answer controls,
+  founder-gated since R20).
+
+Nothing in the founder's 2026-10-20 conversation is silently
+dropped: every item above is DONE with evidence or DECLARED
+with its reason and its gate.

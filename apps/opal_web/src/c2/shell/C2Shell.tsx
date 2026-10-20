@@ -138,8 +138,8 @@ import {
   EmptyBlock,
   IconChats,
   IconClose,
+  IconFlow,
   IconGraphs,
-  IconHome,
   IconPerson,
 } from "./bits";
 
@@ -160,7 +160,7 @@ export function C2Shell() {
   const [settingKey, setSettingKey] = useState<string | null>(null);
   const [createKind, setCreateKind] = useState<null | "plan" | "trip" | "idea">(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number; orbit?: boolean } | null>(null);
+  const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number; orbit?: boolean; composerDraft?: string | null } | null>(null);
   // Repair #19 — a thread doorway / orbit-sheet request to land in a
   // scoped Opal conversation (the Center host consumes it by nonce).
   const [opalOpenRequest, setOpalOpenRequest] = useState<CenterOpenRequest | null>(null);
@@ -757,7 +757,7 @@ export function C2Shell() {
     <div className="c2s-root" data-shell="c2" data-testid="c2-shell">
       {/* HA-A wide sidebar (harmony2): at wide geometry the five
        * destinations become a persistent left sidebar in the dock's
-       * order (Home, Chats, Opal, Graphs, You) - the same surfaces,
+       * order (Flow, Chats, Opal, Graphs, You) - the same surfaces,
        * the same projections, the same handlers; the sidebar is
        * chrome, never a second app. It carries no state hues (the
        * dock law it inherits); the active row is the sampled accent
@@ -767,8 +767,8 @@ export function C2Shell() {
         <div className="c2s-sidebar-brand">
           <OrbWordmark width={76} variant="gradient" />
         </div>
-        <SideSlot label="Home" active={route === "home"} testId="c2-side-home" onClick={() => goRoute("home")}>
-          <IconHome />
+        <SideSlot label="Flow" active={route === "home"} testId="c2-side-home" onClick={() => goRoute("home")}>
+          <IconFlow />
         </SideSlot>
         <SideSlot label="Chats" active={route === "chats"} testId="c2-side-chats" badge={shell.dockUnread} onClick={() => goRoute("chats")}>
           <IconChats />
@@ -848,8 +848,11 @@ export function C2Shell() {
               <CenterHost
                 bearer={bearer}
                 openRequest={opalOpenRequest}
-                onOpenPersonThread={(conversationId) => {
-                  setChatOpenRequest({ conversationId, nonce: Date.now() });
+                onOpenPersonThread={(conversationId, opts) => {
+                  // Orbit v2 PUSH TO CHAT: an optional composer
+                  // draft rides the open request into the thread's
+                  // composer - placed, unsent, unmarked.
+                  setChatOpenRequest({ conversationId, nonce: Date.now(), composerDraft: opts?.composerDraft ?? null });
                   goRoute("chats");
                 }}
                 opening={opening}
@@ -938,12 +941,12 @@ export function C2Shell() {
 
         <nav className="c2s-dock" data-testid="c2-dock" aria-label="Main">
           <DockSlot
-            label="Home"
+            label="Flow"
             active={route === "home"}
             onClick={() => goRoute("home")}
             testId="c2-dock-home"
           >
-            <IconHome />
+            <IconFlow />
           </DockSlot>
           <DockSlot
             label="Chats"

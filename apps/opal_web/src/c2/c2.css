@@ -332,6 +332,20 @@ html[data-mode="light"] #root {
   color: var(--state-limbo-ink);
   margin: 0;
 }
+/* R20A CF (R-6b): the remaining-window line is the ONE piece of
+ * text on a limbo card allowed to carry urgency (the founder's
+ * named standard from the answer-window card: "either answer is a
+ * kind one" + "less than an hour left"). It must not sit buried as
+ * a second muted paragraph inside the strip: it renders at body
+ * size, semibold, in the full limbo ink, set off from the copy
+ * above it. Legible, not loud - no size beyond body, no action
+ * red, no animation. */
+.c2-plan-limbo-window {
+  font: var(--type-body);
+  font-weight: 650;
+  color: var(--state-limbo-ink);
+  margin: var(--space-1, 4px) 0 0;
+}
 /* W9: the record's own image on a plan card (rendered only when the
  * projection carries one - absent means no well at all). */
 /* JA-12: the well has a designed height of its own (min-height) so

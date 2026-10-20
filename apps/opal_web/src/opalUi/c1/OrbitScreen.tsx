@@ -1,45 +1,46 @@
 /**
- * Repair #20 (F-19) — THE ORBIT SCREEN. The room behind the thread's
- * Opal doorway: the founder's ring language made personal.
+ * Repair #20 amendment (Orbit v2) - THE ORBIT SCREEN, rebuilt after
+ * the founder rejected the v1 composition in the 2026-10-20 interim
+ * preview. V1 (a ring of people around a center person) is gone.
  *
- * Composition (brief, point by point):
- * (1) THE RING OF PEOPLE — the thread's people as points of light
- *     on a ring (one light for a 1:1 anchor; EVERY party member for
- *     a group), the viewer at the center stone. The thread's plans
- *     ride the same ring as stones in their state color (canon:
- *     action #FF4D5E, ready #FFC86B, forming #8B5CF6, happening
- *     #00E5FF, past white). A person whose answer is pending wears
- *     the dashed pending pattern; a person in etiquette limbo wears
- *     the cooling amber (never red). Every light names its person
- *     in text beside it — the ring is legible before a word of the
- *     conversation is read, and no light is decoration: each one is
- *     a party member or a plan from the orbit projection.
- * (2) THE CONVERSATION INSIDE THE FIELD — the scoped Opal
- *     conversation (the host's CenterChat, reused as-is) lives
- *     beneath the ring inside the orbit field, under the purpose
- *     line "Ask about this conversation." Opal's read of the
- *     thread appears as ONE quiet insight above the field — the
- *     thread's one lit reveal, never a feed.
- * (3) THE LONG ARC — under the ring: what's next (the next
- *     together fact, open windows, limbo states — all finished
- *     projection lines) and the index of past Opal conversations
- *     in this orbit. The doorway back to the thread is one tap in
- *     the header. Thread = the moment; orbit = the arc.
- * (4) MOTION + QUIET — the ring ASSEMBLES on entry (lights settle
- *     onto the ring, one-shot, staggered) and is then still; the
- *     only other motion is the limbo cooling arc's fraction, which
- *     is a static fraction read, not an animation. Reduced motion:
- *     the identical static ring — same positions, same patterns,
- *     same words (AR-00.6 parity).
- * (5) FUTURE TENANTS — the composition leaves headroom below the
- *     arc; nothing is rendered for them. No placeholder doorways.
+ * FOUNDER LAW FOR V2 (governs every choice in this file):
+ * - CENTER LAW: the orbit's center is the TOPIC - the conversation,
+ *   plan, or place under discussion - never a person. Nobody orbits
+ *   anybody; all parties are equally centered. There is no ring of
+ *   people, no center person, and no viewer-at-center here.
+ * - CALM LAW: a quiet card room. One idea per card, generous
+ *   negative space, minimal text, progressive disclosure - the room
+ *   opens nearly empty and depth sits behind taps. Overwhelm is
+ *   the failure (the founder names ADHD users explicitly).
+ * - MISALIGNMENT HONESTY (Orbit Law 3): where a fork is presented
+ *   or a window is cooling, the where-we-are card names the
+ *   friction plainly - "waiting on an answer", "the window closed
+ *   without an answer" - never smoothed, never prettied.
+ * - LOVED HONESTY: the "loved" mark appears only where the
+ *   conversation itself confirms enjoyment - repeat provenance (a
+ *   plan done again) or an explicit positive signal in the data
+ *   handed in. Never assumed. No past data = the card is honestly
+ *   sparse or absent, never invented.
+ * - EMPTY ORBIT = PROMISE: one plain teaching line about what this
+ *   room becomes, plus the first-question invitation.
+ * - THE VOICE LAW + PUSH TO CHAT: an explicit "Shape what to say"
+ *   affordance asks Opal for a draft reply; the draft renders in
+ *   its own RECOMMENDATION BOX (not a chat bubble); long-pressing
+ *   the box raises a menu whose carry action is "Push to chat" -
+ *   it carries the words into the thread's composer and lands the
+ *   user there, unsent, with no marker that help was used. The
+ *   clipboard is involved nowhere in this flow, and nothing in
+ *   this flow sends a message.
  *
- * This component renders the orbit projection it is handed. It
- * derives no state: party pending/limbo, plan states, and the
- * next-together line all arrive finished from the backend orbit
- * projection (OrbitProjectionContract) via the host.
+ * This component renders what it is handed: state lines, plans,
+ * and past facts arrive finished from the backend orbit
+ * projection (OrbitProjectionContract) via the host. Optional
+ * sibling fields the backend cluster is adding (past_plans,
+ * where_lines, per-plan loved/repeat signals) are read
+ * defensively - the room works before and after they land, and
+ * degrades honestly when they are absent.
  */
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { OrbitProjectionContract } from "../../api/productClient";
 import type { OrbitScope, PersonOpalSessionRow } from "./opalChatScope";
 import "./OrbitScreen.css";
@@ -52,18 +53,94 @@ const STATE_WORD: Record<string, string> = {
   past: "Past",
 };
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
-  return (parts[0].slice(0, 1) + parts[parts.length - 1].slice(0, 1)).toUpperCase();
+/** Optional sibling fields on the orbit projection, read
+ *  defensively until the backend contract carries them natively. */
+type OrbitPastPlanLike = {
+  plan_id: string;
+  title: string;
+  when_label?: string | null;
+  where_label?: string | null;
+  /** True only when the conversation itself confirms enjoyment. */
+  loved?: boolean | null;
+  loved_evidence?: string | null;
+  /** True when this plan was done again (repeat provenance). */
+  repeated?: boolean | null;
+};
+
+type OrbitProjectionExtended = OrbitProjectionContract & {
+  past_plans?: OrbitPastPlanLike[] | null;
+  where_lines?: string[] | null;
+};
+
+function pastPlansOf(orbit: OrbitProjectionContract | null): OrbitPastPlanLike[] {
+  if (!orbit) return [];
+  const ext = orbit as OrbitProjectionExtended;
+  if (Array.isArray(ext.past_plans) && ext.past_plans.length > 0) {
+    return ext.past_plans;
+  }
+  // Fallback: the projection's own plan list, past-state only.
+  return (orbit.plans ?? [])
+    .filter((p) => p.state === "past")
+    .map((p) => {
+      const raw = p as unknown as Record<string, unknown>;
+      return {
+        plan_id: p.plan_id,
+        title: p.title,
+        when_label: p.when_label ?? null,
+        where_label: p.where_label ?? null,
+        loved: raw.loved === true ? true : null,
+        loved_evidence: typeof raw.loved_evidence === "string" ? raw.loved_evidence : null,
+        repeated: raw.repeated === true ? true : null,
+      };
+    });
 }
 
-/** Ring geometry: pure presentation placement (evenly spaced
- *  starting at the top). Carries no state meaning. */
-function ringPoint(index: number, total: number, radius: number, cx: number, cy: number) {
-  const angle = (Math.PI * 2 * index) / Math.max(total, 1) - Math.PI / 2;
-  return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+function whereLinesOf(
+  orbit: OrbitProjectionContract | null,
+  propLines?: string[] | null,
+): string[] {
+  if (propLines && propLines.length > 0) return propLines;
+  const ext = orbit as OrbitProjectionExtended | null;
+  if (ext && Array.isArray(ext.where_lines)) return ext.where_lines.filter(Boolean);
+  return [];
+}
+
+/** Collapse the session index into period pills (density
+ *  inheritance: history summarized; only the live conversation is
+ *  open by default; a pill expands on intent only). Periods derive
+ *  from each row's ISO updatedAt when present; rows without one
+ *  land in "Earlier" - never a guessed date. */
+export function periodPillsForSessions(
+  sessions: PersonOpalSessionRow[],
+  now: Date = new Date(),
+): Array<{ key: string; label: string; sessions: PersonOpalSessionRow[] }> {
+  const buckets = new Map<string, { label: string; rows: PersonOpalSessionRow[] }>();
+  const push = (key: string, label: string, s: PersonOpalSessionRow) => {
+    const b = buckets.get(key) ?? { label, rows: [] };
+    b.rows.push(s);
+    buckets.set(key, b);
+  };
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  for (const s of sessions) {
+    const t = s.updatedAt ? Date.parse(s.updatedAt) : NaN;
+    if (!Number.isNaN(t)) {
+      const age = now.getTime() - t;
+      if (age <= weekMs) {
+        push("this-week", "This week", s);
+        continue;
+      }
+      const d = new Date(t);
+      if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
+        push("this-month", "Earlier this month", s);
+        continue;
+      }
+    }
+    push("earlier", "Earlier", s);
+  }
+  const order = ["this-week", "this-month", "earlier"];
+  return order
+    .filter((k) => buckets.has(k))
+    .map((k) => ({ key: k, label: buckets.get(k)!.label, sessions: buckets.get(k)!.rows }));
 }
 
 export function OrbitScreen({
@@ -77,6 +154,12 @@ export function OrbitScreen({
   onOpenPlan,
   onBackToThread,
   emptyInvite,
+  whereLines,
+  recommendation,
+  onShapeRequest,
+  onPushToChat,
+  onDismissRecommendation,
+  shapeBusy,
   children,
 }: {
   scope: OrbitScope;
@@ -95,51 +178,96 @@ export function OrbitScreen({
   onBackToThread: () => void;
   /** The empty orbit's first-question invite (no session yet). */
   emptyInvite?: { onAsk: (text: string) => void } | null;
+  /** Finished where-we-are lines the host already has (the
+   *  viewer's etiquette lines), when it passes them directly. */
+  whereLines?: string[] | null;
+  /** Opal's draft reply for the viewer, when one has been shaped.
+   *  Renders in the recommendation box - never as a chat bubble. */
+  recommendation?: string | null;
+  /** Ask Opal to shape a draft reply (the Voice Law affordance). */
+  onShapeRequest?: () => void;
+  /** Carry the draft into the thread's composer and land there.
+   *  Never sends; the clipboard is never involved. */
+  onPushToChat?: (text: string) => void;
+  onDismissRecommendation?: () => void;
+  shapeBusy?: boolean;
   /** The scoped Opal conversation, when one is open in this orbit. */
   children?: React.ReactNode;
 }) {
   const [draft, setDraft] = useState("");
-  const parties = orbit
-    ? orbit.parties.map((p) => ({
-        id: p.user_id,
-        name: p.display_name,
-        tint: p.entity_tint ?? null,
-        isViewer: p.is_viewer,
-        pending: p.pending,
-        limbo: p.limbo,
-        limboFractionRemaining: p.limbo_fraction_remaining ?? null,
-      }))
-    : scope.party;
-  const ringPeople = parties.filter((p) => !p.isViewer);
-  const viewer = parties.find((p) => p.isViewer) ?? null;
-  const plans = orbit?.plans ?? [];
-  const nextPlan = orbit?.next_plan ?? null;
-  // Ring order: people and plan stones alternate around the ring,
-  // starting with a person at the top — presentation placement
-  // only; the legend below names every light in words.
-  const ringItems: Array<
-    | { kind: "person"; person: (typeof ringPeople)[number] }
-    | { kind: "plan"; plan: (typeof plans)[number] }
-  > = [];
-  {
-    const max = Math.max(ringPeople.length, plans.length);
-    for (let i = 0; i < max; i += 1) {
-      if (ringPeople[i]) ringItems.push({ kind: "person", person: ringPeople[i] });
-      if (plans[i]) ringItems.push({ kind: "plan", plan: plans[i] });
-    }
-  }
-  const CX = 130;
-  const CY = 130;
-  const R = 102;
+  const [openPeriod, setOpenPeriod] = useState<string | null>(null);
+  const [pastOpen, setPastOpen] = useState(false);
 
+  // --- Recommendation box state (long-press menu + in-Orbit edit)
+  const [recText, setRecText] = useState<string | null>(null);
+  const [recMenuOpen, setRecMenuOpen] = useState(false);
+  const [recEditing, setRecEditing] = useState(false);
+  const [recEditDraft, setRecEditDraft] = useState("");
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    setRecText(recommendation ?? null);
+    setRecMenuOpen(false);
+    setRecEditing(false);
+  }, [recommendation]);
+  const clearPress = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  };
+  const startPress = () => {
+    clearPress();
+    pressTimer.current = setTimeout(() => setRecMenuOpen(true), 500);
+  };
+
+  // --- Subject (CENTER LAW): the topic names the room - the next
+  // plan's title first, else the conversation's own title. For a
+  // 1:1 with neither, the partner's name stands AS THE SUBJECT
+  // LINE (a topic label, never a center person).
+  const nextPlan = orbit?.next_plan ?? null;
+  const subject = nextPlan?.title ?? scope.planTitle ?? scope.title;
+  const parties = orbit
+    ? orbit.parties.map((p) => ({ id: p.user_id, name: p.display_name, isViewer: p.is_viewer, pending: p.pending, limbo: p.limbo }))
+    : scope.party.map((p) => ({ id: p.id, name: p.name, isViewer: p.isViewer, pending: p.pending, limbo: p.limbo }));
+  const partyLine = parties.map((p) => (p.isViewer ? "You" : p.name)).join(", ");
+
+  // --- Where we are: state lines finished by the projection and
+  // the host, plus the plain friction lines (MISALIGNMENT HONESTY).
+  const plans = orbit?.plans ?? [];
   const nextLine = nextPlan
     ? [nextPlan.title, nextPlan.when_label ?? "Time not set yet.", nextPlan.where_label]
         .filter(Boolean)
         .join(" - ")
     : null;
   const limboParties = parties.filter((p) => p.limbo && !p.isViewer);
+  const closedWithoutAnswer = limboParties.filter((p) =>
+    plans.some((pl) =>
+      (pl.participants ?? []).some(
+        (pp) => pp.user_id === p.id && (pp.limbo_stage === "closed" || pp.limbo_stage === "expired"),
+      ),
+    ),
+  );
+  const coolingParties = limboParties.filter((p) => !closedWithoutAnswer.includes(p));
   const pendingParties = parties.filter((p) => p.pending && !p.limbo && !p.isViewer);
-  const viewerPending = viewer?.pending === true;
+  const viewerPending = parties.find((p) => p.isViewer)?.pending === true;
+  const extraWhere = whereLinesOf(orbit, whereLines);
+  const openWindows = plans.filter((p) => p.state !== "past" && (!p.when_label || !p.where_label));
+
+  // --- What we have done - and loved (honest provenance only).
+  const pastPlans = pastPlansOf(orbit);
+  const lovedOf = (p: OrbitPastPlanLike): string | null => {
+    if (p.loved_evidence === "repeated" || p.repeated) return "Done again";
+    if (p.loved) return "Loved";
+    return null;
+  };
+
+  const periods = periodPillsForSessions(sessions);
+  const isEmptyOrbit =
+    !children &&
+    sessions.length === 0 &&
+    pastPlans.length === 0 &&
+    !nextPlan &&
+    plans.length === 0;
 
   return (
     <div className="orbit-screen" data-testid="orbit-screen" data-composition={scope.composition}>
@@ -155,200 +283,140 @@ export function OrbitScreen({
             : `Back to your chat with ${scope.personName ?? scope.title}`}
         </button>
         <p className="orbit-screen-title" data-testid="orbit-screen-title">
-          {scope.title}
-          <span className="orbit-screen-title-sub">
-            {scope.composition === "group" ? " — everyone's orbit" : " — orbit"}
-          </span>
+          {subject}
+        </p>
+        <p className="orbit-screen-parties" data-testid="orbit-parties">
+          {partyLine}
         </p>
       </header>
 
       <div className="orbit-top">
-      <div className="orbit-ring-wrap">
-        <svg
-          className="orbit-ring"
-          data-testid="orbit-ring"
-          viewBox="0 0 260 260"
-          role="img"
-          aria-label={`The ring for ${scope.title}: ${ringPeople.length} ${
-            ringPeople.length === 1 ? "person" : "people"
-          }, ${plans.length} ${plans.length === 1 ? "plan" : "plans"}`}
-        >
-          <circle className="orbit-ring-track" cx={CX} cy={CY} r={R} />
-          {viewer ? (
-            <g data-testid="orbit-center" data-pending={viewer.pending ? "true" : undefined}>
-              <circle
-                className="orbit-center-stone"
-                cx={CX}
-                cy={CY}
-                r={17}
-                data-state={viewer.pending ? "action" : undefined}
-              />
-              <text className="orbit-center-label" x={CX} y={CY + 4} textAnchor="middle">
-                You
-              </text>
-            </g>
-          ) : null}
-          {ringItems.map((item, i) => {
-            const pos = ringPoint(i, ringItems.length, R, CX, CY);
-            if (item.kind === "person") {
-              const person = item.person;
-              const state = person.limbo ? "limbo" : person.pending ? "pending" : "settled";
-              return (
-                <g
-                  key={`person-${person.id}`}
-                  className="orbit-light"
-                  data-testid="orbit-person-light"
-                  data-person-id={person.id}
-                  data-state={state}
-                  style={{ animationDelay: `${i * 90}ms` }}
-                >
-                  <title>{`${person.name} — ${
-                    person.limbo
-                      ? "in limbo, window closing"
-                      : person.pending
-                        ? "hasn't answered yet"
-                        : "answered"
-                  }`}</title>
-                  {person.limbo ? (
-                    <circle
-                      className="orbit-light-limbo-arc"
-                      cx={pos.x}
-                      cy={pos.y}
-                      r={13}
-                      pathLength={100}
-                      strokeDasharray={`${Math.round(
-                        Math.min(1, Math.max(0, person.limboFractionRemaining ?? 1)) * 100,
-                      )} 100`}
-                    />
-                  ) : null}
-                  <circle
-                    className="orbit-light-dot"
-                    cx={pos.x}
-                    cy={pos.y}
-                    r={8}
-                    style={
-                      person.tint
-                        ? { fill: `var(--person-tint-${person.tint})` }
-                        : undefined
-                    }
-                  />
-                  <text className="orbit-light-label" x={pos.x} y={pos.y + 24} textAnchor="middle">
-                    {initialsOf(person.name)}
-                  </text>
-                </g>
-              );
-            }
-            const plan = item.plan;
-            return (
-              <g
-                key={`plan-${plan.plan_id}`}
-                className="orbit-stone"
-                data-testid="orbit-plan-stone"
-                data-plan-id={plan.plan_id}
-                data-state={plan.state}
-                style={{ animationDelay: `${i * 90}ms` }}
-                onClick={onOpenPlan ? () => onOpenPlan(plan.plan_id) : undefined}
-                role={onOpenPlan ? "button" : undefined}
-              >
-                <title>{`${plan.title} — ${STATE_WORD[plan.state] ?? plan.state}`}</title>
-                <circle
-                  className="orbit-stone-dot"
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={6.5}
-                  style={{ fill: `var(--orb-indicator-${plan.state}, var(--ink-3))` }}
-                />
-              </g>
-            );
-          })}
-        </svg>
-        <ul className="orbit-ring-legend" data-testid="orbit-ring-legend">
-          {ringPeople.map((person) => (
-            <li key={person.id} data-testid="orbit-legend-person" data-person-id={person.id}>
-              <span className="orbit-legend-name">{person.name}</span>
-              <span className="orbit-legend-state">
-                {person.limbo
-                  ? " — in limbo: their window is closing"
-                  : person.pending
-                    ? " — hasn't answered yet"
-                    : " — answered"}
-              </span>
-            </li>
-          ))}
-          {plans.map((plan) => (
-            <li key={plan.plan_id} data-testid="orbit-legend-plan" data-plan-id={plan.plan_id}>
-              <span className="orbit-legend-name">{plan.title}</span>
-              <span className="orbit-legend-state">
-                {` — ${STATE_WORD[plan.state] ?? plan.state}`}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {insight ? (
-        <p className="orbit-insight" data-testid="orbit-insight">
-          <span className="orbit-insight-kicker">OPAL'S READ</span>
-          {insight}
-        </p>
-      ) : null}
-
-      <section className="orbit-arc" data-testid="orbit-arc">
-        <p className="orbit-arc-kicker">THE LONG ARC</p>
-        {nextLine ? (
-          <p className="orbit-arc-line" data-testid="orbit-next-together">
-            <span className="orbit-arc-label">Next together</span>
-            {nextLine}
-          </p>
-        ) : (
-          <p className="orbit-arc-line" data-testid="orbit-next-together">
-            <span className="orbit-arc-label">Next together</span>
-            Nothing is planned together yet.
-          </p>
-        )}
-        {plans
-          .filter((p) => !p.when_label || !p.where_label)
-          .map((p) => (
-            <p key={p.plan_id} className="orbit-arc-line" data-testid="orbit-open-window">
-              <span className="orbit-arc-label">Open window</span>
-              {`${p.title} — ${!p.when_label ? "time not set yet" : "place not set yet"}`}
-            </p>
-          ))}
-        {limboParties.map((p) => (
-          <p key={p.id} className="orbit-arc-line orbit-arc-limbo" data-testid="orbit-limbo-line">
-            <span className="orbit-arc-label">Limbo</span>
-            {`${p.name}'s answer is in limbo — the window is closing.`}
-          </p>
-        ))}
-        {pendingParties.map((p) => (
-          <p key={p.id} className="orbit-arc-line" data-testid="orbit-pending-line">
-            <span className="orbit-arc-label">Waiting</span>
-            {`Still waiting on ${p.name}'s answer.`}
-          </p>
-        ))}
-        {viewerPending ? (
-          <p className="orbit-arc-line" data-testid="orbit-viewer-pending">
-            <span className="orbit-arc-label">Your move</span>
-            A plan here is waiting on your answer.
+        {insight ? (
+          <p className="orbit-insight" data-testid="orbit-insight">
+            <span className="orbit-insight-kicker">OPAL'S READ</span>
+            {insight}
           </p>
         ) : null}
-        {sessions.length > 0 ? (
+
+        <section className="orbit-card" data-testid="orbit-where-card">
+          <p className="orbit-card-kicker">WHERE WE'RE AT</p>
+          {nextLine ? (
+            <p className="orbit-card-line" data-testid="orbit-next-together">
+              <span className="orbit-card-label">Next together</span>
+              {nextLine}
+            </p>
+          ) : (
+            <p className="orbit-card-line" data-testid="orbit-next-together">
+              <span className="orbit-card-label">Next together</span>
+              Nothing is planned together yet.
+            </p>
+          )}
+          {extraWhere.map((line, i) => (
+            <p key={i} className="orbit-card-line" data-testid="orbit-where-line">
+              {line}
+            </p>
+          ))}
+          {openWindows.map((p) => (
+            <p key={p.plan_id} className="orbit-card-line" data-testid="orbit-open-window">
+              <span className="orbit-card-label">Open window</span>
+              {`${p.title} - ${!p.when_label ? "time not set yet" : "place not set yet"}`}
+            </p>
+          ))}
+          {pendingParties.map((p) => (
+            <p key={p.id} className="orbit-card-line" data-testid="orbit-pending-line">
+              <span className="orbit-card-label">Waiting</span>
+              {`Waiting on an answer from ${p.name}.`}
+            </p>
+          ))}
+          {coolingParties.map((p) => (
+            <p key={p.id} className="orbit-card-line" data-testid="orbit-limbo-line">
+              <span className="orbit-card-label">Cooling</span>
+              {`${p.name}'s window is closing - still waiting on an answer.`}
+            </p>
+          ))}
+          {closedWithoutAnswer.map((p) => (
+            <p key={p.id} className="orbit-card-line" data-testid="orbit-closed-line">
+              <span className="orbit-card-label">Closed</span>
+              {`The window closed without an answer from ${p.name}.`}
+            </p>
+          ))}
+          {viewerPending ? (
+            <p className="orbit-card-line" data-testid="orbit-viewer-pending">
+              <span className="orbit-card-label">Your move</span>
+              A plan here is waiting on your answer.
+            </p>
+          ) : null}
+        </section>
+
+        {pastPlans.length > 0 ? (
+          <section className="orbit-card" data-testid="orbit-past-card">
+            <button
+              type="button"
+              className="orbit-card-toggle"
+              data-testid="orbit-past-toggle"
+              aria-expanded={pastOpen}
+              onClick={() => setPastOpen((v) => !v)}
+            >
+              {`What we've done - and loved (${pastPlans.length})`}
+            </button>
+            {pastOpen
+              ? pastPlans.map((p) => {
+                  const loved = lovedOf(p);
+                  return (
+                    <p key={p.plan_id} className="orbit-card-line" data-testid="orbit-past-row" data-plan-id={p.plan_id}>
+                      <span className="orbit-past-title">{p.title}</span>
+                      {[p.when_label, p.where_label].filter(Boolean).length > 0 ? (
+                        <span className="orbit-past-meta">
+                          {` - ${[p.when_label, p.where_label].filter(Boolean).join(" - ")}`}
+                        </span>
+                      ) : null}
+                      {loved ? (
+                        <span className="orbit-past-loved" data-testid="orbit-past-loved">
+                          {` - ${loved}`}
+                        </span>
+                      ) : null}
+                    </p>
+                  );
+                })
+              : null}
+          </section>
+        ) : null}
+
+        {periods.length > 0 ? (
           <div className="orbit-index" data-testid="orbit-index">
-            <p className="orbit-arc-label">Past chats with Opal in this orbit</p>
-            {sessions.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className="orbit-index-row"
-                data-testid="orbit-index-row"
-                data-session-id={s.id}
-                data-active={s.id === activeSessionId ? "true" : undefined}
-                onClick={() => onOpenSession(s.id)}
-              >
-                <span className="orbit-index-title">{s.title}</span>
-                <span className="orbit-index-time">{s.timeLabel}</span>
-              </button>
-            ))}
+            <p className="orbit-card-kicker">PAST CHATS WITH OPAL HERE</p>
+            <div className="orbit-period-pills">
+              {periods.map((period) => (
+                <span key={period.key} className="orbit-period-wrap">
+                  <button
+                    type="button"
+                    className="orbit-period-pill"
+                    data-testid="orbit-period-pill"
+                    data-period={period.key}
+                    aria-expanded={openPeriod === period.key}
+                    onClick={() => setOpenPeriod((cur) => (cur === period.key ? null : period.key))}
+                  >
+                    {`${period.label} (${period.sessions.length})`}
+                  </button>
+                  {openPeriod === period.key
+                    ? period.sessions.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          className="orbit-index-row"
+                          data-testid="orbit-index-row"
+                          data-session-id={s.id}
+                          data-active={s.id === activeSessionId ? "true" : undefined}
+                          onClick={() => onOpenSession(s.id)}
+                        >
+                          <span className="orbit-index-title">{s.title}</span>
+                          <span className="orbit-index-time">{s.timeLabel}</span>
+                        </button>
+                      ))
+                    : null}
+                </span>
+              ))}
+            </div>
             <button
               type="button"
               className="orbit-index-new"
@@ -359,25 +427,136 @@ export function OrbitScreen({
             </button>
           </div>
         ) : null}
-      </section>
       </div>
 
       <section className="orbit-field" data-testid="orbit-field">
-        <p className="orbit-field-purpose">Ask about this conversation.</p>
+        <p className="orbit-field-purpose">
+          Ask Opal about this conversation - or tell Opal where you're coming from.
+        </p>
+        {onShapeRequest && children ? (
+          <button
+            type="button"
+            className="orbit-shape-btn"
+            data-testid="orbit-shape-request"
+            disabled={shapeBusy}
+            onClick={onShapeRequest}
+          >
+            {shapeBusy ? "Shaping..." : "Shape what to say"}
+          </button>
+        ) : null}
+        {recText ? (
+          <div
+            className="orbit-recommendation"
+            data-testid="orbit-recommendation"
+            onPointerDown={startPress}
+            onPointerUp={clearPress}
+            onPointerLeave={clearPress}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setRecMenuOpen(true);
+            }}
+          >
+            <p className="orbit-recommendation-kicker">A DRAFT FOR YOU</p>
+            {recEditing ? (
+              <div className="orbit-recommendation-edit">
+                <textarea
+                  className="orbit-recommendation-input"
+                  data-testid="orbit-recommendation-input"
+                  value={recEditDraft}
+                  onChange={(e) => setRecEditDraft(e.target.value)}
+                  rows={3}
+                />
+                <button
+                  type="button"
+                  className="orbit-recommendation-save"
+                  data-testid="orbit-recommendation-save"
+                  onClick={() => {
+                    if (recEditDraft.trim()) setRecText(recEditDraft.trim());
+                    setRecEditing(false);
+                  }}
+                >
+                  Use this version
+                </button>
+              </div>
+            ) : (
+              <p className="orbit-recommendation-text" data-testid="orbit-recommendation-text">
+                {recText}
+              </p>
+            )}
+            <p className="orbit-recommendation-hint">Hold for options</p>
+            {recMenuOpen ? (
+              <div className="orbit-recommendation-menu" data-testid="orbit-recommendation-menu" role="menu">
+                {onPushToChat ? (
+                  <button
+                    type="button"
+                    data-testid="orbit-recommendation-push"
+                    onClick={() => {
+                      setRecMenuOpen(false);
+                      onPushToChat(recText);
+                    }}
+                  >
+                    Push to chat
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="orbit-recommendation-adjust"
+                  onClick={() => {
+                    setRecEditDraft(recText);
+                    setRecEditing(true);
+                    setRecMenuOpen(false);
+                  }}
+                >
+                  Adjust in Orbit
+                </button>
+                {onShapeRequest ? (
+                  <button
+                    type="button"
+                    data-testid="orbit-recommendation-another"
+                    onClick={() => {
+                      setRecMenuOpen(false);
+                      onShapeRequest();
+                    }}
+                  >
+                    Ask Opal for another take
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="orbit-recommendation-dismiss"
+                  onClick={() => {
+                    setRecMenuOpen(false);
+                    setRecText(null);
+                    onDismissRecommendation?.();
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         {children ? (
           children
         ) : emptyInvite ? (
           <div className="orbit-empty" data-testid="orbit-empty">
+            {isEmptyOrbit ? (
+              <p className="orbit-empty-teaching" data-testid="orbit-empty-teaching">
+                This room keeps what this conversation becomes - where you're at, what
+                you've done together, and help finding your words. It fills as your
+                life together does.
+              </p>
+            ) : null}
             <p className="orbit-empty-line">
               {scope.composition === "group"
-                ? "No chats with Opal about this group yet. Ask the first question — Opal answers from this conversation, for your eyes only."
-                : `No chats with Opal about ${scope.personName ?? scope.title} yet. Ask the first question.`}
+                ? "No chats with Opal about this group yet. Ask the first question - or tell Opal where you're coming from."
+                : `No chats with Opal about ${scope.personName ?? scope.title} yet. Ask the first question - or tell Opal where you're coming from.`}
             </p>
             <div className="orbit-empty-composer">
               <input
                 className="orbit-empty-input"
                 data-testid="orbit-empty-input"
-                placeholder="Ask about this conversation..."
+                placeholder="Ask, or tell Opal where you're coming from..."
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => {
