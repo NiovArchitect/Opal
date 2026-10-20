@@ -49,7 +49,12 @@ defmodule OpalCore.SocialFlow.PlanHistory do
            "plan_id" => plan.id,
            "history" => history_lines(plan),
            "who" => who_list(plan, viewer_id),
-           "counts" => JourneyAuthority.attendance_contract(plan.id, viewer_id)
+           "counts" => JourneyAuthority.attendance_contract(plan.id, viewer_id),
+           # Cluster G (P10c): the ONE leave-by derivation for this
+           # viewer (LeaveBy) - the detail surface renders it
+           # verbatim and derives nothing. Absent states are named
+           # states with a finished line, never fabricated numbers.
+           "leave_by" => OpalCore.SocialFlow.LeaveBy.for_plan(plan, viewer_id)
          }}
 
       {:error, _} = error ->

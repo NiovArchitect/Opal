@@ -54,7 +54,18 @@ export function PlanAwareness({
   if (!fact) return null;
   const family = planStateFamily(fact.state);
   const meta = STATE_META[family];
-  const color = PLAN_STATE_HEX[family];
+  // Cluster G (P10c) - leave-by escalation: the backend's urgency
+  // truth, never a client derivation. At the leave-now threshold
+  // the element's treatment escalates from the plan's state color
+  // (ready gold) to the existing action color and its solid-bold
+  // pattern - the ruled ambient beat. The leave-by segment's words
+  // change at the same moment ("Leave now..."), so the cue never
+  // rides on color alone. Only a computed ("ok") leave-by renders
+  // in the strip; absent states belong to the plan detail, where
+  // there is room for their honest line.
+  const leaveBy = fact.leave_by?.state === "ok" ? fact.leave_by : null;
+  const leaveNow = leaveBy?.urgency === "leave_now";
+  const color = leaveNow ? PLAN_STATE_HEX.action : PLAN_STATE_HEX[family];
   const tintVar = entityTintVar(entityTint);
   const parts = [fact.title, fact.when_label, fact.where_label].filter(
     (p): p is string => typeof p === "string" && p.trim() !== "",
@@ -89,7 +100,8 @@ export function PlanAwareness({
       data-variant={variant}
       data-plan-id={fact.plan_id}
       data-plan-state={family}
-      data-pattern={PATTERN_BY_STATE[family] ?? "solid"}
+      data-pattern={leaveNow ? PATTERN_BY_STATE.action : (PATTERN_BY_STATE[family] ?? "solid")}
+      data-leave-now={leaveNow ? "1" : undefined}
       style={{ "--pa-state": color } as React.CSSProperties}
     >
       {variant === "row" ? (
@@ -116,6 +128,16 @@ export function PlanAwareness({
         <>
           {head}
           <span className="plan-awareness-text">{parts.join(" - ")}</span>
+          {variant === "strip" && leaveBy ? (
+            <span
+              className="plan-awareness-leaveby"
+              data-testid="plan-awareness-leaveby"
+              data-urgency={leaveBy.urgency ?? undefined}
+              style={leaveNow ? { color: PLAN_STATE_HEX.action } : undefined}
+            >
+              {leaveBy.label}
+            </span>
+          ) : null}
         </>
       )}
     </span>

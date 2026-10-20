@@ -761,6 +761,10 @@ export function detailWithHistory(
       detail.spine,
       history.who.map((w) => ({ name: w.name, responseLabel: w.response_label })),
     ),
+    // Cluster G (P10c): the leave-by projection rides verbatim -
+    // the detail renders the backend's finished line and urgency
+    // and derives no time or distance itself.
+    leaveBy: history.leave_by ?? null,
     attendanceLine:
       typeof history.counts.going_count === "number" &&
       typeof history.counts.total_count === "number"

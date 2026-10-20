@@ -45,7 +45,7 @@ defmodule OpalCoreWeb.ConversationController do
         "alignment" => alignment,
         # DIR-1: the thread contract carries the same shared upcoming
         # plan fact as the chats list and the call log (one fact).
-        "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id)
+        "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id, leave_by: true)
       })
     else
       conn |> put_status(403) |> json(%{"error_code" => "not_a_member"})
@@ -323,7 +323,7 @@ defmodule OpalCoreWeb.ConversationController do
           "durable_chronology" => true,
           # DIR-1: the thread's Next Together fact - the same shared
           # upcoming plan fact as the chats list and the call log.
-          "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id)
+          "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id, leave_by: true)
         })
 
       {:error, :not_a_member} ->

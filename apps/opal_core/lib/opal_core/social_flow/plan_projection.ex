@@ -147,6 +147,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 DIR-1: the one shared upcoming plan fact for the chats list and thread contracts"},
       {OpalCore.SocialFlow.NextPlan, :for_peer, 3,
        "Repair #18 DIR-1: the one shared upcoming plan fact for the call-log contract"},
+      {OpalCore.SocialFlow.LeaveBy, :for_plan, 3,
+       "Polish Cluster G (P10c): the one leave-by derivation - reads the viewer's own PlanLocationShare row and the plan row handed to it (queries no plan tables itself); routed travel time comes from Places.TravelTime through the places gateway"},
       {OpalCore.SocialFlow.Reveal, :for_viewer, 2,
        "Repair #18 DIR-4: the one proactive reveal derivation for deck, thread, and chats list"},
       {OpalCore.SocialFlow.Reveal, :for_conversation, 3,

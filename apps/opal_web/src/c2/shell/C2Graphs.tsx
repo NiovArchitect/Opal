@@ -18,6 +18,7 @@ import { PlanCardC2 } from "../PlanCardC2";
 import { completionStep, FoodStepPanel } from "../../opalUi/FoodStepPanel";
 import { CheckinCircleRow } from "../../opalUi/CheckinCircleRow";
 import type { GraphDetailProjection, GraphListProjection } from "./projections";
+import { PLAN_STATE_HEX } from "../../theme/planStateColors";
 import { SharePlanSheet } from "./EventShareCard";
 import { shareCardFromDetail } from "./shellData";
 import { Avatar, EmptyBlock, IconBack } from "./bits";
@@ -968,6 +969,49 @@ export function C2GraphDetail({
               {detail.whenLine}
             </p>
           </div>
+
+          {/* Cluster G (P10c) - leave-by: the backend's ONE
+              derivation, rendered verbatim. The spoken-style line
+              is the pattern (see the wave report for the novelty
+              comparison): it says the time in words, and at the
+              leave-now threshold the backend's urgency flips the
+              line to "Leave now..." AND this treatment escalates
+              to the existing action color - words and color move
+              together, never color alone. Absent states render
+              their finished honest line (e.g. "Share your location
+              to see when to leave") with no numbers, ever. Virtual
+              plans carry "not_applicable" and render nothing. */}
+          {detail.leaveBy && detail.leaveBy.state !== "not_applicable" ? (
+            <div
+              className="c2s-detail-section"
+              data-testid="c2-detail-leaveby"
+              data-leave-by-state={detail.leaveBy.state}
+              data-urgency={detail.leaveBy.urgency ?? undefined}
+            >
+              <p className="c2s-detail-kicker">When to leave</p>
+              <p
+                className="c2s-card-title"
+                style={{
+                  fontSize: 17,
+                  ...(detail.leaveBy.urgency === "leave_now"
+                    ? { color: PLAN_STATE_HEX.action }
+                    : {}),
+                }}
+                data-testid="c2-detail-leaveby-line"
+              >
+                {detail.leaveBy.label}
+              </p>
+              {detail.leaveBy.state === "ok" ? (
+                <p className="c2s-card-line" data-testid="c2-detail-leaveby-meta">
+                  {detail.leaveBy.travel_duration_label} drive
+                  {detail.leaveBy.travel_distance_label
+                    ? ` - ${detail.leaveBy.travel_distance_label}`
+                    : ""}
+                  {detail.leaveBy.traffic_label ? ` - ${detail.leaveBy.traffic_label}` : ""}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           {detail.where ? (
             <div className="c2s-detail-section">

@@ -248,6 +248,12 @@ export type GraphDetailProjection = {
    *  is not carried here; the detail's share control renders only
    *  when the shell wires the share events. */
   isPrivate?: boolean;
+  /** Cluster G (P10c) — the backend's ONE leave-by projection for
+   *  this viewer, folded from the plan-history contract verbatim.
+   *  Absent until the history read lands; the detail renders its
+   *  finished label (or its honest absent-state line) and never
+   *  derives a time or distance. */
+  leaveBy?: import("../../api/productClient").LeaveByProjection | null;
   nextAction?: { id: string; label: string } | null;
   activity: Array<{ line: string; timeLabel: string }>;
   history: Array<{ line: string }>;

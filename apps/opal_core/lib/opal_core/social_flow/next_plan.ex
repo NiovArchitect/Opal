@@ -80,7 +80,7 @@ defmodule OpalCore.SocialFlow.NextPlan do
         plans_by_conversation(conversation_id) ++
           plans_by_participant_set(viewer_id, member_ids, :exact)
 
-      pick_next(candidates, viewer_id, now)
+      pick_next(candidates, viewer_id, now, opts)
     else
       nil
     end
@@ -99,7 +99,7 @@ defmodule OpalCore.SocialFlow.NextPlan do
       plans_by_participant_set(viewer_id, [viewer_id, peer_id], :covers) ++
         plans_by_shared_conversations(viewer_id, peer_id)
 
-    pick_next(candidates, viewer_id, now)
+    pick_next(candidates, viewer_id, now, opts)
   end
 
   def for_peer(_, _, _), do: nil
@@ -165,7 +165,7 @@ defmodule OpalCore.SocialFlow.NextPlan do
 
   # --- the one pick ------------------------------------------------------
 
-  defp pick_next(candidates, viewer_id, now) do
+  defp pick_next(candidates, viewer_id, now, opts \\ []) do
     candidates
     |> Enum.uniq_by(& &1.id)
     # Polish C P3 (per-viewer vault) — applied at this ONE pick:
@@ -192,7 +192,7 @@ defmodule OpalCore.SocialFlow.NextPlan do
     )
     |> List.first()
     |> case do
-      %SharedPlan{} = plan -> project(plan, viewer_id, now)
+      %SharedPlan{} = plan -> project(plan, viewer_id, now, opts)
       _ -> nil
     end
   end
@@ -218,10 +218,10 @@ defmodule OpalCore.SocialFlow.NextPlan do
 
   # --- the finished projection -------------------------------------------
 
-  defp project(%SharedPlan{} = plan, viewer_id, now) do
+  defp project(%SharedPlan{} = plan, viewer_id, now, opts \\ []) do
     place = SharedPlan.place_projection(plan)
 
-    %{
+    fact = %{
       "plan_id" => plan.id,
       "title" => plan.title,
       "when_label" => when_label(plan),
@@ -232,6 +232,21 @@ defmodule OpalCore.SocialFlow.NextPlan do
       "state" => indicator_state(plan, viewer_id, now),
       "conversation_id" => plan.conversation_id
     }
+
+    # Cluster G (P10c): leave-by rides the fact ONLY when the
+    # caller opts in (the thread paths in ConversationController).
+    # A routed provider call per plan has no place in the chats
+    # list or call log fan-outs, which keep the byte-identical
+    # fact they had. The value is the ONE LeaveBy derivation.
+    if Keyword.get(opts, :leave_by) == true do
+      Map.put(
+        fact,
+        "leave_by",
+        OpalCore.SocialFlow.LeaveBy.for_plan(plan, viewer_id, now: now)
+      )
+    else
+      fact
+    end
   end
 
   # The finished when string: the plan's own time_label when it carries
