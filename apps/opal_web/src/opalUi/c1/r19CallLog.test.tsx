@@ -208,7 +208,8 @@ describe("R19 drift audit - one token source, one ambient register", () => {
       "color-mix(in srgb, var(--pa-state) 52%, transparent)",
     );
     expect(unifyCss).toContain(
-      "color-mix(in srgb, var(--pa-state) 9%, transparent)",
+      // P7 at-rest: the PlanAwareness fill is 14% (AR-00.2 fill envelope).
+      "color-mix(in srgb, var(--pa-state) 14%, transparent)",
     );
   });
 
