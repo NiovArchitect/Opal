@@ -47,6 +47,9 @@ vi.mock("../../api/productClient", async (importOriginal) => {
   };
 });
 
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { C2SettingsSection, C2YouHub, type C2YouEvents } from "./C2You";
 import { buildSettingsSection, youHubFromSession } from "./shellData";
 import type { SettingsConnectionsPayload } from "../../api/productClient";
@@ -158,14 +161,12 @@ const SECTION_KEYS = [
   "approvals-activity",
   "what-opal-hears",
   "connections",
-  "connected-sources",
   "privacy",
   "notifications",
   "linked-devices",
   "location-travel",
   "account-security",
   "help-support",
-  "care",
 ];
 
 describe("Settings architecture - doorway reachability (entry 19)", () => {
@@ -321,8 +322,32 @@ describe("Connections section - DOM status equals payload status", () => {
     )!;
     expect(googleStatus.textContent).toBe("Simulated - not a real connection");
     expect(googleStatus.textContent).not.toBe("Connected");
-    // The gated row shows the plain gate reason from the payload.
-    expect(container.textContent).toMatch(/no sender to text invites from yet/);
+    // A3 redesign: the row itself carries only the name and the
+    // verbatim status - the payload's detail text is NOT on the row.
+    const twilioRow = container.querySelector(
+      '[data-testid="connection-row-twilio_messaging"]',
+    )!;
+    expect(twilioRow.textContent).not.toMatch(/no sender to text invites from yet/);
+    expect(
+      container.querySelector('[data-testid="connection-detail-twilio_messaging"]'),
+    ).toBeNull();
+    // Tapping the gated row opens its detail panel, where the plain
+    // gate reason from the payload lives (verbatim, behind the row).
+    await act(async () => {
+      (twilioRow as HTMLButtonElement).click();
+    });
+    const detail = container.querySelector(
+      '[data-testid="connection-detail-twilio_messaging"]',
+    )!;
+    expect(detail).toBeTruthy();
+    expect(detail.textContent).toMatch(/no sender to text invites from yet/);
+    expect(detail.textContent).toMatch(/Texts invitations to people who are not on Opal yet/);
+    expect(detail.textContent).toMatch(/Never checked/);
+    expect(twilioRow.getAttribute("aria-expanded")).toBe("true");
+    // Category headers render as quiet group labels.
+    expect(
+      container.querySelector('[data-testid="connection-category-phone_and_messaging"]'),
+    ).toBeTruthy();
     // The payload's Google disconnect descriptor becomes a real action row.
     expect(
       container.querySelector('[data-testid="c2-setting-row-google-disconnect"]'),
@@ -340,22 +365,42 @@ describe("Connections section - DOM status equals payload status", () => {
     expect(container.querySelector('[data-testid^="connection-row-"]')).toBeNull();
   });
 
-  it("connected-sources paints a simulated Google row as simulated (FR-18-09)", async () => {
-    mocks.getGoogleCalendarStatus.mockResolvedValue({
-      provider: "google_calendar",
-      connected: true,
-      status: "connected_simulated",
-      simulated: true,
-      scopes: [],
-      token_present: true,
-      last_synced_at: null,
-    });
+  it("ONE Connections room: the retired connected-sources key lands on Connections (founder naming fix)", async () => {
+    // FR-18-09's simulated-Google truth now lives in the Connections
+    // payload test above (the simulated row renders verbatim there);
+    // this pins the naming fix itself: no second room exists.
+    mocks.getSettingsConnections.mockResolvedValue(PAYLOAD);
     const section = await buildSettingsSection("connected-sources", {
       session: null,
       bearer: "t",
     });
-    const valueRow = section.rows.find((r) => r.id === "google-status");
-    expect(valueRow).toMatchObject({ value: "Simulated - not a real connection" });
+    expect(section.key).toBe("connections");
+    expect(section.title).toBe("Connections");
+    expect(section.rows.some((r) => r.kind === "connection")).toBe(true);
+    expect(JSON.stringify(section.rows)).not.toMatch(/Connected sources/);
+    const hub = youHubFromSession(null, false);
+    expect(hub.index.find((e) => e.key === "connected-sources")).toBeUndefined();
+    expect(hub.index.filter((e) => e.key === "connections")).toHaveLength(1);
+    // The ingestion room wears its new plain name on the hub.
+    expect(hub.index.find((e) => e.key === "what-opal-hears")?.title).toBe(
+      "Where Opal reads from",
+    );
+  });
+
+  it("N6: the Care room is absent from Settings - and the care machinery stays in code", async () => {
+    const hub = youHubFromSession(null, false);
+    expect(hub.index.find((e) => e.key === "care")).toBeUndefined();
+    await render(<C2YouHub projection={hub} events={events} />);
+    expect(container.querySelector('[data-testid="c2-you-row-care"]')).toBeNull();
+    expect(container.textContent).not.toMatch(/Care and household/);
+    // Surface removal ONLY: the destination and its rotation
+    // machinery remain in the codebase, untouched and unmounted.
+    const here = dirname(fileURLToPath(import.meta.url));
+    const careSource = readFileSync(resolve(here, "./CareDestination.tsx"), "utf8");
+    expect(careSource).toMatch(/Care and household/);
+    const shellSource = readFileSync(resolve(here, "./C2Shell.tsx"), "utf8");
+    expect(shellSource).not.toMatch(/import \{ CareDestination/);
+    expect(shellSource).not.toMatch(/<CareDestination/);
   });
 });
 
@@ -438,7 +483,7 @@ describe("Honest gated sections - no painted controls", () => {
     expect(text).toMatch(/lives in Soul/);
   });
 
-  it("What Opal graphs names each source with its honest state (R19 W6: no listening frame)", async () => {
+  it("Where Opal reads from names each source with its honest state (R19 W6: no listening frame; renamed by the founder naming fix)", async () => {
     const section = await buildSettingsSection("what-opal-hears", { session: null });
     await render(<C2SettingsSection section={section} events={events} />);
     const text = container.textContent || "";
@@ -446,7 +491,8 @@ describe("Honest gated sections - no painted controls", () => {
     expect(text).toMatch(/Not wired yet/);
     expect(text).toMatch(/Waiting on a sending number/);
     expect(text).toMatch(/Not in Opal today/);
-    expect(text).toMatch(/What Opal graphs/);
+    expect(text).toMatch(/Where Opal reads from/);
+    expect(text).not.toMatch(/What Opal graphs/);
     expect(text).toMatch(/Meetings are not a page in Opal/);
     expect(text).not.toMatch(/Listening/);
     expect(text).not.toMatch(/What Opal hears/);

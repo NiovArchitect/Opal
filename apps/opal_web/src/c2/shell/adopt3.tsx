@@ -8,9 +8,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   deleteMyArtifact,
+  deleteSocialMoment,
+  deleteTemporaryStory,
   fetchMomentsArchive,
   listMyArtifacts,
   sendVoiceNote,
+  updateSocialMoment,
   type MyArtifact,
 } from "../../api/productClient";
 
@@ -20,7 +23,44 @@ export type ArchiveItem = {
   caption: string | null;
   mediaUrl: string | null;
   createdAt: string | null;
+  /** The record's own visibility (public_contract / story contract). */
+  visibility: string | null;
+  /** Stories only: when this story ends (its contract's expires_at). */
+  expiresAt: string | null;
 };
+
+/** Who can see a moment, in plain words - from the record's own
+ *  visibility value. Unknown or absent values render nothing. */
+export const MOMENT_AUDIENCE_LABELS: Record<string, string> = {
+  friends: "Friends",
+  private: "Only you",
+  group: "A group",
+  specific_people: "Specific people",
+  close_circle: "Your close circle",
+};
+
+export function momentDateLabel(iso: string | null, withTime = false): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return withTime
+    ? d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/** The one-line answer to "what is this moment": kind, lifetime,
+ *  audience, date - every part from the record itself. */
+export function momentMetaLine(item: ArchiveItem): string {
+  const audience = item.visibility ? MOMENT_AUDIENCE_LABELS[item.visibility] : undefined;
+  if (item.kind === "story") {
+    const ends = momentDateLabel(item.expiresAt, true);
+    return ["Story", ends ? `live until ${ends}` : "live now", audience]
+      .filter(Boolean)
+      .join(" - ");
+  }
+  const when = momentDateLabel(item.createdAt);
+  return ["Post", audience, when].filter(Boolean).join(" - ");
+}
 
 /** One mapping for archive + library media - the feed's own fields. */
 export function archiveItemsFrom(res: {
@@ -36,6 +76,8 @@ export function archiveItemsFrom(res: {
       caption: typeof m.caption === "string" ? m.caption : null,
       mediaUrl: urls[0] ?? (ids[0] ? `/api/v1/product/social-moments/media/${ids[0]}` : null),
       createdAt: typeof m.created_at === "string" ? m.created_at : null,
+      visibility: typeof m.visibility === "string" ? m.visibility : null,
+      expiresAt: null,
     };
   });
   const stories: ArchiveItem[] = (res.stories ?? []).map((s) => ({
@@ -49,6 +91,8 @@ export function archiveItemsFrom(res: {
         : typeof s.inserted_at === "string"
           ? s.inserted_at
           : null,
+    visibility: typeof s.visibility === "string" ? s.visibility : null,
+    expiresAt: typeof s.expires_at === "string" ? s.expires_at : null,
   }));
   // Newest first across both kinds; undated records keep server order
   // after dated ones (the server already returns each kind desc).
@@ -85,7 +129,7 @@ function MomentCard({
         />
       ) : null}
       <p className="c2s-card-title">{item.caption || (item.kind === "story" ? "Story" : "Post")}</p>
-      <p className="c2s-card-line">{item.kind === "story" ? "Story - live now" : "Post"}</p>
+      <p className="c2s-card-line">{momentMetaLine(item)}</p>
     </button>
   );
 }
@@ -128,6 +172,14 @@ export function MomentsArchive({
         </h1>
       </header>
       <div style={{ padding: "var(--space-4) var(--gutter)" }}>
+        {/* N2 clarity: what a moment IS, whose it is, and what the
+         * two kinds do over time - before any list renders. */}
+        <p className="c2s-lede" data-testid="c2-archive-lede">
+          Moments are the posts and stories you have shared in Opal, and
+          they are yours. A post stays until you delete it. A story is
+          temporary - it ends on its own within a day. Open one to see
+          who can see it, change it, or delete it.
+        </p>
         {error ? (
           <>
             <p className="c2s-lede">{error}</p>
@@ -138,22 +190,15 @@ export function MomentsArchive({
         ) : items === null ? (
           <p className="c2s-lede">Loading.</p>
         ) : open ? (
-          <div data-testid="c2-archive-detail">
-            {open.mediaUrl ? (
-              <img
-                src={open.mediaUrl}
-                alt=""
-                style={{ width: "100%", borderRadius: 12, display: "block" }}
-              />
-            ) : null}
-            <p className="c2s-card-title" style={{ marginTop: "var(--space-3)" }}>
-              {open.caption || (open.kind === "story" ? "Story" : "Post")}
-            </p>
-            <p className="c2s-card-line">{open.kind === "story" ? "Story - live now" : "Post"}</p>
-            <button type="button" className="c2s-btn-text" onClick={() => setOpen(null)}>
-              Back to your moments
-            </button>
-          </div>
+          <MomentDetail
+            item={open}
+            bearer={bearer}
+            onBack={() => setOpen(null)}
+            onChanged={() => {
+              setOpen(null);
+              void load();
+            }}
+          />
         ) : items.length === 0 ? (
           <p className="c2s-lede" data-testid="c2-archive-empty">
             Nothing shared yet. Posts and stories you share will be kept here.
@@ -168,6 +213,196 @@ export function MomentsArchive({
             ))}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * N2 - one moment, opened: what it is (kind, audience, dates), and
+ * the manage actions the moment machinery truly supports.
+ * Posts: edit caption (PATCH), change who can see it between the
+ * two self-contained audiences (Friends / Only you - group and
+ * specific-people audiences were set when the post was shared and
+ * are shown, not silently re-scoped), delete (DELETE, armed first).
+ * Stories: no edit exists for a story - the surface says so in
+ * words; delete (DELETE /stories/:id, armed first) is real.
+ * Every success re-reads the archive; nothing is painted locally.
+ */
+function MomentDetail({
+  item,
+  bearer,
+  onBack,
+  onChanged,
+}: {
+  item: ArchiveItem;
+  bearer?: string;
+  onBack: () => void;
+  onChanged: () => void;
+}) {
+  const [caption, setCaption] = useState(item.caption ?? "");
+  const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const audience = item.visibility ? MOMENT_AUDIENCE_LABELS[item.visibility] : undefined;
+  const posted = momentDateLabel(item.createdAt);
+  const ends = item.kind === "story" ? momentDateLabel(item.expiresAt, true) : null;
+  const canRescope = item.kind === "post" && (item.visibility === "friends" || item.visibility === "private");
+
+  const run = async (fn: () => Promise<unknown>, failLine: string) => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      onChanged();
+    } catch {
+      setBusy(false);
+      setError(failLine);
+    }
+  };
+
+  return (
+    <div data-testid="c2-archive-detail">
+      {item.mediaUrl ? (
+        <img
+          src={item.mediaUrl}
+          alt=""
+          style={{ width: "100%", borderRadius: 12, display: "block" }}
+        />
+      ) : null}
+      <p className="c2s-card-title" style={{ marginTop: "var(--space-3)" }}>
+        {item.caption || (item.kind === "story" ? "Story" : "Post")}
+      </p>
+      <p className="c2s-card-line" data-testid="c2-archive-detail-meta">
+        {momentMetaLine(item)}
+      </p>
+      {posted ? <p className="c2s-card-line">Shared {posted}.</p> : null}
+      {item.kind === "story" && ends ? (
+        <p className="c2s-card-line">It ends on its own at {ends}.</p>
+      ) : null}
+      {audience ? (
+        <p className="c2s-card-line" data-testid="c2-archive-detail-audience">
+          Who can see it: {audience}.
+          {item.kind === "post" && !canRescope
+            ? " That audience was set when you shared it."
+            : ""}
+        </p>
+      ) : null}
+
+      {item.kind === "post" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
+          <input
+            className="c2s-field"
+            data-testid="c2-archive-caption-input"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            aria-label="Caption"
+            placeholder="Caption"
+          />
+          <button
+            type="button"
+            className="c2s-btn-text"
+            data-testid="c2-archive-caption-save"
+            disabled={busy || caption === (item.caption ?? "")}
+            onClick={() =>
+              void run(
+                () => updateSocialMoment(item.id, { caption }, bearer),
+                "That caption could not be saved. Check your connection and try again.",
+              )
+            }
+          >
+            Save caption
+          </button>
+          {canRescope ? (
+            <div className="c2s-segmented" role="radiogroup" aria-label="Who can see it">
+              {(
+                [
+                  { value: "friends", label: "Friends" },
+                  { value: "private", label: "Only you" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={item.visibility === opt.value}
+                  data-active={item.visibility === opt.value ? "1" : undefined}
+                  data-testid={`c2-archive-audience-${opt.value}`}
+                  disabled={busy || item.visibility === opt.value}
+                  onClick={() =>
+                    void run(
+                      () => updateSocialMoment(item.id, { visibility: opt.value }, bearer),
+                      "Who can see it could not be changed. Check your connection and try again.",
+                    )
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <p className="c2s-card-line" style={{ marginTop: "var(--space-3)" }} data-testid="c2-archive-story-note">
+          Stories can't be edited. If you need a change, delete this one
+          and share a new one.
+        </p>
+      )}
+
+      {error ? (
+        <p className="c2s-error-line" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
+        {armed ? (
+          <>
+            <p className="c2s-card-line" role="alert">
+              Delete this {item.kind} for good? It will be gone from
+              your moments and from everywhere it appears.
+            </p>
+            <button
+              type="button"
+              className="c2s-btn-primary"
+              data-testid="c2-archive-delete-confirm"
+              disabled={busy}
+              onClick={() =>
+                void run(
+                  () =>
+                    item.kind === "story"
+                      ? deleteTemporaryStory(item.id, bearer)
+                      : deleteSocialMoment(item.id, bearer),
+                  "That could not be deleted. Check your connection and try again.",
+                )
+              }
+            >
+              Delete for good
+            </button>
+            <button
+              type="button"
+              className="c2s-btn-text"
+              data-testid="c2-archive-delete-cancel"
+              disabled={busy}
+              onClick={() => setArmed(false)}
+            >
+              Keep it
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="c2s-btn-text"
+            data-testid="c2-archive-delete"
+            onClick={() => setArmed(true)}
+          >
+            Delete this {item.kind}
+          </button>
+        )}
+        <button type="button" className="c2s-btn-text" onClick={onBack}>
+          Back to your moments
+        </button>
       </div>
     </div>
   );

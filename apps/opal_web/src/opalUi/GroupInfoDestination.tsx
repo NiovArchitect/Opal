@@ -100,7 +100,7 @@ export function GroupInfoDestination({
                 aria-label={`What Opal remembers about ${m.name}`}
                 onClick={() => onOpenPersonMemory(m)}
               >
-                Memory
+                What Opal remembers
               </button>
             ) : null}
           </li>

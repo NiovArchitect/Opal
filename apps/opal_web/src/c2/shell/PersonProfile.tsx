@@ -122,14 +122,22 @@ export function PersonProfileSheet({
               </button>
             ) : null}
             {onOpenMemoryControls ? (
-              <button
-                type="button"
-                className="c2s-btn-text"
-                data-testid="r19-profile-memory"
-                onClick={onOpenMemoryControls}
-              >
-                What Opal remembers
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="c2s-btn-text"
+                  data-testid="r19-profile-memory"
+                  onClick={onOpenMemoryControls}
+                >
+                  What Opal remembers
+                </button>
+                {/* P6 clarity: the doorway names what it opens - the
+                 * viewer's own memory controls (what Opal keeps, and
+                 * forgetting it), not a per-person record. */}
+                <p className="c2s-card-line" data-testid="r19-profile-memory-note">
+                  Your memory controls - what Opal keeps, and forgetting it.
+                </p>
+              </>
             ) : null}
             <button type="button" className="c2s-btn-text" onClick={onClose}>
               Done

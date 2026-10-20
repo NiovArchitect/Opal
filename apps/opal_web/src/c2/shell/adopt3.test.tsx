@@ -22,6 +22,9 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const fetchMomentsArchive = vi.fn();
+const updateSocialMoment = vi.fn();
+const deleteSocialMoment = vi.fn();
+const deleteTemporaryStory = vi.fn();
 const listMyArtifacts = vi.fn();
 const deleteMyArtifact = vi.fn();
 const sendVoiceNote = vi.fn();
@@ -35,6 +38,9 @@ vi.mock("../../api/productClient", async () => {
   return {
     ...actual,
     fetchMomentsArchive: (...a: unknown[]) => fetchMomentsArchive(...a),
+    updateSocialMoment: (...a: unknown[]) => updateSocialMoment(...a),
+    deleteSocialMoment: (...a: unknown[]) => deleteSocialMoment(...a),
+    deleteTemporaryStory: (...a: unknown[]) => deleteTemporaryStory(...a),
     listMyArtifacts: (...a: unknown[]) => listMyArtifacts(...a),
     deleteMyArtifact: (...a: unknown[]) => deleteMyArtifact(...a),
     sendVoiceNote: (...a: unknown[]) => sendVoiceNote(...a),
@@ -87,6 +93,9 @@ function typeQuery(input: HTMLInputElement, value: string) {
 
 beforeEach(() => {
   fetchMomentsArchive.mockReset();
+  updateSocialMoment.mockReset();
+  deleteSocialMoment.mockReset();
+  deleteTemporaryStory.mockReset();
   listMyArtifacts.mockReset();
   deleteMyArtifact.mockReset();
   sendVoiceNote.mockReset();
@@ -112,6 +121,7 @@ const ARCHIVE = {
       media_ids: ["m2"],
       media_urls: ["/api/v1/product/social-moments/media/m2"],
       created_at: "2026-10-18T10:00:00Z",
+      visibility: "friends",
     },
     {
       id: "post-1",
@@ -127,6 +137,8 @@ const ARCHIVE = {
       caption: "Live story",
       media_ref: "/api/v1/product/social-moments/media/m9",
       created_at: "2026-10-18T11:00:00Z",
+      visibility: "close_circle",
+      expires_at: "2026-10-19T11:00:00Z",
     },
   ],
   count: 3,
@@ -155,6 +167,93 @@ describe("ST-C moments archive", () => {
     await render(<MomentsArchive bearer="tok" onBack={() => undefined} />);
     expect(host!.querySelector('[data-testid="c2-archive-empty"]')).not.toBeNull();
     expect(host!.querySelectorAll('[data-testid="c2-archive-item"]').length).toBe(0);
+  });
+
+  it("N2 clarity: the room says what a moment is, and every card says what it is (kind, audience, lifetime)", async () => {
+    fetchMomentsArchive.mockResolvedValue(ARCHIVE);
+    await render(<MomentsArchive bearer="tok" onBack={() => undefined} />);
+    const lede = host!.querySelector('[data-testid="c2-archive-lede"]')?.textContent ?? "";
+    expect(lede).toMatch(/posts and stories you have shared/);
+    expect(lede).toMatch(/A post stays until you delete it/);
+    expect(lede).toMatch(/A story is\s+temporary/);
+    const items = host!.querySelectorAll('[data-testid="c2-archive-item"]');
+    // Story card: live-until from its own expires_at + its own audience.
+    expect(items[0].textContent).toMatch(/Story - live until Oct 19/);
+    expect(items[0].textContent).toMatch(/Your close circle/);
+    // Post card: audience + shared date from its own record.
+    expect(items[1].textContent).toMatch(/Post - Friends - Oct 18/);
+  });
+
+  it("N2 manage a post: caption edit and audience change PATCH the real record, then the archive re-reads", async () => {
+    fetchMomentsArchive.mockResolvedValue(ARCHIVE);
+    updateSocialMoment.mockResolvedValue({ moment: {} });
+    await render(<MomentsArchive bearer="tok" onBack={() => undefined} />);
+    const items = host!.querySelectorAll('[data-testid="c2-archive-item"]');
+    await click(items[1]); // Second post (friends)
+    expect(host!.querySelector('[data-testid="c2-archive-detail-audience"]')?.textContent).toMatch(
+      /Who can see it: Friends/,
+    );
+    const input = host!.querySelector<HTMLInputElement>('[data-testid="c2-archive-caption-input"]')!;
+    await act(async () => {
+      typeQuery(input, "Second post, edited");
+    });
+    await click(host!.querySelector('[data-testid="c2-archive-caption-save"]')!);
+    expect(updateSocialMoment).toHaveBeenCalledWith(
+      "post-2",
+      { caption: "Second post, edited" },
+      "tok",
+    );
+    // Success re-reads the archive (initial load + reload).
+    expect(fetchMomentsArchive).toHaveBeenCalledTimes(2);
+
+    // Audience: Friends -> Only you is the other self-contained value.
+    const items2 = host!.querySelectorAll('[data-testid="c2-archive-item"]');
+    await click(items2[1]);
+    await click(host!.querySelector('[data-testid="c2-archive-audience-private"]')!);
+    expect(updateSocialMoment).toHaveBeenCalledWith(
+      "post-2",
+      { visibility: "private" },
+      "tok",
+    );
+  });
+
+  it("N2 delete a post: armed first, confirm DELETEs the real record and the list re-reads without it", async () => {
+    fetchMomentsArchive
+      .mockResolvedValueOnce(ARCHIVE)
+      .mockResolvedValue({ posts: [ARCHIVE.posts[1]], stories: ARCHIVE.stories, count: 2 });
+    deleteSocialMoment.mockResolvedValue({});
+    await render(<MomentsArchive bearer="tok" onBack={() => undefined} />);
+    const items = host!.querySelectorAll('[data-testid="c2-archive-item"]');
+    await click(items[1]);
+    await click(host!.querySelector('[data-testid="c2-archive-delete"]')!);
+    // Armed only - nothing deleted yet.
+    expect(deleteSocialMoment).not.toHaveBeenCalled();
+    await click(host!.querySelector('[data-testid="c2-archive-delete-confirm"]')!);
+    expect(deleteSocialMoment).toHaveBeenCalledWith("post-2", "tok");
+    const after = host!.querySelectorAll('[data-testid="c2-archive-item"]');
+    expect(after.length).toBe(2);
+    expect(host!.textContent).not.toContain("Second post");
+  });
+
+  it("N2 story: no edit is painted - the surface says so - and delete goes to the story record", async () => {
+    fetchMomentsArchive
+      .mockResolvedValueOnce(ARCHIVE)
+      .mockResolvedValue({ posts: ARCHIVE.posts, stories: [], count: 2 });
+    deleteTemporaryStory.mockResolvedValue({ deleted: true, story_id: "story-1" });
+    await render(<MomentsArchive bearer="tok" onBack={() => undefined} />);
+    const items = host!.querySelectorAll('[data-testid="c2-archive-item"]');
+    await click(items[0]); // the live story
+    expect(host!.querySelector('[data-testid="c2-archive-caption-input"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="c2-archive-story-note"]')?.textContent).toMatch(
+      /Stories can't be edited/,
+    );
+    expect(host!.querySelector('[data-testid="c2-archive-detail-meta"]')?.textContent).toMatch(
+      /live until Oct 19/,
+    );
+    await click(host!.querySelector('[data-testid="c2-archive-delete"]')!);
+    await click(host!.querySelector('[data-testid="c2-archive-delete-confirm"]')!);
+    expect(deleteTemporaryStory).toHaveBeenCalledWith("story-1", "tok");
+    expect(deleteSocialMoment).not.toHaveBeenCalled();
   });
 });
 
@@ -344,6 +443,61 @@ describe("ST-D one search", () => {
     expect(onOpenChat).toHaveBeenCalledWith("c1");
     await click(document.querySelector('[data-testid="c2-search-plan"]')!);
     expect(onOpenGraph).toHaveBeenCalledWith("p1");
+  });
+
+  it("places group derives from the viewer's own plan locations; a tap opens that plan; virtual locations are not places", async () => {
+    const onOpenGraph = vi.fn();
+    await render(
+      <SearchDestination
+        plans={[
+          { id: "p1", title: "Dinner with Maya", status: "agreed", time_label: "Sat 7pm", location: "Juniper and Ivy" } as never,
+          { id: "p2", title: "Brunch with Maya", status: "agreed", time_label: "Sun 11am", location: "Juniper and Ivy" } as never,
+          { id: "p3", title: "Video catch-up", status: "agreed", plan_type: "virtual", location: "Juniper and Ivy" } as never,
+          { id: "p4", title: "Picnic", status: "agreed", location: null } as never,
+        ]}
+        conversations={[]}
+        onClose={() => undefined}
+        onOpenGraph={onOpenGraph}
+        onOpenChat={() => undefined}
+      />,
+    );
+    const input = document.querySelector('[data-testid="c2-search-input"]') as HTMLInputElement;
+    await act(async () => {
+      typeQuery(input, "juniper");
+    });
+    const group = document.querySelector('[data-testid="c2-search-group-places"]');
+    expect(group).not.toBeNull();
+    // One row per distinct place, from the first plan carrying it -
+    // the duplicate location and the virtual plan add no rows.
+    const rows = document.querySelectorAll('[data-testid="c2-search-place"]');
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain("Juniper and Ivy");
+    expect(rows[0].textContent).toContain("Dinner with Maya");
+    expect(rows[0].getAttribute("data-plan-id")).toBe("p1");
+    await click(rows[0]);
+    expect(onOpenGraph).toHaveBeenCalledWith("p1");
+  });
+
+  it("no-match state names every group the search actually covers", async () => {
+    await render(
+      <SearchDestination
+        plans={[{ id: "p1", title: "Dinner with Maya", status: "agreed", location: "Juniper and Ivy" } as never]}
+        conversations={[]}
+        onClose={() => undefined}
+        onOpenGraph={() => undefined}
+        onOpenChat={() => undefined}
+      />,
+    );
+    const input = document.querySelector('[data-testid="c2-search-input"]') as HTMLInputElement;
+    await act(async () => {
+      typeQuery(input, "zzz-no-match");
+    });
+    const empty = document.querySelector('[data-testid="c2-search-no-match"]');
+    expect(empty).not.toBeNull();
+    expect(empty!.textContent).toContain(
+      "No match in your plans, chats, people, places, or intentions.",
+    );
+    expect(document.querySelector('[data-testid="c2-search-group-places"]')).toBeNull();
   });
 
   it("intentions group renders only when intentions exist in the store", async () => {

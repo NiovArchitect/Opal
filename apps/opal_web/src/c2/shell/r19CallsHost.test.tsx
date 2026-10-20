@@ -164,6 +164,46 @@ describe("R19 ChatsHost - the C2 call log", () => {
     expect(q('[data-testid="thread-shell"]')).toBeTruthy();
   });
 
+  it("new call (P8): + New on the Calls tab opens the people picker in call mode and places the real call - no thread opens", async () => {
+    listCalls.mockResolvedValue({ calls: [] });
+    createConversationCall.mockResolvedValue({
+      call: { id: "call-9", status: "ringing", caller_user_id: "me", callee_user_id: "u2" },
+    });
+    await render(
+      <ChatsHost
+        bearer="tok"
+        viewerUserId="me"
+        conversations={CONVERSATIONS as never}
+        onConversationsChanged={vi.fn()}
+      />,
+    );
+    await flush();
+    click(q('[data-testid="chats-segment-calls"]')!);
+    await flush();
+    await flush();
+    const newBtn = q('[data-testid="calls-new-call"]');
+    expect(newBtn).toBeTruthy();
+    click(newBtn!);
+    await flush();
+    await flush();
+    const picker = q('[data-testid="c2-c1-people-picker"]');
+    expect(picker).toBeTruthy();
+    expect(picker!.getAttribute("data-picker-mode")).toBe("call");
+    expect(picker!.textContent).toContain("Start a call");
+    expect(picker!.textContent).toContain("Maya Chen");
+
+    click(q('[data-testid="c2-c1-people-row"]')!);
+    await flush();
+    await flush();
+    // The picked person's real conversation carries the call; the
+    // outcome note reports the server's status on the Calls tab.
+    expect(createConversationCall).toHaveBeenCalledWith("c1", "tok");
+    expect(q('[data-testid="c2-calls-note"]')?.textContent).toContain("Calling Maya Chen");
+    expect(q('[data-testid="c2-calls-note"]')?.textContent).toContain("ringing");
+    expect(q('[data-testid="thread-shell"]')).toBeNull();
+    expect(listMessages).not.toHaveBeenCalled();
+  });
+
   it("an empty contract is an honest empty - no rows are painted", async () => {
     listCalls.mockResolvedValue({ calls: [] });
     await render(
