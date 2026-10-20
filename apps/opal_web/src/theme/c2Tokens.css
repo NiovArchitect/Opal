@@ -235,7 +235,18 @@
     --ink-2: #cfc8d8;
     --ink-3: #9a93a6;
     --scrim: rgba(13, 11, 18, 0.64);
-    --shadow-card: none;
+    /* Dark register is shadowless BY DESIGN (night budget) — but the
+     * value must never be the keyword `none`: `none` is valid only as
+     * the SOLE box-shadow value, so any consumer composing this token
+     * into a shadow LIST (the call-log state row, CallLog.css:
+     * `0 0 10px <state glow>, var(--shadow-card)`) gets the ENTIRE
+     * list invalidated at computed-value time and loses its glow
+     * layer in dark mode only (verified at source, R19 polish E2;
+     * observed in Chromium by cluster A2). A fully transparent zero
+     * shadow paints exactly nothing — the dark register is unchanged
+     * — and composes safely as a list layer. Pinned by
+     * theme/shadowCardComposition.test.ts. */
+    --shadow-card: 0 0 0 0 rgba(0, 0, 0, 0);
     --accent-1: #7d4dce; /* sampled fire violet, peak (--orb-fire-violet) */
     --accent-1-ink: #fff1d0; /* sampled point light (--orb-point-light) */
     --accent-press: #885cbb; /* sampled fire violet, core */
