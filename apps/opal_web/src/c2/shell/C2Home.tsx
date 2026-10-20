@@ -77,6 +77,11 @@ export const HOME_AMBIENT_ELEMENTS: ReadonlyArray<{
       "Something changed since you last looked; the count is the ambient signal, and it is absent when nothing is new (presence discipline).",
   },
   {
+    element: "room light at the head of the Home scroll (static ring-metal field, 10%)",
+    reason:
+      "The social room is lit because Opal is present in it; the light is the orb's own ring metal, never a state color, so presence reads in a still frame without borrowing any plan's state.",
+  },
+  {
     element: "one lit plan card per Home (burst coalescence cap)",
     reason:
       "When several plans could glow at once, only the strongest state carries the full lit register and the rest rest at border-only, so importance stays readable instead of everything shouting at once.",

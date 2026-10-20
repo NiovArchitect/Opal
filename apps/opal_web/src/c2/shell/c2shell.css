@@ -476,6 +476,22 @@
   }
 
   /* ---------- feed + generic cards (section 7.3) ---------- */
+  /* P7 AT-REST ROOM LIGHT (R19 polish, founder 2026-10-19 16:27):
+   * the social screen's room light, present in a STILL frame - a
+   * static ring-metal field wash at the head of Home's scroll,
+   * 10% (inside the AR-00.2 fill envelope, 6-20%). Reason: the
+   * room is lit because Opal is present in it (AR-12 presence,
+   * AR-13) - the same sampled metal as the Center presence field,
+   * so Home and Center read as one house. It is NEVER a state hue:
+   * state is carried only by the cards/rings inside the room
+   * (indicator law - a state color here would be decorative drift,
+   * AT-09). Static by construction, so reduced-motion and both
+   * modes keep it identically (AR-00.6 parity). */
+  .c2s-scroll[data-testid="c2-home-scroll"] {
+    background:
+      radial-gradient(ellipse 90% 34% at 50% 0%, color-mix(in srgb, var(--orb-ring-metal) 10%, transparent), transparent 70%),
+      var(--canvas);
+  }
   .c2s-feed {
     display: flex;
     flex-direction: column;
@@ -1165,11 +1181,16 @@
     text-align: center;
     padding: var(--space-5);
     /* Harmony-0: the field around the presence radiates from the
-     * stone - a quiet ring-metal halo (7% of the sampled metal) over
-     * the stage field. The orb stays the one lit thing; the halo is
-     * field, not a second element, in both modes. */
+     * stone - a quiet ring-metal halo over the stage field. The orb
+     * stays the one lit thing; the halo is field, not a second
+     * element, in both modes.
+     * P7 AT-REST (R19 polish): halo 7% -> 14% - still inside the
+     * AR-00.2 fill envelope (6-20%) - so the Center deck's room
+     * light is present in a STILL frame. It carries presence only
+     * (AR-12/AR-13: the room is lit because Opal is here); it is
+     * ring metal, never a state hue, so it cannot read as state. */
     background:
-      radial-gradient(ellipse 75% 52% at 50% 36%, color-mix(in srgb, var(--orb-ring-metal) 7%, transparent), transparent 70%),
+      radial-gradient(ellipse 75% 52% at 50% 36%, color-mix(in srgb, var(--orb-ring-metal) 14%, transparent), transparent 70%),
       var(--canvas-stage);
     position: relative;
     overflow: hidden;
