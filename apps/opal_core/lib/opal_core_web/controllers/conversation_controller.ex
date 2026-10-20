@@ -712,6 +712,15 @@ defmodule OpalCoreWeb.ConversationController do
       {:error, :invalid_title} ->
         error(conn, 422, "invalid_title", "title or place is required")
 
+      {:error, :invalid_place_coordinates} ->
+        # G2: a malformed candidate coordinate pair refuses the create.
+        error(
+          conn,
+          422,
+          "invalid_place_coordinates",
+          "Place coordinates must be a valid lat/lon pair."
+        )
+
       {:error, :invalid} ->
         error(conn, 422, "invalid", "Invalid request")
 

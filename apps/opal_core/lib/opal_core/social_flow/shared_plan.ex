@@ -113,11 +113,59 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     |> validate_inclusion(:source, @sources)
     |> validate_inclusion(:plan_type, @plan_types)
     |> validate_inclusion(:meeting_provider, MeetingLinks.providers())
+    |> validate_place_coordinates()
     |> validate_meeting_link()
     |> derive_meeting_provider()
     |> maybe_virtual_location()
     |> validate_source_shape()
     |> foreign_key_constraint(:trip_leg_id)
+  end
+
+  # Founder Polish G2 (place-coordinates writer, the BS-06 writer
+  # gap): place_lat/place_lon are written ONLY from a chosen place
+  # candidate's own coordinates (see
+  # SocialFlow.place_coordinates_from_params/1 and
+  # ProviderAction.attach_selected_venue/4) - never geocoded or
+  # invented at write time. The pair law lives here so every writer
+  # inherits it: both present and in range (lat -90..90, lon
+  # -180..180), or both absent. A lone or out-of-range coordinate is
+  # rejected, never silently dropped or clamped.
+  defp validate_place_coordinates(changeset) do
+    # Cast values arrive as %Decimal{} - normalize before the
+    # number checks (a Decimal is not an Elixir number).
+    lat = coordinate_number(get_field(changeset, :place_lat))
+    lon = coordinate_number(get_field(changeset, :place_lon))
+
+    cond do
+      is_nil(lat) and is_nil(lon) ->
+        changeset
+
+      is_number(lat) and is_number(lon) ->
+        changeset
+        |> validate_coordinate_range(:place_lat, lat, -90, 90)
+        |> validate_coordinate_range(:place_lon, lon, -180, 180)
+
+      true ->
+        missing = if is_nil(lat), do: :place_lat, else: :place_lon
+
+        add_error(
+          changeset,
+          missing,
+          "place coordinates must be set as a lat/lon pair"
+        )
+    end
+  end
+
+  defp coordinate_number(%Decimal{} = value), do: Decimal.to_float(value)
+  defp coordinate_number(value) when is_number(value), do: value * 1.0
+  defp coordinate_number(_), do: nil
+
+  defp validate_coordinate_range(changeset, field, value, min, max) do
+    if value < min or value > max do
+      add_error(changeset, field, "must be between #{min} and #{max}")
+    else
+      changeset
+    end
   end
 
   defp validate_meeting_link(changeset) do

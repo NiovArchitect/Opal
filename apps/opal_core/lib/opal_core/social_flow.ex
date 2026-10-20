@@ -1846,7 +1846,12 @@ defmodule OpalCore.SocialFlow do
       suspended = %{
         "location" => plan.location,
         "venue" => alignment["venue"],
-        "place" => alignment["place"]
+        "place" => alignment["place"],
+        # G2: the place's coordinates ride the stash with the venue,
+        # so a convert-back restores the SAME pair - and while the
+        # plan is virtual its row carries no physical coordinates.
+        "place_lat" => coordinate_to_float(plan.place_lat),
+        "place_lon" => coordinate_to_float(plan.place_lon)
       }
 
       link =
@@ -1872,10 +1877,20 @@ defmodule OpalCore.SocialFlow do
         meeting_provider: provider,
         place_changed_at: now,
         location: "Online",
+        place_lat: nil,
+        place_lon: nil,
         alignment: alignment
       }
     else
       suspended = alignment["suspended_place"] || %{}
+
+      # G2: restore the stashed pair (a half pair is no pair - the
+      # changeset's pair law would refuse the write otherwise).
+      {restored_lat, restored_lon} =
+        case {suspended["place_lat"], suspended["place_lon"]} do
+          {lat, lon} when is_number(lat) and is_number(lon) -> {lat * 1.0, lon * 1.0}
+          _ -> {nil, nil}
+        end
 
       location =
         case suspended["location"] do
@@ -1910,6 +1925,8 @@ defmodule OpalCore.SocialFlow do
         meeting_provider: plan.meeting_provider,
         place_changed_at: now,
         location: location,
+        place_lat: restored_lat,
+        place_lon: restored_lon,
         alignment: alignment
       }
     end
@@ -2484,6 +2501,16 @@ defmodule OpalCore.SocialFlow do
   #                chars is {:error, :caption_too_long}; an empty
   #                string CLEARS the caption (an honest clear, named
   #                here - not a silent drop).
+  #   "place_lat" / "place_lon" - Founder Polish G2: the plan's
+  #                place coordinates, as a pair. Both present (a
+  #                chosen candidate's own coordinates, validated
+  #                ranges) sets them; a "location" edit WITHOUT a
+  #                pair CLEARS them - the new place's coordinates are
+  #                unknown, and stale coordinates for the old place
+  #                would route leave-by to the wrong place. A lone
+  #                or out-of-range coordinate is
+  #                {:error, :invalid_place_coordinates}, atomically:
+  #                nothing in the edit is applied.
   # At least one editable field must be present, else
   # {:error, :no_changes}. Any other key is {:error, :unknown_field}.
   #
@@ -2527,7 +2554,7 @@ defmodule OpalCore.SocialFlow do
   @plan_edit_title_max 120
   @plan_edit_location_max 200
   @plan_edit_caption_max 500
-  @plan_edit_fields ~w(title location caption)
+  @plan_edit_fields ~w(title location caption place_lat place_lon)
   @plan_schedule_fields ~w(time_label date_label start_at end_at)
 
   def plan_edit_title_max, do: @plan_edit_title_max
@@ -2605,6 +2632,8 @@ defmodule OpalCore.SocialFlow do
                %{}
                |> maybe_put_value(:title, values)
                |> maybe_put_value(:location, values)
+               |> maybe_put_value(:place_lat, values)
+               |> maybe_put_value(:place_lon, values)
                |> Map.put(:alignment, alignment)
 
              {:ok, plan} =
@@ -2684,8 +2713,42 @@ defmodule OpalCore.SocialFlow do
   defp validate_plan_edit_values(%SharedPlan{} = plan, changes) do
     with {:ok, values} <- validate_edit_title(changes, %{}),
          {:ok, values} <- validate_edit_location(plan, changes, values),
-         {:ok, values} <- validate_edit_caption(changes, values) do
+         {:ok, values} <- validate_edit_caption(changes, values),
+         {:ok, values} <- validate_edit_place_coordinates(plan, changes, values) do
       {:ok, values}
+    end
+  end
+
+  # G2: the coordinate pair follows the place (see the edit contract
+  # above). Values carry the pair to write - including the explicit
+  # nil/nil clear when the place itself changed without a pair.
+  defp validate_edit_place_coordinates(%SharedPlan{} = plan, changes, values) do
+    has_lat = Map.has_key?(changes, "place_lat")
+    has_lon = Map.has_key?(changes, "place_lon")
+
+    cond do
+      has_lat != has_lon ->
+        {:error, :invalid_place_coordinates}
+
+      has_lat and plan.plan_type == "virtual" ->
+        {:error, :location_not_editable}
+
+      has_lat ->
+        case place_coordinates_from_params(changes) do
+          {:ok, {lat, lon}} ->
+            {:ok, values |> Map.put("place_lat", lat) |> Map.put("place_lon", lon)}
+
+          _ ->
+            {:error, :invalid_place_coordinates}
+        end
+
+      Map.has_key?(changes, "location") ->
+        # The place changed and no candidate pair came with it: the
+        # old place's coordinates must not survive onto the new one.
+        {:ok, values |> Map.put("place_lat", nil) |> Map.put("place_lon", nil)}
+
+      true ->
+        {:ok, values}
     end
   end
 
@@ -4297,6 +4360,7 @@ defmodule OpalCore.SocialFlow do
       )
       |> maybe_fill(:time_label, survivor.time_label, present_string(attrs["time_label"]))
       |> maybe_fill_title(survivor, present_string(attrs["title"]))
+      |> maybe_fill_place_coordinates(survivor, attrs)
 
     alignment =
       (survivor.alignment || %{})
@@ -4314,6 +4378,22 @@ defmodule OpalCore.SocialFlow do
       end
     else
       survivor
+    end
+  end
+
+  # G2: a merge fills a survivor's EMPTY coordinate pair from a
+  # fragment carrying a candidate's pair - it never overwrites a
+  # pair the survivor already holds (a conflicting place is an
+  # edit/revision's job, exactly like the fields above).
+  defp maybe_fill_place_coordinates(acc, %SharedPlan{} = survivor, attrs) do
+    lat = attrs["place_lat"] || attrs[:place_lat]
+    lon = attrs["place_lon"] || attrs[:place_lon]
+
+    if is_nil(survivor.place_lat) and is_nil(survivor.place_lon) and is_number(lat) and
+         is_number(lon) do
+      acc |> Map.put(:place_lat, lat * 1.0) |> Map.put(:place_lon, lon * 1.0)
+    else
+      acc
     end
   end
 
@@ -4627,7 +4707,8 @@ defmodule OpalCore.SocialFlow do
       when is_binary(conversation_id) and is_binary(user_id) and is_map(attrs) do
     params = stringify_keys(attrs)
 
-    with :ok <- ensure_member(conversation_id, user_id) do
+    with :ok <- ensure_member(conversation_id, user_id),
+         :ok <- validate_place_coordinates_param(params) do
       member_ids = member_user_ids(conversation_id)
 
       if member_ids == [] do
@@ -4686,20 +4767,25 @@ defmodule OpalCore.SocialFlow do
               "plan_type" => plan_type
             })
 
-          plan_attrs = %{
-            "conversation_id" => conversation_id,
-            "title" => title,
-            "location" => location || title,
-            "time_label" => time_label,
-            "timezone" => present_string(params["timezone"]) || "UTC",
-            "status" => "tentative",
-            "created_by_user_id" => user_id,
-            "source" => "conversation",
-            "alignment" => alignment,
-            "plan_type" => plan_type,
-            "meeting_link" => meeting_link,
-            "meeting_provider" => meeting_provider
-          }
+          {:ok, plan_attrs} =
+            put_place_coordinates(
+              %{
+                "conversation_id" => conversation_id,
+                "title" => title,
+                "location" => location || title,
+                "time_label" => time_label,
+                "timezone" => present_string(params["timezone"]) || "UTC",
+                "status" => "tentative",
+                "created_by_user_id" => user_id,
+                "source" => "conversation",
+                "alignment" => alignment,
+                "plan_type" => plan_type,
+                "meeting_link" => meeting_link,
+                "meeting_provider" => meeting_provider
+              },
+              params,
+              plan_type
+            )
 
           dedupe_survivor =
             case find_dedupe_survivor(
@@ -4717,7 +4803,9 @@ defmodule OpalCore.SocialFlow do
                 merge_fragments_into(survivor, %{
                   "title" => title,
                   "location" => location,
-                  "time_label" => time_label
+                  "time_label" => time_label,
+                  "place_lat" => plan_attrs["place_lat"],
+                  "place_lon" => plan_attrs["place_lon"]
                 })
 
               _ ->
@@ -4812,6 +4900,91 @@ defmodule OpalCore.SocialFlow do
   end
 
   def create_tentative_plan_from_conversation(_, _, _), do: {:error, :invalid}
+
+  @doc """
+  Founder Polish G2 — THE place-coordinates reader for plan writes
+  (the BS-06 writer gap: before this, nothing outside the
+  schema/changeset wrote `shared_plans.place_lat/place_lon`, so the
+  P10c leave-by derivation truthfully read "no_place_coordinates"
+  for every real plan).
+
+  A plan carries coordinates ONLY when the caller holds a chosen
+  place candidate's own coordinates: the gateway candidate shape
+  (`"lat"`/`"lon"` on a places-gateway result — the shape
+  `ProviderAction.attach_selected_venue/4` receives server-side),
+  or the explicit create/edit payload keys `"place_lat"` /
+  `"place_lon"`. This helper normalizes either source to
+  `{:ok, {lat, lon}}`, `:absent` (neither source names a pair —
+  the plan keeps null coords; nothing is geocoded or invented
+  here), or `{:error, :invalid_place_coordinates}` (a lone
+  coordinate, a non-number, or an out-of-range value — rejected,
+  never clamped or half-written). The SharedPlan changeset
+  re-validates the pair law on the row itself.
+  """
+  def place_coordinates_from_params(params) when is_map(params) do
+    params = stringify_keys(params)
+
+    lat = params["place_lat"] || params["lat"]
+    lon = params["place_lon"] || params["lon"] || params["lng"]
+
+    cond do
+      is_nil(lat) and is_nil(lon) ->
+        :absent
+
+      is_number(lat) and is_number(lon) and lat >= -90 and lat <= 90 and lon >= -180 and
+          lon <= 180 ->
+        {:ok, {lat * 1.0, lon * 1.0}}
+
+      true ->
+        {:error, :invalid_place_coordinates}
+    end
+  end
+
+  def place_coordinates_from_params(_), do: {:error, :invalid_place_coordinates}
+
+  # Row values are Decimals once loaded; in-flight values may be
+  # plain numbers. Both normalize to float (or nil).
+  defp coordinate_to_float(%Decimal{} = value), do: Decimal.to_float(value)
+  defp coordinate_to_float(value) when is_number(value), do: value * 1.0
+  defp coordinate_to_float(_), do: nil
+
+  # Validation-only form for create entry points: an absent pair is
+  # fine (null coords), a malformed pair refuses the whole create.
+  defp validate_place_coordinates_param(params) do
+    case place_coordinates_from_params(params) do
+      {:error, _} = err -> err
+      _ -> :ok
+    end
+  end
+
+  # The candidate pair as plan-attrs keys (empty when absent or the
+  # plan is virtual - a virtual plan never carries a physical
+  # place's coordinates).
+  defp place_coordinate_attrs(params, plan_type) do
+    case place_coordinates_from_params(params) do
+      {:ok, {lat, lon}} when plan_type != "virtual" ->
+        %{"place_lat" => lat, "place_lon" => lon}
+
+      _ ->
+        %{}
+    end
+  end
+
+  # Create-path wrapper: `{:ok, plan_attrs}` with the candidate pair
+  # merged in when one was supplied (virtual plans never carry a
+  # physical place's coordinates), or the create's own error tuple.
+  defp put_place_coordinates(plan_attrs, params, plan_type) do
+    case place_coordinates_from_params(params) do
+      :absent ->
+        {:ok, plan_attrs}
+
+      {:ok, _pair} ->
+        {:ok, Map.merge(plan_attrs, place_coordinate_attrs(params, plan_type))}
+
+      {:error, _} = err ->
+        err
+    end
+  end
 
   defp normalize_plan_type(t) when t in ["virtual", :virtual], do: "virtual"
   defp normalize_plan_type(_), do: "in_person"
@@ -5409,186 +5582,203 @@ defmodule OpalCore.SocialFlow do
     if is_nil(title) do
       {:error, :invalid_title}
     else
-      # C-reinforce — idempotent opportunity taps: a second "Go with this" for
-      # the same center opportunity resumes the pending plan instead of
-      # inserting a duplicate. Opportunity identity = the center decision_id
-      # carried in alignment; without one there is nothing to dedupe on.
-      # Repair #18: when no decision_id exists, the dedupe identity is
-      # the fallback - a matching intent merges into the survivor
-      # (merge-not-overwrite) instead of inserting a sibling row.
-      dedupe_existing =
-        if is_nil(decision_id) do
-          case find_dedupe_survivor(user_id, dedupe_components) do
-            %SharedPlan{} = survivor ->
-              merge_fragments_into(survivor, %{
+      if match?({:error, _}, place_coordinates_from_params(params)) do
+        # G2: a malformed candidate pair refuses the create whole -
+        # never a plan with half a place.
+        {:error, :invalid_place_coordinates}
+      else
+        # C-reinforce — idempotent opportunity taps: a second "Go with this" for
+        # the same center opportunity resumes the pending plan instead of
+        # inserting a duplicate. Opportunity identity = the center decision_id
+        # carried in alignment; without one there is nothing to dedupe on.
+        # Repair #18: when no decision_id exists, the dedupe identity is
+        # the fallback - a matching intent merges into the survivor
+        # (merge-not-overwrite) instead of inserting a sibling row.
+        dedupe_existing =
+          if is_nil(decision_id) do
+            case find_dedupe_survivor(user_id, dedupe_components) do
+              %SharedPlan{} = survivor ->
+                merge_fragments_into(
+                  survivor,
+                  Map.merge(
+                    %{
+                      "title" => title,
+                      "location" => location,
+                      "time_label" => time_label
+                    },
+                    place_coordinate_attrs(params, plan_type)
+                  )
+                )
+
+              nil ->
+                nil
+            end
+          end
+
+        case find_pending_center_plan(user_id, decision_id) || dedupe_existing do
+          %SharedPlan{} = existing ->
+            participants =
+              from(pp in PlanParticipant, where: pp.plan_id == ^existing.id)
+              |> Repo.all()
+
+            {:ok, existing, participants}
+
+          nil ->
+            alignment =
+              %{}
+              |> put_alignment("area", area)
+              |> put_alignment("scope", "solo")
+              |> put_alignment("decision_id", decision_id)
+              |> then(fn a ->
+                # Repair #18 (B2) \u2014 food-at-home signal passthrough.
+                if params["food_at_home"] == true or params["food_at_home"] == "true",
+                  do: Map.put(a, "food_at_home", true),
+                  else: a
+              end)
+              |> then(fn a ->
+                if params["food_question"] == true or params["food_question"] == "true",
+                  do: Map.put(a, "food_question", true),
+                  else: a
+              end)
+              |> put_alignment("subject_who", subject_who)
+              |> then(fn a ->
+                if subject_ids != [],
+                  do: Map.put(a, "participant_ids", subject_ids),
+                  else: a
+              end)
+              |> dedupe_alignment(user_id, subject_ids, %{
                 "title" => title,
                 "location" => location,
-                "time_label" => time_label
+                "time_label" => time_label,
+                "plan_type" => plan_type
               })
+              |> stamp_place_mirror(%{
+                "plan_type" => plan_type,
+                "meeting_link" => meeting_link,
+                "meeting_provider" => meeting_provider
+              })
+              |> Map.put("center_v2", true)
 
-            nil ->
-              nil
-          end
-        end
-
-      case find_pending_center_plan(user_id, decision_id) || dedupe_existing do
-        %SharedPlan{} = existing ->
-          participants =
-            from(pp in PlanParticipant, where: pp.plan_id == ^existing.id)
-            |> Repo.all()
-
-          {:ok, existing, participants}
-
-        nil ->
-          alignment =
-            %{}
-            |> put_alignment("area", area)
-            |> put_alignment("scope", "solo")
-            |> put_alignment("decision_id", decision_id)
-            |> then(fn a ->
-              # Repair #18 (B2) \u2014 food-at-home signal passthrough.
-              if params["food_at_home"] == true or params["food_at_home"] == "true",
-                do: Map.put(a, "food_at_home", true),
-                else: a
-            end)
-            |> then(fn a ->
-              if params["food_question"] == true or params["food_question"] == "true",
-                do: Map.put(a, "food_question", true),
-                else: a
-            end)
-            |> put_alignment("subject_who", subject_who)
-            |> then(fn a ->
-              if subject_ids != [],
-                do: Map.put(a, "participant_ids", subject_ids),
-                else: a
-            end)
-            |> dedupe_alignment(user_id, subject_ids, %{
-              "title" => title,
-              "location" => location,
-              "time_label" => time_label,
-              "plan_type" => plan_type
-            })
-            |> stamp_place_mirror(%{
-              "plan_type" => plan_type,
-              "meeting_link" => meeting_link,
-              "meeting_provider" => meeting_provider
-            })
-            |> Map.put("center_v2", true)
-
-          plan_attrs = %{
-            "conversation_id" => nil,
-            "title" => title,
-            "location" => location || title,
-            "time_label" => time_label,
-            "timezone" => present_string(params["timezone"]) || "UTC",
-            "status" => "tentative",
-            "created_by_user_id" => user_id,
-            "source" => "center",
-            "alignment" => alignment,
-            "plan_type" => plan_type,
-            "meeting_link" => meeting_link,
-            "meeting_provider" => meeting_provider
-          }
-
-          Repo.transaction(fn ->
-            plan =
-              case %SharedPlan{}
-                   |> SharedPlan.changeset(plan_attrs)
-                   # Gyroscope (R13): Center-birthed plans pass the gate too.
-                   |> PlanTransition.guard_changeset(:plan, :create)
-                   |> Repo.insert() do
-                {:ok, p} -> p
-                {:error, cs} -> Repo.rollback(cs)
-              end
-
-            now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-
-            participant =
-              case %PlanParticipant{}
-                   |> PlanParticipant.changeset(%{
-                     "plan_id" => plan.id,
-                     "user_id" => user_id,
-                     "role" => "lead",
-                     "response_state" => "accepted",
-                     "responded_at" => now,
-                     "authority_source" => "user_action"
-                   })
-                   |> Repo.insert() do
-                {:ok, p} -> p
-                {:error, cs} -> Repo.rollback(cs)
-              end
-
-            # Repair #18: subject participants (pending until they act).
-            # Unknown ids are skipped honestly - a name that never
-            # resolved to a real user stays as alignment subject_who.
-            subject_participants =
-              Enum.flat_map(subject_ids, fn subject_id ->
-                if Repo.get(OpalCore.Accounts.User, subject_id) do
-                  case %PlanParticipant{}
-                       |> PlanParticipant.changeset(%{
-                         "plan_id" => plan.id,
-                         "user_id" => subject_id,
-                         "role" => "participant",
-                         "response_state" => "pending",
-                         "authority_source" => "center_subject"
-                       })
-                       |> Repo.insert() do
-                    {:ok, p} -> [p]
-                    _ -> []
-                  end
-                else
-                  []
-                end
-              end)
-
-            {plan, [participant | subject_participants]}
-          end)
-          |> case do
-            {:ok, {plan, participants}} ->
-              # Repair #14 (D4) — virtual Center plans get the join reminder,
-              # like conversation-created virtual plans.
-              _ = maybe_schedule_virtual_join_reminder(plan, user_id)
-
-              # F12-05d — Center creates project to the native Opal calendar,
-              # like every other plan-creation path.
-              _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
-
-              audit!(
-                nil,
-                plan.id,
-                user_id,
-                "plan.created",
+            {:ok, plan_attrs} =
+              put_place_coordinates(
                 %{
+                  "conversation_id" => nil,
+                  "title" => title,
+                  "location" => location || title,
+                  "time_label" => time_label,
+                  "timezone" => present_string(params["timezone"]) || "UTC",
+                  "status" => "tentative",
+                  "created_by_user_id" => user_id,
                   "source" => "center",
-                  "title" => plan.title,
-                  "time_label" => plan.time_label
+                  "alignment" => alignment,
+                  "plan_type" => plan_type,
+                  "meeting_link" => meeting_link,
+                  "meeting_provider" => meeting_provider
                 },
-                "trace-social-flow-center-1"
+                params,
+                plan_type
               )
 
-              # F12-07 — Center creates were silent (broadcast(nil, …) went to
-              # a degenerate topic). broadcast_plan/4 fans out on the owner's
-              # user topic so Graphs/Timeline hear the new plan.
-              broadcast_plan(
-                plan,
-                "social_flow:plan",
-                %{"plan" => plan_payload(plan), "created" => true},
-                "trace-social-flow-center-1"
-              )
+            Repo.transaction(fn ->
+              plan =
+                case %SharedPlan{}
+                     |> SharedPlan.changeset(plan_attrs)
+                     # Gyroscope (R13): Center-birthed plans pass the gate too.
+                     |> PlanTransition.guard_changeset(:plan, :create)
+                     |> Repo.insert() do
+                  {:ok, p} -> p
+                  {:error, cs} -> Repo.rollback(cs)
+                end
 
-              # I2 etiquette wiring (production caller): subject
-              # participants were just placed in awaiting-response
-              # state - open the lifecycle for each, post-commit.
-              _ = open_etiquette_requests(plan, user_id, participants)
+              now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-              {:ok, plan, participants}
+              participant =
+                case %PlanParticipant{}
+                     |> PlanParticipant.changeset(%{
+                       "plan_id" => plan.id,
+                       "user_id" => user_id,
+                       "role" => "lead",
+                       "response_state" => "accepted",
+                       "responded_at" => now,
+                       "authority_source" => "user_action"
+                     })
+                     |> Repo.insert() do
+                  {:ok, p} -> p
+                  {:error, cs} -> Repo.rollback(cs)
+                end
 
-            {:error, %Ecto.Changeset{} = cs} ->
-              {:error, cs}
+              # Repair #18: subject participants (pending until they act).
+              # Unknown ids are skipped honestly - a name that never
+              # resolved to a real user stays as alignment subject_who.
+              subject_participants =
+                Enum.flat_map(subject_ids, fn subject_id ->
+                  if Repo.get(OpalCore.Accounts.User, subject_id) do
+                    case %PlanParticipant{}
+                         |> PlanParticipant.changeset(%{
+                           "plan_id" => plan.id,
+                           "user_id" => subject_id,
+                           "role" => "participant",
+                           "response_state" => "pending",
+                           "authority_source" => "center_subject"
+                         })
+                         |> Repo.insert() do
+                      {:ok, p} -> [p]
+                      _ -> []
+                    end
+                  else
+                    []
+                  end
+                end)
 
-            {:error, reason} ->
-              {:error, reason}
-          end
+              {plan, [participant | subject_participants]}
+            end)
+            |> case do
+              {:ok, {plan, participants}} ->
+                # Repair #14 (D4) — virtual Center plans get the join reminder,
+                # like conversation-created virtual plans.
+                _ = maybe_schedule_virtual_join_reminder(plan, user_id)
+
+                # F12-05d — Center creates project to the native Opal calendar,
+                # like every other plan-creation path.
+                _ = OpalCore.SocialFlow.OpalCalendar.project_from_shared_plan(plan)
+
+                audit!(
+                  nil,
+                  plan.id,
+                  user_id,
+                  "plan.created",
+                  %{
+                    "source" => "center",
+                    "title" => plan.title,
+                    "time_label" => plan.time_label
+                  },
+                  "trace-social-flow-center-1"
+                )
+
+                # F12-07 — Center creates were silent (broadcast(nil, …) went to
+                # a degenerate topic). broadcast_plan/4 fans out on the owner's
+                # user topic so Graphs/Timeline hear the new plan.
+                broadcast_plan(
+                  plan,
+                  "social_flow:plan",
+                  %{"plan" => plan_payload(plan), "created" => true},
+                  "trace-social-flow-center-1"
+                )
+
+                # I2 etiquette wiring (production caller): subject
+                # participants were just placed in awaiting-response
+                # state - open the lifecycle for each, post-commit.
+                _ = open_etiquette_requests(plan, user_id, participants)
+
+                {:ok, plan, participants}
+
+              {:error, %Ecto.Changeset{} = cs} ->
+                {:error, cs}
+
+              {:error, reason} ->
+                {:error, reason}
+            end
+        end
       end
     end
   end
@@ -5653,6 +5843,7 @@ defmodule OpalCore.SocialFlow do
     idempotency_key = present_string(params["idempotency_key"])
 
     with :ok <- require_graph_title(title),
+         :ok <- validate_place_coordinates_param(params),
          :ok <- require_graph_audience(audience),
          :ok <- require_owned_graph_media(user_id, media_id),
          :ok <- require_repeatable_source(user_id, source_plan_id),
@@ -5869,20 +6060,25 @@ defmodule OpalCore.SocialFlow do
         "meeting_provider" => meeting_provider
       })
 
-    plan_attrs = %{
-      "conversation_id" => nil,
-      "title" => ctx.title,
-      "location" => location,
-      "time_label" => present_string(params["time_label"]) || "Open window",
-      "timezone" => present_string(params["timezone"]) || "UTC",
-      "status" => "tentative",
-      "created_by_user_id" => user_id,
-      "source" => "center",
-      "alignment" => alignment,
-      "plan_type" => plan_type,
-      "meeting_link" => meeting_link,
-      "meeting_provider" => meeting_provider
-    }
+    {:ok, plan_attrs} =
+      put_place_coordinates(
+        %{
+          "conversation_id" => nil,
+          "title" => ctx.title,
+          "location" => location,
+          "time_label" => present_string(params["time_label"]) || "Open window",
+          "timezone" => present_string(params["timezone"]) || "UTC",
+          "status" => "tentative",
+          "created_by_user_id" => user_id,
+          "source" => "center",
+          "alignment" => alignment,
+          "plan_type" => plan_type,
+          "meeting_link" => meeting_link,
+          "meeting_provider" => meeting_provider
+        },
+        params,
+        plan_type
+      )
 
     Repo.transaction(fn ->
       plan =
