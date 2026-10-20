@@ -763,7 +763,13 @@ export function CenterHost({
 
   const plansById = useMemo(() => {
     const map = new Map<string, PlanProjection>();
-    for (const plan of plans) map.set(plan.id, planProjectionFromContract(plan));
+    // Polish C P3: Center is outside the vault - a plan in the
+    // viewer's "My private graphs" never resolves into a Center
+    // chip, candidate, or projection here.
+    for (const plan of plans) {
+      if (plan.is_private === true) continue;
+      map.set(plan.id, planProjectionFromContract(plan));
+    }
     return map;
   }, [plans]);
 
@@ -947,11 +953,18 @@ export function CenterHost({
         const rows = (res.conversations ?? []).map(summaryToRow);
         const inOrbit = sessionsForAnchor(rows, anchor);
         const sheetPlans = new Map<string, OrbitSheetPlan>();
-        if (anchor.type === "plan") {
+        // Polish C P3: the orbit sheet is outside the vault - a
+        // plan in the viewer's "My private graphs" (their own
+        // is_private flag on the one plan projection) never appears
+        // as an orbit plan row.
+        const vaultedPlanIds = new Set(
+          plans.filter((p) => p.is_private === true).map((p) => p.id),
+        );
+        if (anchor.type === "plan" && !vaultedPlanIds.has(anchor.id)) {
           sheetPlans.set(anchor.id, { id: anchor.id, title: anchor.label ?? "Plan" });
         }
         for (const r of inOrbit) {
-          if (r.context?.planId && r.context.planTitle) {
+          if (r.context?.planId && r.context.planTitle && !vaultedPlanIds.has(r.context.planId)) {
             sheetPlans.set(r.context.planId, { id: r.context.planId, title: r.context.planTitle });
           }
         }
@@ -965,7 +978,7 @@ export function CenterHost({
         setOrbitSheet({ anchor, context, sessions: [], plans: [] });
       }
     },
-    [bearer],
+    [bearer, plans],
   );
 
   const refreshOrbitSheet = useCallback(() => {
@@ -1174,9 +1187,11 @@ export function CenterHost({
               ...contacts.map(
                 (c): OpalAnchor => ({ type: "person", id: c.contact_user_id, label: c.display_name }),
               ),
-              ...plans.map(
-                (pl): OpalAnchor => ({ type: "plan", id: pl.id, label: pl.title }),
-              ),
+              ...plans
+                .filter((pl) => pl.is_private !== true)
+                .map(
+                  (pl): OpalAnchor => ({ type: "plan", id: pl.id, label: pl.title }),
+                ),
             ],
             onPickAnchor: (a) =>
               void applyAnchorWrite(
