@@ -41,6 +41,11 @@ defmodule OpalCore.SocialFlow.PlanParticipant do
     field :response_state, :string
     field :responded_at, :utc_datetime_usec
     field :authority_source, :string, default: "user_action"
+    # P14 (additive): the creator-opt-in response window, as data on
+    # the request. Nil = no window was set. Written ONLY through
+    # NonResponseEtiquette.set_response_window/2 (relationship-gated).
+    field :response_window_seconds, :integer
+    field :response_window_closes_at, :utc_datetime_usec
 
     belongs_to :plan, OpalCore.SocialFlow.SharedPlan
     belongs_to :user, OpalCore.Accounts.User
@@ -56,7 +61,9 @@ defmodule OpalCore.SocialFlow.PlanParticipant do
       :role,
       :response_state,
       :responded_at,
-      :authority_source
+      :authority_source,
+      :response_window_seconds,
+      :response_window_closes_at
     ])
     |> validate_required([:plan_id, :user_id, :response_state])
     |> validate_inclusion(:response_state, @response_states)
@@ -70,7 +77,15 @@ defmodule OpalCore.SocialFlow.PlanParticipant do
       "user_id" => p.user_id,
       "role" => p.role,
       "response_state" => p.response_state,
-      "authority_source" => p.authority_source
+      "authority_source" => p.authority_source,
+      # P14: the window truth rides the contract additively so surfaces
+      # render it from the record, never re-derive it. Nil when unset.
+      "response_window_seconds" => Map.get(p, :response_window_seconds),
+      "response_window_closes_at" =>
+        case Map.get(p, :response_window_closes_at) do
+          %DateTime{} = dt -> DateTime.to_iso8601(dt)
+          _ -> nil
+        end
     }
   end
 end

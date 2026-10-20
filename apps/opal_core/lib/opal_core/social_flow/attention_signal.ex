@@ -6,7 +6,7 @@ defmodule OpalCore.SocialFlow.AttentionSignal do
   @foreign_key_type :binary_id
 
   @statuses ~w(candidate eligible suppressed scheduled visible acted snoozed dismissed completed expired superseded cancelled failed)
-  @types ~w(follow_through due_reminder memory_review needs_answer plan_changed completion_ack)
+  @types ~w(follow_through due_reminder memory_review needs_answer plan_changed completion_ack non_response_closure)
 
   schema "attention_signals" do
     field :signal_type, :string
