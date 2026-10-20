@@ -155,6 +155,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 DIR-4: conversation-scoped reveal derivation"},
       {OpalCore.SocialFlow.NonResponseEtiquette, :projection_for, 3,
        "Founder Polish Wave Cluster I (P13/P14): the one etiquette/limbo projection for a plan's pending request, read from the single plan store + the participant's own row"},
+      {OpalCore.SocialFlow.NonResponseEtiquette, :viewer_projection, 3,
+       "I2 etiquette wiring: the per-viewer etiquette projection the plan contract carries (projection_for/3 when the lifecycle is open; the same window truth from the pending participant row when it is not) - read from the single plan store only"},
       {OpalCore.GraphPeople, :intention_projection, 2,
        "Repair #18 adoption wave 1 (ST-A): the one intention progress projection, derived from real plans with that person"},
       {OpalCore.GraphPeople, :goal_projection, 2,

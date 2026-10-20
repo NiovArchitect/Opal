@@ -123,6 +123,9 @@ type Props = {
     caption?: string | null;
     online?: boolean;
     canEdit: boolean;
+    /** I2: the plan contract's etiquette projection, for the
+     *  response-window control inside the edit controls. */
+    etiquette?: import("../api/productClient").PlanEtiquetteContract | null;
   } | null;
   editBearer?: string;
   /** Called with the RETURNED plan payload after a successful edit. */
@@ -377,6 +380,7 @@ export function GraphDetailSheet({
             canEdit={planEdit.canEdit}
             bearer={editBearer}
             onEdited={onPlanEdited}
+            etiquette={planEdit.etiquette ?? null}
           />
         ) : null}
         {past ? (

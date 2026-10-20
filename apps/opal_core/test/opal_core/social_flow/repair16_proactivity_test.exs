@@ -108,6 +108,13 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
     from(l in TemporalFollowThroughLoop, where: ^where) |> Repo.all()
   end
 
+  # I2 etiquette wiring: creating a plan through the real path now
+  # also opens the etiquette invitation_response lifecycle for its
+  # pending invitees (the P13/P14 production caller), so this suite's
+  # waiting_on claims scope to their own kind - the claim in each
+  # test below is unchanged (exactly the waiting_on loops named).
+  defp waiting_on_loops(plan_id), do: loops(plan_id: plan_id, kind: "waiting_on")
+
   defp set_relationship(owner, other, type, subtype \\ nil) do
     assert {:ok, _} = Relationships.set_type(owner.id, other.id, type)
 
@@ -447,7 +454,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
       commitment = make_commitment(plan, b)
 
       # Proposed (extraction-shaped) is NOT a commitment yet: no loop.
-      assert loops(plan_id: plan.id) == []
+      assert waiting_on_loops(plan.id) == []
 
       assert {:ok, confirmed} =
                SocialFlow.confirm_commitment(%{
@@ -458,7 +465,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
 
       assert confirmed.status == "confirmed"
 
-      assert [loop] = loops(plan_id: plan.id)
+      assert [loop] = waiting_on_loops(plan.id)
       assert loop.kind == "waiting_on"
       assert loop.status == "open"
       assert loop.responsibility_user_id == b.id
@@ -474,7 +481,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
                  idempotency_key: "r16-p4-complete-#{commitment.id}"
                })
 
-      assert [%{status: "completed"}] = loops(plan_id: plan.id)
+      assert [%{status: "completed"}] = waiting_on_loops(plan.id)
     end
 
     test "a commitment's own due_at wins over the plan start" do
@@ -497,7 +504,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
                  trace_id: "r16-p4-due"
                })
 
-      assert [loop] = loops(plan_id: plan.id)
+      assert [loop] = waiting_on_loops(plan.id)
       assert loop.semantic_deadline_at == due
       assert loop.metadata["deadline_source"] == "commitment_due_at"
     end
@@ -521,7 +528,7 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
                  trace_id: "r16-p4-nodeadline"
                })
 
-      assert loops(plan_id: plan.id) == []
+      assert waiting_on_loops(plan.id) == []
     end
 
     test "chat text never registers loops (weak intent is not a commitment)" do
@@ -554,7 +561,10 @@ defmodule OpalCore.SocialFlow.Repair16ProactivityTest do
 
       _ = OpalCore.SocialFlow.ConversationAlignment.sync_conversation(conv.id)
 
-      assert Repo.aggregate(TemporalFollowThroughLoop, :count) == 0
+      assert Repo.aggregate(
+               from(l in TemporalFollowThroughLoop, where: l.kind == "waiting_on"),
+               :count
+             ) == 0
     end
   end
 

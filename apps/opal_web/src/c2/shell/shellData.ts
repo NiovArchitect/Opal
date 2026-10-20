@@ -57,7 +57,7 @@ import {
   settledKindForPlan,
   spineFromPlan,
 } from "./density";
-import type { PlanCardC2Input, PlanStateFamilyC2 } from "../PlanCardC2";
+import type { PlanCardC2Input, PlanCardLimboC2, PlanStateFamilyC2 } from "../PlanCardC2";
 import type {
   AvatarRef,
   GraphDetailProjection,
@@ -490,6 +490,30 @@ const HOME_FAMILY_RANK: Record<PlanStateFamilyC2, number> = {
   past: 4,
 };
 
+/**
+ * I2 etiquette wiring - the card's limbo input, mapped from the plan
+ * contract's etiquette projection (the backend's one projection,
+ * carried per-viewer on plan_payload). This adapter translates the
+ * wire shape (snake_case) into the card shape (camelCase) and
+ * nothing else: state, treatment, pattern channel, the remaining
+ * fraction and the viewer's own finished copy all arrive finished.
+ * No etiquette fact, or a limbo that is not in the limbo state, maps
+ * to null and the card renders no limbo treatment.
+ */
+export function limboFromPlan(plan: OpalPlanContract): PlanCardLimboC2 | null {
+  const etiquette = plan.etiquette;
+  const limbo = etiquette?.limbo;
+  if (!etiquette || !limbo || limbo.state !== "limbo") return null;
+  return {
+    state: limbo.state,
+    treatment: limbo.treatment,
+    patternChannel: limbo.pattern_channel,
+    windowFractionRemaining: limbo.window_fraction_remaining,
+    copy: limbo.copy,
+    viewerRole: etiquette.viewer_role,
+  };
+}
+
 export function cardFromPlan(plan: OpalPlanContract): PlanCardC2Input & { id: string } {
   const family = familyOfStatus(plan.status);
   const attendanceLine =
@@ -508,6 +532,8 @@ export function cardFromPlan(plan: OpalPlanContract): PlanCardC2Input & { id: st
     whereLine: plan.location?.trim() ? plan.location : null,
     attendanceLine,
     primaryActionLabel: null,
+    // I2: real cards now carry the limbo treatment from the contract.
+    limbo: limboFromPlan(plan),
   };
 }
 

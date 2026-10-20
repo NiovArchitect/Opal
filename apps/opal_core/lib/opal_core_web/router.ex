@@ -591,6 +591,12 @@ defmodule OpalCoreWeb.Router do
     # HTTP route the C2 shell's "Drop it" intent was built against;
     # until now cancellation existed only at the gate / in Center chat.
     post("/opal/plans/:id/cancel", OpalConversationController, :cancel_plan)
+    # I2 etiquette wiring - the P13/P14 write doors: set a creator
+    # response window (relationship-gated in the machinery) and answer
+    # a fork / escalation. Both answer with the one plan contract,
+    # whose per-viewer etiquette projection carries the new truth.
+    post("/opal/plans/:id/response-window", OpalConversationController, :set_response_window)
+    post("/opal/plans/:id/etiquette/respond", OpalConversationController, :respond_etiquette)
     # Repair #16 (W1) — durable GraphCreateFlow completion (non-post graph
     # drafts) through the same SharedPlan authority as Center plans.
     post("/opal/plans/graph-create", OpalConversationController, :create_graph_plan)

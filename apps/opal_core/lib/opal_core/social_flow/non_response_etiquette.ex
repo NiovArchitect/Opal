@@ -195,6 +195,27 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
     do:
       "This plan already has commitments, and #{recipient_name} prefers to be asked first - a set window is not available here. You can still send the invitation without one."
 
+  # I2 wiring: the finished plain lines the HTTP surface returns when a
+  # window set is refused, so a refusal is never a silent drop. Each
+  # names what happened in ordinary words; none shames anyone.
+  def window_not_creator_copy,
+    do: "Only the person who made this plan can ask for an answer by a set time."
+
+  def window_not_pending_copy,
+    do: "They have already answered, so there is no window to set."
+
+  def window_invalid_copy,
+    do: "Pick a window between 1 hour and 14 days."
+
+  def window_not_found_copy,
+    do: "That plan could not be found."
+
+  def respond_not_yours_copy,
+    do: "That answer belongs to someone else on this plan."
+
+  def respond_nothing_waiting_copy,
+    do: "There is nothing waiting on you for this plan right now."
+
   @doc "Every copy string this feature can emit, for the shame-scan pin."
   def all_copy do
     [
@@ -208,7 +229,13 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
       limbo_sender_copy("Dinner"),
       limbo_recipient_copy("Dinner"),
       window_unavailable_circle_copy(),
-      window_unavailable_mode_copy("Sam")
+      window_unavailable_mode_copy("Sam"),
+      window_not_creator_copy(),
+      window_not_pending_copy(),
+      window_invalid_copy(),
+      window_not_found_copy(),
+      respond_not_yours_copy(),
+      respond_nothing_waiting_copy()
     ] ++
       Enum.map(fork_actions() ++ escalation_actions(), & &1["label"])
   end
@@ -962,7 +989,14 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
         "plan_id" => plan.id,
         "plan_title" => plan.title,
         "viewer_role" => role,
+        "requester_user_id" => requester_id,
+        "recipient_user_id" => recipient_id,
+        "lifecycle_open" => true,
         "stage" => stage,
+        "fork" => %{
+          "state" => fork_state(stage),
+          "available" => role == "recipient" and stage in ["nudged", "forked"]
+        },
         "limbo" =>
           if limbo? do
             %{
@@ -985,6 +1019,129 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
     else
       nil -> nil
       _ -> nil
+    end
+  end
+
+  # The fork's state as a finished fact for contracts: it has not been
+  # presented yet, it is in front of the recipient, or the ball is with
+  # the requester after escalation.
+  defp fork_state("awaiting"), do: "upcoming"
+  defp fork_state("nudged"), do: "upcoming"
+  defp fork_state("forked"), do: "presented"
+  defp fork_state("escalated"), do: "awaiting_requester"
+  defp fork_state(_), do: "none"
+
+  @doc """
+  I2 wiring - the per-viewer etiquette projection the plan contract
+  carries (`SocialFlow.plan_payload/2`). When the lifecycle is open
+  this IS `projection_for/3`. When no loop is open yet (or anymore),
+  the window truth still has to reach the creator's control, so this
+  falls back to a window-only projection built from the pending
+  participant row the machinery would govern: stage nil, limbo nil,
+  `lifecycle_open: false`, and the same `window_projection/4` the
+  open projection uses - never a second derivation. A viewer who is
+  not on the plan, and a plan with no pending participant, get nil:
+  there is no etiquette fact for them, honestly.
+  """
+  def viewer_projection(plan_id, viewer_id, opts \\ []) do
+    # The contract carriage is party-scoped even though the machinery's
+    # own projection_for/3 will judge a loop for any viewer id it is
+    # handed (its group_member leg): a plan's etiquette fact never
+    # rides a contract to someone who is not on the plan.
+    with %SharedPlan{} = plan <- Repo.get(SharedPlan, plan_id),
+         true <- viewer_on_plan?(plan, viewer_id) do
+      case projection_for(plan_id, viewer_id, opts) do
+        %{} = projection -> projection
+        nil -> fallback_projection(plan, viewer_id, opts)
+      end
+    else
+      _ -> nil
+    end
+  end
+
+  defp fallback_projection(%SharedPlan{} = plan, viewer_id, opts) do
+    now = Keyword.get(opts, :now) || Clock.utc_now()
+
+    with %PlanParticipant{} = participant <- pending_participant_for(plan, viewer_id) do
+      role =
+        cond do
+          participant.user_id == viewer_id -> "recipient"
+          plan.created_by_user_id == viewer_id -> "requester"
+          true -> "group_member"
+        end
+
+      %{
+        "schema_version" => "0.1.0",
+        "plan_id" => plan.id,
+        "plan_title" => plan.title,
+        "viewer_role" => role,
+        "requester_user_id" => plan.created_by_user_id,
+        "recipient_user_id" => participant.user_id,
+        "lifecycle_open" => false,
+        "stage" => nil,
+        "fork" => %{"state" => "none", "available" => false},
+        "limbo" => nil,
+        "window" =>
+          window_projection(plan, participant, plan.created_by_user_id, participant.user_id),
+        "decline_available" => role == "recipient",
+        "fork_available" => false,
+        "generated_at" => DateTime.to_iso8601(now)
+      }
+    else
+      _ -> nil
+    end
+  end
+
+  defp viewer_on_plan?(%SharedPlan{} = plan, viewer_id) do
+    plan.created_by_user_id == viewer_id or
+      Repo.exists?(
+        from(p in PlanParticipant, where: p.plan_id == ^plan.id and p.user_id == ^viewer_id)
+      )
+  end
+
+  # The pending participant row a viewer's fallback projection judges:
+  # the viewer's own pending row first (they are the recipient), then
+  # the earliest pending row (the creator / a group member reads the
+  # first outstanding request's window truth).
+  defp pending_participant_for(%SharedPlan{} = plan, viewer_id) do
+    rows =
+      from(p in PlanParticipant,
+        where: p.plan_id == ^plan.id,
+        order_by: [asc: p.inserted_at]
+      )
+      |> Repo.all()
+      |> Enum.filter(&PlanParticipant.pending_state?(&1.response_state))
+
+    Enum.find(rows, &(&1.user_id == viewer_id)) || List.first(rows)
+  end
+
+  @doc """
+  The finished plain line for a window-set refusal reason - the exact
+  words the HTTP surface returns, so the creator's control shows the
+  refusal instead of dropping it silently. Gate refusals reuse the
+  P14 deck (`window_projection/4`'s unavailable reasons and the
+  circle copy); the rest are this module's own plain lines.
+  """
+  def window_refusal_line(plan_id, creator_id, recipient_id, reason) do
+    case reason do
+      :outside_creator_circle ->
+        window_unavailable_circle_copy()
+
+      :window_unavailable_consequential_mode ->
+        window_unavailable_mode_copy(display_name(recipient_id))
+
+      :not_creator ->
+        window_not_creator_copy()
+
+      :not_pending ->
+        window_not_pending_copy()
+
+      :invalid_window ->
+        window_invalid_copy()
+
+      _ ->
+        _ = {plan_id, creator_id}
+        window_not_found_copy()
     end
   end
 
