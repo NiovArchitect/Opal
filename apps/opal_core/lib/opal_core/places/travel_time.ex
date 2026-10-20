@@ -66,7 +66,7 @@ defmodule OpalCore.Places.TravelTime do
            "traffic_class" =>
              if(raw["traffic_class"] == "live", do: "estimate", else: raw["traffic_class"] || "estimate"),
            "traffic_model" => raw["traffic_model"],
-           "computed_at" => DateTime.to_iso8601(now)
+           "computed_at" => now |> DateTime.truncate(:second) |> DateTime.to_iso8601()
          }}
 
       {:error, _} = err ->

@@ -167,13 +167,13 @@
     "booking_request",
     "set_reminder"
   ],
-  "corpus_absolute": "/home/hatch/workspace/opal-graph/wt-r19-packfix/shots/intelligence/extraction_corpus.json",
+  "corpus_absolute": "/home/hatch/workspace/opal-graph/wt-polish/shots/intelligence/extraction_corpus.json",
   "corpus_counts": {
     "adversarial": 10,
     "messy": 50
   },
   "corpus_path": "shots/intelligence/extraction_corpus.json",
-  "date": "2026-10-19",
+  "date": "2026-10-20",
   "extractor_fn": "OpalCore.Intelligence.Extractor.classify_message/1",
   "extractor_path": "rules_floor",
   "messy_failures": [],

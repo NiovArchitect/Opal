@@ -137,7 +137,7 @@ defmodule OpalCore.SocialFlow.LeaveBy do
       "state" => "ok",
       "label" => label,
       "urgency" => urgency,
-      "leave_by_at" => DateTime.to_iso8601(leave_by),
+      "leave_by_at" => leave_by |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
       "leave_by_label" => leave_by_label,
       "travel_duration_seconds" => round(duration),
       "travel_duration_label" => duration_label,
@@ -147,7 +147,7 @@ defmodule OpalCore.SocialFlow.LeaveBy do
       "traffic_label" => traffic_label(traffic_class),
       "buffer_seconds" => buffer,
       "provider" => travel["provider"],
-      "computed_at" => travel["computed_at"] || DateTime.to_iso8601(now)
+      "computed_at" => travel["computed_at"] || (now |> DateTime.truncate(:second) |> DateTime.to_iso8601())
     }
   end
 
@@ -166,7 +166,7 @@ defmodule OpalCore.SocialFlow.LeaveBy do
       "traffic_label" => nil,
       "buffer_seconds" => TravelTime.buffer_seconds(),
       "provider" => nil,
-      "computed_at" => DateTime.to_iso8601(now)
+      "computed_at" => now |> DateTime.truncate(:second) |> DateTime.to_iso8601()
     }
   end
 
