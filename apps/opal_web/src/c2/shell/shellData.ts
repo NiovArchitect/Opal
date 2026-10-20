@@ -48,6 +48,16 @@ import {
   type OpalPlanContract,
   type ProductSession,
 } from "../../api/productClient";
+import {
+  foldSpineAnswers,
+  invitationTemperature,
+  pastDateForPlan,
+  pastPillsFromEntries,
+  presenceForPlan,
+  settledInvitationForPlan,
+  settledKindForPlan,
+  spineFromPlan,
+} from "./density";
 import type { PlanCardC2Input, PlanStateFamilyC2 } from "../PlanCardC2";
 import type {
   AvatarRef,
@@ -541,7 +551,10 @@ export function planDroppable(plan: OpalPlanContract): boolean {
   );
 }
 
-export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjection {
+export function graphListFromPlans(
+  plans: OpalPlanContract[],
+  now: Date = new Date(),
+): GraphListProjection {
   // R19 W7: private graphs are separated HERE, at the one adapter -
   // they never enter a group or a lens count, so no lens (including
   // Past) can surface them outside the gated Private area.
@@ -558,7 +571,16 @@ export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjecti
       };
     });
   const visiblePlans = plans.filter((plan) => plan.is_private !== true);
-  const cards = visiblePlans.map((plan) => {
+  // Polish P11 invitation hygiene: declined / expired invitations
+  // SETTLE here, at the projection - they leave every actionable
+  // group below and ride only as summarized lines in the viewer's
+  // own past area (settledInvitations). Nothing else consumes them,
+  // so no decline is announced on anyone else's surface.
+  const settledInvitations = visiblePlans
+    .map((plan) => settledInvitationForPlan(plan))
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+  const livePlans = visiblePlans.filter((plan) => settledKindForPlan(plan) === null);
+  const cards = livePlans.map((plan) => {
     const base = cardFromPlan(plan);
     const card = {
       ...base,
@@ -571,8 +593,19 @@ export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjecti
     // list re-reads from the server, whose list excludes cancelled
     // plans. droppable is derived per plan by planDroppable above -
     // a card the route would refuse never renders the control.
-    return { plan, card: { ...card, completionAction: completion, droppable: planDroppable(plan) } };
+    return {
+      plan,
+      card: {
+        ...card,
+        completionAction: completion,
+        droppable: planDroppable(plan),
+        presence: presenceForPlan(plan, now),
+        temperature: invitationTemperature(plan, now),
+      },
+    };
   });
+  const isFar = (c: (typeof cards)[number]) =>
+    c.card.presence?.band === "far" && c.card.stateFamily !== "action";
   const groups: GraphListProjection["groups"] = [];
   const push = (
     id: string,
@@ -582,26 +615,9 @@ export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjecti
   ) => {
     if (rows.length > 0) groups.push({ id, kind, title, cards: rows.map((r) => r.card) });
   };
-  push(
-    "needs-detail",
-    "needs-detail",
-    "Needs a day or a detail",
-    cards.filter((c) => c.card.completionAction),
-  );
-  push(
-    "coming-up",
-    "coming-up",
-    "Coming up",
-    cards.filter(
-      (c) => c.card.stateFamily === "ready" || c.card.stateFamily === "happening",
-    ),
-  );
-  push(
-    "someday",
-    "someday",
-    "Someday",
-    cards.filter((c) => c.card.stateFamily === "forming" && !c.card.completionAction),
-  );
+  // Dense-list constitution ordering (P11-3): happening and
+  // needs-you first, then what is taking shape, then later, then
+  // the quiet horizon. Past is not a group at all - it is pills.
   push(
     "action-group",
     "needs-detail",
@@ -609,20 +625,52 @@ export function graphListFromPlans(plans: OpalPlanContract[]): GraphListProjecti
     cards.filter((c) => c.card.stateFamily === "action"),
   );
   push(
-    "past",
-    "past",
-    "Past",
-    cards.filter((c) => c.card.stateFamily === "past"),
+    "coming-up",
+    "coming-up",
+    "Coming up",
+    cards.filter(
+      (c) =>
+        (c.card.stateFamily === "ready" || c.card.stateFamily === "happening") && !isFar(c),
+    ),
   );
+  push(
+    "needs-detail",
+    "needs-detail",
+    "Needs a day or a detail",
+    cards.filter((c) => c.card.completionAction && !isFar(c)),
+  );
+  push(
+    "someday",
+    "someday",
+    "Someday",
+    cards.filter(
+      (c) => c.card.stateFamily === "forming" && !c.card.completionAction && !isFar(c),
+    ),
+  );
+  // P12 far field: far plans summarize into the horizon band - they
+  // never compete with tonight. Action-family far plans stay in
+  // Needs your answer above (a decision is a milestone, P12-4).
+  push(
+    "horizon",
+    "horizon",
+    "On the horizon",
+    cards.filter((c) => isFar(c)),
+  );
+  const pastEntries = cards
+    .filter((c) => c.card.stateFamily === "past")
+    .map((c) => ({ card: c.card, date: pastDateForPlan(c.plan) }));
+  const pastPills = pastPillsFromEntries(pastEntries, now);
   const count = (f: (c: (typeof cards)[number]) => boolean) => cards.filter(f).length;
   return {
     privateCards,
     groups,
+    pastPills,
+    settledInvitations,
     lensCounts: {
       all: cards.length,
       action: count((c) => c.card.stateFamily === "action" || c.card.stateFamily === "forming"),
       ready: count((c) => c.card.stateFamily === "ready" || c.card.stateFamily === "happening"),
-      past: count((c) => c.card.stateFamily === "past"),
+      past: pastEntries.length + settledInvitations.length,
     },
     timelineAvailable: cards.some((c) => Boolean(c.plan.time_label?.trim())),
   };
@@ -663,6 +711,14 @@ export function detailFromPlan(
     nextAction: null,
     activity: [],
     history: [],
+    // P12 spine: from the plan's real completion record + its
+    // missing-slot fact. detailWithHistory re-projects it with the
+    // Who rows when the history read lands.
+    spine: spineFromPlan({
+      plan,
+      missingSlotLabel:
+        familyOfStatus(plan.status) === "forming" ? (missingSlot(plan)?.label ?? null) : null,
+    }),
     origin,
   };
 }
@@ -697,6 +753,15 @@ export function detailWithHistory(
       locationState: person.location_state ?? null,
     })),
     history: history.history.map((row) => ({ line: row.line })),
+    // P12: the spine's answers item needs the real Who rows - it is
+    // re-projected here, from the same history contract, never from
+    // a second source. The plan record itself is not re-read; the
+    // completion steps ride the base detail's spine, so only the
+    // answers item is folded in when someone is still waiting.
+    spine: foldSpineAnswers(
+      detail.spine,
+      history.who.map((w) => ({ name: w.name, responseLabel: w.response_label })),
+    ),
     attendanceLine:
       typeof history.counts.going_count === "number" &&
       typeof history.counts.total_count === "number"
@@ -712,7 +777,11 @@ export function openingFromPlans(
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
-  const cards = plans.map((plan) => ({ plan, card: cardFromPlan(plan) }));
+  // P11 settle: a plan this viewer declined (or that expired) never
+  // asks for attention on the deck - it has settled into history.
+  const cards = plans
+    .filter((plan) => settledKindForPlan(plan) === null)
+    .map((plan) => ({ plan, card: cardFromPlan(plan) }));
   const needsYou = cards
     .filter((c) => c.card.stateFamily === "action")
     .map((c) => c.card);
@@ -867,7 +936,9 @@ export async function homeFromSession(
   }
   const plansResult = await loadPlansResult(bearer);
   // R19 W7: private graphs never enter the Home feed either.
-  const plans = plansResult.plans.filter((p) => p.is_private !== true);
+  const plans = plansResult.plans.filter(
+    (p) => p.is_private !== true && settledKindForPlan(p) === null,
+  );
   // Hunt-fix B-11: the feed reads back what the user and their people
   // actually posted (fetchHomeFeed moments), with plan cards as their
   // own kind. The previous build composed the feed from the user's

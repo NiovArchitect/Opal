@@ -5158,6 +5158,12 @@ export type OpalPlanContract = {
   plan_type?: string;
   online?: boolean;
   time_label?: string | null;
+  /** Repair #19 polish (density/horizon): the record's own instants,
+   *  already on the backend contract (SharedPlan.to_contract). The
+   *  density derivation reads them for time buckets and past pills;
+   *  absent = the plan carries no band, never a guessed one. */
+  start_at?: string | null;
+  completed_at?: string | null;
   source?: string;
   created_by_user_id?: string;
   organizer_name?: string | null;

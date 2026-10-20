@@ -21,6 +21,8 @@ import type { GraphDetailProjection, GraphListProjection } from "./projections";
 import { SharePlanSheet } from "./EventShareCard";
 import { shareCardFromDetail } from "./shellData";
 import { Avatar, EmptyBlock, IconBack } from "./bits";
+import { pastPillsFromCards, type PastPill } from "./density";
+import { PreparationSpine } from "./PreparationSpine";
 
 type Lens = "all" | "action" | "ready" | "past";
 
@@ -97,7 +99,7 @@ export function C2Graphs({
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [dropError, setDropError] = useState<string | null>(null);
   const [dropBusy, setDropBusy] = useState(false);
-  const [pastOpen, setPastOpen] = useState(false);
+  const [expandedPill, setExpandedPill] = useState<string | null>(null);
   // Adoption wave 1 forms (intentions / goals).
   const [intentionFormOpen, setIntentionFormOpen] = useState(false);
   const [intentionPerson, setIntentionPerson] = useState("");
@@ -185,7 +187,59 @@ export function C2Graphs({
       .filter((group) => group.cards.length > 0);
   }, [projection.groups, lens]);
 
-  const totalCards = projection.groups.reduce((n, g) => n + g.cards.length, 0);
+  // Polish P11: past is pills, never a rows group. The projection
+  // carries them (pastPills); a projection built elsewhere that
+  // still carries a past GROUP is collapsed by the same derivation
+  // (density.ts) - undated, so it lands in one honest "Earlier" pill.
+  const pastGroup = projection.groups.find((g) => g.kind === "past");
+  const pastPills: PastPill[] =
+    projection.pastPills ?? (pastGroup ? pastPillsFromCards(pastGroup.cards, new Date()) : []);
+  const settledInvitations = projection.settledInvitations ?? [];
+  const renderGroups = visibleGroups.filter((g) => g.kind !== "past");
+  const totalCards =
+    projection.groups.reduce((n, g) => n + g.cards.length, 0) + pastPills.reduce((n, p) => n + p.count, 0);
+
+  const renderPastPills = () => (
+    <div data-testid="c2-graphs-past-pills">
+      {pastPills.map((pill) => (
+        <div key={pill.id}>
+          <button
+            type="button"
+            className="c2s-btn-text"
+            data-testid="c2-past-pill"
+            data-pill-period={pill.periodLabel}
+            aria-expanded={expandedPill === pill.id}
+            onClick={() => setExpandedPill(expandedPill === pill.id ? null : pill.id)}
+            style={{ width: "100%", textAlign: "left" }}
+          >
+            {pill.periodLabel} - {pill.count} {pill.count === 1 ? "plan" : "plans"}
+            {pill.highlights.length > 0 ? ` - ${pill.highlights.join(", ")}` : ""}
+          </button>
+          {expandedPill === pill.id ? (
+            <div data-testid="c2-past-pill-expanded">
+              {pill.cards.map((card) => (
+                <button
+                  key={card.id}
+                  type="button"
+                  className="c2s-btn-text"
+                  data-testid="c2-past-ledger-row"
+                  onClick={() => events.openGraph(card.id, "graphs")}
+                  style={{ width: "100%", textAlign: "left" }}
+                >
+                  {card.title} - {card.whenLine}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ))}
+      {settledInvitations.map((item) => (
+        <p key={item.id} className="c2s-card-line" data-testid="c2-settled-invitation-line">
+          {item.line}
+        </p>
+      ))}
+    </div>
+  );
 
   return (
     <div data-testid="c2-graphs">
@@ -240,7 +294,7 @@ export function C2Graphs({
             actionLabel="New plan"
             onAction={() => setCreateOpen(true)}
           />
-        ) : visibleGroups.length === 0 && lens !== "past" ? (
+        ) : renderGroups.length === 0 && lens !== "past" && pastPills.length === 0 ? (
           <EmptyBlock
             testId="c2-graphs-lens-empty"
             headline="Nothing coming up."
@@ -254,28 +308,37 @@ export function C2Graphs({
                 <p className="c2s-card-line">
                   Everything that already happened, in the order it settled.
                 </p>
-                {visibleGroups.length === 0 ? (
+                {pastPills.length === 0 && settledInvitations.length === 0 ? (
                   <p className="c2s-card-line" data-testid="c2-graphs-past-empty">
                     Nothing completed yet.
                   </p>
-                ) : null}
+                ) : (
+                  renderPastPills()
+                )}
               </div>
             ) : null}
-            {visibleGroups.map((group) => {
-            const isPast = group.kind === "past";
-            if (isPast && !pastOpen && lens === "all") {
+            {lens !== "past"
+              ? renderGroups.map((group) => {
+            if (group.kind === "horizon") {
+              // P12 far field: distant stones - one quiet line per
+              // far plan, never a full card competing with tonight.
               return (
-                <div key={group.id}>
-                  <button
-                    type="button"
-                    className="c2s-btn-text"
-                    data-testid="c2-graphs-past-toggle"
-                    onClick={() => setPastOpen(true)}
-                    style={{ width: "100%", textAlign: "left" }}
-                  >
-                    Past - {group.cards.length} - show
-                  </button>
-                </div>
+                <section key={group.id} data-testid="c2-graphs-horizon">
+                  <h2 className="c2s-group-title">{group.title}</h2>
+                  {group.cards.map((card) => (
+                    <button
+                      key={card.id}
+                      type="button"
+                      className="c2s-btn-text"
+                      data-testid="c2-horizon-row"
+                      data-presence-weight={card.presence?.weightClass ?? "distant"}
+                      onClick={() => events.openGraph(card.id, "graphs")}
+                      style={{ width: "100%", textAlign: "left", opacity: 0.75 }}
+                    >
+                      {card.title} - {card.whenLine}
+                    </button>
+                  ))}
+                </section>
               );
             }
             return (
@@ -288,7 +351,7 @@ export function C2Graphs({
                     line carries sequence. */}
                 <div className="c2s-thread" data-testid="c2-graphs-thread">
                   {group.cards.map((card) => (
-                    <div key={card.id} className="c2s-thread-row">
+                    <div key={card.id} className="c2s-thread-row" data-presence-weight={card.presence?.weightClass ?? undefined}>
                       <span
                         className="c2s-thread-node"
                         data-plan-state={card.stateFamily}
@@ -334,7 +397,14 @@ export function C2Graphs({
                 </div>
               </section>
             );
-            })}
+              })
+              : null}
+            {lens === "all" && pastPills.length > 0 ? (
+              <section data-testid="c2-graphs-past-section">
+                <h2 className="c2s-group-title">Past</h2>
+                {renderPastPills()}
+              </section>
+            ) : null}
           </>
         )}
 
@@ -519,7 +589,10 @@ export function C2Graphs({
               {projection.adopt1.goals.map((goal) => {
                 // The picker lists the owner's real plans - the same
                 // cards this surface renders from the plan store.
-                const planOptions = projection.groups.flatMap((g) => g.cards);
+                const planOptions = [
+                  ...projection.groups.flatMap((g) => g.cards),
+                  ...(projection.pastPills ?? []).flatMap((p) => p.cards),
+                ];
                 const titleFor = (planId: string) =>
                   planOptions.find((c) => c.id === planId)?.title ?? "A linked plan";
                 return (
@@ -826,6 +899,12 @@ export function C2GraphDetail({
               </p>
             ) : null}
           </div>
+
+          {detail.spine && detail.spine.length > 0 ? (
+            <div className="c2s-detail-section">
+              <PreparationSpine spine={detail.spine} />
+            </div>
+          ) : null}
 
           <div className="c2s-detail-section">
             <p className="c2s-detail-kicker">When</p>

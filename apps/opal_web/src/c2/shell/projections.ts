@@ -156,7 +156,7 @@ export type HomeProjection = {
 export type GraphListProjection = {
   groups: Array<{
     id: string;
-    kind: "needs-detail" | "coming-up" | "with" | "someday" | "past";
+    kind: "needs-detail" | "coming-up" | "with" | "someday" | "past" | "horizon";
     title: string;
     cards: Array<
       PlanCardC2Input & {
@@ -167,9 +167,28 @@ export type GraphListProjection = {
         droppable?: boolean;
         /** R19 W7: true only on cards in privateCards below. */
         isPrivate?: boolean;
+        /** Polish density/horizon: the time-band presence stamp
+         *  from density.ts, or null when the record has no real
+         *  start. The surface renders the weight class; it never
+         *  computes a band itself. */
+        presence?: import("./density").PresenceStamp | null;
+        /** Polish cooling (S2 x P14 limbo): the invitation
+         *  temperature for an open invitation to the viewer, from
+         *  density.ts. Null on cards that are not open invitations. */
+        temperature?: import("./density").InvitationTemperature | null;
       }
     >;
   }>;
+  /** Polish P11 - past, collapsed: period pills (month within the
+   *  last year, year before that), built by density.ts in the one
+   *  adapter. Past plans live ONLY here, never as a rows group.
+   *  Optional for projections built by other clusters' fixtures;
+   *  C2Graphs falls back to the same derivation over a past group. */
+  pastPills?: import("./density").PastPill[];
+  /** Polish P11 - invitations the viewer declined or that expired,
+   *  settled into one summarized history line each. Viewer-private:
+   *  rendered only in the viewer's own past area. */
+  settledInvitations?: import("./density").SettledInvitation[];
   /** R19 W7 — private graphs, separated by the adapter from the
    *  plan contract's is_private flag. They NEVER appear in groups
    *  or lensCounts; the surface renders them only inside the
@@ -232,6 +251,10 @@ export type GraphDetailProjection = {
   nextAction?: { id: string; label: string } | null;
   activity: Array<{ line: string; timeLabel: string }>;
   history: Array<{ line: string }>;
+  /** Polish P12 - the preparation spine (intent -> preparation ->
+   *  event -> settling), projected by density.ts spineFromPlan from
+   *  the plan's real completion record. Absent = no spine renders. */
+  spine?: import("./density").SpineItem[];
   origin: C2Route;
 };
 
