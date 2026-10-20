@@ -1,0 +1,2205 @@
+{
+  "pack": "repair19/pack-v2",
+  "badge": "seed - 95319bd",
+  "tip": "95319bd734e8e487dd450650c66d7378b9dbf921",
+  "pushed_commit": "60d6f8b06486a9abe8f766c4d25cc2b50ebc20be",
+  "tree": "62a6149a3f4a020a597e87e095d36257f6c6217f",
+  "build_tag": "95319bd",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "run_tag": "with everyone after the market",
+  "seed": {
+    "comm": 200,
+    "graph": 200,
+    "gate": "clean (0 hits) - enforced by provisionRenderedSessions scanSeedWorld"
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "order_note": "Settings family captured first and leads the pack order (W5-12). Splash stills+motion live in splash/ (committed splash-capture.mjs, own manifest). Halo/glass probe fields live in probes/ (committed unify-capture.mjs) and are summarized in this manifest's probe_summary.",
+  "surfaces": [
+    {
+      "label": "mode-probe",
+      "mode": "dark",
+      "probe": {
+        "dataMode": "dark",
+        "dataTheme": "dark",
+        "shellBg": "rgb(24, 20, 28)"
+      },
+      "failures": []
+    },
+    {
+      "label": "settings-hub",
+      "mode": "dark",
+      "file": "settings-hub-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-hub-rows",
+      "mode": "dark",
+      "rows": [
+        "edit-profile",
+        "appearance",
+        "your-moments",
+        "your-library",
+        "soul",
+        "memory",
+        "what-opal-remembers",
+        "how-opal-helps",
+        "calls-assist",
+        "approvals-activity",
+        "what-opal-hears",
+        "connections",
+        "connected-sources",
+        "notifications",
+        "privacy",
+        "linked-devices",
+        "location-travel",
+        "care",
+        "account-security",
+        "saved-logins",
+        "invite-code",
+        "delete-account",
+        "help-support"
+      ]
+    },
+    {
+      "label": "settings-edit-profile",
+      "mode": "dark",
+      "file": "settings-edit-profile-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-appearance",
+      "mode": "dark",
+      "file": "settings-appearance-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-your-moments",
+      "mode": "dark",
+      "file": "settings-your-moments-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-your-library",
+      "mode": "dark",
+      "file": "settings-your-library-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-soul",
+      "mode": "dark",
+      "file": "settings-soul-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 1,
+      "failures": [],
+      "clippedSample": [
+        "Opal judges your quiet hours and plan times in this time zon"
+      ]
+    },
+    {
+      "label": "settings-soul-quiet",
+      "mode": "dark",
+      "file": "settings-soul-quiet-on-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "state": "as-found (probe records toggle state in text)",
+      "docOverflow": 0,
+      "clippedCount": 1,
+      "failures": [],
+      "clippedSample": [
+        "Opal judges your quiet hours and plan times in this time zon"
+      ]
+    },
+    {
+      "label": "settings-soul-quiet-toggled",
+      "mode": "dark",
+      "file": "settings-soul-quiet-toggled-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "before": "Opal holds non-urgent things from 10:00 PM to 8:00 AM. People can still reach you - this only holds what Opal itself brings you.",
+      "after": "Quiet hours are off. People can still reach you - this only holds what Opal itself brings you.",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-memory",
+      "mode": "dark",
+      "file": "settings-memory-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-memory-graphing",
+      "mode": "dark",
+      "file": "settings-memory-graphing-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-what-opal-remembers",
+      "mode": "dark",
+      "file": "settings-what-opal-remembers-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-how-opal-helps",
+      "mode": "dark",
+      "file": "settings-how-opal-helps-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-calls-assist",
+      "mode": "dark",
+      "file": "settings-calls-assist-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-approvals-activity",
+      "mode": "dark",
+      "file": "settings-approvals-activity-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-what-opal-hears",
+      "mode": "dark",
+      "file": "settings-what-opal-hears-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-connections",
+      "mode": "dark",
+      "file": "settings-connections-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-connected-sources",
+      "mode": "dark",
+      "file": "settings-connected-sources-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-notifications",
+      "mode": "dark",
+      "file": "settings-notifications-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-privacy",
+      "mode": "dark",
+      "file": "settings-privacy-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-linked-devices",
+      "mode": "dark",
+      "file": "settings-linked-devices-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-location-travel",
+      "mode": "dark",
+      "file": "settings-location-travel-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-care",
+      "mode": "dark",
+      "file": "settings-care-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-account-security",
+      "mode": "dark",
+      "file": "settings-account-security-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-saved-logins",
+      "mode": "dark",
+      "file": "settings-saved-logins-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-invite-code",
+      "mode": "dark",
+      "file": "settings-invite-code-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-delete-account",
+      "mode": "dark",
+      "file": "settings-delete-account-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-delete-account",
+      "mode": "dark",
+      "file": "settings-delete-account-armed-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "note": "ARMED ONLY - confirm NOT clicked; nothing deleted",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-help-support",
+      "mode": "dark",
+      "file": "settings-help-support-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "home",
+      "mode": "dark",
+      "file": "home-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "home-scrolled",
+      "mode": "dark",
+      "file": "home-scrolled-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "center-deck",
+      "mode": "dark",
+      "file": "center-deck-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "center-deck-lit-reveal",
+      "mode": "dark",
+      "file": "center-deck-lit-reveal-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 2,
+      "failures": [],
+      "clippedSample": [
+        "Confirm",
+        "Dismiss"
+      ],
+      "w21_recaptured": true
+    },
+    {
+      "label": "center-orbits-log",
+      "mode": "dark",
+      "file": "center-orbits-log-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "log": {
+        "continuing": true,
+        "orbitGroups": 3,
+        "groupHeaders": [
+          "JEJordan EllisPrivate",
+          "SBSunday brunch at Herb & WoodWho still needs to answer about Sunday brunch?1",
+          "MTMaya TorresHelp me plan something good with Maya for Saturday.2"
+        ],
+        "unanchored": true,
+        "pinned": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-sheet",
+      "mode": "dark",
+      "w28": true,
+      "topup": "final",
+      "failures": [
+        "navigator never appeared (final)"
+      ]
+    },
+    {
+      "label": "center-orbits-log-after",
+      "mode": "dark",
+      "file": "center-orbits-log-after-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-proposal-chip",
+      "mode": "dark",
+      "failures": [
+        "no anchor-proposal rendered in this session (honest absence - recorded, not painted)"
+      ]
+    },
+    {
+      "label": "opal-conversation-overflow",
+      "mode": "dark",
+      "file": "opal-conversation-overflow-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "opal-conversation",
+      "mode": "dark",
+      "file": "opal-conversation-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "file": "chats-list-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": "final",
+      "chats": {
+        "rows": 11,
+        "ties": [
+          "· Close friend",
+          "· Business",
+          "· Partner",
+          "· Friend"
+        ],
+        "rowHeads": [
+          "MTMaya Torres · Close friendSorry I missed you earlier —",
+          "JEJordan EllisOct 19, 11:30 PM",
+          "WCWeekend CrewNext time we start an hour earlier and bea",
+          "ARAlex Rivera · BusinessDeal. I'll bring the blanket tha",
+          "STSunday TableIn. I'll book if we hit five people.Oct 19",
+          "PSPriya ShahThat sounds lovely — let me check what time "
+        ],
+        "searchVisible": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "calls-log",
+      "mode": "dark",
+      "file": "calls-log-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "calls": {
+        "rows": [
+          "JEJordan EllisCanceled call · 4:42 PMHappening nowHappeningFarmers market run - This morni",
+          "CBChanelle BrooksCall couldn't connect · 4:42 PMNeeds your answer◆Action neededSaturday mo",
+          "MTMaya TorresMissed call · 4:42 PMCall backHappeningFarmers market run - This morning · Oc"
+        ],
+        "states": [
+          "Happening now",
+          "Needs your answer",
+          "Call back"
+        ]
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "calls-log-after-callback",
+      "mode": "dark",
+      "file": "calls-log-after-callback-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "before": {
+        "rows": [
+          "JEJordan EllisCanceled call · 4:42 PMHappening nowHappeningFarmers market run - This morni",
+          "CBChanelle BrooksCall couldn't connect · 4:42 PMNeeds your answer◆Action neededSaturday mo",
+          "MTMaya TorresMissed call · 4:42 PMCall backHappeningFarmers market run - This morning · Oc"
+        ],
+        "states": [
+          "Happening now",
+          "Needs your answer",
+          "Call back"
+        ]
+      },
+      "after": {
+        "rows": [
+          "JEJordan EllisCall · 4:46 PMLive nowHappeningFarmers market run - This morning · Oceanside",
+          "JEJordan EllisCanceled call · 4:42 PMHappening nowHappeningFarmers market run - This morni",
+          "CBChanelle BrooksCall couldn't connect · 4:42 PMNeeds your answer◆Action neededSaturday mo",
+          "MTMaya TorresMissed call · 4:42 PMCall backHappeningFarmers market run - This morning · Oc"
+        ],
+        "states": [
+          "Live now",
+          "Happening now",
+          "Needs your answer",
+          "Call back"
+        ],
+        "callSurface": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "thread",
+      "mode": "dark",
+      "file": "thread-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "thread": {
+        "headerText": "‹CBChanelle BrooksPartnerNEXT TOGETHER◆Action neededRooftop drinks at The Brick Hotel - Friday · Sunset - The Brick Hotel, OceansideTalk to Opal about this plan - Rooftop drinks at The Brick HotelOpal",
+        "yourMove": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "thread-scrolled",
+      "mode": "dark",
+      "file": "thread-scrolled-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "thread": {
+        "stripPresent": true,
+        "stripBg": "rgb(24, 20, 28)",
+        "yourMove": true,
+        "opalDoorway": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-profile",
+      "mode": "dark",
+      "file": "person-profile-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "profileText": "CBChanelle Brooks@founder-chanellePartnerIn your close circleWho they are to youPartnerTap to changeNext together▲Action neededRooftop drinks at The Brick HotelFriday · SunsetMessageWhat Opal remember",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "graphs-list",
+      "mode": "dark",
+      "file": "graphs-list-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "graphs": {
+        "cards": 0,
+        "cardText": []
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "graphs-past",
+      "mode": "dark",
+      "failures": [
+        "c2-graphs-past-toggle not found"
+      ]
+    },
+    {
+      "label": "graphs-private-locked",
+      "mode": "dark",
+      "failures": [
+        "c2-graphs-private zone not found"
+      ]
+    },
+    {
+      "label": "graph-detail",
+      "mode": "dark",
+      "w28": true,
+      "topup": true,
+      "failures": [
+        "no visible plan card after 20s wait (top-up)"
+      ]
+    },
+    {
+      "label": "dock-closeup",
+      "mode": "dark",
+      "file": "dock-closeup-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "note": "haloGap/glass/glassPixel/glassPerf numeric probes: see probes/ (unify-capture) + probe_summary"
+    },
+    {
+      "label": "mode-probe",
+      "mode": "light",
+      "probe": {
+        "dataMode": "light",
+        "dataTheme": "light",
+        "shellBg": "rgb(255, 254, 251)"
+      },
+      "failures": []
+    },
+    {
+      "label": "settings-hub",
+      "mode": "light",
+      "file": "settings-hub-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-hub-rows",
+      "mode": "light",
+      "rows": [
+        "edit-profile",
+        "appearance",
+        "your-moments",
+        "your-library",
+        "soul",
+        "memory",
+        "what-opal-remembers",
+        "how-opal-helps",
+        "calls-assist",
+        "approvals-activity",
+        "what-opal-hears",
+        "connections",
+        "connected-sources",
+        "notifications",
+        "privacy",
+        "linked-devices",
+        "location-travel",
+        "care",
+        "account-security",
+        "saved-logins",
+        "invite-code",
+        "delete-account",
+        "help-support"
+      ]
+    },
+    {
+      "label": "settings-edit-profile",
+      "mode": "light",
+      "file": "settings-edit-profile-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-appearance",
+      "mode": "light",
+      "file": "settings-appearance-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-your-moments",
+      "mode": "light",
+      "file": "settings-your-moments-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-your-library",
+      "mode": "light",
+      "file": "settings-your-library-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-soul",
+      "mode": "light",
+      "file": "settings-soul-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 1,
+      "failures": [],
+      "clippedSample": [
+        "Opal judges your quiet hours and plan times in this time zon"
+      ]
+    },
+    {
+      "label": "settings-soul-quiet",
+      "mode": "light",
+      "file": "settings-soul-quiet-on-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "state": "as-found (probe records toggle state in text)",
+      "docOverflow": 0,
+      "clippedCount": 1,
+      "failures": [],
+      "clippedSample": [
+        "Opal judges your quiet hours and plan times in this time zon"
+      ]
+    },
+    {
+      "label": "settings-soul-quiet-toggled",
+      "mode": "light",
+      "file": "settings-soul-quiet-toggled-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "before": "Opal holds non-urgent things from 10:00 PM to 8:00 AM. People can still reach you - this only holds what Opal itself brings you.",
+      "after": "Quiet hours are off. People can still reach you - this only holds what Opal itself brings you.",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-memory",
+      "mode": "light",
+      "file": "settings-memory-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-memory-graphing",
+      "mode": "light",
+      "file": "settings-memory-graphing-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-what-opal-remembers",
+      "mode": "light",
+      "file": "settings-what-opal-remembers-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-how-opal-helps",
+      "mode": "light",
+      "file": "settings-how-opal-helps-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-calls-assist",
+      "mode": "light",
+      "file": "settings-calls-assist-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-approvals-activity",
+      "mode": "light",
+      "file": "settings-approvals-activity-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-what-opal-hears",
+      "mode": "light",
+      "file": "settings-what-opal-hears-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-connections",
+      "mode": "light",
+      "file": "settings-connections-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-connected-sources",
+      "mode": "light",
+      "file": "settings-connected-sources-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-notifications",
+      "mode": "light",
+      "file": "settings-notifications-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-privacy",
+      "mode": "light",
+      "file": "settings-privacy-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-linked-devices",
+      "mode": "light",
+      "file": "settings-linked-devices-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-location-travel",
+      "mode": "light",
+      "file": "settings-location-travel-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-care",
+      "mode": "light",
+      "file": "settings-care-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-account-security",
+      "mode": "light",
+      "file": "settings-account-security-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-saved-logins",
+      "mode": "light",
+      "file": "settings-saved-logins-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-invite-code",
+      "mode": "light",
+      "file": "settings-invite-code-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-delete-account",
+      "mode": "light",
+      "file": "settings-delete-account-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-delete-account",
+      "mode": "light",
+      "file": "settings-delete-account-armed-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "note": "ARMED ONLY - confirm NOT clicked; nothing deleted",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "settings-help-support",
+      "mode": "light",
+      "file": "settings-help-support-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "file": "home-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "home-scrolled",
+      "mode": "light",
+      "file": "home-scrolled-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "center-deck",
+      "mode": "light",
+      "file": "center-deck-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "center-deck-lit-reveal",
+      "mode": "light",
+      "file": "center-deck-lit-reveal-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 2,
+      "failures": [],
+      "clippedSample": [
+        "Confirm",
+        "Dismiss"
+      ],
+      "w21_recaptured": true
+    },
+    {
+      "label": "center-orbits-log",
+      "mode": "light",
+      "file": "center-orbits-log-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "log": {
+        "continuing": true,
+        "orbitGroups": 3,
+        "groupHeaders": [
+          "JEJordan EllisPrivate",
+          "SBSunday brunch at Herb & WoodWho still needs to answer about Sunday brunch?1",
+          "MTMaya TorresHelp me plan something good with Maya for Saturday.2"
+        ],
+        "unanchored": true,
+        "pinned": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-sheet",
+      "mode": "light",
+      "w28": true,
+      "topup": "final",
+      "failures": [
+        "navigator never appeared (final)"
+      ]
+    },
+    {
+      "label": "center-orbits-log-after",
+      "mode": "light",
+      "file": "center-orbits-log-after-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-proposal-chip",
+      "mode": "light",
+      "failures": [
+        "no anchor-proposal rendered in this session (honest absence - recorded, not painted)"
+      ]
+    },
+    {
+      "label": "opal-conversation-overflow",
+      "mode": "light",
+      "file": "opal-conversation-overflow-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "opal-conversation",
+      "mode": "light",
+      "file": "opal-conversation-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "file": "chats-list-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": "final",
+      "chats": {
+        "rows": 11,
+        "ties": [
+          "· Close friend",
+          "· Business",
+          "· Partner",
+          "· Friend"
+        ],
+        "rowHeads": [
+          "MTMaya Torres · Close friendSorry I missed you earlier —",
+          "JEJordan EllisOct 19, 11:30 PM",
+          "WCWeekend CrewNext time we start an hour earlier and bea",
+          "ARAlex Rivera · BusinessDeal. I'll bring the blanket tha",
+          "STSunday TableIn. I'll book if we hit five people.Oct 19",
+          "PSPriya ShahThat sounds lovely — let me check what time "
+        ],
+        "searchVisible": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "calls-log",
+      "mode": "light",
+      "file": "calls-log-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "calls": {
+        "rows": [
+          "JEJordan EllisNo answer · 4:46 PMHappening nowHappeningFarmers market run - This morning ·",
+          "JEJordan EllisCanceled call · 4:42 PMHappening nowHappeningFarmers market run - This morni",
+          "CBChanelle BrooksCall couldn't connect · 4:42 PMNeeds your answer◆Action neededSaturday mo",
+          "MTMaya TorresMissed call · 4:42 PMCall backHappeningFarmers market run - This morning · Oc"
+        ],
+        "states": [
+          "Happening now",
+          "Happening now",
+          "Needs your answer",
+          "Call back"
+        ]
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "calls-log-after-callback",
+      "mode": "light",
+      "file": "calls-log-after-callback-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "before": {
+        "rows": [
+          "JEJordan EllisNo answer · 4:46 PMHappening nowHappeningFarmers market run - This morning ·",
+          "JEJordan EllisCanceled call · 4:42 PMHappening nowHappeningFarmers market run - This morni",
+          "CBChanelle BrooksCall couldn't connect · 4:42 PMNeeds your answer◆Action neededSaturday mo",
+          "MTMaya TorresMissed call · 4:42 PMCall backHappeningFarmers market run - This morning · Oc"
+        ],
+        "states": [
+          "Happening now",
+          "Happening now",
+          "Needs your answer",
+          "Call back"
+        ]
+      },
+      "after": {
+        "rows": [
+          "JEJordan EllisCall · 4:51 PMLive nowHappeningFarmers market run - This morning · Oceanside",
+          "JEJordan EllisNo answer · 4:46 PMHappening nowHappeningFarmers market run - This morning ·",
+          "JEJordan EllisCanceled call · 4:42 PMHappening nowHappeningFarmers market run - This morni",
+          "CBChanelle BrooksCall couldn't connect · 4:42 PMNeeds your answer◆Action neededSaturday mo",
+          "MTMaya TorresMissed call · 4:42 PMCall backHappeningFarmers market run - This morning · Oc"
+        ],
+        "states": [
+          "Live now",
+          "Happening now",
+          "Happening now",
+          "Needs your answer",
+          "Call back"
+        ],
+        "callSurface": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "thread",
+      "mode": "light",
+      "file": "thread-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "thread": {
+        "headerText": "‹CBChanelle BrooksPartnerNEXT TOGETHER◆Action neededRooftop drinks at The Brick Hotel - Friday · Sunset - The Brick Hotel, OceansideTalk to Opal about this plan - Rooftop drinks at The Brick HotelOpal",
+        "yourMove": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "thread-scrolled",
+      "mode": "light",
+      "file": "thread-scrolled-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "thread": {
+        "stripPresent": true,
+        "stripBg": "rgb(255, 254, 251)",
+        "yourMove": true,
+        "opalDoorway": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-profile",
+      "mode": "light",
+      "file": "person-profile-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "profileText": "CBChanelle Brooks@founder-chanellePartnerIn your close circleWho they are to youPartnerTap to changeNext together▲Action neededRooftop drinks at The Brick HotelFriday · SunsetMessageWhat Opal remember",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-profile-close",
+      "mode": "light",
+      "failures": []
+    },
+    {
+      "label": "graphs-list",
+      "mode": "light",
+      "file": "graphs-list-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "graphs": {
+        "cards": 0,
+        "cardText": []
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "graphs-past",
+      "mode": "light",
+      "file": "graphs-past-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graphs-private-locked",
+      "mode": "light",
+      "file": "graphs-private-locked-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graphs-private-unlocked",
+      "mode": "light",
+      "file": "graphs-private-unlocked-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "unlocked": {
+        "error": null,
+        "empty": true,
+        "lockStillThere": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graph-detail",
+      "mode": "light",
+      "file": "graph-detail-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": 2,
+      "detail": {
+        "textHead": "GraphShare○FormingPlan with Dana Kimtomorrow after 10 PM1 of 2 going1 of 2 goingWhentomorrow after 10 PMWho is coming, and where they areMTMaya Torres · Close friendGoing · Not sharing locationDKDana KimWaiting to answer · Not sharing locationAdd peopleSharing your location is per plan and shares where you are right now, once — a snapshot",
+        "whoTies": [
+          "· Close friend"
+        ]
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "share-card",
+      "mode": "light",
+      "file": "share-card-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "dock-closeup",
+      "mode": "light",
+      "file": "dock-closeup-light.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "note": "haloGap/glass/glassPixel/glassPerf numeric probes: see probes/ (unify-capture) + probe_summary"
+    },
+    {
+      "label": "graphs-past",
+      "mode": "dark",
+      "file": "graphs-past-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graphs-private-zone",
+      "mode": "dark",
+      "file": "graphs-private-zone-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graphs-private-locked",
+      "mode": "dark",
+      "file": "graphs-private-locked-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graphs-private-unlocked",
+      "mode": "dark",
+      "file": "graphs-private-unlocked-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "unlocked": {
+        "error": null,
+        "empty": true,
+        "lockStillThere": true
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graph-detail",
+      "mode": "dark",
+      "file": "graph-detail-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": 2,
+      "detail": {
+        "textHead": "GraphShare○FormingPlan with Dana Kimtomorrow after 10 PM1 of 2 going1 of 2 goingWhentomorrow after 10 PMWho is coming, and where they areMTMaya Torres · Close friendGoing · Not sharing locationDKDana KimWaiting to answer · Not sharing locationAdd peopleSharing your location is per plan and shares where you are right now, once — a snapshot",
+        "whoTies": [
+          "· Close friend"
+        ]
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "share-card",
+      "mode": "dark",
+      "file": "share-card-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-group-expanded",
+      "mode": "dark",
+      "probe": {
+        "openSheetBtns": 0,
+        "rows": 4
+      },
+      "failures": []
+    },
+    {
+      "label": "center-orbits-log-expanded",
+      "mode": "dark",
+      "file": "center-orbits-log-expanded-dark.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "graphs-private-zone",
+      "mode": "light",
+      "file": "graphs-private-zone-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-group-expanded",
+      "mode": "light",
+      "probe": {
+        "openSheetBtns": 0,
+        "rows": 4
+      },
+      "failures": []
+    },
+    {
+      "label": "center-orbits-log-expanded",
+      "mode": "light",
+      "file": "center-orbits-log-expanded-light.png",
+      "stamp": "79000ace30322ac752c0d75c18403f380935ecd0",
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-private-gate",
+      "mode": "dark",
+      "w28": true,
+      "failures": [
+        "c2-opening-talk not found (w28)"
+      ]
+    },
+    {
+      "label": "orbit-sheet",
+      "mode": "dark",
+      "file": "orbit-sheet-dark.png",
+      "failures": [],
+      "topup": true,
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w29": true,
+      "w29_recaptured": true,
+      "orbitTie": "· Family - Sibling",
+      "sheetHead": "Jordan Ellis · Family - SiblingPlans and Opal conversations about this person. Opal chats live here, never in your chat thread with them.OPAL CONVERSATIONSJust between us — JordanKeep this one between us: a surprise for Jordan.Oct 20, 1:58 AMArchiveRemoveStart a new Opal chat about Jordan EllisMake this orbit not privateClose",
+      "via": "Jordan Ellis private orbit group -> passcode unlock (2468, set-and-open on the fresh capture account) -> header re-tap expands the group -> 'Open this person's orbit' (orbit-open-sheet) in the expanded group"
+    },
+    {
+      "label": "orbit-sheet-private",
+      "mode": "dark",
+      "file": "orbit-sheet-private-dark.png",
+      "failures": [],
+      "topup": true,
+      "w21_recaptured": true
+    },
+    {
+      "label": "orbit-private-gate",
+      "mode": "light",
+      "w28": true,
+      "failures": [
+        "c2-opening-talk not found (w28)"
+      ]
+    },
+    {
+      "label": "orbit-sheet",
+      "mode": "light",
+      "file": "orbit-sheet-light.png",
+      "failures": [],
+      "topup": true,
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w29": true,
+      "w29_recaptured": true,
+      "orbitTie": "· Family - Sibling",
+      "sheetHead": "Jordan Ellis · Family - SiblingPlans and Opal conversations about this person. Opal chats live here, never in your chat thread with them.OPAL CONVERSATIONSJust between us — JordanKeep this one between us: a surprise for Jordan.Oct 20, 1:58 AMArchiveRemoveStart a new Opal chat about Jordan EllisMake this orbit not privateClose",
+      "via": "Jordan Ellis private orbit group -> passcode unlock (2468, set-and-open on the fresh capture account) -> header re-tap expands the group -> 'Open this person's orbit' (orbit-open-sheet) in the expanded group"
+    },
+    {
+      "label": "orbit-sheet-private",
+      "mode": "light",
+      "file": "orbit-sheet-private-light.png",
+      "failures": [],
+      "topup": true,
+      "w21_recaptured": true
+    },
+    {
+      "label": "incall-ringing-outgoing-live",
+      "mode": "dark",
+      "file": "incall-ringing-outgoing-dark.png",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "inspection": "FINDING F5: this frame is the calls log after Call-back attempts, not a ringing surface - the headless two-context call never reached an answerable state (incoming probe: overlay/surface/answer all false). In-call frames are OWED to a device walk; not passed as in-call proof."
+    },
+    {
+      "label": "incall-incoming-probe",
+      "mode": "dark",
+      "probe": {
+        "overlay": false,
+        "surface": false,
+        "answer": false
+      }
+    },
+    {
+      "label": "incall-connected",
+      "mode": "dark",
+      "failures": [
+        "B's call-answer control not reachable - call did not progress to answerable state in headless fake-media session; ringing frames + probes stand as the evidence"
+      ]
+    },
+    {
+      "label": "orbit-proposal-chip",
+      "mode": "dark",
+      "file": "orbit-proposal-chip-dark.png",
+      "proposal": "About Maya Torres?YesChoose different",
+      "failures": [],
+      "w21": true,
+      "topup": true,
+      "w21_recaptured": true,
+      "w21_new_to_pack": true
+    },
+    {
+      "label": "orbit-proposal-chip",
+      "mode": "light",
+      "file": "orbit-proposal-chip-light.png",
+      "proposal": "About Maya Torres?YesChoose different",
+      "failures": [],
+      "w21": true,
+      "topup": true,
+      "w21_recaptured": true,
+      "w21_new_to_pack": true
+    },
+    {
+      "label": "story-viewer",
+      "mode": "dark",
+      "file": "story-viewer-dark.png",
+      "viewer": {
+        "tag": "IMG",
+        "nw": 640,
+        "authed": "blob",
+        "caption": "Flower stall haul at the market this morning",
+        "imgRect": {
+          "l": 12,
+          "r": 378,
+          "t": 81,
+          "b": 832
+        },
+        "wellRect": {
+          "l": 12,
+          "r": 378,
+          "t": 81,
+          "b": 832
+        }
+      },
+      "failures": [],
+      "w21": true,
+      "w21_recaptured": true,
+      "w21_new_to_pack": true
+    },
+    {
+      "label": "story-viewer",
+      "mode": "light",
+      "file": "story-viewer-light.png",
+      "viewer": {
+        "tag": "IMG",
+        "nw": 640,
+        "authed": "blob",
+        "caption": "Flower stall haul at the market this morning",
+        "imgRect": {
+          "l": 12,
+          "r": 378,
+          "t": 81,
+          "b": 832
+        },
+        "wellRect": {
+          "l": 12,
+          "r": 378,
+          "t": 81,
+          "b": 832
+        }
+      },
+      "failures": [],
+      "w21": true,
+      "w21_recaptured": true,
+      "w21_new_to_pack": true
+    },
+    {
+      "label": "f4-reveal-title-probe",
+      "mode": "dark",
+      "probe": [],
+      "failures": [],
+      "w21": true
+    },
+    {
+      "label": "person-identify-family",
+      "mode": "dark",
+      "file": "person-identify-family-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-profile-family",
+      "mode": "dark",
+      "file": "person-profile-family-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "profileText": "JEJordan Ellis@user-jordanFamily - SiblingIn your close circleWho they are to youFamily - SiblingTap to changeMessageWhat Opal remembersDone",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "thread-family",
+      "mode": "dark",
+      "file": "thread-family-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "thread": {
+        "headerText": "‹JEJordan EllisFamily - SiblingOpal chats about Jordan Ellis",
+        "yourMove": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-identify-picker",
+      "mode": "dark",
+      "file": "person-identify-picker-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "chats-list-filtered",
+      "mode": "dark",
+      "w28": true,
+      "topup": true,
+      "failures": [
+        "chats-search not visible (top-up); diag testids=[\"c2-side-chats\",\"c2-route-chats\",\"c2-c1-chats-host\",\"people-chats-list\",\"chats-new-chat\",\"chats-segment-calls\",\"chats-search\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"c2-dock-chats\"] searchEl={\"tag\":\"INPUT\",\"visible\":true,\"rect\":{\"x\":20,\"y\":139,\"width\":350,\"height\":48,\"top\":139,\"right\":370,\"bottom\":187,\"left\":20}}"
+      ]
+    },
+    {
+      "label": "chats-new-picker",
+      "mode": "dark",
+      "w28": true,
+      "topup": true,
+      "failures": [
+        "chats-new-chat not found (top-up)"
+      ]
+    },
+    {
+      "label": "thread-family",
+      "mode": "light",
+      "w28": true,
+      "failures": [
+        "Jordan Ellis thread did not open from chats list"
+      ]
+    },
+    {
+      "label": "thread",
+      "mode": "light",
+      "w28": true,
+      "failures": [
+        "Chanelle Brooks thread did not open (w28)"
+      ]
+    },
+    {
+      "label": "chats-list-filtered",
+      "mode": "light",
+      "w28": true,
+      "topup": true,
+      "failures": [
+        "chats-search not visible (top-up); diag testids=[\"c2-side-chats\",\"c2-route-chats\",\"c2-c1-chats-host\",\"people-chats-list\",\"chats-new-chat\",\"chats-segment-calls\",\"chats-search\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"chats-row\",\"chats-row\",\"chats-row-tie\",\"chats-row\",\"c2-dock-chats\"] searchEl={\"tag\":\"INPUT\",\"visible\":true,\"rect\":{\"x\":20,\"y\":139,\"width\":350,\"height\":48,\"top\":139,\"right\":370,\"bottom\":187,\"left\":20}}"
+      ]
+    },
+    {
+      "label": "chats-new-picker",
+      "mode": "light",
+      "w28": true,
+      "topup": true,
+      "failures": [
+        "chats-new-chat not found (top-up)"
+      ]
+    },
+    {
+      "label": "graph-detail",
+      "mode": "light",
+      "w28": true,
+      "topup": true,
+      "failures": [
+        "no visible plan card after 20s wait (top-up)"
+      ]
+    },
+    {
+      "label": "thread-ignition-motion",
+      "mode": "dark",
+      "w28": true,
+      "frames": 990,
+      "failures": [
+        "attempt 1: screencast frames never left the chats list (row click did not open the thread inside the screencast window); no webm shipped for attempt 1 - superseded by the w28 top-up attempt record"
+      ]
+    },
+    {
+      "label": "orbit-private-gate",
+      "mode": "dark",
+      "file": "orbit-private-gate-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "gate": {
+        "promptRect": {
+          "y": 0,
+          "h": 844
+        },
+        "input": true,
+        "submit": true
+      },
+      "note": "the unlock prompt open state IS the private gate on the final tip (W25 FA-02); the recipe does not separate a second prompt frame",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-profile-family",
+      "mode": "light",
+      "file": "person-profile-family-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": "lightfamily",
+      "profileText": "JEJordan Ellis@user-jordanWho they are to youHow do you know them?Say who they are to youMessageWhat Opal remembersDone",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": [],
+      "w29_superseded": "superseded by the verified W29 record appended at the end of surfaces (this record’s in-run profile text did NOT show the tie)"
+    },
+    {
+      "label": "thread-family",
+      "mode": "light",
+      "file": "thread-family-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "thread": {
+        "headerText": "‹JEJordan EllisFamily - SiblingOpal chats about Jordan Ellis",
+        "yourMove": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-identify-picker",
+      "mode": "light",
+      "file": "person-identify-picker-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "orbit-private-gate",
+      "mode": "light",
+      "file": "orbit-private-gate-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": true,
+      "gate": {
+        "promptRect": {
+          "y": 0,
+          "h": 844
+        },
+        "input": true,
+        "submit": true
+      },
+      "note": "the unlock prompt open state IS the private gate on the final tip (W25 FA-02); the recipe does not separate a second prompt frame",
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "thread-ignition-motion",
+      "mode": "dark",
+      "w28": true,
+      "topup": true,
+      "file": "thread-ignition-dark.webm",
+      "frames": 100,
+      "threadMounted": true,
+      "yourMovePresent": true,
+      "failures": []
+    },
+    {
+      "label": "chats-list-filtered",
+      "mode": "dark",
+      "file": "chats-list-filtered-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": 2,
+      "filtered": {
+        "rows": [
+          "JEJordan EllisOct 19, 11:30 PM",
+          "JGJordan Saturday GraphOct 19, 11:29 PM◆Your moveactionSatur"
+        ],
+        "empty": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "chats-new-picker",
+      "mode": "dark",
+      "file": "chats-new-picker-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": 2,
+      "picker": {
+        "emptyState": false
+      },
+      "docOverflow": 0,
+      "clippedCount": null,
+      "failures": []
+    },
+    {
+      "label": "chats-list-filtered",
+      "mode": "light",
+      "file": "chats-list-filtered-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": 2,
+      "filtered": {
+        "rows": [
+          "JEJordan EllisOct 19, 11:30 PM",
+          "JGJordan Saturday GraphOct 19, 11:29 PM◆Action neededSaturda"
+        ],
+        "empty": false
+      },
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "chats-new-picker",
+      "mode": "light",
+      "file": "chats-new-picker-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": "pickerlight",
+      "picker": {
+        "emptyState": false
+      },
+      "failures": [],
+      "docOverflow": 0
+    },
+    {
+      "label": "w28-topup4-run",
+      "mode": "light",
+      "w28": true,
+      "topup": 4,
+      "failures": [
+        "Error: page.waitForTimeout: Target page, context or browser has been closed"
+      ]
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "w28": true,
+      "topup": "final",
+      "failures": [
+        "restore shot withheld: rows=11 ties=0 (final)"
+      ]
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "w28": true,
+      "topup": "final",
+      "failures": [
+        "restore shot withheld: rows=11 ties=0 (final)"
+      ]
+    },
+    {
+      "label": "w28-final-run",
+      "mode": "light",
+      "w28": true,
+      "topup": "final",
+      "failures": [
+        "Error: page.waitForTimeout: Target page, context or browser has been closed"
+      ]
+    },
+    {
+      "label": "person-identify-family",
+      "mode": "light",
+      "file": "person-identify-family-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w28": true,
+      "topup": "lightfamily2",
+      "failures": []
+    },
+    {
+      "label": "person-profile-family",
+      "mode": "light",
+      "w28": true,
+      "topup": "lightfamily2",
+      "failures": [
+        "attempt 2 did not verify the tie in-run; the file on disk from attempt 1 does NOT show the tie (its own record says so) - treat the light family-profile frame as NOT CAPTURED; dark frame + in-run verified dark/light profile text from the +101/+111 runs are the evidence"
+      ]
+    },
+    {
+      "label": "orbit-sheet",
+      "mode": "dark",
+      "file": "orbit-sheet-dark.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w29": true,
+      "via": "Jordan Ellis private orbit group -> passcode unlock (2468, set-and-open on the fresh capture account) -> header re-tap expands the group -> 'Open this person's orbit' (orbit-open-sheet) in the expanded group",
+      "probe": {
+        "mounted": true,
+        "visible": true,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        },
+        "tie": "· Family - Sibling",
+        "text": "Jordan Ellis · Family - SiblingPlans and Opal conversations about this person. Opal chats live here, never in your chat thread with them.OPAL CONVERSATIONSJust between us — JordanKeep this one between us: a surprise for Jordan.Oct 20, 1:58 AMArchiveRemoveStart a new Opal chat about Jordan EllisMake this orbit not privateClose"
+      },
+      "unlock": {
+        "promptSeen": true,
+        "promptGoneAfterSubmit": true
+      },
+      "navigator": "center-chat-navigator appeared after ~2s polling on the quiet stack (W28: never appeared in six attempts)",
+      "fileSize": 112108,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "orbit-sheet",
+      "mode": "light",
+      "file": "orbit-sheet-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w29": true,
+      "via": "Jordan Ellis private orbit group -> passcode unlock (2468, set-and-open on the fresh capture account) -> header re-tap expands the group -> 'Open this person's orbit' (orbit-open-sheet) in the expanded group",
+      "probe": {
+        "mounted": true,
+        "visible": true,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        },
+        "tie": "· Family - Sibling",
+        "text": "Jordan Ellis · Family - SiblingPlans and Opal conversations about this person. Opal chats live here, never in your chat thread with them.OPAL CONVERSATIONSJust between us — JordanKeep this one between us: a surprise for Jordan.Oct 20, 1:58 AMArchiveRemoveStart a new Opal chat about Jordan EllisMake this orbit not privateClose"
+      },
+      "unlock": {
+        "promptSeen": true,
+        "promptGoneAfterSubmit": true
+      },
+      "navigator": "center-chat-navigator appeared after ~2s polling on the quiet stack (W28: never appeared in six attempts)",
+      "fileSize": 111443,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    },
+    {
+      "label": "person-profile-family",
+      "mode": "light",
+      "file": "person-profile-family-light.png",
+      "stamp": "95319bd734e8e487dd450650c66d7378b9dbf921",
+      "w29": true,
+      "profileText": "JEJordan Ellis@user-jordanFamily - SiblingIn your close circleWho they are to youFamily - SiblingTap to changeMessageWhat Opal remembersDone",
+      "verified": {
+        "put": {
+          "method": "PUT",
+          "url": "/api/v1/product/relationships/a2222222-2222-4222-8222-222222222222",
+          "status": 200,
+          "note": "observed on the page network log after the Save click (via the :5173 proxy origin)"
+        },
+        "readBack": "profile text read back in-run BEFORE the shot: 'Family - Sibling' + 'In your close circle' (polled, appeared within the first polling window after Save)"
+      },
+      "fileSize": 85934,
+      "docOverflow": 0,
+      "clippedCount": 0,
+      "failures": []
+    }
+  ],
+  "notes": [],
+  "probe_summary": {
+    "source": "probes/manifest-unify.json (W3 unify-capture probe fields, re-run on the pack build)",
+    "modes": {
+      "dark": {
+        "haloGap": {
+          "left": 3.78,
+          "right": 3.78,
+          "chordHalf": 15.22,
+          "centerDepth": 23.5,
+          "pass": true
+        },
+        "glass": {
+          "backdropFilter": "blur(18px) saturate(1.35)",
+          "tint": "rgba(32, 26, 39, 0.62)",
+          "tintAlpha": 0.62,
+          "blurToken": "18px",
+          "pass": true
+        },
+        "glassPixel": {
+          "stripHF": [
+            0.01,
+            0.24
+          ],
+          "glassHF": 0.13,
+          "controlHF": 1.91,
+          "ratio": 0.066,
+          "pass": true
+        },
+        "glassPerf": {
+          "frames": 60,
+          "p95ms": 16.7,
+          "maxMs": 16.8
+        }
+      },
+      "light": {
+        "haloGap": {
+          "left": 3.78,
+          "right": 3.78,
+          "chordHalf": 15.22,
+          "centerDepth": 23.5,
+          "pass": true
+        },
+        "glass": {
+          "backdropFilter": "blur(18px) saturate(1.35)",
+          "tint": "rgba(255, 254, 251, 0.68)",
+          "tintAlpha": 0.68,
+          "blurToken": "18px",
+          "pass": true
+        },
+        "glassPixel": {
+          "stripHF": [
+            0.03,
+            0.22
+          ],
+          "glassHF": 0.13,
+          "controlHF": 1.62,
+          "ratio": 0.078,
+          "pass": true
+        },
+        "glassPerf": {
+          "frames": 60,
+          "p95ms": 16.8,
+          "maxMs": 16.8
+        }
+      }
+    },
+    "verdict": "PASS both modes: halo gap 3.78px both sides; glass blur(18px) saturate(1.35) with per-mode tint (dark rgba(32,26,39,0.62), light rgba(255,254,251,0.68)); glassPixel ratio 0.066 dark / 0.078 light; glassPerf 60 frames p95 16.7-16.8ms."
+  },
+  "splash_summary": {
+    "source": "splash/manifest.json",
+    "motion_fidelity": "PASS - videoMethod cdp-screencast+ffmpeg-vfr in both modes (dark 880 frames/18.8s/46.8 avgFps; light 902 frames/18.5s/48.6 avgFps); NO recordVideo fallback.",
+    "settled": "both modes: margin contained 14px all sides, SMIL animate counts 0, restPoints 6, Enter Opal exactly once on splash-2, lockup stacked (centerDeltaX 0).",
+    "living": "rotor sweeps -60deg -> 0deg over 15000ms, 4 circle points (true-gyro frames in both modes).",
+    "reduced_motion": "captured in dark (prefers-reduced-motion still); light reduced-motion still not captured (script covers dark only) - declared gap."
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "kind": "defect",
+      "title": "Seeded real plan imagery unreachable at the rendered layer (bearer-gated media endpoint vs plain img tag)",
+      "rows": "W5-02 / JA-12 / BS-05",
+      "evidence": "home + home-scrolled frames both modes; manifest home probe images=0 of 10 cards; media GET 401 unauthenticated / 200 with bearer (verified via API probe)"
+    },
+    {
+      "id": "F2",
+      "kind": "defect",
+      "title": "Dark-mode primary buttons render near-white with white label text (illegible)",
+      "rows": "rendered-proof",
+      "evidence": "person-profile-dark (Message), share-card-dark (Copy details), graphs-private-unlocked-dark (Working toward slab); light frames clean"
+    },
+    {
+      "id": "F3",
+      "kind": "defect",
+      "title": "Call-log rows clip plan-awareness pill text mid-word and truncate names against the status column at 390px",
+      "rows": "W5-06 / JA-03 class",
+      "evidence": "calls-log-dark, calls-log-after-callback-light, incall-ringing-outgoing-dark frames"
+    },
+    {
+      "id": "F4",
+      "kind": "defect-minor",
+      "title": "Center NEEDS YOU queue card titles clip single-line without ellipsis",
+      "rows": "W5-09",
+      "evidence": "center-deck-lit-reveal-dark frame"
+    },
+    {
+      "id": "F5",
+      "kind": "environment-gap",
+      "title": "Connected in-call state unreachable in headless two-context fake-media; in-call graphing/paused frames owed to a device walk",
+      "rows": "W5-12 / F-16",
+      "evidence": "incall-incoming-probe all false; incall-connected failure recorded in manifest"
+    },
+    {
+      "id": "F6",
+      "kind": "observation",
+      "title": "Orbits rail settle frame labels all group subtitles \"Private\" until anchor details resolve; orbit-sheet Make-private click shows no visible state change in the after frame",
+      "rows": "JA-10",
+      "evidence": "center-orbits-log vs center-orbits-log-expanded frames; orbit-sheet vs orbit-sheet-private frames"
+    },
+    {
+      "id": "F7",
+      "kind": "build-config hazard",
+      "title": "Web build without VITE_OPAL_SHELL=c2 serves the C2 shell with no data-mode application on the default path (always-light first paint; in-app Appearance still works). Pack build was produced with the documented flag; served-build verification should assert data-mode on the plain path.",
+      "rows": "JA-08",
+      "evidence": "W11 mode probes on the unflagged build (data-mode null in all contexts) vs flagged build (dark ground #0d0b12, shell rgb(24,20,28))"
+    },
+    {
+      "id": "ABS-1",
+      "kind": "honest-absence",
+      "title": "Orbit anchor-proposal chip did not render in this seeded session (every seeded Opal session is already anchored); recorded, not painted.",
+      "rows": "JA-01",
+      "evidence": "orbit-proposal-chip manifest records, both modes"
+    }
+  ],
+  "inventory": {
+    "root_png": 107,
+    "splash_png": 13,
+    "probes_png": 16,
+    "motion_webm": 2,
+    "total_stills": 136,
+    "total_files": 138
+  },
+  "pack_order_note": "Settings family leads the surface order in this manifest (settings-* records first per mode), per the W11 brief.",
+  "branch": "muse/repair-19",
+  "pack_badge": "seed - 9a0a1be (frames carry their own capture stamps; see w21_recapture)",
+  "w21_recapture": {
+    "wave": "W21-PACKFIX",
+    "final_tip": "9a0a1be4ca892cb66957cab94156d154994e8a39",
+    "pushed_commit": "e1154696a583c46f84bc48b48a96984af598ce50",
+    "tree_verified": "remote tree == local tip tree 832a3604e10fd0803f5b30750a56d1c983869e15 (7,014 entries)",
+    "note": "Frames replaced on the W21 build for F1/F2/F3/F4/F6/ABS-1 surfaces. Most were captured on build 79000ac / 584ad7e / d5e1d59 during the follow-through iterations; the web diff between those builds and the final tip is confined to the story-viewer CSS + caption tokens, and both story-viewer frames were re-shot on the final build 9a0a1be. Settings, splash, in-call and dock frames were NOT recaptured (untouched by W21); splash settle + plain-entry data-mode were re-verified by probe on the final build (dark rgb(13, 11, 18), light rgb(255, 254, 251)).",
+    "replaced_files": [
+      "calls-log-after-callback-dark.png",
+      "calls-log-after-callback-light.png",
+      "calls-log-dark.png",
+      "calls-log-light.png",
+      "center-deck-dark.png",
+      "center-deck-light.png",
+      "center-deck-lit-reveal-dark.png",
+      "center-deck-lit-reveal-light.png",
+      "center-orbits-log-after-dark.png",
+      "center-orbits-log-after-light.png",
+      "center-orbits-log-dark.png",
+      "center-orbits-log-expanded-dark.png",
+      "center-orbits-log-expanded-light.png",
+      "center-orbits-log-light.png",
+      "chats-list-dark.png",
+      "chats-list-light.png",
+      "graph-detail-dark.png",
+      "graph-detail-light.png",
+      "graphs-list-dark.png",
+      "graphs-list-light.png",
+      "graphs-past-dark.png",
+      "graphs-past-light.png",
+      "graphs-private-locked-dark.png",
+      "graphs-private-locked-light.png",
+      "graphs-private-unlocked-dark.png",
+      "graphs-private-unlocked-light.png",
+      "graphs-private-zone-dark.png",
+      "graphs-private-zone-light.png",
+      "home-dark.png",
+      "home-light.png",
+      "home-scrolled-dark.png",
+      "home-scrolled-light.png",
+      "opal-conversation-dark.png",
+      "opal-conversation-light.png",
+      "opal-conversation-overflow-dark.png",
+      "opal-conversation-overflow-light.png",
+      "orbit-proposal-chip-dark.png",
+      "orbit-proposal-chip-light.png",
+      "orbit-sheet-dark.png",
+      "orbit-sheet-light.png",
+      "orbit-sheet-private-dark.png",
+      "orbit-sheet-private-light.png",
+      "person-profile-dark.png",
+      "person-profile-light.png",
+      "share-card-dark.png",
+      "share-card-light.png",
+      "story-viewer-dark.png",
+      "story-viewer-light.png"
+    ],
+    "new_files": [
+      "story-viewer-dark.png",
+      "story-viewer-light.png",
+      "orbit-proposal-chip-dark.png",
+      "orbit-proposal-chip-light.png"
+    ],
+    "f1_pixel_proof": "Home probes: images 10 / imagesLoaded 10 in BOTH modes (was 0/0); story viewer IMG blob: complete naturalWidth=640, img rect == well rect (12,81)-(378,832)."
+  },
+  "w28_recapture": {
+    "wave": "W28-CLOSE (final tip 95319bd7, pushed 60d6f8b0, tree 62a6149a verified 7022 entries)",
+    "recipe": "final build served (Phoenix :4000 from wt-repair18 tip, vite preview :5173 of the VITE_OPAL_SHELL=c2 build), fresh review accounts in the human seed world, run tag 'with everyone after the market', 390x844, both modes; seed gate clean on every provisioning",
+    "replaced": [
+      "home-dark.png, home-light.png (W27 ambient: state borders canon, fire scarce, coalescence)",
+      "center-deck-dark.png, center-deck-light.png (W27 ambient: state rule + lit register)",
+      "thread-dark.png, thread-light.png (Chanelle Brooks thread: header tie 'Partner' replaces the repeated name, DL-14; YOUR MOVE resting frame in view)",
+      "person-profile-dark.png, person-profile-light.png (tie line singular + 'In your close circle' cue + 'Who they are to you' row, W24)",
+      "graphs-list-dark.png, graphs-list-light.png (cards name people via who_label + state edge, W24 DL-06 / W27 AT-13)",
+      "graph-detail-dark.png, graph-detail-light.png (roster who-ties rendered, probe whoTies ['- Close friend'], W24 DL-06)",
+      "chats-list-dark.png, chats-list-light.png (tie cues beside names - Maya '- Close friend', Chanelle '- Partner', Sabrina '- Friend', Alex '- Business'; FA-01 search field visible; probe rows=11, searchVisible=true)",
+      "orbit-private-gate-dark.png, orbit-private-gate-light.png (W25 FA-02 on the final tip: unlock prompt is a full fixed overlay, probe promptRect y=0 h=844, input hittable=true, submit hittable=true, both modes). The unlock prompt open state IS the private gate on the final tip; the recipe does not separate a second prompt frame."
+    ],
+    "new_frames": [
+      "person-identify-picker-dark.png, person-identify-picker-light.png (identification picker OPEN, progressive-depth type-list face, W24)",
+      "person-identify-family-dark.png, person-identify-family-light.png (Family subtype face, opened live through the picker, W24)",
+      "person-profile-family-dark.png (Jordan Ellis profile reading 'Family - Sibling' + 'In your close circle' after the live picker set, verified in-run; the LIGHT counterpart is declared below)",
+      "thread-family-dark.png, thread-family-light.png (Jordan Ellis thread after the same live set)",
+      "chats-list-filtered-dark.png, chats-list-filtered-light.png (FA-01 exercised at the rendered layer: search 'Jordan' narrows the list in place)",
+      "chats-new-picker-dark.png, chats-new-picker-light.png (new-chat picker populated from the one people universe, tie sub-lines, W24 DL-04)",
+      "thread-ignition-dark.webm (motion, CDP screencast + ffmpeg: 100 frames, 4.16s - the lit reveal's mount ignition on thread open, W27 AT-04; the thread probe during the capture records yourMovePresent=true)"
+    ],
+    "declared_not_recaptured": [
+      "person-profile-family-light.png: NOT CAPTURED in a verified state - the file has been removed rather than ship an unset profile under a family name. Two in-run light attempts (+113, +114) opened the picker and the subtype face (person-identify-family-light.png IS captured), but the Save click produced no PUT on the capture stack and the profile never read back the tie in-run; on the +101/+111 accounts the same path verified in dark AND light in-run earlier the same day (capture logs record the profile text 'Family - Sibling / In your close circle' in both modes), and thread-family-light.png stands from the +111 set. The dark verified frame + both identify-family frames carry the surface.",
+      "orbit-sheet-dark.png / orbit-sheet-light.png: NOT replaced - they remain the W11 captures. Six W28 attempts (gate unlock flow + group expansion, both modes) could not reach the sheet: the Center conversation navigator (center-chat-navigator) never appeared within polling windows on the shared, contended capture stack (measured API accept latency up to 26s under sibling test-suite load). The W24 orbit tie itself (orbit-sheet-tie beside the anchor person's name) is proven by the W24 diffix test pins; the FA-02 gate that guards the private sheet IS recaptured above with hittability probes.",
+      "Ignition motion is the MOUNT ignition of the lit reveal (AT-04). A live remote-crossing capture (AT-03 repaint + AT-05 dock echo driven by a second account acting mid-screencast) was not drivable in this harness: the browser recipe seats one review account; the second account is API-only. Declared here instead of staged.",
+      "Jordan Ellis's 'Family - Sibling' cue does not appear as a chats-row tie in the final chats-list frames: those frames were shot on the +121 capture account (seed ties only), while the live set was proven on the +101/+111 capture accounts (profile/thread frames above + capture-log row evidence 'Jordan Ellis - Family - Sibling' in the +111 light list). The seed deliberately carries no family tie (W24 DL-13 correction: a seed family row breaks FR-B3-01's sweep world)."
+    ],
+    "capture_accounts": "primary +12025550101 (main pass), +12025550111 (top-up 1/2 + light restore), +12025550121 (top-up 3/4/final list frames), +12025550113 (light family face). All fresh review accounts in the same human seed world, same run tag.",
+    "environment_note": "Capture ran on a shared VM under sibling test-suite load with repeated stack reaps (Postgres cluster, /tmp deps, Phoenix) - all recovered from persistent dirs; every frame above is stamped with the served build's git HEAD (95319bd7) in its surface record.",
+    "w29_resolution": "Both declared_not_recaptured capture gaps are RESOLVED by W29-ORBITSHOT - see the top-level w29_recapture block for the per-frame evidence, paths, and probes. The ignition live-crossing declaration and the chats-row family-cue note in this block are untouched (not W29 scope)."
+  },
+  "w29_recapture": {
+    "wave": "W29-ORBITSHOT (capture-retry on the quiet stack, final tip 95319bd7)",
+    "recipe": "Phoenix from wt-r19-orbitshot (tip 95319bd7) on :4000, fresh DB opal_dev_r19w29 (113 migrations, max 20261030010002) + human seed world (seed gate clean: comm=200 graph=200 on every provisioning), VITE_OPAL_SHELL=c2 build served on :5173, headless Chromium 390x844, fresh synthetic review account +12025550101, run tag 'with everyone after the market', OPAL_CLOCK_OVERRIDE pinned 2026-10-18T21:00:00Z",
+    "resolved": [
+      "orbit-sheet-dark.png / orbit-sheet-light.png: REPLACED - no longer the W11 captures. Path (both modes): Center -> c2-opening-talk -> center-chat-navigator (appeared after ~2s of polling; W28's blocker did not recur on the quiet stack) -> Jordan Ellis orbit group (Private) -> orbit-unlock-prompt passcode flow (code 2468; set-and-open on the fresh account; probe: promptSeen=true, promptGoneAfterSubmit=true, no error) -> header re-tap expands the group (data-expanded=true, 1 session row, 1 orbit-open-sheet button) -> 'Open this person's orbit'. Probe-verified before shooting: [data-testid=orbit-sheet] mounted+visible, rect 390x844 at (0,0); orbit-sheet-tie text '· Family - Sibling'. Frame content (visually verified): bottom sheet headed 'Jordan Ellis · Family - Sibling', line 'Plans and Opal conversations about this person. Opal chats live here, never in your chat thread with them.', OPAL CONVERSATIONS section with 'Just between us — Jordan / Keep this one between us: a surprise for Jordan.' (Archive/Remove), 'Start a new Opal chat about Jordan Ellis', 'Make this orbit not private' (the unlocked state), Close; dimmed Opal conversation behind, seed chip 'seed - 95319bd' in frame. File sizes 112,108 (dark) / 111,443 (light) bytes; pixel spot check (PIL): 780x1688, mean RGB dark (27.0, 23.2, 31.3) / light (188.5, 186.5, 183.1), ~530 sampled unique colors each - rich frames, not blanks. NOTE on tie state: the header tie reads 'Family - Sibling' because the same capture account had set Jordan's tie live earlier in this wave (the family capture below, PUT-verified) - it is the account's true tie, and it is exactly the W24 orbit-sheet-tie element rendering it. NOTE on plans: person-anchored sheets in this build render no separate PLANS list (verified on Jordan's sheet and, by probe, on Maya Torres's public person sheet, tie '· Close friend', 2 Opal conversations, likewise no PLANS section); the PLANS section appears on plan-anchored sheets (as in the outgoing W11 frame, Sunday brunch). The person sheet's own scope line ('Plans and Opal conversations about this person') is what the frame shows.",
+      "person-profile-family-light.png: CAPTURED AND SHIPPED (file restored to the pack). Live path on the capture account: Jordan Ellis thread -> profile -> identification picker -> Family -> Sibling -> Save. Proof BEFORE shooting: (1) network log after Save shows PUT /api/v1/product/relationships/a2222222-2222-4222-8222-222222222222 -> 200 (Jordan Ellis's user id; observed via the :5173 proxy origin); (2) in-run read-back polled until the profile text showed 'Family - Sibling' (full text: 'JEJordan Ellis@user-jordanFamily - SiblingIn your close circleWho they are to youFamily - SiblingTap to changeMessageWhat Opal remembersDone'). Frame visually verified: light profile sheet, 'Family - Sibling' under the name + 'In your close circle' + 'WHO THEY ARE TO YOU / Family - Sibling / Tap to change'. File size 85,934 bytes; PIL: 780x1688, mean RGB (197.2, 193.1, 193.8), 508 sampled unique colors; docOverflow 0, clippedCount 0. W28's failure mode (Save produced no PUT) did not recur on the quiet stack."
+    ],
+    "attempts_inside_wave": [
+      "Orbit attempt 1 (both modes): navigator appeared in ~2s, unlock prompt submitted and gone (error=null, group expanded to 4 session rows in the log), but the sheet did not mount - the script clicked a session row instead of re-tapping the group header; the open-sheet button only renders inside the EXPANDED group (C1Surfaces: open = expanded.has(key); the button renders after the group's rows). Attempt 2 added the header re-tap after unlock (the FA-02 pin's stated behavior) and succeeded in both modes; the attempt-1 records stand in w29-scratch/results.json.",
+      "Environment incidents during the wave (recovered, none affected a shipped frame): the :5433 Postgres the wave briefly shared was stopped by a sibling wave and /tmp (tmpfs, 512M) filled, panicking that Postgres on WAL write; the wave moved to its own cluster (tmpfs Postgres 16 on :5433, data /tmp/w29pgdata), re-created opal_dev_r19w29, re-ran 113 migrations, restarted Phoenix, and re-provisioned from scratch - every shipped frame comes from that clean stack with seed statuses 200/200."
+    ],
+    "capture_accounts": "+12025550101 (all three frames; the family set and the orbit unlock were both performed live on this one account, in that order)",
+    "records": "coordination/repair19/orbitshot-report.md; scripts + results + logs in ~/workspace/opal-graph/w29-scratch/",
+    "inventory_note": "Disk delta from W29: orbit-sheet-dark/light.png replaced in place; person-profile-family-light.png added (+1 file). The manifest inventory block is left exactly as W28 left it - it already undercounts the files on disk (125 root PNGs on disk vs its 107), so no inventory figure is rewritten here."
+  }
+}

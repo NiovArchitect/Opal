@@ -1,0 +1,1133 @@
+{
+  "build_tag": "3e230af",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "surfaces": [
+    {
+      "label": "home",
+      "mode": "dark",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "halo": {
+        "dockBorderTopColor": "rgba(0, 0, 0, 0)",
+        "before": {
+          "borderTopColor": "rgba(255, 255, 255, 0.1)",
+          "width": "163px",
+          "left": "-1px"
+        },
+        "after": {
+          "borderTopColor": "rgba(255, 255, 255, 0.1)",
+          "width": "163px"
+        },
+        "discZone": {
+          "left": 155,
+          "right": 211,
+          "top": -5
+        },
+        "dockW": 366,
+        "haloGap": {
+          "left": 3.78,
+          "right": 3.78,
+          "chordHalf": 15.22,
+          "centerDepth": 23.5,
+          "pass": true
+        },
+        "glass": {
+          "backdropFilter": "blur(18px) saturate(1.35)",
+          "tint": "rgba(32, 26, 39, 0.62)",
+          "tintAlpha": 0.62,
+          "blurToken": "18px",
+          "pass": true
+        }
+      },
+      "glassPixel": {
+        "stripHF": [
+          0.01,
+          0.24
+        ],
+        "glassHF": 0.13,
+        "controlHF": 1.91,
+        "ratio": 0.066,
+        "pass": true
+      },
+      "glassPerf": {
+        "frames": 60,
+        "p95ms": 16.7,
+        "maxMs": 16.8
+      },
+      "planCards": [
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.22549) 0px 0px 14px 0px",
+          "pillColor": "rgb(255, 216, 138)"
+        },
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.22549) 0px 0px 14px 0px",
+          "pillColor": "rgb(255, 216, 138)"
+        },
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.22549) 0px 0px 14px 0px",
+          "pillColor": "rgb(255, 216, 138)"
+        },
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.22549) 0px 0px 14px 0px",
+          "pillColor": "rgb(255, 216, 138)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "boxShadow": "color(srgb 0.545098 0.360784 0.964706 / 0.248039) 0px 0px 18px 0px",
+          "pillColor": "rgb(196, 190, 255)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "boxShadow": "color(srgb 0.545098 0.360784 0.964706 / 0.248039) 0px 0px 18px 0px",
+          "pillColor": "rgb(196, 190, 255)"
+        }
+      ],
+      "drift": [],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list-c2",
+      "mode": "dark",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread-c2",
+      "mode": "dark",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "drift": [
+        {
+          "variant": "strip",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list",
+      "mode": "dark",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "legacyHalo": null,
+      "treatments": {},
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "call-log",
+      "mode": "dark",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "treatments": {},
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread",
+      "mode": "dark",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "treatments": {
+        "in": null,
+        "out": null,
+        "present": false
+      },
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "home",
+      "mode": "light",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "halo": {
+        "dockBorderTopColor": "rgba(0, 0, 0, 0)",
+        "before": {
+          "borderTopColor": "rgb(229, 222, 210)",
+          "width": "163px",
+          "left": "-1px"
+        },
+        "after": {
+          "borderTopColor": "rgb(229, 222, 210)",
+          "width": "163px"
+        },
+        "discZone": {
+          "left": 155,
+          "right": 211,
+          "top": -5
+        },
+        "dockW": 366,
+        "haloGap": {
+          "left": 3.78,
+          "right": 3.78,
+          "chordHalf": 15.22,
+          "centerDepth": 23.5,
+          "pass": true
+        },
+        "glass": {
+          "backdropFilter": "blur(18px) saturate(1.35)",
+          "tint": "rgba(255, 254, 251, 0.68)",
+          "tintAlpha": 0.68,
+          "blurToken": "18px",
+          "pass": true
+        }
+      },
+      "glassPixel": {
+        "stripHF": [
+          0.03,
+          0.22
+        ],
+        "glassHF": 0.13,
+        "controlHF": 1.62,
+        "ratio": 0.078,
+        "pass": true
+      },
+      "glassPerf": {
+        "frames": 60,
+        "p95ms": 16.8,
+        "maxMs": 16.8
+      },
+      "planCards": [
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.139216) 0px 0px 14px 0px",
+          "pillColor": "rgb(138, 94, 0)"
+        },
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.139216) 0px 0px 14px 0px",
+          "pillColor": "rgb(138, 94, 0)"
+        },
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.139216) 0px 0px 14px 0px",
+          "pillColor": "rgb(138, 94, 0)"
+        },
+        {
+          "state": "ready",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.5)",
+          "borderTopStyle": "solid",
+          "boxShadow": "color(srgb 1 0.784314 0.419608 / 0.139216) 0px 0px 14px 0px",
+          "pillColor": "rgb(138, 94, 0)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "boxShadow": "color(srgb 0.545098 0.360784 0.964706 / 0.120784) 0px 0px 18px 0px",
+          "pillColor": "rgb(85, 70, 216)"
+        },
+        {
+          "state": "forming",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "boxShadow": "color(srgb 0.545098 0.360784 0.964706 / 0.120784) 0px 0px 18px 0px",
+          "pillColor": "rgb(85, 70, 216)"
+        }
+      ],
+      "drift": [],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list-c2",
+      "mode": "light",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread-c2",
+      "mode": "light",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "drift": [
+        {
+          "variant": "strip",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "chats-list",
+      "mode": "light",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "legacyHalo": null,
+      "treatments": {},
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "call-log",
+      "mode": "light",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "treatments": {},
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "thread",
+      "mode": "light",
+      "stamp": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "treatments": {
+        "in": null,
+        "out": null,
+        "present": false
+      },
+      "drift": [
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "happening",
+          "pattern": "live",
+          "borderTopColor": "color(srgb 0 0.898039 1 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(0, 229, 255)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "forming",
+          "pattern": "dashed",
+          "borderTopColor": "color(srgb 0.545098 0.360784 0.964706 / 0.52)",
+          "borderTopStyle": "dashed",
+          "pillColor": "rgb(139, 92, 246)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(240, 171, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(192, 132, 252)"
+        },
+        {
+          "variant": "row",
+          "state": "ready",
+          "pattern": "solid",
+          "borderTopColor": "color(srgb 1 0.784314 0.419608 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 200, 107)",
+          "entityBg": "rgb(129, 140, 248)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(134, 201, 138)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(45, 212, 191)"
+        },
+        {
+          "variant": "row",
+          "state": "action",
+          "pattern": "solid-bold",
+          "borderTopColor": "color(srgb 1 0.301961 0.368627 / 0.52)",
+          "borderTopStyle": "solid",
+          "pillColor": "rgb(255, 77, 94)",
+          "entityBg": "rgb(129, 140, 248)"
+        }
+      ],
+      "failures": [],
+      "docOverflow": 0,
+      "clippedCount": 0
+    }
+  ]
+}

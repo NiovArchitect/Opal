@@ -1,0 +1,197 @@
+{
+  "build_tag": "3e230af",
+  "web": "http://127.0.0.1:5173",
+  "api": "http://127.0.0.1:4000",
+  "seed": {
+    "comm": 200,
+    "graph": 200
+  },
+  "surfaces": [
+    {
+      "label": "splash-1-living",
+      "mode": "dark",
+      "ringsMotion": "living",
+      "rotor": {
+        "fromDeg": "-60",
+        "toDeg": "0",
+        "durationMs": "15000",
+        "iterations": "1",
+        "circlePoints": 4
+      }
+    },
+    {
+      "label": "splash-1",
+      "mode": "dark",
+      "rootPresent": true,
+      "fieldAttr": "night-master",
+      "rootBg": "rgb(5, 3, 15)",
+      "enterOpalCount": "0",
+      "imgSrc": "/brand/orb/opal-orb-master-full.webp",
+      "imgNatural": {
+        "w": 1024,
+        "h": 1024
+      },
+      "stageBox": {
+        "x": 14,
+        "y": 14,
+        "w": 362,
+        "h": 362
+      },
+      "margin": {
+        "left": 14,
+        "right": 14,
+        "top": 14,
+        "contained": true
+      },
+      "rings": {
+        "variant": "hero",
+        "motion": "settled",
+        "animateMotion": 0,
+        "animateTransform": 0,
+        "rotor": null,
+        "ellipseRiders": [],
+        "restPoints": 6
+      },
+      "lockupStacked": {
+        "stacked": true,
+        "centerDeltaX": 0
+      },
+      "gitHeadFull": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "splash-2-entry",
+      "mode": "dark",
+      "enterButtons": 1
+    },
+    {
+      "label": "splash-1-living",
+      "mode": "light",
+      "ringsMotion": "living",
+      "rotor": {
+        "fromDeg": "-60",
+        "toDeg": "0",
+        "durationMs": "15000",
+        "iterations": "1",
+        "circlePoints": 4
+      }
+    },
+    {
+      "label": "splash-1",
+      "mode": "light",
+      "rootPresent": true,
+      "fieldAttr": "night-master",
+      "rootBg": "rgb(5, 3, 15)",
+      "enterOpalCount": "0",
+      "imgSrc": "/brand/orb/opal-orb-master-full.webp",
+      "imgNatural": {
+        "w": 1024,
+        "h": 1024
+      },
+      "stageBox": {
+        "x": 14,
+        "y": 14,
+        "w": 362,
+        "h": 362
+      },
+      "margin": {
+        "left": 14,
+        "right": 14,
+        "top": 14,
+        "contained": true
+      },
+      "rings": {
+        "variant": "hero",
+        "motion": "settled",
+        "animateMotion": 0,
+        "animateTransform": 0,
+        "rotor": null,
+        "ellipseRiders": [],
+        "restPoints": 6
+      },
+      "lockupStacked": {
+        "stacked": true,
+        "centerDeltaX": 0
+      },
+      "gitHeadFull": "3e230af0e4c963ec75ea120ef4618e5fd17adb97",
+      "docOverflow": 0,
+      "clippedCount": 0
+    },
+    {
+      "label": "splash-2-entry",
+      "mode": "light",
+      "enterButtons": 1
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "dark",
+      "videoMethod": "cdp-screencast+ffmpeg-vfr",
+      "file": "splash-1-motion-dark.webm",
+      "frames": 880,
+      "seconds": 18.8,
+      "avgFps": 46.8
+    },
+    {
+      "label": "splash-1-motion-video",
+      "mode": "light",
+      "videoMethod": "cdp-screencast+ffmpeg-vfr",
+      "file": "splash-1-motion-light.webm",
+      "frames": 902,
+      "seconds": 18.5,
+      "avgFps": 48.6
+    },
+    {
+      "label": "splash-1-reduced-motion",
+      "mode": "dark",
+      "rings": {
+        "motion": "rest",
+        "animateCount": 0,
+        "rotorCount": 0,
+        "restPoints": 6
+      }
+    },
+    {
+      "label": "dock-center",
+      "mode": "dark",
+      "discPresent": true,
+      "rings": {
+        "motion": "living",
+        "animateMotion": 0,
+        "animateTransform": 0,
+        "rotor": true,
+        "ellipseRiders": 1
+      },
+      "markInsideDisc": true,
+      "markBox": {
+        "w": 40,
+        "h": 40
+      },
+      "discBox": {
+        "w": 56,
+        "h": 56
+      }
+    },
+    {
+      "label": "dock-center",
+      "mode": "light",
+      "discPresent": true,
+      "rings": {
+        "motion": "living",
+        "animateMotion": 0,
+        "animateTransform": 0,
+        "rotor": true,
+        "ellipseRiders": 1
+      },
+      "markInsideDisc": true,
+      "markBox": {
+        "w": 40,
+        "h": 40
+      },
+      "discBox": {
+        "w": 56,
+        "h": 56
+      }
+    }
+  ]
+}
