@@ -36,6 +36,7 @@ import {
   getSoulMemory,
   getHomeTimezone,
   getIngestionStatus,
+  getGraphLock,
   getMessagingPreferences,
   getPersonalInviteCode,
   getSavedLogins,
@@ -49,9 +50,11 @@ import {
 } from "../../api/productClient";
 import {
   foldSpineAnswers,
+  foldSpineChatActions,
   invitationTemperature,
   pastDateForPlan,
   pastPillsFromEntries,
+  planWhenLine,
   presenceForPlan,
   settledInvitationForPlan,
   settledKindForPlan,
@@ -509,6 +512,14 @@ export function limboFromPlan(plan: OpalPlanContract): PlanCardLimboC2 | null {
     treatment: limbo.treatment,
     patternChannel: limbo.pattern_channel,
     windowFractionRemaining: limbo.window_fraction_remaining,
+    // R20 F-16: the machinery's finished remaining-window line rides
+    // the card verbatim - the card renders words, never a countdown
+    // it computed from the fraction. Absent on older payloads: the
+    // key is omitted rather than nulled, keeping the card shape the
+    // I2 pins established.
+    ...(limbo.remaining_window_text
+      ? { remainingWindowText: limbo.remaining_window_text }
+      : {}),
     copy: limbo.copy,
     viewerRole: etiquette.viewer_role,
   };
@@ -528,7 +539,10 @@ export function cardFromPlan(plan: OpalPlanContract): PlanCardC2Input & { id: st
         ? "Idea"
         : LABEL_BY_FAMILY[family],
     title: plan.title,
-    whenLine: plan.time_label?.trim() ? plan.time_label : "Time not set yet.",
+    // R20 F-14: the ONE shared time-range rendering (density.ts) -
+    // a multi-day plan shows start AND end on every card built here
+    // (Graphs, Home, deck, detail header all read this card).
+    whenLine: planWhenLine(plan),
     whereLine: plan.location?.trim() ? plan.location : null,
     attendanceLine,
     primaryActionLabel: null,
@@ -601,8 +615,25 @@ export function graphListFromPlans(
   // group below and ride only as summarized lines in the viewer's
   // own past area (settledInvitations). Nothing else consumes them,
   // so no decline is announced on anyone else's surface.
+  // R20 F-12: each settled entry now also carries the plan's own
+  // CARD (past family, "Settled") - list surfaces render ONE settled
+  // summary line for all of them (density.settledSummaryLine), and
+  // the cards appear only when the viewer expands that summary by
+  // intent. The per-plan settled line itself lives on the detail
+  // projection (detailFromPlan.settledLine), never as a list row.
   const settledInvitations = visiblePlans
-    .map((plan) => settledInvitationForPlan(plan))
+    .map((plan) => {
+      const settled = settledInvitationForPlan(plan);
+      if (!settled) return null;
+      return {
+        ...settled,
+        card: {
+          ...cardFromPlan(plan),
+          stateFamily: "past" as const,
+          stateLabel: "Settled",
+        },
+      };
+    })
     .filter((x): x is NonNullable<typeof x> => x !== null);
   const livePlans = visiblePlans.filter((plan) => settledKindForPlan(plan) === null);
   const cards = livePlans.map((plan) => {
@@ -711,6 +742,10 @@ export function detailFromPlan(
     id: plan.id,
     title: plan.title,
     card,
+    // R20 F-12: a plan this viewer settled (declined / expired)
+    // carries its settled line HERE, in its own detail - the one
+    // surface where the line belongs. List surfaces never render it.
+    settledLine: settledInvitationForPlan(plan)?.line ?? null,
     attendanceLine: card.attendanceLine ?? null,
     // B2 wiring: the completion record rides the detail projection
     // verbatim from the plan contract; the detail surface renders
@@ -744,6 +779,22 @@ export function detailFromPlan(
       missingSlotLabel:
         familyOfStatus(plan.status) === "forming" ? (missingSlot(plan)?.label ?? null) : null,
     }),
+    conversationId: plan.conversation_id ?? null,
+    // Repair #20 (F-15): a settled/past plan can be repeated. The
+    // carried facts come from the plan's own record; the parties are
+    // folded in by detailWithHistory from the Who rows, and the new
+    // time is never carried (chosen in the repeat flow).
+    repeatable: familyOfStatus(plan.status) === "past",
+    repeat: {
+      participantUserIds: [],
+      location:
+        plan.plan_type === "virtual" || plan.online === true
+          ? null
+          : (plan.location?.trim() ?? null),
+      placeLat: typeof plan.place_lat === "number" ? plan.place_lat : null,
+      placeLon: typeof plan.place_lon === "number" ? plan.place_lon : null,
+      planType: plan.plan_type ?? null,
+    },
     origin,
   };
 }
@@ -783,10 +834,32 @@ export function detailWithHistory(
     // a second source. The plan record itself is not re-read; the
     // completion steps ride the base detail's spine, so only the
     // answers item is folded in when someone is still waiting.
-    spine: foldSpineAnswers(
-      detail.spine,
-      history.who.map((w) => ({ name: w.name, responseLabel: w.response_label })),
+    // Repair #20 (F-13): the same Who rows prove whether the
+    // plan-scoped Opal chat can be scoped (another participant
+    // exists), so the plan-chat spine actions fold in here too.
+    spine: foldSpineChatActions(
+      foldSpineAnswers(
+        detail.spine,
+        history.who.map((w) => ({ name: w.name, responseLabel: w.response_label })),
+      ),
+      {
+        chatAvailable: history.who.some(
+          (w) => w.user_id && w.user_id !== detail.viewerUserId,
+        ),
+      },
     ),
+    // Repair #20 (F-15): the repeat's parties are the plan's real
+    // Who rows (everyone but the viewer - the graph-create path
+    // makes the repeater the new plan's creator and filters a
+    // self-entry server-side as well).
+    repeat: detail.repeat
+      ? {
+          ...detail.repeat,
+          participantUserIds: history.who
+            .map((w) => w.user_id)
+            .filter((id): id is string => Boolean(id) && id !== detail.viewerUserId),
+        }
+      : detail.repeat,
     // Cluster G (P10c): the leave-by projection rides verbatim -
     // the detail renders the backend's finished line and urgency
     // and derives no time or distance itself.
@@ -1058,7 +1131,22 @@ export async function homeFromSession(
       stories,
       capabilities: { canPost: true, canStory: true },
     },
-    feed: [...lives.slice(0, 3), ...planCards, ...moments].slice(0, 14),
+    // R20 F-18 (D-5): Home is the social/life surface, so people's
+    // moments interleave with plan cards from the top (moment, plan,
+    // moment, plan) instead of every plan leading - the Center deck
+    // is where plans lead, as the Needs-you deck. Lives still lead
+    // (true only inside their window), plan cards keep their W9
+    // state-rank relative order and are never relabeled, and the
+    // cap is unchanged (14).
+    feed: (() => {
+      const interleaved: HomeProjection["feed"] = [...lives.slice(0, 3)];
+      const maxLen = Math.max(moments.length, planCards.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (moments[i]) interleaved.push(moments[i]);
+        if (planCards[i]) interleaved.push(planCards[i]);
+      }
+      return interleaved.slice(0, 14);
+    })(),
     feedError,
   };
 }
@@ -1077,7 +1165,7 @@ export function youHubFromSession(
     accountNote: null,
     connectedSummary:
       googleConnected === null
-        ? "Your connections are checked when you open them."
+        ? "Your connectors are checked when you open them."
         : googleConnected === "simulated"
           ? "Google Calendar is a simulated stand-in, not a real connection."
           : googleConnected
@@ -1094,9 +1182,10 @@ export function youHubFromSession(
       { key: "how-opal-helps", title: "How Opal helps", subtitle: "How forward Opal may be", keywords: "helps proactive forward assist offers suggestions" },
       { key: "calls-assist", title: "Opal Assist and calls", subtitle: "Help on calls, only when you say so", keywords: "assist calls phone" },
       { key: "approvals-activity", title: "Activity", subtitle: "What Opal did for you, written down", keywords: "approvals activity trail history export what opal did" },
-      { key: "what-opal-hears", title: "Where Opal reads from", subtitle: "Your chats, calls, and texts - each with its own state", keywords: "reads from sources feeds chats calls texts room meetings ingested transcripts graphs" },
-      { key: "connections", title: "Connections", subtitle: "Apps and tools plugged into Opal, with their real status", keywords: "connections tools apps integrations google deepseek twilio places flights status" },
+      { key: "connections", title: "Connectors", subtitle: "Tools you connect yourself, and what Opal reads on this device", keywords: "connectors connections tools apps integrations google gmail calendar device sources chats calls saved logins permissions" },
+      { key: "connector-permissions", title: "Permissions", subtitle: "When Opal asks before it acts", keywords: "permissions ask before acting always ask forward proactive assistance" },
       { key: "privacy", title: "Privacy", subtitle: "You choose who sees what", keywords: "privacy visibility blocked muted account data rights" },
+      { key: "private-graphs", title: "Private graphs", subtitle: "Passcode and biometrics for your private graphs", keywords: "private graphs passcode pin biometric vault unlock face id fingerprint" },
       { key: "notifications", title: "Quiet", subtitle: "Notifications, and your peace", keywords: "quiet notifications messages calls receipts alerts hours" },
       { key: "linked-devices", title: "Linked devices", subtitle: "Where you are signed in", keywords: "devices sessions phone desktop" },
       { key: "saved-logins", title: "Saved logins", subtitle: "Logins Opal keeps for you, by site only", keywords: "saved logins passwords credentials vault sites hosts" },
@@ -1125,11 +1214,15 @@ export async function buildSettingsSection(
   ctx: SettingsContext,
 ): Promise<SettingsSectionProjection> {
   const bearer = ctx.bearer;
-  // Founder naming fix (2026-10-19): "Connected sources" is retired -
-  // it was a second, Google-only room wearing a name a breath away
-  // from Connections. There is exactly ONE Connections room now; any
-  // stored or deep-linked use of the old key lands there.
+  // Founder naming fix (2026-10-19) + R20 F-9 rename: "Connected
+  // sources" is retired and the room itself is now "Connectors".
+  // There is exactly ONE Connectors room; any stored or deep-linked
+  // use of the old keys lands there.
   if (key === "connected-sources") key = "connections";
+  // R20 F-9(e): "Where Opal reads from" is no longer its own room -
+  // it folds into Connectors as the Your device category. Any stored
+  // or deep-linked use of the old key lands on Connectors.
+  if (key === "what-opal-hears") key = "connections";
   switch (key) {
     case "edit-profile":
       return {
@@ -1431,7 +1524,7 @@ export async function buildSettingsSection(
           {
             kind: "note",
             id: "data-scope",
-            text: "Delete my data removes what Opal holds for you: your memories, how Opal is set up for you, your chats with Opal, your saved logins, and your connections. Your account stays, and you can keep using Opal.",
+            text: "Delete my data removes what Opal holds for you: your memories, how Opal is set up for you, your chats with Opal, your saved logins, and your connectors. Your account stays, and you can keep using Opal.",
           },
           {
             kind: "note",
@@ -1859,96 +1952,100 @@ export async function buildSettingsSection(
         };
       }
     }
-    case "what-opal-hears": {
-      // 12.6 + spec SF-A — each source carries its OWN state line and
-      // progress in words, rendered from that source's own read
-      // (GET /settings/hears derives per source from the D-ING
-      // register). One source in error shows its own error line and
-      // a retry for that source only (ER-2); it never blanks the
-      // page. Without a session there is no per-account read, so the
-      // honest static form below names the sources without states
-      // that pretend to be yours.
+    case "connections": {
+      // R20 F-9 - CONNECTORS (founder rebuild). This room is a
+      // categorized directory of USER-FACING tools only: tools a
+      // user connects with their own permission. The server's
+      // settings/connections payload also carries Opal's internal
+      // providers (its thinking, voice, places, phone and travel
+      // services) - those are infrastructure, not tools the user
+      // connects, so they are FILTERED OUT here and never render in
+      // this room in any form. Their verified statuses still live
+      // on the server payload / internal health view; this room
+      // simply is not that surface.
+      //
+      // HONESTY LAW: a Connect/Disconnect action is attached to a
+      // row ONLY when the payload itself carries an enabled action
+      // for that row (the payload builds one only behind the real
+      // Google OAuth flow: POST .../connectors/google_calendar/start
+      // + revoke, with status read back from ProviderConnections).
+      // A row with no payload action renders its status only.
+      const USER_FACING_CONNECTOR_IDS = ["google_calendar", "gmail"] as const;
+      // Each leg fails on its own (ER-2): a failed accounts read
+      // shows its honest note in the accounts group and never
+      // blanks the device group, and vice versa.
+      let payload: Awaited<ReturnType<typeof getSettingsConnections>> | null = null;
+      try {
+        payload = await getSettingsConnections(bearer);
+      } catch {
+        payload = null;
+      }
+      // Your device leg (F-9e): "Where Opal reads from", folded in.
+      // Each source carries its OWN state from its own read
+      // (GET /settings/hears); one source in error shows its own
+      // error line and a retry for that source only (ER-2). Without
+      // a bearer there is no per-account read, so the honest static
+      // form names the sources without states that pretend to be
+      // yours. A failed read falls back to that same static form
+      // with its own failure note - never a guessed state.
+      type DeviceRow = SettingsSectionProjection["rows"][number];
+      const staticDeviceRows: DeviceRow[] = [
+        { kind: "value", id: "device-chats", title: "Chats in the app", subtitle: "Your conversations here are Opal's working source today.", value: "Working now" },
+        { kind: "value", id: "device-calls", title: "Phone calls", subtitle: "Calls you make in the app. Opal does not transcribe a live call here, and nothing is recorded in secret.", value: "In the app" },
+        { kind: "value", id: "device-texts", title: "Texts", subtitle: "Texts do not reach Opal today, and are never faked.", value: "Waiting on a sending number" },
+        { kind: "value", id: "device-room", title: "In the room", subtitle: "Opal does not capture room audio, hidden or otherwise.", value: "Not in Opal today" },
+        { kind: "value", id: "device-location", title: "Device location", subtitle: "Opal does not read this device's location. Plan timing uses your home timezone, set in Location and travel.", value: "Not read" },
+      ];
+      let deviceRows: DeviceRow[] = staticDeviceRows;
       if (bearer) {
         try {
           const sources = await getIngestionStatus(bearer);
-          return {
-            key,
-            title: "Where Opal reads from",
-            lede: "The feeds Opal reads from, in the app - each source with its own state, read on its own. This is not Connections: nothing here is a tool plugged into Opal.",
-            rows: [
-              ...sources.flatMap((line) => [
-                {
-                  kind: "value" as const,
-                  id: line.source,
-                  title: line.title,
-                  subtitle: line.progress,
-                  value: line.state_label,
-                },
-                ...(line.error && line.retryable
-                  ? [{
-                      kind: "action" as const,
-                      id: `hears-retry-${line.source}`,
-                      title: `Try ${line.title} again`,
-                      subtitle: "Retries this source only",
-                    }]
-                  : []),
-              ]),
-              { kind: "nav" as const, id: "connections", title: "Connections", target: "connections" },
-              { kind: "nav" as const, id: "assist", title: "Opal Assist and calls", target: "calls-assist" },
-            ],
-          };
+          deviceRows = [
+            ...sources.flatMap((line): DeviceRow[] => [
+              {
+                kind: "value" as const,
+                id: `device-${line.source}`,
+                title: line.title,
+                subtitle: line.progress,
+                value: line.state_label,
+              },
+              ...(line.error && line.retryable
+                ? [{
+                    kind: "action" as const,
+                    id: `hears-retry-${line.source}`,
+                    title: `Try ${line.title} again`,
+                    subtitle: "Retries this source only",
+                  }]
+                : []),
+            ]),
+            { kind: "value", id: "device-location", title: "Device location", subtitle: "Opal does not read this device's location. Plan timing uses your home timezone, set in Location and travel.", value: "Not read" },
+          ];
         } catch {
-          return {
-            key,
-            title: "Where Opal reads from",
-            lede: "The feeds Opal reads from, in the app - each source with its real state.",
-            rows: [{ kind: "note", id: "load-failed", text: "Where Opal reads from could not load. Head back and try again." }],
-          };
+          deviceRows = [
+            { kind: "note", id: "device-load-failed", text: "What Opal reads on this device could not load just now. The sources below are named without a live state rather than a guessed one." },
+            ...staticDeviceRows,
+          ];
         }
       }
-      return {
-        key,
-        title: "Where Opal reads from",
-        lede: "The feeds Opal reads from, in the app - each source with its real state.",
-        rows: [
-          { kind: "value", id: "chats", title: "Chats in the app", subtitle: "Your conversations here are Opal's working source today.", value: "Working now" },
-          { kind: "value", id: "calls", title: "Phone calls", subtitle: "Opal does not transcribe a live call here. Nothing is recorded in secret.", value: "Not wired yet" },
-          { kind: "value", id: "texts", title: "Texts", subtitle: "Texts do not reach Opal today, and are never faked.", value: "Waiting on a sending number" },
-          { kind: "value", id: "room", title: "In the room", subtitle: "Opal does not capture room audio, hidden or otherwise.", value: "Not in Opal today" },
-          { kind: "value", id: "meetings", title: "Meetings", subtitle: "Meetings are not a page in Opal. A meeting enters only as an ingested transcript or summary record in a conversation, with its source named - and that is not wired yet.", value: "Not wired yet" },
-          { kind: "nav", id: "connections", title: "Connections", target: "connections" },
-          { kind: "nav", id: "assist", title: "Opal Assist and calls", target: "calls-assist" },
-        ],
-      };
-    }
-    case "connections": {
-      // DIR-2 — renders the server's settings/connections projection
-      // verbatim (SP-3). Status, label, detail, and gate all arrive
-      // finished; this adapter maps fields, it derives nothing.
-      try {
-        const payload = await getSettingsConnections(bearer);
-        // Audit A1 — the catalog form: rows grouped under their
-        // plain category names, exactly the provider set the server
-        // reports (nothing painted to fill a category). The slot
-        // for custom connections is reserved in words only, at the
-        // end — the capability itself is founder-gated and absent.
-        const categoryNames: Record<string, string> = {
-          intelligence: "Thinking and words",
-          voice: "Voice",
-          phone_and_messaging: "Phone and messaging",
-          places_and_search: "Places and search",
-          travel: "Travel",
-          your_accounts: "Your accounts",
-          payments: "Payments",
-        };
-        const rows: SettingsSectionProjection["rows"] = [];
-        let lastCategory: string | null = null;
-        for (const c of payload.connections) {
-          const categoryName = categoryNames[c.category] ?? c.category;
-          if (categoryName !== lastCategory) {
-            rows.push({ kind: "note", id: `cat-${c.category}`, text: categoryName });
-            lastCategory = categoryName;
-          }
+      const userFacing = (payload?.connections ?? []).filter((c) =>
+        (USER_FACING_CONNECTOR_IDS as readonly string[]).includes(c.id),
+      );
+      const rows: SettingsSectionProjection["rows"] = [
+        { kind: "note", id: "cat-your-device", text: "Your device" },
+        ...deviceRows,
+        { kind: "nav", id: "linked-devices", title: "Linked devices", subtitle: "Where you are signed in - tap to view", target: "linked-devices" },
+      ];
+      if (userFacing.length > 0) {
+        rows.push({ kind: "note", id: "cat-your_accounts", text: "Your accounts" });
+        for (const c of userFacing) {
+          // The row's action comes from the payload's own action
+          // list for THIS row - enabled connect/disconnect only.
+          // Google Calendar and Gmail share the one Google grant,
+          // so both rows' actions route to the same real flow ids
+          // the shell already wires (google-connect/google-disconnect).
+          const backed = c.actions.find(
+            (a) => a.enabled && (a.kind === "connect" || a.kind === "disconnect"),
+          );
           rows.push({
             kind: "connection" as const,
             id: c.id,
@@ -1961,43 +2058,160 @@ export async function buildSettingsSection(
             lastVerifiedLabel: c.last_verified_at
               ? `Last checked ${c.last_verified_at.slice(0, 10)}`
               : "Never checked",
+            action: backed
+              ? {
+                  id: backed.kind === "connect" ? "google-connect" : "google-disconnect",
+                  label: c.id === "gmail"
+                    ? (backed.kind === "connect" ? "Connect Google" : "Disconnect Google")
+                    : backed.label,
+                }
+              : null,
+            hasRealFlow: Boolean(backed),
           });
         }
+        if (userFacing.some((c) => c.id === "google_calendar") && userFacing.some((c) => c.id === "gmail")) {
+          rows.push({
+            kind: "note",
+            id: "google-shared-grant",
+            text: "Google Calendar and Gmail share one Google sign-in. Connecting or disconnecting either one connects or disconnects both.",
+          });
+        }
+      } else if (!payload) {
+        rows.push({ kind: "note", id: "cat-your_accounts", text: "Your accounts" });
         rows.push({
+          kind: "note",
+          id: "load-failed",
+          text: "Could not check your connectors. Head back and try again - Opal will not guess a status.",
+        });
+      } else {
+        rows.push({ kind: "note", id: "cat-your_accounts", text: "Your accounts" });
+        rows.push({
+          kind: "note",
+          id: "no-user-tools",
+          text: "No account you can connect is set up on this server yet. When one is, it will appear here with its real status.",
+        });
+      }
+      rows.push(
+        { kind: "note", id: "cat-permissions", text: "Permissions" },
+        {
+          kind: "nav",
+          id: "permissions",
+          title: "Permissions - when Opal asks before it acts",
+          subtitle: "One real setting, shared with Soul",
+          target: "connector-permissions",
+        },
+        { kind: "note", id: "cat-custom", text: "Custom" },
+        {
+          kind: "nav",
+          id: "saved-logins",
+          title: "Saved logins",
+          subtitle: "Logins Opal keeps for you, by site only - tap to view",
+          target: "saved-logins",
+        },
+        {
           kind: "note",
           id: "custom-slot",
           text: "Connecting a service of your own is not something Opal offers today. If it ever does, it will appear here, in this list.",
-        });
-        const google = payload.connections.find((c) => c.id === "google_calendar");
-        const googleAction = google?.actions.find(
-          (a) => a.enabled && (a.kind === "connect" || a.kind === "disconnect"),
-        );
-        if (google && googleAction) {
-          rows.push({
-            kind: "action",
-            id: googleAction.kind === "connect" ? "google-connect" : "google-disconnect",
-            title: googleAction.kind === "connect" ? "Connect Google" : "Disconnect Google",
-          });
-        }
+        },
+        { kind: "nav", id: "assist", title: "Opal Assist and calls", target: "calls-assist" },
+      );
+      return {
+        key,
+        title: "Connectors",
+        lede: "Tools you connect yourself, each with the status the server last checked - never a guess. Where Opal reads from on this device is the first group. Opal's own behind-the-scenes services are not tools you connect, so they are not listed here.",
+        rows,
+      };
+    }
+    case "connector-permissions": {
+      // R20 F-9(f) - PERMISSIONS, built ONLY because it binds to a
+      // real setting: the Soul assistance level (the one
+      // assistance-preference record Opal's proactivity machinery
+      // already obeys; PATCH /memory-wallet/soul accepts the level
+      // on its own and reads it back). This is the connector-default
+      // in plain words: "Only when I ask" is Always ask,
+      // "Balanced" is Ask for some actions. There is no per-tool
+      // permission store in Opal today, so no per-tool switches are
+      // painted - the note below says exactly that.
+      try {
+        const res = await getSoulMemory(bearer);
         return {
           key,
-          title: "Connections",
-          lede: "Every connection Opal uses, with the status the server last checked - never a guess.",
-          rows:
-            payload.connections.length === 0
-              ? [{ kind: "note", id: "none", text: "No connections are set up on this server yet." }]
-              : rows,
+          title: "Permissions",
+          lede: "When Opal asks before it acts, for anything it does with the tools you connect - and with everything else.",
+          rows: [
+            {
+              kind: "value",
+              id: "assistance_level",
+              title: "How forward may Opal be?",
+              value: res.soul.assistance_level,
+            },
+            {
+              kind: "note",
+              id: "permissions-same-setting",
+              text: "This is the same setting as Soul's \"How forward may Opal be?\" - there is only one setting, so changing it here changes it there too. Opal has no separate per-tool permission switches today, so none are shown here.",
+            },
+            {
+              kind: "nav",
+              id: "to-connectors",
+              title: "Connectors",
+              subtitle: "The tools this applies to",
+              target: "connections",
+            },
+            {
+              kind: "nav",
+              id: "to-soul",
+              title: "Soul - how Opal is with you",
+              subtitle: "Quiet hours, your daily cap, and this same setting in full",
+              target: "soul",
+            },
+          ],
         };
       } catch {
         return {
           key,
-          title: "Connections",
-          lede: "Every connection Opal uses, with the status the server last checked - never a guess.",
+          title: "Permissions",
+          lede: "When Opal asks before it acts.",
+          rows: [{ kind: "note", id: "load-failed", text: "Your permissions could not load. Head back and try again." }],
+        };
+      }
+    }
+    case "private-graphs": {
+      // R20 F-4 — the vault's credential home. Both rows are the
+      // server's ONE graph-lock projection (getGraphLock); the form
+      // in C2SettingsSection writes through the same endpoints the
+      // gate verifies against. A failed read yields the honest note,
+      // never a guessed state.
+      try {
+        const lock = await getGraphLock(bearer);
+        return {
+          key,
+          title: "Private graphs",
+          lede: "The passcode and biometrics that open your Private graphs.",
+          rows: [
+            {
+              kind: "value",
+              id: "vault_passcode_set",
+              title: "Passcode",
+              value: lock.passcode_set ? "Set" : "Not set",
+            },
+            {
+              kind: "value",
+              id: "vault_biometric_enabled",
+              title: "Biometric unlock",
+              value: lock.biometric_enabled ? "On" : "Off",
+            },
+          ],
+        };
+      } catch {
+        return {
+          key,
+          title: "Private graphs",
+          lede: "The passcode and biometrics that open your Private graphs.",
           rows: [
             {
               kind: "note",
-              id: "load-failed",
-              text: "Could not check connections. Head back and try again - Opal will not guess a status.",
+              id: "vault-load-failed",
+              text: "Could not read your Private graphs settings. Head back and try again - Opal will not guess them.",
             },
           ],
         };
@@ -2016,11 +2230,11 @@ export async function buildSettingsSection(
             // real status and disconnect, and the policy document.
             kind: "note",
             id: "privacy-card",
-            text: "In plain words: what Opal holds for you lives in What Opal remembers, where you can read every fact and forget any of them. The apps and tools plugged into Opal live in Connections, each with its real status - and disconnecting stops it right away. Opal's full Privacy Policy is one tap below.",
+            text: "In plain words: what Opal holds for you lives in What Opal remembers, where you can read every fact and forget any of them. The tools you connect yourself live in Connectors, each with its real status - and disconnecting stops it right away. Opal's full Privacy Policy is one tap below.",
           },
           { kind: "nav", id: "remembers", title: "What Opal remembers", target: "what-opal-remembers" },
-          { kind: "nav", id: "sources", title: "Connections", target: "connections" },
-          { kind: "nav", id: "connections", title: "Connections", target: "connections" },
+          { kind: "nav", id: "sources", title: "Connectors", target: "connections" },
+          { kind: "nav", id: "connections", title: "Connectors", target: "connections" },
           {
             // Audit A7 — about Opal's messages. The claims match the
             // enforced honesty rules: provenance labels on what Opal

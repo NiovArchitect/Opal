@@ -51,6 +51,103 @@ export function parsePlanDate(value?: string | null): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+/**
+ * R20 F-14 - THE shared plan time-range rendering. One formatter owns
+ * the when line for every surface (cards, detail header, strips,
+ * deck - all of them read the card this module's consumers build):
+ *
+ *  - same-day (or no real end, or an end not after the start): the
+ *    record's own `time_label`, verbatim - the format does not change.
+ *  - multi-day (the record's `end_at` falls on a different calendar
+ *    day than `start_at`, in the plan's own timezone): start AND end
+ *    render - "<time_label> - Mon Jan 4". With no time_label the
+ *    start is formatted from its instant the same short way, with
+ *    its time: "Sat Jan 2, 7 PM - Mon Jan 4".
+ *
+ * Days are compared in the plan's timezone (the contract's own
+ * `timezone`, falling back to UTC) - a plan that ends after midnight
+ * local is multi-day even when UTC would call it same-day.
+ */
+const RANGE_WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const RANGE_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+function dayPartsInZone(
+  date: Date,
+  timeZone: string,
+): { year: number; month: number; day: number; weekday: number } | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      weekday: "short",
+    }).formatToParts(date);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
+    const year = Number(get("year"));
+    const month = Number(get("month"));
+    const day = Number(get("day"));
+    if (!year || !month || !day || weekday < 0) return null;
+    return { year, month, day, weekday };
+  } catch {
+    return null;
+  }
+}
+
+function shortDayLabel(date: Date, timeZone: string): string {
+  const p = dayPartsInZone(date, timeZone);
+  if (!p) return "";
+  return `${RANGE_WEEKDAYS[p.weekday]} ${RANGE_MONTHS[p.month - 1]} ${p.day}`;
+}
+
+function shortTimeLabel(date: Date, timeZone: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).formatToParts(date);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    const hour = get("hour");
+    const minute = get("minute");
+    const period = get("dayPeriod");
+    if (!hour || !period) return "";
+    return minute && minute !== "00" ? `${hour}:${minute} ${period}` : `${hour} ${period}`;
+  } catch {
+    return "";
+  }
+}
+
+export function planWhenLine(plan: OpalPlanContract): string {
+  const label = plan.time_label?.trim() ? plan.time_label.trim() : null;
+  const start = parsePlanDate(plan.start_at);
+  const end = parsePlanDate(plan.end_at);
+  const timeZone =
+    typeof plan.timezone === "string" && plan.timezone.trim() ? plan.timezone.trim() : "UTC";
+
+  if (start && end && end.getTime() > start.getTime()) {
+    const s = dayPartsInZone(start, timeZone);
+    const e = dayPartsInZone(end, timeZone);
+    const multiDay =
+      s && e ? s.year !== e.year || s.month !== e.month || s.day !== e.day : false;
+    if (multiDay) {
+      const endLabel = shortDayLabel(end, timeZone);
+      if (label) return `${label} - ${endLabel}`;
+      const startLabel = shortDayLabel(start, timeZone);
+      const startTime = shortTimeLabel(start, timeZone);
+      return startTime ? `${startLabel}, ${startTime} - ${endLabel}` : `${startLabel} - ${endLabel}`;
+    }
+  }
+
+  if (label) return label;
+  return "Time not set yet.";
+}
+
 /** Whole calendar days from `now`'s day to `date`'s day (UTC). */
 export function calendarDayDiff(now: Date, date: Date): number {
   const a = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
@@ -115,9 +212,42 @@ export type SettledInvitation = {
   id: string;
   title: string;
   kind: SettledKind;
-  /** The one summarized history line, in plain words. */
+  /** The settled line, in plain words. R20 F-12: this line lives in
+   *  the plan's own DETAIL (reachable on intent) - it is never
+   *  rendered as a standalone row in any list surface. */
   line: string;
+  /** R20 F-12: the settled plan's own card (past family, "Settled"
+   *  label), built by the one adapter. List surfaces show settled
+   *  outcomes ONLY through the settled summary below; expanding the
+   *  summary by intent reveals these cards. */
+  card?: PastPillCard;
 };
+
+/**
+ * R20 F-12 - THE settled summary line: the single quiet line a list
+ * surface may show for ALL of the viewer's settled outcomes. One
+ * line total, however many plans settled - the per-plan rows that
+ * read as shouting ("Farmers market run - Settled - You said you
+ * could not make it", repeated) are gone from every list. The
+ * per-plan truth stays reachable: expand the summary for the cards,
+ * open a card for its detail and its settled line.
+ */
+export function settledSummaryLine(items: SettledInvitation[]): string {
+  const declined = items.filter((i) => i.kind === "declined").length;
+  const expired = items.length - declined;
+  const parts: string[] = [];
+  if (declined > 0) {
+    parts.push(declined === 1 ? "1 you could not make" : `${declined} you could not make`);
+  }
+  if (expired > 0) {
+    parts.push(
+      expired === 1
+        ? "1 that passed without an answer"
+        : `${expired} that passed without an answer`,
+    );
+  }
+  return `Settled quietly - ${parts.join(", ")}.`;
+}
 
 export function settledInvitationForPlan(plan: OpalPlanContract): SettledInvitation | null {
   const kind = settledKindForPlan(plan);
@@ -262,6 +392,40 @@ export type SpinePhase = "intent" | "preparation" | "event" | "settling";
 export type SpineOwner = "you" | "opal" | "agent";
 export type SpineState = "done" | "working" | "needs-you" | "waiting" | "declared";
 
+/**
+ * Repair #20 (F-13 + F-20) - the ONE real action surface a spine
+ * item opens when tapped, finished here in the projection (the
+ * view derives nothing and a surface never guesses). Spine tasks
+ * are CONNECTOR EXECUTION POINTS (F-20): where a real connector
+ * route exists for the task type, the surface hands off INTO the
+ * viewer's own connected tool; where none exists, the item carries
+ * no connector claim (see the mapping in the C6 report):
+ * - "food-panel": the B2 food composed-handoff panel mounted on the
+ *   same plan detail (items compose, per-person handoff,
+ *   self-confirm). CONNECTOR ROUTE: the handoff opens the viewer's
+ *   OWN delivery app (DoorDash / Uber Eats / GrubHub provider search,
+ *   FoodHandoff.provider_choices) or the restaurant's own held site.
+ * - "checkin": the check-in circle row mounted on the same detail.
+ * - "where": the detail's Where section (the place itself, its join /
+ *   handoff actions).
+ * - "plan-chat": the plan-scoped Opal chat doorway - the same scoped
+ *   session the revision / request-a-change flows enter. Restaurant
+ *   results are chosen, the ride ask is answered, and missing slots
+ *   are supplied there, conversationally; no other surface for those
+ *   tasks exists. Stamped ONLY by foldSpineChatActions, once the
+ *   detail's Who rows prove another participant exists to scope the
+ *   chat to - a solo plan earns no doorway (honest absence).
+ * An item with no action renders as a static row: Opal-owned
+ * machinery (calendar projection, follow-through, coming-up) and
+ * other people's answers have no user action surface, and a tap
+ * that opens nothing real is a defect.
+ */
+export type SpineAction =
+  | { kind: "food-panel" }
+  | { kind: "checkin" }
+  | { kind: "where" }
+  | { kind: "plan-chat" };
+
 export type SpineItem = {
   id: string;
   phase: SpinePhase;
@@ -275,7 +439,31 @@ export type SpineItem = {
   ownerLine: string;
   /** Position on the arc, 0 (intent) to 1 (settling), finished here. */
   arcPosition: number;
+  /** Repair #20 (F-13) - the item's real action surface, or absent
+   *  when none exists (see SpineAction). */
+  action?: SpineAction | null;
 };
+
+/** Step ids whose action surface lives ON the detail itself. */
+const STEP_DETAIL_ACTION: Record<string, SpineAction> = {
+  food: { kind: "food-panel" },
+  checkin: { kind: "checkin" },
+  join_link: { kind: "where" },
+  join: { kind: "where" },
+};
+
+/** Step ids whose ONLY real action surface is the plan-scoped Opal
+ *  chat (results/asks/offers are conversational by backend design -
+ *  PlanCompletion records them as next-steps for the turn to speak).
+ *  Plus the missing-slot item: a missing day/place is supplied
+ *  through the same scoped chat (schedule changes are revisions,
+ *  never direct edits). */
+const CHAT_ACTION_ITEM_IDS: ReadonlySet<string> = new Set([
+  "step-restaurants",
+  "step-ride",
+  "step-directions",
+  "missing-slot",
+]);
 
 const OWNER_LINE: Record<SpineOwner, string> = {
   you: "Yours to do",
@@ -356,6 +544,10 @@ export function spineFromPlan(input: {
       owner: known?.owner ?? "opal",
       ownerLine: OWNER_LINE[known?.owner ?? "opal"],
       arcPosition: 0.15 + (0.5 * (i + 1)) / Math.max(steps.length + 1, 2),
+      // F-13: an in-detail action surface is stamped here; the
+      // plan-chat surface is folded in later (foldSpineChatActions),
+      // once the detail's Who rows exist to scope it.
+      action: STEP_DETAIL_ACTION[step.id] ?? null,
     });
   });
 
@@ -389,6 +581,27 @@ export function spineFromPlan(input: {
   return spineTail(items, plan, familyPast);
 }
 
+/**
+ * Repair #20 (F-13) - fold the plan-chat action onto the spine items
+ * whose only real surface is the plan-scoped Opal chat, once the
+ * detail's history leg proves the chat can be scoped: another
+ * participant (not the viewer) exists on the plan. Without one there
+ * is no person to scope the doorway to, so the items stay static -
+ * honest absence, never a dead tap. Items that already carry an
+ * in-detail action are untouched.
+ */
+export function foldSpineChatActions(
+  spine: SpineItem[] | undefined,
+  opts: { chatAvailable: boolean },
+): SpineItem[] | undefined {
+  if (!spine || !opts.chatAvailable) return spine;
+  return spine.map((item) =>
+    CHAT_ACTION_ITEM_IDS.has(item.id) && !item.action
+      ? { ...item, action: { kind: "plan-chat" } as SpineAction }
+      : item,
+  );
+}
+
 /** Fold the Who rows' waiting answers into an already-projected
  *  spine (the detail adapter's history leg). Inserts the answers
  *  item ahead of the event item; a spine that already carries one
@@ -420,10 +633,13 @@ function spineTail(
   plan: OpalPlanContract,
   familyPast: boolean,
 ): SpineItem[] {
+  const whenLine = planWhenLine(plan);
   items.push({
     id: "event",
     phase: "event",
-    label: plan.time_label?.trim() ? `${plan.title} - ${plan.time_label.trim()}` : plan.title,
+    // R20 F-14: the spine's event item reads the ONE shared when
+    // line, so a multi-day plan shows its range here too.
+    label: whenLine !== "Time not set yet." ? `${plan.title} - ${whenLine}` : plan.title,
     state: familyPast ? "done" : "waiting",
     stateLine: familyPast ? "It happened" : "The event itself",
     owner: "you",

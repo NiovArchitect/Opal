@@ -9,11 +9,26 @@
  * mounts it on the plan detail (see C2GraphDetail, additive section
  * under the plan card) - it is equally mountable anywhere a detail
  * projection is held.
+ *
+ * Repair #20 (F-13) - interactivity: an item the projection stamped
+ * with a real action surface (item.action) renders as a button and
+ * tapping it opens exactly that surface through onAction. An item
+ * with no action - Opal-owned machinery, another person's answer -
+ * stays a static row: a tap that opens nothing real is a defect,
+ * so there is nothing to tap.
  */
 import React from "react";
 import type { SpineItem } from "./density";
 
-export function PreparationSpine({ spine }: { spine: SpineItem[] }) {
+export function PreparationSpine({
+  spine,
+  onAction,
+}: {
+  spine: SpineItem[];
+  /** Opens the item's stamped action surface. Absent handler =
+   *  every item renders static (no dead controls, ever). */
+  onAction?: (item: SpineItem) => void;
+}) {
   if (spine.length === 0) return null;
   return (
     <div data-testid="c2-preparation-spine">
@@ -36,23 +51,57 @@ export function PreparationSpine({ spine }: { spine: SpineItem[] }) {
           />
         ))}
       </div>
-      {spine.map((item) => (
-        <div
-          key={item.id}
-          data-testid="c2-spine-item"
-          data-spine-state={item.state}
-          data-spine-owner={item.owner}
-          data-spine-phase={item.phase}
-          style={{ marginBottom: 8 }}
-        >
-          <p className="c2s-card-title" style={{ fontSize: 15 }}>
-            {item.label}
-          </p>
-          <p className="c2s-card-line">
-            {item.stateLine} <span style={{ color: "var(--ink-3)" }}>{item.ownerLine}</span>
-          </p>
-        </div>
-      ))}
+      {spine.map((item) => {
+        const body = (
+          <>
+            <p className="c2s-card-title" style={{ fontSize: 15 }}>
+              {item.label}
+            </p>
+            <p className="c2s-card-line">
+              {item.stateLine} <span style={{ color: "var(--ink-3)" }}>{item.ownerLine}</span>
+            </p>
+          </>
+        );
+        const tappable = Boolean(item.action && onAction);
+        return tappable ? (
+          <button
+            key={item.id}
+            type="button"
+            data-testid="c2-spine-item"
+            data-spine-state={item.state}
+            data-spine-owner={item.owner}
+            data-spine-phase={item.phase}
+            data-spine-action={item.action!.kind}
+            aria-label={`${item.label} - open`}
+            onClick={() => onAction!(item)}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              background: "none",
+              border: "none",
+              padding: 0,
+              marginBottom: 8,
+              cursor: "pointer",
+              font: "inherit",
+              color: "inherit",
+            }}
+          >
+            {body}
+          </button>
+        ) : (
+          <div
+            key={item.id}
+            data-testid="c2-spine-item"
+            data-spine-state={item.state}
+            data-spine-owner={item.owner}
+            data-spine-phase={item.phase}
+            style={{ marginBottom: 8 }}
+          >
+            {body}
+          </div>
+        );
+      })}
     </div>
   );
 }

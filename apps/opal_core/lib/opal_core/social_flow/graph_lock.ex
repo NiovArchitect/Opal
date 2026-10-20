@@ -36,6 +36,12 @@ defmodule OpalCore.SocialFlow.GraphLock do
   schema "graph_locks" do
     field :passcode_hash, :binary
     field :salt, :binary
+    # Repair #20 F-4: the account's biometric-unlock preference for
+    # the Private graphs gate (Settings is its only write home). It
+    # is a preference flag ONLY - no credential material is stored
+    # server-side; the platform authenticator credential itself is
+    # device-local, and the PIN stays the server-verified truth.
+    field :biometric_enabled, :boolean, default: false
 
     belongs_to :user, OpalCore.Accounts.User, foreign_key: :user_id
 
@@ -47,6 +53,49 @@ defmodule OpalCore.SocialFlow.GraphLock do
   end
 
   def set?(_), do: false
+
+  @doc """
+  The ONE graph-lock projection (Repair #20 F-4): whether a passcode
+  is set, and whether the account enabled biometric unlock for the
+  gate. Every surface (gate, Settings credential home) reads this
+  shape; no surface re-derives either fact.
+  """
+  def status(user_id) when is_binary(user_id) do
+    case Repo.one(from(l in __MODULE__, where: l.user_id == ^user_id)) do
+      %__MODULE__{} = lock ->
+        %{passcode_set: true, biometric_enabled: lock.biometric_enabled == true}
+
+      _ ->
+        %{passcode_set: false, biometric_enabled: false}
+    end
+  end
+
+  def status(_), do: %{passcode_set: false, biometric_enabled: false}
+
+  @doc """
+  Set or clear the biometric-unlock preference. A passcode must
+  already exist - biometrics are an unlock FOR the PIN-gated vault,
+  never a replacement credential - so an account with no lock gets
+  `{:error, :no_passcode_set}` and nothing is written.
+  """
+  def set_biometric_enabled(user_id, enabled)
+      when is_binary(user_id) and is_boolean(enabled) do
+    case Repo.one(from(l in __MODULE__, where: l.user_id == ^user_id)) do
+      %__MODULE__{} = lock ->
+        lock
+        |> Ecto.Changeset.change(%{biometric_enabled: enabled})
+        |> Repo.update()
+        |> case do
+          {:ok, _} -> :ok
+          {:error, _} -> {:error, :invalid}
+        end
+
+      _ ->
+        {:error, :no_passcode_set}
+    end
+  end
+
+  def set_biometric_enabled(_, _), do: {:error, :invalid}
 
   @doc "Set or replace the account's Private graphs passcode."
   def set_passcode(user_id, code)

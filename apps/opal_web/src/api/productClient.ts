@@ -1298,7 +1298,14 @@ export async function createInvitation(
 
 export async function listPeople(bearer?: string) {
   return request<{
-    connected: { relationship_id: string; conversation_id: string; display_name?: string }[];
+    connected: {
+      relationship_id: string;
+      conversation_id: string;
+      /** Repair #20 (F-6): the peer's identity key, carried so
+       *  unions can resolve identity instead of duplicating. */
+      peer_user_id?: string;
+      display_name?: string;
+    }[];
     outgoing: { id: string; product_status?: string; label?: string }[];
     incoming: { id: string; product_status?: string }[];
     no_follower_counts: boolean;
@@ -1494,6 +1501,9 @@ export async function listMessages(conversationId: string, bearer?: string) {
     durable_chronology?: boolean;
     /** DIR-1: the thread's shared upcoming plan fact, or null. */
     next_plan?: NextPlanFact | null;
+    /** Repair #20 (F-19): the thread's orbit projection, or null
+     *  when the caller is not a member of the conversation. */
+    orbit?: OrbitProjectionContract | null;
   }>(`/api/v1/product/conversations/${conversationId}/messages`, {
     bearer: resolveBearer(bearer),
   });
@@ -1912,6 +1922,55 @@ export async function ensureDirectConversation(peerUserId: string, bearer?: stri
     bearer: resolveBearer(bearer),
     body: JSON.stringify({ peer_user_id: peerUserId }),
   });
+}
+
+/**
+ * Repair #20 (F-8b) — start or find a direct conversation by phone
+ * number (WhatsApp pattern). The server resolves the number against
+ * active verified identifiers and runs the same ensure-direct path
+ * as a picked person; an unknown number is a 404 `not_on_opal` and
+ * a malformed one a 422 `invalid_phone` — the caller renders those
+ * honestly. The response names the resolved peer; the number itself
+ * is never echoed back.
+ */
+export async function startConversationByPhone(phone: string, bearer?: string) {
+  return request<{
+    conversation_id: string;
+    member_ids: string[];
+    member_count: number;
+    composition: string;
+    origin: string;
+    direct: boolean;
+    peer?: { id: string; display_name: string };
+  }>("/api/v1/product/conversations/by-phone", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ phone: normalizePhoneInput(phone) }),
+  });
+}
+
+/**
+ * Repair #20 (F-6 / F-8a) — THE one people projection: one row per
+ * person identity (identity-resolved server-side), ordered
+ * most-talked-to first from the viewer's real conversation record.
+ */
+export type PeopleProjectionPerson = {
+  id: string;
+  person_id: string;
+  display_name: string;
+  name: string;
+  account_backed: boolean;
+  conversation_id: string | null;
+  last_talked_at: string | null;
+  talk_count: number;
+  relationship_type: string | null;
+};
+
+export async function listPeopleProjection(bearer?: string) {
+  return request<{ people: PeopleProjectionPerson[]; count: number }>(
+    "/api/v1/product/people/projection",
+    { bearer: resolveBearer(bearer) },
+  );
 }
 
 /** Multi-member conversation (3–8). Uses ConversationMember — not a dyad proxy. */
@@ -4854,6 +4913,50 @@ export type OpalChatContextContract = {
   plan_id?: string | null;
   plan_title?: string | null;
   conversation_id?: string | null;
+  /** Repair #20 (F-19): a conversation-scoped (group) context
+   *  carries its party instead of a person (person_id is null). */
+  party?: Array<{ id: string; display_name?: string | null }> | null;
+};
+
+/**
+ * Repair #20 (F-19) — THE ORBIT PROJECTION (backend
+ * OrbitProjection.for_conversation): the thread's parties, all of
+ * its upcoming plans as ring stones, and per-party pending/limbo
+ * reads. Every field is finished server side; the orbit screen
+ * renders it and derives nothing.
+ */
+export type OrbitPartyContract = {
+  user_id: string;
+  display_name: string;
+  handle?: string | null;
+  entity_tint?: number | null;
+  is_viewer: boolean;
+  /** This person's answer is still pending on a thread plan. */
+  pending: boolean;
+  /** An etiquette loop is cooling on this person. */
+  limbo: boolean;
+  limbo_fraction_remaining?: number | null;
+};
+
+export type OrbitPlanParticipantContract = {
+  user_id: string;
+  response_state?: string | null;
+  pending: boolean;
+  limbo: boolean;
+  limbo_stage?: string | null;
+  limbo_fraction_remaining?: number | null;
+};
+
+export type OrbitPlanFact = NextPlanFact & {
+  participants: OrbitPlanParticipantContract[];
+};
+
+export type OrbitProjectionContract = {
+  conversation_id: string;
+  composition: "group" | "dyad" | string;
+  parties: OrbitPartyContract[];
+  plans: OrbitPlanFact[];
+  next_plan?: NextPlanFact | null;
 };
 
 /** Phase OC-1 — Opal Center conversational shell (one conversation per user). */
@@ -5038,7 +5141,8 @@ export async function listOpalChatSessions(bearer?: string, personId?: string) {
  */
 export async function createScopedOpalChatSession(
   scope: {
-    personId: string;
+    /** The person scope (dyad doorway). Omit for a group scope. */
+    personId?: string | null;
     planId?: string | null;
     conversationId?: string | null;
   },
@@ -5050,7 +5154,7 @@ export async function createScopedOpalChatSession(
       method: "POST",
       bearer: resolveBearer(bearer),
       body: JSON.stringify({
-        person_id: scope.personId,
+        ...(scope.personId ? { person_id: scope.personId } : {}),
         ...(scope.planId ? { plan_id: scope.planId } : {}),
         ...(scope.conversationId ? { conversation_id: scope.conversationId } : {}),
       }),
@@ -5318,6 +5422,8 @@ export type PlanEtiquetteContract = {
     treatment: string;
     pattern_channel: string;
     window_fraction_remaining: number | null;
+    /** R20 F-16: the machinery's finished remaining-window line. */
+    remaining_window_text?: string | null;
     copy: string;
   } | null;
   window: {
@@ -5336,6 +5442,12 @@ export type OpalPlanContract = {
   id: string;
   title: string;
   status: string;
+  /** The plan's own conversation, when it has one (SharedPlan
+   *  to_contract carries it verbatim); null for conversation-less
+   *  plans. Repair #20 reads it twice: (F-13) to scope the
+   *  plan-chat doorway from the graph detail, and (F-21a) as the
+   *  notice-routing identity. */
+  conversation_id?: string | null;
   /** I2: the per-viewer etiquette projection (window / limbo / fork). */
   etiquette?: PlanEtiquetteContract | null;
   location?: string | null;
@@ -5347,6 +5459,12 @@ export type OpalPlanContract = {
    *  density derivation reads them for time buckets and past pills;
    *  absent = the plan carries no band, never a guessed one. */
   start_at?: string | null;
+  /** R20 F-14: the record's own end instant + timezone, already on
+   *  the backend contract (SharedPlan.to_contract). The shared
+   *  when-line formatter (density.planWhenLine) reads them so a
+   *  multi-day plan renders its full range on every surface. */
+  end_at?: string | null;
+  timezone?: string | null;
   completed_at?: string | null;
   source?: string;
   created_by_user_id?: string;
@@ -5510,6 +5628,11 @@ export async function createGraphPlan(
     entry?: string;
     idempotency_key?: string;
     timezone?: string;
+    /** Repair #20 (F-15) - a repeat of a virtual plan stays virtual:
+     *  the graph-create writer already normalizes plan_type like
+     *  every other create path. A repeat never carries the source's
+     *  meeting link - the new plan's host adds a fresh one. */
+    plan_type?: string;
   },
   bearer?: string,
 ) {
@@ -6031,11 +6154,30 @@ export async function setPlanPrivate(planId: string, isPrivate: boolean, bearer?
   );
 }
 
+/** Repair #20 F-4 — the ONE graph-lock projection: passcode state
+ *  plus the account's biometric-unlock preference. Every surface
+ *  (the gate, the Settings credential home) reads this shape. */
+export type GraphLockStatus = { passcode_set: boolean; biometric_enabled: boolean };
+
 export async function getGraphLock(bearer?: string) {
-  return request<{ passcode_set: boolean }>("/api/v1/product/opal/graph-lock", {
+  return request<GraphLockStatus>("/api/v1/product/opal/graph-lock", {
     method: "GET",
     bearer: resolveBearer(bearer),
   });
+}
+
+/** Repair #20 F-4 — the biometric preference's ONE write, homed in
+ *  Settings. The server refuses it when no passcode exists yet
+ *  (biometrics unlock the PIN vault; they never replace the PIN). */
+export async function setGraphLockBiometric(enabled: boolean, bearer?: string) {
+  return request<{ ok: boolean } & GraphLockStatus>(
+    "/api/v1/product/opal/graph-lock/biometric",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ enabled }),
+    },
+  );
 }
 
 export async function setGraphLock(code: string, bearer?: string) {

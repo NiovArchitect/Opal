@@ -74,21 +74,48 @@
   opacity: 0.85;
   white-space: nowrap;
 }
-/* Polish Cluster A (P1): the request-a-change action - a quiet
- * sibling of Dismiss in the same row, never louder than the
- * primary action. */
+/* R20 F-1: the actions row shares ONE boxed affordance language.
+ * Before this fix the primary and Dismiss were plain <button>s
+ * while .reveal-change-request explicitly stripped its border and
+ * background (border: 0; background: none; padding: 4px 0), so
+ * "Request a change" rendered as bare text beside two controls -
+ * untappable-looking, and the founder flagged it on review. Now
+ * all three are boxed pills in the chats-list row's own grammar
+ * (.reveal-row-action): a 1px border, a filled ground, a 36px hit
+ * height, and a press state. The primary keeps the state-tinted
+ * border/fill (the plan's state, from --reveal-state, is its
+ * second channel - never a new hue); the change lane and Dismiss
+ * are quiet siblings: neutral line border over the surface step,
+ * never louder than the primary. */
+.reveal-action,
+.reveal-dismiss,
 .reveal-change-request {
-  border: 0;
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
   color: inherit;
   font: inherit;
+  font-weight: 600;
   cursor: pointer;
-  padding: 4px 0;
   white-space: nowrap;
+}
+.reveal-action {
+  border-color: color-mix(in srgb, var(--reveal-state, var(--line-2)) 55%, transparent);
+  background: color-mix(in srgb, var(--reveal-state, transparent) 12%, var(--surface-2));
+  font-weight: 650;
+}
+.reveal-action:active,
+.reveal-dismiss:active,
+.reveal-change-request:active {
+  background: color-mix(in srgb, var(--reveal-state, var(--line-2)) 22%, var(--surface-2));
 }
 .reveal-change-request--line {
   min-height: 32px;
-  padding: 4px 8px;
+  padding: 4px 12px;
 }
 /* R19 W5-06: the chats-list takeover is a MINI-CARD, not a line.
  * Layout contract (pinned by r19ChatsThread.test.tsx):
@@ -158,14 +185,13 @@
   font-weight: 650;
   white-space: nowrap;
 }
+/* R20 F-1: the list form's Dismiss keeps the row's boxed
+ * affordance (it inherits .reveal-dismiss above); only its
+ * placement and row-height differ here. It previously stripped
+ * its own border/background, which made the row read as one
+ * boxed action beside two bare-text actions. */
 .reveal-dismiss--line {
   margin-left: auto;
   min-height: 32px;
-  padding: 4px 8px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  white-space: nowrap;
+  padding: 4px 12px;
 }

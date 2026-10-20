@@ -90,6 +90,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/meaning.ex
     lib/opal_core/social_flow/next_plan.ex
     lib/opal_core/social_flow/non_response_etiquette.ex
+    lib/opal_core/social_flow/orbit_projection.ex
     lib/opal_core/social_flow/plan_agreement_taste_bridge.ex
     lib/opal_core/social_flow/plan_completion.ex
     lib/opal_core/social_flow/plan_execution.ex
@@ -165,6 +166,12 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 adoption wave 1 (4.C1): the one holding counter set, read from the same stores the surfaces read"},
       {OpalCore.SocialFlow.PlanHistory, :for_plan, 2,
        "Repair #18 adoption wave 1 (ST-G): the one plan history + Who projection, from the plan's own records and JourneyAuthority"},
+      {OpalCore.SocialFlow.NextPlan, :all_for_conversation, 3,
+       "Repair #20 F-19: every upcoming plan fact for a conversation (the one pick's own pipeline, list form) for the orbit ring"},
+      {OpalCore.SocialFlow.NonResponseEtiquette, :limbo_recipients, 2,
+       "Repair #20 F-19: the etiquette machinery's own limbo recipients for one plan (stage set + window fraction from the machinery itself)"},
+      {OpalCore.SocialFlow.OrbitProjection, :for_conversation, 3,
+       "Repair #20 F-19: the orbit screen's one projection - a thread's parties, its plans (via NextPlan.all_for_conversation), per-party pending (participant rows' canonical states) and limbo (via NonResponseEtiquette.limbo_recipients)"},
       {OpalCore.Center.PlanningContext, :get_for_user, 1, "center in-flight planning state"},
       {OpalCore.Center.NowStrip, :plan_events, 3,
        "Center header strip: live plan commitments in window (Repair #17 W4-6)"},

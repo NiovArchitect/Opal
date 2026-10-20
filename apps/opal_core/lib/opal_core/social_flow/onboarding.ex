@@ -461,6 +461,49 @@ defmodule OpalCore.SocialFlow.Onboarding do
     end
   end
 
+  @doc """
+  Repair #20 (F-8b) — resolve a typed phone number to the account
+  that owns it, for the start-a-chat-by-number path (WhatsApp
+  pattern). The number is validated E.164-ish (a leading `+`,
+  country code, 7–15 digits total after normalization), then matched
+  against ACTIVE verified communication identifiers only — the same
+  ownership truth `resolve_contact/1` consults. No account is ever
+  created here, no shadow person is minted, and an unknown number
+  is an honest `:not_on_opal`, never a guessed match.
+
+  Returns `{:ok, account_id}` or `{:error, :invalid_phone |
+  :not_on_opal | :self | :blocked}`.
+  """
+  def account_id_for_phone(requester_user_id, raw)
+      when is_binary(requester_user_id) and is_binary(raw) do
+    with {:ok, e164} <- normalize_e164(raw),
+         :ok <- validate_e164_shape(e164) do
+      case active_owner(lookup_digest(e164)) do
+        nil ->
+          {:error, :not_on_opal}
+
+        owner_id when owner_id == requester_user_id ->
+          {:error, :self}
+
+        owner_id ->
+          if TrustSafety.blocked?(requester_user_id, owner_id) or
+               TrustSafety.blocked?(owner_id, requester_user_id) do
+            {:error, :blocked}
+          else
+            {:ok, owner_id}
+          end
+      end
+    else
+      _ -> {:error, :invalid_phone}
+    end
+  end
+
+  def account_id_for_phone(_, _), do: {:error, :invalid_phone}
+
+  defp validate_e164_shape(e164) do
+    if Regex.match?(~r/^\+[1-9]\d{6,14}$/, e164), do: :ok, else: {:error, :invalid_phone}
+  end
+
   defp resolution_outcome(requester, digest) do
     case active_owner(digest) do
       nil ->
@@ -678,9 +721,19 @@ defmodule OpalCore.SocialFlow.Onboarding do
           "relationship_id" => e.id,
           "conversation_id" => e.conversation_id,
           "status" => "connected",
+          # Repair #20 (F-6): the connected row now carries the
+          # peer's identity key. Before this, a consumer unioning
+          # people sources had no stable key to resolve identity
+          # on — the same person projected once per source (the
+          # duplicate "Maya Torres" under People). Additive: every
+          # pre-existing key is unchanged.
+          "peer_user_id" => peer,
           "display_name" => peer_user && peer_user.display_name
         }
       end)
+      # One row per identity: several establishments can connect
+      # the same pair (invite + seed + re-join); the person is one.
+      |> Enum.uniq_by(fn row -> row["peer_user_id"] || row["relationship_id"] end)
 
     %{
       "connected" => relationships,

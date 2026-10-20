@@ -3,11 +3,14 @@
  *
  * Repair #19 polish - Cluster H (P11) + P12 pins:
  *  - past renders PILLS, not rows, by default (DOM count under the
- *    heavy persona), expansion is by intent and shows ledger rows;
- *  - declined / expired invitations settle as summary lines in the
- *    viewer's own past area and are absent from actionable lists;
+ *    heavy persona), expansion is by intent and shows plan cards
+ *    (R20 F-11 - ledger text rows retired by founder order);
+ *  - declined / expired invitations settle into ONE summary line in
+ *    the viewer's own past area (R20 F-12) and are absent from
+ *    actionable lists; their per-plan lines live in their details;
  *  - bucket/pin ordering: happening + needs-you ahead of later and
- *    forming; far plans rest in the horizon band as quiet lines;
+ *    forming; far plans rest in the horizon band as distant cards
+ *    (R20 F-11);
  *  - horizon migration: a plan's presence weight class changes as
  *    its start crosses the thresholds (pinned clock);
  *  - cooling is one physics with limbo (P14): warm -> cooling ->
@@ -136,15 +139,23 @@ describe("heavy persona - density under the fullest graph", () => {
     expect(list.lensCounts.past).toBe(120 + 26);
   });
 
-  it("settled invitations: absent from every group, present as summary lines only", () => {
+  it("settled invitations: absent from every group, carried for the summary + detail only", () => {
     const groupedIds = list.groups.flatMap((g) => g.cards.map((c) => c.id));
     expect(groupedIds.some((id) => id.startsWith("heavy-declined"))).toBe(false);
     expect(groupedIds.some((id) => id.startsWith("heavy-expired"))).toBe(false);
     expect(list.settledInvitations).toHaveLength(26);
+    // R20 F-12: the per-plan line is carried for the plan's DETAIL
+    // (and only there); the list renders one summary line instead -
+    // the DOM half of that claim is pinned in the budget test below.
     expect(list.settledInvitations?.find((s) => s.id === "heavy-declined-0")?.line).toContain(
       "settled",
     );
     expect(list.settledInvitations?.find((s) => s.id === "heavy-expired-0")?.kind).toBe("expired");
+    // Each settled entry carries the plan's own card for intent
+    // expansion - past family, "Settled" label.
+    const settledCard = list.settledInvitations?.find((s) => s.id === "heavy-declined-0")?.card;
+    expect(settledCard?.stateFamily).toBe("past");
+    expect(settledCard?.stateLabel).toBe("Settled");
   });
 
   it("far plans rest in the horizon band, not in Coming up", () => {
@@ -181,23 +192,38 @@ describe("heavy persona - density under the fullest graph", () => {
     ]);
   });
 
-  it("DOM budget: pills render, past rows do not - until a pill is expanded by intent", async () => {
+  it("DOM budget: pills render, past cards do not - until a pill is expanded by intent", async () => {
     await render(<C2Graphs projection={list} events={events} />);
     const pills = document.querySelectorAll('[data-testid="c2-past-pill"]');
     expect(pills.length).toBeGreaterThan(0);
     expect(pills.length).toBeLessThanOrEqual(15);
-    expect(document.querySelectorAll('[data-testid="c2-past-ledger-row"]').length).toBe(0);
-    // Settled lines are present in the viewer's own past area.
-    expect(document.querySelectorAll('[data-testid="c2-settled-invitation-line"]').length).toBe(26);
-    // Horizon renders quiet one-line rows, not full cards.
-    expect(document.querySelectorAll('[data-testid="c2-horizon-row"]').length).toBe(2);
-    // Expand the newest pill: only that period's ledger rows appear.
+    expect(document.querySelectorAll('[data-testid="c2-past-card"]').length).toBe(0);
+    // R20 F-12: NO standalone settled rows anywhere in the list -
+    // one quiet summary line carries all 26 settled outcomes.
+    expect(document.querySelectorAll('[data-testid="c2-settled-invitation-line"]').length).toBe(0);
+    expect(document.body.textContent).not.toContain("You said you could not make it");
+    const summary = document.querySelector('[data-testid="c2-settled-summary"]');
+    expect(summary?.textContent).toContain("Settled quietly");
+    expect(summary?.textContent).toContain("14 you could not make");
+    expect(summary?.textContent).toContain("12 that passed without an answer");
+    // R20 F-11: horizon renders individual cards at distant presence,
+    // not one-line text rows.
+    expect(document.querySelectorAll('[data-testid="c2-horizon-card"]').length).toBe(2);
+    expect(
+      document
+        .querySelector('[data-testid="c2-horizon-card"]')
+        ?.getAttribute("data-presence-weight"),
+    ).toBe("distant");
+    // Expand the newest pill: only that period's plan CARDS appear.
     const first = pills[0] as HTMLElement;
     const periodCount = Number(first.textContent?.match(/- (\d+) plan/)?.[1] ?? 0);
     click(first);
-    const rows = document.querySelectorAll('[data-testid="c2-past-ledger-row"]');
-    expect(rows.length).toBe(periodCount);
-    expect(rows.length).toBeLessThanOrEqual(10);
+    const cards = document.querySelectorAll('[data-testid="c2-past-card"]');
+    expect(cards.length).toBe(periodCount);
+    expect(cards.length).toBeLessThanOrEqual(10);
+    // Each expanded card is a real plan card with its state pill.
+    expect(cards[0].querySelector('[data-testid="c2-plan-card"]')).not.toBeNull();
+    expect(cards[0].querySelector('[data-testid="c2-plan-state-pill"]')).not.toBeNull();
   });
 });
 

@@ -31,6 +31,20 @@
  * not this surface - may pass the "completed" signal once; the
  * character never celebrates on a timer or on mount.
  *
+ * R20 F-10: the three Center assets are verified end-to-end -
+ * Make something happen emits makeSomethingHappen (the shell opens
+ * the real create flow), Talk to Opal emits openCenterChat (the C1
+ * host opens the active Opal session), and "How Opal works for you"
+ * is NOT an action: it is a doorway to Settings (Soul), restyled as
+ * a doorway row with a chevron and a where-it-goes subtitle, still
+ * emitting openSoulMemory. All three, plus the orb doorway, carry
+ * the c2s-center-asset pressed/focus treatment in c2shell.css.
+ * R20 F-18 (D-5): this surface is Opal's WORKING surface - it leads
+ * with the orb, the greeting, and the Needs-you deck
+ * (data-surface-purpose="opal-working"). Home is the social/life
+ * surface and leads with people and moments instead; the deck's
+ * plan logic, DIR-1 strips, and reveal machinery are unchanged.
+ *
  * SEAM (flagged for the coordinator): C1 owns Center chat internals.
  * This surface is the Center REST state the dock and onboarding land
  * on; its Talk to Opal entry emits openCenterChat, which at
@@ -172,7 +186,7 @@ export function C2CenterOpening({
   // plan actually becoming ready) lights a single fire line - one
   // lit thing, from a real signal only.
   return (
-    <div className="c2s-scroll" style={{ padding: 0 }} data-testid="c2-center-opening">
+    <div className="c2s-scroll" style={{ padding: 0 }} data-testid="c2-center-opening" data-surface-purpose="opal-working">
       {/* Deckfix F3: the deck's rest fold must land in a text-free
           window. At 390x844 the fold is the viewport bottom (844).
           Measured on the served deckfix build (geometry probe, pack
@@ -191,6 +205,7 @@ export function C2CenterOpening({
         {events.openSoulMemory ? (
           <button
             type="button"
+            className="c2s-center-orb-doorway"
             data-testid="c2-center-orb-doorway"
             aria-label="How Opal works for you - open your Soul and Memory settings"
             onClick={events.openSoulMemory}
@@ -215,7 +230,7 @@ export function C2CenterOpening({
         <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", justifyContent: "center" }}>
           <button
             type="button"
-            className="c2s-btn-quiet"
+            className="c2s-btn-quiet c2s-center-asset"
             data-testid="c2-opening-create"
             onClick={events.makeSomethingHappen}
             style={{ minHeight: 48, padding: "0 var(--space-5)" }}
@@ -225,24 +240,34 @@ export function C2CenterOpening({
           {events.openCenterChat ? (
             <button
               type="button"
-              className="c2s-btn-text"
+              className="c2s-btn-text c2s-center-asset"
               data-testid="c2-opening-talk"
               onClick={events.openCenterChat}
             >
               Talk to Opal
             </button>
           ) : null}
-          {events.openSoulMemory ? (
-            <button
-              type="button"
-              className="c2s-btn-text"
-              data-testid="c2-opening-soul-memory"
-              onClick={events.openSoulMemory}
-            >
-              How Opal works for you
-            </button>
-          ) : null}
         </div>
+        {events.openSoulMemory ? (
+          <button
+            type="button"
+            className="c2s-center-doorway c2s-center-asset"
+            data-testid="c2-opening-soul-memory"
+            data-kind="doorway"
+            aria-label="How Opal works for you - a doorway to your Soul and Memory settings"
+            onClick={events.openSoulMemory}
+          >
+            <span className="c2s-center-doorway-main">
+              <span className="c2s-center-doorway-title">How Opal works for you</span>
+              <span className="c2s-center-doorway-sub">
+                Soul and Memory - how Opal is with you, and what it holds
+              </span>
+            </span>
+            <span className="c2s-center-doorway-chevron" aria-hidden>
+              ›
+            </span>
+          </button>
+        ) : null}
       </section>
 
       {/* Deck fold (harmony2, residue 2c): the deck's bottom pad is
@@ -299,6 +324,33 @@ export function C2CenterOpening({
               </p>
               <p className="c2s-card-title">{projection.next.title}</p>
               <p className="c2s-card-line">{projection.next.line}</p>
+              {/* R20 F-16: the deck's hero is a bespoke strip, not a
+                  PlanCardC2 - when the next plan is in limbo for the
+                  viewer, the cooling copy + remaining-window line
+                  from the etiquette projection render here too, in
+                  the same limbo treatment classes. */}
+              {projection.next.card.limbo?.state === "limbo" ? (
+                <span
+                  className="c2-plan-limbo"
+                  data-testid="c2-opening-next-limbo"
+                  data-pattern={projection.next.card.limbo.patternChannel}
+                  data-treatment={projection.next.card.limbo.treatment}
+                  style={{ display: "block", marginTop: 8 }}
+                >
+                  <span className="c2-plan-limbo-copy" style={{ display: "block" }}>
+                    {projection.next.card.limbo.copy}
+                  </span>
+                  {projection.next.card.limbo.remainingWindowText ? (
+                    <span
+                      className="c2-plan-limbo-copy"
+                      data-testid="c2-opening-next-limbo-window"
+                      style={{ display: "block" }}
+                    >
+                      {projection.next.card.limbo.remainingWindowText}
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
             </button>
           </section>
         ) : null}

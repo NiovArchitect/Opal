@@ -159,8 +159,8 @@ const SECTION_KEYS = [
   "how-opal-helps",
   "calls-assist",
   "approvals-activity",
-  "what-opal-hears",
   "connections",
+  "connector-permissions",
   "privacy",
   "notifications",
   "linked-devices",
@@ -191,7 +191,7 @@ describe("Settings architecture - doorway reachability (entry 19)", () => {
     expect(
       container.querySelectorAll('[data-testid="c2-you-search-result"]').length,
     ).toBeGreaterThan(0);
-    expect(container.textContent).toMatch(/Connections/);
+    expect(container.textContent).toMatch(/Connectors/);
     setInputValue(input, "soul");
     expect(container.textContent).toMatch(/Soul/);
     expect(container.textContent).not.toMatch(/Soul \+ Memory/);
@@ -301,14 +301,18 @@ const PAYLOAD: SettingsConnectionsPayload = {
 };
 
 describe("Connections section - DOM status equals payload status", () => {
-  it("renders every payload status verbatim, simulated never Connected", async () => {
+  it("renders every USER-FACING payload status verbatim, simulated never Connected (R20 F-9: infrastructure rows never render)", async () => {
     mocks.getSettingsConnections.mockResolvedValue(PAYLOAD);
     const section = await buildSettingsSection("connections", {
       session: null,
       bearer: "t",
     });
     await render(<C2SettingsSection section={section} events={events} />);
-    for (const conn of PAYLOAD.connections) {
+    // Only the user-facing subset of the payload renders here: the
+    // payload's infrastructure rows (DeepSeek / Twilio / Duffel)
+    // belong to an internal health view, never this room.
+    const userFacing = PAYLOAD.connections.filter((c) => c.id === "google_calendar" || c.id === "gmail");
+    for (const conn of userFacing) {
       const statusEl = container.querySelector(
         `[data-testid="connection-status-${conn.id}"]`,
       );
@@ -317,41 +321,42 @@ describe("Connections section - DOM status equals payload status", () => {
       const row = container.querySelector(`[data-testid="connection-row-${conn.id}"]`);
       expect(row!.getAttribute("data-connection-status")).toBe(conn.status);
     }
+    for (const infra of ["deepseek", "twilio_messaging", "duffel"]) {
+      expect(container.querySelector(`[data-testid="connection-row-${infra}"]`)).toBeNull();
+    }
+    expect(container.textContent).not.toMatch(/DeepSeek|Twilio|Duffel/);
     const googleStatus = container.querySelector(
       '[data-testid="connection-status-google_calendar"]',
     )!;
     expect(googleStatus.textContent).toBe("Simulated - not a real connection");
     expect(googleStatus.textContent).not.toBe("Connected");
-    // A3 redesign: the row itself carries only the name and the
-    // verbatim status - the payload's detail text is NOT on the row.
-    const twilioRow = container.querySelector(
-      '[data-testid="connection-row-twilio_messaging"]',
+    // Tapping the Google row opens its detail panel, where the
+    // payload's powers/detail live behind the row (verbatim).
+    const googleRow = container.querySelector(
+      '[data-testid="connection-row-google_calendar"]',
     )!;
-    expect(twilioRow.textContent).not.toMatch(/no sender to text invites from yet/);
-    expect(
-      container.querySelector('[data-testid="connection-detail-twilio_messaging"]'),
-    ).toBeNull();
-    // Tapping the gated row opens its detail panel, where the plain
-    // gate reason from the payload lives (verbatim, behind the row).
     await act(async () => {
-      (twilioRow as HTMLButtonElement).click();
+      (googleRow as HTMLButtonElement).click();
     });
     const detail = container.querySelector(
-      '[data-testid="connection-detail-twilio_messaging"]',
+      '[data-testid="connection-detail-google_calendar"]',
     )!;
     expect(detail).toBeTruthy();
-    expect(detail.textContent).toMatch(/no sender to text invites from yet/);
-    expect(detail.textContent).toMatch(/Texts invitations to people who are not on Opal yet/);
-    expect(detail.textContent).toMatch(/Never checked/);
-    expect(twilioRow.getAttribute("aria-expanded")).toBe("true");
+    expect(detail.textContent).toMatch(/Lets Opal check busy times/);
+    expect(detail.textContent).toMatch(/not a real connection/);
+    expect(googleRow.getAttribute("aria-expanded")).toBe("true");
     // Category headers render as quiet group labels.
     expect(
-      container.querySelector('[data-testid="connection-category-phone_and_messaging"]'),
+      container.querySelector('[data-testid="connection-category-your_accounts"]'),
     ).toBeTruthy();
-    // The payload's Google disconnect descriptor becomes a real action row.
     expect(
-      container.querySelector('[data-testid="c2-setting-row-google-disconnect"]'),
+      container.querySelector('[data-testid="connection-category-your-device"]'),
     ).toBeTruthy();
+    // The payload's Google disconnect descriptor becomes a real
+    // action in the row's detail (backed by the revoke endpoint).
+    const action = container.querySelector('[data-testid="connection-action-google_calendar"]');
+    expect(action).toBeTruthy();
+    expect(action!.getAttribute("data-action-id")).toBe("google-disconnect");
   });
 
   it("a failed connections read renders one honest unknown, never a guessed list", async () => {
@@ -361,30 +366,27 @@ describe("Connections section - DOM status equals payload status", () => {
       bearer: "t",
     });
     await render(<C2SettingsSection section={section} events={events} />);
-    expect(container.textContent).toMatch(/Could not check connections/);
+    expect(container.textContent).toMatch(/Could not check your connectors/);
     expect(container.querySelector('[data-testid^="connection-row-"]')).toBeNull();
   });
 
-  it("ONE Connections room: the retired connected-sources key lands on Connections (founder naming fix)", async () => {
-    // FR-18-09's simulated-Google truth now lives in the Connections
-    // payload test above (the simulated row renders verbatim there);
-    // this pins the naming fix itself: no second room exists.
+  it("ONE Connectors room: the retired connected-sources and folded what-opal-hears keys land on Connectors (R20 F-9)", async () => {
     mocks.getSettingsConnections.mockResolvedValue(PAYLOAD);
-    const section = await buildSettingsSection("connected-sources", {
-      session: null,
-      bearer: "t",
-    });
-    expect(section.key).toBe("connections");
-    expect(section.title).toBe("Connections");
-    expect(section.rows.some((r) => r.kind === "connection")).toBe(true);
-    expect(JSON.stringify(section.rows)).not.toMatch(/Connected sources/);
+    for (const alias of ["connected-sources", "what-opal-hears"]) {
+      const section = await buildSettingsSection(alias, {
+        session: null,
+        bearer: "t",
+      });
+      expect(section.key, alias).toBe("connections");
+      expect(section.title, alias).toBe("Connectors");
+      expect(section.rows.some((r) => r.kind === "connection"), alias).toBe(true);
+      expect(JSON.stringify(section.rows), alias).not.toMatch(/Connected sources/);
+    }
     const hub = youHubFromSession(null, false);
     expect(hub.index.find((e) => e.key === "connected-sources")).toBeUndefined();
+    expect(hub.index.find((e) => e.key === "what-opal-hears")).toBeUndefined();
     expect(hub.index.filter((e) => e.key === "connections")).toHaveLength(1);
-    // The ingestion room wears its new plain name on the hub.
-    expect(hub.index.find((e) => e.key === "what-opal-hears")?.title).toBe(
-      "Where Opal reads from",
-    );
+    expect(hub.index.find((e) => e.key === "connections")?.title).toBe("Connectors");
   });
 
   it("N6: the Care room is absent from Settings - and the care machinery stays in code", async () => {
@@ -483,46 +485,47 @@ describe("Honest gated sections - no painted controls", () => {
     expect(text).toMatch(/lives in Soul/);
   });
 
-  it("Where Opal reads from names each source with its honest state (R19 W6: no listening frame; renamed by the founder naming fix)", async () => {
+  it("the folded Your device category names each source with its honest state (R20 F-9e: no listening frame)", async () => {
     const section = await buildSettingsSection("what-opal-hears", { session: null });
     await render(<C2SettingsSection section={section} events={events} />);
     const text = container.textContent || "";
+    expect(text).toMatch(/Your device/);
     expect(text).toMatch(/Working now/);
-    expect(text).toMatch(/Not wired yet/);
     expect(text).toMatch(/Waiting on a sending number/);
     expect(text).toMatch(/Not in Opal today/);
-    expect(text).toMatch(/Where Opal reads from/);
+    expect(text).toMatch(/Not read/);
     expect(text).not.toMatch(/What Opal graphs/);
-    expect(text).toMatch(/Meetings are not a page in Opal/);
     expect(text).not.toMatch(/Listening/);
-    expect(text).not.toMatch(/What Opal hears/);
     expect(container.querySelectorAll('[role="switch"]')).toHaveLength(0);
   });
 });
 
 describe("Muse settings audit Group A (4.A1-4.A9)", () => {
-  it("A1: connections render as a categorized catalog of exactly the payload set", async () => {
+  it("A1/R20 F-9: connectors render as a categorized directory of exactly the user-facing payload subset", async () => {
     mocks.getSettingsConnections.mockResolvedValue(PAYLOAD);
     const section = await buildSettingsSection("connections", {
       session: null,
       bearer: "t",
     });
     await render(<C2SettingsSection section={section} events={events} />);
-    // Golden list: rendered connection rows == payload connections, in order.
+    // Golden list: rendered connection rows == the payload's
+    // user-facing rows only, in payload order. Infrastructure rows
+    // in the same payload never render.
     const renderedIds = [...container.querySelectorAll('[data-testid^="connection-row-"]')].map(
       (el) => el.getAttribute("data-testid")!.replace("connection-row-", ""),
     );
-    expect(renderedIds).toEqual(PAYLOAD.connections.map((c) => c.id));
-    // Category headers group the catalog, in payload order.
+    expect(renderedIds).toEqual(["google_calendar"]);
+    // Categories group the directory, in room order: Your device,
+    // Your accounts, Permissions, Custom.
     const text = container.textContent || "";
-    const thinking = text.indexOf("Thinking and words");
-    const phone = text.indexOf("Phone and messaging");
-    const travel = text.indexOf("Travel");
-    const yours = text.indexOf("Your accounts");
-    expect(thinking).toBeGreaterThan(-1);
-    expect(phone).toBeGreaterThan(thinking);
-    expect(travel).toBeGreaterThan(phone);
-    expect(yours).toBeGreaterThan(travel);
+    const device = text.indexOf("Your device");
+    const accounts = text.indexOf("Your accounts");
+    const permissions = text.indexOf("Permissions");
+    const custom = text.indexOf("Custom");
+    expect(device).toBeGreaterThan(-1);
+    expect(accounts).toBeGreaterThan(device);
+    expect(permissions).toBeGreaterThan(accounts);
+    expect(custom).toBeGreaterThan(permissions);
     // The custom-connections slot is reserved in words only - no control.
     expect(text).toMatch(/Connecting a service of your own is not something Opal offers today/);
   });

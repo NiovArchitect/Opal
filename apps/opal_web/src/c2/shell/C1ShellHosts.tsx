@@ -49,6 +49,7 @@ import {
   listReveals,
   listOpalChatSessions,
   ensureDirectConversation,
+  startConversationByPhone,
   listPeople,
   listRelationships,
   setRelationshipType,
@@ -65,6 +66,7 @@ import {
   type ConversationSummary,
   type NextPlanFact,
   type OpalAnchorContract,
+  type OrbitProjectionContract,
   type OpalChatContextContract,
   type OpalChatMessage,
   type OpalChatSessionSummary,
@@ -78,16 +80,22 @@ import {
   anchorOfSession,
   driftProposal,
   opalDoorwayContext,
+  orbitScopePersonContext,
   personOpalContext,
   sessionsForAnchor,
+  sessionsForConversation,
   sessionsForPerson,
   type AnchorProposal,
   type OpalAnchor,
   type OpalConversationContext,
   type OpalOpenRequest,
+  type OrbitPartyMember,
+  type OrbitScope,
   type PersonOpalSessionRow,
 } from "../../opalUi/c1/opalChatScope";
 import { OrbitSheet, type OrbitSheetPlan } from "../../opalUi/c1/OrbitSheet";
+import { OrbitScreen } from "../../opalUi/c1/OrbitScreen";
+import { routeForReveal } from "../../opalUi/c1/noticeRouting";
 import { OrbitUnlockPrompt } from "../../opalUi/c1/OrbitUnlockPrompt";
 import { ConversationShareSheet } from "../../opalUi/c1/ConversationShareSheet";
 import { callHistoryLine } from "../../opalUi/callView";
@@ -120,6 +128,7 @@ import { CheckinSummaryCard } from "../../opalUi/CheckinSummary";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { C2CenterOpening, type CenterOpeningProjection } from "./C2CenterOpening";
 import { cardFromPlan, familyOfStatus, initialsOf } from "./shellData";
+import { planWhenLine } from "./density";
 import { EmptyBlock } from "./bits";
 
 /* ------------------------------------------------------------------ */
@@ -355,9 +364,13 @@ export function planProjectionFromContract(plan: OpalPlanContract): PlanProjecti
     state: familyOfStatus(plan.status),
     stateLabel: card.stateLabel,
     primaryAction: { kind: "view", label: "View plan" },
-    when: plan.time_label?.trim()
-      ? { kind: "canonical", label: plan.time_label }
-      : { kind: "unset" },
+    // R20 F-14: the thread plan strip reads the ONE shared when
+    // line (density.planWhenLine) - a multi-day plan shows its full
+    // range here too. "Time not set yet." still maps to unset.
+    when:
+      planWhenLine(plan) !== "Time not set yet."
+        ? { kind: "canonical", label: planWhenLine(plan) }
+        : { kind: "unset" },
     where: isVirtual
       ? { kind: "virtual", label: plan.location?.trim() ? plan.location : "Online" }
       : plan.location?.trim()
@@ -453,7 +466,13 @@ export function anchorFromContract(
   raw: OpalAnchorContract | null | undefined,
 ): OpalAnchor | null {
   if (!raw?.id || !raw?.type) return null;
-  if (raw.type !== "person" && raw.type !== "plan" && raw.type !== "place") return null;
+  if (
+    raw.type !== "person" &&
+    raw.type !== "plan" &&
+    raw.type !== "place" &&
+    raw.type !== "conversation"
+  )
+    return null;
   return { type: raw.type, id: raw.id, label: raw.label ?? null, private: raw.private === true };
 }
 
@@ -491,6 +510,7 @@ export function summaryToRow(s: OpalChatSessionSummary): PersonOpalSessionRow {
     timeLabel: timeLabelFor(s.updated_at),
     isActive: s.active === true,
     context: contextFromContract(s.context),
+    conversationScopeId: s.context?.conversation_id ?? null,
     anchor: anchorFromContract(s.anchor),
     updatedAt: s.updated_at ?? null,
     pinned: s.pinned === true,
@@ -585,7 +605,11 @@ export function CheckinSummarySheet({
 type CenterView =
   | { kind: "deck" }
   | { kind: "sessions" }
-  | { kind: "chat"; sessionId: string; title: string };
+  | { kind: "chat"; sessionId: string; title: string }
+  /** Repair #20 (F-19): the orbit screen — the scoped conversation
+   *  (sessionId, when one is open) lives inside the ring's field.
+   *  sessionId null = the empty orbit (no Opal conversation yet). */
+  | { kind: "orbit"; sessionId: string | null; title: string };
 
 export type CenterOpenRequest = { request: OpalOpenRequest; nonce: number };
 
@@ -687,6 +711,13 @@ export function CenterHost({
     context: OpalConversationContext | null;
     sessions: PersonOpalSessionRow[];
     plans: OrbitSheetPlan[];
+  } | null>(null);
+  // Repair #20 (F-19): the orbit screen's landing state — the
+  // scope it opened for and the live orbit projection re-read on
+  // landing (never the doorway-time snapshot alone).
+  const [orbitLanding, setOrbitLanding] = useState<{
+    scope: OrbitScope;
+    orbit: OrbitProjectionContract | null;
   } | null>(null);
   const [unlockedOrbits, setUnlockedOrbits] = useState<ReadonlySet<string>>(new Set());
   // Repair #19 BS-02 — the orbit gate's verification state: which
@@ -820,7 +851,7 @@ export function CenterHost({
       context?: OpalChatContextContract | null;
       anchor?: { type: string; id: string; label?: string | null; private?: boolean } | null;
       pinned?: boolean | null;
-    }, fallbackTitle: string, fallbackContext?: OpalConversationContext | null) => {
+    }, fallbackTitle: string, fallbackContext?: OpalConversationContext | null, landing: "chat" | "orbit" = "chat") => {
       const raw = conv.messages ?? [];
       setRawMessages(raw);
       setMessages(raw.map(threadMsgFromOpalMessage));
@@ -837,21 +868,22 @@ export function CenterHost({
       setChatPinned(conv.pinned === true);
       setAnchorNotice(null);
       setSplitDismissedKey(null);
-      setView({
-        kind: "chat",
-        sessionId: conv.id,
-        title: conv.title?.trim() ? conv.title : fallbackTitle,
-      });
+      const title = conv.title?.trim() ? conv.title : fallbackTitle;
+      setView(
+        landing === "orbit"
+          ? { kind: "orbit", sessionId: conv.id, title }
+          : { kind: "chat", sessionId: conv.id, title },
+      );
     },
     [],
   );
 
   const openChat = useCallback(
-    async (sessionId: string, fallbackTitle: string, fallbackContext?: OpalConversationContext | null) => {
+    async (sessionId: string, fallbackTitle: string, fallbackContext?: OpalConversationContext | null, landing: "chat" | "orbit" = "chat") => {
       setError(null);
       try {
         const res = await getOpalChatSession(sessionId, bearer);
-        applyConversation(res.conversation, fallbackTitle, fallbackContext);
+        applyConversation(res.conversation, fallbackTitle, fallbackContext, landing);
       } catch {
         setError("That chat could not load. Try again from the list.");
         setView({ kind: "sessions" });
@@ -877,10 +909,226 @@ export function CenterHost({
     [bearer, applyConversation, loadSessions],
   );
 
-  /** The doorway resolution: reuse the session already scoped to
-   *  this person AND this plan; only start a new one when none is. */
+  /** Repair #20 (F-19) — a scoped session born inside the orbit:
+   *  person-scoped for a dyad scope, conversation-scoped for a
+   *  group scope (the backend's group doorway birth). */
+  const createScopedIntoOrbit = useCallback(
+    async (scope: OrbitScope) => {
+      setError(null);
+      try {
+        const res = await createScopedOpalChatSession(
+          {
+            personId: scope.personId ?? undefined,
+            planId: scope.planId,
+            conversationId: scope.conversationId,
+          },
+          bearer,
+        );
+        applyConversation(
+          res.conversation,
+          "New chat",
+          orbitScopePersonContext(scope),
+          "orbit",
+        );
+        void loadSessions();
+        return res.conversation.id;
+      } catch {
+        setError("A chat about this could not start. Check your connection and try again.");
+        return null;
+      }
+    },
+    [bearer, applyConversation, loadSessions],
+  );
+
+  /** Repair #20 (F-19) — THE ORBIT LANDING. The doorway no longer
+   *  opens a bare chat column: it opens the orbit screen, with the
+   *  orbit projection re-read live from the thread's own contract
+   *  and the continuing scoped session (when one exists) open
+   *  inside the ring's field. Resolution order: an explicitly
+   *  named session; the exact person+plan doorway target; the
+   *  freshest session scoped to this conversation; the freshest
+   *  session scoped to this person. No match = the EMPTY orbit,
+   *  which invites the first question — a session is born only
+   *  when the user actually asks (no empty records from a tap). */
+  const openOrbitLanding = useCallback(
+    async (
+      scope: OrbitScope,
+      opts?: { sessionId?: string | null; startNew?: boolean; firstText?: string | null },
+    ) => {
+      setError(null);
+      setOrbitLanding({ scope, orbit: null });
+      setView({ kind: "orbit", sessionId: null, title: scope.title });
+      // Re-read the orbit projection live (the thread contract is
+      // the one source; the doorway-time party rides the scope as
+      // the fallback until this lands).
+      void (async () => {
+        try {
+          const res = await listMessages(scope.conversationId, bearer);
+          setOrbitLanding((cur) =>
+            cur && cur.scope.conversationId === scope.conversationId
+              ? { scope: cur.scope, orbit: res.orbit ?? null }
+              : cur,
+          );
+        } catch {
+          /* the scope's doorway-time party still renders the ring */
+        }
+      })();
+
+      const personCtx = orbitScopePersonContext(scope);
+      if (opts?.sessionId) {
+        await openChat(opts.sessionId, "New chat", personCtx, "orbit");
+        return;
+      }
+      if (opts?.startNew) {
+        const id = await createScopedIntoOrbit(scope);
+        if (id && opts.firstText) {
+          try {
+            const res = await postOpalSessionMessage(id, opts.firstText, bearer);
+            const returnedRaw = res.messages ?? [];
+            setRawMessages((prev) => [...prev, ...returnedRaw]);
+            setMessages((prev) => {
+              const seen = new Set(prev.map((m) => m.id));
+              return [
+                ...prev,
+                ...returnedRaw.map(threadMsgFromOpalMessage).filter((m) => !seen.has(m.id)),
+              ];
+            });
+            void loadSessions();
+          } catch {
+            setError("That did not send. Your words were not saved - try again.");
+          }
+        }
+        return;
+      }
+      try {
+        const summaries = await loadSessions();
+        const rows = summaries.map(summaryToRow);
+        let target: string | null = null;
+        if (personCtx?.planId) {
+          target = doorwayTargetSessionId(summaries, personCtx);
+        }
+        if (!target) {
+          target = sessionsForConversation(rows, scope.conversationId)[0]?.id ?? null;
+        }
+        if (!target && scope.personId) {
+          target = sessionsForPerson(rows, scope.personId)[0]?.id ?? null;
+        }
+        if (target) {
+          await openChat(target, "New chat", personCtx, "orbit");
+          return;
+        }
+      } catch {
+        /* fall through to the empty orbit */
+      }
+      // The empty orbit: no session is created by the landing.
+      setView({ kind: "orbit", sessionId: null, title: scope.title });
+    },
+    [bearer, createScopedIntoOrbit, loadSessions, openChat],
+  );
+
+  /** Build an orbit scope from a doorway context alone (the lane /
+   *  strip paths carry only the person context): the party is read
+   *  live from the thread's orbit projection. */
+  const scopeFromContext = useCallback(
+    async (context: OpalConversationContext): Promise<OrbitScope> => {
+      let party: OrbitPartyMember[] = [
+        {
+          id: context.personId,
+          name: context.personName,
+          tint: null,
+          isViewer: false,
+          pending: false,
+          limbo: false,
+          limboFractionRemaining: null,
+        },
+      ];
+      let composition: OrbitScope["composition"] = "dyad";
+      if (context.conversationId) {
+        try {
+          const res = await listMessages(context.conversationId, bearer);
+          if (res.orbit) {
+            composition = res.orbit.composition;
+            party = res.orbit.parties.map((p) => ({
+              id: p.user_id,
+              name: p.display_name,
+              tint: p.entity_tint ?? null,
+              isViewer: p.is_viewer,
+              pending: p.pending,
+              limbo: p.limbo,
+              limboFractionRemaining: p.limbo_fraction_remaining ?? null,
+            }));
+          }
+        } catch {
+          /* the single-person party above is the honest fallback */
+        }
+      }
+      return {
+        conversationId: context.conversationId ?? "",
+        title: context.personName,
+        composition,
+        party,
+        personId: context.personId,
+        personName: context.personName,
+        planId: context.planId ?? null,
+        planTitle: context.planTitle ?? null,
+      };
+    },
+    [bearer],
+  );
+
+  /** Repair #20 (F-19) — open the orbit for a conversation the
+   *  host does not hold a scope for (a notice deep-link landing):
+   *  the scope is built from the conversation's own orbit
+   *  projection, re-read live. No projection (not a member) = no
+   *  landing is faked; the caller keeps its default. */
+  const openOrbitForConversation = useCallback(
+    async (conversationId: string, planId?: string | null): Promise<boolean> => {
+      try {
+        const res = await listMessages(conversationId, bearer);
+        const orbit = res.orbit;
+        if (!orbit) return false;
+        const peers = orbit.parties.filter((p) => !p.is_viewer);
+        const dyad = orbit.composition !== "group" && peers.length === 1 ? peers[0] : null;
+        const scope: OrbitScope = {
+          conversationId,
+          title: dyad
+            ? dyad.display_name
+            : peers.map((p) => p.display_name).join(", ") || "This conversation",
+          composition: orbit.composition,
+          party: orbit.parties.map((p) => ({
+            id: p.user_id,
+            name: p.display_name,
+            tint: p.entity_tint ?? null,
+            isViewer: p.is_viewer,
+            pending: p.pending,
+            limbo: p.limbo,
+            limboFractionRemaining: p.limbo_fraction_remaining ?? null,
+          })),
+          personId: dyad?.user_id ?? null,
+          personName: dyad?.display_name ?? null,
+          planId: planId ?? orbit.next_plan?.plan_id ?? null,
+          planTitle: orbit.next_plan?.title ?? null,
+        };
+        setOrbitLanding({ scope, orbit });
+        await openOrbitLanding(scope);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [bearer, openOrbitLanding],
+  );
+
+  /** The doorway resolution: a doorway from a thread lands in
+   *  that thread's ORBIT (Repair #20 F-19); a doorway with no
+   *  conversation behind it keeps the plain scoped-chat landing. */
   const openDoorway = useCallback(
     async (context: OpalConversationContext) => {
+      if (context.conversationId) {
+        const scope = await scopeFromContext(context);
+        await openOrbitLanding(scope);
+        return;
+      }
       if (!context.planId) {
         await createScopedAndOpen(context);
         return;
@@ -897,7 +1145,7 @@ export function CenterHost({
       }
       await createScopedAndOpen(context);
     },
-    [createScopedAndOpen, loadSessions, openChat],
+    [createScopedAndOpen, loadSessions, openChat, openOrbitLanding, scopeFromContext],
   );
 
   const lastRequestNonce = useRef(0);
@@ -905,14 +1153,19 @@ export function CenterHost({
     if (!openRequest || openRequest.nonce === lastRequestNonce.current) return;
     lastRequestNonce.current = openRequest.nonce;
     const { request } = openRequest;
-    if (request.sessionId) {
+    if (request.orbit) {
+      void openOrbitLanding(request.orbit, {
+        sessionId: request.sessionId,
+        startNew: request.startNew,
+      });
+    } else if (!request.context) {
+      /* a request with neither context nor orbit has no honest landing */
+    } else if (request.sessionId) {
       void openChat(request.sessionId, "New chat", request.context);
-    } else if (request.startNew) {
-      void openDoorway(request.context);
     } else {
       void openDoorway(request.context);
     }
-  }, [openRequest, openChat, openDoorway]);
+  }, [openRequest, openChat, openDoorway, openOrbitLanding]);
 
   const openActiveChat = useCallback(async () => {
     const rows = sessionsLoaded.current ? null : await loadSessions();
@@ -946,10 +1199,14 @@ export function CenterHost({
 
   const send = useCallback(
     async (text: string) => {
-      if (view.kind !== "chat") return;
+      // Repair #20 (F-19): the orbit view's embedded conversation
+      // sends through the same one path as the plain chat view.
+      const sessionId =
+        view.kind === "chat" ? view.sessionId : view.kind === "orbit" ? view.sessionId : null;
+      if (!sessionId) return;
       setError(null);
       try {
-        const res = await postOpalSessionMessage(view.sessionId, text, bearer);
+        const res = await postOpalSessionMessage(sessionId, text, bearer);
         const returnedRaw = res.messages ?? [];
         setRawMessages((prev) => [...prev, ...returnedRaw]);
         const returned = returnedRaw.map(threadMsgFromOpalMessage);
@@ -1014,17 +1271,20 @@ export function CenterHost({
     () => anchorProposalFromMessages(rawMessages, contacts),
     [rawMessages, contacts],
   );
-  const anchorProposal = view.kind === "chat" && !chatAnchor ? detected : null;
-  const drift = view.kind === "chat" ? driftProposal(chatAnchor, detected) : null;
+  const inChatSurface = view.kind === "chat" || view.kind === "orbit";
+  const anchorProposal = inChatSurface && !chatAnchor ? detected : null;
+  const drift = inChatSurface ? driftProposal(chatAnchor, detected) : null;
   const splitProposal =
     drift && splitDismissedKey !== `${drift.anchor.type}:${drift.anchor.id}` ? drift : null;
 
   const applyAnchorWrite = useCallback(
     async (next: OpalAnchor | null, noticeText: string) => {
-      if (view.kind !== "chat") return;
+      const sessionId =
+        view.kind === "chat" ? view.sessionId : view.kind === "orbit" ? view.sessionId : null;
+      if (!sessionId) return;
       const prev = chatAnchor;
       try {
-        const res = await setOpalChatAnchor(view.sessionId, next, bearer);
+        const res = await setOpalChatAnchor(sessionId, next, bearer);
         setChatAnchor(anchorFromContract(res.conversation.anchor) ?? next);
         const ctx = contextFromContract(res.conversation.context, chatContext);
         setChatContext(ctx);
@@ -1046,7 +1306,7 @@ export function CenterHost({
   // on this path.
   const [shareSheetOpen, setShareSheetOpen] = useState(false);
   const shareCard =
-    view.kind === "chat"
+    view.kind === "chat" || view.kind === "orbit"
       ? conversationShareCard({
           title: view.title,
           anchor: chatAnchor,
@@ -1056,6 +1316,181 @@ export function CenterHost({
             null,
         })
       : null;
+
+  // Repair #20 (F-19): the scoped conversation element, shared by
+  // the plain chat view and the orbit screen's field - ONE element,
+  // one wiring; the orbit is a frame around it, never a second chat.
+  const chatElementFor = (sessionId: string, title: string, landing: "chat" | "orbit") => (
+    <CenterChat
+      title={title}
+      messages={messages}
+      plansById={plansById}
+      onBack={() => setView({ kind: "sessions" })}
+      onOpenPlan={(plan) => onOpenGraph(plan.id)}
+      onSend={(text) => void send(text)}
+      onHoldingLink={onHoldingLink}
+      context={chatContext}
+      onOpenPersonThread={(ctx) => {
+        if (ctx.conversationId && onOpenPersonThread) onOpenPersonThread(ctx.conversationId);
+      }}
+      onOpenOpalChats={(ctx) => {
+        const anchor: OpalAnchor = ctx.planId
+          ? { type: "plan", id: ctx.planId, label: ctx.planTitle ?? null }
+          : { type: "person", id: ctx.personId, label: ctx.personName };
+        void openOrbitSheet(anchor, ctx);
+      }}
+      chrome={{
+        onOpenRail: () => setRailOpen(true),
+        pinned: chatPinned,
+        onRename: (title) => {
+          void (async () => {
+            try {
+              const res = await patchOpalConversationTitle(sessionId, title, bearer);
+              const updated = summaryToRow(res.conversation);
+              setView(landing === "orbit" ? { kind: "orbit", sessionId, title: updated.title } : { kind: "chat", sessionId, title: updated.title });
+              setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+            } catch {
+              setError("That rename did not save. The old title stands.");
+            }
+          })();
+        },
+        onTogglePin: () => {
+          void (async () => {
+            try {
+              const res = await setOpalChatPinned(sessionId, !chatPinned, bearer);
+              setChatPinned(res.conversation.pinned === true);
+              void loadSessions();
+            } catch {
+              setError("That pin did not save.");
+            }
+          })();
+        },
+        onToggleArchive: () => {
+          void (async () => {
+            try {
+              await setOpalChatArchived(sessionId, true, bearer);
+              setView({ kind: "sessions" });
+              void loadSessions();
+            } catch {
+              setError("That archive did not save.");
+            }
+          })();
+        },
+        onShare: () => setShareSheetOpen(true),
+        onDelete: () => {
+          void (async () => {
+            try {
+              await removeOpalChatSession(sessionId, bearer);
+              setView({ kind: "sessions" });
+              void loadSessions();
+            } catch {
+              setError("That delete did not happen. The chat is still here.");
+            }
+          })();
+        },
+        anchorProposal,
+        onAcceptAnchor: (p) =>
+          void applyAnchorWrite(p.anchor, `Filed under ${p.anchor.label ?? "that anchor"}.`),
+        anchorCandidates: [
+          ...contacts.map(
+            (c): OpalAnchor => ({ type: "person", id: c.contact_user_id, label: c.display_name }),
+          ),
+          ...plans
+            .filter((pl) => pl.is_private !== true)
+            .map(
+              (pl): OpalAnchor => ({ type: "plan", id: pl.id, label: pl.title }),
+            ),
+        ],
+        onPickAnchor: (a) =>
+          void applyAnchorWrite(
+            a,
+            a ? `Filed under ${a.label ?? "that anchor"}.` : "Left unanchored.",
+          ),
+        splitProposal,
+        onSplit: (p) => {
+          if (p.anchor.type === "person") {
+            void createScopedAndOpen({
+              personId: p.anchor.id,
+              personName: p.anchor.label ?? "This person",
+              conversationId: chatContext?.conversationId ?? null,
+            });
+          }
+        },
+        onDismissSplit: () => {
+          if (drift) setSplitDismissedKey(`${drift.anchor.type}:${drift.anchor.id}`);
+        },
+        anchorNotice: anchorNotice?.text ?? null,
+        onUndoAnchor: () => {
+          if (!anchorNotice) return;
+          const prev = anchorNotice.prev;
+          void (async () => {
+            try {
+              const res = await setOpalChatAnchor(sessionId, prev, bearer);
+              setChatAnchor(anchorFromContract(res.conversation.anchor) ?? prev);
+              setAnchorNotice(null);
+              void loadSessions();
+            } catch {
+              setError("That undo did not save.");
+            }
+          })();
+        },
+        onDismissAnchorNotice: () => setAnchorNotice(null),
+      }}
+    />
+  );
+
+  // Repair #20 (F-19): the orbit screen node for the orbit view —
+  // the ring + the arc around the scoped conversation element.
+  const orbitNode = (v: { kind: "orbit"; sessionId: string | null; title: string }) => {
+    const landing = orbitLanding;
+    if (!landing) {
+      return v.sessionId ? chatElementFor(v.sessionId, v.title, "orbit") : null;
+    }
+    const scope = landing.scope;
+    const inOrbit = sessionsForConversation(sessions, scope.conversationId);
+    const orbitSessions =
+      scope.personId && scope.composition !== "group"
+        ? [
+            ...inOrbit,
+            ...sessionsForPerson(sessions, scope.personId).filter(
+              (s) => !inOrbit.some((o) => o.id === s.id),
+            ),
+          ]
+        : inOrbit;
+    const insightItem = reveals.find(
+      (r) =>
+        r.lit &&
+        ((r.conversation_id && r.conversation_id === scope.conversationId) ||
+          (scope.planId && r.plan_id === scope.planId)),
+    );
+    return (
+      <OrbitScreen
+        scope={scope}
+        orbit={landing.orbit}
+        insight={insightItem ? (insightItem.substance ?? insightItem.title) : null}
+        sessions={orbitSessions}
+        activeSessionId={v.sessionId}
+        onOpenSession={(id) =>
+          void openChat(id, "New chat", orbitScopePersonContext(scope), "orbit")
+        }
+        onStartNew={() => void createScopedIntoOrbit(scope)}
+        onOpenPlan={(id) => onOpenGraph(id)}
+        onBackToThread={() => {
+          if (onOpenPersonThread) onOpenPersonThread(scope.conversationId);
+        }}
+        emptyInvite={
+          v.sessionId
+            ? null
+            : {
+                onAsk: (text) =>
+                  void openOrbitLanding(scope, { startNew: true, firstText: text }),
+              }
+        }
+      >
+        {v.sessionId ? chatElementFor(v.sessionId, v.title, "orbit") : null}
+      </OrbitScreen>
+    );
+  };
 
   if (view.kind === "deck") {
     return (
@@ -1067,6 +1502,16 @@ export function CenterHost({
             openCenterChat: () => void openActiveChat(),
             dismissReveal: (item) => void dismissDeckReveal(item),
             revealAction: (item) => {
+              // Repair #20 (F-21a): a notice that carries its
+              // conversation's identity lands in THAT conversation
+              // — its orbit when the notice concerns the orbit —
+              // never a generic landing. Only identity-less items
+              // keep the plan landing.
+              const route = routeForReveal(item);
+              if (route?.kind === "orbit") {
+                void openOrbitForConversation(route.conversationId, route.planId);
+                return;
+              }
               if (item.plan_id) onOpenGraph(item.plan_id);
             },
             requestChangeReveal: (item) => {
@@ -1140,124 +1585,10 @@ export function CenterHost({
             }}
           />
         </>
+      ) : view.kind === "orbit" ? (
+        orbitNode(view)
       ) : (
-        <CenterChat
-          title={view.title}
-          messages={messages}
-          plansById={plansById}
-          onBack={() => setView({ kind: "sessions" })}
-          onOpenPlan={(plan) => onOpenGraph(plan.id)}
-          onSend={(text) => void send(text)}
-          onHoldingLink={onHoldingLink}
-          context={chatContext}
-          onOpenPersonThread={(ctx) => {
-            if (ctx.conversationId && onOpenPersonThread) onOpenPersonThread(ctx.conversationId);
-          }}
-          onOpenOpalChats={(ctx) => {
-            const anchor: OpalAnchor = ctx.planId
-              ? { type: "plan", id: ctx.planId, label: ctx.planTitle ?? null }
-              : { type: "person", id: ctx.personId, label: ctx.personName };
-            void openOrbitSheet(anchor, ctx);
-          }}
-          chrome={{
-            onOpenRail: () => setRailOpen(true),
-            pinned: chatPinned,
-            onRename: (title) => {
-              void (async () => {
-                try {
-                  const res = await patchOpalConversationTitle(view.sessionId, title, bearer);
-                  const updated = summaryToRow(res.conversation);
-                  setView({ kind: "chat", sessionId: view.sessionId, title: updated.title });
-                  setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-                } catch {
-                  setError("That rename did not save. The old title stands.");
-                }
-              })();
-            },
-            onTogglePin: () => {
-              void (async () => {
-                try {
-                  const res = await setOpalChatPinned(view.sessionId, !chatPinned, bearer);
-                  setChatPinned(res.conversation.pinned === true);
-                  void loadSessions();
-                } catch {
-                  setError("That pin did not save.");
-                }
-              })();
-            },
-            onToggleArchive: () => {
-              void (async () => {
-                try {
-                  await setOpalChatArchived(view.sessionId, true, bearer);
-                  setView({ kind: "sessions" });
-                  void loadSessions();
-                } catch {
-                  setError("That archive did not save.");
-                }
-              })();
-            },
-            onShare: () => setShareSheetOpen(true),
-            onDelete: () => {
-              void (async () => {
-                try {
-                  await removeOpalChatSession(view.sessionId, bearer);
-                  setView({ kind: "sessions" });
-                  void loadSessions();
-                } catch {
-                  setError("That delete did not happen. The chat is still here.");
-                }
-              })();
-            },
-            anchorProposal,
-            onAcceptAnchor: (p) =>
-              void applyAnchorWrite(p.anchor, `Filed under ${p.anchor.label ?? "that anchor"}.`),
-            anchorCandidates: [
-              ...contacts.map(
-                (c): OpalAnchor => ({ type: "person", id: c.contact_user_id, label: c.display_name }),
-              ),
-              ...plans
-                .filter((pl) => pl.is_private !== true)
-                .map(
-                  (pl): OpalAnchor => ({ type: "plan", id: pl.id, label: pl.title }),
-                ),
-            ],
-            onPickAnchor: (a) =>
-              void applyAnchorWrite(
-                a,
-                a ? `Filed under ${a.label ?? "that anchor"}.` : "Left unanchored.",
-              ),
-            splitProposal,
-            onSplit: (p) => {
-              if (p.anchor.type === "person") {
-                void createScopedAndOpen({
-                  personId: p.anchor.id,
-                  personName: p.anchor.label ?? "This person",
-                  conversationId: chatContext?.conversationId ?? null,
-                });
-              }
-            },
-            onDismissSplit: () => {
-              if (drift) setSplitDismissedKey(`${drift.anchor.type}:${drift.anchor.id}`);
-            },
-            anchorNotice: anchorNotice?.text ?? null,
-            onUndoAnchor: () => {
-              if (!anchorNotice) return;
-              const prev = anchorNotice.prev;
-              void (async () => {
-                if (view.kind !== "chat") return;
-                try {
-                  const res = await setOpalChatAnchor(view.sessionId, prev, bearer);
-                  setChatAnchor(anchorFromContract(res.conversation.anchor) ?? prev);
-                  setAnchorNotice(null);
-                  void loadSessions();
-                } catch {
-                  setError("That undo did not save.");
-                }
-              })();
-            },
-            onDismissAnchorNotice: () => setAnchorNotice(null),
-          }}
-        />
+        chatElementFor(view.sessionId, view.title, "chat")
       )}
       {railOpen ? (
         <ConversationRail
@@ -1511,11 +1842,33 @@ export type PickerPerson = {
   name: string;
   conversationId: string | null;
   tieLabel: string | null;
+  /** Repair #20 (F-8a): the person's most recent conversation
+   *  activity (the conversation contract's own `updated_at`) and
+   *  that conversation's message volume (`latest_server_seq`) —
+   *  the real recency/frequency facts the ordering reads. Null/0
+   *  for people with no conversation yet. */
+  lastTalkedAt: string | null;
+  talkCount: number;
 };
 
+/**
+ * Repair #20 (F-6): identity resolution for the union. The identity
+ * key is the person id — one person, one row, however many sources
+ * named them. A display name is NEVER a key: two distinct people
+ * who share a name are two identities and both stay, unmixed.
+ * Repair #20 (F-8a): the order is most-talked-to first — most
+ * recent conversation activity, then conversation volume — never
+ * alphabetical, never seed order. People with no conversation yet
+ * follow by name so the tail stays deterministic. (The backend
+ * projection, GET /people/projection, carries the same law over
+ * the full store; this union is its client-side twin over the
+ * data the shell already holds.)
+ */
 export function peopleUniverse(input: {
   conversations: Array<{
     id: string;
+    updated_at?: string;
+    latest_server_seq?: number;
     peers?: Array<{ id: string; display_name: string }>;
   }>;
   contacts: Array<{
@@ -1536,15 +1889,30 @@ export function peopleUniverse(input: {
   for (const conv of input.conversations) {
     for (const peer of conv.peers ?? []) {
       if (!peer.id || !peer.display_name?.trim()) continue;
+      const talkedAt = conv.updated_at ?? null;
+      const count = conv.latest_server_seq ?? 0;
       const existing = byId.get(peer.id);
       if (existing) {
+        // Same identity, another conversation: keep the row, point
+        // it at the MOST RECENT conversation, and accumulate the
+        // talk facts — nothing about any other identity leaks in.
+        if (
+          talkedAt &&
+          (!existing.lastTalkedAt || talkedAt > existing.lastTalkedAt)
+        ) {
+          existing.conversationId = conv.id;
+          existing.lastTalkedAt = talkedAt;
+        }
         if (!existing.conversationId) existing.conversationId = conv.id;
+        existing.talkCount += count;
       } else {
         byId.set(peer.id, {
           personId: peer.id,
           name: peer.display_name.trim(),
           conversationId: conv.id,
           tieLabel: tieById.get(peer.id) ?? null,
+          lastTalkedAt: talkedAt,
+          talkCount: count,
         });
       }
     }
@@ -1560,9 +1928,19 @@ export function peopleUniverse(input: {
       tieLabel:
         tieById.get(contact.contact_user_id) ??
         tieLabel(contact.type, contact.family_subtype),
+      lastTalkedAt: null,
+      talkCount: 0,
     });
   }
-  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  return [...byId.values()].sort((a, b) => {
+    if (a.lastTalkedAt && b.lastTalkedAt && a.lastTalkedAt !== b.lastTalkedAt) {
+      return a.lastTalkedAt > b.lastTalkedAt ? -1 : 1;
+    }
+    if (a.lastTalkedAt && !b.lastTalkedAt) return -1;
+    if (!a.lastTalkedAt && b.lastTalkedAt) return 1;
+    if (a.talkCount !== b.talkCount) return b.talkCount - a.talkCount;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export function ChatsHost({
@@ -1579,8 +1957,10 @@ export function ChatsHost({
   conversations: ConversationSummary[];
   onConversationsChanged: () => void;
   /** ST-D: an external open request (from Search) - opens the real
-   *  thread in the state its row showed. */
-  openRequest?: { conversationId: string; nonce: number } | null;
+   *  thread in the state its row showed. Repair #20 (F-21a): an
+   *  `orbit: true` request (a notice deep-link landing) opens the
+   *  thread AND its orbit — the notice's exact destination. */
+  openRequest?: { conversationId: string; nonce: number; orbit?: boolean } | null;
   /** Repair #19 W13: route from a person profile to the memory controls room. */
   onOpenMemoryControls?: () => void;
   /** Repair #19 — the thread doorway / orbit sheet routes into the
@@ -1599,6 +1979,11 @@ export function ChatsHost({
    *  conversation call for the picked person. */
   const [pickerMode, setPickerMode] = useState<"chat" | "call">("chat");
   const [people, setPeople] = useState<PickerPerson[]>([]);
+  /** Repair #20 (F-8b): the by-number path inside start-a-chat —
+   *  type a phone number, land in the real conversation. */
+  const [phoneEntry, setPhoneEntry] = useState("");
+  const [phoneNote, setPhoneNote] = useState<string | null>(null);
+  const [phoneBusy, setPhoneBusy] = useState(false);
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [relRows, setRelRows] = useState<RelRow[]>([]);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -1609,6 +1994,10 @@ export function ChatsHost({
     context: OpalConversationContext;
     sessions: PersonOpalSessionRow[];
   } | null>(null);
+  // Repair #20 (F-19): the open thread's orbit projection, read
+  // from the thread contract (listMessages) — the ring's data.
+  const [threadOrbitProjection, setThreadOrbitProjection] =
+    useState<OrbitProjectionContract | null>(null);
   // DIR-4: reveal items for the list (P1 line takeover) and thread.
   const [reveals, setReveals] = useState<RevealItem[]>([]);
   const [threadReveals, setThreadReveals] = useState<RevealItem[]>([]);
@@ -1726,6 +2115,7 @@ export function ChatsHost({
       try {
         const res = await listMessages(conversationId, bearer);
         setThreadNextPlan(res.next_plan ?? null);
+        setThreadOrbitProjection(res.orbit ?? null);
         try {
           const feed = await listReveals(bearer, conversationId);
           setThreadReveals(feed.items ?? []);
@@ -1757,19 +2147,89 @@ export function ChatsHost({
       } catch {
         setMessages([]);
         setThreadNextPlan(null);
+        setThreadOrbitProjection(null);
         setError("Messages could not load. Head back and try again.");
       }
     },
     [bearer, conversations, viewerUserId],
   );
 
+  /** Repair #20 (F-19): the orbit scope for one conversation,
+   *  built from its summary + its live orbit projection. The
+   *  projection is the party truth; the summary's peers are the
+   *  fallback when no projection has landed. */
+  const orbitScopeFor = useCallback(
+    (
+      conversation: ConversationSummary,
+      orbit: OrbitProjectionContract | null,
+    ): OrbitScope => {
+      const person = dyadPersonOf(conversation);
+      return {
+        conversationId: conversation.id,
+        title: conversation.title,
+        composition:
+          orbit?.composition ??
+          conversation.composition ??
+          (conversation.peers.length > 1 ? "group" : "dyad"),
+        party: orbit
+          ? orbit.parties.map((p) => ({
+              id: p.user_id,
+              name: p.display_name,
+              tint: p.entity_tint ?? null,
+              isViewer: p.is_viewer,
+              pending: p.pending,
+              limbo: p.limbo,
+              limboFractionRemaining: p.limbo_fraction_remaining ?? null,
+            }))
+          : (conversation.peers ?? []).map((p) => ({
+              id: p.id,
+              name: p.display_name,
+              tint: p.entity_tint ?? null,
+              isViewer: false,
+              pending: false,
+              limbo: false,
+              limboFractionRemaining: null,
+            })),
+        personId: person?.personId ?? null,
+        personName: person?.personName ?? null,
+        planId: conversation.next_plan?.plan_id ?? null,
+        planTitle: conversation.next_plan?.title ?? null,
+      };
+    },
+    [],
+  );
+
+  /** Repair #20 (F-21a): the notice deep-link landing — open the
+   *  exact thread the notice concerns, then its orbit. */
+  const openThreadThenOrbit = useCallback(
+    async (conversationId: string) => {
+      const conversation = conversations.find((c) => c.id === conversationId);
+      await openThread(conversationId);
+      if (!conversation || !onTalkToOpal) return;
+      let orbit: OrbitProjectionContract | null = null;
+      try {
+        const res = await listMessages(conversationId, bearer);
+        orbit = res.orbit ?? null;
+      } catch {
+        /* the scope falls back to the summary's peers */
+      }
+      const scope = orbitScopeFor(conversation, orbit);
+      onTalkToOpal({ context: orbitScopePersonContext(scope), orbit: scope });
+    },
+    [bearer, conversations, onTalkToOpal, openThread, orbitScopeFor],
+  );
+
   const lastOpenNonce = useRef(0);
   useEffect(() => {
     if (openRequest && openRequest.nonce !== lastOpenNonce.current) {
       lastOpenNonce.current = openRequest.nonce;
-      void openThread(openRequest.conversationId);
+      if (openRequest.orbit) {
+        void openThreadThenOrbit(openRequest.conversationId);
+      } else {
+        void openThread(openRequest.conversationId);
+      }
     }
-  }, [openRequest, openThread]);
+  }, [openRequest, openThread, openThreadThenOrbit]);
 
   const correctTranscript = useCallback(
     async (messageId: string, text: string) => {
@@ -1798,6 +2258,7 @@ export function ChatsHost({
   const openPicker = useCallback(async (mode: "chat" | "call" = "chat") => {
     setPickerMode(mode);
     setPickerOpen(true);
+    setPhoneNote(null);
     // DL-04/DL-08: the picker reads the ONE union universe. The
     // conversation peers are already in this host's hands; the
     // relationship contacts/rows and the establishment list are
@@ -1896,6 +2357,40 @@ export function ChatsHost({
     },
     [bearer, openThread, onConversationsChanged, pickerMode, placeCall],
   );
+
+  /** Repair #20 (F-8b) — start/find a chat by phone number. The
+   *  server resolves the number to its account and ensures the real
+   *  direct conversation; the thread then opens on the same path a
+   *  picked person takes. Failures are the server's own truth,
+   *  rendered plainly: a number that isn't on Opal, or one that
+   *  isn't a valid number. Nothing is created for an unknown
+   *  number — no shadow person, no empty thread. */
+  const startByPhone = useCallback(async () => {
+    const phone = phoneEntry.trim();
+    if (!phone || phoneBusy) return;
+    setPhoneBusy(true);
+    setPhoneNote(null);
+    try {
+      const res = await startConversationByPhone(phone, bearer);
+      setPickerOpen(false);
+      setPhoneEntry("");
+      onConversationsChanged();
+      void openThread(res.conversation_id);
+    } catch (e) {
+      const code = (e as { code?: string })?.code;
+      setPhoneNote(
+        code === "not_on_opal"
+          ? "That number isn't on Opal yet."
+          : code === "invalid_phone"
+            ? "Enter a valid phone number, with the country code."
+            : code === "cannot_direct_self"
+              ? "That's your own number."
+              : "That chat could not start. Try again.",
+      );
+    } finally {
+      setPhoneBusy(false);
+    }
+  }, [bearer, phoneEntry, phoneBusy, onConversationsChanged, openThread]);
 
   /** Repair #19 W24 (DL-01) — THE one relationship write for this
    *  host: resolves the relationship from the PERSON (the peer id),
@@ -2037,6 +2532,17 @@ export function ChatsHost({
       : null;
   const threadFact = selected ? (threadNextPlan ?? selected.next_plan ?? null) : null;
 
+  // Repair #20 (F-19): the open thread's orbit scope — dyad and
+  // group alike (a group scopes to its full party set). The plan
+  // rides the thread's own DIR-1 fact, never another thread's.
+  const threadOrbitScope: OrbitScope | null = selected
+    ? {
+        ...orbitScopeFor(selected, threadOrbitProjection),
+        planId: threadDoorway?.planId ?? threadFact?.plan_id ?? null,
+        planTitle: threadDoorway?.planTitle ?? threadFact?.title ?? null,
+      }
+    : null;
+
   const openThreadOrbitSheet = async (context: OpalConversationContext) => {
     try {
       const res = await listOpalChatSessions(bearer, context.personId);
@@ -2076,6 +2582,20 @@ export function ChatsHost({
             reveals={threadReveals}
             onDismissReveal={(item) => void dismissChatReveal(item)}
             onRevealAction={(item) => {
+              // Repair #20 (F-21a): a notice in this thread lands
+              // in THIS thread's orbit — the exact destination the
+              // notice concerns, never a generic landing.
+              const route = routeForReveal(item);
+              if (route && route.kind !== "plan" && threadOrbitScope) {
+                onTalkToOpal?.({
+                  context: threadPersonContext,
+                  orbit: {
+                    ...threadOrbitScope,
+                    planId: route.kind === "orbit" ? route.planId ?? threadOrbitScope.planId : threadOrbitScope.planId,
+                  },
+                });
+                return;
+              }
               if (item.plan_id) onConversationsChanged();
             }}
             onRequestChangeReveal={
@@ -2094,9 +2614,21 @@ export function ChatsHost({
             onSend={(text) => void send(text)}
             onCorrectTranscript={correctTranscript}
             opalDoorway={threadDoorway}
-            onTalkToOpal={(ctx) => onTalkToOpal?.({ context: ctx })}
+            onTalkToOpal={(ctx) =>
+              onTalkToOpal?.({ context: ctx, orbit: threadOrbitScope })
+            }
             personContext={threadPersonContext}
             onOpenOpalChats={(ctx) => void openThreadOrbitSheet(ctx)}
+            orbitDoorway={
+              !threadPersonContext && threadOrbitScope
+                ? { conversationId: selected.id, label: selected.title }
+                : null
+            }
+            onOpenOrbit={() => {
+              if (threadOrbitScope) {
+                onTalkToOpal?.({ context: null, orbit: threadOrbitScope });
+              }
+            }}
             composerAccessory={
               /* Repair #19 polish (P7): the ST-H voice-note control is
                  a REAL composer affordance, so it lives IN the thread
@@ -2282,6 +2814,36 @@ export function ChatsHost({
               <p className="c2s-sheet-title">
                 {pickerMode === "call" ? "Start a call" : "Start a chat"}
               </p>
+              {pickerMode === "chat" ? (
+                <div data-testid="c2-c1-phone-entry">
+                  <input
+                    className="c2s-field"
+                    data-testid="c2-c1-phone-input"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="Phone number — e.g. +1 202 555 0102"
+                    aria-label="Phone number"
+                    value={phoneEntry}
+                    onChange={(e) => setPhoneEntry(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="c2s-btn-quiet"
+                    data-testid="c2-c1-phone-start"
+                    disabled={phoneBusy || !phoneEntry.trim()}
+                    onClick={() => void startByPhone()}
+                    style={{ width: "100%", marginTop: "var(--space-2)" }}
+                  >
+                    {phoneBusy ? "Finding…" : "Chat with this number"}
+                  </button>
+                  {phoneNote ? (
+                    <p className="c2s-card-line" role="alert" data-testid="c2-c1-phone-note">
+                      {phoneNote}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               {people.length === 0 ? (
                 <EmptyBlock
                   headline="No one connected yet."

@@ -22,9 +22,10 @@ import { PLAN_STATE_HEX } from "../../theme/planStateColors";
 import { SharePlanSheet } from "./EventShareCard";
 import { shareCardFromDetail } from "./shellData";
 import { Avatar, EmptyBlock, IconBack } from "./bits";
-import { pastPillsFromCards, type PastPill } from "./density";
+import { pastPillsFromCards, settledSummaryLine, type PastPill, type SpineItem } from "./density";
 import { PreparationSpine } from "./PreparationSpine";
 import { CardContextMenu, LongPressRegion, type CardMenuItem } from "../CardContextMenu";
+import { OrbMarkMono } from "../../brand/orb/OrbMark";
 
 type Lens = "all" | "action" | "ready" | "past";
 
@@ -41,6 +42,18 @@ export type C2GraphsEvents = {
   runNextAction: (detail: GraphDetailProjection) => void;
   addPeople: (cardId: string) => void;
   openChatForPlan: (cardId: string) => void;
+  /** Repair #20 (F-13) - a spine task whose real surface is the
+   *  plan-scoped Opal chat: the shell scopes the doorway from the
+   *  detail (scope person = another participant on the plan) and
+   *  lands in Center. Absent = plan-chat spine items render static
+   *  (fail-closed: no dead taps). In-detail surfaces (food panel,
+   *  check-in row, Where) are handled by the detail itself. */
+  openSpineTask?: (detail: GraphDetailProjection, item: SpineItem) => void;
+  /** Repair #20 (F-15) - "Do that again" on a settled/past plan:
+   *  the shell opens the repeat flow (carried parties + place, new
+   *  time chosen in the flow) through the durable graph-create
+   *  path. Absent = the menu item does not render. */
+  repeatPlan?: (detail: GraphDetailProjection) => void;
   back: () => void;
   /** Hunt-fix B-12: the list error state's real retry (re-reads the
    *  plans). Without it, "Try again" fell back to navigating away. */
@@ -69,13 +82,26 @@ export type C2GraphsEvents = {
   promoteSpark?: (sparkId: string) => Promise<void>;
   startStarter?: (starterId: string) => void;
   /** R19 W7 — private graphs. setPlanPrivate runs the real API and
-   *  the surface re-reads; the lock handlers verify/set the passcode
+   *  the surface re-reads; the lock handler verifies the PIN
    *  SERVER-side (this surface never checks a code itself). Absent
-   *  handlers = the Private area does not render. */
+   *  handlers = the Private area does not render.
+   *  R20 F-4: the gate no longer sets a passcode — PIN set/change
+   *  lives in Settings (the Private graphs credential home). The
+   *  gate only unlocks: biometrics where the host offers them
+   *  (WebAuthn platform authenticator, account preference on AND a
+   *  credential registered on this device), PIN pad as fallback. */
   setPlanPrivate?: (cardId: string, isPrivate: boolean) => Promise<void>;
   graphLockPasscodeSet?: boolean | null;
   unlockPrivate?: (code: string) => Promise<boolean>;
-  setPrivatePasscode?: (code: string) => Promise<boolean>;
+  /** R20 F-4: host-computed — true only when biometric unlock is
+   *  genuinely offerable here (see vaultBiometric.ts). Absent/false
+   *  = no biometric button renders, ever. */
+  biometricUnlockAvailable?: boolean;
+  unlockWithBiometric?: () => Promise<boolean>;
+  /** R20 F-4: with no passcode set, the gate's one quiet way
+   *  forward — into the Settings credential home. Absent = the
+   *  gate renders its title alone (no dead button). */
+  openVaultSettings?: () => void;
   /** R19 W7 — living detail: share/stop MY location for this plan.
    *  Each resolves the plain-language status line to show. */
   shareMyLocation?: (cardId: string) => Promise<string>;
@@ -102,6 +128,8 @@ export function C2Graphs({
   const [dropError, setDropError] = useState<string | null>(null);
   const [dropBusy, setDropBusy] = useState(false);
   const [expandedPill, setExpandedPill] = useState<string | null>(null);
+  // R20 F-12: the settled summary expands by intent only.
+  const [settledOpen, setSettledOpen] = useState(false);
   // Adoption wave 1 forms (intentions / goals).
   const [intentionFormOpen, setIntentionFormOpen] = useState(false);
   const [intentionPerson, setIntentionPerson] = useState("");
@@ -126,6 +154,10 @@ export function C2Graphs({
     title: string;
     isPrivate: boolean;
     droppable: boolean;
+    /** R20 F-3: the card's finished state (from the ONE card
+     *  projection) - the menu carries it as its accent. */
+    stateFamily: string;
+    stateLabel: string;
   } | null>(null);
 
   const cardMenuItems = (menu: NonNullable<typeof cardMenu>): CardMenuItem[] => {
@@ -167,24 +199,44 @@ export function C2Graphs({
     };
   }, []);
 
+  // R20 F-4: the gate only VERIFIES — it never sets. A wrong PIN is
+  // the server's answer, rendered as one quiet line; the pad clears.
   const tryUnlockPrivate = async () => {
-    if (privateGateBusy || !privateCode.trim()) return;
+    if (privateGateBusy || privateCode.length < 4) return;
     setPrivateGateBusy(true);
     setPrivateGateError(null);
-    const setting = events.graphLockPasscodeSet === false;
-    const ok = setting
-      ? await events.setPrivatePasscode!(privateCode.trim())
-      : await events.unlockPrivate!(privateCode.trim());
+    const ok = await events.unlockPrivate!(privateCode);
     setPrivateGateBusy(false);
     setPrivateCode("");
     if (ok) {
       setPrivateUnlocked(true);
     } else {
-      setPrivateGateError(
-        setting
-          ? "That passcode could not be set. Use at least 4 characters."
-          : "That code did not open it.",
-      );
+      setPrivateGateError("That PIN did not open it.");
+    }
+  };
+
+  const tryBiometricUnlock = async () => {
+    if (privateGateBusy || !events.unlockWithBiometric) return;
+    setPrivateGateBusy(true);
+    setPrivateGateError(null);
+    const ok = await events.unlockWithBiometric();
+    setPrivateGateBusy(false);
+    if (ok) {
+      setPrivateUnlocked(true);
+    } else {
+      setPrivateGateError("Biometrics did not open it. Use your PIN.");
+    }
+  };
+
+  const pressPinKey = (key: string) => {
+    if (privateGateBusy) return;
+    setPrivateGateError(null);
+    if (key === "back") {
+      setPrivateCode((code) => code.slice(0, -1));
+    } else if (key === "clear") {
+      setPrivateCode("");
+    } else if (/^\d$/.test(key)) {
+      setPrivateCode((code) => (code.length >= 32 ? code : code + key));
     }
   };
 
@@ -237,7 +289,11 @@ export function C2Graphs({
   const settledInvitations = projection.settledInvitations ?? [];
   const renderGroups = visibleGroups.filter((g) => g.kind !== "past");
   const totalCards =
-    projection.groups.reduce((n, g) => n + g.cards.length, 0) + pastPills.reduce((n, p) => n + p.count, 0);
+    projection.groups.reduce((n, g) => n + g.cards.length, 0) +
+    pastPills.reduce((n, p) => n + p.count, 0) +
+    // R20 F-12: settled outcomes are real past content - a graph
+    // whose only past is settled must not paint as empty.
+    settledInvitations.length;
 
   const renderPastPills = () => (
     <div data-testid="c2-graphs-past-pills">
@@ -256,28 +312,66 @@ export function C2Graphs({
             {pill.highlights.length > 0 ? ` - ${pill.highlights.join(", ")}` : ""}
           </button>
           {expandedPill === pill.id ? (
-            <div data-testid="c2-past-pill-expanded">
+            // R20 F-11: expansion by intent reveals individual plan
+            // CARDS - each with its state color and its own reason to
+            // exist - never one-line ledger text rows.
+            <div data-testid="c2-past-pill-expanded" className="c2s-group-cards">
               {pill.cards.map((card) => (
-                <button
-                  key={card.id}
-                  type="button"
-                  className="c2s-btn-text"
-                  data-testid="c2-past-ledger-row"
-                  onClick={() => events.openGraph(card.id, "graphs")}
-                  style={{ width: "100%", textAlign: "left" }}
-                >
-                  {card.title} - {card.whenLine}
-                </button>
+                <div key={card.id} data-testid="c2-past-card">
+                  <PlanCardC2
+                    input={card}
+                    onOpen={() => events.openGraph(card.id, "graphs")}
+                  />
+                </div>
               ))}
             </div>
           ) : null}
         </div>
       ))}
-      {settledInvitations.map((item) => (
-        <p key={item.id} className="c2s-card-line" data-testid="c2-settled-invitation-line">
-          {item.line}
-        </p>
-      ))}
+      {settledInvitations.length > 0 ? (
+        // R20 F-12: settled outcomes converge into ONE quiet summary
+        // line for the whole set - never a repeated standalone row
+        // per plan. Expanding by intent reveals the plans' own cards;
+        // each plan's settled line lives in its detail.
+        <div data-testid="c2-settled-summary-wrap">
+          <button
+            type="button"
+            className="c2s-btn-text"
+            data-testid="c2-settled-summary"
+            aria-expanded={settledOpen}
+            onClick={() => setSettledOpen((v) => !v)}
+            style={{ width: "100%", textAlign: "left" }}
+          >
+            {settledSummaryLine(settledInvitations)}
+          </button>
+          {settledOpen ? (
+            <div data-testid="c2-settled-expanded" className="c2s-group-cards">
+              {settledInvitations.map((item) =>
+                item.card ? (
+                  <div key={item.id} data-testid="c2-settled-card">
+                    <PlanCardC2
+                      input={item.card}
+                      onOpen={() => events.openGraph(item.id, "graphs")}
+                    />
+                  </div>
+                ) : (
+                  <div key={item.id} data-testid="c2-settled-card">
+                    <PlanCardC2
+                      input={{
+                        stateFamily: "past",
+                        stateLabel: "Settled",
+                        title: item.title,
+                        whenLine: "",
+                      }}
+                      onOpen={() => events.openGraph(item.id, "graphs")}
+                    />
+                  </div>
+                ),
+              )}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 
@@ -334,7 +428,10 @@ export function C2Graphs({
             actionLabel="New plan"
             onAction={() => setCreateOpen(true)}
           />
-        ) : renderGroups.length === 0 && lens !== "past" && pastPills.length === 0 ? (
+        ) : renderGroups.length === 0 &&
+          lens !== "past" &&
+          pastPills.length === 0 &&
+          settledInvitations.length === 0 ? (
           <EmptyBlock
             testId="c2-graphs-lens-empty"
             headline="Nothing coming up."
@@ -344,7 +441,10 @@ export function C2Graphs({
           <>
             {lens === "past" ? (
               <div data-testid="c2-graphs-past-view">
-                <h2 className="c2s-group-title">Completed and past plans</h2>
+                <h2 className="c2s-group-title">
+                  <span className="c2s-orbit-ring" aria-hidden />
+                  Completed and past plans
+                </h2>
                 <p className="c2s-card-line">
                   Everything that already happened, in the order it settled.
                 </p>
@@ -360,24 +460,32 @@ export function C2Graphs({
             {lens !== "past"
               ? renderGroups.map((group) => {
             if (group.kind === "horizon") {
-              // P12 far field: distant stones - one quiet line per
-              // far plan, never a full card competing with tonight.
+              // P12 far field, R20 F-11: the founder ordered the
+              // horizon out of text-row form - each far plan is now
+              // an individual purposeful CARD with its state color,
+              // still at distant presence (it never competes with
+              // tonight: the presence weight rides the wrapper).
               return (
                 <section key={group.id} data-testid="c2-graphs-horizon">
-                  <h2 className="c2s-group-title">{group.title}</h2>
-                  {group.cards.map((card) => (
-                    <button
-                      key={card.id}
-                      type="button"
-                      className="c2s-btn-text"
-                      data-testid="c2-horizon-row"
-                      data-presence-weight={card.presence?.weightClass ?? "distant"}
-                      onClick={() => events.openGraph(card.id, "graphs")}
-                      style={{ width: "100%", textAlign: "left", opacity: 0.75 }}
-                    >
-                      {card.title} - {card.whenLine}
-                    </button>
-                  ))}
+                  <h2 className="c2s-group-title">
+                    <span className="c2s-orbit-ring" aria-hidden />
+                    {group.title}
+                  </h2>
+                  <div className="c2s-group-cards">
+                    {group.cards.map((card) => (
+                      <div
+                        key={card.id}
+                        data-testid="c2-horizon-card"
+                        data-presence-weight={card.presence?.weightClass ?? "distant"}
+                        style={{ opacity: 0.85 }}
+                      >
+                        <PlanCardC2
+                          input={card}
+                          onOpen={() => events.openGraph(card.id, "graphs")}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </section>
               );
             }
@@ -406,6 +514,8 @@ export function C2Graphs({
                             title: card.title,
                             isPrivate: false,
                             droppable: Boolean(card.droppable),
+                            stateFamily: card.stateFamily,
+                            stateLabel: card.stateLabel,
                           })
                         }
                       >
@@ -438,59 +548,130 @@ export function C2Graphs({
             );
               })
               : null}
-            {lens === "all" && pastPills.length > 0 ? (
+            {lens === "all" && (pastPills.length > 0 || settledInvitations.length > 0) ? (
               <section data-testid="c2-graphs-past-section">
-                <h2 className="c2s-group-title">Past</h2>
+                <h2 className="c2s-group-title">
+                  <span className="c2s-orbit-ring" aria-hidden />
+                  Past
+                </h2>
                 {renderPastPills()}
               </section>
             ) : null}
           </>
         )}
 
-        {events.unlockPrivate && events.setPrivatePasscode ? (
-          <section data-testid="c2-graphs-private">
-            <h2 className="c2s-group-title">Private graphs</h2>
+        {events.unlockPrivate ? (
+          <section
+            data-testid="c2-graphs-private"
+            className="c2s-vault"
+            data-vault-state={privateUnlocked ? "open" : "gated"}
+          >
+            {/* R20 F-4 + orbit/ring design compass: the vault's one
+                brand glyph - the orb mark, one quiet ringed stone
+                beside the plain title. Glyph only, never copy; the
+                gate stays near-silent. */}
+            <h2 className="c2s-group-title">
+              <span className="c2s-vault-mark" data-testid="c2-vault-mark" aria-hidden>
+                <OrbMarkMono size={15} />
+              </span>
+              Private graphs
+            </h2>
             {!privateUnlocked ? (
-              <div className="c2s-group-cards">
-                <p className="c2s-card-line">
-                  {projection.privateCards.length > 0
-                    ? `${projection.privateCards.length} ${projection.privateCards.length === 1 ? "graph is" : "graphs are"} shown only here, and hidden from your other lists.`
-                    : "Private graphs show only here, and stay hidden from your other lists."}
-                </p>
-                <p className="c2s-card-line">
-                  {events.graphLockPasscodeSet === false
-                    ? "Set a passcode to open this area. It is checked by Opal's server - the code itself is never stored."
-                    : "Enter your passcode to open this area."}
-                </p>
-                <input
-                  className="c2s-field"
-                  type="password"
-                  data-testid="c2-private-code"
-                  aria-label="Private graphs passcode"
-                  autoComplete="off"
-                  value={privateCode}
-                  onChange={(e) => setPrivateCode(e.target.value)}
-                />
-                {privateGateError ? (
-                  <p className="c2s-card-line" role="alert" data-testid="c2-private-error">
-                    {privateGateError}
-                  </p>
-                ) : null}
-                <button
-                  type="button"
-                  className="c2s-btn-primary"
-                  data-testid="c2-private-unlock"
-                  disabled={privateGateBusy || !privateCode.trim()}
-                  onClick={() => void tryUnlockPrivate()}
-                >
-                  {events.graphLockPasscodeSet === false ? "Set passcode and open" : "Open Private graphs"}
-                </button>
+              <div className="c2s-vault-gate" data-testid="c2-vault-gate">
+                {events.graphLockPasscodeSet === false ? (
+                  events.openVaultSettings ? (
+                    <button
+                      type="button"
+                      className="c2s-btn-text"
+                      data-testid="c2-private-set-passcode"
+                      onClick={events.openVaultSettings}
+                    >
+                      Set a passcode in Settings
+                    </button>
+                  ) : null
+                ) : (
+                  <>
+                    {events.biometricUnlockAvailable && events.unlockWithBiometric ? (
+                      <button
+                        type="button"
+                        className="c2s-btn-primary c2s-vault-biometric"
+                        data-testid="c2-private-biometric"
+                        disabled={privateGateBusy}
+                        onClick={() => void tryBiometricUnlock()}
+                      >
+                        Unlock with biometrics
+                      </button>
+                    ) : null}
+                    <div
+                      className="c2s-pinpad"
+                      role="group"
+                      aria-label="Private graphs PIN"
+                      data-testid="c2-private-pinpad"
+                    >
+                      <div
+                        className="c2s-pin-dots"
+                        data-testid="c2-private-code"
+                        data-pin-length={privateCode.length}
+                        aria-label={
+                          privateCode.length === 0
+                            ? "No PIN entered"
+                            : `${privateCode.length} PIN digits entered`
+                        }
+                      >
+                        {Array.from({ length: Math.max(privateCode.length, 4) }, (_, i) => (
+                          <span
+                            key={i}
+                            className="c2s-pin-dot"
+                            data-filled={i < privateCode.length ? "1" : undefined}
+                          />
+                        ))}
+                      </div>
+                      <div className="c2s-pin-keys">
+                        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"].map(
+                          (key) => (
+                            <button
+                              key={key}
+                              type="button"
+                              className="c2s-pin-key"
+                              data-testid={`c2-pin-key-${key}`}
+                              aria-label={
+                                key === "back"
+                                  ? "Delete last digit"
+                                  : key === "clear"
+                                    ? "Clear PIN"
+                                    : `PIN digit ${key}`
+                              }
+                              disabled={privateGateBusy}
+                              onClick={() => pressPinKey(key)}
+                            >
+                              {key === "back" ? "⌫" : key === "clear" ? "C" : key}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                    {privateGateError ? (
+                      <p className="c2s-card-line" role="alert" data-testid="c2-private-error">
+                        {privateGateError}
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="c2s-btn-primary"
+                      data-testid="c2-private-unlock"
+                      disabled={privateGateBusy || privateCode.length < 4}
+                      onClick={() => void tryUnlockPrivate()}
+                    >
+                      Open Private graphs
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
-              <div className="c2s-group-cards">
+              <div className="c2s-group-cards c2s-vault-open" data-testid="c2-vault-open">
                 {projection.privateCards.length === 0 ? (
                   <p className="c2s-card-line" data-testid="c2-private-empty">
-                    No private graphs yet. A graph in Private graphs shows only here - it stays fully intact, and everyone else on it keeps their own view.
+                    No private graphs yet.
                   </p>
                 ) : (
                   projection.privateCards.map((card) => (
@@ -503,6 +684,8 @@ export function C2Graphs({
                           title: card.title,
                           isPrivate: true,
                           droppable: Boolean(card.droppable),
+                          stateFamily: card.stateFamily,
+                          stateLabel: card.stateLabel,
                         })
                       }
                     >
@@ -843,6 +1026,8 @@ export function C2Graphs({
           title={cardMenu.title}
           items={cardMenuItems(cardMenu)}
           onClose={() => setCardMenu(null)}
+          stateFamily={cardMenu.stateFamily}
+          stateLabel={cardMenu.stateLabel}
         />
       ) : null}
 
@@ -915,6 +1100,45 @@ export function C2GraphDetail({
     detail.completion as Parameters<typeof completionStep>[0],
     "food",
   );
+  // Repair #20 (F-13): a spine item opens its stamped surface.
+  // In-detail surfaces scroll to the section that already renders
+  // them on this detail; the plan-chat surface is the shell's
+  // doorway. When the shell wires no doorway, plan-chat items lose
+  // their action HERE (fail-closed) rather than rendering a tap
+  // that opens nothing.
+  const spineForView = events.openSpineTask
+    ? detail.spine
+    : detail.spine?.map((item) =>
+        item.action?.kind === "plan-chat" ? { ...item, action: null } : item,
+      );
+  const scrollToDetailSection = (testId: string) => {
+    document
+      .querySelector(`[data-testid="${testId}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const onSpineAction = (item: SpineItem) => {
+    switch (item.action?.kind) {
+      case "food-panel":
+        scrollToDetailSection("c2-detail-food");
+        break;
+      case "checkin":
+        scrollToDetailSection("c2-detail-checkin");
+        break;
+      case "where":
+        scrollToDetailSection("c2-detail-where");
+        break;
+      case "plan-chat":
+        events.openSpineTask?.(detail, item);
+        break;
+      default:
+        break;
+    }
+  };
+  // Repair #20 (F-15): the repeat affordance lives in this same
+  // overflow menu (Amendment A1: intent actions live in the menu,
+  // never as standing buttons) and renders only for a settled/past
+  // plan with the shell's repeat flow wired.
+  const canRepeat = Boolean(detail.repeatable && events.repeatPlan);
   return (
     <TopLayer band="modal">
       <div className="c2s-destination" data-testid="c2-graph-detail">
@@ -957,9 +1181,21 @@ export function C2GraphDetail({
             ) : null}
           </div>
 
-          {detail.spine && detail.spine.length > 0 ? (
+          {/* R20 F-12: the settled line lives HERE - in the settled
+              plan's own detail, reached by intent - and nowhere in
+              any list surface. */}
+          {detail.settledLine ? (
             <div className="c2s-detail-section">
-              <PreparationSpine spine={detail.spine} />
+              <p className="c2s-detail-kicker">Settled</p>
+              <p className="c2s-card-line" data-testid="c2-detail-settled-line">
+                {detail.settledLine}
+              </p>
+            </div>
+          ) : null}
+
+          {spineForView && spineForView.length > 0 ? (
+            <div className="c2s-detail-section">
+              <PreparationSpine spine={spineForView} onAction={onSpineAction} />
             </div>
           ) : null}
 
@@ -1014,7 +1250,7 @@ export function C2GraphDetail({
           ) : null}
 
           {detail.where ? (
-            <div className="c2s-detail-section">
+            <div className="c2s-detail-section" data-testid="c2-detail-where">
               <p className="c2s-detail-kicker">Where</p>
               <p className="c2s-card-title" style={{ fontSize: 17 }}>
                 {detail.where.label}
@@ -1142,7 +1378,7 @@ export function C2GraphDetail({
             </div>
           ) : null}
 
-          {events.setPlanPrivate ? (
+          {events.setPlanPrivate || canRepeat ? (
             <div className="c2s-detail-section">
               <button
                 type="button"
@@ -1164,15 +1400,31 @@ export function C2GraphDetail({
                 <CardContextMenu
                   title={detail.title}
                   items={[
-                    {
-                      id: "privacy",
-                      label: detail.isPrivate ? "Make public" : "Make private",
-                      testId: "c2-detail-private-toggle",
-                      onSelect: () =>
-                        void events.setPlanPrivate!(detail.id, !detail.isPrivate),
-                    },
+                    ...(events.setPlanPrivate
+                      ? [
+                          {
+                            id: "privacy",
+                            label: detail.isPrivate ? "Make public" : "Make private",
+                            testId: "c2-detail-private-toggle",
+                            onSelect: () =>
+                              void events.setPlanPrivate!(detail.id, !detail.isPrivate),
+                          },
+                        ]
+                      : []),
+                    ...(canRepeat
+                      ? [
+                          {
+                            id: "repeat",
+                            label: "Do that again",
+                            testId: "c2-detail-repeat",
+                            onSelect: () => events.repeatPlan!(detail),
+                          },
+                        ]
+                      : []),
                   ]}
                   onClose={() => setDetailMenuOpen(false)}
+                  stateFamily={detail.card.stateFamily}
+                  stateLabel={detail.card.stateLabel}
                 />
               ) : null}
             </div>

@@ -222,6 +222,23 @@ defmodule OpalCore.OpalConversations do
         _ -> nil
       end
 
+    # Repair #20 (F-19): a conversation-scoped context names its
+    # party live — the thread's other members, from the membership
+    # records themselves (never a stored snapshot of names).
+    party =
+      case context do
+        %{"conversation_id" => cid} when is_binary(cid) ->
+          cid
+          |> OpalCore.Messages.member_user_ids()
+          |> Enum.reject(&(&1 == user_id))
+          |> Enum.map(fn member_id ->
+            %{"id" => member_id, "display_name" => user_display_name(member_id)}
+          end)
+
+        _ ->
+          nil
+      end
+
     contract
     |> then(fn c ->
       if is_map(context) do
@@ -231,6 +248,7 @@ defmodule OpalCore.OpalConversations do
           context
           |> Map.put("person_name", person_name || context["person_name"])
           |> Map.put("plan_title", plan_title || context["plan_title"])
+          |> Map.put("party", party || context["party"])
         )
       else
         c
@@ -691,6 +709,21 @@ defmodule OpalCore.OpalConversations do
     plan_id = scope_val(scope, "plan_id")
     conversation_id = scope_val(scope, "conversation_id")
 
+    cond do
+      is_binary(person_id) ->
+        create_person_scoped_session(user_id, person_id, plan_id, conversation_id)
+
+      is_binary(conversation_id) ->
+        create_conversation_scoped_session(user_id, conversation_id, plan_id)
+
+      true ->
+        {:error, :invalid_scope}
+    end
+  end
+
+  def create_scoped_session(_, _), do: {:error, :invalid_scope}
+
+  defp create_person_scoped_session(user_id, person_id, plan_id, conversation_id) do
     with {:ok, person} <- fetch_person(person_id),
          :ok <- validate_conversation_binding(user_id, person_id, conversation_id),
          {:ok, plan} <- validate_plan_binding(user_id, person_id, plan_id) do
@@ -708,32 +741,116 @@ defmodule OpalCore.OpalConversations do
           context_conversation_id: conversation_id
         })
 
-      with {:ok, current} <- get_or_create_conversation(user_id) do
-        _ = OpalCore.Center.ProviderAction.cancel_inflight_for_user(user_id)
-
-        Repo.transaction(fn ->
-          current
-          |> Ecto.Changeset.change(%{archived_at: DateTime.utc_now(:microsecond)})
-          |> Repo.update!()
-
-          %OpalConversation{user_id: user_id}
-          |> Map.merge(fields)
-          |> OpalConversation.changeset(%{"user_id" => user_id})
-          |> Repo.insert!()
-        end)
-        |> case do
-          {:ok, fresh} ->
-            _ = OpalCore.Center.PlanningContext.clear_transient(user_id)
-            {:ok, %{conversation: fresh, archived_conversation_id: current.id}}
-
-          {:error, reason} ->
-            {:error, reason}
-        end
-      end
+      insert_scoped_session(user_id, fields)
     end
   end
 
-  def create_scoped_session(_, _), do: {:error, :invalid_scope}
+  # Repair #20 (F-19) — the GROUP doorway birth: a scoped session
+  # anchored to the conversation itself, because a group thread's
+  # orbit is the full party set and no single person scopes it
+  # honestly. Validation is the same fail-closed discipline:
+  # - the caller must be a member of the conversation;
+  # - the conversation must be a GROUP (3+ members) — a dyad keeps
+  #   the person scope above, never a duplicate conversation scope;
+  # - a given plan must be readable by the caller AND belong to
+  #   this conversation (bound to it, or its party set is exactly
+  #   the conversation's members).
+  # The anchor is the conversation; the birth scope carries the
+  # conversation id (and the plan, when given) and NO person.
+  defp create_conversation_scoped_session(user_id, conversation_id, plan_id) do
+    member_ids = OpalCore.Messages.member_user_ids(conversation_id)
+
+    with :ok <- validate_group_binding(user_id, member_ids),
+         {:ok, plan} <- validate_group_plan_binding(user_id, member_ids, conversation_id, plan_id) do
+      anchor =
+        if plan do
+          %{anchor_type: "plan", anchor_id: plan.id, anchor_label: plan.title}
+        else
+          %{
+            anchor_type: "conversation",
+            anchor_id: conversation_id,
+            anchor_label: conversation_anchor_label(conversation_id)
+          }
+        end
+
+      fields =
+        Map.merge(anchor, %{
+          context_person_id: nil,
+          context_plan_id: if(plan, do: plan.id),
+          context_conversation_id: conversation_id
+        })
+
+      insert_scoped_session(user_id, fields)
+    end
+  end
+
+  defp validate_group_binding(user_id, member_ids) do
+    cond do
+      user_id not in member_ids -> {:error, :invalid_scope}
+      length(member_ids) < 3 -> {:error, :invalid_scope}
+      true -> :ok
+    end
+  end
+
+  defp validate_group_plan_binding(_user_id, _member_ids, _conversation_id, nil), do: {:ok, nil}
+
+  defp validate_group_plan_binding(user_id, member_ids, conversation_id, plan_id) do
+    case OpalCore.SocialFlow.get_plan_for_user(plan_id, user_id) do
+      {:ok, plan} ->
+        parties = MapSet.new(OpalCore.SocialFlow.plan_participant_ids(plan))
+
+        if plan.conversation_id == conversation_id or
+             MapSet.equal?(parties, MapSet.new(member_ids)) do
+          {:ok, plan}
+        else
+          {:error, :invalid_scope}
+        end
+
+      _ ->
+        {:error, :invalid_scope}
+    end
+  end
+
+  # A conversation anchor's label snapshot: the conversation's own
+  # human label when it carries one; machine labels (group-/direct-/
+  # connection-) are not names, so the snapshot stays nil and
+  # surfaces name the orbit from its party instead.
+  defp conversation_anchor_label(conversation_id) do
+    case OpalCore.Repo.get(OpalCore.Messaging.Conversation, conversation_id) do
+      %OpalCore.Messaging.Conversation{label: label} when is_binary(label) ->
+        if String.starts_with?(label, ["group-", "direct-", "connection-"]),
+          do: nil,
+          else: label
+
+      _ ->
+        nil
+    end
+  end
+
+  defp insert_scoped_session(user_id, fields) do
+    with {:ok, current} <- get_or_create_conversation(user_id) do
+      _ = OpalCore.Center.ProviderAction.cancel_inflight_for_user(user_id)
+
+      Repo.transaction(fn ->
+        current
+        |> Ecto.Changeset.change(%{archived_at: DateTime.utc_now(:microsecond)})
+        |> Repo.update!()
+
+        %OpalConversation{user_id: user_id}
+        |> Map.merge(fields)
+        |> OpalConversation.changeset(%{"user_id" => user_id})
+        |> Repo.insert!()
+      end)
+      |> case do
+        {:ok, fresh} ->
+          _ = OpalCore.Center.PlanningContext.clear_transient(user_id)
+          {:ok, %{conversation: fresh, archived_conversation_id: current.id}}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+  end
 
   @doc """
   Set (accept / redirect) or clear (unanchor) ONE of the user's own
@@ -994,6 +1111,24 @@ defmodule OpalCore.OpalConversations do
   defp anchor_fields(_user_id, %{"type" => "place", "id" => id, "label" => label})
        when is_binary(id) and id != "" and is_binary(label) and label != "" do
     {:ok, %{anchor_type: "place", anchor_id: id, anchor_label: label}}
+  end
+
+  # Repair #20 (F-19): a conversation anchor validates against the
+  # caller's own membership — a session may be filed under a group
+  # conversation's orbit only by someone in that conversation.
+  defp anchor_fields(user_id, %{"type" => "conversation", "id" => id})
+       when is_binary(id) and id != "" do
+    if user_id in OpalCore.Messages.member_user_ids(id) do
+      {:ok,
+       %{
+         anchor_type: "conversation",
+         anchor_id: id,
+         anchor_label: conversation_anchor_label(id),
+         context_conversation_id: id
+       }}
+    else
+      {:error, :invalid_scope}
+    end
   end
 
   defp anchor_fields(_, _), do: {:error, :invalid_anchor}

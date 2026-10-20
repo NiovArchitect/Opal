@@ -235,7 +235,7 @@ export function C2Home({
   };
 
   return (
-    <div data-testid="c2-home">
+    <div data-testid="c2-home" data-surface-purpose="people-and-moments">
       <header className="c2s-header">
         <Avatar
           avatar={projection.header.ownAvatar}
@@ -274,7 +274,17 @@ export function C2Home({
       </header>
 
       <div className="c2s-scroll" data-testid="c2-home-scroll">
+        {/* R20 F-18 (D-5): Home is the social/life surface - it leads
+            with PEOPLE (the story rail) and then moments, labeled as
+            such, so its opening reads nothing like the Center deck
+            (which leads with the orb and the Needs-you deck). */}
+        <p className="c2s-group-label c2s-home-lead" data-testid="c2-home-lead-people" style={{ marginTop: "var(--space-3)" }}>
+          Your people
+        </p>
         <StoryRail rail={rail} onSelf={openSelf} onOpen={(s) => setViewer(s)} />
+        <p className="c2s-group-label c2s-home-lead" data-testid="c2-home-lead-moments">
+          Moments and plans
+        </p>
         <div className="c2s-feed" data-testid="c2-feed">
           {projection.feedError ? (
             <EmptyBlock

@@ -414,3 +414,251 @@ LIGHT-MODE NOTE: campaign 2 shot both modes for the primary surfaces
 gate/open, search set, settings hub, limbo set). The final-session
 rooms and tail frames are dark-primary; their light counterparts are
 declared above where applicable rather than silently absent.
+
+================================================================
+REPAIR #20 DELTA (tip bff7a4d5; served-build chip "seed - bff7a4d"
+in every live frame; the pack was fully recaptured on this tip
+after the F-17b fix - see the handoff's integrator charge 3)
+================================================================
+
+F-1 LANE BOXING: lane-button-deck-{dark,light},
+lane-button-thread-{dark,light}, lane-button-chats-{dark,light} -
+"Request a change" renders as a boxed button at the same weight
+as Confirm / Dismiss on the deck, in the thread, and in the
+Chats list. Where no change alternative exists the lane is
+honestly absent (the seed-thread card in lane-button-chats shows
+Confirm / Dismiss only).
+F-2 COMPOSER FURNITURE: composer-thread-empty-{dark,light},
+composer-thread-text-{dark,light} (icon controls: voice note,
+send; no bare "Record a voice note" text artifact),
+composer-voice-recording-{dark,light},
+composer-voice-review-{dark,light},
+composer-opalchat-empty-{dark,light},
+composer-opalchat-text-{dark,light}. DECLARED honestly absent,
+by design and pinned: thread + Opal-chat ATTACH (no message-media
+model exists) and the Opal-chat MIC (no host-wired voice path
+into Center chat today).
+F-3 LONG-PRESS CARD: cardmenu-graph-action-{dark,light},
+cardmenu-graph-forming-{dark,light},
+cardmenu-graph-happening-{dark,light},
+cardmenu-graph-private-{dark,light}, cardmenu-detail-{dark,light}
+- complete bordered cards, state pill in canon color, real
+presence; no slid-in sheet.
+F-4 VAULT: vault-gate-minimal-{dark,light} (near-silent gate:
+"Private graphs", PIN dots, digit pad, "Open Private graphs";
+no essay, no set-passcode form),
+settings-vault-section-{dark,light} (PIN set/change lives in
+Settings; biometric toggle with honest device-local copy),
+vault-open-enriched-{dark,light} (the private plan inside the
+gradient-ringed vault section). Supporting evidence: from the
+second account (no PIN set) the same section honestly reads
+"Set a passcode in Settings". WebAuthn renders only when the
+preference is on + a credential is registered + a platform
+authenticator exists; server-verified WebAuthn is NOT claimed.
+F-5 DOCK ORB: dock-closeup-opaque-{dark,light} - the orb DISC is
+fully opaque (the --dock-orb-fill token, both modes, pinned);
+the dock BAR's translucency is the shipped shell design and is
+not F-5's subject.
+F-6 DUPLICATE PERSON: search-people-once-{dark,light} ("Jordan"
+returns Jordan Ellis exactly once) and
+search-people-two-identities-{dark,light}. THE TWO-MAYAS STORY,
+read this before judging the frame: "Maya" returns TWO people
+rows because TWO DISTINCT ACCOUNTS named Maya Torres exist in
+this world - the seed cast member and the second account the
+capture campaign itself provisioned. Identity is the account
+id; each identity appears exactly once, and the two are never
+data-blended (hard isolation). That the seed cast still
+includes a Maya at all, once a real second account exists, is
+a founder seed-world policy decision - it is on the gated
+list, NOT silently fixed here.
+F-7 CREATE WHO: create-plan-enriched-{dark,light},
+create-plan-who-{dark,light} - What / When / Where / Who at
+equal weight, the Who carrying the orbit-ring mark; the first
+Who row is the current conversation's party carried in, then
+people with relationship labels, each identity once.
+F-8 START A CHAT: start-chat-ordered-{dark,light} (recency /
+volume order, relationship labels),
+start-chat-number-{dark,light} - the phone-number path answers
+honestly for a number not on Opal: "That number isn't on Opal
+yet." No shadow people are created.
+F-9 CONNECTORS: settings-hub-connectors-{dark,light},
+connectors-room-{dark,light},
+connectors-category-{dark,light} (Gmail expanded),
+connectors-permissions-{dark,light} (the three Soul assistance
+levels - the room binds to the real assistance_level; there is
+no second permissions store). Infrastructure never appears
+(allowlist-pinned). DECLARED COPY NIT: in the expanded Gmail
+row, STATUS and WHAT IS HOLDING IT BACK repeat one sentence
+verbatim ("Google sign-in is not set up on this server yet...");
+true in both places, not worth a new tip + battery + recapture
+to polish. DECLARED ABSENT with enabling steps (handoff):
+Docs / Drive / Instagram / Spotify / Apple / Outlook hold no
+real connect flow today; the Google rows wait on the founder's
+OAuth consent + client creation.
+F-10 CENTER ASSETS: home-vs-center-center-{dark,light} +
+center-asset-pressed-create-{dark,light},
+center-asset-pressed-talk-{dark,light},
+center-asset-pressed-doorway-{dark,light} - press proof is
+computed-style (quiet ring shadow + matching ground during the
+hold), logged in the capture results. "How Opal works for you"
+was restyled honestly as the doorway row it is: "Soul and
+Memory - how Opal is with you, and what it holds" (decision +
+reason in the handoff).
+F-11 / F-12 / F-14 (fixture-fed, DECLARED as fixture-fed - real
+components, fixture projections, the density harness):
+graph-detail-horizon-cards-{dark,light},
+graph-detail-past-collapsed-{dark,light},
+graph-detail-past-expanded-{dark,light},
+graphs-past-quiet-{dark,light} - Past contents are individual
+cards; the past list carries ONE settled summary line; the pin
+asserts "could not make it" appears nowhere on list / Past
+surfaces. plan-multiday-card-{dark,light} - F-14 proven in
+frame: "Sat, Jan 2, 7 PM - Mon Jan 4".
+F-13 SPINE (fixture-fed, declared): spine-task-open-{dark,light},
+spine-task-surface-{dark,light}. The fixture food step is
+pre-choice, so the panel shows its pre-choice form; the
+provider-choice row (DoorDash / Uber Eats / Grubhub, the choice
+actually passed to the handoff) is pin-proven and appears once
+a restaurant is chosen. Reservation execution is honestly
+absent (OpenTable create is partner-only; slug-guessed URLs
+deliberately NOT wired); ride has no connector - honestly
+absent. See the handoff's F-13 / F-20 records.
+F-15 REPEAT: plan-repeat-entry-{dark,light} (settled detail
+menu: Make private / Do that again / Cancel),
+plan-repeat-flow-{dark,light} - "Same people, same place - a
+new time.", parties + place carried, "When this time?" EMPTY,
+Create disabled until a time is given; the original stays
+byte-identical (pinned).
+F-16 LIMBO: graphs-limbo-card-{dark,light} - the Campagnola
+card in Graphs carries the cooling strip (amber cooling-lines
+PATTERN, never action red) + "Less than an hour left in the
+answer window." plan-detail-limbo-{dark,light} - the same
+treatment on the plan detail hero.
+group-etiquette-limbo-{dark,light} - the Batiquitos card in
+the Weekend Crew group thread (F-21b).
+DECLARED - F-16 DECK GAP (charged follow-up defect): the
+Center deck's Your Move reveal cards do NOT carry the cooling
+treatment in this build. Proven during the finale: Osteria in
+verified limbo (API etiquette + Graphs strip) sat on the deck
+as a plain Your Move card with its lane and no cooling strip;
+Campagnola, also in limbo, was not surfaced on the deck at
+all. The frames shot of the deck card were deleted rather
+than misnamed. Graphs + detail + thread carry the treatment;
+the deck reveal card is the one surface that does not - it is
+recorded on the founder-gated list as the F-16 remainder.
+F-19 ORBIT: orbit-screen-1to1-{dark,light} (seed Maya orbit:
+her light, the red action plan stone, OPAL'S READ, the long
+arc, past Opal chats index), orbit-screen-group-{dark,light}
+(Saturday Crew: every party light, the ready-gold Juniper
+stone on the ring, the long arc naming Juniper),
+orbit-screen-empty-{dark,light} (the staged conversation's
+orbit before any Opal chat: "No chats with Opal about ... yet.
+Ask the first question." - the light frame is the second
+account's seat of the same conversation; the surface and
+state are identical from both seats),
+orbit-return-{dark,light}. The doorway button itself is
+untouched (protected).
+CAMPAIGN NOTES: the capture stack's per-user API rate limiter
+(1000 requests / user / hour, by design) was exhausted three
+times by the two-seat rigs; the app answered with its honest
+"Your chats did not load" surface each time - the limiter
+working as designed, recorded here rather than hidden. The
+VM restarted four times during the campaign; all state lives
+under ~/workspace and the self-healing stack script restored
+the rig in minutes each time.
+
+FINALE ADDENDUM (wall-clock finale, 2026-10-20, tip bff7a4d5):
+F-17b FORK + CLOSURE - CAPTURED. etiquette-fork-a-{dark,light}:
+A's Graphs with Osteria forked (recipient copy on the card:
+"Your answer window for Dinner at Osteria Mozza is still open.
+A yes or a no is plenty - either answer is a kind one. / About
+24 hours left in the answer window."); the resolved
+Campagnola sits plain in the same frames. etiquette-fork-b-
+{dark,light}: B's Graphs, Osteria carrying the requester copy
+("Waiting to hear back about Dinner at Osteria Mozza. We will
+share the answer as soon as it arrives. / About 24 hours left
+in the answer window."). etiquette-closure-a-{dark,light} +
+etiquette-closure-b-{dark,light}: both parties' Campagnola
+cards after the kindly answer - plain Forming cards, no
+residual noise; closure is quiet by design. Machine evidence:
+Campagnola's window closed 15:19:18Z; the etiquette read
+showed the fork presented at 15:19:41Z; A answered with
+ask_another_time through the product's etiquette respond path
+(200, outcome "another_time"); lifecycle_open reads false on
+both parties afterwards. Batiquitos (group) forked on its own
+rescheduled job at 15:22:44Z the same afternoon.
+DECLARED - fork answer controls: the fork's two answers
+(decline / ask another time) were not found rendered on any
+C2 web surface hunted - the deck reveal card still shows the
+pre-fork lane, no Campagnola reveal was minted in the thread,
+the plan detail body carries no fork actions, and its
+overflow holds Make private / Cancel only. The respond
+endpoint and its client function exist and work (they closed
+the lifecycle above). Carried to the gated list as a
+follow-up: fork presentation renders everywhere; its answer
+controls have no discovered home on the web shell.
+F-16 GROUP + F-21b - CORRECTED: the group limbo's honest home
+is the group ORBIT. group-etiquette-limbo-orbit-{dark,light}:
+the Weekend Crew orbit - every pending member's light wears
+the dashed cooling ring, and the long arc's WAITING lines
+name each outstanding answer ("Still waiting on Jordan
+Ellis's answer." etc). A full hunt of the group thread
+(scroll both ways + tapping the plan pill) found no cooling
+strip there for a non-recipient viewer - declared, and the
+earlier appendix line naming thread frames is superseded by
+these orbit frames.
+F-3 HAPPENING MENU - DECLARED: the cardmenu-graph-happening
+pair was deleted. A full pill census of A's Graphs at finale
+time read Ready x4, Forming x9, and no Happening card (B's
+plans are all tentative); no plan sat inside its happening
+window during the campaign. The menu craft is proven on the
+ready / forming / private menu frames.
+F-17a CONNECTED CALLS - DECLARED with the attempt evidence:
+four genuine rig attempts (the frozen-era L4 run, probe-call,
+the fresh-bucket L11 run in both modes, and the probe-call3
+sheet forensics). The Calls room's new-call sheet lists
+people as plain rows; in the headless rig, tapping a person
+neither placed a call nor surfaced a start control, and the
+second seat never received an incoming overlay in any
+attempt (cap-l4 / cap-l11 / probe-call3 result logs). The
+calling path itself is FOUNDER-PROVEN on real phones
+(2026-10-19, two accounts, separate rooms) and that stands as
+the truth of the feature; connected-call frames remain owed
+to a device session.
+F-17c LEAVE-BY - the gate chain proven live, state by state:
+(1) no start instant: "No start time yet - leave-by needs a
+set time." (in-frame on plan-detail-limbo-light). (2) start
+set, place without coordinates: "Leave-by is not available -
+this place has no location yet." (cap-l17 logs; no seed or
+staged plan in this world carries coordinates). (3) start +
+coordinates (Juniper & Ivy, lead-authorized PATCH), viewer
+location not yet shared: leave-by-share-prompt-{dark,light}
+- "Share your location to see when to leave". (4) location
+shared through the detail's own control: "Leave-by is
+unavailable right now." in both modes (cap-l18 logs) - the
+travel-time provider does not answer in the capture
+environment, so the rendered estimate and leave-now states
+(proven in the polish wave; the leave-by pin suite covers
+estimate + leave-now) are DECLARED for this wave: the
+estimate's last gate is the routing provider behind the
+founder's Google enablement. Staging roots, all proven: the
+conversation-plan create stores the time label but never
+resolves a start instant; the graph-create contract carries
+no start field (code-read this finale); PATCH refuses
+schedule fields by design (422
+schedule_field_requires_revision).
+F-21a: the pin stands (noticeRouting suite green); the live
+tap-through could not be attempted - no closure-notice
+surface was reachable in the rig. The Activity room row
+exists (testid c2-you-nav-row-approvals-activity, "Activity -
+What Opal did for you, written down"); the rig's clicks did
+not mount the room within the capture waits. Recorded as a
+rig limit, not a product claim.
+FINALE CAMPAIGN NOTES: five VM restarts across the day; the
+stack script restored the rig in minutes each time. Session
+A's rate bucket was exhausted a fourth time during the
+finale (window anchored 15:13:14Z by the finale's own shell
+loads); to run the frozen-clock leave-by staging, that one
+bucket row for the synthetic capture account was deleted in
+the staging database (staging hygiene on synthetic data
+only - no product data touched).

@@ -285,6 +285,62 @@ defmodule OpalCoreWeb.R19GraphsTest do
       assert {:error, :code_too_short} = GraphLock.set_passcode(user, "12")
       refute GraphLock.set?(user)
     end
+
+    # Repair #20 F-4: the biometric preference - one projection out,
+    # one validated write, PIN semantics untouched.
+    test "biometric preference: defaults off, requires a passcode, round-trips through the one projection" do
+      {token, user} = activate("+12025550120", "Lock Bio", "r20lockbio")
+
+      # No lock: the preference cannot be enabled (biometrics unlock
+      # the PIN vault; they never replace the PIN), and the status
+      # projection reads both facts false.
+      assert GraphLock.status(user) == %{passcode_set: false, biometric_enabled: false}
+      assert {:error, :no_passcode_set} = GraphLock.set_biometric_enabled(user, true)
+
+      conn =
+        build_conn()
+        |> auth(token)
+        |> post("/api/v1/product/opal/graph-lock/biometric", %{"enabled" => true})
+
+      assert json_response(conn, 422)["error"] == "no_passcode_set"
+
+      # Non-boolean input is refused by the validated write.
+      conn =
+        build_conn()
+        |> auth(token)
+        |> post("/api/v1/product/opal/graph-lock/biometric", %{"enabled" => "yes"})
+
+      assert json_response(conn, 422)["error"] == "enabled_required"
+
+      # With a passcode set, the preference round-trips and the PIN
+      # itself is untouched (same code still verifies, hash unchanged
+      # in effect).
+      assert :ok = GraphLock.set_passcode(user, "2468")
+      assert GraphLock.status(user) == %{passcode_set: true, biometric_enabled: false}
+
+      conn =
+        build_conn()
+        |> auth(token)
+        |> post("/api/v1/product/opal/graph-lock/biometric", %{"enabled" => true})
+
+      body = json_response(conn, 200)
+      assert body["passcode_set"] == true
+      assert body["biometric_enabled"] == true
+
+      conn = build_conn() |> auth(token) |> get("/api/v1/product/opal/graph-lock")
+      body = json_response(conn, 200)
+      assert body["passcode_set"] == true
+      assert body["biometric_enabled"] == true
+      assert GraphLock.verify(user, "2468")
+
+      conn =
+        build_conn()
+        |> auth(token)
+        |> post("/api/v1/product/opal/graph-lock/biometric", %{"enabled" => false})
+
+      assert json_response(conn, 200)["biometric_enabled"] == false
+      assert GraphLock.verify(user, "2468")
+    end
   end
 
   describe "vault marks never gate direct reads (Polish C P3, supersedes BS-03)" do

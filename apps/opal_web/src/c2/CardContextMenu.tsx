@@ -9,6 +9,12 @@
  * this same menu. Surfaces pass finished items; the menu derives
  * nothing.
  *
+ * R20 F-3: the panel is a complete, bordered, finished CARD (full
+ * border + surface + card shadow, floating above the scrim's
+ * bottom edge, items as full tappable rows, Cancel divided from
+ * the actions) carrying the invoking card's state accent - not
+ * the borderless bottom sheet it shipped as in the polish wave.
+ *
  * Behavior law:
  * - A press that becomes a scroll (pointer moves) never opens it.
  * - A long-press that opens the menu suppresses the click that
@@ -18,6 +24,7 @@
  *   overflow button keeps a native click path for keyboard users).
  */
 import React, { useEffect, useRef } from "react";
+import { PlanStatePillC2 } from "./PlanCardC2";
 
 export type CardMenuItem = {
   id: string;
@@ -119,10 +126,24 @@ export function CardContextMenu({
   title,
   items,
   onClose,
+  stateFamily,
+  stateLabel,
 }: {
   title?: string | null;
   items: CardMenuItem[];
   onClose: () => void;
+  /**
+   * R20 F-3: the invoking card's plan state, finished by the ONE
+   * projection (the same stateFamily/stateLabel the card itself
+   * renders). When present, the menu carries the state's accent -
+   * the state rule across the panel's top edge and the state pill
+   * beside the title (AR-03: glyph + label beside the hue, never
+   * color alone) - so the menu reads as a finished card OF that
+   * plan, in the Your Move card's grammar, not a hover sheet.
+   * Absent = a plain finished card (no state claimed).
+   */
+  stateFamily?: string | null;
+  stateLabel?: string | null;
 }) {
   const firstRef = useRef<HTMLButtonElement | null>(null);
 
@@ -135,15 +156,25 @@ export function CardContextMenu({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const showState = Boolean(stateFamily && stateLabel);
+
   return (
     <div className="c2s-menu-scrim" data-testid="card-context-menu" onClick={onClose}>
       <div
         className="c2s-menu-panel"
         role="menu"
         aria-label={title ?? "Card options"}
+        data-plan-state={showState ? stateFamily! : undefined}
         onClick={(e) => e.stopPropagation()}
       >
-        {title ? <p className="c2s-menu-title">{title}</p> : null}
+        {title || showState ? (
+          <div className="c2s-menu-head">
+            {title ? <p className="c2s-menu-title">{title}</p> : null}
+            {showState ? (
+              <PlanStatePillC2 stateFamily={stateFamily!} stateLabel={stateLabel!} />
+            ) : null}
+          </div>
+        ) : null}
         {items.map((item, i) => (
           <button
             key={item.id}
@@ -160,7 +191,13 @@ export function CardContextMenu({
             {item.label}
           </button>
         ))}
-        <button type="button" className="c2s-menu-item" data-testid="card-menu-cancel" onClick={onClose}>
+        <div className="c2s-menu-divider" aria-hidden="true" />
+        <button
+          type="button"
+          className="c2s-menu-item c2s-menu-cancel"
+          data-testid="card-menu-cancel"
+          onClick={onClose}
+        >
           Cancel
         </button>
       </div>

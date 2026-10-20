@@ -81,12 +81,93 @@ export type OpalConversationContext = {
 
 /** A request to land in the Opal conversation (host/shell routing). */
 export type OpalOpenRequest = {
-  context: OpalConversationContext;
+  /** The person context, when one exists. A GROUP orbit request
+   *  carries none — its scope is the orbit payload below. */
+  context?: OpalConversationContext | null;
   /** Open exactly this scoped session (from the person index). */
   sessionId?: string | null;
   /** Start a NEW scoped session (doorway / index "start new"). */
   startNew?: boolean;
+  /**
+   * Repair #20 (F-19) — the ORBIT landing: when a doorway request
+   * carries an orbit scope, the Opal conversation opens INSIDE the
+   * orbit screen (the ring + the arc around the scoped chat), not
+   * as a bare chat column. The scope is built by the thread host
+   * from the thread's own projections at doorway time; the orbit
+   * host re-reads the orbit projection live on landing.
+   */
+  orbit?: OrbitScope | null;
 };
+
+/* ---------------- The orbit scope (Repair #20 F-19) ---------------- */
+
+/**
+ * One person on the orbit ring, from the backend orbit projection
+ * (OrbitProjectionContract parties): identity (name + entity tint)
+ * and their ONE pending/limbo read across the thread's plans —
+ * finished facts, rendered by the ring as-is.
+ */
+export type OrbitPartyMember = {
+  id: string;
+  name: string;
+  tint?: number | null;
+  isViewer: boolean;
+  pending: boolean;
+  limbo: boolean;
+  limboFractionRemaining?: number | null;
+};
+
+/**
+ * The orbit scope of one thread: the anchor the orbit screen opens
+ * for. For a dyad the anchor is the person (personId/personName set,
+ * mirroring the doorway context); for a GROUP thread the anchor is
+ * the full party set of the conversation itself (personId null —
+ * no single person scopes a group honestly) and scoped sessions
+ * are born conversation-scoped on the backend.
+ */
+export type OrbitScope = {
+  conversationId: string;
+  /** The thread's own title, from its conversation summary. */
+  title: string;
+  composition: "group" | "dyad" | string;
+  party: OrbitPartyMember[];
+  personId?: string | null;
+  personName?: string | null;
+  planId?: string | null;
+  planTitle?: string | null;
+};
+
+/** The doorway context a scope carries for the person-scoped paths
+ *  (chip, index, split) — a group scope has none, honestly. */
+export function orbitScopePersonContext(scope: OrbitScope): OpalConversationContext | null {
+  if (!scope.personId || !scope.personName) return null;
+  return {
+    personId: scope.personId,
+    personName: scope.personName,
+    conversationId: scope.conversationId,
+    planId: scope.planId ?? null,
+    planTitle: scope.planTitle ?? null,
+  };
+}
+
+/**
+ * Every session in one conversation's orbit: scoped to that
+ * conversation at birth (context conversation id equality), or
+ * anchored to the conversation anchor itself. Exact-id equality,
+ * the same discipline as the person index — a session scoped to
+ * conversation X can never appear in conversation Y's orbit.
+ */
+export function sessionsForConversation<T extends PersonOpalSessionRow>(
+  sessions: T[],
+  conversationId: string,
+): T[] {
+  return sessions.filter((s) => {
+    if (s.context?.conversationId === conversationId) return true;
+    if (s.conversationScopeId && s.conversationScopeId === conversationId) return true;
+    const own = anchorOfSession(s);
+    return !!own && own.type === "conversation" && own.id === conversationId;
+  });
+}
 
 /* ---------------- The doorway presence rules ---------------- */
 
@@ -180,6 +261,11 @@ export type PersonOpalSessionRow = {
   timeLabel: string;
   isActive: boolean;
   context: OpalConversationContext | null;
+  /** Repair #20 (F-19): the raw conversation scope the session
+   *  contract carries — set even for group-scoped sessions, whose
+   *  person context is null (no single person scopes them). This
+   *  is the orbit index's equality key for conversation orbits. */
+  conversationScopeId?: string | null;
   anchor?: OpalAnchor | null;
   /** ISO recency stamp the host read from the contract, for orbit
    *  ordering (latest activity first; dormant orbits sink). */
@@ -221,7 +307,7 @@ export const ORBITS_NAME = "Orbits";
  * scope columns — the one filing truth; surfaces never re-file.
  */
 export type OpalAnchor = {
-  type: "person" | "plan" | "place";
+  type: "person" | "plan" | "place" | "conversation";
   id: string;
   label?: string | null;
   /** The orbit-private flag (item-9 gate seam; see CenterHost). */

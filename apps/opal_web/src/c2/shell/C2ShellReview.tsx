@@ -323,7 +323,7 @@ export function C2ShellReview({ surface }: { surface: string }) {
             { key: "privacy", title: "Privacy", subtitle: "You choose who sees what", keywords: "privacy" },
             { key: "calls-assist", title: "Opal Assist and calls", subtitle: "Help on calls, only when you say so", keywords: "assist" },
             { key: "what-opal-remembers", title: "What Opal remembers", subtitle: "Facts Opal keeps, and forgetting them", keywords: "memory" },
-            { key: "connections", title: "Connections", subtitle: "Apps and tools plugged into Opal", keywords: "google tools apps" },
+            { key: "connections", title: "Connectors", subtitle: "Tools you connect yourself", keywords: "google gmail calendar tools apps" },
             { key: "notifications", title: "Notifications", subtitle: "Loud for people. Quiet for noise.", keywords: "notifications" },
             { key: "linked-devices", title: "Linked devices", subtitle: "Where you are signed in", keywords: "devices" },
             { key: "location-travel", title: "Location and travel", subtitle: "Timing that follows you", keywords: "travel" },

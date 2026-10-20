@@ -323,7 +323,12 @@ defmodule OpalCoreWeb.ConversationController do
           "durable_chronology" => true,
           # DIR-1: the thread's Next Together fact - the same shared
           # upcoming plan fact as the chats list and the call log.
-          "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id, leave_by: true)
+          "next_plan" => OpalCore.SocialFlow.NextPlan.for_conversation(user_id, conversation_id, leave_by: true),
+          # Repair #20 F-19: the orbit projection for this thread -
+          # parties, all of the thread's upcoming plans with their
+          # per-party pending/limbo reads, and the next-together
+          # pick. The orbit screen renders it; it derives nothing.
+          "orbit" => OpalCore.SocialFlow.OrbitProjection.for_conversation(user_id, conversation_id)
         })
 
       {:error, :not_a_member} ->
@@ -754,13 +759,61 @@ defmodule OpalCoreWeb.ConversationController do
         error(conn, 422, "missing_peer_user_id", "peer_user_id is required")
 
       true ->
-        case Messages.ensure_direct_conversation(user_id, peer) do
-          {:ok, result} ->
-            status = if result.origin == :created, do: 201, else: 200
+        respond_direct(conn, user_id, peer)
+    end
+  end
 
-            conn
-            |> put_status(status)
-            |> json(%{
+  @doc """
+  Repair #20 (F-8b) — start (or find) a direct conversation by
+  phone number, the WhatsApp pattern: type a number, land in the
+  chat. Body: `{ "phone": "+1..." }`.
+
+  The number resolves through the real ownership truth
+  (`Onboarding.account_id_for_phone/2` — active verified
+  identifiers only), then runs the exact same ensure-direct path
+  as a picked person. An unknown number is an honest 404
+  (`not_on_opal`): no account, person, or conversation is created
+  for a number Opal cannot verify.
+  """
+  def ensure_direct_by_phone(conn, params) do
+    user_id = conn.assigns.current_user_id
+
+    case OpalCore.SocialFlow.Onboarding.account_id_for_phone(user_id, params["phone"]) do
+      {:ok, peer_id} ->
+        peer = OpalCore.Repo.get(OpalCore.Accounts.User, peer_id)
+
+        extra =
+          if peer,
+            do: %{"peer" => %{"id" => peer.id, "display_name" => peer.display_name}},
+            else: %{}
+
+        respond_direct(conn, user_id, peer_id, extra)
+
+      {:error, :invalid_phone} ->
+        error(conn, 422, "invalid_phone", "Enter a valid phone number, with the country code.")
+
+      {:error, :not_on_opal} ->
+        error(conn, 404, "not_on_opal", "That number isn't on Opal yet.")
+
+      {:error, :self} ->
+        error(conn, 422, "cannot_direct_self", "Cannot open a direct chat with yourself")
+
+      {:error, :blocked} ->
+        error(conn, 403, "blocked", "This connection is blocked")
+    end
+  end
+
+  # The by-phone success body carries the resolved peer (id + display
+  # name, via `extra`) so the surface can name who the chat is with;
+  # the number itself is never echoed back.
+  defp respond_direct(conn, user_id, peer, extra \\ %{}) do
+    case Messages.ensure_direct_conversation(user_id, peer) do
+      {:ok, result} ->
+        status = if result.origin == :created, do: 201, else: 200
+
+        body =
+          Map.merge(
+            %{
               "conversation_id" => result.conversation_id,
               "member_ids" => result.member_ids,
               "member_count" => result.member_count,
@@ -768,17 +821,22 @@ defmodule OpalCoreWeb.ConversationController do
               "origin" => to_string(result.origin),
               "direct" => true,
               "shared_group_must_not_widen_dyadic_invitation" => true
-            })
+            },
+            extra
+          )
 
-          {:error, :self} ->
-            error(conn, 422, "cannot_direct_self", "Cannot open a direct chat with yourself")
+        conn
+        |> put_status(status)
+        |> json(body)
 
-          {:error, :blocked} ->
-            error(conn, 403, "blocked", "This connection is blocked")
+      {:error, :self} ->
+        error(conn, 422, "cannot_direct_self", "Cannot open a direct chat with yourself")
 
-          {:error, reason} ->
-            error(conn, 422, "direct_ensure_failed", inspect(reason))
-        end
+      {:error, :blocked} ->
+        error(conn, 403, "blocked", "This connection is blocked")
+
+      {:error, reason} ->
+        error(conn, 422, "direct_ensure_failed", inspect(reason))
     end
   end
 

@@ -86,6 +86,10 @@ export type PlanCardLimboC2 = {
   treatment: string;
   patternChannel: string;
   windowFractionRemaining: number | null;
+  /** R20 F-16: the backend projection's finished remaining-window
+   *  line ("About 12 hours left in the answer window."), rendered
+   *  verbatim when present - the card never derives a countdown. */
+  remainingWindowText?: string | null;
   copy: string;
   viewerRole: "requester" | "recipient" | "group_member" | string;
 };
@@ -240,6 +244,11 @@ export function PlanCardC2({
           data-treatment={limbo.treatment}
         >
           <p className="c2-plan-limbo-copy">{limbo.copy}</p>
+          {limbo.remainingWindowText ? (
+            <p className="c2-plan-limbo-copy" data-testid="c2-plan-limbo-window">
+              {limbo.remainingWindowText}
+            </p>
+          ) : null}
         </div>
       ) : null}
       {/* AT-08 (R19 W27): iris fire is reserved for lit items -

@@ -172,6 +172,10 @@ defmodule OpalCoreWeb.Router do
 
     get("/conversations", ConversationController, :index)
     post("/conversations/direct", ConversationController, :ensure_direct)
+    # Repair #20 (F-8b) — start/find a chat by phone number.
+    post("/conversations/by-phone", ConversationController, :ensure_direct_by_phone)
+    # Repair #20 (F-6/F-8) — the one resolved people projection.
+    get("/people/projection", PeopleController, :index)
     post("/conversations/group", ConversationController, :create_group)
     post("/conversations/:id/read", ConversationController, :mark_read)
     post("/conversations/:id/notifications", ConversationController, :set_notifications)
@@ -624,6 +628,7 @@ defmodule OpalCoreWeb.Router do
     get("/opal/graph-lock", GraphPeopleController, :graph_lock_status)
     post("/opal/graph-lock", GraphPeopleController, :set_graph_lock)
     post("/opal/graph-lock/verify", GraphPeopleController, :verify_graph_lock)
+    post("/opal/graph-lock/biometric", GraphPeopleController, :set_graph_lock_biometric)
 
     # Repair #12 (F12-11c) — Center coarse device coords (user-granted), for
     # venue ranking / near-me. Separate from the travel-mode 422 privacy law.

@@ -591,22 +591,30 @@ export function VoiceNoteControl({
           </p>
           <button
             type="button"
-            className="c2s-btn-text"
+            className="c2s-voice-stop"
             data-testid="c2-voice-stop"
+            aria-label="Stop recording"
+            title="Stop recording"
             onClick={() => recorderRef.current?.stop()}
           >
-            Stop
+            <VoiceStopIcon />
           </button>
         </>
       ) : phase === "review" && blob ? (
         <>
           <audio controls src={URL.createObjectURL(blob)} data-testid="c2-voice-review-player" />
-          <button type="button" className="c2s-btn-text" data-testid="c2-voice-send" onClick={() => void send()}>
+          <button
+            type="button"
+            className="c2s-voice-action"
+            data-testid="c2-voice-send"
+            onClick={() => void send()}
+          >
             Send voice note
           </button>
           <button
             type="button"
-            className="c2s-btn-text"
+            className="c2s-voice-action c2s-voice-action-quiet"
+            aria-label="Discard voice note"
             onClick={() => {
               setBlob(null);
               setPhase("idle");
@@ -618,12 +626,14 @@ export function VoiceNoteControl({
       ) : (
         <button
           type="button"
-          className="c2s-btn-text"
+          className="c2s-voice-mic"
           data-testid="c2-voice-record"
+          aria-label={phase === "sending" ? "Sending voice note" : "Record a voice note"}
+          title={phase === "sending" ? "Sending voice note" : "Record a voice note"}
           disabled={phase === "sending"}
           onClick={() => void start()}
         >
-          {phase === "sending" ? "Sending" : "Record a voice note"}
+          <VoiceMicIcon />
         </button>
       )}
       {error ? (
@@ -632,5 +642,36 @@ export function VoiceNoteControl({
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * R20 F-2: the composer's microphone glyph - the same mic geometry
+ * the Opal chat composer uses (OpalCenterChat's MicIcon), so the
+ * voice affordance reads identically wherever it appears. The
+ * control is an icon button; its name lives in aria-label/title,
+ * never as a bare text artifact in the composer bar.
+ */
+function VoiceMicIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M6 11a6 6 0 0 0 12 0"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path d="M12 17v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M9 20h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function VoiceStopIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor" />
+    </svg>
   );
 }

@@ -1086,13 +1086,21 @@ export function CenterChat({
               }
             }}
           />
-          {draft.trim() ? (
+          {/* R20 F-2: same composer furniture as the thread - the
+              send icon is permanent on a live Opal chat and
+              ACTIVATES with text (disabled and quiet while the
+              draft is empty). No mic is painted here: no voice
+              path is wired into this surface by its host, and a
+              painted-but-dead mic is a defect (see R20 report). */}
+          {onSend ? (
             <button
               type="button"
-              className="c1-send"
+              className={`c1-send${draft.trim() ? " is-active" : ""}`}
+              data-testid="opal-chat-composer-send"
               aria-label="Send"
+              disabled={!draft.trim()}
               onClick={() => {
-                onSend?.(draft.trim());
+                onSend(draft.trim());
                 setDraft("");
               }}
             >
@@ -1641,6 +1649,8 @@ export function ThreadShell({
   onTalkToOpal,
   personContext,
   onOpenOpalChats,
+  orbitDoorway,
+  onOpenOrbit,
 }: {
   name: string;
   initials: string;
@@ -1704,6 +1714,16 @@ export function ThreadShell({
    */
   personContext?: OpalConversationContext | null;
   onOpenOpalChats?: (context: OpalConversationContext) => void;
+  /**
+   * Repair #20 (F-19) — GROUP doorway wiring (open-target only):
+   * a group thread derives no person context, so its header doorway
+   * carries the conversation's own identity instead. The button is
+   * the SAME doorway button (same mark, same classes, same place) —
+   * only its open-target differs: it opens the group's orbit.
+   * Rendered only when no person/plan doorway exists for the thread.
+   */
+  orbitDoorway?: { conversationId: string; label: string } | null;
+  onOpenOrbit?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -1793,6 +1813,18 @@ export function ThreadShell({
                 : `Talk to Opal about ${headerDoorway.personName}`
             }
             onClick={() => onTalkToOpal(headerDoorway)}
+          >
+            <span className="c1-thread-opal-orb" aria-hidden="true" />
+          </button>
+        ) : null}
+        {!headerDoorway && orbitDoorway && onOpenOrbit ? (
+          <button
+            type="button"
+            className="c1-thread-opal-btn"
+            data-testid="thread-opal-doorway"
+            data-conversation-id={orbitDoorway.conversationId}
+            aria-label={`Talk to Opal about ${orbitDoorway.label}`}
+            onClick={() => onOpenOrbit()}
           >
             <span className="c1-thread-opal-orb" aria-hidden="true" />
           </button>
@@ -1888,11 +1920,22 @@ export function ThreadShell({
               }
             }}
           />
-          {onSend && draft.trim() ? (
+          {/* R20 F-2: the send control is permanent composer
+              furniture on a live thread - a real icon button that
+              ACTIVATES with text (accent-filled once the draft is
+              non-empty, quiet and disabled while empty), instead
+              of popping into existence only after typing. With no
+              onSend the composer is read-only and renders no send
+              at all (no dead control). No attach button is painted:
+              thread messages have no media carrier (see the R20
+              cards report - attach is honestly absent). */}
+          {onSend ? (
             <button
               type="button"
-              className="c1-send"
+              className={`c1-send${draft.trim() ? " is-active" : ""}`}
+              data-testid="thread-composer-send"
               aria-label="Send"
+              disabled={!draft.trim()}
               onClick={() => {
                 onSend(draft.trim());
                 setDraft("");

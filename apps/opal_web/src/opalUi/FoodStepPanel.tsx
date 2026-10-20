@@ -41,6 +41,22 @@ export function completionStep(
   return completion?.steps?.find((s) => s.id === id) ?? null;
 }
 
+/**
+ * Repair #20 (F-20) - the viewer's OWN delivery apps, as the
+ * backend's one handoff transport names them
+ * (FoodHandoff.provider_choices: doordash / ubereats / grubhub).
+ * Picking one starts the handoff with that provider_choice: the
+ * backend opens that provider's public search with the restaurant
+ * name as the search term (labeled a search, never a store page).
+ * A provider not in the backend map has no rail and is never
+ * offered here.
+ */
+export const FOOD_PROVIDER_CHOICES: Array<{ key: string; label: string }> = [
+  { key: "doordash", label: "DoorDash" },
+  { key: "ubereats", label: "Uber Eats" },
+  { key: "grubhub", label: "GrubHub" },
+];
+
 export function FoodStepPanel(props: {
   planId: string;
   completion: { steps: CompletionStep[] } | null | undefined;
@@ -61,8 +77,8 @@ export function FoodStepPanel(props: {
 
   const after = () => onChanged?.();
 
-  const startHandoff = async () => {
-    const res = await foodStartHandoff(planId);
+  const startHandoff = async (providerChoice?: string) => {
+    const res = await foodStartHandoff(planId, providerChoice);
     if (res.handoff_url) {
       window.open(res.handoff_url, "_blank", "noopener,noreferrer");
       setHandoffNote(
@@ -155,11 +171,33 @@ export function FoodStepPanel(props: {
                   </button>
                   {mine.handoff_state === "not_started" ||
                   mine.handoff_state === "could_not_deliver" ? (
-                    <button type="button" onClick={startHandoff}>
+                    <button type="button" onClick={() => void startHandoff()}>
                       {food.restaurant_name
                         ? `Open ${restaurant} site to order`
                         : "Open your delivery app"}
                     </button>
+                  ) : null}
+                  {/* F-20: the handoff routes INTO the viewer's own
+                      connected tool - their pick of delivery app,
+                      searched for this restaurant. Offered only
+                      when a restaurant is chosen (the provider rail
+                      carries the restaurant name as its search). */}
+                  {(mine.handoff_state === "not_started" ||
+                    mine.handoff_state === "could_not_deliver") &&
+                  food.restaurant_name ? (
+                    <div className="food-step-providers" data-testid="food-providers">
+                      <span>Or open it in your app: </span>
+                      {FOOD_PROVIDER_CHOICES.map((choice) => (
+                        <button
+                          key={choice.key}
+                          type="button"
+                          data-testid={`food-provider-${choice.key}`}
+                          onClick={() => void startHandoff(choice.key)}
+                        >
+                          {choice.label}
+                        </button>
+                      ))}
+                    </div>
                   ) : null}
                   {handoffNote ? <p className="food-step-note">{handoffNote}</p> : null}
                   {mine.handoff_state === "handed_off" ? (

@@ -81,6 +81,13 @@ export type C2YouEvents = {
    *  shell wires it only with a live session; an unwired host gets
    *  the honest error line on submit, never a painted success. */
   addMemory?: (text: string) => Promise<void>;
+  /** R20 F-4 — the Private graphs credential home writes. Each runs
+   *  the real API (setGraphLock / setGraphLockBiometric + the
+   *  device-local WebAuthn registration for the biometric leg) and
+   *  the section re-reads the server's projection; absent handlers
+   *  mean the form shows the honest error line, never a fake save. */
+  setVaultPasscode?: (code: string) => Promise<void>;
+  setVaultBiometric?: (enabled: boolean) => Promise<void>;
   redeemInviteCode?: (code: string) => Promise<{ credit_line: string }>;
   executeDeletion?: (
     mode: "data" | "account",
@@ -102,8 +109,8 @@ export const HUB_GROUPS: Array<{ label: string; keys: string[] }> = [
   { label: "You", keys: ["edit-profile", "appearance", "your-moments", "your-library"] },
   { label: "How Opal works for you", keys: ["soul", "memory", "what-opal-remembers"] },
   { label: "How Opal helps", keys: ["how-opal-helps", "calls-assist", "approvals-activity"] },
-  { label: "Feeds and tools", keys: ["what-opal-hears", "connections"] },
-  { label: "Quiet and privacy", keys: ["notifications", "privacy", "linked-devices", "location-travel"] },
+  { label: "Your tools", keys: ["connections", "connector-permissions"] },
+  { label: "Quiet and privacy", keys: ["notifications", "privacy", "private-graphs", "linked-devices", "location-travel"] },
   { label: "Account", keys: ["account-security", "saved-logins", "invite-code", "delete-account", "help-support"] },
 ];
 
@@ -240,7 +247,7 @@ export function C2SettingsSection({
   section: SettingsSectionProjection;
   events: C2YouEvents;
 }) {
-  // A3 (founder polish wave) - Connections redesign: one connection's
+  // A3 / R20 F-9 - Connectors: one connection's
   // detail is open at a time, behind its row; the row itself carries
   // only the name and the verbatim status.
   const [openConnectionId, setOpenConnectionId] = useState<string | null>(null);
@@ -270,6 +277,14 @@ export function C2SettingsSection({
   const [inviteCopyNote, setInviteCopyNote] = useState<string | null>(null);
   const [memoryDraft, setMemoryDraft] = useState("");
   const [memoryAdded, setMemoryAdded] = useState(false);
+  // R20 F-4 — Private graphs credential home state, seeded from the
+  // section's own value rows (the server's graph-lock projection).
+  const [vaultPin, setVaultPin] = useState("");
+  const [vaultPinSaved, setVaultPinSaved] = useState(false);
+  const [vaultBiometric, setVaultBiometric] = useState<boolean>(
+    () => rowValue("vault_biometric_enabled") === "On",
+  );
+  const [vaultBusy, setVaultBusy] = useState(false);
   // Repair #18 SM - Soul form state, seeded from the section's own
   // value rows (the server's read of the real preference truth).
   const [soulLevel, setSoulLevel] = useState<string>(() => rowValue("assistance_level") || "balanced");
@@ -786,6 +801,170 @@ export function C2SettingsSection({
           </div>
         ) : null}
 
+        {section.key === "connector-permissions" &&
+        section.rows.some((r) => r.kind === "value" && r.id === "assistance_level") ? (
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}
+            data-testid="c2-permissions-form"
+          >
+            <p className="c2s-field-label" id="c2-permissions-level-label">
+              When Opal acts with a tool you connected, how much should it ask first?
+            </p>
+            <p className="c2s-field-reason">
+              In plain words: "Only when I ask" is Always ask. "Balanced"
+              is Ask for some actions - Opal offers, then waits for your
+              say-so. This writes the one real Soul setting; there is no
+              second permissions store behind it.
+            </p>
+            <div className="c2s-segmented" role="radiogroup" aria-labelledby="c2-permissions-level-label" data-testid="c2-permissions-level">
+              {(["minimal", "balanced", "proactive"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={soulLevel === value}
+                  data-active={soulLevel === value ? "1" : undefined}
+                  data-testid={`c2-permissions-level-${value}`}
+                  onClick={async () => {
+                    if (!events.saveSoulPreferences) {
+                      setError("That did not save. Try again.");
+                      return;
+                    }
+                    const previous = soulLevel;
+                    setSoulLevel(value);
+                    setSaving("permissions");
+                    setError(null);
+                    try {
+                      // Partial write: Soul.update_soul takes only
+                      // the fields given, so this changes the level
+                      // and nothing else (quiet hours etc. untouched).
+                      await events.saveSoulPreferences({ assistance_level: value });
+                    } catch {
+                      setSoulLevel(previous);
+                      setError("That did not save. Try again.");
+                    } finally {
+                      setSaving(null);
+                    }
+                  }}
+                >
+                  {SOUL_LEVEL_COPY[value].label}
+                </button>
+              ))}
+            </div>
+            <p className="c2s-field-reason" data-testid="c2-permissions-level-reason">
+              {SOUL_LEVEL_COPY[soulLevel]?.reason ?? SOUL_LEVEL_COPY.balanced.reason}
+            </p>
+          </div>
+        ) : null}
+        {section.key === "private-graphs" &&
+        section.rows.some((r) => r.kind === "value" && r.id === "vault_passcode_set") ? (
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-5)", marginBottom: "var(--space-4)" }}
+            data-testid="c2-vault-settings-form"
+          >
+            <div className="c2s-field-group">
+              <label className="c2s-field-label" htmlFor="c2-vault-pin-input">
+                {rowValue("vault_passcode_set") === "Set" ? "Change your PIN" : "Set your PIN"}
+              </label>
+              <p className="c2s-field-reason">
+                Four to eight digits. It is checked by Opal's server when you open
+                Private graphs - the PIN itself is never stored.
+              </p>
+              <input
+                id="c2-vault-pin-input"
+                className="c2s-field"
+                type="password"
+                inputMode="numeric"
+                autoComplete="off"
+                data-testid="c2-vault-pin"
+                value={vaultPin}
+                onChange={(e) => {
+                  setVaultPin(e.target.value.replace(/\D/g, "").slice(0, 8));
+                  setVaultPinSaved(false);
+                }}
+                aria-label={rowValue("vault_passcode_set") === "Set" ? "New PIN" : "PIN"}
+              />
+              <button
+                type="button"
+                className="c2s-btn-primary"
+                data-testid="c2-vault-pin-save"
+                disabled={vaultBusy || vaultPin.length < 4}
+                onClick={async () => {
+                  if (!events.setVaultPasscode) {
+                    setError("Saving a PIN is not wired in this build.");
+                    return;
+                  }
+                  setVaultBusy(true);
+                  setError(null);
+                  try {
+                    await events.setVaultPasscode(vaultPin);
+                    setVaultPin("");
+                    setVaultPinSaved(true);
+                  } catch {
+                    setError("That PIN did not save. Use four to eight digits and try again.");
+                  } finally {
+                    setVaultBusy(false);
+                  }
+                }}
+              >
+                {rowValue("vault_passcode_set") === "Set" ? "Change PIN" : "Set PIN"}
+              </button>
+              {vaultPinSaved ? (
+                <p className="c2s-note" data-testid="c2-vault-pin-saved" role="status">
+                  Saved. This PIN opens your Private graphs now.
+                </p>
+              ) : null}
+            </div>
+
+            <div className="c2s-field-group">
+              <p className="c2s-field-label">Biometric unlock</p>
+              <p className="c2s-field-reason">
+                Open Private graphs with this device's face, fingerprint, or device
+                PIN instead of typing your PIN. It is registered on this device only,
+                and your PIN always still works.
+              </p>
+              <div className="c2s-row" style={{ border: "1px solid var(--line-1)", borderRadius: "var(--radius-card)" }}>
+                <span className="c2s-row-main">
+                  <span className="c2s-row-title">
+                    {vaultBiometric ? "Biometric unlock is on" : "Biometric unlock is off"}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="c2s-toggle"
+                  data-on={vaultBiometric ? "1" : undefined}
+                  role="switch"
+                  aria-checked={vaultBiometric}
+                  aria-label="Biometric unlock"
+                  data-testid="c2-vault-biometric-toggle"
+                  disabled={vaultBusy}
+                  onClick={async () => {
+                    if (!events.setVaultBiometric) {
+                      setError("Biometric unlock is not wired in this build.");
+                      return;
+                    }
+                    const next = !vaultBiometric;
+                    setVaultBusy(true);
+                    setError(null);
+                    try {
+                      await events.setVaultBiometric(next);
+                      setVaultBiometric(next);
+                    } catch (err) {
+                      setError(
+                        err instanceof Error && err.message
+                          ? err.message
+                          : "That did not save. Try again.",
+                      );
+                    } finally {
+                      setVaultBusy(false);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="c2s-row-block">
           {section.rows.map((row) => {
             if (row.kind === "note") {
@@ -846,6 +1025,7 @@ export function C2SettingsSection({
                     className="c2s-row c2s-connection-row"
                     data-testid={`connection-row-${row.id}`}
                     data-connection-status={row.status}
+                    data-has-real-flow={row.hasRealFlow ? "1" : undefined}
                     data-open={open ? "1" : undefined}
                     aria-expanded={open}
                     aria-controls={detailId}
@@ -854,6 +1034,9 @@ export function C2SettingsSection({
                       setOpenConnectionId(open ? null : row.id)
                     }
                   >
+                    <span className="c2s-connection-icon" aria-hidden>
+                      {row.title.replace(/^Your /, "").slice(0, 1).toUpperCase()}
+                    </span>
                     <span className="c2s-row-main">
                       <span className="c2s-row-title">{row.title}</span>
                     </span>
@@ -888,6 +1071,17 @@ export function C2SettingsSection({
                         </div>
                       ) : null}
                       <p className="c2s-connection-checked">{row.lastVerifiedLabel}</p>
+                      {row.action ? (
+                        <button
+                          type="button"
+                          className="c2s-btn-quiet"
+                          data-testid={`connection-action-${row.id}`}
+                          data-action-id={row.action.id}
+                          onClick={() => events.runAction(section.key, row.action!.id)}
+                        >
+                          {row.action.label}
+                        </button>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
@@ -905,6 +1099,17 @@ export function C2SettingsSection({
               if (
                 section.key === "memory" &&
                 (row.id === "graphing_call_mode" || row.id === "graphing_global_paused")
+              ) {
+                return null;
+              }
+              if (section.key === "connector-permissions" && row.id === "assistance_level") {
+                return null;
+              }
+              // R20 F-4: the vault seeds are edited in the Private
+              // graphs form above; do not render them twice.
+              if (
+                section.key === "private-graphs" &&
+                (row.id === "vault_passcode_set" || row.id === "vault_biometric_enabled")
               ) {
                 return null;
               }

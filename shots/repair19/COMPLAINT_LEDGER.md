@@ -208,3 +208,52 @@ machine-proven, pending the founder's phone walk - never as
 acceptance.
 
 **FOUNDER_ACCEPTED stays NO.**
+
+## §W7 - WALK-7 catalog (Repair #20 founder delta-fix wave, founder review 2026-10-20 01:14 PDT + same-night additions 01:26-01:29 PDT)
+
+| ID | Complaint (founder's words in substance) | Disposition |
+|---|---|---|
+| W7-F1 | "Request a change" is not boxed like Confirm/Dismiss on Your Move cards | GREEN - boxed at equal weight on deck/thread/chats (lane-button-* frames, both modes, rendered on tip bff7a4d5); P1 permission logic unchanged (pins) |
+| W7-F2 | Thread composer shows a bare "Record a voice note" text artifact | GREEN - icon furniture (voice/send) with real states incl. recording + review frames (composer-* set, both modes). Attach + Opal-chat mic HONESTLY ABSENT (no message-media model; no host-wired voice path) - pinned absence, declared in the handoff |
+| W7-F3 | Long-press card looks like a slid-in hover sheet | GREEN - rebuilt as a complete bordered card with canon state color (cardmenu-* set: forming / ready / action / private states, both modes). HAPPENING menu state DECLARED: the pair was deleted - a finale pill census found no Happening card in either seat's world (Ready x4, Forming x9, rest tentative), so no honest happening frame could be shot |
+| W7-F4 | Vault gate carries an essay + a set-passcode form; screens bland | GREEN - near-silent gate (title, PIN dots, pad), credentials live in Settings, colors enriched inside the Rulebook (vault-gate-minimal / settings-vault-section / vault-open-enriched, both modes). Biometric is device-local by design; server-verified WebAuthn NOT claimed |
+| W7-F5 | Dock orb is see-through; content bleeds through | GREEN - orb disc fully opaque via the --dock-orb-fill token, pin + dock close-ups both modes (the dock BAR's translucency is shipped shell design, out of F-5's scope) |
+| W7-F6 | Search shows "Maya Torres" twice under People | GREEN at the source - identity projection (identity = account id; each identity exactly once; distinct same-name identities never blended). search-people-once + search-people-two-identities frames tell the true story: two rows = two DISTINCT accounts in this world. Seed-cast retirement once a real account joins = founder policy decision, carried to the gated list, NOT silently implemented |
+| W7-F7 | Create-plan has what/when/where but no WHO | GREEN - Who picker at equal weight on the real graph-create participant contract + enrichment pass (create-plan-who / create-plan-enriched, both modes) |
+| W7-F8 | Start-a-chat ordering not real; no phone-number entry | GREEN - ordering from real recency/volume (pin), phone entry on the real conversation-create path; unknown number answers "That number isn't on Opal yet." - no shadow people (start-chat-* frames, both modes) |
+| W7-F9 | "Connections" room wrong; rebuild + rename to Connectors; infrastructure out permanently | GREEN - Connectors room rebuilt (code-derived inventory: only Google Calendar + Gmail hold real flows under one Google grant); infra banned by allowlist pin; rows without a real flow honestly absent + declared with enabling steps; Permissions surface binds to Soul's real assistance_level (connectors-* frames, both modes) |
+| W7-F10 | Center assets must be real with pressed states; "How Opal works for you" must justify itself | GREEN - all three assets real; pressed = quiet ring (computed-style proof). The doorway restyled honestly as what it is: "Soul and Memory - how Opal is with you, and what it holds" (decision + reason in the handoff) |
+| W7-F11 | Horizon + Past are text-in-a-box | GREEN - individual purposeful cards with state color; Past collapsible, same card treatment (fixture-fed graph-detail frames, declared as fixture-fed) |
+| W7-F12 | Settled-declined rows shout repeatedly on graphs/past - "resolve immediately" | GREEN - declined-by-me folds into ONE settled summary line; pin asserts "could not make it" appears nowhere on list/Past surfaces (graphs-past-quiet + past-expanded frames) |
+| W7-F13 | Spine tasks are dead status rows | GREEN - tasks open their real action surfaces through the PlanTransition gate; types with no real surface declared, never faked (spine-task-* frames + r20-actions-report). Reservation EXECUTION honestly absent (partner-only API); ride connector does not exist - honestly absent |
+| W7-F14 | Multi-day plans show only the start | GREEN - start AND end on every time-range surface ("Sat, Jan 2, 7 PM - Mon Jan 4" in frame; single-source density.planWhenLine) |
+| W7-F15 | No way to repeat a settled plan | GREEN - "Do that again" on settled details: real graph-create, parties/place carried, new time REQUIRED, original byte-identical (pin); meeting link/conversation NOT carried (plan-repeat-* frames, both modes) |
+| W7-F16 | Limbo framed in chats but not findable in Graphs | GREEN on Graphs + plan detail (cooling-lines pattern + remaining window, both modes) - graphs-limbo-card / plan-detail-limbo; group limbo GREEN on the group ORBIT (group-etiquette-limbo-orbit: pending lights in the dashed cooling ring + WAITING arc lines). The group THREAD renders no strip to a non-recipient viewer (full hunt, declared). DECK REVEAL CARDS: the one surface that does not carry the treatment in this build (proven live during the finale; the deck frames were deleted rather than misnamed) - charged follow-up, carried to the gated list as the F-16 remainder |
+| W7-F17a | Connected call frames owed real visuals | DECLARED - four genuine rig attempts (L4, probe-call, fresh-bucket L11 both modes, probe-call3 sheet forensics): the new-call sheet lists people as plain rows; in the headless rig a tap neither placed a call nor surfaced a start control, and the second seat never rang. The call path itself is FOUNDER-PROVEN on real phones 2026-10-19 (separate rooms) - connected-call frames remain owed to a device session |
+| W7-F17b | Fork + closure frames owed via real short windows | GREEN - etiquette-fork-a/b-{dark,light} (fork-stage cooling copy on both parties' Graphs cards; Campagnola window closed 15:19:18Z, fork presented in the etiquette read at 15:19:41Z) + etiquette-closure-a/b-{dark,light} (A answered ask_another_time via the product respond path, 200/outcome another_time, lifecycle_open false on both parties; the cards return to plain Forming - quiet closure). The campaign also found and the wave FIXED the blocking defect (stage jobs never rescheduled when a window is set; integrator charge 3, pin-proven + live-proven). DECLARED remainder: the fork's answer controls were not found rendered on any C2 web surface hunted (deck reveal / thread / detail / overflow) - follow-up on the gated list |
+| W7-F17c | Leave-by frames owed; staging create path produced time-less plans | DECLARED with the full gate chain proven live: no start -> 'No start time yet - leave-by needs a set time.' (in-frame); start, no place coordinates -> 'this place has no location yet' (cap-l17 logs); start + coordinates -> leave-by-share-prompt-{dark,light} ('Share your location to see when to leave'); location shared -> 'Leave-by is unavailable right now.' (both modes, cap-l18 logs) - the travel-time provider does not answer in the capture environment, so the rendered estimate / leave-now states (polish-proven, pin-covered) are declared for this wave; the estimate's last gate is the routing provider behind the founder's Google enablement. Roots proven: conversation-create never resolves a start instant from its label; graph-create's contract carries no start field (code-read); PATCH refuses schedule fields (422 schedule_field_requires_revision - by design) |
+| W7-F18 | Home vs Center opening surfaces near-identical (D-5) | GREEN at the lightest true change - surface-purpose divergence declared in code (Home = people-and-moments, Center = opal-working) + home-vs-center frames; deeper divergence is a founder call, carried |
+| W7-F19 | No orbit screen seen; the doorway must open the orbit experience | GREEN - the orbit screen as its own visual experience (ring of people as lights, plan stones in canon state colors, conversation inside the field, the long arc, empty-orbit invitation) from 1:1 + group threads, both modes (orbit-screen-* + orbit-return-*). The doorway button itself untouched (protected) |
+| W7-F20 | Spine tasks are connector execution points (architecture) | GREEN as record + constraint - architecture record in the handoff; location-aware connector recommendation + group-preference recommendations recorded as roadmap directions; the intelligence build is post-walk phase |
+| W7-F21a | Notices must land in the exact orbit/thread they concern | GREEN by pin (noticeRouting single derivation, wired into deck reveals, in-thread reveals, Activity fork/limbo cards; null when identity untrustworthy). Frame attempt in the finale |
+| W7-F21b | Group-variant etiquette frames | GREEN - group-etiquette-limbo-orbit-{dark,light} (Weekend Crew orbit during Batiquitos' real limbo: pending members' lights in the dashed cooling ring, the arc's WAITING lines naming each outstanding answer). The group-thread variant was hunted in full and renders no strip to a non-recipient viewer - declared in the manifest |
+| W7-F21c | Cold-user legibility on Connectors + Private graphs | GREEN at the inspection pass - both rooms read cold: plain-words intro, honest statuses, no infrastructure names, no intentions copy on the gate. One copy nit declared (Gmail STATUS repeats the holding-back sentence verbatim) |
+
+Capture campaign note (Repair #20): the pack was captured
+TWICE on two tips - the F-17b campaign proved a real scheduling
+defect on the served stack (response-window stage jobs sat at
+the 24h grace deadline regardless of the window), the wave
+fixed it at the source with a regression pin, re-ran the FULL
+battery on the new tip bff7a4d5, and recaptured the ENTIRE pack
+from that tip (chip "seed - bff7a4d" in every live frame).
+Frames that did not prove their names were deleted and
+declared (frozen-clock limbo attempts; the deck-limbo pair).
+The campaign also recorded: the API rate limiter (1000/user/
+hour, by design) exhausted three times by the two-seat rigs -
+the app answered with its honest error surface each time; four
+VM restarts, each recovered in minutes by the self-healing
+stack (all state under ~/workspace). Machine proof is reported
+as machine-proven, pending the founder's phone walk - never as
+acceptance.
+
+**FOUNDER_ACCEPTED stays NO.**

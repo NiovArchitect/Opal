@@ -185,9 +185,11 @@ export type GraphListProjection = {
    *  Optional for projections built by other clusters' fixtures;
    *  C2Graphs falls back to the same derivation over a past group. */
   pastPills?: import("./density").PastPill[];
-  /** Polish P11 - invitations the viewer declined or that expired,
-   *  settled into one summarized history line each. Viewer-private:
-   *  rendered only in the viewer's own past area. */
+  /** Polish P11 - invitations the viewer declined or that expired.
+   *  R20 F-12: list surfaces render ONE settled summary line for the
+   *  whole set (density.settledSummaryLine); each entry's card shows
+   *  only on intent expansion, and its `line` renders only in the
+   *  plan's own detail. Viewer-private: past area only. */
   settledInvitations?: import("./density").SettledInvitation[];
   /** R19 W7 — private graphs, separated by the adapter from the
    *  plan contract's is_private flag. They NEVER appear in groups
@@ -214,6 +216,10 @@ export type GraphDetailProjection = {
   id: string;
   title: string;
   card: PlanCardC2Input;
+  /** R20 F-12: the plan's settled line when THIS viewer settled it
+   *  (declined / expired) - rendered only in this detail, never as a
+   *  row in any list surface. Null for live plans. */
+  settledLine?: string | null;
   attendanceLine?: string | null;
   /** Repair #18 wiring (B2): the plan contract's completion record,
    *  carried verbatim. The food panel renders only when it carries a
@@ -261,6 +267,24 @@ export type GraphDetailProjection = {
    *  event -> settling), projected by density.ts spineFromPlan from
    *  the plan's real completion record. Absent = no spine renders. */
   spine?: import("./density").SpineItem[];
+  /** Repair #20 (F-13) - the plan's own conversation id from its
+   *  contract, when it has one; scopes the plan-chat doorway. */
+  conversationId?: string | null;
+  /** Repair #20 (F-15) - true when this plan has settled into the
+   *  past (its status family is "past"), so the detail may offer
+   *  "Do that again". Live plans never carry it. */
+  repeatable?: boolean;
+  /** Repair #20 (F-15) - what a repeat carries from this plan,
+   *  finished by the adapters from the plan's own record (place +
+   *  coordinates + type) and its Who rows (the parties). The new
+   *  time is NEVER carried - it is chosen in the repeat flow. */
+  repeat?: {
+    participantUserIds: string[];
+    location: string | null;
+    placeLat: number | null;
+    placeLon: number | null;
+    planType: string | null;
+  } | null;
   origin: C2Route;
 };
 
@@ -280,7 +304,7 @@ export type SettingsRowProjection =
   | { kind: "action"; id: string; title: string; subtitle?: string }
   | { kind: "note"; id: string; text: string }
   /**
-   * Repair #18 DIR-2 — one Connections row, rendered VERBATIM from
+   * Repair #18 DIR-2 / R20 F-9 — one Connectors row, rendered VERBATIM from
    * the server's settings/connections projection (SP-3: the surface
    * renders the output; it never re-derives a status). `status` and
    * `statusLabel` are the payload's own values, so DOM status equals
@@ -296,6 +320,13 @@ export type SettingsRowProjection =
       detail: string;
       gateReason?: string | null;
       lastVerifiedLabel: string;
+      /** R20 F-9 honesty law: the row's Connect/Disconnect action,
+       *  present ONLY when the server payload carried an enabled
+       *  action for this row (a real connect flow behind it).
+       *  `hasRealFlow` mirrors that exactly - a row with no backed
+       *  action carries action: null and renders status only. */
+      action?: { id: string; label: string } | null;
+      hasRealFlow?: boolean;
     };
 
 export type SettingsSectionProjection = {

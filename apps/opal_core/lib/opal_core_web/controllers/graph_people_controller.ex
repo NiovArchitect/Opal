@@ -219,7 +219,37 @@ defmodule OpalCoreWeb.GraphPeopleController do
 
   def graph_lock_status(conn, _params) do
     user_id = conn.assigns.current_user_id
-    json(conn, %{"passcode_set" => GraphLock.set?(user_id)})
+    status = GraphLock.status(user_id)
+
+    json(conn, %{
+      "passcode_set" => status.passcode_set,
+      "biometric_enabled" => status.biometric_enabled
+    })
+  end
+
+  # Repair #20 F-4: the biometric-unlock preference's ONE write,
+  # homed in Settings. Validated input: a boolean `enabled` only.
+  # Answers the same single status projection as the read.
+  def set_graph_lock_biometric(conn, %{"enabled" => enabled}) when is_boolean(enabled) do
+    user_id = conn.assigns.current_user_id
+
+    case GraphLock.set_biometric_enabled(user_id, enabled) do
+      :ok ->
+        status = GraphLock.status(user_id)
+
+        json(conn, %{
+          "ok" => true,
+          "passcode_set" => status.passcode_set,
+          "biometric_enabled" => status.biometric_enabled
+        })
+
+      {:error, reason} ->
+        conn |> put_status(422) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def set_graph_lock_biometric(conn, _params) do
+    conn |> put_status(422) |> json(%{"error" => "enabled_required"})
   end
 
   def set_graph_lock(conn, %{"code" => code}) do

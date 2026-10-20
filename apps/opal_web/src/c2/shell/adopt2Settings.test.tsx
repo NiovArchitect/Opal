@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   getSavedLogins: vi.fn(),
   getPersonalInviteCode: vi.fn(),
   getIngestionStatus: vi.fn(),
+  getSettingsConnections: vi.fn(),
 }));
 
 vi.mock("../../api/productClient", async (importOriginal) => {
@@ -29,6 +30,7 @@ vi.mock("../../api/productClient", async (importOriginal) => {
     getSavedLogins: mocks.getSavedLogins,
     getPersonalInviteCode: mocks.getPersonalInviteCode,
     getIngestionStatus: mocks.getIngestionStatus,
+    getSettingsConnections: mocks.getSettingsConnections,
   };
 });
 
@@ -167,7 +169,8 @@ describe("adoption wave 2 settings", () => {
     expect(container.querySelector('[data-testid="c2-delete-confirm"]')).toBeNull();
   });
 
-  it("SF-A: hears renders each source's own line from the per-source read", async () => {
+  it("SF-A: hears renders each source's own line from the per-source read (now the Connectors Your device group, R20 F-9e)", async () => {
+    mocks.getSettingsConnections.mockResolvedValue({ connections: [], generated_at: "", build_ref: "t", environment: "test" });
     mocks.getIngestionStatus.mockResolvedValue([
       { source: "chats", title: "Chats in the app", state: "working", state_label: "Working now", progress: "Caught up - 3 messages of yours are in Opal's working memory.", error: null, retryable: false },
       { source: "room", title: "In the room", state: "absent", state_label: "Not in Opal today", progress: "Opal does not capture room audio, hidden or otherwise.", error: null, retryable: false },

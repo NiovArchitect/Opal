@@ -123,6 +123,15 @@
     width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer; flex: none;
     background: var(--opal-iris-gradient); color: var(--opal-accent-ink); font-size: 18px;
   }
+  /* R20 F-2: the composer send is permanent furniture that
+   * ACTIVATES with text. While the draft is empty it sits quiet
+   * (surface step, muted ink, no accent spent - an accent on an
+   * empty composer would claim a state that is not true, AR-00.9);
+   * .is-active is the accent form above (unifyChats.css re-points
+   * its fill at the sampled accent solid, as before). */
+  [data-design="r18"] .c1-send:disabled {
+    background: var(--surface-2); color: var(--ink-3); cursor: default;
+  }
   [data-design="r18"] .c1-mic {
     width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer; flex: none;
     background: var(--surface-2); color: var(--accent-1);

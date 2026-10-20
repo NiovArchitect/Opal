@@ -42,7 +42,10 @@ defmodule OpalCore.OpalConversations.OpalConversation do
     timestamps(type: :utc_datetime_usec)
   end
 
-  @anchor_types ~w(person plan place)
+  # Repair #20 (F-19): "conversation" joins the legal anchor types —
+  # a GROUP thread's orbit is anchored to the conversation itself
+  # (the full party set), since no single person scopes it honestly.
+  @anchor_types ~w(person plan place conversation)
 
   @doc "The legal primary-anchor types (Orbits: person, plan, or place)."
   def anchor_types, do: @anchor_types
@@ -123,7 +126,8 @@ defmodule OpalCore.OpalConversations.OpalConversation do
     }
   end
 
-  defp context_map(%__MODULE__{context_person_id: nil}), do: nil
+  defp context_map(%__MODULE__{context_person_id: nil, context_conversation_id: nil}),
+    do: nil
 
   defp context_map(%__MODULE__{} = c) do
     %{
@@ -131,7 +135,11 @@ defmodule OpalCore.OpalConversations.OpalConversation do
       "person_name" => nil,
       "plan_id" => c.context_plan_id,
       "plan_title" => nil,
-      "conversation_id" => c.context_conversation_id
+      "conversation_id" => c.context_conversation_id,
+      # Repair #20 (F-19): a conversation-scoped (group) context
+      # carries its party — filled live by OpalConversations
+      # (with_live_context_names) from the conversation's members.
+      "party" => nil
     }
   end
 

@@ -31,6 +31,7 @@ import { TopLayer } from "../../opalUi/TopLayer";
 import { OrbMark, OrbWordmark } from "../../brand/orb/OrbMark";
 import { OrbLivingRings, orbAmbientStateFromFamilies } from "../../brand/orb/OrbLivingRings";
 import { familyOfStatus } from "./shellData";
+import { planWhenLine } from "./density";
 import {
   applyC2Mode,
   readC2ModePreference,
@@ -52,6 +53,7 @@ import {
   getPlanHistory,
   getShelf,
   setGraphLock,
+  setGraphLockBiometric,
   setPlanPrivate,
   sharePlanLocation,
   stopPlanLocation,
@@ -65,6 +67,7 @@ import {
   forgetMemoryFact,
   journeyAddPeople,
   listConversations,
+  listPeople,
   listRelationships,
   loadProfile,
   createMemoryCapsule,
@@ -91,6 +94,12 @@ import {
   type ShelfStarterContract,
 } from "../../api/productClient";
 import { getDeviceCoords } from "../../device/deviceLocation";
+import {
+  assertVaultBiometric,
+  clearVaultBiometric,
+  registerVaultBiometric,
+  vaultBiometricOfferable,
+} from "./vaultBiometric";
 import { productRealtime } from "../../realtime/RealtimeClient";
 import type { PlanStateFamily } from "../../theme/planStateColors";
 import "./c2shell.css";
@@ -123,6 +132,7 @@ import {
   conversationPreviewLabel,
 } from "./C1ShellHosts";
 import { tieLabel } from "../../opalUi/relationshipTypes";
+import { routeForPlanEtiquette } from "../../opalUi/c1/noticeRouting";
 import {
   Avatar,
   EmptyBlock,
@@ -145,10 +155,12 @@ export function C2Shell() {
   const [plans, setPlans] = useState<OpalPlanContract[]>([]);
   const [detail, setDetail] = useState<GraphDetailProjection | null>(null);
   const [detailOrigin, setDetailOrigin] = useState<C2Route>("graphs");
+  // Repair #20 (F-15) - the settled plan whose repeat flow is open.
+  const [repeatDetail, setRepeatDetail] = useState<GraphDetailProjection | null>(null);
   const [settingKey, setSettingKey] = useState<string | null>(null);
   const [createKind, setCreateKind] = useState<null | "plan" | "trip" | "idea">(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number } | null>(null);
+  const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number; orbit?: boolean } | null>(null);
   // Repair #19 — a thread doorway / orbit-sheet request to land in a
   // scoped Opal conversation (the Center host consumes it by nonce).
   const [opalOpenRequest, setOpalOpenRequest] = useState<CenterOpenRequest | null>(null);
@@ -284,14 +296,32 @@ export function C2Shell() {
   // R19 W7 - the Private area's lock state (whether a passcode
   // exists) is read once per session; the code itself is never held.
   const [graphLockSet, setGraphLockSet] = useState<boolean | null>(null);
+  // R20 F-4: the same ONE projection also carries the account's
+  // biometric preference; the gate offers biometric unlock only
+  // when the preference is on AND this device registered a
+  // credential AND the platform authenticator is available here.
+  const [graphLockBiometric, setGraphLockBiometric] = useState<boolean | null>(null);
+  const [vaultBioOfferable, setVaultBioOfferable] = useState(false);
   const refreshGraphLock = useCallback(async () => {
     try {
       const res = await getGraphLock(bearer);
       setGraphLockSet(res.passcode_set === true);
+      setGraphLockBiometric(res.biometric_enabled === true);
     } catch {
       setGraphLockSet(null);
+      setGraphLockBiometric(null);
     }
   }, [bearer]);
+
+  useEffect(() => {
+    let live = true;
+    void vaultBiometricOfferable(graphLockBiometric === true).then((ok) => {
+      if (live) setVaultBioOfferable(ok);
+    });
+    return () => {
+      live = false;
+    };
+  }, [graphLockBiometric]);
 
   useEffect(() => {
     if (stage === "member") {
@@ -301,6 +331,16 @@ export function C2Shell() {
       void refreshGraphLock();
     }
   }, [stage, bearer, refreshPlans, refreshConversations, refreshAdopt1, refreshGraphLock, homeNonce]);
+
+  // R20 F-4: the credential home lives in You; the gate lives in
+  // Graphs. Re-read ONLY the lock projection on navigation so a PIN
+  // or biometric change made in Settings is the gate's truth the
+  // moment the user arrives - never a session-stale copy.
+  useEffect(() => {
+    if (stage === "member" && (route === "graphs" || route === "you")) {
+      void refreshGraphLock();
+    }
+  }, [stage, route, refreshGraphLock]);
 
   // R19 W27 (AT-03): LIVE REPAINT on a remote state crossing. The
   // shell starts the product realtime socket for the member stage
@@ -378,14 +418,13 @@ export function C2Shell() {
           return false;
         }
       },
-      setPrivatePasscode: async (code: string): Promise<boolean> => {
-        try {
-          await setGraphLock(code, bearer);
-          setGraphLockSet(true);
-          return true;
-        } catch {
-          return false;
-        }
+      // R20 F-4: the gate unlocks; it never sets. PIN set/change is
+      // homed in Settings (YouRoute's setVaultPasscode below).
+      biometricUnlockAvailable: vaultBioOfferable,
+      unlockWithBiometric: async (): Promise<boolean> => assertVaultBiometric(),
+      openVaultSettings: () => {
+        setRoute("you");
+        setSettingKey("private-graphs");
       },
       shareMyLocation: async (cardId: string): Promise<string> => {
         const coords = await getDeviceCoords();
@@ -417,7 +456,7 @@ export function C2Shell() {
         return "You stopped sharing your location for this plan.";
       },
     }),
-    [bearer, refreshPlans, refreshDetailHistory, graphLockSet],
+    [bearer, refreshPlans, refreshDetailHistory, graphLockSet, vaultBioOfferable],
   );
 
   const shell = useMemo(() => shellFromSession(session, route), [session, route]);
@@ -975,6 +1014,39 @@ export function C2Shell() {
             completeSlot: () => undefined,
             dropPlan,
             runNextAction: () => undefined,
+            // Repair #20 (F-13): a spine task whose surface is the
+            // plan-scoped Opal chat enters the SAME doorway the
+            // revision / request-a-change flows use: scope person =
+            // another participant on this plan (the reveal
+            // derivation's own scope-person rule), plan + its
+            // conversation carried from the detail's record. No
+            // other participant = no doorway (the projection only
+            // stamps the action when the Who rows prove one).
+            openSpineTask: (d) => {
+              const other = d.who.find(
+                (w) => w.userId && w.userId !== session?.user_id,
+              );
+              if (!other?.userId) return;
+              setOpalOpenRequest({
+                request: {
+                  context: {
+                    personId: other.userId,
+                    personName: other.name,
+                    conversationId: d.conversationId ?? null,
+                    planId: d.id,
+                    planTitle: d.title,
+                  },
+                },
+                nonce: Date.now(),
+              });
+              goRoute("center");
+            },
+            // Repair #20 (F-15): "Do that again" opens the repeat
+            // flow over this settled plan's carried facts.
+            repeatPlan: (d) => {
+              setDetail(null);
+              setRepeatDetail(d);
+            },
             addPeople: (id) => void openAddPeople(id),
             retryLoad: () => void refreshPlans(),
             convertPlan,
@@ -1045,6 +1117,7 @@ export function C2Shell() {
         <CreateFlow
           kind={createKind}
           bearer={bearer}
+          conversations={conversations}
           prefill={createPrefill ?? undefined}
           onClose={() => {
             setCreateKind(null);
@@ -1055,6 +1128,29 @@ export function C2Shell() {
             setCreatePrefill(null);
             void refreshPlans();
             void refreshAdopt1();
+          }}
+        />
+      ) : null}
+
+      {repeatDetail ? (
+        <RepeatPlanFlow
+          detail={repeatDetail}
+          bearer={bearer}
+          onClose={() => setRepeatDetail(null)}
+          onCreated={(newPlanId) => {
+            setRepeatDetail(null);
+            void (async () => {
+              const res = await loadPlansResult(bearer);
+              setPlans(res.plans);
+              setPlansError(res.error);
+              const plan = res.plans.find((p) => p.id === newPlanId);
+              if (plan) {
+                setDetailOrigin("graphs");
+                setDetail(detailFromPlan(plan, "graphs", session?.user_id));
+              } else {
+                goRoute("graphs");
+              }
+            })();
           }}
         />
       ) : null}
@@ -1111,6 +1207,22 @@ export function C2Shell() {
                     style={{ width: "100%", textAlign: "left", cursor: "pointer", marginBottom: "var(--space-3)" }}
                     onClick={() => {
                       setActivityOpen(false);
+                      // Repair #20 (F-21a): a card wearing a live
+                      // etiquette fork / limbo is an orbit notice —
+                      // its tap lands in the exact conversation it
+                      // concerns, in that conversation's orbit.
+                      // Any other card keeps its plan landing.
+                      const plan = plans.find((p) => p.id === card.id);
+                      const route = plan ? routeForPlanEtiquette(plan) : null;
+                      if (route?.kind === "orbit") {
+                        setChatOpenRequest({
+                          conversationId: route.conversationId,
+                          nonce: Date.now(),
+                          orbit: true,
+                        });
+                        goRoute("chats");
+                        return;
+                      }
                       openGraph(card.id, "home");
                     }}
                   >
@@ -1516,7 +1628,10 @@ function YouRoute(props: {
             setSectionNonce((n) => n + 1);
           })
           .catch(fail);
-      } else if (sectionKey === "what-opal-hears" && rowId.startsWith("hears-retry-")) {
+      } else if (
+        (sectionKey === "what-opal-hears" || sectionKey === "connections") &&
+        rowId.startsWith("hears-retry-")
+      ) {
         // Spec SF-A / ER-2 — retry re-derives that one source only.
         void retryIngestionSource(rowId.slice("hears-retry-".length), props.bearer)
           .then(() => {
@@ -1539,6 +1654,38 @@ function YouRoute(props: {
     },
     setGraphingPaused: async (paused: boolean) => {
       await updateGraphingPolicy({ global_paused: paused }, props.bearer);
+      setSectionNonce((n) => n + 1);
+    },
+    // R20 F-4 — the Private graphs credential home writes. The PIN
+    // write is the existing server set (the code itself is never
+    // stored); the section nonce re-reads the projection as proof.
+    setVaultPasscode: async (code: string) => {
+      await setGraphLock(code, props.bearer);
+      setSectionNonce((n) => n + 1);
+    },
+    setVaultBiometric: async (enabled: boolean) => {
+      // The toggle drives the REAL WebAuthn path: enabling first
+      // registers a platform credential on THIS device (user
+      // verification required); only a successful registration earns
+      // the server preference flip. Any failure throws with a plain
+      // line and nothing changes anywhere.
+      if (enabled) {
+        const registered = await registerVaultBiometric();
+        if (!registered) {
+          throw new Error(
+            "Biometric unlock is not available on this device, or the setup was cancelled. Your PIN still opens Private graphs.",
+          );
+        }
+        try {
+          await setGraphLockBiometric(true, props.bearer);
+        } catch {
+          clearVaultBiometric();
+          throw new Error("That did not save. Try again.");
+        }
+      } else {
+        await setGraphLockBiometric(false, props.bearer);
+        clearVaultBiometric();
+      }
       setSectionNonce((n) => n + 1);
     },
     addSavedLogin: async (host: string, secret: string) => {
@@ -1663,16 +1810,26 @@ function YouRoute(props: {
 
 /** Create flow (sheet-band entry lives in Graphs/Home; this is the
  *  flow-band form). Real writes only: createGraphPlan for Plan and
- *  Idea, createTrip for Trip. Failure keeps the typed title. */
-function CreateFlow({
+ *  Idea, createTrip for Trip. Failure keeps the typed title.
+ *
+ *  Repair #20 (F-7): the form asks WHO with the same weight as
+ *  What / When / Where — a people picker over the ONE people
+ *  universe (identity-resolved, most-talked-to first), carried
+ *  into the real create contracts: `participant_user_ids` for
+ *  plan/idea (graph-create validates every id server-side) and
+ *  `user_ids` for trips (real trip memberships). A shelf starter's
+ *  prefill people arrive pre-selected, never silently dropped. */
+export function CreateFlow({
   kind,
   bearer,
+  conversations,
   prefill,
   onClose,
   onCreated,
 }: {
   kind: "plan" | "trip" | "idea";
   bearer?: string;
+  conversations: ConversationSummary[];
   /** Adoption wave 1 (ST-B) - a shelf starter's prefill: the form
    *  opens with the starter's words and people; nothing is created
    *  or sent until the user saves. */
@@ -1685,23 +1842,102 @@ function CreateFlow({
   const [place, setPlace] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [whoPeople, setWhoPeople] = useState<PickerPerson[]>([]);
+  const [whoSelected, setWhoSelected] = useState<ReadonlySet<string>>(
+    () => new Set(prefill?.participantUserIds ?? []),
+  );
+
+  // The Who picker's people: the ONE universe, read fresh the same
+  // way the chat picker and Add-people read it (conversations the
+  // shell already holds + relationship contacts + the established
+  // list). A failed read leaves the field honestly empty.
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      let contacts: Array<{
+        contact_user_id: string;
+        display_name?: string | null;
+        type?: string | null;
+        family_subtype?: string | null;
+      }> = [];
+      let rows: RelRow[] = [];
+      try {
+        const res = await listRelationships(bearer);
+        contacts = res.contacts ?? [];
+        rows = (res.relationships ?? []).map((r) => ({
+          contact_user_id: r.contact_user_id,
+          type: typeof r.type === "string" ? r.type : "",
+          family_subtype: r.family_subtype ?? null,
+          family_minor: r.family_minor === true,
+          age_band: r.age_band ?? null,
+        }));
+      } catch {
+        /* conversations alone still populate the picker */
+      }
+      try {
+        const res = await listPeople(bearer);
+        const established = (res.connected ?? [])
+          .map((c) => {
+            const anyC = c as unknown as Record<string, unknown>;
+            const id =
+              (typeof anyC.peer_user_id === "string" && anyC.peer_user_id) ||
+              (typeof anyC.contact_user_id === "string" && anyC.contact_user_id) ||
+              "";
+            return id
+              ? {
+                  contact_user_id: id,
+                  display_name:
+                    typeof anyC.display_name === "string" ? anyC.display_name : null,
+                }
+              : null;
+          })
+          .filter((c): c is { contact_user_id: string; display_name: string | null } =>
+            Boolean(c),
+          );
+        contacts = [...contacts, ...established];
+      } catch {
+        /* the union stands on conversations + relationships */
+      }
+      if (live) {
+        setWhoPeople(peopleUniverse({ conversations, contacts, relRows: rows }));
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [bearer, conversations]);
+
+  const toggleWho = useCallback((personId: string) => {
+    setWhoSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(personId)) next.delete(personId);
+      else next.add(personId);
+      return next;
+    });
+  }, []);
+
   const submit = async () => {
     if (!title.trim() || busy) return;
     setBusy(true);
     setError(null);
+    const whoIds = [...whoSelected];
     try {
       if (kind === "trip") {
-        await createTrip({ title: title.trim(), destination_label: place.trim() || undefined }, bearer);
+        await createTrip(
+          {
+            title: title.trim(),
+            destination_label: place.trim() || undefined,
+            user_ids: whoIds.length > 0 ? whoIds : undefined,
+          },
+          bearer,
+        );
       } else {
         await createGraphPlan(
           {
             title: title.trim(),
             location: place.trim() || undefined,
             time_label: when.trim() || undefined,
-            participant_user_ids:
-              prefill && prefill.participantUserIds.length > 0
-                ? prefill.participantUserIds
-                : undefined,
+            participant_user_ids: whoIds.length > 0 ? whoIds : undefined,
             entry: kind === "idea" ? "c2-idea" : "c2-plan",
             idempotency_key: `c2-${kind}-${Date.now()}`,
           },
@@ -1714,9 +1950,24 @@ function CreateFlow({
       setError("That did not save. Your words are still here - try again.");
     }
   };
+  const whoNames = whoPeople
+    .filter((p) => whoSelected.has(p.personId))
+    .map((p) => p.name);
+  const whoLine =
+    whoNames.length === 0
+      ? "Just you for now."
+      : whoNames.length === 1
+        ? `With ${whoNames[0]}.`
+        : whoNames.length === 2
+          ? `With ${whoNames[0]} and ${whoNames[1]}.`
+          : `With ${whoNames[0]}, ${whoNames[1]} and ${whoNames.length - 2} more.`;
   return (
     <TopLayer band="flow">
-      <div className="c2s-flow" style={{ background: "var(--canvas)" }} data-testid="c2-create-flow">
+      <div
+        className="c2s-flow c2s-create-flow"
+        style={{ background: "var(--canvas)" }}
+        data-testid="c2-create-flow"
+      >
         <div className="c2s-entry-top">
           <button type="button" className="c2s-icon-btn" aria-label="Close" onClick={onClose}>
             <IconClose />
@@ -1728,34 +1979,244 @@ function CreateFlow({
         </div>
         <div className="c2s-entry-body">
           <h1>{kind === "idea" ? "Just the spark." : "A time, a place, your people."}</h1>
+          <div className="c2s-field-group">
+            <label className="c2s-field-label" htmlFor="c2-create-title-input">
+              What
+            </label>
+            <input
+              id="c2-create-title-input"
+              className="c2s-field"
+              data-testid="c2-create-title"
+              placeholder={kind === "trip" ? "Trip name" : "What is happening?"}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              aria-label="Title"
+            />
+          </div>
+          {kind !== "idea" ? (
+            <>
+              <div className="c2s-field-group">
+                <label className="c2s-field-label" htmlFor="c2-create-when-input">
+                  When
+                </label>
+                <input
+                  id="c2-create-when-input"
+                  className="c2s-field"
+                  data-testid="c2-create-when"
+                  placeholder="When (optional for now)"
+                  value={when}
+                  onChange={(e) => setWhen(e.target.value)}
+                  aria-label="When"
+                />
+              </div>
+              <div className="c2s-field-group">
+                <label className="c2s-field-label" htmlFor="c2-create-place-input">
+                  Where
+                </label>
+                <input
+                  id="c2-create-place-input"
+                  className="c2s-field"
+                  data-testid="c2-create-place"
+                  placeholder={kind === "trip" ? "Where to (optional for now)" : "Where (optional for now)"}
+                  value={place}
+                  onChange={(e) => setPlace(e.target.value)}
+                  aria-label="Where"
+                />
+              </div>
+            </>
+          ) : null}
+          <div className="c2s-field-group" data-testid="c2-create-who">
+            <span className="c2s-field-label" id="c2-create-who-label">
+              {/* Repair #20 design compass (founder, 2026-10-20): the
+               * orbit/ring motif is the emotional brand anchor, so the
+               * Who field — the people who will orbit this plan —
+               * carries the orbit mark: two gyroscope rings with a
+               * dot riding them, beside the label. */}
+              <span className="c2s-create-orbit-mark" aria-hidden="true">
+                <span className="c2s-create-orbit-ring">
+                  <span className="c2s-create-orbit-dot" />
+                </span>
+              </span>
+              Who
+            </span>
+            {whoPeople.length === 0 ? (
+              <p className="c2s-field-reason" data-testid="c2-create-who-empty">
+                No one connected yet — this one starts with just you.
+              </p>
+            ) : (
+              <div
+                className="c2s-create-who"
+                role="group"
+                aria-labelledby="c2-create-who-label"
+              >
+                {whoPeople.map((person) => {
+                  const selected = whoSelected.has(person.personId);
+                  return (
+                    <button
+                      key={person.personId}
+                      type="button"
+                      className="c2s-create-who-row"
+                      data-testid="c2-create-who-row"
+                      data-person-id={person.personId}
+                      aria-pressed={selected}
+                      onClick={() => toggleWho(person.personId)}
+                    >
+                      <span>
+                        {person.name}
+                        {person.tieLabel ? <small>{person.tieLabel}</small> : null}
+                      </span>
+                      <span className="c2s-create-who-check" aria-hidden="true">
+                        {selected ? "✓" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="c2s-field-reason" data-testid="c2-create-who-line">
+              {whoLine}
+            </p>
+          </div>
+          {error ? (
+            <p className="c2s-error-line" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div style={{ flex: 1 }} />
+          <button
+            type="button"
+            className="c2s-btn-primary c2s-btn-create"
+            data-testid="c2-create-submit"
+            disabled={busy || !title.trim()}
+            onClick={() => void submit()}
+          >
+            {busy ? "Saving" : kind === "idea" ? "Save the idea" : "Create"}
+          </button>
+        </div>
+      </div>
+    </TopLayer>
+  );
+}
+
+/**
+ * Repair #20 (F-15) - "Do that again": repeat a settled plan through
+ * the durable graph-create path (POST /opal/plans/graph-create with
+ * source_plan_id provenance). The flow CARRIES the settled plan's
+ * people and place - shown, and editable where editing is honest -
+ * and never carries its time: the new time is chosen here, and the
+ * Create button stays disabled until one is written. A virtual
+ * source stays virtual and carries NO meeting link (the new plan's
+ * host adds a fresh one - a copied link would be a stale link). The
+ * original plan is never written by this flow.
+ */
+export function RepeatPlanFlow({
+  detail,
+  bearer,
+  onClose,
+  onCreated,
+}: {
+  detail: GraphDetailProjection;
+  bearer?: string;
+  onClose: () => void;
+  onCreated: (newPlanId: string) => void;
+}) {
+  const carried = detail.repeat ?? null;
+  const isVirtual = carried?.planType === "virtual";
+  const [title, setTitle] = useState(detail.title);
+  const [when, setWhen] = useState("");
+  const [place, setPlace] = useState(carried?.location ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  // One idempotency key per opening of this flow (the CreateFlow
+  // rule): a double-tap or retry replays to the same new plan.
+  const [idempotencyKey] = useState(() => `c2-repeat-${detail.id}-${Date.now()}`);
+  const partyNames = detail.who
+    .filter((w) => w.userId && w.userId !== detail.viewerUserId)
+    .map((w) => w.name);
+  const placeUnchanged = !isVirtual && place.trim() === (carried?.location ?? "");
+  const submit = async () => {
+    if (!title.trim() || !when.trim() || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await createGraphPlan(
+        {
+          title: title.trim(),
+          location: isVirtual ? undefined : place.trim() || undefined,
+          // The source place's coordinates ride ONLY while the place
+          // words are still the source's own (G2 writer law: a new
+          // place's coordinates are unknown, never the old place's).
+          place_lat:
+            placeUnchanged && carried?.placeLat != null ? carried.placeLat : undefined,
+          place_lon:
+            placeUnchanged && carried?.placeLon != null ? carried.placeLon : undefined,
+          time_label: when.trim(),
+          participant_user_ids:
+            carried && carried.participantUserIds.length > 0
+              ? carried.participantUserIds
+              : undefined,
+          source_plan_id: detail.id,
+          entry: "repeat",
+          plan_type: isVirtual ? "virtual" : undefined,
+          idempotency_key: idempotencyKey,
+        },
+        bearer,
+      );
+      if (!res.plan?.id) throw new Error("repeat did not return a plan");
+      onCreated(res.plan.id);
+    } catch {
+      setBusy(false);
+      setError("That did not save. Your words are still here - try again.");
+    }
+  };
+  return (
+    <TopLayer band="flow">
+      <div className="c2s-flow" style={{ background: "var(--canvas)" }} data-testid="c2-repeat-flow">
+        <div className="c2s-entry-top">
+          <button type="button" className="c2s-icon-btn" aria-label="Close" onClick={onClose}>
+            <IconClose />
+          </button>
+          <span style={{ fontWeight: 650 }}>Do that again</span>
+          <span style={{ width: 44 }} />
+        </div>
+        <div className="c2s-entry-body">
+          <h1>Same people, same place - a new time.</h1>
           <input
             className="c2s-field"
-            data-testid="c2-create-title"
-            placeholder={kind === "trip" ? "Trip name" : "What is happening?"}
+            data-testid="c2-repeat-title"
+            placeholder="What is happening?"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             aria-label="Title"
           />
-          {kind !== "idea" ? (
-            <>
-              <input
-                className="c2s-field"
-                data-testid="c2-create-when"
-                placeholder="When (optional for now)"
-                value={when}
-                onChange={(e) => setWhen(e.target.value)}
-                aria-label="When"
-              />
-              <input
-                className="c2s-field"
-                data-testid="c2-create-place"
-                placeholder={kind === "trip" ? "Where to (optional for now)" : "Where (optional for now)"}
-                value={place}
-                onChange={(e) => setPlace(e.target.value)}
-                aria-label="Where"
-              />
-            </>
-          ) : null}
+          <p className="c2s-card-line" data-testid="c2-repeat-parties">
+            {partyNames.length > 0
+              ? `With ${partyNames.join(", ")} - the same people as last time.`
+              : "Just you, like last time."}
+          </p>
+          <input
+            className="c2s-field"
+            data-testid="c2-repeat-when"
+            placeholder="When this time?"
+            value={when}
+            onChange={(e) => setWhen(e.target.value)}
+            aria-label="When this time"
+          />
+          {isVirtual ? (
+            <p className="c2s-card-line" data-testid="c2-repeat-online">
+              Online, like last time. The new plan needs its own meeting link -
+              add it once the plan is made.
+            </p>
+          ) : (
+            <input
+              className="c2s-field"
+              data-testid="c2-repeat-place"
+              placeholder="Where (the same place, or a new one)"
+              value={place}
+              onChange={(e) => setPlace(e.target.value)}
+              aria-label="Where"
+            />
+          )}
           {error ? (
             <p className="c2s-error-line" role="alert">
               {error}
@@ -1765,11 +2226,11 @@ function CreateFlow({
           <button
             type="button"
             className="c2s-btn-primary"
-            data-testid="c2-create-submit"
-            disabled={busy || !title.trim()}
+            data-testid="c2-repeat-submit"
+            disabled={busy || !title.trim() || !when.trim()}
             onClick={() => void submit()}
           >
-            {busy ? "Saving" : kind === "idea" ? "Save the idea" : "Create"}
+            {busy ? "Saving" : "Create the plan"}
           </button>
         </div>
       </div>
@@ -1806,6 +2267,12 @@ export function SearchDestination({
       )
     : [];
   // People: the real peers on the viewer's own conversations.
+  // Repair #20 (F-6): identity resolution at this seam — the key
+  // is the peer's person id, never the display name, so one
+  // identity reached through several conversations projects once
+  // (conversations arrive most-recent first, so the surviving row
+  // opens the freshest thread), while two distinct people who
+  // share a name keep both rows, unmixed.
   const peopleHits = q
     ? conversations
         .flatMap((c) =>
@@ -1886,7 +2353,10 @@ export function SearchDestination({
                   onClick={() => onOpenGraph(plan.id)}
                 >
                   <p className="c2s-card-title">{plan.title}</p>
-                  <p className="c2s-card-line">{plan.time_label ?? "Time not set yet."}</p>
+                  {/* R20 F-14: search result cards read the ONE
+                      shared when line - multi-day plans show their
+                      range here too, never a second formatter. */}
+                  <p className="c2s-card-line">{planWhenLine(plan)}</p>
                 </button>
               ))}
             </div>

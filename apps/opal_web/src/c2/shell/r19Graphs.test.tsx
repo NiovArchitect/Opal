@@ -58,17 +58,6 @@ function openCardMenu(cardTestIdEl: Element) {
   });
 }
 
-function setInput(el: HTMLInputElement, value: string) {
-  act(() => {
-    const setter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value",
-    )!.set!;
-    setter.call(el, value);
-    el.dispatchEvent(new window.Event("input", { bubbles: true }));
-  });
-}
-
 const card = (id: string, stateFamily: string, title: string) => ({
   id,
   stateFamily,
@@ -146,8 +135,15 @@ describe("R19 private gate", () => {
     setPlanPrivate: vi.fn(async () => undefined),
     graphLockPasscodeSet: true,
     unlockPrivate: vi.fn(async (code: string) => unlockOk && code === "2468"),
-    setPrivatePasscode: vi.fn(async () => true),
   });
+
+  // R20 F-4: the gate's fallback is a PIN pad - digits are tapped,
+  // never typed into a passcode field (there is none on the gate).
+  const enterPin = (code: string) => {
+    for (const digit of code) {
+      click(document.querySelector(`[data-testid="c2-pin-key-${digit}"]`)!);
+    }
+  };
 
   it("wrong code does not open the Private area; the right code does", async () => {
     const events = gateEvents(true);
@@ -155,8 +151,7 @@ describe("R19 private gate", () => {
     expect(document.querySelector('[data-testid="c2-graphs-private"]')).not.toBeNull();
     expect(document.body.textContent).not.toContain("Secret anniversary plan");
 
-    const input = document.querySelector('[data-testid="c2-private-code"]') as HTMLInputElement;
-    setInput(input, "0000");
+    enterPin("0000");
     click(document.querySelector('[data-testid="c2-private-unlock"]')!);
     await flush();
     expect(events.unlockPrivate).toHaveBeenCalledWith("0000");
@@ -165,7 +160,7 @@ describe("R19 private gate", () => {
     );
     expect(document.body.textContent).not.toContain("Secret anniversary plan");
 
-    setInput(input, "2468");
+    enterPin("2468");
     click(document.querySelector('[data-testid="c2-private-unlock"]')!);
     await flush();
     expect(document.body.textContent).toContain("Secret anniversary plan");
@@ -176,22 +171,23 @@ describe("R19 private gate", () => {
     expect(document.body.textContent).not.toContain("Secret anniversary plan");
   });
 
-  it("with no passcode set, the gate sets one through the server handler", async () => {
+  it("with no passcode set, the gate sets NOTHING - its one affordance goes to the Settings credential home (R20 F-4)", async () => {
     const events = {
       ...baseEvents,
       setPlanPrivate: vi.fn(async () => undefined),
       graphLockPasscodeSet: false,
       unlockPrivate: vi.fn(async () => false),
-      setPrivatePasscode: vi.fn(async () => true),
+      openVaultSettings: vi.fn(),
     };
     await render(<C2Graphs projection={projection()} events={events} />);
-    const input = document.querySelector('[data-testid="c2-private-code"]') as HTMLInputElement;
-    setInput(input, "newcode1");
-    click(document.querySelector('[data-testid="c2-private-unlock"]')!);
+    // No PIN pad, no form, no set button on the gate itself.
+    expect(document.querySelector('[data-testid="c2-private-pinpad"]')).toBeNull();
+    expect(document.querySelector('[data-testid="c2-private-unlock"]')).toBeNull();
+    click(document.querySelector('[data-testid="c2-private-set-passcode"]')!);
     await flush();
-    expect(events.setPrivatePasscode).toHaveBeenCalledWith("newcode1");
+    expect(events.openVaultSettings).toHaveBeenCalledTimes(1);
     expect(events.unlockPrivate).not.toHaveBeenCalled();
-    expect(document.body.textContent).toContain("Secret anniversary plan");
+    expect(document.body.textContent).not.toContain("Secret anniversary plan");
   });
 
   it("Make private / Make public live ONLY in the long-press card menu and run the real handler", async () => {
@@ -212,8 +208,7 @@ describe("R19 private gate", () => {
     await flush();
     expect(events.setPlanPrivate).toHaveBeenCalledWith("p-ready", true);
 
-    const input = document.querySelector('[data-testid="c2-private-code"]') as HTMLInputElement;
-    setInput(input, "2468");
+    enterPin("2468");
     click(document.querySelector('[data-testid="c2-private-unlock"]')!);
     await flush();
     // Inside the vault the reverse action is also menu-only.

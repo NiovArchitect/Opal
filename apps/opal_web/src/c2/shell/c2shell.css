@@ -237,7 +237,14 @@
     width: 56px;
     height: 56px;
     border-radius: 999px;
-    background: var(--accent-quiet);
+    /* R20 F-5: SOLID by law - the fill is the opaque --dock-orb-fill
+     * token (never the translucent --accent-quiet it replaced, never
+     * a backdrop filter): content scrolling under the pad must not
+     * show through the orb in any state or mode. The dock pad's own
+     * sanctioned glass stays glass; the raised device above it does
+     * not. */
+    background: var(--dock-orb-fill);
+    opacity: 1;
     /* Harmony-0: the dock's center device sits in the gyroscope's own
      * metal - the ring sampled from the master (--orb-ring-metal),
      * quiet at 45%, so the disc reads as the orb's ring, not a
@@ -770,6 +777,21 @@
     padding-bottom: var(--space-2);
     margin: var(--space-5) 0 var(--space-3);
   }
+  /* R20 design compass (founder 2026-10-20): the Horizon and Past
+     section titles carry the orbit motif - one small ring, the
+     orb's ring at rest. Meaning in one sentence (AR-00.3): these
+     plans sit on time's outer orbits - far ahead on the horizon,
+     settled behind in the past. Static, quiet-line color, never
+     lit, never animated; the title words beside it carry the name,
+     so the ring never has to speak alone (AR-00.5). */
+  .c2s-orbit-ring {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--ink-3);
+    border-radius: 50%;
+    margin-right: var(--space-2);
+  }
   .c2s-group-cards {
     display: flex;
     flex-direction: column;
@@ -782,7 +804,115 @@
     margin-top: var(--space-2);
   }
 
+  /* ---------- R20 F-4: the Private graphs vault (gate + open) ----
+   * Enrichment within the Ambient Rulebook: the vault carries ONE
+   * lit treatment - the brand fire ring at AR-05's envelope (1px
+   * gradient border via the padding-box/border-box pair, glow
+   * <= 18px at <= 55%) - on a quiet surface ground. The fire is the
+   * brand iris (AR-05's proactive identity), NOT a state hue: the
+   * vault has no plan state to claim, and no state hex is spent
+   * here (AR-00.9). Static: no motion, so reduced-motion parity is
+   * trivial. One lit element on this section, nothing else glows. */
+  .c2s-vault {
+    border-radius: var(--radius-card);
+    padding: var(--space-3);
+    background:
+      linear-gradient(var(--surface-1), var(--surface-1)) padding-box,
+      var(--orb-fire-gradient) border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent-1) 18%, transparent);
+  }
+  .c2s-vault .c2s-group-title {
+    margin-top: var(--space-2);
+  }
+  .c2s-vault-mark {
+    display: inline-flex;
+    vertical-align: -2px;
+    margin-right: var(--space-2);
+    color: var(--ink-2);
+  }
+  .c2s-vault-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) 0 var(--space-2);
+  }
+  .c2s-vault-biometric {
+    min-width: 220px;
+  }
+  .c2s-pinpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .c2s-pin-dots {
+    display: flex;
+    gap: var(--space-2);
+    min-height: 12px;
+  }
+  /* R20 F-4 + founder's orbit/ring design compass (2026-10-20):
+   * the PIN dots speak the ring language - an empty orbit is a
+   * quiet hairline ring; a entered digit is a ring riding its own
+   * point of light (the AR-11/AR-12 vocabulary: points riding
+   * rings, here resting, never animated). QUIET: no motion, no
+   * glow, no state hue - brand violet at rest intensity only. */
+  .c2s-pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    background: transparent;
+  }
+  .c2s-pin-dot[data-filled="1"] {
+    border-color: var(--accent-1);
+    background: radial-gradient(
+      circle,
+      var(--accent-1) 0,
+      var(--accent-1) 2.5px,
+      transparent 3px
+    );
+  }
+  .c2s-pin-keys {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    gap: var(--space-2);
+    justify-content: center;
+  }
+  .c2s-pin-key {
+    height: 48px;
+    border-radius: 999px;
+    border: 1px solid var(--line-1);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    font: var(--type-body);
+    cursor: pointer;
+  }
+  .c2s-pin-key:active {
+    background: var(--accent-quiet);
+  }
+  .c2s-vault-open {
+    padding-bottom: var(--space-2);
+  }
+
   /* ---------- Amendment A1: long-press card context menu ---------- */
+  /* R20 F-3: the panel is rebuilt as a complete, bordered,
+   * finished CARD - the Your Move card's grammar (surface, full
+   * 1px border, card radius on every corner, card shadow) -
+   * floating inside the scrim with a margin on every side,
+   * instead of the borderless bottom sheet it shipped as (square
+   * bottom corners, no border, bare text rows: it read as a
+   * slid-in hover sheet). The invoking card's state is the
+   * accent, used the way the plan cards use it (AR-02/AR-03):
+   * the border mixed from the state's canon --orb-indicator-*
+   * token at ambient strength, a 3px state RULE across the top
+   * edge (the card grammar's fire/state line slot), the forming
+   * dashed pattern, happening's double ring, past at rest - and
+   * the state pill beside the title, so hue is never the only
+   * channel. No motion is added: a menu is chrome, and the
+   * rulebook's vocabulary spends one-shot enters on arrivals,
+   * not on furniture (AR-16). */
   .c2s-menu-scrim {
     position: fixed;
     inset: 0;
@@ -791,30 +921,115 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    padding: var(--space-3, 12px) var(--gutter, 16px)
+      calc(var(--space-5, 20px) + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
   }
   .c2s-menu-panel {
+    position: relative;
     background: var(--surface-1);
     color: var(--ink-1);
-    border-radius: var(--radius-card, 16px) var(--radius-card, 16px) 0 0;
-    padding: var(--space-4, 16px) var(--gutter, 16px) var(--space-5, 20px);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-card, 16px);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-4, 16px);
     width: 100%;
     max-width: 520px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: var(--space-2, 8px);
+    gap: var(--space-1, 4px);
+    overflow: hidden;
+  }
+  .c2s-menu-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+  }
+  .c2s-menu-panel[data-plan-state="action"] {
+    border-color: color-mix(in srgb, var(--orb-indicator-action) 52%, transparent);
+  }
+  .c2s-menu-panel[data-plan-state="action"]::before {
+    background: var(--orb-indicator-action);
+  }
+  .c2s-menu-panel[data-plan-state="ready"] {
+    border-color: color-mix(in srgb, var(--orb-indicator-ready) 50%, transparent);
+  }
+  .c2s-menu-panel[data-plan-state="ready"]::before {
+    background: var(--orb-indicator-ready);
+  }
+  .c2s-menu-panel[data-plan-state="forming"] {
+    border: 1px dashed color-mix(in srgb, var(--orb-indicator-forming) 52%, transparent);
+  }
+  .c2s-menu-panel[data-plan-state="forming"]::before {
+    background: repeating-linear-gradient(
+      90deg,
+      var(--orb-indicator-forming) 0 8px,
+      transparent 8px 14px
+    );
+  }
+  .c2s-menu-panel[data-plan-state="happening"] {
+    border-color: color-mix(in srgb, var(--orb-indicator-happening) 50%, transparent);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--orb-indicator-happening) 30%, transparent),
+      var(--shadow-card);
+  }
+  .c2s-menu-panel[data-plan-state="happening"]::before {
+    background: var(--orb-indicator-happening);
+  }
+  .c2s-menu-panel[data-plan-state="past"] {
+    border-color: var(--line-1);
+    box-shadow: var(--shadow-card);
+  }
+  .c2s-menu-panel[data-plan-state="past"]::before {
+    background: color-mix(in srgb, var(--orb-indicator-past) 55%, var(--line-2));
+  }
+  .c2s-menu-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 12px);
+    padding: 2px 4px var(--space-2, 8px);
   }
   .c2s-menu-title {
-    font: 600 14px/19px system-ui, sans-serif;
-    margin: 0 0 var(--space-1, 4px);
+    font: var(--type-headline);
+    color: var(--ink-1);
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .c2s-menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
     text-align: left;
-    background: none;
+    background: transparent;
     border: none;
-    padding: 10px 0;
+    border-radius: 12px;
+    padding: 10px 12px;
     cursor: pointer;
     color: var(--ink-1);
     font: 500 15px/20px system-ui, sans-serif;
+  }
+  .c2s-menu-item:hover {
+    background: var(--surface-2);
+  }
+  .c2s-menu-item:active {
+    background: var(--surface-2);
+  }
+  .c2s-menu-divider {
+    height: 1px;
+    background: var(--line-1);
+    margin: var(--space-1, 4px) 4px;
+  }
+  .c2s-menu-cancel {
+    color: var(--ink-2);
   }
 
   /* ---------- destination (Graph Detail, section 8.2) ---------- */
@@ -953,6 +1168,133 @@
   }
   .c2s-connection-status {
     text-align: right;
+  }
+  /* R20 F-9 + DESIGN COMPASS (founder, 2026-10-20): the tool's mark
+   * on a Connectors row is an ORBIT mark, not a generic avatar disc -
+   * a quiet monogram inside a ring, with one small point riding the
+   * ring (the AR-11/AR-12 language: points ride rings). Static, in
+   * the row's own inks only: ring geometry is the brand/presence
+   * channel, never a state color, and nothing moves (QUIET). Never
+   * a copied brand asset. */
+  .c2s-connection-icon {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-1);
+    color: var(--ink-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font: var(--type-callout);
+    font-weight: 700;
+  }
+  .c2s-connection-icon::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--ink-3);
+    border: 1px solid var(--surface-1);
+    box-sizing: border-box;
+  }
+  /* R20 F-10 + DESIGN COMPASS: Center assets carry a visible
+   * pressed/active state, and the treatment is a RING - pressing an
+   * asset draws Opal's orbit ring around it (the orb doorway's halo
+   * was already this language; now every Center asset speaks it),
+   * over a quiet fill. It lives in background + box-shadow (never
+   * text color - the global button reset owns color for buttons),
+   * uses only the quiet accent token, and is identical for touch
+   * (:active) and keyboard (:focus-visible). Static, no motion, and
+   * no state color is borrowed: a press is feedback, not a plan
+   * state, and the ring is brand geometry, not a state ring. */
+  .c2s-btn-quiet:active,
+  .c2s-btn-text:active {
+    background: var(--accent-quiet);
+  }
+  .c2s-center-asset {
+    border-radius: var(--radius-button);
+  }
+  .c2s-center-asset:active,
+  .c2s-center-asset:focus-visible {
+    background: var(--accent-quiet);
+    box-shadow: 0 0 0 2px var(--accent-quiet), var(--shadow-card);
+    outline: none;
+  }
+  .c2s-center-orb-doorway {
+    border-radius: 999px;
+  }
+  .c2s-center-orb-doorway:active,
+  .c2s-center-orb-doorway:focus-visible {
+    box-shadow: 0 0 0 4px var(--accent-quiet);
+    outline: none;
+  }
+  /* R20 F-10 decision: "How Opal works for you" is a doorway, not an
+   * action - it renders as its own row under the two true actions,
+   * with a chevron affordance and a plain subtitle saying where it
+   * goes, instead of sitting in the action row as a third button. */
+  .c2s-center-doorway {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    max-width: 360px;
+    margin: var(--space-3) auto 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--line-1);
+    border-radius: var(--radius-card);
+    background: var(--surface-1);
+    color: var(--ink-1);
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .c2s-center-doorway:active,
+  .c2s-center-doorway:focus-visible {
+    background: var(--accent-quiet);
+    box-shadow: 0 0 0 2px var(--accent-quiet), var(--shadow-card);
+    outline: none;
+  }
+  /* R20 F-18 + DESIGN COMPASS: Home's lead labels carry a small
+   * hollow RING mark - the same geometry as the story rings directly
+   * below them. The divergence in motif placement IS the D-5 split:
+   * on Home the rings sit around PEOPLE (story rings, this mark);
+   * on Center the ringed stone itself leads. Static, ink only. */
+  .c2s-home-lead {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .c2s-home-lead::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    flex: none;
+    border-radius: 999px;
+    border: 2px solid var(--ink-3);
+    box-sizing: border-box;
+  }
+  .c2s-center-doorway-main {
+    flex: 1;
+  }
+  .c2s-center-doorway-title {
+    font: var(--type-body);
+    font-weight: 650;
+    display: block;
+  }
+  .c2s-center-doorway-sub {
+    font: var(--type-callout);
+    color: var(--ink-2);
+    display: block;
+  }
+  .c2s-center-doorway-chevron {
+    color: var(--ink-3);
+    flex: none;
   }
   .c2s-connection-detail {
     display: flex;
@@ -1200,6 +1542,193 @@
   .c2s-field::placeholder {
     color: var(--ink-3);
   }
+  /* ---------- Repair #20 (F-7): create-flow enrichment ----------
+   * A plan being written is FORMING by the state canon, so the
+   * create surface carries the forming color (canon violet via
+   * --state-forming) as its ambient border — the color is TRUE
+   * (this plan is, in fact, still forming) and stays inside the
+   * AR-00.2 quiet budgets: a 45% border mix, a glow under 18px.
+   * The meaning is never color-alone (AR-00.5): the Who rows pair
+   * the tint with a ✓ glyph + aria-pressed, and every field keeps
+   * its plain-words label. */
+  .c2s-create-flow {
+    border: 1px solid color-mix(in srgb, var(--state-forming) 45%, transparent);
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--state-forming) 8%, transparent);
+  }
+  .c2s-create-who {
+    border: 1px solid color-mix(in srgb, var(--state-forming) 42%, transparent);
+    border-radius: var(--radius-well);
+    background: var(--surface-1);
+    overflow: hidden;
+  }
+  .c2s-create-who-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 52px;
+    padding: 0 var(--space-4);
+    border: 0;
+    border-bottom: 1px solid var(--line-1);
+    background: transparent;
+    color: var(--ink-1);
+    font: var(--type-body);
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .c2s-create-who-row:last-child {
+    border-bottom: 0;
+  }
+  .c2s-create-who-row small {
+    display: block;
+    color: var(--ink-2);
+    font: var(--type-callout);
+  }
+  .c2s-create-who-row[aria-pressed="true"] {
+    background: var(--state-forming-tint);
+  }
+  /* The selection indicator is a RING (design compass, 2026-10-20):
+   * an empty ring = this person is not in the plan's orbit; a
+   * filled ring with the ✓ = they are. Ring + glyph + label keep
+   * the meaning off color alone (AR-00.5). */
+  .c2s-create-who-check {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid color-mix(in srgb, var(--state-forming) 42%, transparent);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    color: var(--state-forming);
+    font-weight: 700;
+    box-sizing: border-box;
+  }
+  .c2s-create-who-row[aria-pressed="true"] .c2s-create-who-check {
+    border-color: var(--state-forming);
+    background: var(--state-forming-tint);
+    box-shadow: inset 0 0 0 3px var(--surface-1);
+  }
+  /* The orbit mark beside "Who": two gyroscope rings, one dot
+   * riding them — the founder's brand anchor, and literally what
+   * the field means (people orbiting this plan). The slow orbit
+   * is the rulebook's existing vocabulary (loops >= 2s, transform
+   * only on the ring, never layout). This is the ONE animated
+   * element on the create surface (AR-00.2); reduced motion
+   * stills the rings and loses nothing — the mark, the label,
+   * and the rows all still read. */
+  [data-testid="c2-create-who"] .c2s-field-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .c2s-create-orbit-mark {
+    position: relative;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--state-forming) 55%, transparent);
+  }
+  .c2s-create-orbit-mark::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin: -2px 0 0 -2px;
+    border-radius: 50%;
+    background: var(--state-forming);
+  }
+  .c2s-create-orbit-ring {
+    position: absolute;
+    inset: -4px;
+    border: 1px solid color-mix(in srgb, var(--state-forming) 42%, transparent);
+    border-radius: 50%;
+    animation: c2s-create-orbit-spin 6s linear infinite;
+  }
+  .c2s-create-orbit-dot {
+    position: absolute;
+    left: 50%;
+    top: -2.5px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--state-forming);
+  }
+  @keyframes c2s-create-orbit-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .c2s-create-orbit-ring {
+      animation: none;
+    }
+  }
+  /* The ruled ambient press (AR-00.2 / AR-00.6): pressing Create
+   * answers with a small settle + the forming glow at its 55% cap;
+   * at rest a quieter glow says the action is live. Under reduced
+   * motion the transform dies and the glow — the information —
+   * stays exactly as strong. */
+  .c2s-btn-create {
+    position: relative;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--state-forming) 30%, transparent);
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .c2s-btn-create:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--state-forming) 55%, transparent);
+  }
+  /* The press answers in the orbit language (design compass):
+   * one ring leaves the button and settles — a one-shot enter
+   * from the rulebook's vocabulary (480ms, opacity/scale only),
+   * fired once per press by :active. It means the plan's orbit
+   * has begun to form; it is not a loop and it never fires on
+   * its own. Reduced motion: the ring does not travel — the
+   * resting glow and the settle above carry the same press. */
+  .c2s-btn-create:active::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border: 2px solid color-mix(in srgb, var(--state-forming) 55%, transparent);
+    border-radius: var(--radius-button);
+    pointer-events: none;
+    animation: c2s-create-press-ring 480ms ease-out 1 both;
+  }
+  @keyframes c2s-create-press-ring {
+    from {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(1.05);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .c2s-btn-create {
+      transition: none;
+    }
+    .c2s-btn-create:active {
+      transform: none;
+    }
+    .c2s-btn-create:active::after {
+      animation: none;
+      opacity: 0;
+    }
+  }
   .c2s-caption {
     font: var(--type-caption);
     color: var(--ink-3);
@@ -1425,6 +1954,59 @@
   }
   .c1-composer-bar .c2s-voice-note .c2s-card-line {
     margin: 0;
+  }
+  /* R20 F-2: the voice-note control is composer FURNITURE - a
+     circular icon button in the composer's own affordance language
+     (44px hit area, surface step, line border, press state),
+     never the bare text artifact ("Record a voice note" as a
+     c2s-btn-text) it shipped as. Recording's stop is the same
+     circle carrying the stop glyph in the action family (red is
+     spent here because recording is genuinely live and stopping
+     it is the action - AR-00.9: the state is true). Review's
+     send/discard are boxed pills, matching the card actions row. */
+  .c2s-voice-mic,
+  .c2s-voice-stop {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    cursor: pointer;
+    padding: 0;
+  }
+  .c2s-voice-mic:active,
+  .c2s-voice-stop:active {
+    background: var(--surface-1);
+  }
+  .c2s-voice-mic:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .c2s-voice-stop {
+    color: var(--state-action);
+  }
+  .c2s-voice-action {
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    font: var(--type-body);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .c2s-voice-action:active {
+    background: var(--surface-1);
+  }
+  .c2s-voice-action-quiet {
+    background: transparent;
   }
   .c2s-c1-checkin-bar {
     flex: none;

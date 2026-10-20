@@ -371,10 +371,29 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
           # the loop metadata at each advance, never cached in jobs).
           case open_loop_for(participant.id) do
             %TemporalFollowThroughLoop{} = loop ->
-              update_loop_metadata(loop, %{
-                "window_closes_at" => DateTime.to_iso8601(closes_at),
-                "window_seconds" => window_seconds
-              })
+              updated =
+                update_loop_metadata(loop, %{
+                  "window_closes_at" => DateTime.to_iso8601(closes_at),
+                  "window_seconds" => window_seconds
+                })
+
+              # Repair #20 integrator fix - charged to the F-17b
+              # check (stage jobs were never rescheduled): the stage
+              # job enqueued when this loop opened still sits at the
+              # 24h grace deadline, because no window existed then.
+              # Setting the window is the transition that creates
+              # the real deadlines, so enqueue the current stage's
+              # job at the due the fresh metadata computes. The
+              # worker's advance/2 is stage-guarded and due-guarded,
+              # so the stale grace job remains a harmless backstop
+              # and a duplicate job for the same stage no-ops.
+              case current_stage_due(updated) do
+                %DateTime{} = due ->
+                  schedule_stage(updated, updated.metadata["stage"] || "awaiting", due)
+
+                _ ->
+                  :ok
+              end
 
             nil ->
               :ok
@@ -1004,6 +1023,12 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
               "treatment" => "cooling",
               "pattern_channel" => "cooling-lines",
               "window_fraction_remaining" => fraction,
+              # R20 F-16: the finished remaining-window line, so plan
+              # cards in Graphs and on the deck can show how much of
+              # the window is left in words. The machinery owns these
+              # words - surfaces render them verbatim and never turn
+              # the fraction into a countdown themselves.
+              "remaining_window_text" => remaining_window_text(loop, stage, now),
               "copy" =>
                 if(role == "recipient",
                   do: limbo_recipient_copy(plan.title),
@@ -1122,6 +1147,32 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
   P14 deck (`window_projection/4`'s unavailable reasons and the
   circle copy); the rest are this module's own plain lines.
   """
+  @doc """
+  Repair #20 (F-19) - the limbo recipients of ONE plan, for the
+  orbit projection: every recipient whose OPEN loop on this plan is
+  in a limbo stage (nudged / forked / escalated - the machinery's
+  own limbo definition, the same stage set `projection_for/3` uses),
+  with the loop's remaining window fraction from the same
+  computation the per-viewer projection carries. This is the
+  machinery exporting its own truth for a multi-party read; no
+  caller re-derives limbo from stages or participant rows.
+  """
+  def limbo_recipients(plan_id, opts \\ []) do
+    now = Keyword.get(opts, :now) || Clock.utc_now()
+
+    plan_id
+    |> open_loops_for_plan()
+    |> Enum.filter(&(&1.metadata["stage"] in ["nudged", "forked", "escalated"]))
+    |> Enum.map(fn loop ->
+      %{
+        "recipient_id" => loop.metadata["recipient_user_id"],
+        "stage" => loop.metadata["stage"],
+        "window_fraction_remaining" => window_fraction_remaining(loop, now)
+      }
+    end)
+    |> Enum.reject(&is_nil(&1["recipient_id"]))
+  end
+
   def window_refusal_line(plan_id, creator_id, recipient_id, reason) do
     case reason do
       :outside_creator_circle ->
@@ -1205,6 +1256,44 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
   # window, requested_at -> window close; without one, requested_at ->
   # fork deadline. Clamped to [0.0, 1.0]; the cooling treatment cools
   # as this falls.
+  @doc """
+  R20 F-16 - the finished remaining-window line for a limbo
+  projection: how much of the answer window is left, in plain words
+  ("About 12 hours left in the answer window."). The deadline is the
+  machinery's own: the fork due for the nudged stage, the close due
+  once the fork has fired or escalated. Nil when the loop carries no
+  deadline to speak from - the line is never invented.
+  """
+  def remaining_window_text(loop, stage, now) do
+    deadline =
+      if stage in ["forked", "escalated"], do: close_due(loop), else: fork_due(loop)
+
+    case deadline do
+      %DateTime{} = due ->
+        seconds = DateTime.diff(due, now, :second)
+
+        cond do
+          seconds <= 0 ->
+            "The answer window is closing now."
+
+          seconds < 3_600 ->
+            "Less than an hour left in the answer window."
+
+          seconds < 48 * 3_600 ->
+            hours = round(seconds / 3_600)
+
+            "About #{hours} #{if hours == 1, do: "hour", else: "hours"} left in the answer window."
+
+          true ->
+            days = round(seconds / 86_400)
+            "About #{days} #{if days == 1, do: "day", else: "days"} left in the answer window."
+        end
+
+      _ ->
+        nil
+    end
+  end
+
   defp window_fraction_remaining(loop, now) do
     start = parse_dt(loop.metadata["requested_at"])
     deadline = fork_due(loop)
@@ -1248,6 +1337,21 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
     case parse_dt(loop.metadata["window_closes_at"]) do
       %DateTime{} = closes -> closes
       nil -> DateTime.add(requested_at(loop) || Clock.utc_now(), @fork_at_seconds, :second)
+    end
+  end
+
+  # Repair #20 integrator fix (F-17b charge): the due of the stage
+  # the loop is CURRENTLY in, from its fresh metadata - the same
+  # derivation advance_stage/3 guards on. Used when a window is set
+  # on an already-open loop to enqueue that stage's job at its real
+  # due (the job enqueued at open time sits at the grace deadline,
+  # computed before any window existed).
+  defp current_stage_due(loop) do
+    case loop.metadata["stage"] || "awaiting" do
+      "awaiting" -> nudge_due(loop)
+      "nudged" -> fork_due(loop)
+      "forked" -> close_due(loop)
+      _ -> nudge_due(loop)
     end
   end
 
@@ -1414,12 +1518,15 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
 
   # Event-driven scheduling: ONE Oban job per stage, enqueued at the
   # transition that creates the deadline, `scheduled_at` = the due
-  # instant. Test env follows the Reminders pattern (Oban testing is
-  # :inline and would fire immediately regardless of scheduled_at), so
-  # tests drive advance/2 - the exact entry the worker calls - with
-  # pinned clocks instead of real sleeps.
+  # instant. In :inline testing mode Oban executes jobs immediately
+  # regardless of scheduled_at, so scheduling is skipped there and
+  # the pinned-clock tests drive advance/2 - the exact entry the
+  # worker calls - instead of real sleeps. In :manual testing mode
+  # (an explicit Oban.Testing.with_testing_mode opt-in) and in every
+  # non-test env the job is really enqueued, which is what lets the
+  # scheduling contract itself be pinned.
   defp schedule_stage(loop, stage, %DateTime{} = at) do
-    if Mix.env() == :test do
+    if inline_testing?() do
       {:ok, :test_skip_schedule}
     else
       %{loop_id: loop.id, stage: stage}
@@ -1428,6 +1535,14 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquette do
     end
   rescue
     e -> {:error, Exception.message(e)}
+  end
+
+  defp inline_testing? do
+    mode =
+      Process.get(:oban_testing) ||
+        (:opal_core |> Application.get_env(Oban, []) |> Keyword.get(:testing))
+
+    mode == :inline
   end
 
   defp participant_user_ids(%SharedPlan{} = plan) do

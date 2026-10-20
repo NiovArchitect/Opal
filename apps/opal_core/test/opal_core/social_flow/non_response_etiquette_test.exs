@@ -7,6 +7,7 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquetteTest do
   job calls). No real sleeps, no polling anywhere in the feature.
   """
   use OpalCore.DataCase, async: false
+  use Oban.Testing, repo: OpalCore.Repo
 
   import Ecto.Query
 
@@ -580,6 +581,52 @@ defmodule OpalCore.SocialFlow.NonResponseEtiquetteTest do
                recipient_id: insider.id,
                window_seconds: 60
              })
+  end
+
+  # Repair #20 integrator pin - charged to the F-17b check. The
+  # defect: a response window set on an ALREADY-OPEN loop updated
+  # the loop metadata but never rescheduled the stage job, so the
+  # nudge/fork still fired at the 24h grace deadline enqueued when
+  # the loop opened (proven live: a 1h window set at 12:16:49Z left
+  # its stage job at 12:16:49Z the NEXT day). The fix enqueues the
+  # current stage's job at the due the fresh metadata computes.
+  test "window set on an open loop enqueues the stage job at the nudge due" do
+    creator = fresh_user("Cara Creator")
+    insider = fresh_user("Ina Insider")
+    set_mode(insider, "proactive")
+    make_circle(creator, insider)
+
+    plan = make_plan(creator)
+    add_participant(plan, creator, "accepted")
+    add_participant(plan, insider)
+
+    # The loop opens with no window: its only stage job would sit
+    # at the 24h grace deadline (skipped here - inline test mode).
+    loop = open!(plan, creator, insider)
+
+    Oban.Testing.with_testing_mode(:manual, fn ->
+      assert {:ok, _windowed} =
+               NonResponseEtiquette.set_response_window(
+                 %{
+                   plan_id: plan.id,
+                   creator_id: creator.id,
+                   recipient_id: insider.id,
+                   window_seconds: 2 * @hour
+                 },
+                 now: @t0
+               )
+
+      jobs =
+        all_enqueued(worker: OpalCore.SocialFlow.NonResponseEtiquetteWorker)
+        |> Enum.filter(&(&1.args["loop_id"] == loop.id))
+
+      assert length(jobs) == 1
+      [job] = jobs
+      assert job.args["stage"] == "awaiting"
+      # Nudge due = half the 2h window from the request instant -
+      # NOT requested_at + 24h (the grace deadline this fix charges).
+      assert job.scheduled_at == DateTime.add(@t0, @hour, :second)
+    end)
   end
 
   test "consequential plan + check-with-me-first recipient: window unavailable, declared in the projection" do

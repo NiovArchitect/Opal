@@ -179,6 +179,12 @@
     --accent-1-ink: #ffffff;
     --accent-press: #472a67; /* sampled fire violet, shade */
     --accent-quiet: rgba(93, 57, 138, 0.1); /* sampled fire violet, median at 10% */
+    /* R20 F-5: the dock's raised orb disc fill - SOLID by law. The
+     * disc is a presence device sitting over scrolling content; any
+     * alpha here lets the surface bleed through the orb. This token
+     * is an opaque hex in BOTH modes and the disc consumes nothing
+     * else (pinned by c2/shell/r20Vault.test.tsx). */
+    --dock-orb-fill: #faf7f2;
     --primary-fill: #5d398a; /* = --accent-1, the sampled fire violet median */
     --primary-ink: #ffffff;
     --primary-stage-fill: var(--accent-1);
@@ -261,6 +267,7 @@
     --accent-1-ink: #fff1d0; /* sampled point light (--orb-point-light) */
     --accent-press: #885cbb; /* sampled fire violet, core */
     --accent-quiet: rgba(125, 77, 206, 0.16); /* sampled fire violet, peak at 16% */
+    --dock-orb-fill: #2a2333; /* R20 F-5: solid disc fill, dark (see light block) */
     /* The one primary action stays the brightest element at night:
      * paper fill on member surfaces and on stage surfaces alike. */
     --primary-fill: #faf7f2;

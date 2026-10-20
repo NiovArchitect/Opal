@@ -163,9 +163,53 @@ defmodule OpalCore.SocialFlow.NextPlan do
     Enum.flat_map(conversation_ids, &plans_by_conversation/1)
   end
 
+  @doc """
+  Repair #20 (F-19) — EVERY upcoming plan fact for a conversation,
+  soonest first: the same candidate scope, vault filter, upcoming
+  rule, and ordering as the one pick (`for_conversation/3` is the
+  first element of this list by construction), projected through
+  the same `project/4`. The orbit screen's ring stones read this;
+  there is no second "plans of this thread" derivation.
+  """
+  def all_for_conversation(viewer_id, conversation_id, opts \\ [])
+
+  def all_for_conversation(viewer_id, conversation_id, opts)
+      when is_binary(viewer_id) and is_binary(conversation_id) do
+    member_ids = Messages.member_user_ids(conversation_id)
+
+    if viewer_id in member_ids do
+      now = Keyword.get(opts, :now) || DateTime.utc_now()
+
+      candidates =
+        plans_by_conversation(conversation_id) ++
+          plans_by_participant_set(viewer_id, member_ids, :exact)
+
+      candidates
+      |> order_candidates(viewer_id, now)
+      |> Enum.map(&project(&1, viewer_id, now, opts))
+    else
+      []
+    end
+  end
+
+  def all_for_conversation(_, _, _), do: []
+
   # --- the one pick ------------------------------------------------------
 
   defp pick_next(candidates, viewer_id, now, opts \\ []) do
+    candidates
+    |> order_candidates(viewer_id, now)
+    |> List.first()
+    |> case do
+      %SharedPlan{} = plan -> project(plan, viewer_id, now, opts)
+      _ -> nil
+    end
+  end
+
+  # The shared candidate pipeline for the one pick and the orbit
+  # list: dedupe, the per-viewer vault filter, the upcoming rule,
+  # and the soonest-first ordering — one definition, both readers.
+  defp order_candidates(candidates, viewer_id, now) do
     candidates
     |> Enum.uniq_by(& &1.id)
     # Polish C P3 (per-viewer vault) — applied at this ONE pick:
@@ -190,11 +234,6 @@ defmodule OpalCore.SocialFlow.NextPlan do
         }
       end
     )
-    |> List.first()
-    |> case do
-      %SharedPlan{} = plan -> project(plan, viewer_id, now, opts)
-      _ -> nil
-    end
   end
 
   @doc "True while the plan is upcoming under the L8 rule above."
