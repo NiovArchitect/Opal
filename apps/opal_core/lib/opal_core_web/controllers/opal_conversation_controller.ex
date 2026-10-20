@@ -515,6 +515,15 @@ defmodule OpalCoreWeb.OpalConversationController do
         |> put_status(422)
         |> json(%{"error_code" => "invalid_title", "message" => "title or place is required"})
 
+      {:error, :invalid_place_coordinates} ->
+        # G2: a malformed candidate coordinate pair refuses the create.
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid_place_coordinates",
+          "message" => "Place coordinates must be a valid lat/lon pair."
+        })
+
       {:error, %Ecto.Changeset{} = cs} ->
         unprocessable(conn, cs)
 
@@ -561,6 +570,14 @@ defmodule OpalCoreWeb.OpalConversationController do
         conn
         |> put_status(422)
         |> json(%{"error_code" => "invalid_title", "message" => "title or place is required"})
+
+      {:error, :invalid_place_coordinates} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid_place_coordinates",
+          "message" => "Place coordinates must be a valid lat/lon pair."
+        })
 
       {:error, :unsupported_audience} ->
         conn
@@ -635,7 +652,9 @@ defmodule OpalCoreWeb.OpalConversationController do
   Repair #18 (Walk #4, W4-04) — edit ONE plan's title / core details.
 
   PATCH /api/v1/product/opal/plans/:id with any of
-  `{title, location, caption}`. The write flows through
+  `{title, location, caption, place_lat, place_lon}` (G2: the
+  coordinate pair follows the place — a location edit without a pair
+  clears the old place's coordinates). The write flows through
   SocialFlow.edit_plan_details/1 (PlanTransition :edit gate, lead-only
   authority, validated inputs, one atomic row write). The response
   carries the updated plan in the SAME plan_payload shape the listing
@@ -858,6 +877,8 @@ defmodule OpalCoreWeb.OpalConversationController do
         "title",
         "location",
         "caption",
+        "place_lat",
+        "place_lon",
         "time_label",
         "date_label",
         "start_at",
@@ -929,6 +950,9 @@ defmodule OpalCoreWeb.OpalConversationController do
       {:error, :invalid_caption} ->
         field_error(conn, "caption", "is invalid")
 
+      {:error, :invalid_place_coordinates} ->
+        field_error(conn, "place_lat", "place coordinates must be a valid lat/lon pair")
+
       {:error, :schedule_field_requires_revision} ->
         conn
         |> put_status(422)
@@ -951,7 +975,7 @@ defmodule OpalCoreWeb.OpalConversationController do
         |> put_status(422)
         |> json(%{
           "error_code" => "no_changes",
-          "message" => "Nothing to change - send a title, location or caption."
+          "message" => "Nothing to change - send a title, location, caption or place coordinates."
         })
 
       {:error, :unknown_field} ->
@@ -959,7 +983,7 @@ defmodule OpalCoreWeb.OpalConversationController do
         |> put_status(422)
         |> json(%{
           "error_code" => "unknown_field",
-          "message" => "Only title, location and caption can be edited here."
+          "message" => "Only title, location, caption and place coordinates can be edited here."
         })
 
       {:error, %Ecto.Changeset{} = cs} ->

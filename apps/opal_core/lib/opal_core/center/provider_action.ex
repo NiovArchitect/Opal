@@ -276,11 +276,29 @@ defmodule OpalCore.Center.ProviderAction do
         |> Map.put("destination", dest)
         |> Map.put("option_selected", true)
 
+      # Founder Polish G2 (the place-coordinates writer): the venue
+      # map above already carried the gateway candidate's lat/lon
+      # into alignment - this is where the same pair lands on the
+      # plan ROW (place_lat/place_lon), the columns the P10c leave-by
+      # derivation reads. The candidate is server-resolved here, so
+      # its coordinates are the truth available at selection time -
+      # no client round-trip, no geocoding. A candidate WITHOUT a
+      # valid pair (e.g. the name-only fallback candidate) CLEARS the
+      # columns: the plan's place is now that candidate, and the old
+      # place's coordinates must not survive onto it.
+      {venue_lat, venue_lon} =
+        case SocialFlow.place_coordinates_from_params(venue) do
+          {:ok, pair} -> pair
+          _ -> {nil, nil}
+        end
+
       {:ok, updated} =
         plan
         |> SharedPlan.changeset(%{
           "title" => "#{name} · #{planning2["when"] || plan.time_label || "soon"}",
           "location" => location,
+          "place_lat" => venue_lat,
+          "place_lon" => venue_lon,
           "alignment" => alignment
         })
         |> Repo.update()
