@@ -261,7 +261,7 @@ export function OrbitSheet({
                 </button>
                 <p className="orbit-sheet-section-note" data-testid="orbit-sheet-private-note">
                   This hides only your chats with Opal in Center. It never hides a plan
-                  or a graph - plans you want hidden live in My private graphs on the
+                  or a graph - plans you want hidden live in Private graphs on the
                   Graphs tab.
                 </p>
               </>

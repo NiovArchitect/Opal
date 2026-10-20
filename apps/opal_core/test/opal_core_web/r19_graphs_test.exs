@@ -154,6 +154,47 @@ defmodule OpalCoreWeb.R19GraphsTest do
       assert owner_row3["is_private"] == false
     end
 
+    test "private is a STATE, never a destruction: the round trip preserves the plan and its history intact" do
+      {_t1, owner} = activate("+12025550141", "State Owner", "r19stateown")
+      {_t2, guest} = activate("+12025550142", "State Guest", "r19stateguest")
+      plan = plan!(owner, guest)
+
+      {:ok, before_plan} = SocialFlow.get_plan_for_user(plan.id, owner)
+      {:ok, history_before} = PlanHistory.for_plan(plan.id, owner)
+      {:ok, owner_list_before} = SocialFlow.list_plans_for_user(owner)
+      row_before = Enum.find(owner_list_before, &(&1["id"] == plan.id))
+
+      assert {:ok, _} = SocialFlow.set_plan_private(plan.id, owner, true)
+
+      # While private: the object is fully intact - same row, same
+      # history, readable by the marker from the vault and by the
+      # other party from their own view.
+      {:ok, during_plan} = SocialFlow.get_plan_for_user(plan.id, owner)
+      assert during_plan.id == before_plan.id
+      assert during_plan.title == before_plan.title
+      assert during_plan.status == before_plan.status
+      assert {:ok, history_during} = PlanHistory.for_plan(plan.id, owner)
+      assert history_during["who"] == history_before["who"]
+      assert {:ok, _} = SocialFlow.get_plan_for_user(plan.id, guest)
+
+      assert {:ok, _} = SocialFlow.set_plan_private(plan.id, owner, false)
+
+      # After un-privating: EVERYTHING is respectively restored -
+      # the same plan, the same history, visibility flag only.
+      {:ok, after_plan} = SocialFlow.get_plan_for_user(plan.id, owner)
+      assert after_plan.title == before_plan.title
+      assert after_plan.status == before_plan.status
+      assert after_plan.time_label == before_plan.time_label
+      assert {:ok, history_after} = PlanHistory.for_plan(plan.id, owner)
+      assert history_after["who"] == history_before["who"]
+      assert history_after["history"] == history_before["history"]
+      {:ok, owner_list_after} = SocialFlow.list_plans_for_user(owner)
+      row_after = Enum.find(owner_list_after, &(&1["id"] == plan.id))
+      assert row_after["is_private"] == false
+      assert row_after["title"] == row_before["title"]
+      assert row_after["status"] == row_before["status"]
+    end
+
     test "a stranger with no access to the plan cannot mark it" do
       {_t1, owner} = activate("+12025550113", "Owner Three", "r19owner3")
       {_t2, guest} = activate("+12025550114", "Guest Four", "r19guest4")

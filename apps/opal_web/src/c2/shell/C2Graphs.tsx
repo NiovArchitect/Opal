@@ -378,13 +378,13 @@ export function C2Graphs({
 
         {events.unlockPrivate && events.setPrivatePasscode ? (
           <section data-testid="c2-graphs-private">
-            <h2 className="c2s-group-title">My private graphs</h2>
+            <h2 className="c2s-group-title">Private graphs</h2>
             {!privateUnlocked ? (
               <div className="c2s-group-cards">
                 <p className="c2s-card-line">
                   {projection.privateCards.length > 0
-                    ? `${projection.privateCards.length} ${projection.privateCards.length === 1 ? "graph is" : "graphs are"} kept here, out of your other lists.`
-                    : "Graphs you make private live here, out of your other lists."}
+                    ? `${projection.privateCards.length} ${projection.privateCards.length === 1 ? "graph is" : "graphs are"} shown only here, and hidden from your other lists.`
+                    : "Private graphs show only here, and stay hidden from your other lists."}
                 </p>
                 <p className="c2s-card-line">
                   {events.graphLockPasscodeSet === false
@@ -395,7 +395,7 @@ export function C2Graphs({
                   className="c2s-field"
                   type="password"
                   data-testid="c2-private-code"
-                  aria-label="My private graphs passcode"
+                  aria-label="Private graphs passcode"
                   autoComplete="off"
                   value={privateCode}
                   onChange={(e) => setPrivateCode(e.target.value)}
@@ -412,14 +412,14 @@ export function C2Graphs({
                   disabled={privateGateBusy || !privateCode.trim()}
                   onClick={() => void tryUnlockPrivate()}
                 >
-                  {events.graphLockPasscodeSet === false ? "Set passcode and open" : "Open My private graphs"}
+                  {events.graphLockPasscodeSet === false ? "Set passcode and open" : "Open Private graphs"}
                 </button>
               </div>
             ) : (
               <div className="c2s-group-cards">
                 {projection.privateCards.length === 0 ? (
                   <p className="c2s-card-line" data-testid="c2-private-empty">
-                    No private graphs yet. Make any graph private and it moves here, out of every other list and surface - only you can open it here.
+                    No private graphs yet. A graph in Private graphs shows only here - it stays fully intact, and everyone else on it keeps their own view.
                   </p>
                 ) : (
                   projection.privateCards.map((card) => (
@@ -448,7 +448,7 @@ export function C2Graphs({
                   data-testid="c2-private-lock"
                   onClick={() => setPrivateUnlocked(false)}
                 >
-                  Lock My private graphs
+                  Close Private graphs
                 </button>
               </div>
             )}
@@ -1032,8 +1032,8 @@ export function C2GraphDetail({
               </button>
               {detail.isPrivate ? (
                 <p className="c2s-card-line">
-                  This graph is in your My private graphs. It shows on your
-                  surfaces only inside that area - everyone else on the plan
+                  This graph is in your Private graphs. On your surfaces it
+                  shows only inside that space - everyone else on the plan
                   keeps their own view of it.
                 </p>
               ) : null}

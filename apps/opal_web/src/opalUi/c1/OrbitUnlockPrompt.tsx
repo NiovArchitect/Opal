@@ -85,7 +85,7 @@ export function OrbitUnlockPrompt({
           <p className="c1-sublabel">
             {setting
               ? "No passcode is set yet. Set one to open these Opal chats - it is checked by Opal's server, and the code itself is never stored."
-              : "Enter your passcode to open the Opal chats in this orbit. It is the same passcode as My private graphs."}
+              : "Enter your passcode to open the Opal chats in this orbit. It is the same passcode as Private graphs."}
           </p>
           <form
             onSubmit={(e) => {

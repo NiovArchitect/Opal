@@ -14,9 +14,9 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { C2GraphDetail } from "./C2Graphs";
+import { C2GraphDetail, C2Graphs } from "./C2Graphs";
 import { graphListFromPlans, openingFromPlans } from "./shellData";
-import type { GraphDetailProjection } from "./projections";
+import type { GraphDetailProjection, GraphListProjection } from "./projections";
 import type { OpalPlanContract } from "../../api/productClient";
 import { OrbitSheet } from "../../opalUi/c1/OrbitSheet";
 import { LongPressRegion, LONG_PRESS_MS } from "../CardContextMenu";
@@ -199,6 +199,78 @@ describe("A1 - graph detail overflow is the keyboard path to Make private / Make
   });
 });
 
+describe("N1 + reaffirmation - resting UI carries ZERO make-private prompts; the vault title is plain and lock-free", () => {
+  it("graphs list (incl. Past lens), locked gate, and detail render no make-private wording and no lock framing", async () => {
+    const ev = {
+      openGraph: vi.fn(),
+      createPlan: vi.fn(),
+      createTrip: vi.fn(),
+      createIdea: vi.fn(),
+      completeSlot: vi.fn(),
+      dropPlan: vi.fn(async () => null),
+      runNextAction: vi.fn(),
+      addPeople: vi.fn(),
+      openChatForPlan: vi.fn(),
+      back: vi.fn(),
+      setPlanPrivate: vi.fn(async () => undefined),
+      graphLockPasscodeSet: true,
+      unlockPrivate: vi.fn(async () => true),
+      setPrivatePasscode: vi.fn(async () => true),
+    };
+    const list: GraphListProjection = {
+      groups: [
+        {
+          id: "g1",
+          kind: "coming-up",
+          title: "Coming up",
+          cards: [
+            {
+              id: "p1",
+              stateFamily: "ready",
+              stateLabel: "ready",
+              title: "Dinner at Juniper",
+              whenLine: "Saturday 7 PM",
+              whereLine: "Juniper & Ivy",
+              attendanceLine: null,
+              primaryActionLabel: null,
+            },
+          ],
+        },
+        {
+          id: "g2",
+          kind: "past",
+          title: "Past",
+          cards: [
+            {
+              id: "p2",
+              stateFamily: "past",
+              stateLabel: "past",
+              title: "Last week's hike",
+              whenLine: "Last week",
+              whereLine: null,
+              attendanceLine: null,
+              primaryActionLabel: null,
+            },
+          ],
+        },
+      ],
+      privateCards: [],
+      lensCounts: { all: 2, action: 0, ready: 1, past: 1 },
+      timelineAvailable: true,
+    };
+    await render(<C2Graphs projection={list} events={ev} />);
+    const resting = document.body.textContent ?? "";
+    expect(resting).not.toMatch(/make private|make public|move to .*private/i);
+    // The vault space is titled plainly, and no lock framing exists.
+    expect(resting).toContain("Private graphs");
+    expect(resting).not.toMatch(/locked|lock private/i);
+    // Past lens too: past cards carry no prompt either.
+    click(document.querySelector('[data-testid="c2-lens-past"]')!);
+    await flush();
+    expect(document.body.textContent ?? "").not.toMatch(/make private|make public/i);
+  });
+});
+
 describe("P4 - orbit sheet legibility + naming collision", () => {
   it("purpose header, labeled blocks, and no private row until Orbit options opens", async () => {
     const el = await render(
@@ -230,7 +302,7 @@ describe("P4 - orbit sheet legibility + naming collision", () => {
     const toggle = el.querySelector('[data-testid="orbit-sheet-private-toggle"]')!;
     expect(toggle.textContent).toContain("Hide these Opal chats behind my passcode");
     expect(el.querySelector('[data-testid="orbit-sheet-private-note"]')!.textContent).toContain(
-      "My private graphs",
+      "Private graphs",
     );
     // The sheet never calls the orbit-hide "make private" a graph action.
     expect(toggle.textContent).not.toContain("Make private");
