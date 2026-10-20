@@ -196,6 +196,16 @@
     --state-past: var(--orb-indicator-past);
     --state-past-tint: rgba(255, 255, 255, 0.1);
     --state-past-ink: #57534e;
+    /* P14 LIMBO (Founder Polish Wave): the cooling treatment. Amber -
+     * deliberately NOT the action red (reserved for true needs-you)
+     * and NOT the ready gold: limbo cools from this amber toward
+     * --state-limbo-muted as the response window burns down. The
+     * pattern channel (cooling-lines, in c2.css) carries the state
+     * without color, so limbo never depends on hue alone. */
+    --state-limbo: #d97706;
+    --state-limbo-tint: rgba(217, 119, 6, 0.12);
+    --state-limbo-ink: #92400e;
+    --state-limbo-muted: #a8a29e;
   }
 
   /* ================= DARK - genuine night (section 2.7) ============ */
@@ -250,6 +260,12 @@
     --state-past: var(--orb-indicator-past);
     --state-past-tint: rgba(255, 255, 255, 0.12);
     --state-past-ink: #d6d0c8;
+    /* P14 LIMBO (dark column): same cooling semantics as Light - the
+     * amber cools toward muted; only the values are mode-adapted. */
+    --state-limbo: #f0a840;
+    --state-limbo-tint: rgba(240, 168, 64, 0.16);
+    --state-limbo-ink: #ffcf87;
+    --state-limbo-muted: #8a8296;
   }
 
   /* No-white-flash backstop: the page ground is mode-correct from the

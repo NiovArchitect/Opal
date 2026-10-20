@@ -297,6 +297,41 @@ html[data-mode="light"] #root {
   display: flex;
   align-items: center;
 }
+/* P14 LIMBO (Founder Polish Wave) - the cooling treatment, driven by
+ * the backend projection's limbo state + window fraction
+ * (--limbo-remaining, 1.0 = window just opened, 0.0 = window closed).
+ * Cooling curve: the border mixes the limbo amber toward the muted
+ * tone as the fraction falls, and the cooling-lines pattern strip
+ * fades on the same curve. NEVER the action red: red stays reserved
+ * for true needs-you states, and no limbo rule references it.
+ * Pattern channel: repeating diagonal lines (cooling-lines) carry the
+ * state without color, so limbo is legible for color-blind readers
+ * and under reduced motion (nothing here animates). */
+.c2-plan-card[data-limbo="limbo"] {
+  border-color: color-mix(
+    in srgb,
+    var(--state-limbo) calc(20% + var(--limbo-remaining, 1) * 60%),
+    var(--state-limbo-muted)
+  );
+}
+.c2-plan-limbo {
+  margin-top: 10px;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background-color: var(--state-limbo-tint);
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--state-limbo) calc(25% + var(--limbo-remaining, 1) * 45%), transparent) 0,
+    color-mix(in srgb, var(--state-limbo) calc(25% + var(--limbo-remaining, 1) * 45%), transparent) 2px,
+    transparent 2px,
+    transparent 9px
+  );
+}
+.c2-plan-limbo-copy {
+  font: var(--type-callout);
+  color: var(--state-limbo-ink);
+  margin: 0;
+}
 /* W9: the record's own image on a plan card (rendered only when the
  * projection carries one - absent means no well at all). */
 /* JA-12: the well has a designed height of its own (min-height) so

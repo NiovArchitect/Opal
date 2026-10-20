@@ -73,7 +73,26 @@ export type PlanCardPersonC2 = {
   photoUrl?: string | null;
 };
 
+/**
+ * P14 (Founder Polish Wave) - the limbo projection for this card, from
+ * the backend's one etiquette projection (NonResponseEtiquette). The
+ * card renders it and never derives it: state, the remaining window
+ * fraction that drives the cooling treatment, the pattern channel,
+ * and the viewer's own finished copy all arrive finished. Absent or
+ * state != "limbo" = no limbo treatment at all.
+ */
+export type PlanCardLimboC2 = {
+  state: string;
+  treatment: string;
+  patternChannel: string;
+  windowFractionRemaining: number | null;
+  copy: string;
+  viewerRole: "requester" | "recipient" | "group_member" | string;
+};
+
 export type PlanCardC2Input = {
+  /** P14: the limbo projection, or absent when the request is not in limbo. */
+  limbo?: PlanCardLimboC2 | null;
   /** Derived state family from the one projection/derivation. Required. */
   stateFamily: PlanStateFamilyC2 | string;
   /** Finished pill label from the projection (for example "Idea" for a
@@ -186,10 +205,22 @@ export function PlanCardC2({
   const [mediaFailed, setMediaFailed] = useState(false);
   // W21 (F1): a new record image gets a fresh authenticated attempt.
   useEffect(() => setMediaFailed(false), [input.media?.photoUrl]);
+  const limbo = input.limbo && input.limbo.state === "limbo" ? input.limbo : null;
   return (
     <article
       className="c2-plan-card"
       data-plan-state={family}
+      data-limbo={limbo ? "limbo" : undefined}
+      data-limbo-viewer={limbo ? limbo.viewerRole : undefined}
+      style={
+        limbo
+          ? ({
+              "--limbo-remaining": String(
+                Math.min(1, Math.max(0, limbo.windowFractionRemaining ?? 1)),
+              ),
+            } as React.CSSProperties)
+          : undefined
+      }
       data-lit={
         input.lit === undefined ? undefined : input.lit ? "lit" : "capped"
       }
@@ -201,6 +232,16 @@ export function PlanCardC2({
       <div className="c2-plan-card-top">
         <PlanStatePillC2 stateFamily={input.stateFamily} stateLabel={input.stateLabel} />
       </div>
+      {limbo ? (
+        <div
+          className="c2-plan-limbo"
+          data-testid="c2-plan-limbo"
+          data-pattern={limbo.patternChannel}
+          data-treatment={limbo.treatment}
+        >
+          <p className="c2-plan-limbo-copy">{limbo.copy}</p>
+        </div>
+      ) : null}
       {/* AT-08 (R19 W27): iris fire is reserved for lit items -
        * an ordinary plan card carries its STATE rule (canon hue at
        * ambient strength), never the fire line. Past rests: no rule. */}
