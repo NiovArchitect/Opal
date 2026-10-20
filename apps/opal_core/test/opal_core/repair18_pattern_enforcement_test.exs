@@ -371,6 +371,14 @@ defmodule OpalCore.Repair18PatternEnforcementTest do
         "lib/opal_core/social_flow/households.ex",
         "lib/opal_core/social_flow/journey_authority.ex",
         "lib/opal_core/social_flow/live_experience.ex",
+        # Founder Polish Wave (P13/P14, Cluster I): the non-response
+        # etiquette lifecycle writes exactly two plan-row shapes - a
+        # participant's plain decline (response_state/responded_at,
+        # plus the creator-opt-in response window columns) and, for a
+        # 1:1 hold release only, a plan cancel whose changeset passes
+        # PlanTransition.guard_changeset(:plan, :cancel). Registered
+        # visibly per FIX-10b in the commit that introduced it.
+        "lib/opal_core/social_flow/non_response_etiquette.ex",
         "lib/opal_core/social_flow/plan_completion.ex",
         "lib/opal_core/trips.ex"
       ]

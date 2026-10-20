@@ -11,7 +11,7 @@ defmodule OpalCore.SocialFlow.TemporalFollowThroughLoop do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @kinds ~w(waiting_on commitment open_question execution plan_approach explicit_timed memory_silence pattern_silence care_check_in)
+  @kinds ~w(waiting_on commitment open_question execution plan_approach explicit_timed memory_silence pattern_silence care_check_in invitation_response)
   @statuses ~w(open completed cancelled superseded resolved)
   @maturities ~w(not_yet approaching due resolved)
   @precisions ~w(date_only datetime approximate unspecified)
@@ -82,7 +82,14 @@ defmodule OpalCore.SocialFlow.TemporalFollowThroughLoop do
       :idempotency_key,
       :last_evaluated_at
     ])
-    |> validate_required([:kind, :source_id, :attention_dedupe_key, :idempotency_key, :status, :maturity])
+    |> validate_required([
+      :kind,
+      :source_id,
+      :attention_dedupe_key,
+      :idempotency_key,
+      :status,
+      :maturity
+    ])
     |> validate_inclusion(:kind, @kinds)
     |> validate_inclusion(:status, @statuses)
     |> validate_inclusion(:maturity, @maturities)

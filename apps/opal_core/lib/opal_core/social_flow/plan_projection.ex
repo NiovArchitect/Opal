@@ -89,6 +89,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/journey_authority.ex
     lib/opal_core/social_flow/meaning.ex
     lib/opal_core/social_flow/next_plan.ex
+    lib/opal_core/social_flow/non_response_etiquette.ex
     lib/opal_core/social_flow/plan_agreement_taste_bridge.ex
     lib/opal_core/social_flow/plan_completion.ex
     lib/opal_core/social_flow/plan_execution.ex
@@ -150,6 +151,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 DIR-4: the one proactive reveal derivation for deck, thread, and chats list"},
       {OpalCore.SocialFlow.Reveal, :for_conversation, 3,
        "Repair #18 DIR-4: conversation-scoped reveal derivation"},
+      {OpalCore.SocialFlow.NonResponseEtiquette, :projection_for, 3,
+       "Founder Polish Wave Cluster I (P13/P14): the one etiquette/limbo projection for a plan's pending request, read from the single plan store + the participant's own row"},
       {OpalCore.GraphPeople, :intention_projection, 2,
        "Repair #18 adoption wave 1 (ST-A): the one intention progress projection, derived from real plans with that person"},
       {OpalCore.GraphPeople, :goal_projection, 2,
