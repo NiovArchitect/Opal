@@ -12,6 +12,7 @@ defmodule OpalCore.Messages do
   alias OpalCore.Events.Publisher
 
   alias OpalCore.SocialFlow.{
+    Chronology,
     ConversationAlignment,
     HomeProjection,
     NextPlan,
@@ -548,7 +549,7 @@ defmodule OpalCore.Messages do
              nil ->
                {:ok, conv} =
                  %Conversation{}
-                 |> Conversation.changeset(%{label: label})
+                 |> Conversation.changeset(%{label: label, created_by_user_id: user_a})
                  |> Repo.insert()
 
                Enum.each([user_a, user_b], fn uid ->
@@ -604,7 +605,7 @@ defmodule OpalCore.Messages do
         Repo.transaction(fn ->
           {:ok, conv} =
             %Conversation{}
-            |> Conversation.changeset(%{label: label})
+            |> Conversation.changeset(%{label: label, created_by_user_id: creator_user_id})
             |> Repo.insert()
 
           Enum.each(members, fn uid ->
@@ -628,6 +629,14 @@ defmodule OpalCore.Messages do
   @doc """
   Add a member to an existing conversation. Actor must already be a member.
   Idempotent if already a member.
+
+  Repair #21 (W-5b): a real addition (origin `:created`) is recorded
+  into the conversation's durable record - a Chronology
+  `member_added` moment (the orbit's history; the idempotency key is
+  the same one `GroupMembership` uses, so the message-invite path
+  and this path can never double-record one addition) - plus an
+  AccountActivity entry for both the actor and the person added.
+  An idempotent re-add records nothing: nothing happened.
   """
   def add_conversation_member(conversation_id, actor_user_id, new_user_id)
       when is_binary(conversation_id) and is_binary(actor_user_id) and is_binary(new_user_id) do
@@ -646,11 +655,332 @@ defmodule OpalCore.Messages do
                  user_id: new_user_id
                })
                |> Repo.insert() do
-            {:ok, m} -> {:ok, m, :created}
-            {:error, cs} -> {:error, cs}
+            {:ok, m} ->
+              record_member_added(conversation_id, actor_user_id, new_user_id)
+              {:ok, m, :created}
+
+            {:error, cs} ->
+              {:error, cs}
           end
       end
     end
+  end
+
+  @doc """
+  Repair #21 (W-5b) - add SEVERAL people to a conversation in one
+  action (multi-select). Actor must already be a member. Each person
+  goes through the same `add_conversation_member/3` path (same
+  recording, same idempotency), so a person already in the
+  conversation is reported in `already_member_ids`, never duplicated
+  and never re-recorded. The conversation id never changes: adding
+  people widens THIS conversation, it never mints a new one.
+  """
+  def add_conversation_members(conversation_id, actor_user_id, new_user_ids)
+      when is_binary(conversation_id) and is_binary(actor_user_id) and is_list(new_user_ids) do
+    ids =
+      new_user_ids
+      |> Enum.filter(&is_binary/1)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.uniq()
+
+    with :ok <- ensure_member(conversation_id, actor_user_id) do
+      results =
+        Enum.map(ids, fn uid ->
+          case add_conversation_member(conversation_id, actor_user_id, uid) do
+            {:ok, _m, :created} -> {uid, :added}
+            {:ok, _m, :idempotent} -> {uid, :already_member}
+            {:error, reason} -> {uid, {:error, reason}}
+          end
+        end)
+
+      case Enum.find(results, fn {_uid, r} -> match?({:error, _}, r) end) do
+        {_uid, {:error, reason}} ->
+          {:error, reason}
+
+        nil ->
+          members = member_user_ids(conversation_id)
+
+          {:ok,
+           %{
+             conversation_id: conversation_id,
+             added_ids: for({uid, :added} <- results, do: uid),
+             already_member_ids: for({uid, :already_member} <- results, do: uid),
+             member_ids: members,
+             member_count: length(members)
+           }}
+      end
+    end
+  end
+
+  @doc """
+  Repair #21 (W-5b) - the conversation's creator, from the record:
+  the `created_by_user_id` written at creation; for a row that does
+  not carry one, the earliest member on record (every creation path
+  inserts the creator's membership first - the migration backfill
+  used the same rule). Nil when the conversation has no members and
+  no recorded creator: honestly nobody, and then only self-removal
+  is permitted below.
+  """
+  def conversation_creator_id(conversation_id) when is_binary(conversation_id) do
+    if OpalCore.IdShape.uuid?(conversation_id) do
+      case Repo.get(Conversation, conversation_id) do
+        %Conversation{created_by_user_id: creator} when is_binary(creator) ->
+          creator
+
+        _ ->
+          from(cm in ConversationMember,
+            where: cm.conversation_id == ^conversation_id,
+            order_by: [asc: cm.inserted_at, asc: cm.id],
+            limit: 1,
+            select: cm.user_id
+          )
+          |> Repo.one()
+      end
+    end
+  end
+
+  def conversation_creator_id(_), do: nil
+
+  @doc """
+  Repair #21 (W-5b) - remove a member, under the admin rule:
+
+  - anyone may remove THEMSELVES (leave);
+  - removing SOMEONE ELSE is the creator's alone - there is no
+    admin concept in the Conversation model, so no one else is
+    invented as one;
+  - the actor and the target must both be members.
+
+  The conversation id never changes and no new conversation is
+  minted: the same conversation continues with fewer people. A real
+  removal is recorded as a Chronology `member_removed` moment (the
+  orbit's history) plus AccountActivity entries.
+  """
+  def remove_conversation_member(conversation_id, actor_user_id, target_user_id)
+      when is_binary(conversation_id) and is_binary(actor_user_id) and
+             is_binary(target_user_id) do
+    with :ok <- ensure_member(conversation_id, actor_user_id),
+         :ok <- ensure_removal_authority(conversation_id, actor_user_id, target_user_id) do
+      case Repo.get_by(ConversationMember,
+             conversation_id: conversation_id,
+             user_id: target_user_id
+           ) do
+        nil ->
+          {:error, :target_not_a_member}
+
+        %ConversationMember{} = member ->
+          {:ok, _} = Repo.delete(member)
+          record_member_removed(conversation_id, actor_user_id, target_user_id)
+          members = member_user_ids(conversation_id)
+
+          {:ok,
+           %{
+             conversation_id: conversation_id,
+             removed_user_id: target_user_id,
+             left: actor_user_id == target_user_id,
+             member_ids: members,
+             member_count: length(members)
+           }}
+      end
+    end
+  end
+
+  defp ensure_removal_authority(conversation_id, actor_user_id, target_user_id) do
+    cond do
+      actor_user_id == target_user_id ->
+        :ok
+
+      conversation_creator_id(conversation_id) == actor_user_id ->
+        :ok
+
+      true ->
+        {:error, :not_creator}
+    end
+  end
+
+  @doc """
+  Repair #21 (W-5b) - the membership events in a conversation's
+  durable record (Chronology `member_added` / `member_removed`
+  moments), newest first, as finished lines: this is how the orbit
+  knows who came and went. Shared moments only - the membership
+  record is a fact about the whole conversation.
+  """
+  def membership_events(conversation_id, limit \\ 20)
+
+  def membership_events(conversation_id, limit)
+      when is_binary(conversation_id) and is_integer(limit) do
+    if OpalCore.IdShape.uuid?(conversation_id) do
+      from(m in OpalCore.SocialFlow.OpalChronologyMoment,
+        where:
+          m.conversation_id == ^conversation_id and
+            m.kind in ["member_added", "member_removed"] and m.visibility == "shared",
+        order_by: [desc: m.inserted_at],
+        limit: ^limit
+      )
+      |> Repo.all()
+      |> Enum.map(fn m ->
+        snapshot = m.composition_snapshot || %{}
+
+        %{
+          "kind" => m.kind,
+          "label" => m.label,
+          "detail" => m.detail,
+          "actor_user_id" => snapshot["actor_user_id"],
+          "target_user_id" => snapshot["target_user_id"],
+          "at" => m.inserted_at && DateTime.to_iso8601(m.inserted_at)
+        }
+      end)
+    else
+      []
+    end
+  end
+
+  def membership_events(_, _), do: []
+
+  @doc """
+  Repair #21 (W-5b) - the viewer-scoped membership projection the
+  group thread's manage surface renders: the creator truth, every
+  member with their finished flags (creator / viewer / whether THIS
+  viewer may remove them under the admin rule), and the recorded
+  membership events. A non-member gets `{:error, :not_a_member}` -
+  there is no membership view into a conversation you are not in.
+  """
+  def membership_projection(conversation_id, viewer_id)
+      when is_binary(conversation_id) and is_binary(viewer_id) do
+    with :ok <- ensure_member(conversation_id, viewer_id) do
+      creator_id = conversation_creator_id(conversation_id)
+
+      rows =
+        from(cm in ConversationMember,
+          join: u in OpalCore.Accounts.User,
+          on: u.id == cm.user_id,
+          where: cm.conversation_id == ^conversation_id,
+          order_by: [asc: cm.inserted_at, asc: cm.id],
+          select: %{user_id: u.id, display_name: u.display_name, handle: u.handle}
+        )
+        |> Repo.all()
+
+      members =
+        Enum.map(rows, fn row ->
+          is_viewer = row.user_id == viewer_id
+          is_creator = row.user_id == creator_id
+
+          %{
+            "user_id" => row.user_id,
+            "display_name" => row.display_name,
+            "handle" => row.handle,
+            "is_creator" => is_creator,
+            "is_viewer" => is_viewer,
+            # The admin rule, decided HERE from the record: you may
+            # always remove yourself; the creator may remove others;
+            # nobody else may remove anyone.
+            "can_remove" => is_viewer or (viewer_id == creator_id and not is_viewer)
+          }
+        end)
+
+      {:ok,
+       %{
+         "conversation_id" => conversation_id,
+         "creator_user_id" => creator_id,
+         "viewer_is_creator" => creator_id == viewer_id,
+         "composition" => if(length(members) >= 3, do: "group", else: "dyad"),
+         "members" => members,
+         "membership_events" => membership_events(conversation_id)
+       }}
+    end
+  end
+
+  defp record_member_added(conversation_id, actor_user_id, new_user_id) do
+    name = display_name_of(new_user_id)
+    members = member_user_ids(conversation_id)
+
+    Chronology.record_consequential(conversation_id, %{
+      kind: "member_added",
+      label: "#{name} joined the conversation",
+      detail: "#{length(members)} people",
+      evidence_message_id: nil,
+      source_message_ids: [],
+      after_server_seq: last_server_seq(conversation_id),
+      created_from: "group_membership",
+      composition_snapshot: %{
+        "member_count" => length(members),
+        "actor_user_id" => actor_user_id,
+        "target_user_id" => new_user_id
+      },
+      idempotency_key: "member-add-#{conversation_id}-#{new_user_id}"
+    })
+
+    record_membership_activity(actor_user_id, "conversation_member_added", conversation_id, %{
+      "target_user_id" => new_user_id
+    })
+
+    record_membership_activity(new_user_id, "conversation_member_added", conversation_id, %{
+      "actor_user_id" => actor_user_id
+    })
+
+    :ok
+  end
+
+  defp record_member_removed(conversation_id, actor_user_id, target_user_id) do
+    name = display_name_of(target_user_id)
+    members = member_user_ids(conversation_id)
+    left? = actor_user_id == target_user_id
+
+    Chronology.record_consequential(conversation_id, %{
+      kind: "member_removed",
+      label:
+        if(left?,
+          do: "#{name} left the conversation",
+          else: "#{name} was removed from the conversation"
+        ),
+      detail: "#{length(members)} people remain",
+      evidence_message_id: nil,
+      source_message_ids: [],
+      after_server_seq: last_server_seq(conversation_id),
+      created_from: "group_membership",
+      composition_snapshot: %{
+        "member_count" => length(members),
+        "actor_user_id" => actor_user_id,
+        "target_user_id" => target_user_id,
+        "left" => left?
+      },
+      idempotency_key:
+        "member-rm-#{conversation_id}-#{target_user_id}-#{System.unique_integer([:positive])}"
+    })
+
+    record_membership_activity(
+      actor_user_id,
+      if(left?, do: "conversation_member_left", else: "conversation_member_removed"),
+      conversation_id,
+      %{"target_user_id" => target_user_id}
+    )
+
+    if not left? do
+      record_membership_activity(target_user_id, "conversation_member_removed", conversation_id, %{
+        "actor_user_id" => actor_user_id
+      })
+    end
+
+    :ok
+  end
+
+  defp record_membership_activity(user_id, kind, conversation_id, detail) do
+    _ = OpalCore.Accounts.AccountActivity.record(user_id, kind, conversation_id, detail)
+    :ok
+  end
+
+  defp display_name_of(user_id) do
+    case Repo.get(OpalCore.Accounts.User, user_id) do
+      %OpalCore.Accounts.User{display_name: name} when is_binary(name) and name != "" -> name
+      _ -> "Someone"
+    end
+  end
+
+  defp last_server_seq(conversation_id) do
+    from(m in Message,
+      where: m.conversation_id == ^conversation_id,
+      select: max(m.server_seq)
+    )
+    |> Repo.one() || 0
   end
 
   @doc "Member user ids for a conversation (membership-oracle only)."

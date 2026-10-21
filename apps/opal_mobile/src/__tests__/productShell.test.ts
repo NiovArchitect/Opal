@@ -52,7 +52,7 @@ describe("home model", () => {
           state: "upcoming",
         },
       ],
-      hourUTC: 20,
+      viewerHour: 20,
     });
     expect(home.greeting).toBe("Good evening, Alex.");
     expect(home.needs_you).toHaveLength(2);
@@ -65,7 +65,7 @@ describe("home model", () => {
       displayName: "Alex",
       needsYou: after,
       comingUp: [],
-      hourUTC: 20,
+      viewerHour: 20,
     });
     expect(quiet.quiet_success).toBe(true);
     expect(quiet.needs_you_empty_copy).toBe(NEEDS_YOU_EMPTY);

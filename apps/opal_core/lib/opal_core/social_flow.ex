@@ -5826,6 +5826,18 @@ defmodule OpalCore.SocialFlow do
   #   REPEAT_MUTATES_OLD_GRAPH = 0: the source is never written. Repeating a
   #   plan the caller cannot lawfully read is :forbidden; a missing source
   #   is :source_plan_not_found. A NEW plan is always created.
+  # - inspired_by_moment_id (Repair #21, I-1 seed provenance) ->
+  #   alignment["inspired_by_moment_id"] + the moment author's id in
+  #   alignment["inspired_by_author_user_id"]. The seed is a Social
+  #   Moment the creator may lawfully VIEW (the publishing read gate);
+  #   anything else is :inspired_source_not_visible and zero rows are
+  #   written. Only the moment's identity and its author's identity
+  #   are inherited - never the moment's audience, caption, or place
+  #   beyond what the creator typed into the new plan themselves. The
+  #   lineage rides the plan contract, which is participant-scoped,
+  #   so it is visible only where the new plan itself is visible; a
+  #   private (solo) branch therefore shows its lineage to its
+  #   creator alone.
   # - idempotency_key -> alignment["graph_create_key"]. A replay / double
   #   submit with the same key returns the existing plan (deduplicated:
   #   true) instead of inserting a duplicate.
@@ -5840,6 +5852,7 @@ defmodule OpalCore.SocialFlow do
     audience = present_string(params["audience"]) || "close_circle"
     media_id = present_string(params["media_id"])
     source_plan_id = present_string(params["source_plan_id"])
+    inspired_by_moment_id = present_string(params["inspired_by_moment_id"])
     idempotency_key = present_string(params["idempotency_key"])
 
     with :ok <- require_graph_title(title),
@@ -5847,6 +5860,8 @@ defmodule OpalCore.SocialFlow do
          :ok <- require_graph_audience(audience),
          :ok <- require_owned_graph_media(user_id, media_id),
          :ok <- require_repeatable_source(user_id, source_plan_id),
+         {:ok, inspired_author_id} <-
+           require_visible_inspired_moment(user_id, inspired_by_moment_id),
          {:ok, participant_ids} <-
            resolve_graph_participants(user_id, params["participant_user_ids"]) do
       case find_graph_create_plan(user_id, idempotency_key) do
@@ -5868,7 +5883,8 @@ defmodule OpalCore.SocialFlow do
           graph_plan_type = normalize_plan_type(params["plan_type"])
 
           dedupe_survivor =
-            if is_nil(source_plan_id) and params["force_new"] != true do
+            if is_nil(source_plan_id) and is_nil(inspired_by_moment_id) and
+                 params["force_new"] != true do
               components =
                 PlanIdentity.components(user_id, participant_ids, %{
                   "title" => title,
@@ -5895,6 +5911,8 @@ defmodule OpalCore.SocialFlow do
                 audience: audience,
                 media_id: media_id,
                 source_plan_id: source_plan_id,
+                inspired_by_moment_id: inspired_by_moment_id,
+                inspired_by_author_user_id: inspired_author_id,
                 idempotency_key: idempotency_key,
                 participant_ids: participant_ids
               })
@@ -5953,6 +5971,33 @@ defmodule OpalCore.SocialFlow do
 
       :error ->
         {:error, :source_plan_not_found}
+    end
+  end
+
+  # Repair #21 (I-1) - inspired-by seed gate: the moment must exist
+  # and be lawfully visible to the creator through the publishing
+  # read gate (the same gate the feed itself reads through). The
+  # moment is only ever READ here; the branch inherits its identity
+  # and its author's identity, nothing else. Returns the author's
+  # user id for the lineage stamp.
+  defp require_visible_inspired_moment(_user_id, nil), do: {:ok, nil}
+
+  defp require_visible_inspired_moment(user_id, moment_id) do
+    case Ecto.UUID.cast(moment_id) do
+      {:ok, uuid} ->
+        case OpalCore.SocialFlow.SocialMomentPublishing.get_for_viewer(uuid, user_id) do
+          {:ok, moment} ->
+            case moment["author_user_id"] do
+              author when is_binary(author) -> {:ok, author}
+              _ -> {:error, :inspired_source_not_visible}
+            end
+
+          {:error, _} ->
+            {:error, :inspired_source_not_visible}
+        end
+
+      :error ->
+        {:error, :inspired_source_not_visible}
     end
   end
 
@@ -6038,6 +6083,14 @@ defmodule OpalCore.SocialFlow do
       |> then(fn a ->
         if ctx.source_plan_id,
           do: Map.put(a, "repeated_from_plan_id", ctx.source_plan_id),
+          else: a
+      end)
+      |> then(fn a ->
+        if ctx.inspired_by_moment_id,
+          do:
+            a
+            |> Map.put("inspired_by_moment_id", ctx.inspired_by_moment_id)
+            |> Map.put("inspired_by_author_user_id", ctx.inspired_by_author_user_id),
           else: a
       end)
       |> then(fn a ->

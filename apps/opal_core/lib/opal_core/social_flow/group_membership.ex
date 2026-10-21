@@ -97,34 +97,26 @@ defmodule OpalCore.SocialFlow.GroupMembership do
     end
   end
 
-  @doc "Remove member (decline / out). Actor must be member; cannot remove last two required easily."
+  @doc """
+  Remove member (decline / out). Repair #21 (W-5b): this delegates
+  to the ONE removal path, `Messages.remove_conversation_member/3`,
+  which carries the admin rule (only the conversation's creator may
+  remove someone else; anyone may remove themselves) and records
+  the removal into the conversation's Chronology record. This
+  module's older permissive removal (any member could remove
+  anyone, recorded here) is retired so no path can bypass the rule.
+  """
   def remove_member(conversation_id, actor_user_id, target_user_id)
       when is_binary(conversation_id) and is_binary(actor_user_id) and is_binary(target_user_id) do
-    with :ok <- ensure_actor_member(conversation_id, actor_user_id) do
-      case Repo.get_by(ConversationMember,
-             conversation_id: conversation_id,
-             user_id: target_user_id
-           ) do
-        nil ->
-          {:error, :not_a_member}
+    case Messages.remove_conversation_member(conversation_id, actor_user_id, target_user_id) do
+      {:ok, %{member_count: count, member_ids: members}} ->
+        {:ok, %{member_count: count, member_ids: members}}
 
-        %ConversationMember{} = m ->
-          {:ok, _} = Repo.delete(m)
-          members = Messages.member_user_ids(conversation_id)
+      {:error, :target_not_a_member} ->
+        {:error, :not_a_member}
 
-          Chronology.record_consequential(conversation_id, %{
-            kind: "member_removed",
-            label: "Someone stepped out of the plan",
-            detail: "#{length(members)} people remain",
-            after_server_seq: last_seq(conversation_id),
-            created_from: "group_membership",
-            composition_snapshot: %{"member_count" => length(members)},
-            idempotency_key:
-              "member-rm-#{conversation_id}-#{target_user_id}-#{System.unique_integer([:positive])}"
-          })
-
-          {:ok, %{member_count: length(members), member_ids: members}}
-      end
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 

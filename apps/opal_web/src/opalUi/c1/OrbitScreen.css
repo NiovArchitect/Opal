@@ -1,14 +1,22 @@
-/* Repair #20 amendment (Orbit v2) - THE ORBIT SCREEN.
-   CALM LAW: a quiet card room. One idea per card, generous
-   negative space, no ring, no animation loops, no walls of text.
-   The only lit element is the recommendation box when a draft is
-   waiting - it carries a decision, so it earns the light. */
+/* Repair #21 (Orbit v3) - THE ORBIT SCREEN, RADICAL CALM.
+   One quiet column. Hairline separation inside the Where card,
+   key values bold in their state color (the canon state tokens;
+   text takes the per-mode -ink form so the state color stays
+   legible at 390px in light and dark), secondary text quieter
+   but legible. No ring, no animation loops, no walls of text.
+   The only lit element is the recommendation box when a draft
+   is waiting - it carries a decision, so it earns the light. */
 
 [data-design="r18"] .orbit-screen {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
   background: var(--canvas); color: var(--ink-1);
   max-width: 520px; width: 100%; margin: 0 auto;
-  padding: 0 var(--gutter, 16px);
+  /* V4 composer dock + V4.2 (F-2): the room's floor is SNUG -
+     the composer docks CLOSE above the pad (a thin gap, inside
+     the one frost sheet behind both), never floating high
+     above it and never behind the pad. */
+  padding: 0 var(--gutter, 16px) calc(var(--dock-clearance, 84px) - 10px);
+  position: relative;
   box-sizing: border-box;
 }
 
@@ -20,107 +28,173 @@
   color: var(--ink-2); font: 500 13px/18px system-ui, sans-serif; padding: 6px 0;
 }
 [data-design="r18"] .orbit-screen-title {
-  font: 700 19px/24px system-ui, sans-serif; margin: 0;
+  font: 700 15px/19px system-ui, sans-serif; margin: 0; text-align: center;
+  overflow-wrap: break-word;
 }
 [data-design="r18"] .orbit-screen-parties {
   font: 400 12.5px/17px system-ui, sans-serif; color: var(--ink-2); margin: 0;
 }
 
-/* The top zone (insight + cards + index) is bounded so the
+/* The top zone (Where card + folded rows) is bounded so the
    conversation field always holds the rest of the screen. */
 [data-design="r18"] .orbit-top {
   flex: 0 1 auto; min-height: 0; overflow-y: auto; width: 100%;
-  display: flex; flex-direction: column; gap: 14px; padding-top: 14px;
+  /* V4: the top zone is capped so the conversation field always
+     holds a real share of the room - the stream is a resident,
+     not a sliver (the card zone scrolls internally past this). */
+  max-height: 47%;
+  display: flex; flex-direction: column; gap: 10px; padding-top: 12px;
 }
 
-[data-design="r18"] .orbit-insight {
-  flex: none; margin: 0; padding: 12px 14px;
-  border: 1px solid var(--line, rgba(140, 140, 160, 0.35));
-  border-radius: var(--radius-card, 16px);
-  font: 400 13.5px/19px system-ui, sans-serif; color: var(--ink-1);
-}
-[data-design="r18"] .orbit-insight-kicker {
-  display: block; font: 600 10.5px/14px system-ui, sans-serif;
-  letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 2px;
-}
-
-/* One idea per card. */
+/* Where we're at: one card, hairline-separated rows. Each row is
+   a quiet label over a clear value, so rows never run together. */
 [data-design="r18"] .orbit-card {
-  flex: none; padding: 12px 14px;
+  flex: none; padding: 6px 14px 10px;
   border: 1px solid var(--line, rgba(140, 140, 160, 0.3));
   border-radius: var(--radius-card, 16px);
 }
 [data-design="r18"] .orbit-card-kicker {
-  font: 600 11px/14px system-ui, sans-serif; letter-spacing: 0.08em;
-  color: var(--ink-2); margin: 0 0 6px;
+  font: 700 11px/14px system-ui, sans-serif; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-2); margin: 8px 0 2px;
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; background: none; border: none; cursor: pointer;
+  text-align: left; padding: 4px 18px 4px 0; position: relative; box-sizing: border-box;
 }
-[data-design="r18"] .orbit-card-line {
-  font: 400 13.5px/19px system-ui, sans-serif; margin: 0 0 3px; color: var(--ink-1);
+[data-design="r18"] .orbit-where-row {
+  display: flex; flex-direction: column; gap: 1px;
+  margin: 0; padding: 9px 0;
+  border-top: 1px solid var(--line, rgba(140, 140, 160, 0.22));
+  font: 400 13.5px/19px system-ui, sans-serif; color: var(--ink-1);
+  text-align: left; width: 100%; box-sizing: border-box;
 }
 [data-design="r18"] .orbit-card-label {
-  font: 600 11px/14px system-ui, sans-serif; letter-spacing: 0.04em;
-  color: var(--ink-3); text-transform: uppercase; margin-right: 8px;
+  font: 600 10.5px/14px system-ui, sans-serif; letter-spacing: 0.06em;
+  color: var(--ink-3); text-transform: uppercase;
 }
-[data-design="r18"] .orbit-card-toggle {
+[data-design="r18"] .orbit-where-value {
+  font: 400 14px/20px system-ui, sans-serif; color: var(--ink-1);
+  overflow-wrap: break-word;
+}
+[data-design="r18"] .orbit-where-value-plain { font-weight: 400; }
+[data-design="r18"] .orbit-where-value-quiet { font-weight: 500; color: var(--ink-2); }
+
+/* V4 COLOR/WEIGHT DISCIPLINE: state color + bold live on the
+   HEADING only (the row's label, or the card's own heading).
+   Content under a heading is regular weight and neutral -
+   never bold, never state-colored. */
+[data-design="r18"] .orbit-heading { font-weight: 700; }
+[data-design="r18"] .orbit-where-row[data-state="action"] .orbit-heading { color: var(--state-action-ink); }
+[data-design="r18"] .orbit-where-row[data-state="ready"] .orbit-heading { color: var(--state-ready-ink); }
+[data-design="r18"] .orbit-where-row[data-state="forming"] .orbit-heading { color: var(--state-forming-ink); }
+[data-design="r18"] .orbit-where-row[data-state="happening"] .orbit-heading { color: var(--state-happening-ink); }
+[data-design="r18"] .orbit-where-row[data-state="past"] .orbit-heading { color: var(--state-past-ink); }
+[data-design="r18"] .orbit-where-row[data-state="limbo"] .orbit-heading { color: var(--state-limbo-ink); }
+
+/* Tappable rows look tappable: button reset + chevron + press. */
+[data-design="r18"] .orbit-where-row-btn {
+  background: none; border: none; border-top: 1px solid var(--line, rgba(140, 140, 160, 0.22));
+  cursor: pointer; position: relative; padding-right: 18px;
+  font: inherit;
+}
+[data-design="r18"] .orbit-row-chevron {
+  position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-3); font: 400 16px/20px system-ui, sans-serif; flex: none;
+}
+[data-design="r18"] .orbit-where-row-btn:active { opacity: 0.65; }
+
+/* Opal's read rides inside the Where card as one quiet row -
+   never a second card on first paint. */
+[data-design="r18"] .orbit-insight { color: var(--ink-1); }
+
+/* Folded rows: past plans and past chats each collapse into ONE
+   quiet row; their contents appear only on intent. */
+[data-design="r18"] .orbit-fold {
+  flex: none;
+  border: 1px solid var(--line, rgba(140, 140, 160, 0.3));
+  border-radius: var(--radius-card, 16px);
+  padding: 2px 14px 6px;
+}
+[data-design="r18"] .orbit-fold-toggle {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  width: 100%; position: relative;
   background: none; border: none; cursor: pointer; text-align: left;
-  color: var(--ink-1); font: 600 13.5px/18px system-ui, sans-serif; padding: 0;
+  color: var(--ink-1); font: 600 13.5px/18px system-ui, sans-serif; padding: 10px 18px 6px 0;
 }
-[data-design="r18"] .orbit-past-title { font-weight: 600; }
+[data-design="r18"] .orbit-fold-toggle .orbit-row-chevron { right: 0; }
+[data-design="r18"] .orbit-fold-row {
+  display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
+  width: 100%; box-sizing: border-box; margin: 0;
+  border-top: 1px solid var(--line, rgba(140, 140, 160, 0.22));
+  padding: 9px 0; color: var(--ink-1);
+  font: 400 13.5px/19px system-ui, sans-serif; text-align: left;
+}
+[data-design="r18"] .orbit-fold-row-btn {
+  background: none; border: none;
+  border-top: 1px solid var(--line, rgba(140, 140, 160, 0.22));
+  cursor: pointer; position: relative; padding-right: 18px; font: inherit;
+}
+[data-design="r18"] .orbit-fold-row-main { flex: 1; min-width: 0; }
+[data-design="r18"] .orbit-past-title { font-weight: 400; }
 [data-design="r18"] .orbit-past-meta { color: var(--ink-2); }
 [data-design="r18"] .orbit-past-loved { color: var(--ink-1); font-weight: 600; }
 
-/* Past Opal chats: collapsed into period pills; rows appear only
-   inside an opened pill. */
-[data-design="r18"] .orbit-index { display: flex; flex-direction: column; }
-[data-design="r18"] .orbit-period-pills { display: flex; flex-direction: column; gap: 6px; }
-[data-design="r18"] .orbit-period-pill {
-  align-self: flex-start; background: none; cursor: pointer;
-  border: 1px solid var(--line, rgba(140, 140, 160, 0.35)); border-radius: 999px;
-  color: var(--ink-1); font: 500 12.5px/16px system-ui, sans-serif; padding: 6px 12px;
-}
 [data-design="r18"] .orbit-index-row {
   display: flex; justify-content: space-between; gap: 10px; text-align: left; width: 100%;
-  background: none; border: none; border-top: 1px solid var(--line, rgba(140, 140, 160, 0.25));
+  background: none; border: none; border-top: 1px solid var(--line, rgba(140, 140, 160, 0.22));
   padding: 9px 0; cursor: pointer; color: var(--ink-1);
 }
 [data-design="r18"] .orbit-index-title { font: 600 13.5px/18px system-ui, sans-serif; }
 [data-design="r18"] .orbit-index-time { font: 400 12px/16px system-ui, sans-serif; color: var(--ink-2); }
 [data-design="r18"] .orbit-index-new {
   align-self: flex-start; background: none; border: none; cursor: pointer;
-  color: var(--ink-2); font: 500 13px/18px system-ui, sans-serif; padding: 8px 0 0;
+  color: var(--ink-2); font: 500 13px/18px system-ui, sans-serif; padding: 8px 0 2px;
 }
 
 /* The conversation field. */
 [data-design="r18"] .orbit-field {
   flex: 1; min-height: 0; display: flex; flex-direction: column;
-  margin-top: 14px; border-top: 1px solid var(--line, rgba(140, 140, 160, 0.35));
+  margin-top: 12px; border-top: 1px solid var(--line, rgba(140, 140, 160, 0.35));
   padding-top: 10px;
-}
-[data-design="r18"] .orbit-field-purpose {
-  flex: none; font: 600 12px/16px system-ui, sans-serif; color: var(--ink-2); margin: 0 0 6px;
 }
 [data-design="r18"] .orbit-field .c1-surface {
   flex: 1; min-height: 0; height: auto; max-width: none; width: 100%;
-  margin: 0; overflow-y: auto; padding: 0 0 12px;
+  margin: 0; overflow-y: auto; padding: 0 0 2px;
 }
+/* V4.2 (F-5): no furniture floats mid-room. The Shape chip
+   docks DIRECTLY ABOVE THE COMPOSER, inside the frost zone -
+   anchored to the room's bottom (the screen is the containing
+   block), left-aligned over the stream's end. The offset is
+   the snug floor + the composer bar + a breath: it sits on
+   the composer's shoulder, never in the conversation. */
 [data-design="r18"] .orbit-shape-btn {
-  align-self: flex-start; flex: none; background: none; cursor: pointer;
+  position: absolute; left: var(--gutter, 16px); bottom: 142px; z-index: 32;
+  flex: none; cursor: pointer; background: var(--canvas);
   border: 1px solid var(--line, rgba(140, 140, 160, 0.4)); border-radius: 999px;
   color: var(--ink-1); font: 500 13px/18px system-ui, sans-serif; padding: 7px 14px;
-  margin-bottom: 8px;
+  margin: 0;
 }
 
 /* The recommendation box: Opal's draft, distinct from chat
-   bubbles - its own framed card. Long-press raises its menu. */
+   bubbles - its own framed card. Long-press SELECTS it (Round 3:
+   the copy-gesture users already own); the selected state
+   offers the one place action. */
 [data-design="r18"] .orbit-recommendation {
   flex: none; margin-bottom: 10px; padding: 12px 14px; position: relative;
-  border: 1px solid var(--ink-3); border-radius: var(--radius-card, 16px);
-  background: var(--surface-1);
+  /* A press must never become a text selection before it can
+     become a selection of the card itself (gesture grammar:
+     same press family as the app's other long-press surfaces). */
   user-select: none; -webkit-user-select: none; touch-action: manipulation;
 }
-[data-design="r18"] .orbit-recommendation-kicker {
-  font: 600 10.5px/14px system-ui, sans-serif; letter-spacing: 0.08em;
-  color: var(--ink-3); margin: 0 0 4px;
+[data-design="r18"] .orbit-recommendation * {
+  user-select: none; -webkit-user-select: none;
+  /* V4 Addendum 5: in-stream cards are residents, held to the
+     YOUR MOVE craft standard - an ambient border and a soft
+     state-tinted shadow, not a plain block. */
+  border: 1px solid color-mix(in srgb, var(--accent-1) 45%, var(--line, rgba(140,140,160,0.3)));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-1) 14%, transparent);
+  border-radius: var(--radius-card, 16px);
+  background: var(--surface-1);
+  user-select: none; -webkit-user-select: none; touch-action: manipulation;
 }
 [data-design="r18"] .orbit-recommendation-text {
   font: 400 14px/20px system-ui, sans-serif; color: var(--ink-1); margin: 0;
@@ -129,14 +203,8 @@
 [data-design="r18"] .orbit-recommendation-hint {
   font: 400 11.5px/15px system-ui, sans-serif; color: var(--ink-3); margin: 6px 0 0;
 }
-[data-design="r18"] .orbit-recommendation-menu {
-  display: flex; flex-direction: column; margin-top: 8px;
-  border-top: 1px solid var(--line, rgba(140, 140, 160, 0.3)); padding-top: 6px;
-}
-[data-design="r18"] .orbit-recommendation-menu button {
-  background: none; border: none; cursor: pointer; text-align: left;
-  color: var(--ink-1); font: 500 13.5px/18px system-ui, sans-serif; padding: 7px 0;
-}
+/* (The actions block's styles live with the selected-state
+   treatment below - Round 3 disposed the long-press menu.) */
 [data-design="r18"] .orbit-recommendation-input {
   width: 100%; box-sizing: border-box; resize: vertical;
   border: 1px solid var(--line, rgba(140, 140, 160, 0.4)); border-radius: 10px;
@@ -148,14 +216,37 @@
   color: var(--ink-1); font: 600 13px/18px system-ui, sans-serif;
 }
 
-/* Empty orbit: a promise, not an absence. */
+/* Embedded conversation (Repair #21) + V4.2 (F-5): the
+   conversation's overflow (•••) lives in the ORBIT HEADER ROW,
+   top-right - the conversation-chrome placement the founder
+   approved in Center chat - never stranded mid-room. Its menu
+   drops from the same corner. The embedded surface drops its
+   own scroll box so this chrome is not clipped by it; the
+   message flow keeps the scroll instead. */
+[data-design="r18"] .orbit-field .c1-surface[data-embedded="true"] {
+  overflow: visible; display: flex; flex-direction: column;
+}
+[data-design="r18"] .orbit-field .c1-surface[data-embedded="true"] .c1-flow {
+  overflow-y: auto; flex: 1; min-height: 0;
+  /* The stream's tail rests ABOVE the docked Shape chip -
+     the last message is never half-buried under furniture. */
+  padding-bottom: 52px;
+}
+[data-design="r18"] .orbit-field .c1-surface[data-embedded="true"] .c1-header {
+  position: absolute; top: 6px; right: var(--gutter, 16px); z-index: 40;
+  justify-content: flex-end; min-height: 0; border-bottom: none;
+  background: transparent; margin: 0; padding: 0;
+}
+[data-design="r18"] .orbit-field .c1-surface[data-embedded="true"] .c1-overflow-menu {
+  position: absolute; top: 42px; right: var(--gutter, 16px); z-index: 40;
+  width: 264px; margin: 0; background: var(--canvas);
+  box-shadow: 0 12px 32px rgba(20, 16, 40, 0.18);
+}
+
+/* Empty orbit: the room, empty - plus one quiet info bubble.
+   Nothing is explained until the bubble is tapped. */
 [data-design="r18"] .orbit-empty { display: flex; flex-direction: column; gap: 10px; }
-[data-design="r18"] .orbit-empty-teaching {
-  font: 400 14px/20px system-ui, sans-serif; color: var(--ink-1); margin: 0;
-}
-[data-design="r18"] .orbit-empty-line {
-  font: 400 14px/20px system-ui, sans-serif; color: var(--ink-2); margin: 0;
-}
+[data-design="r18"] .orbit-empty-info { display: flex; padding: 2px 0; }
 [data-design="r18"] .orbit-empty-composer { display: flex; gap: 8px; align-items: center; }
 [data-design="r18"] .orbit-empty-input {
   flex: 1; border: 1px solid var(--line, rgba(140, 140, 160, 0.4)); border-radius: 999px;
@@ -166,3 +257,287 @@
   width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer;
   background: var(--opal-iris-gradient); color: #fff; font-size: 16px; flex: none;
 }
+
+/* ============ Repair #21 Orbit v4 ============ */
+/* Ring composition: the doorway's ring, grown. Geometry is the
+   brand master geometry (ORB_RING r71 / ORB_HRING, viewBox
+   200). The rotor's transform-origin is the ring's own center
+   in viewBox units (transform-box: view-box), so lights ride
+   the ring by construction. Travel is the brand ambient lap
+   (96s); the trace rides at 36s; breathing is a 6s glow/shadow
+   swell. Every light answers a true state or the room's living
+   identity; reduced motion stills travel + trace + breathing
+   and keeps the glow. */
+/* V4 Twin Test layer 2 (LIGHT): the room's light is tinted by
+   the ring's glow - the tint IS the ring's presence in the
+   room's light. Threads carry no such tint. */
+[data-design="r18"] .orbit-screen { --orbit-glow: var(--ink-3); }
+[data-design="r18"] .orbit-screen[data-state="action"] { --orbit-glow: var(--state-action); }
+[data-design="r18"] .orbit-screen[data-state="limbo"] { --orbit-glow: var(--state-limbo); }
+[data-design="r18"] .orbit-screen[data-state="forming"] { --orbit-glow: var(--state-forming); }
+[data-design="r18"] .orbit-screen[data-state="happening"] { --orbit-glow: var(--state-happening); }
+[data-design="r18"] .orbit-screen[data-state="ready"] { --orbit-glow: var(--state-ready); }
+[data-design="r18"] .orbit-screen {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orbit-glow) 7%, var(--canvas)) 0, var(--canvas) 340px);
+}
+[data-design="r18"] .orbit-composition {
+  position: relative; width: 148px; height: 148px; margin: 2px auto 0; flex: none;
+  animation: orbit-composition-enter 550ms ease-out 1 both;
+  /* V4.2 (F-3): after entry the ring SETTLES SMALL - the size
+     transition is the settle; identity (topic, lights, glow)
+     is unchanged at the small size. */
+  transition: width 900ms ease, height 900ms ease;
+}
+[data-design="r18"] .orbit-composition[data-settled="true"] {
+  width: 90px; height: 90px;
+}
+[data-design="r18"] .orbit-composition .orbit-screen-title {
+  transition: font-size 900ms ease, line-height 900ms ease;
+}
+[data-design="r18"] .orbit-composition[data-settled="true"] .orbit-composition-center {
+  padding: 0 10px; gap: 3px;
+}
+/* V4.2.1 (CF2-5): at the settled size the ring holds the GLYPH
+   only - the orb stays, the topic leaves the ring. */
+[data-design="r18"] .orbit-composition[data-settled="true"] .orbit-composition-orb {
+  width: 22px; height: 22px;
+}
+/* The hero's parties line sits under the ring at entry size.
+   Round 3 (O-2): it NO LONGER yields at settle - the compact
+   header keeps the names in the header zone, quiet and
+   unmissable, as a full-width line under the ring + topic row.
+   The lights carry presence; the line carries the NAMES - a
+   topic with nobody named fails the room's own test. */
+[data-design="r18"] .orbit-screen-head:has(.orbit-composition[data-settled="true"]) .orbit-screen-parties {
+  flex-basis: 100%; text-align: left; margin-top: 2px;
+}
+/* V4.2.1 (CF2-5) - THE COMPACT HEADER FORM: once the ring
+   settles, the header becomes a compact row - the small ring
+   (glyph only) at the left, the topic BESIDE it in full:
+   no clamp, no ellipsis, no truncation at any length; the
+   header grows rather than cutting the topic. The big entry
+   form above keeps the topic at the ring's center. */
+[data-design="r18"] .orbit-screen-head:has(.orbit-composition[data-settled="true"]) {
+  flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 12px;
+}
+[data-design="r18"] .orbit-screen-head:has(.orbit-composition[data-settled="true"]) .orbit-screen-back {
+  flex-basis: 100%; text-align: left;
+}
+[data-design="r18"] .orbit-screen-head:has(.orbit-composition[data-settled="true"]) .orbit-composition {
+  margin: 2px 0 0;
+}
+[data-design="r18"] .orbit-compact-topic {
+  flex: 1; min-width: 0; margin: 0; text-align: left;
+  font: 700 15px/20px system-ui, sans-serif; overflow-wrap: break-word;
+}
+[data-design="r18"] .orbit-composition[data-state="action"] { --orbit-glow: var(--state-action); }
+[data-design="r18"] .orbit-composition[data-state="limbo"] { --orbit-glow: var(--state-limbo); }
+[data-design="r18"] .orbit-composition[data-state="forming"] { --orbit-glow: var(--state-forming); }
+[data-design="r18"] .orbit-composition[data-state="happening"] { --orbit-glow: var(--state-happening); }
+[data-design="r18"] .orbit-composition[data-state="ready"] { --orbit-glow: var(--state-ready); }
+@keyframes orbit-composition-enter {
+  from { transform: scale(0.55); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+[data-design="r18"] .orbit-composition-svg {
+  /* V4.2: the artwork scales WITH the composition box - at the
+     settled size the whole ring (lights, trace, tilt ellipse)
+     shrinks proportionally inside its band. */
+  width: 100%; height: 100%; display: block; overflow: visible;
+  filter: drop-shadow(0 6px 16px color-mix(in srgb, var(--orbit-glow) 38%, transparent));
+  animation: orbit-breathe 6s ease-in-out infinite alternate;
+}
+@keyframes orbit-breathe {
+  from { filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--orbit-glow) 22%, transparent)); }
+  to { filter: drop-shadow(0 8px 20px color-mix(in srgb, var(--orbit-glow) 48%, transparent)); }
+}
+[data-design="r18"] .orbit-composition-ring {
+  fill: none; stroke: var(--orb-ring-metal, var(--ink-3)); stroke-width: 1.6; opacity: 0.85;
+}
+[data-design="r18"] .orbit-composition-hring {
+  fill: none; stroke: var(--orb-ring-metal, var(--ink-3)); stroke-width: 1.1; opacity: 0.5;
+}
+[data-design="r18"] .orbit-composition-rotor {
+  transform-box: view-box; transform-origin: 101px 100px;
+  animation: orbit-rotor 96s linear infinite;
+}
+[data-design="r18"] .orbit-composition-trace-rotor {
+  transform-box: view-box; transform-origin: 101px 100px;
+  animation: orbit-rotor 36s linear infinite;
+}
+[data-design="r18"] .orbit-composition-trace {
+  fill: none; stroke: var(--orbit-glow); stroke-width: 3.2; stroke-linecap: round; opacity: 0.9;
+}
+@keyframes orbit-rotor { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+[data-design="r18"] .orbit-light-halo { fill: var(--ink-3); opacity: 0.35; }
+[data-design="r18"] .orbit-light-core { fill: var(--orb-point-light, #fff7e6); }
+[data-design="r18"] .orbit-composition-light[data-state="settled"] .orbit-light-halo { fill: var(--ink-2); opacity: 0.3; }
+[data-design="r18"] .orbit-composition-light[data-state="action"] .orbit-light-halo { fill: var(--state-action); opacity: 0.85; }
+[data-design="r18"] .orbit-composition-light[data-state="action"] .orbit-light-core { fill: var(--state-action); }
+[data-design="r18"] .orbit-composition-light[data-state="limbo"] .orbit-light-halo { fill: var(--state-limbo); opacity: 0.85; }
+[data-design="r18"] .orbit-composition-light[data-state="limbo"] .orbit-light-core { fill: var(--state-limbo); }
+[data-design="r18"] .orbit-light-overflow-text { font: 600 8px system-ui, sans-serif; fill: var(--ink-1); }
+[data-design="r18"] .orbit-composition-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 5px; padding: 0 26px;
+  pointer-events: none; text-align: center;
+}
+[data-design="r18"] .orbit-composition-orb {
+  width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: var(--opal-iris-gradient);
+}
+[data-design="r18"] .orbit-screen-parties { text-align: center; }
+@media (prefers-reduced-motion: reduce) {
+  [data-design="r18"] .orbit-composition { animation: none; transition: none; }
+  [data-design="r18"] .orbit-composition .orbit-screen-title { transition: none; }
+  [data-design="r18"] .orbit-composition-svg { animation: none; }
+  [data-design="r18"] .orbit-composition-rotor { animation: none; }
+  [data-design="r18"] .orbit-composition-trace-rotor { animation: none; }
+}
+
+/* Composer dock: the embedded conversation is height-bounded
+   so its composer bar (margin-top: auto in c1.css) docks at
+   the bottom of the room, above the shell pad, in every state.
+   The message flow - not the surface - is what scrolls. */
+[data-design="r18"] .orbit-field .c1-surface {
+  min-height: 0; height: 100%; overflow: hidden;
+}
+[data-design="r18"] .orbit-field .c1-surface .c1-flow {
+  flex: 1; min-height: 0; overflow-y: auto;
+}
+[data-design="r18"] .orbit-field .c1-composer-bar { flex: none; }
+/* Send is first-class: with text present the Send control is a
+   wide, gradient, labeled pill - never a quiet glyph. */
+/* Reference form (founder, 2026-10-20): Send is a FILLED CIRCLE
+   with an up-arrow in the slot - the same form the thread and
+   Opal-chat composers carry (.c1-send), never a text pill. */
+[data-design="r18"] .orbit-send-primary {
+  width: 44px; height: 44px; border-radius: 50%; flex: none;
+  font-size: 18px; background: var(--opal-iris-gradient); color: #fff;
+}
+[data-design="r18"] .orbit-composer-mic {
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer; flex: none;
+  border: 1px solid var(--line, rgba(140,140,160,0.4)); background: var(--surface-1);
+  color: var(--ink-1); display: grid; place-items: center; padding: 0;
+}
+[data-design="r18"] .orbit-recording {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px;
+  color: var(--state-action-ink); font: 600 13px/18px system-ui, sans-serif;
+}
+[data-design="r18"] .orbit-composer-stop {
+  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--state-action); color: #fff; font-size: 12px;
+}
+[data-design="r18"] .orbit-voice-note {
+  font: 400 12px/16px system-ui, sans-serif; color: var(--ink-2); margin: 6px 2px 0;
+}
+[data-design="r18"] .orbit-empty { flex: 1; min-height: 0; }
+[data-design="r18"] .orbit-composer-bar { margin-top: auto; flex: none; }
+
+/* Round 3 (O-1) - MESSAGES TRACED WITH LIGHT. Every message in
+   the room's own conversation (the embedded Opal chat's bubbles,
+   both seats, voice notes included) carries a fine opal trace
+   around its edge: the room's ambient light, carried into the
+   conversation itself. The trace is IDENTITY, not state - it is
+   the same light for every message, in the fire family the ring
+   itself carries, and it never varies per message, because a
+   variation would claim a meaning no message has. Construction
+   mirrors the orbit trace (AR-F7): a conic segment clipped to a
+   fine ring by the mask trick, traveling on the registered
+   --orbit-trace-angle. Subtle in light mode; luminous in dark
+   (full strength + a soft fire glow). Reduced motion: the
+   travel stops and the segment rests - a static trace, the
+   same light standing still, the same meaning carried. */
+[data-design="r18"] .orbit-field .c1-bubble { position: relative; }
+[data-design="r18"] .orbit-field .c1-bubble::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  padding: 1px; pointer-events: none;
+  background: conic-gradient(
+    from var(--orbit-trace-angle),
+    transparent 0deg,
+    transparent 246deg,
+    color-mix(in srgb, var(--orb-fire-violet) 65%, transparent) 288deg,
+    color-mix(in srgb, var(--orb-fire-cyan) 75%, transparent) 322deg,
+    var(--orb-point-light) 346deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.5;
+  animation: orbit-msg-trace-travel 16s linear infinite;
+}
+:root[data-mode="dark"] [data-design="r18"] .orbit-field .c1-bubble::after {
+  opacity: 0.95;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--orb-fire-violet) 45%, transparent));
+}
+@keyframes orbit-msg-trace-travel {
+  to { --orbit-trace-angle: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-design="r18"] .orbit-field .c1-bubble::after { animation: none; }
+}
+
+/* Round 3 (O-3 rebuild) - the SELECTED suggestion. Selection is
+   shown in the room's light language: a fine lit outline in the
+   fire family plus a soft fire glow - the same light the ring
+   and the message traces carry, so a selected draft reads as
+   lit by the room, not decorated. The drag/flight styles that
+   lived here are DISPOSED with the gesture (founder correction
+   2026-10-20 21:39 PDT). */
+[data-design="r18"] .orbit-recommendation[data-selected="true"] {
+  border-radius: var(--radius-card, 16px);
+  outline: 2px solid color-mix(in srgb, var(--orb-fire-cyan) 65%, var(--orb-point-light));
+  outline-offset: 2px;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--orb-fire-violet) 32%, transparent);
+}
+/* The selected state's actions: ONE primary place action (the
+   iris-gradient pill - the room's own send-family form, labeled
+   with its destination), its unsent truth stated quietly under
+   it, then the quiet secondaries in the old menu's register. */
+[data-design="r18"] .orbit-recommendation-actions {
+  display: flex; flex-direction: column; margin-top: 10px;
+  border-top: 1px solid var(--line, rgba(140, 140, 160, 0.3)); padding-top: 10px;
+}
+[data-design="r18"] .orbit-recommendation-actions > button {
+  background: none; border: none; cursor: pointer; text-align: left;
+  color: var(--ink-1); font: 500 13.5px/18px system-ui, sans-serif; padding: 7px 0;
+}
+[data-design="r18"] .orbit-recommendation-actions > button.orbit-recommendation-place {
+  align-self: flex-start; text-align: center;
+  background: var(--opal-iris-gradient); color: #fff;
+  border-radius: 999px; padding: 9px 18px; font-weight: 600;
+}
+[data-design="r18"] .orbit-recommendation-place-note {
+  font: 400 11.5px/15px system-ui, sans-serif; color: var(--ink-3); margin: 6px 0 2px;
+}
+
+/* Retrospective chapters + stones + glimpse */
+[data-design="r18"] .orbit-stone { position: relative; padding-left: 22px; }
+[data-design="r18"] .orbit-stone::before {
+  content: ""; position: absolute; left: 2px; top: 50%; width: 9px; height: 9px;
+  transform: translateY(-50%) rotate(45deg); border-radius: 2px;
+  background: var(--state-past-ink); opacity: 0.75;
+}
+[data-design="r18"] .orbit-chapter-pills { display: flex; gap: 8px; flex-wrap: wrap; padding: 8px 0 4px; }
+[data-design="r18"] .orbit-chapter-pill {
+  border: 1px solid var(--line, rgba(140,140,160,0.35)); background: none; cursor: pointer;
+  border-radius: 999px; padding: 6px 12px; color: var(--ink-2);
+  font: 500 12.5px/16px system-ui, sans-serif;
+}
+[data-design="r18"] .orbit-chapter-pill[data-active="true"] { color: var(--ink-1); border-color: var(--ink-2); font-weight: 700; }
+[data-design="r18"] .orbit-chapter { padding: 6px 0 4px; display: flex; flex-direction: column; gap: 6px; }
+[data-design="r18"] .orbit-chapter-loved { margin: 0; font: 400 13.5px/19px system-ui, sans-serif; color: var(--ink-1); }
+[data-design="r18"] .orbit-chapter-milestone { margin: 0; font: 400 13.5px/19px system-ui, sans-serif; color: var(--ink-2); }
+[data-design="r18"] .orbit-chapter-session { margin: 0; font: 400 13.5px/19px system-ui, sans-serif; color: var(--ink-1); }
+[data-design="r18"] .orbit-chapter-thin { margin: 0; font: 400 13px/18px system-ui, sans-serif; color: var(--ink-3); }
+[data-design="r18"] .orbit-glimpse-row { flex-direction: row; align-items: center; gap: 9px; }
+[data-design="r18"] .orbit-stone-dot {
+  width: 9px; height: 9px; border-radius: 2px; transform: rotate(45deg); flex: none;
+  background: var(--ink-3);
+}
+[data-design="r18"] .orbit-stone-dot[data-state="forming"] { background: var(--state-forming); }
+[data-design="r18"] .orbit-stone-dot[data-state="ready"] { background: var(--state-ready); }
+[data-design="r18"] .orbit-stone-dot[data-state="happening"] { background: var(--state-happening); }
+[data-design="r18"] .orbit-stone-dot[data-state="action"] { background: var(--state-action); }

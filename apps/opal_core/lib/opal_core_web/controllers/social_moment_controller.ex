@@ -103,6 +103,20 @@ defmodule OpalCoreWeb.SocialMomentController do
     end
   end
 
+  # Repair #21 (W-13 / I-2) - the counts-free light roster. Only the
+  # moment's author receives who lit it; see
+  # SocialMomentEngagement.light_roster/2 for the gate.
+  def light(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case SocialMomentEngagement.light_roster(user_id, id) do
+      {:ok, body} -> json(conn, body)
+      {:error, :denied} -> conn |> put_status(:forbidden) |> json(%{"error" => "DENIED"})
+      {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
   def comments(conn, %{"id" => id}) do
     user_id = conn.assigns.current_user_id
 

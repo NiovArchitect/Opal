@@ -76,6 +76,16 @@ export const ORB_ASSETS = {
   hero512: "/brand/orb/opal-orb-hero-512.webp",
   /** Light-mode variant: the master in its own dark medallion (jewel-in-case). */
   medallion: "/brand/orb/opal-orb-medallion.webp",
+  /**
+   * Repair #21 (W-19) - THE MARBLE SPHERE: the master's own sphere
+   * interior (the opal-stone grain/swirl), cropped from the keyed
+   * hero at the measured sphere geometry by
+   * scripts/orb/build_marble_sphere.py - the stone WITHOUT rings or
+   * field, so identity surfaces seat the SAME grain under their own
+   * ring device. This is the brand's signature material; the thread
+   * doorway's flat fire gradient is its small-size reduction.
+   */
+  marbleSphere: "/brand/orb/opal-marble-sphere.webp",
   /** Splash 1 full-bleed: the master composition itself, field and
    * all, resize-only derivation (scripts/orb/build_splash_master.py). */
   masterFull: "/brand/orb/opal-orb-master-full.webp",

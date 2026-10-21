@@ -1,0 +1,51 @@
+{
+  "expectedTip": "d4b06ad641ff96da4abd42e2f25a540428cef0cf",
+  "results": [
+    {
+      "frame": "marble-pad-dark.png",
+      "mode": "dark",
+      "surface": "center+pad",
+      "marble": {
+        "present": true,
+        "href": "/brand/orb/opal-marble-sphere.webp",
+        "fetchStatus": 200,
+        "discRect": {
+          "x": 167,
+          "y": 767,
+          "w": 56,
+          "h": 56
+        }
+      }
+    },
+    {
+      "frame": "marble-splash-dark.png",
+      "mode": "dark",
+      "surface": "splash1-settled",
+      "settled": true,
+      "marbleSrc": "/brand/orb/opal-orb-master-full.webp"
+    },
+    {
+      "frame": "marble-pad-light.png",
+      "mode": "light",
+      "surface": "center+pad",
+      "marble": {
+        "present": true,
+        "href": "/brand/orb/opal-marble-sphere.webp",
+        "fetchStatus": 200,
+        "discRect": {
+          "x": 167,
+          "y": 767,
+          "w": 56,
+          "h": 56
+        }
+      }
+    },
+    {
+      "frame": "marble-splash-light.png",
+      "mode": "light",
+      "surface": "splash1-settled",
+      "settled": true,
+      "marbleSrc": "/brand/orb/opal-orb-master-full.webp"
+    }
+  ]
+}

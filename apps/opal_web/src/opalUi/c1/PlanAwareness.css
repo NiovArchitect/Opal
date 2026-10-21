@@ -65,7 +65,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.85;
+  /* R21 W-2 low-vision pass: the strip/call text sat at 0.85
+   * opacity over the canvas - under the legibility floor with
+   * glasses off. Full opacity; quietness comes from size, not
+   * from fading the words. */
+  opacity: 1;
   /* W21 (F3): as a flex item this span must be allowed to shrink
    * (flex 1 + min-width 0), otherwise its min-content width wins,
    * the text spills past the pill's border and clips mid-word
@@ -89,6 +93,13 @@
   width: 100%;
   box-sizing: border-box;
   padding: 6px 10px;
+}
+/* R21 W-2: in the thread's Next Together strip the plan text is
+ * the key line - semibold, so it separates from the state pill and
+ * the thread under it at a glance (the strip's hairline bottom in
+ * c1.css separates the strip itself from the messages). */
+.plan-awareness[data-variant="strip"] .plan-awareness-text {
+  font-weight: 600;
 }
 /* Cluster G (P10c): the leave-by segment in the thread strip - the
  * backend's finished spoken-style line, verbatim. It keeps its
@@ -143,5 +154,8 @@
   line-height: 1.35;
   white-space: normal;
   overflow-wrap: anywhere;
-  opacity: 0.85;
+  /* R21 W-2: secondary, but legible - the calm-sub floor
+   * (--ink-2, full opacity) instead of a faded 0.85 run. */
+  color: var(--ink-2);
+  opacity: 1;
 }

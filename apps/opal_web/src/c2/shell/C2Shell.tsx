@@ -63,6 +63,7 @@ import {
   listWorkingGoals,
   promoteSpark,
   unlinkGoalPlan,
+  ensureDirectConversation,
   forgetCapsule,
   forgetMemoryFact,
   journeyAddPeople,
@@ -103,19 +104,32 @@ import {
 import { productRealtime } from "../../realtime/RealtimeClient";
 import type { PlanStateFamily } from "../../theme/planStateColors";
 import "./c2shell.css";
-import type { Adopt1Projection, C2Route, GraphDetailProjection } from "./projections";
+import type {
+  Adopt1Projection,
+  BondProjection,
+  C2Route,
+  GraphDetailProjection,
+} from "./projections";
 import {
   buildSettingsSection,
   detailFromPlan,
   detailWithHistory,
   graphListFromPlans,
   homeFromSession,
+  loadBond,
   loadPlansResult,
   openingFromPlans,
   shellFromSession,
   youHubFromSession,
   getGoogleCalendarStatusSafe,
 } from "./shellDataBridge";
+import {
+  CREATION_TENSE_LABELS,
+  whenLabelForTense,
+  type CreationTense,
+  type SeedCreate,
+} from "./flows2";
+import { BondStone } from "./BondStone";
 import { C2Home } from "./C2Home";
 import { C2Graphs, C2GraphDetail } from "./C2Graphs";
 import { C2YouHub, C2SettingsSection, HUB_GROUPS } from "./C2You";
@@ -206,7 +220,116 @@ export function C2Shell() {
   const [createPrefill, setCreatePrefill] = useState<{
     title: string;
     participantUserIds: string[];
+    /** Repair #21 (I-1): seed provenance + party law, carried from
+     *  a seed door (flows2.SeedCreate) or an occasion/starter. */
+    location?: string;
+    placeLat?: number;
+    placeLon?: number;
+    audience?: "private" | "close_circle";
+    sourcePlanId?: string;
+    inspiredByMomentId?: string;
+    entry?: string;
+    lockParty?: boolean;
+    participantNames?: string[];
+    /** Repair #21 (W-17): a creation tense's carried When words
+     *  + the tense itself (the form's stone anchor). */
+    whenLabel?: string;
+    tense?: CreationTense;
   } | null>(null);
+  // Repair #21 (W-12) - the open bond (the pair's shared stone).
+  const [bond, setBond] = useState<BondProjection | null>(null);
+
+  /** W-12: tapping a person lands on the shared stone. The bond
+   *  loads through the real shared reads; a person with no bond
+   *  to load (no relationship contact) leaves the tap where it
+   *  was - no empty stage is painted. */
+  const openBond = useCallback(
+    (personId: string) => {
+      void (async () => {
+        const loaded = await loadBond(personId, bearer, session);
+        if (loaded) setBond(loaded);
+      })();
+    },
+    [bearer, session],
+  );
+
+  /** W-13: a reply is a door - resolve (or create) the direct
+   *  conversation with the author through the real path, then
+   *  land in its thread. A failed resolve changes nothing. */
+  const replyToPerson = useCallback(
+    (authorUserId: string) => {
+      void (async () => {
+        try {
+          const res = await ensureDirectConversation(authorUserId, bearer);
+          if (res.conversation_id) {
+            setChatOpenRequest({ conversationId: res.conversation_id, nonce: Date.now() });
+            goRoute("chats");
+          }
+        } catch {
+          /* the surface keeps the server's last truth */
+        }
+      })();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bearer],
+  );
+
+  /** I-1 refined: a seed door's composed create lands in the real
+   *  create flow. A branch that needs the original party reads it
+   *  at door time from the source plan's history projection (the
+   *  repeat flow's own roster source) - never from the card. */
+  const seedDoor = useCallback(
+    (create: SeedCreate) => {
+      void (async () => {
+        let participantUserIds = create.participantUserIds;
+        let participantNames: string[] | undefined;
+        if (create.needsPartyRead && create.sourcePlanId) {
+          try {
+            const history = await getPlanHistory(create.sourcePlanId, bearer);
+            const others = (history.who ?? []).filter(
+              (w) => w.user_id && w.user_id !== session?.user_id,
+            );
+            participantUserIds = others.map((w) => w.user_id);
+            participantNames = others.map((w) => w.name);
+          } catch {
+            participantUserIds = [];
+          }
+        }
+        setCreatePrefill({
+          title: create.title,
+          participantUserIds,
+          location: create.location,
+          placeLat: create.placeLat,
+          placeLon: create.placeLon,
+          audience: create.audience,
+          sourcePlanId: create.sourcePlanId,
+          inspiredByMomentId: create.inspiredByMomentId,
+          entry: create.entry,
+          lockParty: create.lockParty,
+          participantNames,
+        });
+        setCreateKind("plan");
+      })();
+    },
+    [bearer, session],
+  );
+
+  /** Repair #21 (W-17): a creation-sheet tense stone opens the
+   *  ONE real graph-create flow carrying its tense - the When
+   *  words the tense honestly has ("Now" for present) and the
+   *  stone anchor the form renders. Posting a forming plan IS
+   *  posting in Opal: the future tense is this flow's native
+   *  home, not a settings detour. */
+  const creationPlan = useCallback((tense: CreationTense) => {
+    setCreatePrefill({
+      title: "",
+      participantUserIds: [],
+      whenLabel: whenLabelForTense(tense),
+      tense,
+      entry: `c2-create-${tense}`,
+    });
+    setCreateKind("plan");
+  }, []);
 
   const refreshPlans = useCallback(async () => {
     // Hunt-fix B-12: a failed load is state, not an empty list.
@@ -791,11 +914,25 @@ export function C2Shell() {
                 key={homeNonce}
                 session={session}
                 bearer={bearer}
+                onOccasionPlan={(occasion) => {
+                  // Repair #21 (W-9 rebuild): an occasion's
+                  // doorway into the real create flow, prefilled
+                  // with the occasion's own words.
+                  setCreatePrefill({
+                    title: `${occasion.kindLabel} for ${occasion.personName}`,
+                    participantUserIds: [],
+                  });
+                  setCreateKind("plan");
+                }}
                 onOpenYou={() => goRoute("you")}
                 onOpenGraph={(id) => openGraph(id, "home")}
                 onSearch={() => setSearchOpen(true)}
                 onActivity={() => setActivityOpen(true)}
                 onShared={() => setHomeNonce((n) => n + 1)}
+                onOpenBond={(personId) => openBond(personId)}
+                onReplyToPerson={replyToPerson}
+                onSeedDoor={seedDoor}
+                onCreationPlan={creationPlan}
               />
             </div>
           ) : null}
@@ -823,6 +960,7 @@ export function C2Shell() {
                   goRoute("you");
                   setSettingKey("what-opal-remembers");
                 }}
+                onOpenBond={(personId) => openBond(personId)}
                 onTalkToOpal={(request) => {
                   setOpalOpenRequest({ request, nonce: Date.now() });
                   goRoute("center");
@@ -892,6 +1030,7 @@ export function C2Shell() {
             <div data-testid="c2-route-graphs" style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
               <C2Graphs
                 projection={graphList}
+                bearer={bearer}
                 events={{
                   openGraph: (id) => openGraph(id, "graphs"),
                   createPlan: () => setCreateKind("plan"),
@@ -899,6 +1038,7 @@ export function C2Shell() {
                   createIdea: () => setCreateKind("idea"),
                   completeSlot: (id) => openGraph(id, "graphs"),
                   dropPlan,
+                  forkAnswered: () => void refreshPlans(),
                   runNextAction: () => undefined,
                   addPeople: (id) => void openAddPeople(id),
                   openChatForPlan: () => goRoute("chats"),
@@ -939,6 +1079,12 @@ export function C2Shell() {
           ) : null}
         </main>
 
+        {/* R21 Orbit v4 (req 4): the FULL-WIDTH FROST strip -
+            edge to edge behind the pad, so no legible content
+            ever peeks at the pad's left or right; what passes
+            behind it is only faint motion (the dissolve). The
+            pad itself keeps its designed inset geometry. */}
+        <div className="c2s-frost-strip" data-testid="c2-frost-strip" aria-hidden="true" />
         <nav className="c2s-dock" data-testid="c2-dock" aria-label="Main">
           <DockSlot
             label="Flows"
@@ -961,7 +1107,9 @@ export function C2Shell() {
             type="button"
             className="c2s-dock-center"
             data-testid="c2-dock-center"
+            data-active={route === "center" ? "1" : undefined}
             aria-label="Opal Center"
+            aria-current={route === "center" ? "page" : undefined}
             onClick={() => goRoute("center")}
           >
             <span
@@ -975,7 +1123,12 @@ export function C2Shell() {
                * rebuild): the SAME OrbLivingRings system as Splash 1,
                * clipped to the mark's own square inside the disc. */}
               <span className="orb-dock-mark">
-                <OrbMark size={40} />
+                {/* Repair #21 (W-19): the pad's center orb carries
+                 * the marble material - the brand's stone, seated in
+                 * the pad (the same grain as the splash master and
+                 * the thread doorway's fire). The living rings ride
+                 * above it unchanged; the grain itself never moves. */}
+                <OrbMark size={40} marble />
                 <OrbLivingRings variant="ambient" liveState={dockLiveState} />
               </span>
             </span>
@@ -1014,7 +1167,7 @@ export function C2Shell() {
             createPlan: () => setCreateKind("plan"),
             createTrip: () => setCreateKind("trip"),
             createIdea: () => setCreateKind("idea"),
-            completeSlot: () => undefined,
+            completeSlot: (id) => openGraph(id, detailOrigin),
             dropPlan,
             runNextAction: () => undefined,
             // Repair #20 (F-13): a spine task whose surface is the
@@ -1131,6 +1284,30 @@ export function C2Shell() {
             setCreatePrefill(null);
             void refreshPlans();
             void refreshAdopt1();
+          }}
+        />
+      ) : null}
+
+      {bond ? (
+        <BondStone
+          bond={bond}
+          onClose={() => setBond(null)}
+          onOpenOrbit={(personId, name) => {
+            setBond(null);
+            setOpalOpenRequest({
+              request: { context: { personId, personName: name } },
+              nonce: Date.now(),
+            });
+            goRoute("center");
+          }}
+          onOpenGraph={(planId) => {
+            setBond(null);
+            openGraph(planId, "home");
+          }}
+          onStartPlan={(personId) => {
+            setBond(null);
+            setCreatePrefill({ title: "", participantUserIds: [personId] });
+            setCreateKind("plan");
           }}
         />
       ) : null}
@@ -1371,7 +1548,7 @@ function DockSlot({
       onClick={onClick}
     >
       <span className="c2s-dock-glyph">{children}</span>
-      <span>{label}</span>
+      <span className="c2s-dock-label">{label}</span>
       {badge ? (
         <span className="c2s-dock-badge">{badge > 99 ? "99+" : badge}</span>
       ) : null}
@@ -1407,11 +1584,16 @@ function DevChip({ hidden }: { hidden: boolean }) {
 function HomeRoute(props: {
   session: ProductSession | null;
   bearer?: string;
+  onOccasionPlan?: (occasion: import("./projections").HomeOccasion) => void;
   onOpenYou: () => void;
   onOpenGraph: (id: string) => void;
   onSearch: () => void;
   onActivity: () => void;
   onShared: () => void;
+  onOpenBond?: (personId: string, name: string) => void;
+  onReplyToPerson?: (authorUserId: string) => void;
+  onSeedDoor?: (create: SeedCreate) => void;
+  onCreationPlan?: (tense: CreationTense) => void;
 }) {
   const [projection, setProjection] = useState<Awaited<ReturnType<typeof homeFromSession>> | null>(null);
   useEffect(() => {
@@ -1444,6 +1626,11 @@ function HomeRoute(props: {
         // button on feed cards instead of a dead one.
         onShared: props.onShared,
         bearer: props.bearer,
+        occasionPlan: props.onOccasionPlan,
+        openBond: props.onOpenBond,
+        replyToPerson: props.onReplyToPerson,
+        seedDoor: props.onSeedDoor,
+        creationPlan: props.onCreationPlan,
       }}
     />
   );
@@ -1835,14 +2022,35 @@ export function CreateFlow({
   conversations: ConversationSummary[];
   /** Adoption wave 1 (ST-B) - a shelf starter's prefill: the form
    *  opens with the starter's words and people; nothing is created
-   *  or sent until the user saves. */
-  prefill?: { title: string; participantUserIds: string[] };
+   *  or sent until the user saves.
+   *  Repair #21 (I-1): a seed door's prefill also carries the
+   *  seed's place, its provenance, and its party law - lockParty
+   *  renders the Who as the branch's fact (join / again / solo)
+   *  instead of a picker; audience "private" is the solo branch's
+   *  default and rides the graph-create contract verbatim. */
+  prefill?: {
+    title: string;
+    participantUserIds: string[];
+    location?: string;
+    placeLat?: number;
+    placeLon?: number;
+    audience?: "private" | "close_circle";
+    sourcePlanId?: string;
+    inspiredByMomentId?: string;
+    entry?: string;
+    lockParty?: boolean;
+    participantNames?: string[];
+    /** Repair #21 (W-17): creation tense - the When words it
+     *  carries in, and the tense whose stone anchors the form. */
+    whenLabel?: string;
+    tense?: CreationTense;
+  };
   onClose: () => void;
   onCreated: () => void;
 }) {
   const [title, setTitle] = useState(prefill?.title ?? "");
-  const [when, setWhen] = useState("");
-  const [place, setPlace] = useState("");
+  const [when, setWhen] = useState(prefill?.whenLabel ?? "");
+  const [place, setPlace] = useState(prefill?.location ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [whoPeople, setWhoPeople] = useState<PickerPerson[]>([]);
@@ -1939,9 +2147,23 @@ export function CreateFlow({
           {
             title: title.trim(),
             location: place.trim() || undefined,
+            // The seed place's coordinates ride ONLY while the
+            // place words are still the seed's own (the repeat
+            // flow's G2 writer law, applied to seeds).
+            place_lat:
+              prefill?.placeLat != null && place.trim() === (prefill.location ?? "").trim()
+                ? prefill.placeLat
+                : undefined,
+            place_lon:
+              prefill?.placeLon != null && place.trim() === (prefill.location ?? "").trim()
+                ? prefill.placeLon
+                : undefined,
             time_label: when.trim() || undefined,
             participant_user_ids: whoIds.length > 0 ? whoIds : undefined,
-            entry: kind === "idea" ? "c2-idea" : "c2-plan",
+            audience: prefill?.audience,
+            source_plan_id: prefill?.sourcePlanId,
+            inspired_by_moment_id: prefill?.inspiredByMomentId,
+            entry: prefill?.entry ?? (kind === "idea" ? "c2-idea" : "c2-plan"),
             idempotency_key: `c2-${kind}-${Date.now()}`,
           },
           bearer,
@@ -1981,6 +2203,26 @@ export function CreateFlow({
           <span style={{ width: 44 }} />
         </div>
         <div className="c2s-entry-body">
+          {prefill?.tense ? (
+            /* Repair #21 (W-17) - the stone anchor: entered from
+             * the creation sheet, the form is anchored by the
+             * stone being made - a stone carrying the tense's
+             * state fire, named by the What words as they are
+             * typed. Posting a forming plan IS posting: the
+             * future tense's anchor burns forming violet. */
+            <div
+              className="c2s-create-anchor"
+              data-tense={prefill.tense}
+              data-testid="c2-create-anchor"
+            >
+              <span className="c2s-create-anchor-stone" aria-hidden>
+                <span className="c2s-create-anchor-light" />
+              </span>
+              <span className="c2s-create-anchor-title">
+                {title.trim() || CREATION_TENSE_LABELS[prefill.tense]}
+              </span>
+            </div>
+          ) : null}
           <h1>{kind === "idea" ? "Just the spark." : "A time, a place, your people."}</h1>
           <div className="c2s-field-group">
             <label className="c2s-field-label" htmlFor="c2-create-title-input">
@@ -2042,7 +2284,15 @@ export function CreateFlow({
               </span>
               Who
             </span>
-            {whoPeople.length === 0 ? (
+            {prefill?.lockParty ? (
+              <p className="c2s-field-reason" data-testid="c2-create-who-locked">
+                {prefill.participantUserIds.length === 0
+                  ? prefill.audience === "private"
+                    ? "Just you - private."
+                    : "Just you for now."
+                  : `With ${(prefill.participantNames ?? whoNames).join(", ")}.`}
+              </p>
+            ) : whoPeople.length === 0 ? (
               <p className="c2s-field-reason" data-testid="c2-create-who-empty">
                 No one connected yet — this one starts with just you.
               </p>
@@ -2076,9 +2326,11 @@ export function CreateFlow({
                 })}
               </div>
             )}
-            <p className="c2s-field-reason" data-testid="c2-create-who-line">
-              {whoLine}
-            </p>
+            {prefill?.lockParty ? null : (
+              <p className="c2s-field-reason" data-testid="c2-create-who-line">
+                {whoLine}
+              </p>
+            )}
           </div>
           {error ? (
             <p className="c2s-error-line" role="alert">

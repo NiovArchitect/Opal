@@ -14,18 +14,19 @@
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
-import { PlanCardC2 } from "../PlanCardC2";
+import { PlanCardC2, type PlanCardC2Input } from "../PlanCardC2";
 import { completionStep, FoodStepPanel } from "../../opalUi/FoodStepPanel";
 import { CheckinCircleRow } from "../../opalUi/CheckinCircleRow";
 import type { GraphDetailProjection, GraphListProjection } from "./projections";
 import { PLAN_STATE_HEX } from "../../theme/planStateColors";
 import { SharePlanSheet } from "./EventShareCard";
 import { shareCardFromDetail } from "./shellData";
-import { Avatar, EmptyBlock, IconBack } from "./bits";
+import { Avatar, EmptyBlock, IconBack, InfoBubble } from "./bits";
 import { pastPillsFromCards, settledSummaryLine, type PastPill, type SpineItem } from "./density";
 import { PreparationSpine } from "./PreparationSpine";
 import { CardContextMenu, LongPressRegion, type CardMenuItem } from "../CardContextMenu";
 import { OrbMarkMono } from "../../brand/orb/OrbMark";
+import { ForkAnswerControl } from "../../opalUi/ForkAnswerControl";
 
 type Lens = "all" | "action" | "ready" | "past";
 
@@ -39,6 +40,12 @@ export type C2GraphsEvents = {
    *  surface has already re-read the server's truth); resolves the
    *  plain-language error line to show when the cancel did not happen. */
   dropPlan: (cardId: string) => Promise<string | null>;
+  /** Repair #21 (W-5a): a fork answer landed through the card's
+   *  ForkAnswerControl - the shell re-reads the plans so every
+   *  surface re-renders from the returned truth. Absent = the
+   *  control still answers (it re-renders from its own returned
+   *  payload), the list just waits for its next read. */
+  forkAnswered?: () => void;
   runNextAction: (detail: GraphDetailProjection) => void;
   addPeople: (cardId: string) => void;
   openChatForPlan: (cardId: string) => void;
@@ -115,12 +122,43 @@ const LENSES: Array<{ key: Lens; label: string }> = [
   { key: "past", label: "Past" },
 ];
 
+/**
+ * Repair #21 (W-5a) - the fork-answer control under a Graphs card,
+ * mounted exactly where the fork presentation (the card's limbo
+ * block) already lives. The control itself applies the projection
+ * gate - recipient only, fork live only - so a card whose etiquette
+ * carries no live fork for this viewer renders nothing here.
+ */
+function CardForkAnswer({
+  card,
+  bearer,
+  onAnswered,
+}: {
+  card: PlanCardC2Input & { id: string };
+  bearer?: string;
+  onAnswered?: () => void;
+}) {
+  if (!card.etiquette) return null;
+  return (
+    <ForkAnswerControl
+      planId={card.id}
+      etiquette={card.etiquette}
+      bearer={bearer}
+      onUpdated={() => onAnswered?.()}
+    />
+  );
+}
+
 export function C2Graphs({
   projection,
   events,
+  bearer,
 }: {
   projection: GraphListProjection;
   events: C2GraphsEvents;
+  /** Repair #21 (W-5a): the session bearer for the cards'
+   *  fork-answer control (the respond endpoint's client). */
+  bearer?: string;
 }) {
   const [lens, setLens] = useState<Lens>("all");
   const [createOpen, setCreateOpen] = useState(false);
@@ -445,9 +483,9 @@ export function C2Graphs({
                   <span className="c2s-orbit-ring" aria-hidden />
                   Completed and past plans
                 </h2>
-                <p className="c2s-card-line">
-                  Everything that already happened, in the order it settled.
-                </p>
+                {/* R21 W-3: the line under this heading ("Everything
+                    that already happened, in the order it settled.")
+                    merely explained the heading - stripped. */}
                 {pastPills.length === 0 && settledInvitations.length === 0 ? (
                   <p className="c2s-card-line" data-testid="c2-graphs-past-empty">
                     Nothing completed yet.
@@ -482,6 +520,11 @@ export function C2Graphs({
                         <PlanCardC2
                           input={card}
                           onOpen={() => events.openGraph(card.id, "graphs")}
+                        />
+                        <CardForkAnswer
+                          card={card}
+                          bearer={bearer}
+                          onAnswered={events.forkAnswered}
                         />
                       </div>
                     ))}
@@ -541,6 +584,11 @@ export function C2Graphs({
                         </div>
                       ) : null}
                       </LongPressRegion>
+                      <CardForkAnswer
+                        card={card}
+                        bearer={bearer}
+                        onAnswered={events.forkAnswered}
+                      />
                     </div>
                   ))}
                 </div>
@@ -978,7 +1026,7 @@ export function C2Graphs({
               ))}
               {projection.adopt1.shelf.starters.length === 0 &&
               projection.adopt1.shelf.sparks.length === 0 ? (
-                <p className="c2s-card-line">Nothing on the shelf yet. Ideas you save will live here.</p>
+                <p className="c2s-card-line">Nothing on the shelf yet.</p>
               ) : null}
             </section>
           </>
@@ -1179,6 +1227,16 @@ export function C2GraphDetail({
                 {detail.attendanceLine}
               </p>
             ) : null}
+            {/* Repair #21 (W-5a): the fork-answer control in the
+                plan detail, under the same card whose limbo block
+                presents the fork. Recipient + live fork only - the
+                control applies the projection gate itself. */}
+            <ForkAnswerControl
+              planId={detail.id}
+              etiquette={detail.card.etiquette ?? null}
+              bearer={bearer}
+              onUpdated={() => onFoodChanged?.()}
+            />
           </div>
 
           {/* R20 F-12: the settled line lives HERE - in the settled
@@ -1201,7 +1259,13 @@ export function C2GraphDetail({
 
           <div className="c2s-detail-section">
             <p className="c2s-detail-kicker">When</p>
-            <p className="c2s-card-title" style={{ fontSize: 17 }}>
+            {/* R21 W-2: the when value is a key value - bold, in the
+                plan's state color (calm-key). */}
+            <p
+              className="c2s-card-title calm-key"
+              data-state={detail.card.stateFamily}
+              style={{ fontSize: 17 }}
+            >
               {detail.whenLine}
             </p>
           </div>
@@ -1226,7 +1290,8 @@ export function C2GraphDetail({
             >
               <p className="c2s-detail-kicker">When to leave</p>
               <p
-                className="c2s-card-title"
+                className="c2s-card-title calm-key"
+                data-state={detail.card.stateFamily}
                 style={{
                   fontSize: 17,
                   ...(detail.leaveBy.urgency === "leave_now"
@@ -1252,19 +1317,19 @@ export function C2GraphDetail({
           {detail.where ? (
             <div className="c2s-detail-section" data-testid="c2-detail-where">
               <p className="c2s-detail-kicker">Where</p>
-              <p className="c2s-card-title" style={{ fontSize: 17 }}>
+              {/* R21 W-2: the place is an entity value - bold, in
+                  surface ink (entity emphasis, calm-key). */}
+              <p className="c2s-card-title calm-key" style={{ fontSize: 17 }}>
                 {detail.where.label}
               </p>
-              {detail.where.handoffLabel ? (
-                <button
-                  type="button"
-                  className="c2s-card-action"
-                  data-testid="c2-detail-handoff"
-                  onClick={() => events.runNextAction(detail)}
-                >
-                  {detail.where.handoffLabel}
-                </button>
-              ) : null}
+              {/* R21 W-18 (hole H-NEW-1): the handoff button that
+                  lived here was wired to runNextAction, which every
+                  served-shell mount passes as a no-op, and the sole
+                  detail adapter (shellData.detailFromPlan) stamps
+                  handoffLabel: null on every plan - the button could
+                  only ever render dead. Removed, not left loaded:
+                  a handoff action returns only with a real handler
+                  and a projection that stamps it. */}
               {detail.where.kind === "virtual" ? (
                 detail.meetingLink ? (
                   <button
@@ -1312,7 +1377,10 @@ export function C2GraphDetail({
 
           {detail.who.length > 0 ? (
             <div className="c2s-detail-section">
-              <p className="c2s-detail-kicker">Who is coming, and where they are</p>
+              {/* R21 W-3: the kicker "Who is coming, and where they
+                  are" is stripped - the roster rows (name, response,
+                  location) are self-evident content, and the rows
+                  now separate with hairlines (c2shell.css W-2). */}
               {detail.who.map((person) => (
                 <div className="c2s-who-row" key={person.name}>
                   <Avatar avatar={person.avatar} size={36} />
@@ -1345,11 +1413,13 @@ export function C2GraphDetail({
               </button>
               {events.shareMyLocation ? (
                 <div data-testid="c2-detail-share-location">
-                  <p className="c2s-card-line">
-                    Sharing your location is per plan and shares where you are right
-                    now, once — a snapshot, not live tracking. Only people on this
-                    plan see it, until you stop sharing or 4 hours pass.
-                  </p>
+                  {/* R21 W-3: the snapshot explainer is genuinely
+                      needed (privacy), so it lives behind the (i)
+                      bubble - one tap away, not plastered. The
+                      JA-09 honest wording is unchanged inside it.
+                      (Plain hyphen in "one-time" per R21 copy rule;
+                      the sentence is otherwise verbatim.) */}
+                  <InfoBubble text="Sharing your location is per plan and shares where you are right now, once - a snapshot, not live tracking. Only people on this plan see it, until you stop sharing or 4 hours pass." />
                   <button
                     type="button"
                     className="c2s-btn-text"
@@ -1390,11 +1460,12 @@ export function C2GraphDetail({
                 More actions
               </button>
               {detail.isPrivate ? (
-                <p className="c2s-card-line">
-                  This graph is in your Private graphs. On your surfaces it
-                  shows only inside that space - everyone else on the plan
-                  keeps their own view of it.
-                </p>
+                /* R21 W-3: the private-graph explainer moves behind
+                   the (i) bubble beside More actions; the private
+                   state itself is carried by the vault gate. */
+                <span style={{ marginLeft: "var(--space-3)" }}>
+                  <InfoBubble text="This graph is in your Private graphs. On your surfaces it shows only inside that space - everyone else on the plan keeps their own view of it." />
+                </span>
               ) : null}
               {detailMenuOpen ? (
                 <CardContextMenu
@@ -1430,19 +1501,13 @@ export function C2GraphDetail({
             </div>
           ) : null}
 
-          {detail.nextAction ? (
-            <div className="c2s-detail-section">
-              <p className="c2s-detail-kicker">Next step</p>
-              <button
-                type="button"
-                className="c2s-btn-primary"
-                data-testid="c2-detail-next"
-                onClick={() => events.runNextAction(detail)}
-              >
-                {detail.nextAction.label}
-              </button>
-            </div>
-          ) : null}
+          {/* R21 W-18 (hole H-NEW-1): the Next-step button that
+              lived here is removed for the same reason as the
+              handoff button above - the adapter stamps
+              nextAction: null on every plan and every served mount
+              wires runNextAction to a no-op, so the button could
+              only ever render dead. It returns only when a real
+              next-action projection and handler land together. */}
 
           {/* Hunt-fix B-13: the chat action renders on its own — it
               used to live inside the nextAction section, which the

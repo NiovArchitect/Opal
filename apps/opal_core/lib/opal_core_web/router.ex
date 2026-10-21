@@ -254,6 +254,8 @@ defmodule OpalCoreWeb.Router do
 
     post("/conversations/:id/alignment/change", ConversationController, :propose_alignment_change)
     post("/conversations/:id/members", ConversationController, :add_member)
+    get("/conversations/:id/membership", ConversationController, :membership)
+    delete("/conversations/:id/members/:user_id", ConversationController, :remove_member)
     post("/conversations/:id/block", ConversationController, :block_peer)
 
     # R3-early — 1:1 call signaling (WebRTC media on client; BEAM owns session)
@@ -432,6 +434,12 @@ defmodule OpalCoreWeb.Router do
     get("/intelligence/briefings", IntelligenceProductController, :list_briefings)
     get("/intelligence/briefings/:id", IntelligenceProductController, :show_briefing)
     post("/intelligence/briefings/:id/dismiss", IntelligenceProductController, :dismiss_briefing)
+
+    # Repair #21 (W-9 expanded) - Opal Trivia: the game's own
+    # provenance-tagged guess records + subject-only validation.
+    get("/trivia/guesses", TriviaController, :index)
+    post("/trivia/guesses", TriviaController, :create_guess)
+    post("/trivia/guesses/:id/validate", TriviaController, :validate)
 
     # Phase 10A / D-2 — celebrations (birthday / anniversary) + curation
     get("/celebrations", CelebrationController, :index)
@@ -648,6 +656,7 @@ defmodule OpalCoreWeb.Router do
     post("/social-moments/:id/report", SocialMomentController, :report)
     put("/social-moments/:id/like", SocialMomentController, :like)
     delete("/social-moments/:id/like", SocialMomentController, :unlike)
+    get("/social-moments/:id/light", SocialMomentController, :light)
     get("/social-moments/:id/comments", SocialMomentController, :comments)
     post("/social-moments/:id/comments", SocialMomentController, :create_comment)
     put("/social-moments/:id/repost", SocialMomentController, :repost)

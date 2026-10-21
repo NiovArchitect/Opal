@@ -97,6 +97,12 @@ export type PlanCardLimboC2 = {
 export type PlanCardC2Input = {
   /** P14: the limbo projection, or absent when the request is not in limbo. */
   limbo?: PlanCardLimboC2 | null;
+  /** Repair #21 (W-5a): the plan contract's etiquette projection,
+   *  carried verbatim so the surfaces that render this card can
+   *  mount the fork-answer control where the fork presentation
+   *  already lives. The card itself renders nothing from it - the
+   *  control reads the projection and applies its own gate. */
+  etiquette?: import("../api/productClient").PlanEtiquetteContract | null;
   /** Derived state family from the one projection/derivation. Required. */
   stateFamily: PlanStateFamilyC2 | string;
   /** Finished pill label from the projection (for example "Idea" for a
@@ -288,7 +294,13 @@ export function PlanCardC2({
         </div>
       ) : null}
       <h3 className="c2-plan-title">{input.title}</h3>
-      <p className="c2-plan-when">{input.whenLine}</p>
+      {/* R21 W-2: the when line is the card's key value - bold and
+          in the plan's state color (calm-key + data-state, the
+          shared treatment in c2/shell/c2shell.css). The title stays
+          surface ink per this card's contract above. */}
+      <p className="c2-plan-when calm-key" data-state={family}>
+        {input.whenLine}
+      </p>
       {input.whereLine ? <p className="c2-plan-where">{input.whereLine}</p> : null}
       {input.attendanceLine ? (
         <p className="c2-plan-attendance">{input.attendanceLine}</p>
@@ -316,14 +328,20 @@ export function PlanCardC2({
           {input.peopleLine}
         </p>
       ) : null}
-      {input.primaryActionLabel ? (
+      {/* R21 W-18 (hole H-NEW-2): the primary button renders ONLY
+          when a real handler stands behind it. A label with no
+          handler used to render a button whose tap was swallowed
+          (stopPropagation + optional call) - a dead nested asset
+          that also blocked the card's own open. No handler = no
+          button (the JA-06 rule, applied inside the card). */}
+      {input.primaryActionLabel && onPrimaryAction ? (
         <button
           type="button"
           className="c2-plan-primary"
           data-testid="c2-plan-primary"
           onClick={(e) => {
             e.stopPropagation();
-            onPrimaryAction?.();
+            onPrimaryAction();
           }}
         >
           {input.primaryActionLabel}

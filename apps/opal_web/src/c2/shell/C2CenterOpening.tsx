@@ -45,6 +45,19 @@
  * surface and leads with people and moments instead; the deck's
  * plan logic, DIR-1 strips, and reveal machinery are unchanged.
  *
+ * Repair #21 (W-11, Center discovery pass - founder: "a lot of
+ * talking out of nowhere... let the people figure it out
+ * themselves"): the "How Opal works for you" explainer CARD is
+ * removed and its words folded behind the shell's one (i)
+ * affordance (bits.InfoBubble - the same pattern as the calm
+ * wave, never a second one); the status narration ("Nothing
+ * needs you right now. It is all yours.") is removed outright.
+ * What remains is controls and content: the orb (a doorway
+ * control), Make something happen / Talk to Opal (action
+ * controls), the greeting (identity), and the deck sections
+ * themselves. Element-by-element table in the W-11 report
+ * section (coordination/repair19/r21-openings-report.md).
+ *
  * SEAM (flagged for the coordinator): C1 owns Center chat internals.
  * This surface is the Center REST state the dock and onboarding land
  * on; its Talk to Opal entry emits openCenterChat, which at
@@ -58,6 +71,7 @@ import { FireFrame, FireLine } from "../../brand/orb/FireLine";
 import { PlanCardC2, type PlanCardC2Input } from "../PlanCardC2";
 import type { RevealItem } from "../../api/productClient";
 import { RevealCard } from "../../opalUi/c1/RevealCard";
+import { InfoBubble } from "./bits";
 
 export type CenterOpeningProjection = {
   greeting: string;
@@ -173,10 +187,6 @@ export function C2CenterOpening({
     planReveals.filter((r) => r.category === "P3"),
     claimedPlanIds,
   );
-  const hasNamedRevealSection = allReveals.some(
-    (r) => r.category === "P7" || r.category === "P5" || r.category === "P6",
-  );
-
   // ORB PRESENCE (Repair #18 Orb System): the Center rest is looking
   // INTO the stone - the master itself sits at the center of the
   // calm field (medallion variant in Light). The orb carries no
@@ -249,24 +259,9 @@ export function C2CenterOpening({
           ) : null}
         </div>
         {events.openSoulMemory ? (
-          <button
-            type="button"
-            className="c2s-center-doorway c2s-center-asset"
-            data-testid="c2-opening-soul-memory"
-            data-kind="doorway"
-            aria-label="How Opal works for you - a doorway to your Soul and Memory settings"
-            onClick={events.openSoulMemory}
-          >
-            <span className="c2s-center-doorway-main">
-              <span className="c2s-center-doorway-title">How Opal works for you</span>
-              <span className="c2s-center-doorway-sub">
-                Soul and Memory - how Opal is with you, and what it holds
-              </span>
-            </span>
-            <span className="c2s-center-doorway-chevron" aria-hidden>
-              ›
-            </span>
-          </button>
+          <span data-testid="c2-opening-soul-memory-info">
+            <InfoBubble text="How Opal works for you: the orb above opens your Soul and Memory - how Opal is with you, and what it holds. The rooms live in You, whenever you want them." />
+          </span>
         ) : null}
       </section>
 
@@ -319,7 +314,14 @@ export function C2CenterOpening({
               onClick={() => events.openGraph(projection.next!.id)}
               style={{ width: "100%", textAlign: "left", cursor: "pointer" }}
             >
-              <p className="c2s-card-line" style={{ color: "var(--state-happening-ink)", fontWeight: 650 }}>
+              {/* R21 W-2: the time is this card's key value - the
+                  shared calm-key treatment in the plan's own state
+                  color (it previously hardcoded happening ink for
+                  every state). */}
+              <p
+                className="c2s-card-line calm-key"
+                data-state={projection.next.card.stateFamily}
+              >
                 {projection.next.timeLabel}
               </p>
               <p className="c2s-card-title">{projection.next.title}</p>
@@ -431,15 +433,11 @@ export function C2CenterOpening({
           </section>
         ) : null}
 
-        {needsSlots.length === 0 &&
-        !projection.next &&
-        comingSlots.length === 0 &&
-        formingSlots.length === 0 &&
-        !hasNamedRevealSection ? (
-          <p className="c2s-lede" style={{ textAlign: "center", marginTop: "var(--space-5)" }} data-testid="c2-opening-calm">
-            Nothing needs you right now. It is all yours.
-          </p>
-        ) : null}
+        {/* Repair #21 (W-11): the "Nothing needs you right now"
+            narration is REMOVED, not reworded. When nothing needs
+            you, no sections render and the opening is simply
+            quiet - a status the user can see, not a sentence
+            Opal says about itself. */}
       </div>
     </div>
   );

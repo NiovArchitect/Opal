@@ -250,7 +250,14 @@ defmodule OpalCore.SocialFlow.ProductShell do
 
   def home_snapshot(attrs) do
     user_id = fetch!(attrs, :user_id)
-    display = Map.get(attrs, :display_name) || display_name(user_id)
+    # R21 L-1 - THE GREETING IS TRUE: the name is ALWAYS the
+    # signed-in viewer's own, read from their user record by their
+    # own id. A caller-supplied display_name is never used (pre-L-1
+    # it overrode the record, so a payload field naming another
+    # person could have been greeted). The clock and timezone are
+    # the viewer's too - see greeting/3.
+    display = display_name(user_id)
+    viewer_tz = viewer_timezone(user_id, attrs)
     role = role_context(user_id)
     needs = unified_needs_you(user_id)
 
@@ -279,8 +286,12 @@ defmodule OpalCore.SocialFlow.ProductShell do
       "schema_version" => "0.1.0",
       "user_id" => user_id,
       "generated_at" => DateTime.to_iso8601(now()),
-      "greeting" => greeting(display),
-      "greeting_context" => %{"display_name" => display, "role" => role},
+      "greeting" => greeting(display, Map.get(attrs, :now) || Map.get(attrs, "now"), viewer_tz),
+      "greeting_context" => %{
+        "display_name" => display,
+        "role" => role,
+        "timezone" => viewer_tz
+      },
       "needs_you" => needs,
       "needs_you_empty_copy" => if(empty?, do: FollowThrough.needs_you_empty_copy(), else: nil),
       "coming_up" => coming,
@@ -580,8 +591,35 @@ defmodule OpalCore.SocialFlow.ProductShell do
 
   # --- helpers ---
 
-  defp greeting(name) do
-    hour = DateTime.utc_now().hour
+  # R21 L-1 - THE GREETING IS TRUE (founder law, 2026-10-20).
+  # The hour is the VIEWER's hour at the moment of viewing: the
+  # instant (`now_override`, a DateTime - the backend clock-override
+  # convention, as in Connections.build's :now opt and
+  # FollowThrough's attrs :now; nil means the real clock) is shifted
+  # into the viewer's timezone before the word is picked. Pre-L-1
+  # this read DateTime.utc_now().hour - a UTC greeting, wrong for
+  # every viewer outside UTC.
+  defp greeting(name, now_override, viewer_tz) do
+    instant =
+      case now_override do
+        %DateTime{} = dt -> dt
+        binary when is_binary(binary) -> parse_instant(binary)
+        _ -> DateTime.utc_now()
+      end
+
+    hour =
+      case DateTime.shift_zone(instant, viewer_tz) do
+        {:ok, local} ->
+          local.hour
+
+        _ ->
+          # House convention (AttentionBudget.local_clock,
+          # TemporalFollowThrough.local_date_hour): this stack has
+          # no Tzdata package, so shift_zone cannot resolve IANA
+          # names - fall back to the fixed-offset table rather than
+          # to the UTC hour.
+          DateTime.add(instant, fixed_offset_hours(viewer_tz, instant) * 3600, :second).hour
+      end
 
     part =
       cond do
@@ -592,6 +630,73 @@ defmodule OpalCore.SocialFlow.ProductShell do
 
     "#{part}, #{name}."
   end
+
+  defp parse_instant(binary) do
+    case DateTime.from_iso8601(binary) do
+      {:ok, dt, _offset} -> dt
+      _ -> DateTime.utc_now()
+    end
+  end
+
+  # The viewer's timezone, in precedence order: an explicit viewer
+  # timezone in the call (the channel passes the device timezone the
+  # viewer sent with the request), then the viewer's stored
+  # effective timezone (TravelMode: travel-local when travelling,
+  # else their home timezone), then UTC as the last resort.
+  defp viewer_timezone(user_id, attrs) do
+    explicit = Map.get(attrs, :timezone) || Map.get(attrs, "timezone")
+
+    cond do
+      is_binary(explicit) and valid_timezone?(explicit) ->
+        explicit
+
+      true ->
+        try do
+          OpalCore.Intelligence.TravelMode.effective_tz(user_id)
+        rescue
+          _ -> "Etc/UTC"
+        end
+    end
+  end
+
+  # Without the Tzdata package, shift_zone cannot validate an IANA
+  # name (AvailabilityWindow's standing note) - accept UTC and
+  # IANA-shaped names; the greeting's fixed-offset fallback covers
+  # the zones it knows and UTC covers the rest.
+  defp valid_timezone?(tz) do
+    tz in ["UTC", "Etc/UTC"] or
+      Regex.match?(~r/\A[A-Za-z][A-Za-z_]*\/[A-Za-z_][A-Za-z_\/-]*\z/, tz)
+  end
+
+  # Fixed offsets when Tzdata is unavailable - the AttentionBudget
+  # table, plus Auckland in the same rough-DST style as its Sydney
+  # row. Pacific uses the Mar-Nov DST approximation.
+  defp fixed_offset_hours("UTC", _), do: 0
+  defp fixed_offset_hours("Etc/UTC", _), do: 0
+
+  defp fixed_offset_hours("America/Los_Angeles", %DateTime{} = utc) do
+    if pacific_dst?(utc), do: -7, else: -8
+  end
+
+  defp fixed_offset_hours("America/New_York", %DateTime{} = utc) do
+    if pacific_dst?(utc), do: -4, else: -5
+  end
+
+  defp fixed_offset_hours("Asia/Tokyo", _), do: 9
+  defp fixed_offset_hours("Asia/Shanghai", _), do: 8
+
+  defp fixed_offset_hours("Australia/Sydney", %DateTime{} = utc) do
+    if utc.month >= 10 or utc.month <= 3, do: 11, else: 10
+  end
+
+  defp fixed_offset_hours("Pacific/Auckland", %DateTime{} = utc) do
+    if utc.month >= 10 or utc.month <= 3, do: 13, else: 12
+  end
+
+  defp fixed_offset_hours(_, _), do: 0
+
+  defp pacific_dst?(%DateTime{month: m}) when m >= 3 and m <= 10, do: true
+  defp pacific_dst?(_), do: false
 
   defp display_name(user_id) do
     case Repo.get(User, user_id) do

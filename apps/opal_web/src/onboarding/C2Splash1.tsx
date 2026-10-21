@@ -28,6 +28,13 @@
  * the field: exactly ONE primary action (Continue, paper on the
  * night field) and the account text action beneath it.
  *
+ * MARBLE (Repair #21, W-19): this composition IS the brand's
+ * signature material at full size - the master's marbled stone,
+ * declared with data-marble="master" on the img. The settle still
+ * is the same img under the settled living rings (the rings settle;
+ * the stone never changes), so splash and settle are one sighting
+ * of the same grain, in both modes (the night field below).
+ *
  * MODES: the stone's moment is a night moment. This splash carries
  * its own night field in BOTH modes (the --orb-night-* tokens) - the
  * master is never inverted, washed out, or flashed white on entry.
@@ -77,6 +84,7 @@ export function C2Splash1({ onContinue, onAlreadyAccount }: Props) {
           role="presentation"
           data-orb-asset="master-full"
           data-orb-master="1"
+          data-marble="master"
           draggable={false}
         />
         <OrbLivingRings variant="hero" />

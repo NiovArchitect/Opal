@@ -100,6 +100,46 @@ defmodule OpalCore.SocialFlow.SocialMomentEngagementTest do
     assert r["repost_count"] == 1
   end
 
+  test "light roster: only the author learns who lit the moment (R21 W-13/I-2)", %{
+    author: author,
+    friend: friend,
+    stranger: stranger
+  } do
+    # A moment shared with the friend by name, so the friend is an
+    # authorized viewer who is NOT the author.
+    {:ok, shared} =
+      SocialMomentPublishing.publish(author.id, %{
+        "caption" => "Shared by name",
+        "visibility" => "specific_people",
+        "audience_user_ids" => [friend.id],
+        "media_ids" => []
+      })
+
+    shared_id = shared["moment"]["id"]
+
+    assert {:ok, _} = SocialMomentEngagement.like(friend.id, shared_id)
+    assert {:ok, _} = SocialMomentEngagement.like(author.id, shared_id)
+
+    # The author sees the people, in the order they lit it.
+    assert {:ok, roster} = SocialMomentEngagement.light_roster(author.id, shared_id)
+    assert roster["author_only_people"] == true
+    assert roster["warmth"] == 2
+    assert roster["viewer_liked"] == true
+    assert Enum.map(roster["people"], & &1["user_id"]) == [friend.id, author.id]
+    assert Enum.map(roster["people"], & &1["display_name"]) == ["Friend Eng", "Author Eng"]
+
+    # An authorized non-author gets the warmth and their own state -
+    # and NO names: the people list is empty by construction.
+    assert {:ok, other} = SocialMomentEngagement.light_roster(friend.id, shared_id)
+    assert other["author_only_people"] == false
+    assert other["people"] == []
+    assert other["warmth"] == 2
+    assert other["viewer_liked"] == true
+
+    # A stranger who may not view the moment learns nothing.
+    assert {:error, _} = SocialMomentEngagement.light_roster(stranger.id, shared_id)
+  end
+
   test "save is private to viewer", %{author: author, moment_id: moment_id} do
     assert {:ok, %{"viewer_saved" => true}} = SocialMomentEngagement.save(author.id, moment_id)
     assert {:ok, %{"viewer_saved" => false}} = SocialMomentEngagement.unsave(author.id, moment_id)

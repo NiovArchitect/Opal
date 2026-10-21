@@ -30,6 +30,7 @@ import {
   type OpalPlanContract,
   type PlanEtiquetteContract,
 } from "../api/productClient";
+import { ForkAnswerControl } from "./ForkAnswerControl";
 
 /**
  * I2 etiquette wiring - the creator's opt-in response window, in
@@ -238,6 +239,16 @@ export function PlanEditControls({
           bearer={bearer}
           onUpdated={onEdited}
         />
+        {/* Repair #21 (W-5a): the fork-answer control on the plan
+            detail - the recipient's home for the fork's two answers,
+            beside the creator's window control above. Each applies
+            its own projection gate; only one ever renders. */}
+        <ForkAnswerControl
+          planId={planId}
+          etiquette={etiquette}
+          bearer={bearer}
+          onUpdated={onEdited}
+        />
       </div>
     );
   }
@@ -373,6 +384,14 @@ export function PlanEditControls({
       )}
       {!editing ? (
         <ResponseWindowControl
+          planId={planId}
+          etiquette={etiquette}
+          bearer={bearer}
+          onUpdated={onEdited}
+        />
+      ) : null}
+      {!editing ? (
+        <ForkAnswerControl
           planId={planId}
           etiquette={etiquette}
           bearer={bearer}

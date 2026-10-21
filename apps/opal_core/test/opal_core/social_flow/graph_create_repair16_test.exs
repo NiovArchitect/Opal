@@ -601,4 +601,71 @@ defmodule OpalCore.SocialFlow.GraphCreateRepair16Test do
       assert c.id |> plan_count_for() == 1
     end
   end
+
+  describe "inspired-by seed provenance (Repair #21, I-1)" do
+    test "a visible moment seeds a plan whose contract carries the lineage" do
+      author = insert_user!("seed-author")
+      creator = insert_user!("seed-creator")
+
+      {:ok, pub} =
+        SocialMomentPublishing.publish(author.id, %{
+          "caption" => "Sunset at the cove",
+          "visibility" => "specific_people",
+          "audience_user_ids" => [creator.id],
+          "media_ids" => []
+        })
+
+      moment_id = pub["moment"]["id"]
+
+      assert {:ok, plan, _participants, false} =
+               SocialFlow.create_plan_from_graph_create(
+                 creator.id,
+                 base_draft(%{
+                   "title" => "Sunset at the cove, my turn",
+                   "inspired_by_moment_id" => moment_id,
+                   "entry" => "flows-seed-solo",
+                   "audience" => "private"
+                 })
+               )
+
+      row = Repo.get!(SharedPlan, plan.id)
+      assert row.alignment["inspired_by_moment_id"] == moment_id
+      assert row.alignment["inspired_by_author_user_id"] == author.id
+
+      # The lineage reads back on the plan contract (participant-scoped).
+      {:ok, plans} = SocialFlow.list_plans_for_user(creator.id)
+      read_back = Enum.find(plans, &(&1["id"] == plan.id))
+      assert read_back["inspired_by_moment_id"] == moment_id
+      assert read_back["inspired_by_author_user_id"] == author.id
+    end
+
+    test "a moment the creator cannot see seeds nothing" do
+      author = insert_user!("seed-hidden-author")
+      creator = insert_user!("seed-hidden-creator")
+
+      {:ok, pub} =
+        SocialMomentPublishing.publish(author.id, %{
+          "caption" => "Not for you",
+          "visibility" => "private",
+          "media_ids" => []
+        })
+
+      moment_id = pub["moment"]["id"]
+      before = plan_count_for(creator.id)
+
+      assert {:error, :inspired_source_not_visible} =
+               SocialFlow.create_plan_from_graph_create(
+                 creator.id,
+                 base_draft(%{"inspired_by_moment_id" => moment_id})
+               )
+
+      assert {:error, :inspired_source_not_visible} =
+               SocialFlow.create_plan_from_graph_create(
+                 creator.id,
+                 base_draft(%{"inspired_by_moment_id" => "not-a-moment"})
+               )
+
+      assert plan_count_for(creator.id) == before
+    end
+  end
 end

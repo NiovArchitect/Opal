@@ -1,0 +1,19 @@
+/* Repair #21 (Orbit v3) - the info bubble pattern.
+   One small italic (i), quiet at rest in both modes; the text it
+   guards appears in place, in the room's own type, only on tap. */
+
+[data-design="r18"] .orbit-info-bubble-wrap {
+  display: inline-flex; align-items: flex-start; gap: 8px;
+}
+[data-design="r18"] .orbit-info-bubble {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid var(--line, rgba(140, 140, 160, 0.4));
+  background: none; cursor: pointer; padding: 0;
+  color: var(--ink-3);
+  font: italic 600 12px/20px Georgia, "Times New Roman", serif;
+  text-align: center;
+}
+[data-design="r18"] .orbit-info-bubble-text {
+  font: 400 13.5px/19px system-ui, sans-serif; color: var(--ink-2);
+  padding-top: 2px;
+}

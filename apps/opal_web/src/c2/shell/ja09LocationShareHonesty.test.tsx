@@ -98,6 +98,15 @@ describe("JA-09 — location share copy states the snapshot truth", () => {
     });
     const block = document.querySelector('[data-testid="c2-detail-share-location"]');
     expect(block).toBeTruthy();
+    // R21 W-3 (flipped): the explainer no longer sits on the
+    // surface - it lives behind the (i) bubble. Absent before the
+    // tap, and the JA-09 honest wording is intact after it.
+    expect(block!.textContent).not.toContain("a snapshot, not live tracking");
+    const bubble = block!.querySelector('[data-testid="calm-info"]');
+    expect(bubble).toBeTruthy();
+    await act(async () => {
+      bubble!.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    });
     expect(block!.textContent).toContain("a snapshot, not live tracking");
     expect(block!.textContent).toContain("until you stop sharing or 4 hours pass");
     expect(block!.textContent).not.toContain("next 4 hours");

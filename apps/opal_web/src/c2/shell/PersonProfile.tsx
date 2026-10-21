@@ -28,12 +28,17 @@ export function PersonProfileSheet({
   onClose,
   onMessage,
   onOpenMemoryControls,
+  onOpenBond,
   onSaveRelationship,
 }: {
   profile: PersonProfileProjection;
   onClose: () => void;
   onMessage?: () => void;
   onOpenMemoryControls?: () => void;
+  /** Repair #21 (W-12): the door to the pair's shared stone,
+   *  supplied by the host when it can open the bond. Absent = no
+   *  door renders (no dead control). */
+  onOpenBond?: () => void;
   /** Repair #19 W24 (DL-01) — the ONE relationship write, supplied
    *  by the host when it holds a session. Absent = the
    *  identification row does not render (no dead control). */
@@ -119,6 +124,16 @@ export function PersonProfileSheet({
                 onClick={onMessage}
               >
                 Message
+              </button>
+            ) : null}
+            {onOpenBond ? (
+              <button
+                type="button"
+                className="c2s-btn-text"
+                data-testid="r19-profile-bond"
+                onClick={onOpenBond}
+              >
+                Our stone
               </button>
             ) : null}
             {onOpenMemoryControls ? (

@@ -56,11 +56,22 @@ type Props = {
   /**
    * Orbit v2 DOORWAY PARITY: a call is a conversation, so a live
    * call surface that knows its conversation offers the same
-   * orbit doorway as a thread. GAP (declared): no current caller
-   * passes a conversation id into this surface - the call record's
-   * conversation id is not part of this component's props today -
-   * so the doorway renders only once a caller wires both fields;
-   * the call LOG row carries the live parity route meanwhile.
+   * orbit doorway as a thread. GAP (declared, sharpened Repair
+   * #21 W-5d): the doorway control below is real, but it has no
+   * live home today - (1) the served C2 shell mounts NO in-call
+   * surface at all (ChatsHost.placeCall only notes the placed
+   * call's status and re-reads the call log; no CallSurface /
+   * ActiveCallOverlay is rendered there), and (2) this component
+   * renders only in the legacy OpalApp, which App.tsx no longer
+   * mounts, and even there the callSurface state drops the call
+   * record's conversation_id (ProductCall carries it) instead of
+   * passing it here. Wiring either field in the legacy app would
+   * ship a doorway no user can reach, so R21 wires nothing and
+   * declares the blocker: the C2 shell needs its own in-call
+   * surface first; then this doorway lights up from the call
+   * record's conversation_id through the thread's existing orbit
+   * route. The call LOG row carries the live parity route
+   * meanwhile.
    */
   orbitConversationId?: string | null;
   onOpenOrbit?: () => void;

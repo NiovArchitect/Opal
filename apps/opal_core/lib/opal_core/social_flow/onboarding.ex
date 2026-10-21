@@ -995,7 +995,8 @@ defmodule OpalCore.SocialFlow.Onboarding do
     {:ok, conv} =
       %Conversation{}
       |> Conversation.changeset(%{
-        label: "connection-#{String.slice(inviter, 0, 8)}-#{String.slice(acceptor, 0, 8)}"
+        label: "connection-#{String.slice(inviter, 0, 8)}-#{String.slice(acceptor, 0, 8)}",
+        created_by_user_id: inviter
       })
       |> Repo.insert()
 

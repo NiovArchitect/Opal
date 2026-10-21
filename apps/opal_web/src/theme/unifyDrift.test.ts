@@ -342,6 +342,13 @@ const GLASS_REGISTRY: GlassSite[] = [
   },
   {
     sheet: "src/c2/shell/c2shell.css",
+    selector: ".c2s-frost-strip",
+    declaration: "blur(22px) saturate(1.3)",
+    declarations: 2,
+    reason: "R21 Orbit v4 full-width frost strip behind the navigation pad, extended in v4.2 (F-1) into ONE true backdrop sheet behind composer AND pad: a stronger local blur (22px, above the shared chrome token) so assets behind the sheet stay barely visible, its top dissolving via gradient + mask - no hard edge mid-screen.",
+  },
+  {
+    sheet: "src/c2/shell/c2shell.css",
     selector: ".c2s-scrim",
     declaration: "blur(var(--scrim-blur))",
     declarations: 1,
@@ -544,8 +551,8 @@ describe("r19/w18-fix: sanctioned glass registry - every backdrop blur is listed
     expect(found).toHaveLength(GLASS_REGISTRY.length);
   });
 
-  it("the C2 sheet's glass is exactly its three sanctioned sites", () => {
+  it("the C2 sheet's glass is exactly its four sanctioned sites", () => {
     const inSheet = found.filter((f) => f.sheet === "src/c2/shell/c2shell.css");
-    expect(inSheet.map((f) => f.selector).sort()).toEqual([".c2s-dock", ".c2s-scrim", ".r19-share-card"]);
+    expect(inSheet.map((f) => f.selector).sort()).toEqual([".c2s-dock", ".c2s-frost-strip", ".c2s-scrim", ".r19-share-card"]);
   });
 });

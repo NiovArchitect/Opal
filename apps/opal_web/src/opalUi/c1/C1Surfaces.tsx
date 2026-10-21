@@ -28,6 +28,12 @@ import {
 } from "./opalChatScope";
 import type { PlanProjection } from "./planProjection";
 import { useDismissableSurface } from "./useDismissable";
+/* R21 W-2/W-3: the shared calm treatment's one component - the (i)
+ * bubble lives in the C2 shell bits and is consumed here unchanged
+ * (same markup, same calm-info classes in c2shell.css), so the
+ * thread, chats and call-log surfaces speak the same system as
+ * plan detail and the deck. */
+import { InfoBubble } from "../../c2/shell/bits";
 import "./CallLog.css";
 
 /* ---------------- Presence (spec 8: real signals only) ---------------- */
@@ -346,7 +352,10 @@ export function CenterSessionList({
           New chat
         </button>
       </div>
-      <p className="c1-sublabel">Filed by what they are about. Your current chat stays at the top.</p>
+      {/* R21 W-3: the sublabel "Filed by what they are about. Your
+          current chat stays at the top." merely explained the list
+          it sat on - stripped. The filing itself (continuing /
+          pinned / orbits / earlier groups below) carries it. */}
       <input
         className="c1-search"
         placeholder="Search your chats"
@@ -358,7 +367,8 @@ export function CenterSessionList({
         <div className="c1-empty c1-facet-field">
           <PresenceMark state="idle" size={56} />
           <p className="c1-empty-title">No chats yet.</p>
-          <p className="c1-empty-line">Start your first chat.</p>
+          {/* R21 W-3: quiet state + (i); the instruction moved. */}
+          <InfoBubble text="Start your first chat with New chat." />
         </div>
       ) : (
         <div className="c1-rows">
@@ -728,6 +738,7 @@ export function CenterChat({
   onOpenOpalChats,
   chrome,
   composerPlaceholder,
+  embedded = false,
 }: {
   title: string;
   presence?: PresenceState;
@@ -757,13 +768,56 @@ export function CenterChat({
   context?: OpalConversationContext | null;
   onOpenPersonThread?: (context: OpalConversationContext) => void;
   onOpenOpalChats?: (context: OpalConversationContext) => void;
-  /** Orbit v2 (bidirectional law): the orbit host passes a
-   *  placeholder that invites sharing, not only asking - the user
-   *  tells Opal where they are coming from. Absent = the plain
-   *  chat's own placeholder. */
+  /** The host passes the composer's placeholder. Absent = the
+   *  plain chat's own placeholder. */
   composerPlaceholder?: string;
+  /**
+   * Repair #21 (Orbit v3, Calm Law): this conversation is embedded
+   * inside the orbit room, whose own header and back are the only
+   * chrome. Embedded renders no header of its own (no hamburger,
+   * no second back, no repeated title), no context chip, and no
+   * composer destination pill; the conversation actions menu, when
+   * the host wires it, stays reachable as one quiet overflow.
+   * Absent/false = the standalone chat, chrome exactly as before.
+   */
+  embedded?: boolean;
 }) {
   const [draft, setDraft] = useState("");
+  // R21 v4.1 (C-3): the embedded (orbit) composer's voice leg -
+  // uniform with the orbit room's own composer: mic in the slot
+  // when empty, recording inside the bar, stop leaves the words
+  // as a draft (transcription-to-draft; sending audio to an
+  // Opal session is not a wired path - declared in the report).
+  const [voiceRecording, setVoiceRecording] = useState(false);
+  const voiceRecRef = useRef<{ stop: () => void } | null>(null);
+  const startVoice = () => {
+    setVoiceRecording(true);
+    try {
+      const w = window as unknown as { SpeechRecognition?: new () => never; webkitSpeechRecognition?: new () => never };
+      const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+      if (Ctor) {
+        const rec = new Ctor() as unknown as {
+          continuous: boolean; interimResults: boolean;
+          onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+          onend: (() => void) | null; start: () => void; stop: () => void;
+        };
+        rec.continuous = true;
+        rec.interimResults = false;
+        rec.onresult = (e) => {
+          const text = Array.from(e.results).map((r) => r[0]?.transcript ?? "").join(" ").trim();
+          if (text) setDraft(text);
+        };
+        rec.onend = () => setVoiceRecording(false);
+        voiceRecRef.current = rec;
+        rec.start();
+      }
+    } catch { /* capture unavailable: stop returns to idle */ }
+  };
+  const stopVoice = () => {
+    try { voiceRecRef.current?.stop(); } catch { /* already stopped */ }
+    voiceRecRef.current = null;
+    setVoiceRecording(false);
+  };
   const [menuOpen, setMenuOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
@@ -789,9 +843,10 @@ export function CenterChat({
     triggerRef: overflowBtnRef,
   });
   return (
-    <div className="c1-surface c1-thread" data-testid="center-chat">
+    <div className="c1-surface c1-thread" data-testid="center-chat" data-embedded={embedded ? "true" : undefined}>
+      {embedded && !hasMenu ? null : (
       <header className="c1-header c1-thread-header">
-        {chrome?.onOpenRail ? (
+        {!embedded && chrome?.onOpenRail ? (
           <button
             type="button"
             className="c1-nav-btn c1-glass"
@@ -802,10 +857,13 @@ export function CenterChat({
             ☰
           </button>
         ) : null}
+        {!embedded ? (
         <button type="button" className="c1-back" aria-label="Back to chats" onClick={onBack}>
           ‹
         </button>
-        <PresenceMark state={presence} size={36} />
+        ) : null}
+        {!embedded ? <PresenceMark state={presence} size={36} /> : null}
+        {!embedded ? (
         <span className="c1-thread-titles">
           <span className="c1-thread-name" data-testid="center-chat-title">
             {title}
@@ -822,7 +880,8 @@ export function CenterChat({
             {presence === "idle" ? "Chat with Opal" : PRESENCE_COPY[presence]}
           </span>
         </span>
-        {onToggleVoice ? (
+        ) : null}
+        {!embedded && onToggleVoice ? (
           <button type="button" className="c1-header-action" onClick={onToggleVoice}>
             {voiceOn ? "Voice on" : "Voice off"}
           </button>
@@ -842,6 +901,7 @@ export function CenterChat({
           </button>
         ) : null}
       </header>
+      )}
       {menuOpen && chrome ? (
         <div ref={menuRef} className="c1-overflow-menu c1-glass" data-testid="center-chat-overflow-menu" role="menu" aria-label="Conversation actions">
           {renaming ? (
@@ -1041,7 +1101,7 @@ export function CenterChat({
           </button>
         </div>
       ) : null}
-      {context ? (
+      {context && !embedded ? (
         <div
           className="c1-context-chip"
           data-testid="opal-context-chip"
@@ -1078,7 +1138,9 @@ export function CenterChat({
       ) : null}
       <MessageFlow surface="opal-chat" messages={messages} plansById={plansById} onOpenPlan={onOpenPlan} onHoldingLink={onHoldingLink} />
       <div className="c1-composer-bar">
-        <span className="c1-destination-pill c1-destination-compact">{title}</span>
+        {!embedded ? (
+          <span className="c1-destination-pill c1-destination-compact">{title}</span>
+        ) : null}
         <div className="c1-composer" data-testid="opal-chat-composer">
           <input
             className="c1-composer-input"
@@ -1104,7 +1166,12 @@ export function CenterChat({
               present. The empty slot is reserved space, not a
               control: nothing in it is tappable at rest. */}
           <div className="c1-composer-action-slot" data-testid="opal-chat-composer-action-slot">
-            {onSend && draft.trim() ? (
+            {embedded && voiceRecording ? (
+              <span className="orbit-recording" data-testid="opal-chat-composer-recording">
+                <span className="orbit-recording-label">Recording</span>
+                <button type="button" className="orbit-composer-stop" data-testid="opal-chat-composer-stop" aria-label="Stop recording" onClick={stopVoice}>{"■"}</button>
+              </span>
+            ) : onSend && draft.trim() ? (
               <button
                 type="button"
                 className="c1-send is-active"
@@ -1116,6 +1183,10 @@ export function CenterChat({
                 }}
               >
                 ↑
+              </button>
+            ) : embedded && onSend ? (
+              <button type="button" className="orbit-composer-mic" data-testid="opal-chat-composer-mic" aria-label="Record a voice note" onClick={startVoice}>
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" /></g></svg>
               </button>
             ) : null}
           </div>
@@ -1240,7 +1311,8 @@ export function PeopleChatsList({
       {chats.length === 0 ? (
         <div className="c1-empty">
           <p className="c1-empty-title">No chats yet.</p>
-          <p className="c1-empty-line">Start a chat.</p>
+          {/* R21 W-3: quiet state + (i) bubble pattern. */}
+          <InfoBubble text="Start a chat with + New." />
         </div>
       ) : visible.length === 0 ? (
         <div className="c1-empty" data-testid="chats-search-empty">
@@ -1461,11 +1533,14 @@ export function PeopleCallsList({
       ) : visible.length === 0 ? (
         <div className="c1-empty" data-testid="calls-empty">
           <p className="c1-empty-title">No calls yet.</p>
-          <p className="c1-empty-line">
-            {needle
-              ? "No call matches that search."
-              : "Calls you make and receive will show up here."}
-          </p>
+          {needle ? (
+            <p className="c1-empty-line">No call matches that search.</p>
+          ) : (
+            /* R21 W-3: the explanatory line moves behind the (i)
+             * bubble; the search no-match line is feedback and
+             * stays on the surface. */
+            <InfoBubble text="Calls you make and receive will show up here." />
+          )}
         </div>
       ) : (
         <div className="c1-rows">
@@ -1674,15 +1749,17 @@ export function ThreadShell({
   composerAccessory,
   composerAction,
   initialDraft,
+  draftOrigin,
+  onReturnToOrigin,
   onCall,
   onCorrectTranscript,
   onOpenProfile,
   opalDoorway,
   onTalkToOpal,
   personContext,
-  onOpenOpalChats,
   orbitDoorway,
   onOpenOrbit,
+  onManageMembers,
 }: {
   name: string;
   initials: string;
@@ -1738,16 +1815,31 @@ export function ThreadShell({
    */
   composerAction?: React.ReactNode;
   /**
-   * Orbit v2 PUSH TO CHAT landing + the R20A initial-draft hook:
+   * Orbit PLACE landing + the R20A initial-draft hook:
    * words carried from the orbit's recommendation box arrive here
    * as the composer's initial draft - placed in the box, unsent,
-   * with no marker that help was used, cursor in the words. The
-   * host supplies them once via the shell's chat-open request;
-   * each distinct non-empty value is applied as the draft once,
-   * and edits the user makes afterwards stand until the host
-   * passes a new value. Null/absent = the composer opens empty.
+   * cursor in the words. (Round 3 supersedes the v2 "no marker"
+   * rule: the thread now carries the quiet provenance chip -
+   * see draftOrigin.) The host supplies them once via the
+   * shell's chat-open request; each distinct non-empty value is
+   * applied as the draft once, and edits the user makes
+   * afterwards stand until the host passes a new value.
+   * Null/absent = the composer opens empty.
    */
   initialDraft?: string | null;
+  /**
+   * Round 3 (O-3 rebuild) — the placed draft's provenance. When
+   * the initial draft arrived from the user's Orbit (the place
+   * action), the thread says so plainly while those words sit
+   * unsent: a quiet chip, "From your Orbit - unsent", with the
+   * one-tap return to the orbit beside it. The chip lives
+   * exactly as long as an unsent draft does - send or clear the
+   * words and it is gone. Absent = no chip (a draft the user
+   * typed themselves carries no provenance).
+   */
+  draftOrigin?: "orbit" | null;
+  /** The chip's one-tap return to the orbit the words came from. */
+  onReturnToOrigin?: () => void;
   /** Call controls render only when a host wires the real call path. */
   onCall?: (kind: "video" | "voice") => void;
   onCorrectTranscript?: (messageId: string, text: string) => Promise<void>;
@@ -1764,11 +1856,12 @@ export function ThreadShell({
   opalDoorway?: OpalConversationContext | null;
   onTalkToOpal?: (context: OpalConversationContext) => void;
   /**
-   * Repair #19 Addition A — the person context of this thread, for
-   * the Opal-chats index doorway. The person is always here, so this
-   * doorway's discipline is placement: one quiet text button in the
-   * plan-awareness zone (the strip when it renders, else a slim zone
-   * under the header), never permanent chrome elsewhere.
+   * Repair #19 Addition A — the person context of this thread.
+   * R21 W-3: its old rendering (the person-index text button in
+   * the strip / slim zone) is stripped; the person
+   * context now feeds ONLY the header doorway's richest-context
+   * selection. onOpenOpalChats remains accepted for host
+   * compatibility but is no longer rendered by the thread.
    */
   personContext?: OpalConversationContext | null;
   onOpenOpalChats?: (context: OpalConversationContext) => void;
@@ -1782,6 +1875,14 @@ export function ThreadShell({
    */
   orbitDoorway?: { conversationId: string; label: string } | null;
   onOpenOrbit?: () => void;
+  /**
+   * Repair #21 (W-5b) - the group thread's manage affordance: one
+   * quiet header button opening the host's membership surface (add
+   * people multi-select, remove under the admin rule, leave). The
+   * host passes it ONLY for a group thread whose membership it can
+   * really open - absent = no button, never a dead one.
+   */
+  onManageMembers?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -1859,6 +1960,16 @@ export function ThreadShell({
             <span className="c1-thread-sub">{sharedLine}</span>
           ) : null}
         </span>
+        {onManageMembers ? (
+          <button
+            type="button"
+            className="c1-manage-members-btn"
+            data-testid="thread-manage-members"
+            onClick={onManageMembers}
+          >
+            People
+          </button>
+        ) : null}
         {onCall ? (
           <span className="c1-call-actions">
             <button type="button" className="c1-call-btn" aria-label="Video call" onClick={() => onCall("video")}>
@@ -1908,44 +2019,24 @@ export function ThreadShell({
                 one quiet button, only when the host's derivation
                 (opalChatScope) earned it. Plus Addition A: the same
                 zone carries the person's Opal-chats index doorway. */}
-            {opalDoorway && onTalkToOpal ? (
-              <button
-                type="button"
-                className="c1-opal-doorway"
-                data-testid="opal-doorway"
-                data-plan-id={opalDoorway.planId ?? ""}
-                data-person-id={opalDoorway.personId}
-                onClick={() => onTalkToOpal(opalDoorway)}
-              >
-                {`Talk to Opal about this plan${opalDoorway.planTitle ? ` - ${opalDoorway.planTitle}` : ""}`}
-              </button>
-            ) : null}
-            {personContext && onOpenOpalChats ? (
-              <button
-                type="button"
-                className="c1-opal-doorway c1-opal-doorway-quiet"
-                data-testid="opal-chats-index-open"
-                data-person-id={personContext.personId}
-                onClick={() => onOpenOpalChats(personContext)}
-              >
-                {`Opal chats about ${personContext.personName}`}
-              </button>
-            ) : null}
+            {/* R21 v4.1 (C-5, W-3): the strip's text doorway
+                ("Talk to Opal about this plan - ...") is STRIPPED.
+                The header doorway orb is the door; the strip holds
+                only the plan stone itself. The opalDoorway prop and
+                its host derivation stay for the header doorway. */}
+
+            {/* R21 W-3 (founder-named): the person-index label
+                that used to sit here is STRIPPED. It explained the
+                doorway instead of being content; the header
+                doorway and the orbit it opens carry the meaning.
+                The strip now holds only the plan itself and its
+                own doorway. The index handler stays on the props
+                for the Opal chat's context chip, which is a
+                navigation action inside Opal's own chat, not a
+                thread label. */}
           </div>
         ) : nextPlan ? (
           <NextTogetherStrip plan={nextPlan} onOpen={open} />
-        ) : personContext && onOpenOpalChats ? (
-          <div className="c1-next-strip" data-testid="thread-opal-zone">
-            <button
-              type="button"
-              className="c1-opal-doorway c1-opal-doorway-quiet"
-              data-testid="opal-chats-index-open"
-              data-person-id={personContext.personId}
-              onClick={() => onOpenOpalChats(personContext)}
-            >
-              {`Opal chats about ${personContext.personName}`}
-            </button>
-          </div>
         ) : null}
         <MessageFlow surface="person-thread" messages={messages} plansById={plansById} onOpenPlan={open} onCorrectTranscript={onCorrectTranscript} />
         {reveals && reveals.length > 0 ? (
@@ -1971,6 +2062,23 @@ export function ThreadShell({
           <button type="button" className="c1-chip">
             {contextualChip}
           </button>
+        </div>
+      ) : null}
+      {draftOrigin === "orbit" && draft.trim() ? (
+        <div className="c1-chip-row c1-orbit-draft-row" data-testid="thread-orbit-draft">
+          <span className="c1-orbit-draft-chip" data-testid="thread-orbit-draft-chip">
+            From your Orbit - unsent
+          </span>
+          {onReturnToOrigin ? (
+            <button
+              type="button"
+              className="c1-orbit-draft-return"
+              data-testid="thread-orbit-draft-return"
+              onClick={onReturnToOrigin}
+            >
+              Back to Orbit
+            </button>
+          ) : null}
         </div>
       ) : null}
       <div className="c1-composer-bar" data-testid="thread-composer-bar">

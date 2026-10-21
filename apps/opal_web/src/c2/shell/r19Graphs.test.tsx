@@ -268,7 +268,10 @@ describe("R19 living detail", () => {
     expect(locs.some((t) => t.includes("1.9 mi away"))).toBe(true);
     const mayaRow = locs.find((t) => t.includes("Not sharing"))!;
     expect(mayaRow).not.toMatch(/mi away|km away/);
-    expect(document.body.textContent).toContain("Who is coming, and where they are");
+    // R21 W-3 (flipped): the hand-holding kicker "Who is coming,
+    // and where they are" is stripped - the roster rows are
+    // self-evident. Assert its ABSENCE now.
+    expect(document.body.textContent).not.toContain("Who is coming, and where they are");
   });
 
   it("share control renders only with a handler and shows the returned line", async () => {

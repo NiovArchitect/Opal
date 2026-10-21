@@ -86,7 +86,13 @@ defmodule OpalCore.SocialFlow.OrbitProjection do
         "next_plan" => next_plan,
         "subject" => subject(next_plan, conversation_id),
         "where_lines" => where_lines(next_plan, plans, party_list, viewer_id, opts),
-        "past_plans" => past
+        "past_plans" => past,
+        # Repair #21 (W-5b): who came and went - the conversation's
+        # recorded membership events (Chronology member_added /
+        # member_removed moments, read through the messaging
+        # boundary that writes them). The orbit renders these
+        # finished lines; it derives nothing about membership here.
+        "membership_events" => Messages.membership_events(conversation_id)
       }
     else
       nil
@@ -219,20 +225,43 @@ defmodule OpalCore.SocialFlow.OrbitProjection do
   defp where_lines(next_plan, plans, party_list, viewer_id, opts) do
     names = Map.new(party_list, &{&1["user_id"], &1["display_name"]})
 
+    # Repair #21 v4.2.1 (CF2-6) - copy coherence at the
+    # derivation: the next-together line derives from the SAME
+    # plan list the standing lines and the party reads derive
+    # from (the pick when there is one, else the list's first
+    # fact), never from the pick alone. A plan that exists but
+    # carries no time yet is NOT "no plan": the line says it is
+    # not scheduled yet, and when the viewer is the one it is
+    # waiting on, it says that too - so this line can never
+    # contradict the Your move truth on the same card. "No next
+    # plan is set yet" is reserved for a room with no plan at
+    # all, in any derivation.
+    next_fact = next_plan || List.first(plans)
+
     next_line =
-      case next_plan do
+      case next_fact do
         %{"title" => title} = fact ->
-          [
-            "Next together: #{title}",
-            fact["when_label"] || "time not set yet",
-            fact["where_label"]
-          ]
-          |> Enum.reject(&is_nil/1)
-          # A plan fact whose place label repeats its title reads
-          # once, not twice - the line stays finished.
-          |> Enum.uniq()
-          |> Enum.join(" - ")
-          |> Kernel.<>(".")
+          if is_binary(fact["when_label"]) and fact["when_label"] != "" do
+            [
+              "Next together: #{title}",
+              fact["when_label"],
+              fact["where_label"]
+            ]
+            |> Enum.reject(&is_nil/1)
+            # A plan fact whose place label repeats its title reads
+            # once, not twice - the line stays finished.
+            |> Enum.uniq()
+            |> Enum.join(" - ")
+            |> Kernel.<>(".")
+          else
+            base = "Next together: #{title} - not scheduled yet."
+
+            if viewer_pending?(party_list, viewer_id) do
+              base <> " One waiting on you."
+            else
+              base
+            end
+          end
 
         _ ->
           "No next plan is set yet."
@@ -280,6 +309,12 @@ defmodule OpalCore.SocialFlow.OrbitProjection do
           _ -> "Still waiting on #{Enum.join(pending_names, ", ")} for #{title}."
         end
     end
+  end
+
+  # The viewer's own pending truth, read off the same party
+  # list the ring lights and the web card's Your move row read.
+  defp viewer_pending?(party_list, viewer_id) do
+    Enum.any?(party_list, &(&1["user_id"] == viewer_id and &1["pending"] == true))
   end
 
   defp name_for(names, user_id) do

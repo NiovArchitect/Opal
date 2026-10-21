@@ -877,12 +877,40 @@ defmodule OpalCoreWeb.ConversationController do
 
   @doc """
   Add a member to an existing conversation. Actor must already be a member.
+
+  Repair #21 (W-5b): the body may carry `user_ids` (a list) to add
+  SEVERAL people in one action - the group manage surface's
+  multi-select. The single `user_id` / `member_user_id` shape is
+  unchanged for existing callers. Both shapes run the real
+  ConversationMember machinery (`Messages.add_conversation_member(s)`);
+  the conversation id never changes.
   """
   def add_member(conn, %{"id" => conversation_id} = params) do
     user_id = conn.assigns.current_user_id
     new_user_id = params["user_id"] || params["member_user_id"]
+    user_ids = params["user_ids"] || params["member_user_ids"]
 
     cond do
+      is_list(user_ids) and user_ids != [] ->
+        case Messages.add_conversation_members(conversation_id, user_id, user_ids) do
+          {:ok, result} ->
+            json(conn, %{
+              "conversation_id" => conversation_id,
+              "member_ids" => result.member_ids,
+              "member_count" => result.member_count,
+              "added_ids" => result.added_ids,
+              "already_member_ids" => result.already_member_ids,
+              "origin" => "created",
+              "composition" => if(result.member_count >= 3, do: "group", else: "dyad")
+            })
+
+          {:error, :not_a_member} ->
+            error(conn, 403, "not_a_member", "You are not in this conversation")
+
+          {:error, reason} ->
+            error(conn, 422, "add_member_failed", inspect(reason))
+        end
+
       not is_binary(new_user_id) or new_user_id == "" ->
         error(conn, 422, "missing_user_id", "user_id is required")
 
@@ -905,6 +933,68 @@ defmodule OpalCoreWeb.ConversationController do
           {:error, reason} ->
             error(conn, 422, "add_member_failed", inspect(reason))
         end
+    end
+  end
+
+  @doc """
+  Repair #21 (W-5b) - the viewer-scoped membership projection for
+  the group thread's manage surface: creator truth, members with
+  their removal flags under the admin rule, and the recorded
+  membership events. Members only.
+
+  GET /api/v1/product/conversations/:id/membership
+  """
+  def membership(conn, %{"id" => conversation_id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Messages.membership_projection(conversation_id, user_id) do
+      {:ok, projection} ->
+        json(conn, %{"membership" => projection})
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+    end
+  end
+
+  @doc """
+  Repair #21 (W-5b) - remove a member (or leave). The admin rule is
+  the machinery's own (`Messages.remove_conversation_member/3`):
+  only the conversation's creator may remove someone else; anyone
+  may remove themselves. A non-creator removing another member is a
+  plain 403 - never a silent no-op.
+
+  DELETE /api/v1/product/conversations/:id/members/:user_id
+  """
+  def remove_member(conn, %{"id" => conversation_id, "user_id" => target_id}) do
+    user_id = conn.assigns.current_user_id
+
+    case Messages.remove_conversation_member(conversation_id, user_id, target_id) do
+      {:ok, result} ->
+        json(conn, %{
+          "conversation_id" => conversation_id,
+          "removed_user_id" => result.removed_user_id,
+          "left" => result.left,
+          "member_ids" => result.member_ids,
+          "member_count" => result.member_count,
+          "composition" => if(result.member_count >= 3, do: "group", else: "dyad")
+        })
+
+      {:error, :not_a_member} ->
+        error(conn, 403, "not_a_member", "You are not in this conversation")
+
+      {:error, :not_creator} ->
+        error(
+          conn,
+          403,
+          "not_creator",
+          "Only the person who started this conversation can remove someone else. You can leave any time."
+        )
+
+      {:error, :target_not_a_member} ->
+        error(conn, 422, "target_not_a_member", "That person is not in this conversation")
+
+      {:error, reason} ->
+        error(conn, 422, "remove_member_failed", inspect(reason))
     end
   end
 

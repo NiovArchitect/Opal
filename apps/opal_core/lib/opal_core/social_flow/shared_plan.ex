@@ -369,7 +369,7 @@ defmodule OpalCore.SocialFlow.SharedPlan do
     # carries them, so every other plan shape is byte-identical to before.
     base =
       Enum.reduce(
-        ~w(caption media_id audience who_label repeated_from_plan_id),
+        ~w(caption media_id audience who_label repeated_from_plan_id inspired_by_moment_id inspired_by_author_user_id),
         base,
         fn key, acc ->
           case Map.get(p.alignment || %{}, key) do

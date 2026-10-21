@@ -18,7 +18,7 @@ export function homeTortureScenario() {
     displayName: "Alex",
     needsYou: many,
     comingUp: [],
-    hourUTC: 18,
+    viewerHour: 18,
   });
   if (home.needs_you.length > MAX_NEEDS_YOU) {
     throw new Error("NEEDS_YOU_OVERFLOW");
@@ -33,7 +33,7 @@ export function homeTortureScenario() {
     displayName: "Alex",
     needsYou: remaining,
     comingUp: [],
-    hourUTC: 18,
+    viewerHour: 18,
   });
   if (!quiet.quiet_success) throw new Error("QUIET_SUCCESS_MISSING");
 

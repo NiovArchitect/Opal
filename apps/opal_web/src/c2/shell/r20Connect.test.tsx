@@ -344,6 +344,101 @@ describe("R20 F-9 Connectors v2", () => {
   });
 });
 
+describe("R21 Connectors expansion audit", () => {
+  it("PIN R21: a connected Google grant renders Disconnect (never Connect) on both Google rows, and tapping it fires the shell's real google-disconnect action (the revoke entry)", async () => {
+    // The backend shape for a connected grant (Settings.Connections
+    // google_row, connected leg): each Google row carries ONLY the
+    // enabled disconnect action, routed at the real revoke endpoint.
+    const disconnectAction = {
+      kind: "disconnect", label: "Disconnect", enabled: true, disabled_reason: null,
+      route: "POST /api/v1/product/connectors/google_calendar/revoke",
+    };
+    mocks.getSettingsConnections.mockResolvedValue(payload([
+      conn({ id: "google_calendar", display_name: "Your Google Calendar", status: "working", status_label: "Working", actions: [disconnectAction] }),
+      conn({ id: "gmail", display_name: "Your Gmail", status: "working", status_label: "Working", actions: [disconnectAction] }),
+    ]));
+    const section = await buildSettingsSection("connections", { session: null, bearer: "t" });
+    for (const row of section.rows) {
+      if (row.kind === "connection") {
+        expect(row.hasRealFlow, row.id).toBe(true);
+        expect(row.action?.label, row.id).toBe("Disconnect");
+        expect(row.action?.id, row.id).toBe("google-disconnect");
+      }
+    }
+    await render(<C2SettingsSection section={section} events={events} />);
+    for (const id of ["google_calendar", "gmail"]) {
+      const btn = container.querySelector<HTMLButtonElement>(`[data-testid="connection-action-${id}"]`)!;
+      expect(btn, id).toBeTruthy();
+      expect(btn.textContent).toBe("Disconnect");
+      expect(btn.getAttribute("data-action-id")).toBe("google-disconnect");
+    }
+    const gmailBtn = container.querySelector<HTMLButtonElement>('[data-testid="connection-action-gmail"]')!;
+    await act(async () => { gmailBtn.click(); });
+    expect(events.runAction).toHaveBeenCalledWith("connections", "google-disconnect");
+    expect(events.runAction).not.toHaveBeenCalledWith("connections", "google-connect");
+  });
+
+  it("PIN R21: the allowlist is CLOSED - a payload row for a tool with no audited real flow (Instagram / Spotify / Google Drive class) never renders, even when the payload paints it an enabled connect action", async () => {
+    // R21 audit (r21-connectors-report.md): no OAuth/permission flow
+    // exists in the codebase for these providers - no adapter, no
+    // routes, no client entry. Until a real flow lands AND the id is
+    // deliberately allowlisted, the room must not render the row in
+    // any form: absent + declared beats present + painted.
+    const paintedAction = {
+      kind: "connect", label: "Connect", enabled: true, disabled_reason: null,
+      route: "POST /api/v1/product/connectors/painted/start",
+    };
+    mocks.getSettingsConnections.mockResolvedValue(payload([
+      conn({ id: "google_calendar", display_name: "Your Google Calendar" }),
+      conn({ id: "gmail", display_name: "Your Gmail" }),
+      conn({ id: "instagram", display_name: "Your Instagram", actions: [paintedAction] }),
+      conn({ id: "spotify", display_name: "Your Spotify", actions: [paintedAction] }),
+      conn({ id: "google_drive", display_name: "Your Google Drive", actions: [paintedAction] }),
+    ]));
+    const section = await buildSettingsSection("connections", { session: null, bearer: "t" });
+    const connectionRows = section.rows.filter((r) => r.kind === "connection");
+    expect(connectionRows.map((r) => r.id)).toEqual(["google_calendar", "gmail"]);
+    await render(<C2SettingsSection section={section} events={events} />);
+    const text = container.textContent || "";
+    for (const absent of ["Instagram", "Spotify", "Google Drive"]) {
+      expect(text, `${absent} must not render`).not.toContain(absent);
+    }
+    for (const id of ["instagram", "spotify", "google_drive"]) {
+      expect(container.querySelector(`[data-testid="connection-row-${id}"]`)).toBeNull();
+      expect(container.querySelector(`[data-testid="connection-action-${id}"]`)).toBeNull();
+    }
+    // No Social category appears for the absent social rows.
+    expect(container.querySelector('[data-testid="connection-category-social"]')).toBeNull();
+  });
+
+  it("PIN R21: a gated row exposes NO live connect action - its only control is View (Declaration: gated rows stay in the room's honest form)", async () => {
+    // The capture-world shape: OAuth unconfigured on the server, so
+    // the payload carries a gate and NO actions. The builder must
+    // not synthesize a Connect from the gate, the status, or the id.
+    mocks.getSettingsConnections.mockResolvedValue(payload([
+      conn({ id: "google_calendar", display_name: "Your Google Calendar", status: "gated", status_label: "Waiting on you", status_detail: "Google sign-in is not set up on this server yet.", gate: { code: "google_signin_not_set_up", reason_plain: "A different gate sentence.", founder_step: "x" }, actions: [] }),
+    ]));
+    const section = await buildSettingsSection("connections", { session: null, bearer: "t" });
+    const row = section.rows.find((r) => r.kind === "connection")!;
+    expect(row.kind).toBe("connection");
+    if (row.kind === "connection") {
+      expect(row.hasRealFlow).toBe(false);
+      expect(row.action).toBeNull();
+      // A gate reason that DIFFERS from the status detail is kept
+      // (only a verbatim repeat is dropped - R20 Declaration #8).
+      expect(row.gateReason).toBe("A different gate sentence.");
+    }
+    await render(<C2SettingsSection section={section} events={events} />);
+    const btn = container.querySelector<HTMLButtonElement>('[data-testid="connection-action-google_calendar"]')!;
+    expect(btn.textContent).toBe("View");
+    await act(async () => { btn.click(); });
+    expect(events.runAction).not.toHaveBeenCalled();
+    const detail = container.querySelector('[data-testid="connection-detail-google_calendar"]')!;
+    expect(detail.textContent).toContain("What is holding it back");
+    expect(detail.textContent).toContain("A different gate sentence.");
+  });
+});
+
 describe("R20 F-10 Center assets", () => {
   const openingEvents = () => ({
     openGraph: vi.fn(),
@@ -362,28 +457,27 @@ describe("R20 F-10 Center assets", () => {
     forming: [],
   };
 
-  it("each asset fires its real handler; How Opal works for you is a doorway row, not an action", async () => {
+  it("each asset fires its real handler; the explainer is folded behind the (i), not a card (R21 W-11)", async () => {
     const ev = openingEvents();
     await render(<C2CenterOpening projection={projection} events={ev} />);
     const create = container.querySelector<HTMLButtonElement>('[data-testid="c2-opening-create"]')!;
     const talk = container.querySelector<HTMLButtonElement>('[data-testid="c2-opening-talk"]')!;
-    const doorway = container.querySelector<HTMLButtonElement>('[data-testid="c2-opening-soul-memory"]')!;
     expect(create.className).toMatch(/c2s-center-asset/);
     expect(talk.className).toMatch(/c2s-center-asset/);
-    expect(doorway.getAttribute("data-kind")).toBe("doorway");
-    expect(doorway.textContent).toMatch(/How Opal works for you/);
-    expect(doorway.textContent).toMatch(/Soul and Memory/);
+    // R21 W-11 (Discovery Doctrine): the "How Opal works for you"
+    // explainer CARD is gone; its words live behind the shell's
+    // one (i) affordance, and the orb is the doorway.
+    expect(container.querySelector('[data-testid="c2-opening-soul-memory"]')).toBeNull();
+    expect(container.querySelector('[data-testid="c2-opening-soul-memory-info"]')).toBeTruthy();
+    expect(container.textContent).not.toMatch(/Soul and Memory - how Opal is with you/);
     await act(async () => { create.click(); });
     expect(ev.makeSomethingHappen).toHaveBeenCalledTimes(1);
     await act(async () => { talk.click(); });
     expect(ev.openCenterChat).toHaveBeenCalledTimes(1);
-    await act(async () => { doorway.click(); });
-    expect(ev.openSoulMemory).toHaveBeenCalledTimes(1);
-    // The orb itself is the same doorway.
     const orb = container.querySelector<HTMLButtonElement>('[data-testid="c2-center-orb-doorway"]')!;
     expect(orb.className).toMatch(/c2s-center-orb-doorway/);
     await act(async () => { orb.click(); });
-    expect(ev.openSoulMemory).toHaveBeenCalledTimes(2);
+    expect(ev.openSoulMemory).toHaveBeenCalledTimes(1);
   });
 
   it("PIN: the pressed/active treatment for all three assets exists in the stylesheet", () => {
@@ -392,7 +486,9 @@ describe("R20 F-10 Center assets", () => {
     expect(css).toMatch(/\.c2s-center-asset:active/);
     expect(css).toMatch(/\.c2s-center-orb-doorway:active/);
     expect(css).toMatch(/\.c2s-btn-quiet:active/);
-    expect(css).toMatch(/\.c2s-center-doorway:active/);
+    // R21 W-11 disposal pin: the explainer doorway's CSS is gone
+    // with the card - absence, not layering.
+    expect(css).not.toMatch(/\.c2s-center-doorway/);
   });
 
   it("PIN (design compass, founder 2026-10-20): the pressed treatment is a RING, the connector mark is an orbit mark, and Home's lead carries the ring mark", () => {
@@ -400,11 +496,17 @@ describe("R20 F-10 Center assets", () => {
     const css = readFileSync(resolve(here, "./c2shell.css"), "utf8");
     // Pressed Center asset: an orbit ring drawn around it, not a flat fill alone.
     expect(css).toMatch(/\.c2s-center-asset:active,\s*\.c2s-center-asset:focus-visible\s*\{[^}]*box-shadow: 0 0 0 2px var\(--accent-quiet\)/);
-    expect(css).toMatch(/\.c2s-center-doorway:active,\s*\.c2s-center-doorway:focus-visible\s*\{[^}]*box-shadow: 0 0 0 2px var\(--accent-quiet\)/);
     // Connector mark: a point riding the ring (::after dot on the ring disc).
     expect(css).toMatch(/\.c2s-connection-icon::after\s*\{[^}]*border-radius: 999px/);
-    // Home lead: hollow ring mark before the label.
-    expect(css).toMatch(/\.c2s-home-lead::before\s*\{[^}]*border: 2px solid/);
+    // R21: Home's labeled leads are GONE (Discovery Doctrine -
+    // shape is the label); the Moment Stone's happening fire is
+    // the state border the compass points at now.
+    // R21 round 3 (F-A) RE-POINT: the stone went ROUND and its
+    // state moved onto the ORBIT RING element - the compass now
+    // points at the ring's happening treatment (the marbled
+    // fire ring carrying the happening glow). Same intent: a
+    // happening stone on Home's lead burns in happening light.
+    expect(css).toMatch(/\.c2s-stone\[data-state="happening"\] \.c2s-stone-ring\s*\{[^}]*box-shadow: 0 0 14px var\(--orb-indicator-happening-glow\)/);
     // The compass never borrows a state color for these treatments.
     const compassCss = css.slice(css.indexOf("DESIGN COMPASS"), css.indexOf(".c2s-connection-detail"));
     expect(compassCss).not.toMatch(/--state-(action|ready|forming|happening)/);
@@ -440,11 +542,14 @@ describe("R20 F-18 D-5 Home vs Center", () => {
     );
     const home = container.querySelector('[data-testid="c2-home"]')!;
     expect(home.getAttribute("data-surface-purpose")).toBe("people-and-moments");
-    expect(container.querySelector('[data-testid="c2-home-lead-people"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="c2-home-lead-moments"]')).toBeTruthy();
-    // Design compass: Home's leads carry the ring-mark class (rings
-    // around people here; the ringed stone itself leads on Center).
-    expect(container.querySelector('[data-testid="c2-home-lead-people"]')!.className).toMatch(/c2s-home-lead/);
+    // R21 (W-9 rebuild; F-18 REOPENED and re-closed at the glass):
+    // composition, not labels - Moment Stones lead, the braided
+    // stream follows, and NO labeled section headers exist
+    // (Discovery Doctrine). The R20 markup leads are disposed.
+    expect(container.querySelector('[data-testid="c2-moment-stones"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="c2-story-rail"]')).toBeNull();
+    expect(container.querySelector('[data-testid="c2-home-lead-people"]')).toBeNull();
+    expect(container.querySelector('[data-testid="c2-home-lead-moments"]')).toBeNull();
 
     await render(
       <C2CenterOpening
@@ -465,7 +570,7 @@ describe("R20 F-18 D-5 Home vs Center", () => {
     const center = container.querySelector('[data-testid="c2-center-opening"]')!;
     expect(center.getAttribute("data-surface-purpose")).toBe("opal-working");
     expect(container.querySelector('[data-testid="c2-opening-needs-you"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="c2-home-lead-people"]')).toBeNull();
+    expect(container.querySelector('[data-testid="c2-moment-stones"]')).toBeNull();
   });
 
   it("Home composition interleaves people's moments with plan cards instead of leading with every plan (Center's deck keeps plan lead)", async () => {

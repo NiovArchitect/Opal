@@ -1726,9 +1726,17 @@ defmodule OpalCoreWeb.ConversationChannel do
 
   # --- Social Flow 11: product shell projections ---
 
-  def handle_in("social_flow:home_snapshot", _payload, socket) do
+  def handle_in("social_flow:home_snapshot", payload, socket) do
     user_id = socket.assigns.user_id
-    snap = OpalCore.SocialFlow.ProductShell.home_snapshot(%{user_id: user_id})
+
+    # R21 L-1: the viewer's device timezone may ride the request so
+    # the greeting word follows the viewer; the identity never does -
+    # it is the socket's signed-in user, always.
+    tz = if is_map(payload), do: payload["timezone"], else: nil
+
+    snap =
+      OpalCore.SocialFlow.ProductShell.home_snapshot(%{user_id: user_id, timezone: tz})
+
     {:reply, {:ok, snap}, socket}
   end
 

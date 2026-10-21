@@ -80,9 +80,20 @@ export type StoryRailProjection = {
   stories: Array<{
     id: string;
     personName: string;
+    /** Repair #21 (W-12): the author's real user id - the stone's
+     *  anchor name is the door to the pair's bond. */
+    personId?: string | null;
     avatar: AvatarRef;
     seen: boolean;
     ringKind: "unseen" | "seen" | "happening";
+    /** Repair #21 (W-9 identity addendum): the Moment Stone state,
+     *  assigned by the one adapter from the living graph - a live
+     *  host's stone is "happening" (cyan fire), a loved tie's is
+     *  "loved", then "new", then "seen". The rail orders by it:
+     *  happening > loved > new > seen. (The doctrine's "nearby"
+     *  tier has no truthful input today - no author location is
+     *  read - and is declared, never faked.) */
+    stoneState?: "happening" | "loved" | "new" | "seen";
     storyCount: number;
     /** The story's real media (hunt-fix B-10). Absent = the cell
      *  never opens a viewer; there is no empty stage. */
@@ -93,10 +104,40 @@ export type StoryRailProjection = {
 };
 
 export type FeedCardProjection =
-  | { kind: "plan"; id: string; card: PlanCardC2Input }
+  | {
+      kind: "plan";
+      id: string;
+      card: PlanCardC2Input;
+      /** Repair #21 (I-1 refined - the four doors): the seed facts a
+       *  door branch may lawfully carry, finished by the one adapter
+       *  from the plan's own record. Party ids are NOT here - they
+       *  are read at door time from the plan's history projection
+       *  (the same read the repeat flow's parties come from), so a
+       *  branch never composes a party from a stale card. */
+      seed?: {
+        title: string;
+        location: string | null;
+        placeLat: number | null;
+        placeLon: number | null;
+        planType: string | null;
+        /** The plan contract's viewer_state ("going", "host", ...). */
+        viewerState: string | null;
+        organizerUserId: string | null;
+      };
+    }
   | {
       kind: "memory";
       id: string;
+      /** Repair #21 (W-13 / I-1): the moment author's real user id,
+       *  from the feed record's actor - the reply door and the seed
+       *  doors address the author by id, never by display name. */
+      authorUserId?: string | null;
+      /** True when the moment is the viewer's own. */
+      mine?: boolean;
+      /** The moment record's own place (its place_ref display name,
+       *  projected by the backend feed card). Null = the record
+       *  carries no place, and seed doors carry none either. */
+      placeLabel?: string | null;
       /** The moment record's own media (its media_ref - see the
        *  adapter's provenance note). Absent = the designed
        *  monogram treatment, never text in the image well. */
@@ -109,6 +150,13 @@ export type FeedCardProjection =
        *  from the feed record's actor. */
       authorName?: string | null;
       authorAvatar?: AvatarRef | null;
+      /** Repair #21 (W-9 rebuild): the moment's real engagement,
+       *  from the feed record itself (HomeFeed card carries
+       *  like_count / viewer_liked). The like action writes
+       *  through the real like endpoint and re-renders from its
+       *  response - never a local-only count. */
+      likeCount?: number;
+      viewerLiked?: boolean;
     }
   | {
       kind: "live";
@@ -122,6 +170,7 @@ export type FeedCardProjection =
        *  ONLY when a room with status "live" was read back; the
        *  adapter never composes one from anything else. */
       hostName?: string | null;
+      hostUserId?: string | null;
       hostAvatar?: AvatarRef | null;
       /** The place the live is anchored to (the room's place_label
        *  / venue name, honouring the host's location precision),
@@ -142,13 +191,142 @@ export type FeedCardProjection =
 
 /** Section 7 - HomeProjection v2 (surface shape; distinct from the
  *  back end HomeProjection module, coordinated in spec section 12 D5). */
+/** Repair #21 (W-9 rebuild) - an occasion arriving AHEAD of time,
+ *  from the viewer's own celebrations record (GET /celebrations).
+ *  daysUntil is computed by the one adapter from month/day - the
+ *  surface never does date math. */
+export type HomeOccasion = {
+  id: string;
+  personName: string;
+  kindLabel: "Birthday" | "Anniversary" | "Occasion";
+  dateLabel: string;
+  daysUntil: number;
+  /** The record's own curated idea line, when one was read back. */
+  wouldLove?: string | null;
+  /** The doorway's own words, produced by the derivation (never
+   *  assembled in the card): carries the PERSON, not a pronoun -
+   *  "Start a plan for Maya". */
+  actionLabel: string;
+};
+
+/** Repair #21 (W-9 rebuild) - Know Me? Trivia, projected. Questions
+ *  are built ONLY from records the viewer legitimately holds
+ *  (their celebrations, their wallet's relationship capsules);
+ *  answers are verified by the subjects themselves - never by a
+ *  model. See shellData.buildTriviaQuestions. */
+export type TriviaQuestionView = {
+  id: string;
+  subjectUserId: string;
+  subjectName: string;
+  question: string;
+  factSummary: string;
+  /** Which held record proposed this question (build vocabulary). */
+  source: "celebration" | "capsule";
+};
+
+export type TriviaGuessView = {
+  id: string;
+  subjectUserId: string;
+  subjectName: string | null;
+  guesserUserId: string | null;
+  guesserName: string | null;
+  anonymous: boolean;
+  question: string;
+  guess: string;
+  status: "pending" | "validated" | "rejected" | string;
+  multiplier: number;
+};
+
+export type HomeTrivia = {
+  questions: TriviaQuestionView[];
+  aboutMe: TriviaGuessView[];
+  mine: TriviaGuessView[];
+  /** The inert score ledger - derived server-side from validated
+   *  guesses. No rewards read it; it is the ledger, whole. */
+  score: { validatedCount: number; points: number };
+  /** About You: a fact Opal holds about the viewer, from the
+   *  viewer's own memory facts - theirs to confirm or correct. */
+  aboutYouFact: { id: string; label: string; value: string } | null;
+};
+
+/**
+ * Repair #21 (W-14) - PRESENCE, as one felt thing: who of your
+ * people is live right now, as lights. Built by the one adapter
+ * from the visible-lives read alone - the only presence signal
+ * with a lawful global read today. "Free" (an open availability
+ * window) is conversation-scoped in the machinery and has no
+ * Flows-level read; it is declared in the wave report, never
+ * approximated here.
+ */
+export type PresenceLight = {
+  userId: string;
+  name: string;
+  avatar: AvatarRef;
+  liveId: string;
+  mine: boolean;
+};
+
+/**
+ * Repair #21 (W-12) - THE BOND (the shared stone): the pair's own
+ * place, projected ONLY from shared truth - plans both parties
+ * are on, and the pair's own Know Me? Trivia records. No private
+ * capsule, wallet fact, or one-sided record is an input to this
+ * projection's builder (see bondFromPair in shellData.ts): a bond
+ * element fed by a private capsule is an isolation violation, so
+ * the builder's input type carries no capsule at all.
+ */
+export type BondProjection = {
+  personId: string;
+  name: string;
+  avatar: AvatarRef;
+  /** The viewer's finished tie to this person, or null. */
+  relationshipLabel: string | null;
+  /** Done-and-loved: shared plans that have settled into the past. */
+  chapters: Array<{ planId: string; title: string; whenLine: string; placeLabel: string | null }>;
+  /** The pair's next shared plan, or null. */
+  nextTogether: {
+    planId: string;
+    title: string;
+    whenLine: string;
+    stateLabel: string;
+    stateFamily: string;
+  } | null;
+  /** The pair's Know Me? score from their own validated guesses:
+   *  the inert ledger formula (10 x multiplier) over the pair
+   *  subset of the trivia read. Null when the pair has never
+   *  played a validated round. */
+  pairScore: { confirmed: number; points: number } | null;
+  /** The shape of the overlap, as felt objects: distinct places
+   *  the pair's shared plans happened at, in record order. */
+  sharedPlaces: string[];
+  sharedPlanCount: number;
+};
+
 export type HomeProjection = {
   header: ShellHeaderProjection;
   rail: StoryRailProjection;
   feed: FeedCardProjection[];
+  /** Repair #21 (W-14): the presence lights for first paint.
+   *  Absent/empty when nobody is live - presence discipline. */
+  presence?: PresenceLight[];
   /** Hunt-fix B-12: a failed feed/plans load, in plain words. The
    *  surface renders this with a retry — never an empty feed. */
   feedError?: string | null;
+  /** Repair #21 (W-9 rebuild): occasions ahead of time. Absent
+   *  (undefined) when the celebrations read failed or none are
+   *  near - the section simply does not render. */
+  occasions?: HomeOccasion[];
+  /** Repair #21 (W-9 rebuild): the Trivia game projection, or
+   *  null when its reads failed - the card is then honestly
+   *  absent, never staged. */
+  trivia?: HomeTrivia | null;
+  /** Repair #21 (W-9 identity addendum): discovery - people the
+   *  viewer talks with who are not yet in their circle and not
+   *  yet followed, from the real conversations + follows reads.
+   *  The follow action is the real follows endpoint. Places and
+   *  interests discovery has no wiring today and is DECLARED in
+   *  the rebuild report - it is not painted. */
+  discovery?: Array<{ userId: string; name: string; avatar: AvatarRef }>;
 };
 
 /** Section 8.1 - Graphs list. Groups arrive ordered and titled; the

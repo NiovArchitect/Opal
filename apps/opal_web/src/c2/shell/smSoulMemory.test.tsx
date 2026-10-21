@@ -405,10 +405,12 @@ describe("the doorway (Opal's Home, first form)", () => {
     );
     const doorway = container.querySelector<HTMLButtonElement>('[data-testid="c2-center-orb-doorway"]');
     expect(doorway).toBeTruthy();
+    // R21 W-11: the explainer card is removed; its words are
+    // folded behind the (i) and the ORB is the doorway.
     const entry = container.querySelector('[data-testid="c2-opening-soul-memory"]');
-    expect(entry).toBeTruthy();
-    expect(entry!.textContent).toMatch(/How Opal works for you/);
-    expect(entry!.textContent).not.toMatch(/Soul \+ Memory/);
+    expect(entry).toBeNull();
+    expect(container.querySelector('[data-testid="c2-opening-soul-memory-info"]')).toBeTruthy();
+    expect(container.textContent).not.toMatch(/Soul \+ Memory/);
     await act(async () => {
       doorway!.click();
     });

@@ -88,6 +88,15 @@ defmodule OpalCore.SocialFlow.HomeFeed do
       "caption" => moment["caption"],
       "created_at" => moment["created_at"],
       "visibility" => moment["visibility"],
+      # Repair #21 (W-13 / I-1): the moment's own place, from its
+      # record's place_ref exactly as publishing normalized it
+      # (display_name). Absent name = nil: a seed may carry the
+      # place only when the record carries one - never invented.
+      "place_label" =>
+        case moment["place_ref"] do
+          %{"display_name" => name} when is_binary(name) and name != "" -> name
+          _ -> nil
+        end,
       "media_ref" => media,
       "source_lineage_id" => moment["source_lineage_id"],
       "engagement_summary" => %{

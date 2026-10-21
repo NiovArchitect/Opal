@@ -78,6 +78,50 @@ defmodule OpalCore.SocialFlow.SocialMomentEngagement do
     end
   end
 
+  # --- Light roster (Repair #21, W-13 / I-2) ---
+  #
+  # The counts-free light read. A moment collects light from its
+  # people; the glow is the count made visible, never a scoreboard.
+  # The roster of WHO lit a moment is the AUTHOR's own fact: only
+  # the author receives people. Any other authorized viewer receives
+  # the warmth (the active-light count the glow renders from), their
+  # own lit state, and an empty people list - the names are never
+  # carried in a payload a non-author can read. Authorization is the
+  # same view gate every engagement read uses: a viewer who may not
+  # see the moment learns nothing here either.
+
+  @doc "Author-only who-lit roster plus the counts-free warmth facts."
+  def light_roster(viewer_user_id, moment_id)
+      when is_binary(viewer_user_id) and is_binary(moment_id) do
+    with {:ok, moment} <- authorize_view(moment_id, viewer_user_id) do
+      author? = moment.author_user_id == viewer_user_id
+
+      people =
+        if author? do
+          from(l in SocialMomentLike,
+            where: l.moment_id == ^moment_id and l.status == "active",
+            order_by: [asc: l.inserted_at],
+            select: l.viewer_user_id
+          )
+          |> Repo.all()
+          |> Enum.map(fn user_id ->
+            %{"user_id" => user_id, "display_name" => display_name(user_id)}
+          end)
+        else
+          []
+        end
+
+      {:ok,
+       %{
+         "moment_id" => moment_id,
+         "author_only_people" => author?,
+         "people" => people,
+         "warmth" => like_count(moment_id),
+         "viewer_liked" => liked?(moment_id, viewer_user_id)
+       }}
+    end
+  end
+
   # --- Comment ---
 
   def list_comments(viewer_user_id, moment_id) do

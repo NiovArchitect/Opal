@@ -248,7 +248,7 @@ describe("R19 doorway presence rules (DIR-1 fact + DIR-4 reveals only)", () => {
     ).toBeNull();
   });
 
-  it("renders in the strip when earned and is absent otherwise; one tap lands the exact context", async () => {
+  it("the header doorway lands the exact context; the strip text doorway is stripped (W-3)", async () => {
     const onTalk = vi.fn();
     await render(
       <ThreadShell
@@ -262,10 +262,12 @@ describe("R19 doorway presence rules (DIR-1 fact + DIR-4 reveals only)", () => {
         onTalkToOpal={onTalk}
       />,
     );
-    const strip = q('[data-testid="next-together-strip"]')!;
-    const btn = q('[data-testid="opal-doorway"]')!;
-    expect(strip.contains(btn)).toBe(true);
-    expect(btn.textContent).toContain("Talk to Opal about this plan");
+    // R21 v4.1 (C-5, W-3): the strip carries NO text doorway -
+    // the header doorway orb is the door, the strip holds only
+    // the plan stone itself.
+    expect(q('[data-testid="opal-doorway"]')).toBeNull();
+    expect(q('[data-testid="next-together-strip"]')!.textContent).not.toContain("Talk to Opal about this plan");
+    const btn = q('[data-testid="thread-opal-doorway"]')!;
     await click(btn);
     expect(onTalk).toHaveBeenCalledWith(CTX);
   });
@@ -332,7 +334,7 @@ describe("R19 scoped Opal conversation: visible context, two-way door", () => {
         onTalkToOpal={(c) => landed.push(c)}
       />,
     );
-    await click(q('[data-testid="opal-doorway"]')!); // tap 1: thread -> Opal
+    await click(q('[data-testid="thread-opal-doorway"]')!); // tap 1: thread -> Opal (header doorway; the strip text door is stripped, W-3)
     expect(landed).toEqual([CTX]);
     await render(
       <CenterChat
@@ -829,9 +831,8 @@ describe("R19 polish P2: the Opal doorway in the thread header top-right", () =>
     expect(btn.getAttribute("aria-label")).toContain("Dinner at Juniper");
     await click(btn);
     expect(onTalk).toHaveBeenCalledWith(CTX);
-    // The strip doorway is untouched: still attached to the strip.
-    const stripBtn = q('[data-testid="opal-doorway"]')!;
-    expect(q('[data-testid="next-together-strip"]')!.contains(stripBtn)).toBe(true);
+    // The strip carries no text doorway (W-3, stripped in v4.1).
+    expect(q('[data-testid="opal-doorway"]')).toBeNull();
   });
 
   it("absent when the host derived no context at all (group thread / unwired surface)", async () => {

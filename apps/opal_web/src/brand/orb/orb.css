@@ -53,6 +53,19 @@
   opacity: var(--orb-gem-pattern-opacity);
 }
 
+/* ---- The marble material (Repair #21, W-19) ----
+ * The master's stone grain (OrbMark marble seats, the splash
+ * master) is a SURFACE, never a motion source: no animation,
+ * transition, or filter cycle may target the grain itself. The
+ * living rings and settle motions ride ABOVE the stone and are
+ * governed by their own rules below; this block exists so the
+ * quiet law is stated where a future editor would look to break
+ * it. */
+.orb-mark[data-marble="sphere"] image {
+  animation: none;
+  transition: none;
+}
+
 /* ---- Fire language ---- */
 .orb-fire-line {
   display: block;

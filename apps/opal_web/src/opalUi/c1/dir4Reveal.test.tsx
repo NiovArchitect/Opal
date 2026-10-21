@@ -233,7 +233,10 @@ describe("DIR-4 enter/exit pairs (L8, unit level)", () => {
     );
     expect(without).not.toContain("reveal-deck-coming-up");
     expect(without).not.toContain("reveal-deck-needs-you");
-    expect(without).toContain("Nothing needs you right now. It is all yours.");
+    // R21 W-11: the calm narration is REMOVED from Center's
+    // opening - an empty deck is simply quiet, never narrated.
+    expect(without).not.toContain("Nothing needs you right now. It is all yours.");
+    expect(without).not.toContain('data-testid="c2-opening-calm"');
   });
 
   it("deckfix F1: a lit P1 whose plan is NOT in the deck's capped card set still renders in Needs you, with its FireFrame", () => {

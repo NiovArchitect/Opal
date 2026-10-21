@@ -35,6 +35,12 @@ import {
   getGraphingPolicy,
   getSoulMemory,
   getHomeTimezone,
+  listCelebrations,
+  listConversations,
+  listFollowing,
+  listRelationships,
+  listTriviaGuesses,
+  type Celebration,
   getGraphLock,
   getMessagingPreferences,
   getPersonalInviteCode,
@@ -42,6 +48,7 @@ import {
   getSettingsConnections,
   listMemoryFacts,
   listOpalPlans,
+  getPlanHistory,
   listTemporaryStories,
   loadProfile,
   type OpalPlanContract,
@@ -60,11 +67,15 @@ import {
   spineFromPlan,
 } from "./density";
 import type { PlanCardC2Input, PlanCardLimboC2, PlanStateFamilyC2 } from "../PlanCardC2";
+import { tieLabel } from "../../opalUi/relationshipTypes";
 import type {
   AvatarRef,
+  BondProjection,
   GraphDetailProjection,
   GraphListProjection,
+  HomeOccasion,
   HomeProjection,
+  TriviaGuessView,
   SettingsSectionProjection,
   ShellProjection,
   YouHubProjection,
@@ -458,13 +469,23 @@ export function liveFeedFromRooms(
     const title =
       (typeof room.title === "string" && room.title) ||
       (placeLabel ? `Live at ${placeLabel}` : "Live now");
+    // Repair #21 charges (CF2-3) - the place is stated ONCE, in
+    // the strongest position the card has: inside the title when
+    // the title is the default "Live at ..." (or already names
+    // it); otherwise the place drops to the card's place line and
+    // the context line carries only the host. The old derivation
+    // said the place three times (title, "...is live from X",
+    // "At X").
+    const titleCarriesPlace = Boolean(placeLabel) && title.includes(placeLabel!);
+    // With a place in play the host line drops its "now" tail
+    // (the pill + title already carry the liveness, and the
+    // place is stated once); with no place, the pinned W9 line
+    // stands as-is.
     const contextLine = hostName
       ? placeLabel
-        ? `${hostName} is live from ${placeLabel}`
+        ? `${hostName} is live`
         : `${hostName} is live now`
-      : placeLabel
-        ? `Live now from ${placeLabel}`
-        : "Live now";
+      : "Live now";
     out.push({
       kind: "live",
       id: `live-${room.id}`,
@@ -473,8 +494,9 @@ export function liveFeedFromRooms(
       actionLabel: "Watch",
       actionId: `watch:${room.id}`,
       hostName,
+      hostUserId: typeof room.host_account_id === "string" ? room.host_account_id : null,
       hostAvatar: hostName ? avatarOf(hostName, out.length + 1) : null,
-      placeLabel,
+      placeLabel: titleCarriesPlace ? null : placeLabel,
       mine: room.mine === true,
     });
   }
@@ -547,6 +569,11 @@ export function cardFromPlan(plan: OpalPlanContract): PlanCardC2Input & { id: st
     primaryActionLabel: null,
     // I2: real cards now carry the limbo treatment from the contract.
     limbo: limboFromPlan(plan),
+    // Repair #21 (W-5a): the etiquette projection rides the card
+    // verbatim, so the fork-answer control can mount where the fork
+    // presentation (the limbo block above) already lives - on the
+    // Graphs card and in the plan detail alike.
+    etiquette: plan.etiquette ?? null,
   };
 }
 
@@ -871,13 +898,48 @@ export function detailWithHistory(
   };
 }
 
+/**
+ * R21 L-1 - THE GREETING IS TRUE (founder law, 2026-10-20).
+ * The hour that picks the greeting word is the VIEWER's own hour:
+ * the instant is read in the viewer's timezone, never in UTC and
+ * never in a server or seed timezone. With no explicit timezone the
+ * Intl default is the browser's local timezone - the viewer's.
+ * An invalid timezone falls back to that same browser-local hour.
+ * `now` / `timeZone` are the pinned-clock seam the L-1 tests drive:
+ * the SAME instant must render the morning word under one viewer
+ * timezone and the evening word under another.
+ */
+export function hourInViewerTimeZone(now: Date, timeZone?: string): number {
+  if (timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hour: "numeric",
+        hourCycle: "h23",
+      }).formatToParts(now);
+      const hour = Number(parts.find((p) => p.type === "hour")?.value);
+      if (Number.isFinite(hour)) return hour % 24;
+    } catch {
+      // fall through to the browser-local hour
+    }
+  }
+  return now.getHours();
+}
+
+export function greetingWordForViewer(now: Date, timeZone?: string): string {
+  const hour = hourInViewerTimeZone(now, timeZone);
+  return hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+}
+
 export function openingFromPlans(
   plans: OpalPlanContract[],
   ownName: string,
+  opts?: { now?: Date; timeZone?: string },
 ): CenterOpeningProjection {
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+  // L-1: ownName is the signed-in viewer's own name - the only
+  // caller (C2Shell) passes session.display_name for the viewer's
+  // session, never a plan counterparty or payload name.
+  const greeting = greetingWordForViewer(opts?.now ?? new Date(), opts?.timeZone);
   // P11 settle: a plan this viewer declined (or that expired) never
   // asks for attention on the deck - it has settled into history.
   const cards = plans
@@ -935,11 +997,6 @@ export async function loadPlansResult(
       error: "Your plans did not load. Check your connection and try again.",
     };
   }
-}
-
-export async function loadPlans(bearer?: string): Promise<OpalPlanContract[]> {
-  const res = await loadPlansResult(bearer);
-  return res.plans;
 }
 
 export function shellFromSession(
@@ -1030,7 +1087,7 @@ export async function homeFromSession(
         byPerson.set(key, { ...s });
       }
     }
-    stories = [...byPerson.values()];
+    stories = [...byPerson.values()].map((s) => ({ ...s, personId: s.authorId }));
   } catch {
     stories = [];
     ownStory = null;
@@ -1078,7 +1135,34 @@ export async function homeFromSession(
             typeof o.caption === "string" && o.caption ? o.caption : "Memory",
           authorLine: authorName,
           authorName,
+          // Repair #21 (W-13 / I-1): the author's id rides the feed
+          // record's actor - the reply door and the seed doors
+          // address the author by id, never by display name. The
+          // like count stays an internal warmth input for the
+          // counts-free light presentation (I-2): it is never
+          // rendered as a numeral again.
+          authorUserId: typeof actor.user_id === "string" ? actor.user_id : null,
+          mine: Boolean(
+            session?.user_id && typeof actor.user_id === "string" && actor.user_id === session.user_id,
+          ),
+          placeLabel: typeof o.place_label === "string" && o.place_label ? o.place_label : null,
           authorAvatar: avatarOf(authorName, i + 1),
+          // The backend feed card carries engagement inside its
+          // engagement_summary object (HomeFeed.to_feed_card); the
+          // flat fields are read as a fallback for older payloads.
+          // (The pre-R21 adapter read only the flat fields, so a
+          // served moment's warmth always arrived as 0/unlit -
+          // found by the W-13 journey read-back, fixed here.)
+          likeCount:
+            typeof (o.engagement_summary as { like_count?: unknown } | undefined)?.like_count ===
+            "number"
+              ? ((o.engagement_summary as { like_count: number }).like_count as number)
+              : typeof o.like_count === "number"
+                ? o.like_count
+                : 0,
+          viewerLiked:
+            (o.engagement_summary as { viewer_liked?: unknown } | undefined)?.viewer_liked ===
+              true || o.viewer_liked === true,
         };
       })
       .filter((m) => m.id && m.id !== "undefined");
@@ -1115,9 +1199,207 @@ export async function homeFromSession(
       kind: "plan" as const,
       id: plan.id,
       card: homeCardFromPlan(plan),
+      // Repair #21 (I-1): the seed facts the four doors may carry,
+      // from the plan's own record. A virtual plan's location is
+      // not a place, so its seed carries none (the repeat flow's
+      // own guard, applied at the seed).
+      seed: {
+        title: plan.title,
+        location:
+          plan.plan_type === "virtual" || plan.online === true
+            ? null
+            : (plan.location?.trim() ?? null),
+        placeLat: typeof plan.place_lat === "number" ? plan.place_lat : null,
+        placeLon: typeof plan.place_lon === "number" ? plan.place_lon : null,
+        planType: plan.plan_type ?? null,
+        viewerState: plan.viewer_state ?? null,
+        organizerUserId: plan.created_by_user_id ?? null,
+      },
     }));
+  // Repair #21 (W-9 rebuild) - OCCASIONS + TRIVIA legs. Each read
+  // is its own leg with honest absence: a failed celebrations read
+  // means no occasions section and no celebration questions; a
+  // failed trivia read means the game card does not render. The
+  // legs share the celebrations + relationships reads - one gate
+  // per concept, no shadow derivations.
+  let celebrations: Celebration[] = [];
+  try {
+    const res = await listCelebrations(bearer);
+    celebrations = res.celebrations ?? [];
+  } catch {
+    celebrations = [];
+  }
+  const occasions = occasionsFromCelebrations(celebrations, new Date());
+  let trivia: HomeProjection["trivia"] = null;
+  const relTypeById = new Map<string, string>();
+  const relTypeByName = new Map<string, string>();
+  try {
+    const [relRes, triviaRes, factsRes, walletRes] = await Promise.all([
+      listRelationships(bearer).catch(() => null),
+      listTriviaGuesses(bearer).catch(() => null),
+      listMemoryFacts(bearer).catch(() => null),
+      getSoulMemory(bearer).catch(() => null),
+    ]);
+    if (triviaRes) {
+      for (const r of relRes?.relationships ?? []) {
+        if (r.contact_user_id && typeof r.type === "string") {
+          relTypeById.set(r.contact_user_id, r.type);
+        }
+      }
+      const contacts = (relRes?.contacts ?? [])
+        .filter(
+          (c): c is { contact_user_id: string; display_name: string } =>
+            Boolean(c) &&
+            typeof (c as { contact_user_id?: unknown }).contact_user_id === "string" &&
+            typeof (c as { display_name?: unknown }).display_name === "string",
+        )
+        .map((c) => ({ id: c.contact_user_id, name: c.display_name }));
+      const nameById = new Map(contacts.map((c) => [c.id, c.name]));
+      for (const c of contacts) {
+        const t = relTypeById.get(c.id);
+        if (t) relTypeByName.set(c.name.trim().toLowerCase(), t);
+      }
+      const capsules = (walletRes?.capsules ?? []).map((cap) => ({
+        summary: cap.summary ?? null,
+        counterpartUserId:
+          (cap.scope_policy as { relationships?: { counterpart_user_id?: string } } | undefined)
+            ?.relationships?.counterpart_user_id ??
+          (cap.scope_policy as { scope?: { id?: string } } | undefined)?.scope?.id ??
+          null,
+      }));
+      const questions = buildTriviaQuestions({ celebrations, contacts, capsules });
+      const toView = (g: {
+        id: string;
+        subject_user_id: string;
+        guesser_user_id: string | null;
+        question: string;
+        guess: string;
+        status: string;
+        multiplier: number;
+        anonymous: boolean;
+      }): TriviaGuessView => ({
+        id: g.id,
+        subjectUserId: g.subject_user_id,
+        subjectName: nameById.get(g.subject_user_id) ?? null,
+        guesserUserId: g.guesser_user_id ?? null,
+        guesserName: g.guesser_user_id
+          ? (nameById.get(g.guesser_user_id) ?? null)
+          : null,
+        anonymous: g.anonymous,
+        question: g.question,
+        guess: g.guess,
+        status: g.status,
+        multiplier: g.multiplier ?? 1,
+      });
+      const facts = factsRes?.facts ?? [];
+      trivia = {
+        questions,
+        aboutMe: (triviaRes.about_me ?? []).map(toView),
+        mine: (triviaRes.mine ?? []).map(toView),
+        score: {
+          validatedCount: triviaRes.score?.validated_count ?? 0,
+          points: triviaRes.score?.points ?? 0,
+        },
+        aboutYouFact: facts.length > 0 ? facts[0] : null,
+      };
+    }
+  } catch {
+    trivia = null;
+  }
+
+  // Repair #21 (W-9 identity addendum) - MOMENT STONE ORDERING:
+  // the living graph orders the stones, never raw recency.
+  // happening (a live host, from the lives leg's own records) >
+  // loved (spouse / partner / family / close friend on the
+  // viewer's relationship rows) > new > seen. Stable within a
+  // tier. "Nearby" is not a tier: no author location is read
+  // anywhere in this adapter, so the tier is declared absent in
+  // the rebuild report rather than simulated.
+  {
+    const liveHostNames = new Set(
+      lives
+        .filter((l) => l.kind === "live")
+        .map((l) => (l.kind === "live" ? l.hostName : null))
+        .filter((n): n is string => Boolean(n)),
+    );
+    const lovedTypes = new Set(["spouse", "partner", "family", "close_friend"]);
+    const tierOf = (story: (typeof stories)[number]): number => {
+      if (liveHostNames.has(story.personName)) return 0;
+      const relType = relTypeByName.get(story.personName.trim().toLowerCase());
+      if (relType && lovedTypes.has(relType)) return 1;
+      return story.seen ? 3 : 2;
+    };
+    stories = stories
+      .map((story, index) => ({ story, index }))
+      .sort((a, b) => tierOf(a.story) - tierOf(b.story) || a.index - b.index)
+      .map(({ story }) => ({
+        ...story,
+        stoneState:
+          tierOf(story) === 0
+            ? ("happening" as const)
+            : tierOf(story) === 1
+              ? ("loved" as const)
+              : story.seen
+                ? ("seen" as const)
+                : ("new" as const),
+        ringKind:
+          tierOf(story) === 0 ? ("happening" as const) : story.ringKind,
+      }));
+  }
+
+  // Repair #21 (W-9 identity addendum) - DISCOVERY leg: people
+  // the viewer actually talks with (conversation peers) who are
+  // neither in their circle (relationship contacts) nor already
+  // followed. One gate each: listConversations + listFollowing.
+  // A failed read means no discovery row - never a staged one.
+  let discovery: HomeProjection["discovery"];
+  try {
+    const [convRes, followRes] = await Promise.all([
+      listConversations(bearer),
+      listFollowing(bearer),
+    ]);
+    const followed = new Set(followRes.following_user_ids ?? []);
+    const inCircle = new Set(relTypeById.keys());
+    const seenPeer = new Set<string>();
+    discovery = [];
+    for (const conv of convRes.conversations ?? []) {
+      for (const peer of conv.peers ?? []) {
+        if (!peer.id || !peer.display_name) continue;
+        if (peer.id === session?.user_id) continue;
+        if (inCircle.has(peer.id) || followed.has(peer.id) || seenPeer.has(peer.id)) continue;
+        seenPeer.add(peer.id);
+        discovery.push({
+          userId: peer.id,
+          name: peer.display_name,
+          avatar: avatarOf(peer.display_name, discovery.length + 1),
+        });
+        if (discovery.length >= 5) break;
+      }
+      if (discovery.length >= 5) break;
+    }
+  } catch {
+    discovery = undefined;
+  }
+
+  // Repair #21 (W-14) - PRESENCE as one felt thing: the lights of
+  // who is live right now, from the lives leg alone (the only
+  // presence signal with a lawful Flows-level read today - see
+  // the PresenceLight contract for the declared "free" gap).
+  const presence: HomeProjection["presence"] = [];
+  for (const item of lives) {
+    if (item.kind !== "live" || !item.hostUserId || !item.hostName) continue;
+    presence.push({
+      userId: item.hostUserId,
+      name: item.hostName,
+      avatar: item.hostAvatar ?? avatarOf(item.hostName, presence.length + 1),
+      liveId: item.id.replace(/^live-/, ""),
+      mine: item.mine === true,
+    });
+  }
+
   return {
     header: { ownAvatar: self },
+    presence,
     rail: {
       self: {
         avatar: self,
@@ -1137,6 +1419,9 @@ export async function homeFromSession(
     // (true only inside their window), plan cards keep their W9
     // state-rank relative order and are never relabeled, and the
     // cap is unchanged (14).
+    occasions,
+    trivia,
+    discovery,
     feed: (() => {
       const interleaved: HomeProjection["feed"] = [...lives.slice(0, 3)];
       const maxLen = Math.max(moments.length, planCards.length);
@@ -1148,6 +1433,281 @@ export async function homeFromSession(
     })(),
     feedError,
   };
+}
+
+/** Repair #21 (W-9 rebuild) - occasions ahead of time: the next
+ *  occurrence of each celebration, kept only when it lands within
+ *  60 days, soonest first, capped at 3. A celebration whose date
+ *  cannot be computed contributes nothing - never a guessed date. */
+export function occasionsFromCelebrations(
+  celebrations: Celebration[],
+  now: Date,
+): HomeOccasion[] {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const out: HomeOccasion[] = [];
+  for (const c of celebrations) {
+    if (!c.person_name || !c.month || !c.day) continue;
+    let next = new Date(today.getFullYear(), c.month - 1, c.day);
+    if (next.getTime() < today.getTime()) {
+      next = new Date(today.getFullYear() + 1, c.month - 1, c.day);
+    }
+    const daysUntil = Math.round((next.getTime() - today.getTime()) / 86400000);
+    if (daysUntil > 60) continue;
+    out.push({
+      id: c.id,
+      personName: c.person_name,
+      kindLabel:
+        c.kind === "birthday"
+          ? "Birthday"
+          : c.kind === "anniversary"
+            ? "Anniversary"
+            : "Occasion",
+      dateLabel:
+        c.date_label ??
+        next.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      daysUntil,
+      wouldLove: c.would_love ?? null,
+      actionLabel: `Start a plan for ${c.person_name.trim().split(" ")[0]}`,
+    });
+  }
+  return out.sort((a, b) => a.daysUntil - b.daysUntil).slice(0, 3);
+}
+
+/** Repair #21 (W-9 rebuild) - Know Me? Trivia question building.
+ *  THE SCOPE LAW IS THE MECHANIC: a question is proposed ONLY
+ *  from a record the viewer legitimately holds - their own
+ *  celebrations record for that person (identity-resolved to a
+ *  relationship contact by exact name), or a relationship
+ *  capsule in the viewer's OWN wallet whose counterpart is that
+ *  person. Questions are templates over held records (AI proposes
+ *  questions only, in the founder's law - here, plain templates);
+ *  verification is ALWAYS the subject's, never a model's. A
+ *  celebration whose person cannot be identity-resolved to a
+ *  contact proposes nothing: an unnamed subject cannot validate,
+ *  so the question could never complete its journey. */
+export function buildTriviaQuestions(input: {
+  celebrations: Celebration[];
+  contacts: Array<{ id: string; name: string }>;
+  capsules: Array<{ summary: string | null; counterpartUserId: string | null }>;
+}): import("./projections").TriviaQuestionView[] {
+  const byName = new Map(
+    input.contacts.map((c) => [c.name.trim().toLowerCase(), c]),
+  );
+  const questions: import("./projections").TriviaQuestionView[] = [];
+  for (const c of input.celebrations) {
+    if (!c.person_name) continue;
+    const contact = byName.get(c.person_name.trim().toLowerCase());
+    if (!contact) continue;
+    const first = contact.name.split(" ")[0];
+    const dateLabel =
+      c.date_label ??
+      new Date(2000, (c.month ?? 1) - 1, c.day ?? 1).toLocaleDateString(undefined, {
+        month: "long",
+        day: "numeric",
+      });
+    if (c.kind === "birthday") {
+      questions.push({
+        id: `trivia-q-celebration-${c.id}`,
+        subjectUserId: contact.id,
+        subjectName: contact.name,
+        question: `When is ${first}'s birthday?`,
+        factSummary: `${contact.name}'s birthday is ${dateLabel}`,
+        source: "celebration",
+      });
+    } else if (c.kind === "anniversary") {
+      questions.push({
+        id: `trivia-q-celebration-${c.id}`,
+        subjectUserId: contact.id,
+        subjectName: contact.name,
+        question: `When is ${first}'s anniversary?`,
+        factSummary: `${contact.name}'s anniversary is ${dateLabel}`,
+        source: "celebration",
+      });
+    }
+  }
+  for (const cap of input.capsules) {
+    if (!cap.summary || !cap.counterpartUserId) continue;
+    const contact = input.contacts.find((c) => c.id === cap.counterpartUserId);
+    if (!contact) continue;
+    questions.push({
+      id: `trivia-q-capsule-${contact.id}-${questions.length}`,
+      subjectUserId: contact.id,
+      subjectName: contact.name,
+      question: `What do you know about ${contact.name.split(" ")[0]}? Opal holds this from your side - say it in your own words if it is right: ${cap.summary}`,
+      factSummary: cap.summary,
+      source: "capsule",
+    });
+  }
+  return questions.slice(0, 12);
+}
+
+/**
+ * Repair #21 (W-12; T-5 gyroscope) - THE pair score: ONE
+ * derivation for every surface that renders a pair's Know Me?
+ * standing - the bond stone and the trivia poster read the
+ * same number because both call this. A pair's score is its
+ * validated guesses in either direction, ten points times
+ * each guess's multiplier. Null when the pair has never
+ * confirmed a guess - surfaces render the pairing without a
+ * score rather than a fabricated zero-history number.
+ */
+export function pairScoreFromRecords(
+  records: Array<{
+    guesserUserId: string | null;
+    subjectUserId: string;
+    status: string;
+    multiplier: number;
+  }>,
+  viewerId: string,
+  otherId: string,
+): { confirmed: number; points: number } | null {
+  const pairGuesses = records.filter(
+    (g) =>
+      g.status === "validated" &&
+      ((g.guesserUserId === viewerId && g.subjectUserId === otherId) ||
+        (g.guesserUserId === otherId && g.subjectUserId === viewerId)),
+  );
+  if (pairGuesses.length === 0) return null;
+  return {
+    confirmed: pairGuesses.length,
+    points: pairGuesses.reduce((sum, g) => sum + 10 * (g.multiplier || 1), 0),
+  };
+}
+
+/**
+ * Repair #21 (W-12) - THE BOND builder. Pure, and MUTUAL BY
+ * CONSTRUCTION: its inputs are only (a) plans whose history roster
+ * carries BOTH parties, and (b) the pair's own Trivia guess
+ * records. There is deliberately NO capsule, wallet, or
+ * memory-fact parameter - a bond element fed by a private capsule
+ * is an isolation violation, and this signature makes it
+ * unrepresentable. Both parties' clients build the same stone
+ * from the same shared records, so both see the same shared truth;
+ * each person's private side stays in their own Orbit.
+ */
+export function bondFromPair(input: {
+  pair: { id: string; name: string };
+  viewerId: string;
+  relationshipLabel: string | null;
+  shared: Array<{ plan: OpalPlanContract }>;
+  guesses: Array<{
+    guesserUserId: string | null;
+    subjectUserId: string;
+    status: string;
+    multiplier: number;
+  }>;
+}): BondProjection {
+  const chapters: BondProjection["chapters"] = [];
+  let nextTogether: BondProjection["nextTogether"] = null;
+  const places: string[] = [];
+  for (const { plan } of input.shared) {
+    const family = familyOfStatus(plan.status);
+    const card = cardFromPlan(plan);
+    if (plan.plan_type !== "virtual" && plan.online !== true) {
+      const place = plan.location?.trim();
+      if (place && place !== "Online" && !places.includes(place)) places.push(place);
+    }
+    if (family === "past") {
+      chapters.push({
+        planId: plan.id,
+        title: plan.title,
+        whenLine: card.whenLine,
+        placeLabel:
+          plan.plan_type === "virtual" || plan.online === true
+            ? null
+            : (plan.location?.trim() ?? null),
+      });
+    } else if (!nextTogether) {
+      nextTogether = {
+        planId: plan.id,
+        title: plan.title,
+        whenLine: card.whenLine,
+        stateLabel: card.stateLabel,
+        stateFamily: family,
+      };
+    }
+  }
+  const pairScore = pairScoreFromRecords(input.guesses, input.viewerId, input.pair.id);
+  return {
+    personId: input.pair.id,
+    name: input.pair.name,
+    avatar: avatarOf(input.pair.name, 1),
+    relationshipLabel: input.relationshipLabel,
+    chapters,
+    nextTogether,
+    pairScore,
+    sharedPlaces: places,
+    sharedPlanCount: input.shared.length,
+  };
+}
+
+/**
+ * Repair #21 (W-12) - load one pair's bond through the real reads:
+ * the relationships index (who this person is), the viewer's plans
+ * plus each plan's history roster (the ONLY roster read - a plan
+ * is shared truth for the pair exactly when its roster carries
+ * both parties), and the Trivia guesses read. Any failed leg
+ * degrades that leg to absent; a person the viewer has no
+ * relationship contact for has no bond to load (null).
+ */
+export async function loadBond(
+  personId: string,
+  bearer?: string,
+  session?: ProductSession | null,
+): Promise<BondProjection | null> {
+  const viewerId = session?.user_id;
+  if (!viewerId || !personId || personId === viewerId) return null;
+  let name: string | null = null;
+  let relationshipLabel: string | null = null;
+  try {
+    const relRes = await listRelationships(bearer);
+    const contact = (relRes?.contacts ?? []).find((c) => c.contact_user_id === personId);
+    if (!contact?.display_name) return null;
+    name = contact.display_name;
+    const row = (relRes?.relationships ?? []).find((r) => r.contact_user_id === personId);
+    relationshipLabel = row ? tieLabel(row.type, row.family_subtype) : null;
+  } catch {
+    return null;
+  }
+  const plansResult = await loadPlansResult(bearer);
+  const candidates = plansResult.plans
+    .filter((p) => p.is_private !== true)
+    .slice(0, 24);
+  const shared: Array<{ plan: OpalPlanContract }> = [];
+  for (const plan of candidates) {
+    try {
+      const history = await getPlanHistory(plan.id, bearer);
+      const whoIds = (history.who ?? []).map((w) => w.user_id);
+      if (whoIds.includes(personId) && whoIds.includes(viewerId)) shared.push({ plan });
+    } catch {
+      /* a plan whose roster cannot be read is not shared truth */
+    }
+  }
+  let guesses: Array<{
+    guesserUserId: string | null;
+    subjectUserId: string;
+    status: string;
+    multiplier: number;
+  }> = [];
+  try {
+    const triviaRes = await listTriviaGuesses(bearer);
+    const all = [...(triviaRes?.mine ?? []), ...(triviaRes?.about_me ?? [])];
+    guesses = all.map((g) => ({
+      guesserUserId: g.guesser_user_id ?? null,
+      subjectUserId: g.subject_user_id,
+      status: g.status,
+      multiplier: g.multiplier ?? 1,
+    }));
+  } catch {
+    guesses = [];
+  }
+  return bondFromPair({
+    pair: { id: personId, name },
+    viewerId,
+    relationshipLabel,
+    shared,
+    guesses,
+  });
 }
 
 export function youHubFromSession(

@@ -232,12 +232,17 @@ acceptance.
 | W7-F17a | Connected call frames owed real visuals | DECLARED - four genuine rig attempts (L4, probe-call, fresh-bucket L11 both modes, probe-call3 sheet forensics): the new-call sheet lists people as plain rows; in the headless rig a tap neither placed a call nor surfaced a start control, and the second seat never rang. The call path itself is FOUNDER-PROVEN on real phones 2026-10-19 (separate rooms) - connected-call frames remain owed to a device session |
 | W7-F17b | Fork + closure frames owed via real short windows | GREEN - etiquette-fork-a/b-{dark,light} (fork-stage cooling copy on both parties' Graphs cards; Campagnola window closed 15:19:18Z, fork presented in the etiquette read at 15:19:41Z) + etiquette-closure-a/b-{dark,light} (A answered ask_another_time via the product respond path, 200/outcome another_time, lifecycle_open false on both parties; the cards return to plain Forming - quiet closure). The campaign also found and the wave FIXED the blocking defect (stage jobs never rescheduled when a window is set; integrator charge 3, pin-proven + live-proven). DECLARED remainder: the fork's answer controls were not found rendered on any C2 web surface hunted (deck reveal / thread / detail / overflow) - follow-up on the gated list |
 | W7-F17c | Leave-by frames owed; staging create path produced time-less plans | DECLARED with the full gate chain proven live: no start -> 'No start time yet - leave-by needs a set time.' (in-frame); start, no place coordinates -> 'this place has no location yet' (cap-l17 logs); start + coordinates -> leave-by-share-prompt-{dark,light} ('Share your location to see when to leave'); location shared -> 'Leave-by is unavailable right now.' (both modes, cap-l18 logs) - the travel-time provider does not answer in the capture environment, so the rendered estimate / leave-now states (polish-proven, pin-covered) are declared for this wave; the estimate's last gate is the routing provider behind the founder's Google enablement. Roots proven: conversation-create never resolves a start instant from its label; graph-create's contract carries no start field (code-read); PATCH refuses schedule fields (422 schedule_field_requires_revision - by design) |
-| W7-F18 | Home vs Center opening surfaces near-identical (D-5) | GREEN at the lightest true change - surface-purpose divergence declared in code (Home = people-and-moments, Center = opal-working) + home-vs-center frames; deeper divergence is a founder call, carried |
+| W7-F18 | Home vs Center opening surfaces near-identical (D-5) | **REOPENED 2026-10-20 (Repair #21, W-8)** - founder caught it at the glass 2026-10-20 15:31 PDT: pack-v2 frame `pad-dissolve-flows-light.png` (badge `seed - 22744b3`) is NAMED Flows and SHOWS Center's opening composition entire (orb hero, "Good evening, Maya.", Make something happen / Talk to Opal, "How Opal works for you" card, "Nothing needs you right now. It is all yours."), no social content, no dock slot active. The R20 GREEN was divergence declared in MARKUP (data-surface-purpose) - at the glass the openings were the same composition. Root cause (R21 W-8): evidence defect, not product routing - C2 route `home` mounts the social surface correctly; the close-out capture rigs shot the shell's default `center` route state and filed it under Flows names with no content assertion. Structural fix + rebuild: see R21-W8/W9 rows below and coordination/repair19/r21-openings-report.md |
 | W7-F19 | No orbit screen seen; the doorway must open the orbit experience | GREEN - the orbit screen as its own visual experience (ring of people as lights, plan stones in canon state colors, conversation inside the field, the long arc, empty-orbit invitation) from 1:1 + group threads, both modes (orbit-screen-* + orbit-return-*). The doorway button itself untouched (protected) |
 | W7-F20 | Spine tasks are connector execution points (architecture) | GREEN as record + constraint - architecture record in the handoff; location-aware connector recommendation + group-preference recommendations recorded as roadmap directions; the intelligence build is post-walk phase |
 | W7-F21a | Notices must land in the exact orbit/thread they concern | GREEN by pin (noticeRouting single derivation, wired into deck reveals, in-thread reveals, Activity fork/limbo cards; null when identity untrustworthy). Frame attempt in the finale |
 | W7-F21b | Group-variant etiquette frames | GREEN - group-etiquette-limbo-orbit-{dark,light} (Weekend Crew orbit during Batiquitos' real limbo: pending members' lights in the dashed cooling ring, the arc's WAITING lines naming each outstanding answer). The group-thread variant was hunted in full and renders no strip to a non-recipient viewer - declared in the manifest |
 | W7-F21c | Cold-user legibility on Connectors + Private graphs | GREEN at the inspection pass - both rooms read cold: plain-words intro, honest statuses, no infrastructure names, no intentions copy on the gate. One copy nit declared (Gmail STATUS repeats the holding-back sentence verbatim) |
+
+| R21-W8 | Capture integrity: frames filed under surface names they do not show (second offense of the evidence-hygiene species; V-4 was the first) | **BUILT (Repair #21)** - content-signature assertion in the capture pipeline (shots/regression/rendered/lib/surfaceSignature.mjs + node tests 7/7): a frame may not be filed under a surface name unless that surface's signature elements are in the captured DOM; the assertion FAILS the capture, no file written. Audit of pack-v2: 23 mismatched frames across 11 families (flows-rest, flows-dock, flow-rest, flow-dissolve-1..3, home, home-rest, home-vs-center-home, pad-rest-flows, pad-dissolve-flows, pad-rest-plan-detail, pad-dissolve-plan-detail) - reported, NOT silently re-shot or renamed |
+| R21-W9 | Flows must OPEN social - first paint is people and moments; rebuilt under the founder charter (override, don't patch) | **BUILT (Repair #21)** - full Flows rebuild: Moment Stones replace the DISPOSED face-circle rail (banned composition, founder 2026-10-20 15:46); the braided stream (two staggered currents, wide stones for plans/Live/occasions/the game, no labeled sections - Discovery Doctrine); occasions ahead of time; Know Me? Trivia as a living card (mutual knowing; inert score ledger; validated answers enrich the SUBJECT's wallet through the R20 capsule path, provenance-tagged; opening set + opt-in multiplier set; gentle plan exit); moments carry a real like write; discovery rows wired to the real follows endpoints (places/interests follow DECLARED - no wiring exists). Disposal list + per-asset journey table + Social Flow Algo Map in r21-openings-report.md (algo map also appended to shots/repair18/WALLET_MAP.md). Proof: signature-gated frames, flows-vs-center side-by-sides first |
+| R21-W10 | The navigation pad must say where you are | **BUILT (Repair #21)** - active slot carries glyph AND label state (accent ink, full weight, larger marker); the center orb carries Center's active state (data-active + ring treatment + marker) - in the offending frame NO slot read active. Pinned per surface in r21Openings.test.tsx (exactly one active marker across all five surfaces) and proven in frames |
+| R21-W11 | Center discovery pass: "a lot of talking out of nowhere - let the people figure it out themselves" | **BUILT (Repair #21)** - the "How Opal works for you" explainer CARD removed (component + CSS disposed), its words folded behind the shell's existing (i) affordance (bits.InfoBubble - no second pattern invented); the status narration "Nothing needs you right now. It is all yours." removed outright - an empty deck is simply quiet. Action controls (Make something happen, Talk to Opal) and the orb doorway KEPT as controls. Element-by-element table in r21-openings-report.md; narration-absence pins in r21Openings.test.tsx + updated r20Connect/smSoulMemory/dir4Reveal pins |
 
 Capture campaign note (Repair #20): the pack was captured
 TWICE on two tips - the F-17b campaign proved a real scheduling
@@ -349,3 +354,88 @@ WAVE section):
   API on fresh DB at close-out.
 
 **FOUNDER_ACCEPTED stays NO.**
+
+---
+
+## REPAIR #21 ROUND (2026-10-20/21) - F-18 disposition + every charge and verdict
+
+F-18 (Center served as Flows; "resolved" by markup only in R20):
+REOPENED by the founder at the glass 2026-10-20 15:31 PDT, charged
+to the rendered-proof check as the second offense of the
+evidence-hygiene species. Root cause found by W-8: an EVIDENCE
+defect, not product routing - capture rigs filed Center frames
+under Flows names with no content check. Structural fix: the
+content-signature assertion in the capture pipeline (a frame files
+under a surface only if that surface's signature elements are in
+the shot), extended in W-16 with the call-family rule (an incall
+frame must carry call-surface signatures and no call-log rows).
+Pack-v2 audit: 23 mismatched frames in 11 families named in
+r21-openings-report.md. Disposition at close-out: the canonical
+openings set (center / flows / pad-active x5 surfaces, both modes)
+re-shot on the integrated tip d4b06ad6, every frame SIGNATURE-OK;
+Flows and Center are unmistakable at one second (the twin test).
+F-18 CLOSED at the rendered layer on the integrated build;
+founder phone walk still owed (FOUNDER_ACCEPTED = NO).
+
+Charges and verdicts of 2026-10-20, each answered in its cluster
+report and reconciled in repair21-handoff.md:
+- Orbit v3 rejected as a FEATURE (15:06) -> Orbit v4 (the room IS
+  the ring, grown) -> founder interim "perfect" (16:22) -> v4.1 /
+  v4.2 space pass -> Round 3 (O-1 light-traced messages, O-2
+  parties named, O-3 push-to-chat rebuilt after the founder's
+  21:39 correction: drag disposed, long-press selects, "Place in
+  Maya's composer"). Founder verdict 21:34: the Orbit page is
+  LOVED, protected class ("drastic difference... almost perfect").
+- C-1..C-5 (parent inspection of v4): per-row colors, copy
+  compression, composer mic, drag frame, thread-label leak -
+  answered in r21-orbit-v4-report.md; C-4's drag premise later
+  superseded by the founder's own correction (above).
+- CF-1..CF-4 (Flows first capture set): beige monogram eggs,
+  trivia wall-of-text, braid not at the glass, "Start a plan for
+  them" - answered in r21-openings-report.md (CF-1 was the rig's
+  seed imagery, fixed at the source).
+- CF2-1..CF2-7 (Flows round 2 + Bond + v4.2): foreign CTA in the
+  Trivia card DISPOSED; door farm rebuilt quiet; Live copy
+  de-duplicated; Bond ellipse resolved by founder verdict V-a
+  (the Bond sheet is PRAISED, protected); compact-ring truncation;
+  card copy coherence; frost edge residue - answered in
+  r21-flows2-report.md.
+- T-1..T-4 (Trivia spectacle, score on card, inline friend
+  selection, photographic stream) and T-5 (Trivia rebuilt as a
+  game poster, 21:45: "looks cheap... mad boring" -> pair-owned
+  poster, face-down tease, score attached to the pair).
+- F-A..F-F (21:34): stories round with thin orbit rings (the
+  opal-oval REJECTED by the founder, superseding the 19:45 interim
+  acceptance); redundant presence row killed; Live card berth;
+  light = the opalescent heart glyph (word-button dead); the
+  mystery glyph identified (a DOORWAY arch, illegible at size -
+  died; replaced by the graph-in glyph); doors become glyphs
+  ("graph in"), the text farm and the wording "Take it with my
+  people" dead.
+- V-a..V-d (19:45): Bond protected; stones shape (superseded by
+  F-A); Live proportion; Trivia lit in stills.
+- W-16 (21:20): the in-call set - all four states DECLARED
+  (the served C2 shell mounts no in-call surface; no frame
+  staged). The mislabeled incall-ringing-outgoing-dark.png
+  quarantined to pack-archive/mislabeled-incall-r19-3e230af
+  (third offense; call-family signature rule added so the
+  species is now machine-refused).
+- W-17 (21:20): creation walkthrough - sheet/photo/text/future/
+  live options captured with wiring truth per option; story
+  consumption (viewer + exit) built in round 3 (one door
+  declared).
+- W-18 (21:43): hole inventory + end-state audit - 170 assets
+  traced: 135 TRUE / 21 HONESTLY ABSENT / 14 FALSE rows;
+  H-NEW-1 + H-NEW-2 built; H-NEW-8 fixed at integration
+  (d4b06ad6); every other FALSE/ABSENT row declared with its
+  exact build named.
+- W-19 (21:43): the marble - inventory answered plainly (the
+  stone lived in one product place); marbled material carried
+  to the pad's center orb + splash seat; 8 named non-sightings.
+- D-2 SURFACED (founder decision owed): call-graphing default
+  posture - the build is opt-in; the founder's stated model
+  (21:20) is default-on with per-call pause. Not patched.
+- H-NEW-5 SURFACED (founder decision owed): the ?shell=r17
+  legacy-shell override still serves; retiring it is his call -
+  muse/repair-17 stays untouched as the revert spot either way.
+- Terminology: "rituals" retired for "rhythms" (T-WORD), swept.

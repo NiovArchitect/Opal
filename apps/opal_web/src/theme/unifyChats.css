@@ -340,6 +340,14 @@
   outline-color: var(--accent-1);
 }
 
+/* R21 Orbit v4 (founder composer law, supersedes the outline
+ * above FOR COMPOSER INPUTS ONLY): tapping or tabbing into a
+ * composer paints no focus box - the caret is the focus state.
+ * Buttons and other inputs keep the visible keyboard outline. */
+[data-shell="c2"] .c1-composer-input:focus-visible {
+  outline: none;
+}
+
 /* Center composer (harmony2, residue 2a closed properly): the unify
  * wave retired the spectral border only inside the thread and left
  * the Center composer's shell - the surface where the user talks to

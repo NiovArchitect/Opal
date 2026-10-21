@@ -113,7 +113,10 @@ function CardBody({
         ) : null}
       </div>
       <div className="c1-plan-title">{plan.title}</div>
-      <div className="c1-plan-meta">
+      {/* R21 W-2: the when line is the card's key value - bold, in
+          the plan's state color (calm-key + data-state, the shared
+          treatment defined in c2/shell/c2shell.css). */}
+      <div className="c1-plan-meta calm-key" data-state={plan.state}>
         <span aria-hidden="true">◷ </span>
         {whenLine(plan)}
       </div>

@@ -122,6 +122,7 @@ import {
   tieLabel,
 } from "../../opalUi/relationshipTypes";
 import { PersonProfileSheet } from "./PersonProfile";
+import { GroupMembershipPanel } from "./GroupMembership";
 import type { ConversationShareCardProjection, PersonProfileProjection } from "./projections";
 import { avatarOf } from "./shellData";
 import { CheckinSummaryCard } from "../../opalUi/CheckinSummary";
@@ -1325,9 +1326,8 @@ export function CenterHost({
   const chatElementFor = (sessionId: string, title: string, landing: "chat" | "orbit") => (
     <CenterChat
       title={title}
-      composerPlaceholder={
-        landing === "orbit" ? "Ask Opal, or tell Opal where you're coming from" : undefined
-      }
+      embedded={landing === "orbit"}
+      composerPlaceholder={landing === "orbit" ? "Message Opal" : undefined}
       messages={
         landing === "orbit" && orbitRecommendation
           ? messages.filter((m) => m.id !== orbitRecommendation.id)
@@ -1527,9 +1527,10 @@ export function CenterHost({
         onShapeRequest={v.sessionId ? requestOrbitShape : undefined}
         onDismissRecommendation={() => setOrbitRecommendation(null)}
         onPushToChat={(text) => {
-          // Push to chat: carry the words into the thread's
-          // composer and land there - no send, no marker, no
-          // clipboard anywhere in this path.
+          // Place in composer (Round 3): carry the words into
+          // the thread's composer and land there - no send, no
+          // clipboard anywhere in this path; the thread marks
+          // the landing with the provenance chip + return.
           setOrbitRecommendation(null);
           if (onOpenPersonThread) {
             onOpenPersonThread(scope.conversationId, { composerDraft: text });
@@ -2007,12 +2008,16 @@ export function ChatsHost({
   onConversationsChanged,
   openRequest,
   onOpenMemoryControls,
+  onOpenBond,
   onTalkToOpal,
 }: {
   bearer?: string;
   viewerUserId?: string;
   conversations: ConversationSummary[];
   onConversationsChanged: () => void;
+  /** Repair #21 (W-12): the person profile's door to the pair's
+   *  shared stone (the shell owns the bond host). */
+  onOpenBond?: (personId: string) => void;
   /** ST-D: an external open request (from Search) - opens the real
    *  thread in the state its row showed. Repair #20 (F-21a): an
    *  `orbit: true` request (a notice deep-link landing) opens the
@@ -2044,6 +2049,8 @@ export function ChatsHost({
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [relRows, setRelRows] = useState<RelRow[]>([]);
   const [profileOpen, setProfileOpen] = useState(false);
+  /** Repair #21 (W-5b): the group thread's membership sheet. */
+  const [manageOpen, setManageOpen] = useState(false);
   const [summarySweepId, setSummarySweepId] = useState<string | null>(null);
   // Repair #19 — this thread's orbit sheet (person anchor), fed by
   // the server-filtered person index query.
@@ -2276,14 +2283,22 @@ export function ChatsHost({
     [bearer, conversations, onTalkToOpal, openThread, orbitScopeFor],
   );
 
-  // Orbit v2 PUSH TO CHAT landing: words carried from an orbit
-  // recommendation, placed in the thread composer by ThreadShell.
+  // Orbit PLACE landing (Round 3 rebuild): words carried from an
+  // orbit recommendation, placed in the thread composer by
+  // ThreadShell - with their provenance, so the thread can carry
+  // the "From your Orbit - unsent" chip and its return. A draft
+  // on an open request only ever arrives from the place action,
+  // so its origin is the orbit by construction.
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
+  const [composerDraftOrigin, setComposerDraftOrigin] = useState<"orbit" | null>(null);
   const lastOpenNonce = useRef(0);
   useEffect(() => {
     if (openRequest && openRequest.nonce !== lastOpenNonce.current) {
       lastOpenNonce.current = openRequest.nonce;
-      if (openRequest.composerDraft) setComposerDraft(openRequest.composerDraft);
+      if (openRequest.composerDraft) {
+        setComposerDraft(openRequest.composerDraft);
+        setComposerDraftOrigin("orbit");
+      }
       if (openRequest.orbit) {
         void openThreadThenOrbit(openRequest.conversationId);
       } else {
@@ -2670,9 +2685,26 @@ export function ChatsHost({
             messages={messages}
             plansById={new Map()}
             initialDraft={composerDraft}
+            draftOrigin={composerDraftOrigin}
+            onReturnToOrigin={
+              threadOrbitScope
+                ? () =>
+                    onTalkToOpal?.({
+                      context: threadPersonContext,
+                      orbit: threadOrbitScope,
+                    })
+                : undefined
+            }
             composerPlaceholder={`Message ${selected.title}`}
             onBack={() => setSelectedId(null)}
             onOpenProfile={() => setProfileOpen(true)}
+            onManageMembers={
+              // Repair #21 (W-5b): a group thread's header carries
+              // the People affordance (viewer + at least two others
+              // = a group on the record). A dyad has no membership
+              // to manage, so it renders no button.
+              selected.peers.length >= 2 ? () => setManageOpen(true) : undefined
+            }
             onSend={(text) => void send(text)}
             onCorrectTranscript={correctTranscript}
             opalDoorway={threadDoorway}
@@ -2712,6 +2744,40 @@ export function ChatsHost({
               />
             }
           />
+          {manageOpen ? (
+            <TopLayer band="sheet">
+              <div className="c2s-scrim" onClick={() => setManageOpen(false)}>
+                <div
+                  className="c2s-sheet"
+                  role="dialog"
+                  aria-label="People in this conversation"
+                  data-testid="c2-group-membership-sheet"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <GroupMembershipPanel
+                    conversationId={selected.id}
+                    bearer={bearer}
+                    onChanged={onConversationsChanged}
+                    onLeft={() => {
+                      // The viewer left: the thread is not theirs
+                      // anymore - close the sheet and the thread,
+                      // and re-read the list without it.
+                      setManageOpen(false);
+                      setSelectedId(null);
+                      onConversationsChanged();
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="c2s-btn-text"
+                    onClick={() => setManageOpen(false)}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </TopLayer>
+          ) : null}
           {profileOpen ? (
             <PersonProfileSheet
               profile={profileProjectionFor(selected, relRows, threadNextPlan ?? selected.next_plan ?? null)}
@@ -2722,6 +2788,14 @@ export function ChatsHost({
               }
               onClose={() => setProfileOpen(false)}
               onMessage={() => setProfileOpen(false)}
+              onOpenBond={
+                onOpenBond && selected.peers.length === 1
+                  ? () => {
+                      setProfileOpen(false);
+                      onOpenBond(selected.peers[0].id);
+                    }
+                  : undefined
+              }
               onOpenMemoryControls={
                 onOpenMemoryControls
                   ? () => {

@@ -1506,3 +1506,103 @@ naming a participant, creator-relative but stored absolutely)
 is recorded there with its capture-world fix and its
 founder-gated design remainder (viewer-relative titles at
 projection time).
+
+---
+
+# ADDENDUM - Repair #21 (2026-10-20): the SOCIAL FLOW ALGO MAP
+
+Founder commission, 2026-10-20 15:50 PDT. The Flows ranking
+model drawn in THIS addendum's geometry (sets / intersections),
+not in engagement-feed vocabulary. The same map ships in the
+R21 flows rebuild report (coordination/repair19/
+r21-openings-report.md). Truth-in-model rule (section 4 above)
+governs every row: a signal that is roadmap is drawn as
+roadmap, never as live wiring.
+
+## Geometry
+
+- INTERESTS are NOUN capsules (places, topics, kinds of things)
+  a person holds. ACTIVITIES are VERB capsules (what was done,
+  where, with whom, and whether it was loved). People hold SETS
+  of both.
+- A relationship = shared capsules (the intersection), exactly
+  as section (1). Discovery is the same Venn read outward: my
+  set, my circle's sets, the extended graph's sets.
+- The Scoped Context Builder's {relevant} ∩ {allowed} is the
+  read-time form of the ranking picture: the flow may only ever
+  read the intersection of what is relevant with what is
+  ALLOWED to it (scope gate below).
+
+## The modeling effect (founder)
+
+People copy / model their friends - and friends-of-friends and
+acquaintances. Ranking therefore weighs LIVED EXPERIENCE over
+declared taste, and social warmth over novelty:
+
+  rank 1  THE INTERSECTION: a place/activity inside my
+          interests ∩ my people's lived experience (they did
+          it, they loved it). The strongest signal the model
+          knows.
+  rank 2  FoF INTERSECTIONS: inside my interests ∩ the extended
+          graph's lived experience. Discovery gold - new to me,
+          but socially warm (someone I almost know vouches by
+          having lived it).
+  rank 3  CIRCLE ACTIVITIES: what my people actually did and
+          loved, outside my declared interests - modeling pulls
+          me toward my people's real life.
+  rank 4  MY INTERESTS ALONE: declared taste with no lived
+          witness yet.
+  rank 5  EXTENDED ACTIVITIES: acquaintances' lived experience
+          outside my interests - weakest weight, widest reach;
+          pure discovery.
+  filter  AVERSIONS (system model section 2): a place/activity
+          inside my people's or my own DISLIKE capsules is
+          suppressed or down-ranked wherever it appears - likes
+          and dislikes are both first-class, with the same scope
+          discipline.
+  commons GROUP COMMONS (the intersection across a whole
+          circle's sets) feed quick-align / plan suggestions:
+          the thing everyone in this orbit already overlaps on
+          is the easiest plan in the world to propose.
+
+## Scope gates (absolute - named at each signal)
+
+Only SHARED / PUBLIC signals are lawful inputs. A friend's
+PRIVATE capsules NEVER enter another person's flow (hard
+isolation law). The lawful inputs are exactly: a person's
+public moments and posts; party-shared plans (shared with the
+viewer); declared interests (shared by declaration); validated
+Know Me? Trivia facts WITHIN their consent scope (relationship
+scope, counterpart named) - and nothing else. Discovery
+computations run per viewer, over that viewer's allowed set
+only; there is no global ranking table and no pooled profile.
+
+## Output
+
+Options of places and things - LOCAL (where they are) and
+TRAVEL-INTENT (where their far plans say they are going) -
+ranked by the overlap weights above, all aimed OUT THE DOOR:
+the objective is plans formed and places visited, NEVER dwell
+time. The stream's interleave is this ranking made visible:
+wide stones (happening plans, Lives, occasions, the game) are
+what the stream bends around; moments drift between them.
+
+## Truth column - signal by signal (today vs the wallet/algo build)
+
+| Signal / term | Model role | Today's machinery |
+| --- | --- | --- |
+| Public moments + party-shared plans of my circle | rank 3 input; the braid's content | REAL: the home feed projection (shared plans + public memory moments) is exactly this set, served today |
+| Living-graph moment order: happening > nearby > loved | the stream's local ordering of stones | PARTIAL: happening REAL (live hosts from the lives leg), loved REAL (relationship types on the viewer's own rows); NEARBY IS NOT A SIGNAL TODAY - no author location is read anywhere in the feed path. Roadmap: author place/distance at projection |
+| My declared interests (noun capsules) | rank 1/2/4 input | NOT A STORE TODAY: no declared-interests capsule set exists. Roadmap: wallet build (declared interest capsules) |
+| Circle's lived activities as a ranked corpus (done + loved, by place) | rank 1/3 input | NOT COMPUTED TODAY: the feed carries the items; no place/activity overlap computation joins them to an interest set. Roadmap: algo build over the wallet's verb capsules |
+| FoF / acquaintance activities | rank 2/5 input | NOT WIRED: no friends-of-friends read exists. Today's discovery rows reach one step only (conversation peers not yet in the circle, via real conversations + follows). Roadmap: extended-graph read under the same scope gate |
+| Group commons -> quick-align suggestions | commons output | PARTIAL: quick-align doors exist (occasion doorway into create; the Trivia card's gentle plan exit once mutual knowing is proven). The commons COMPUTATION (intersect a circle's sets, propose the overlap) is NOT WIRED. Roadmap |
+| Travel intent from far plans | output dimension | NOT WIRED: far plans exist as records; no intent extraction reads them for ranking. Roadmap |
+| Aversions as ranking filter | filter | NOT WIRED in any ranking today. Roadmap, with trivia scope honoring it too (system model section 2) |
+| Validated trivia facts (consent-scoped capsules) | flywheel input: enriches the SUBJECT's sets, reusable across questionnaires | REAL as a WRITE today (R20 capsule path, relationship scope, provenance "Confirmed in Opal Trivia"); NOT YET READ by any ranking - lawful future read is the subject's own flow + shared scope only |
+
+The R21 rebuild implements only what the charter scopes: the
+braid, the stones and their living-graph order (happening /
+loved legs), the circle feed, occasions, the Trivia loop, and
+one-step discovery. Everything above marked roadmap is drawn,
+named, and NOT painted.

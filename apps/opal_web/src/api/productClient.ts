@@ -2011,6 +2011,105 @@ export async function addConversationMember(
   });
 }
 
+/**
+ * Repair #21 (W-5b) - group membership: the viewer-scoped membership
+ * projection (GET /conversations/:id/membership), the multi-select
+ * add (POST /conversations/:id/members with `user_ids` - several
+ * people, one action, same conversation), and the remove/leave
+ * (DELETE /conversations/:id/members/:user_id - the server carries
+ * the admin rule: only the conversation's creator may remove
+ * someone else; anyone may remove themselves). Every shape is the
+ * backend's own; surfaces render them and decide nothing.
+ */
+export type ConversationMembershipMember = {
+  user_id: string;
+  display_name: string;
+  handle?: string | null;
+  is_creator: boolean;
+  is_viewer: boolean;
+  /** The server's admin-rule verdict for THIS viewer on THIS member. */
+  can_remove: boolean;
+};
+
+export type ConversationMembershipEvent = {
+  kind: "member_added" | "member_removed" | string;
+  label: string;
+  detail?: string | null;
+  actor_user_id?: string | null;
+  target_user_id?: string | null;
+  at?: string | null;
+};
+
+export type ConversationMembership = {
+  conversation_id: string;
+  creator_user_id: string | null;
+  viewer_is_creator: boolean;
+  composition: string;
+  members: ConversationMembershipMember[];
+  membership_events: ConversationMembershipEvent[];
+};
+
+export async function fetchConversationMembership(
+  conversationId: string,
+  bearer?: string,
+) {
+  return request<{ membership: ConversationMembership }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/membership`,
+    { method: "GET", bearer: resolveBearer(bearer) },
+  );
+}
+
+export async function addConversationMembers(
+  conversationId: string,
+  userIds: string[],
+  bearer?: string,
+) {
+  return request<{
+    conversation_id: string;
+    member_ids: string[];
+    member_count: number;
+    added_ids: string[];
+    already_member_ids: string[];
+    composition: string;
+  }>(`/api/v1/product/conversations/${encodeURIComponent(conversationId)}/members`, {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ user_ids: userIds }),
+  });
+}
+
+export async function removeConversationMember(
+  conversationId: string,
+  userId: string,
+  bearer?: string,
+) {
+  return request<{
+    conversation_id: string;
+    removed_user_id: string;
+    left: boolean;
+    member_ids: string[];
+    member_count: number;
+    composition: string;
+  }>(
+    `/api/v1/product/conversations/${encodeURIComponent(conversationId)}/members/${encodeURIComponent(userId)}`,
+    { method: "DELETE", bearer: resolveBearer(bearer) },
+  );
+}
+
+/**
+ * The server's own plain line for a membership write refusal (the
+ * admin rule's 403 carries it in `message`): callers show it
+ * verbatim, never a locally invented substitute. Null when the
+ * error carries no words at all.
+ */
+export function membershipWriteError(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const serverMessage = (error as { serverMessage?: unknown }).serverMessage;
+  if (typeof serverMessage === "string" && serverMessage !== "") return serverMessage;
+  const message = (error as { message?: unknown }).message;
+  return typeof message === "string" && message !== "" ? message : null;
+}
+
 export async function fetchSocketTicket(bearer?: string) {
   return request<{ ticket: string; expires_in: number }>(
     "/api/v1/product/socket-ticket",
@@ -2913,6 +3012,25 @@ export async function unlikeSocialMoment(momentId: string, bearer?: string) {
     `/api/v1/product/social-moments/${encodeURIComponent(momentId)}/like`,
     { method: "DELETE", bearer: resolveBearer(bearer) },
   );
+}
+
+/**
+ * Repair #21 (W-13 / I-2) - the counts-free light roster for one
+ * moment. The server is the gate: the moment's author receives
+ * `people` (who lit it, in the order they lit it); any other
+ * authorized viewer receives the warmth the glow renders from and
+ * an empty people list - names are never in a non-author payload.
+ */
+export async function getMomentLight(momentId: string, bearer?: string) {
+  return request<{
+    moment_id: string;
+    author_only_people: boolean;
+    people: Array<{ user_id: string; display_name: string }>;
+    warmth: number;
+    viewer_liked: boolean;
+  }>(`/api/v1/product/social-moments/${encodeURIComponent(momentId)}/light`, {
+    bearer: resolveBearer(bearer),
+  });
 }
 
 export async function listSocialMomentComments(momentId: string, bearer?: string) {
@@ -4328,13 +4446,91 @@ export async function forgetCapsule(capsuleId: string, bearer?: string) {
  * from. Owner is always the session's user; there is no parameter
  * that names another account.
  */
-export async function createMemoryCapsule(summary: string, bearer?: string) {
+export async function createMemoryCapsule(
+  summary: string,
+  bearer?: string,
+  attrs?: {
+    source_kind?: string;
+    source_label?: string;
+    purpose?: string;
+    scope_kind?: string;
+    scope_id?: string;
+    counterpart_user_id?: string;
+  },
+) {
   return request<{ capsule: MemoryCapsuleContract }>(
     "/api/v1/product/memory-wallet/capsules",
     {
       method: "POST",
       bearer: resolveBearer(bearer),
-      body: JSON.stringify({ summary }),
+      body: JSON.stringify({ summary, ...(attrs ?? {}) }),
+    },
+  );
+}
+
+/** Repair #21 (W-9 rebuild) - Know Me? Trivia. The game's own
+ *  provenance-tagged records (see OpalCore.Trivia): a guess is a
+ *  guess until the subject validates it; validation is the only
+ *  leg that can enrich the subject's wallet, server-side. */
+export type TriviaGuessContract = {
+  id: string;
+  guesser_user_id: string | null;
+  subject_user_id: string;
+  question: string;
+  guess: string;
+  fact_summary: string;
+  anonymous: boolean;
+  multiplier: number;
+  status: string;
+  capsule_id: string | null;
+  capsule_written?: boolean;
+  created_at: string | null;
+};
+
+export async function listTriviaGuesses(bearer?: string) {
+  return request<{
+    about_me: TriviaGuessContract[];
+    mine: TriviaGuessContract[];
+    score: { validated_count: number; points: number };
+  }>("/api/v1/product/trivia/guesses", { bearer: resolveBearer(bearer) });
+}
+
+export async function recordTriviaGuess(
+  input: {
+    subjectUserId: string;
+    question: string;
+    guess: string;
+    factSummary: string;
+    anonymous?: boolean;
+    multiplier?: number;
+  },
+  bearer?: string,
+) {
+  return request<{ guess: TriviaGuessContract }>("/api/v1/product/trivia/guesses", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({
+      subject_user_id: input.subjectUserId,
+      question: input.question,
+      guess: input.guess,
+      fact_summary: input.factSummary,
+      anonymous: input.anonymous ?? false,
+      multiplier: input.multiplier ?? 1,
+    }),
+  });
+}
+
+export async function validateTriviaGuess(
+  guessId: string,
+  verdict: "right" | "wrong",
+  bearer?: string,
+) {
+  return request<{ guess: TriviaGuessContract }>(
+    `/api/v1/product/trivia/guesses/${encodeURIComponent(guessId)}/validate`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ verdict }),
     },
   );
 }
@@ -4957,6 +5153,23 @@ export type OrbitProjectionContract = {
   parties: OrbitPartyContract[];
   plans: OrbitPlanFact[];
   next_plan?: NextPlanFact | null;
+  /** Repair #20 amendment / #21: OrbitProjection.for_conversation/3
+   *  also finishes the room's subject (the topic, never a person),
+   *  the Where-we're-at lines, and the past plans with their loved
+   *  evidence. Optional here because older payloads omit them; the
+   *  orbit screen reads them defensively and invents nothing. */
+  subject?: string | null;
+  where_lines?: string[] | null;
+  past_plans?: Array<
+    NextPlanFact & {
+      loved?: boolean | null;
+      loved_evidence?: string | null;
+      repeated?: boolean | null;
+    }
+  > | null;
+  /** Repair #21 (W-5b): who came and went - the conversation's
+   *  recorded membership events, finished lines from the record. */
+  membership_events?: ConversationMembershipEvent[];
 };
 
 /** Phase OC-1 — Opal Center conversational shell (one conversation per user). */
@@ -5476,6 +5689,10 @@ export type OpalPlanContract = {
   join_requests_on?: boolean;
   exact_spot_after_join?: boolean;
   repeated_from_plan_id?: string;
+  /** Repair #21 (I-1) - inspired-by lineage, stamped by graph-create
+   *  from a validated seed moment; present only on plans that carry it. */
+  inspired_by_moment_id?: string;
+  inspired_by_author_user_id?: string;
   created_at?: string;
   /** Repair #18 - attendance contract (absent when no participant rows). */
   going_count?: number | null;
@@ -5625,6 +5842,12 @@ export async function createGraphPlan(
     participant_user_ids?: string[];
     who_label?: string;
     source_plan_id?: string;
+    /** Repair #21 (I-1) - inspired-by seed provenance: the id of a
+     *  Social Moment the creator may lawfully view. The server
+     *  validates visibility and stamps the lineage (moment id +
+     *  author id) on the new plan's contract; an invisible moment
+     *  fails the whole create. */
+    inspired_by_moment_id?: string;
     entry?: string;
     idempotency_key?: string;
     timezone?: string;

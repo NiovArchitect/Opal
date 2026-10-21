@@ -221,6 +221,48 @@ defmodule OpalCore.SocialFlow.Repair20OrbitProjectionTest do
            ]
   end
 
+  test "v4.2.1 CF2-6 where_lines coherence: an unscheduled plan is never 'no plan', and the waiting viewer is named in the same line" do
+    a = fresh_user("Ana")
+    b = fresh_user("Bea")
+    conv = conversation_with([a.id, b.id])
+
+    # A title-only plan: it exists, it waits on Bea, and it has
+    # no time yet - the unscheduled truth.
+    {:ok, plan, _} =
+      SocialFlow.create_tentative_plan_from_conversation(conv.id, a.id, %{
+        "title" => "Unscheduled dinner #{System.unique_integer([:positive])}"
+      })
+
+    # The creator's card: not scheduled yet, no move clause -
+    # and never the empty-room sentence while a plan exists.
+    orbit_a = OrbitProjection.for_conversation(a.id, conv.id)
+    assert hd(orbit_a["where_lines"]) == "Next together: #{plan.title} - not scheduled yet."
+    refute Enum.any?(orbit_a["where_lines"], &(&1 =~ "No next plan is set yet"))
+
+    # The waiting viewer's card: the SAME derivation names the
+    # move in the next-together line itself, so the two rows on
+    # her card cannot contradict each other.
+    orbit_b = OrbitProjection.for_conversation(b.id, conv.id)
+    assert orbit_b["next_plan"]["plan_id"] == plan.id
+    assert orbit_b["next_plan"]["when_label"] == nil
+
+    assert hd(orbit_b["where_lines"]) ==
+             "Next together: #{plan.title} - not scheduled yet. One waiting on you."
+
+    refute Enum.any?(orbit_b["where_lines"], &(&1 =~ "No next plan is set yet"))
+
+    # A scheduled plan keeps the scheduled form in both pairings:
+    # give the plan a time and the line carries it, move or not.
+    plan
+    |> Ecto.Changeset.change(%{time_label: "Saturday 7 PM"})
+    |> Repo.update!()
+
+    orbit_b2 = OrbitProjection.for_conversation(b.id, conv.id)
+    assert hd(orbit_b2["where_lines"]) =~ "Next together: #{plan.title}"
+    assert hd(orbit_b2["where_lines"]) =~ "Saturday 7 PM"
+    refute hd(orbit_b2["where_lines"]) =~ "not scheduled yet"
+  end
+
   test "v2 past_plans: settled plans are past, loved only with repeat evidence, vault respected" do
     a = fresh_user("Ana")
     b = fresh_user("Bea")

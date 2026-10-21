@@ -90,6 +90,11 @@
   /* Composer */
   [data-design="r18"] .c1-rest-composer-zone { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
   [data-design="r18"] .c1-composer-bar { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+  /* V4.2 (F-1/F-2): composer bars live INSIDE the frost sheet -
+     in front of the glass, above the chrome band, below the
+     dock - so the sheet reads as one backdrop behind composer
+     and pad together, never as a slab over the furniture. */
+  [data-design="r18"] .c1-composer-bar { position: relative; z-index: calc(var(--layer-chrome, 30) + 1); }
   [data-design="r18"] .c1-destination-pill {
     align-self: flex-start; border-radius: 999px; padding: 8px 14px; cursor: pointer;
     background: var(--accent-quiet); color: var(--ink-1);
@@ -102,7 +107,11 @@
     border-radius: var(--radius-sheet); padding: 6px 6px 6px 18px; min-height: 52px; box-sizing: border-box;
     box-shadow: var(--opal-shadow-sheet);
   }
-  [data-design="r18"] .c1-composer:focus-within { border-color: var(--accent-1); }
+  /* R21 Orbit v4 (founder composer law): NO focus border - tapping
+     into the composer lights no inner border/outline; the focus
+     state is the blinking caret only. The bar keeps its resting
+     border in every state. */
+  [data-design="r18"] .c1-composer:focus-within { border-color: var(--line-2); }
   /* Holding chips (harmony2): the holding answer's figures as
    * tappable routes into their surfaces. Quiet chrome - the counts
    * are the information; no state hue is spent here. */
@@ -153,6 +162,21 @@
     background: var(--surface-1); border: 1px solid var(--line-1);
     color: var(--ink-1); font: var(--opal-type-label);
   }
+  /* Round 3 (O-3 rebuild) - the placed draft's provenance row:
+     a quiet chip stating the truth ("From your Orbit - unsent")
+     and the one-tap return beside it. It sits in the chip row
+     above the composer and lives exactly as long as the unsent
+     draft does. */
+  [data-design="r18"] .c1-orbit-draft-row { align-items: center; padding: 2px 16px 0; }
+  [data-design="r18"] .c1-orbit-draft-chip {
+    border-radius: 999px; padding: 6px 12px;
+    background: var(--surface-1); border: 1px solid var(--line-1);
+    color: var(--ink-2); font: var(--opal-type-meta);
+  }
+  [data-design="r18"] .c1-orbit-draft-return {
+    border: 0; background: none; cursor: pointer; padding: 6px 8px; min-height: 36px;
+    color: var(--accent-1); font: var(--opal-type-meta); font-weight: 600;
+  }
   /* Lists */
   [data-design="r18"] .c1-list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; }
   [data-design="r18"] .c1-primary-btn {
@@ -184,11 +208,13 @@
   [data-design="r18"] .c1-session-title { font: var(--opal-type-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* W24 (DL-03): the row's quiet tie cue — same line as the name,
      quieter ink, never its own line (the row grammar is unchanged). */
-  [data-design="r18"] .c1-session-tie { color: var(--ink-3); font-weight: 400; }
+  /* R21 W-2 low-vision pass: tie + time were --ink-3; secondary
+     text floors at --ink-2 in both modes (the calm-sub floor). */
+  [data-design="r18"] .c1-session-tie { color: var(--ink-2); font-weight: 400; }
   [data-design="r18"] .c1-unread-name { font-weight: 700; }
   [data-design="r18"] .c1-session-preview { font: var(--opal-type-meta); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   [data-design="r18"] .c1-session-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
-  [data-design="r18"] .c1-session-time { font: var(--opal-type-meta); color: var(--ink-3); flex: none; }
+  [data-design="r18"] .c1-session-time { font: var(--opal-type-meta); color: var(--ink-2); flex: none; }
   [data-design="r18"] .c1-segment { display: flex; gap: 4px; background: var(--surface-2); border-radius: 999px; padding: 4px; }
   [data-design="r18"] .c1-segment span { flex: 1; text-align: center; padding: 8px; border-radius: 999px; font: var(--opal-type-label); color: var(--ink-2); }
   /* Repair #19: the Chats/Calls segment is two real tabs when the
@@ -206,6 +232,22 @@
     position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 50%;
     background: var(--accent-1); border: 2px solid var(--canvas);
   }
+  /* R21 W-3: the (i) bubble (calm-info classes, shared with the C2
+     shell - canonical rules in c2/shell/c2shell.css; mirrored here
+     so C1 surfaces keep the treatment in standalone mounts). */
+  [data-design="r18"] .calm-info-wrap { display: inline-flex; flex-direction: column; align-items: center; gap: 8px; }
+  [data-design="r18"] .calm-info { width: 20px; height: 20px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+  [data-design="r18"] .calm-info em { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12px; line-height: 1; }
+  [data-design="r18"] .calm-info-pop { font: var(--opal-type-meta); color: var(--ink-2); max-width: 300px; }
+  /* R21 W-2 calm-key mirror (canonical in c2/shell/c2shell.css):
+     bold key values in their state color's mode-adapted ink
+     derivative - never the raw canon hex as text on light. */
+  [data-design="r18"] .calm-key { font-weight: 700; color: var(--ink-1); }
+  [data-design="r18"] .calm-key[data-state="action"] { color: var(--state-action-ink); }
+  [data-design="r18"] .calm-key[data-state="ready"] { color: var(--state-ready-ink); }
+  [data-design="r18"] .calm-key[data-state="forming"] { color: var(--state-forming-ink); }
+  [data-design="r18"] .calm-key[data-state="happening"] { color: var(--state-happening-ink); }
+  [data-design="r18"] .calm-key[data-state="past"] { color: var(--state-past-ink); }
   [data-design="r18"] .c1-empty { text-align: center; padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: var(--radius-card); }
   [data-design="r18"] .c1-empty-title { font: var(--opal-type-title); margin: 8px 0 0; }
   [data-design="r18"] .c1-empty-line { color: var(--ink-2); margin: 0; }
@@ -231,6 +273,13 @@
   [data-design="r18"] .c1-thread-opal-orb {
     width: 26px; height: 26px; border-radius: 50%; flex: none;
     background: var(--opal-iris-gradient);
+  }
+  /* Repair #21 (W-5b) - the group thread's quiet People affordance
+     in the header: bare text chrome, a full-height hit area, no
+     fill - it opens the membership sheet and is not plan chrome. */
+  [data-design="r18"] .c1-manage-members-btn {
+    min-height: 44px; border: 0; background: transparent; cursor: pointer; flex: none;
+    color: var(--ink-2); font: var(--opal-type-meta); padding: 0 6px;
   }
   [data-design="r18"] .c1-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
   [data-design="r18"] .c1-flow { display: flex; flex-direction: column; gap: 10px; }

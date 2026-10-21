@@ -24670,3 +24670,44 @@ html.opal-native-host body:has([data-testid="member-conversation"] .composer-618
 .plan-edit-error { color: var(--signal-needs-attention, #ff5964); margin: 0; font-size: 13px; }
 .plan-edit-actions { display: flex; gap: 8px; }
 .plan-edit-actions button:disabled, .plan-edit-field input:disabled { opacity: .55; }
+
+/* Repair #21 (W-5a) - fork-answer control: the etiquette fork's two
+   answers, where the fork presentation lives (plan card + detail). */
+.fork-answer { margin: 8px 0 4px; }
+.fork-answer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.fork-answer-actions button {
+  background: none; border: 1px solid var(--line, rgba(127,127,160,.4));
+  border-radius: 999px; padding: 5px 14px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.fork-answer-actions button:disabled { opacity: .55; }
+.fork-answer-done { margin: 0; font-size: 13px; }
+.fork-answer-error { color: var(--signal-needs-attention, #ff5964); margin: 6px 0 0; font-size: 13px; }
+
+/* Repair #21 (W-5b) - group membership manage surface (thread sheet). */
+.group-membership { display: grid; gap: 10px; }
+.group-membership-title { font-weight: 600; margin: 0; font-size: 14px; }
+.group-membership-line { margin: 0; font-size: 13px; }
+.group-membership-members { display: grid; gap: 6px; }
+.group-membership-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.group-membership-name { font-size: 14px; }
+.group-membership-creator { opacity: .65; font-size: 12px; }
+.group-membership-remove {
+  background: none; border: 1px solid var(--line, rgba(127,127,160,.4));
+  border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 12px; cursor: pointer;
+}
+.group-membership-remove:disabled { opacity: .55; }
+.group-membership-add { display: grid; gap: 6px; }
+.group-membership-candidate {
+  display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;
+}
+.group-membership-add-btn {
+  background: none; border: 1px solid var(--line, rgba(127,127,160,.4));
+  border-radius: 999px; padding: 5px 14px; font: inherit; font-size: 13px; cursor: pointer;
+  justify-self: start;
+}
+.group-membership-add-btn:disabled { opacity: .55; }
+.group-membership-events { display: grid; gap: 4px; }
+.group-membership-event { margin: 0; font-size: 13px; opacity: .8; }
+.group-membership-error { color: var(--signal-needs-attention, #ff5964); margin: 0; font-size: 13px; }

@@ -104,6 +104,7 @@ export function OrbHero({
       aria-hidden={title === "" ? true : undefined}
       data-orb-asset={medallion ? "hero-medallion" : "hero-master"}
       data-orb-master="1"
+      data-marble={medallion ? "master-medallion" : "master"}
       draggable={false}
     />
   );
@@ -165,10 +166,22 @@ export function OrbMark({
   size = 40,
   title = "",
   className,
+  marble = false,
 }: {
   size?: number;
   title?: string;
   className?: string;
+  /**
+   * Repair #21 (W-19) - THE MARBLE MATERIAL: when true, the sphere
+   * carries the master's own stone grain (ORB_ASSETS.marbleSphere,
+   * clipped to the measured sphere, under the same rings) instead
+   * of the flat fire fill + blurred blobs. Reserved for identity
+   * seats (the pad's center orb) - ordinary chrome keeps the vector
+   * reduction. The grain is a still surface: it never animates.
+   * Below 24px the small reduction renders and marble does not
+   * apply (grain cannot read at that size - a named non-sighting).
+   */
+  marble?: boolean;
 }) {
   const id = nextId("mark");
   if (size < 24) return <OrbMarkSmall size={size} title={title} className={className} />;
@@ -182,6 +195,7 @@ export function OrbMark({
       aria-label={title === "" ? undefined : title}
       aria-hidden={title === "" ? true : undefined}
       data-orb-asset="mark"
+      data-marble={marble ? "sphere" : undefined}
     >
       <FireDefs id={id} />
       <ellipse
@@ -194,9 +208,33 @@ export function OrbMark({
         strokeWidth={2.4}
       />
       <circle cx={ORB_SPHERE.cx} cy={ORB_SPHERE.cy} r={ORB_SPHERE.r} fill={`url(#${id}-fire)`} />
-      <FireBlobs id={id} />
-      <circle cx={ORB_SPHERE.cx} cy={ORB_SPHERE.cy} r={ORB_SPHERE.r} fill={`url(#${id}-core)`} />
-      <ellipse cx={84} cy={72} rx={26} ry={15} fill="#ffffff" opacity={0.1} />
+      {marble ? (
+        <image
+          href={ORB_ASSETS.marbleSphere}
+          x={ORB_SPHERE.cx - ORB_SPHERE.r}
+          y={ORB_SPHERE.cy - ORB_SPHERE.r}
+          width={ORB_SPHERE.r * 2}
+          height={ORB_SPHERE.r * 2}
+          clipPath={`url(#${id}-sphere-clip)`}
+          preserveAspectRatio="none"
+          data-marble-image="1"
+          aria-hidden
+        />
+      ) : (
+        <FireBlobs id={id} />
+      )}
+      {/* The vector core glow + glass highlight belong to the flat
+       * reduction: over the photographic grain they bleach the
+       * swirl's center to a pale wash (verified at the glass, R21
+       * W-19 probe). The master already carries its own core light
+       * and glass, so the marble seat renders NEITHER overlay - the
+       * stone speaks for itself; rings + points still ride above. */}
+      {marble ? null : (
+        <>
+          <circle cx={ORB_SPHERE.cx} cy={ORB_SPHERE.cy} r={ORB_SPHERE.r} fill={`url(#${id}-core)`} />
+          <ellipse cx={84} cy={72} rx={26} ry={15} fill="#ffffff" opacity={0.1} />
+        </>
+      )}
       <circle
         cx={ORB_RING.cx}
         cy={ORB_RING.cy}
