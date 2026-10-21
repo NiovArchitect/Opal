@@ -402,3 +402,9 @@ real yet; honestly gated).
 FOUNDER_ACCEPTED stays NO. The next step is his: verdict on this
 integrated pack, then the phone walk (LIGHT default, badge-law
 link) when he calls it.
+
+---
+
+## ADDENDUM — BATTERY CORRECTION (parent annotation, 2026-10-21, on the finisher's own disclosure)
+
+The battery section above describes the single-process full-suite run as abandoned in favor of partition legs. That is corrected here: the run's delayed completion delivery shows it actually COMPLETED at ~09:43 UTC with the summary "3370 tests, 26 failures" / EXIT:2. Its test total matches the leg battery's total exactly. Its 26 failures were NOT name-verified test-by-test by the finisher or the parent; the +5 over the leg battery's 21 is consistent with heavier timing contention in a single BEAM, but that remains an inference, not a verification, and is recorded as such. The verified record stands as: leg battery (21 failures, all timing species, zero wrong-state assertions), standalone reruns (seed_commit 4/0, sinister 24/0, pressure 10/0; 9 tests timeout-only on this VM), human_validation + compound_quality 25/25 standalone. The healthy-box full re-run on the founder's list closes both executions' timing residue. This annotation is committed locally and rides the next records push; the pushed tree (ce577f61 / mirror 94a83882) carries the pre-correction battery text.
