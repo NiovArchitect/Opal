@@ -159,4 +159,58 @@ defmodule OpalCore.Intelligence.ExtractorDynamicTest do
       assert e2["place"] == nil
     end
   end
+
+  describe "R26 F-3 — day and clock combine; new place cues" do
+    test "day + clock in one utterance yield one combined time entity" do
+      {_i, e1, _v} = Extractor.classify_message("this friday at 7pm")
+      assert e1["time"] == %{"day" => "friday", "time" => "19:00", "fuzzy" => false}
+
+      {_i, e2, _v} = Extractor.classify_message("cowles mountain at 9 am on sunday")
+      assert e2["time"] == %{"day" => "sunday", "time" => "09:00", "fuzzy" => false}
+    end
+
+    test "the call-1 sentence keeps day, clock, activity and place together" do
+      {_i, entities, _v} =
+        Extractor.classify_message("Let's do dinner this Saturday at 7 pm at Juniper and Ivy.")
+
+      assert entities["time"] == %{"day" => "saturday", "time" => "19:00", "fuzzy" => false}
+      assert entities["activity"] == "dinner"
+      assert entities["place"] == "Juniper and Ivy"
+    end
+
+    test "day-only and clock-only shapes are unchanged" do
+      {_i, e1, _v} = Extractor.classify_message("dinner saturday")
+      assert e1["time"] == %{"day" => "saturday", "fuzzy" => true}
+
+      {_i, e2, _v} = Extractor.classify_message("dinner at 7pm")
+      assert e2["time"] == %{"time" => "19:00", "fuzzy" => false}
+
+      {_i, e3, _v} = Extractor.classify_message("dinner tonight")
+      assert e3["time"] == %{"day" => "today", "part" => "evening", "fuzzy" => true}
+
+      {_i, e4, _v} = Extractor.classify_message("dinner tonight at 8pm")
+
+      assert e4["time"] == %{
+               "day" => "today",
+               "part" => "evening",
+               "time" => "20:00",
+               "fuzzy" => false
+             }
+    end
+
+    test "place-before-time cue captures the venue named before its clock" do
+      {_i, entities, _v} = Extractor.classify_message("Cowles Mountain at 9 am")
+      assert entities["place"] == "Cowles Mountain"
+    end
+
+    test "do-cue captures the venue and never swallows the trailing 'instead'" do
+      {_i, entities, _v} = Extractor.classify_message("Let's do Cowles Mountain instead")
+      assert entities["place"] == "Cowles Mountain"
+    end
+
+    test "an optional 'the' after a cue word still names the venue" do
+      {_i, entities, _v} = Extractor.classify_message("let's meet at the Observatory saturday")
+      assert entities["place"] == "Observatory"
+    end
+  end
 end

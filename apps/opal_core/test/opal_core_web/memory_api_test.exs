@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.MemoryApiTest do
   alias OpalCore.FixturesHelper
   alias OpalCore.Repo
   alias OpalCore.SocialFlow.DurablePreferenceMemory
+  alias OpalCore.SocialMemory.PersonMemory
   alias OpalCore.SocialFlow.MemoryCandidate
   alias OpalCore.SocialFlow.PhoneVerification.Provider
   alias OpalCore.SocialFlow.RelationshipMemory
@@ -205,6 +206,150 @@ defmodule OpalCoreWeb.MemoryApiTest do
     listed = DurablePreferenceMemory.list_for_owners([user_a])
     assert length(listed) == 1
     assert hd(listed).deletion_state == "active"
+  end
+
+  # --- Repair #26 (B-17): PersonMemory.known_facts projections ---
+
+  defp insert_person_memory(account_id, person_id, known_facts) do
+    {:ok, row} =
+      %PersonMemory{}
+      |> PersonMemory.changeset(%{
+        account_id: account_id,
+        person_id: person_id,
+        known_facts: known_facts
+      })
+      |> Repo.insert()
+
+    row
+  end
+
+  test "list includes PersonMemory known_facts projections alongside durable facts", %{
+    conn: conn
+  } do
+    {token_a, user_a} = activate(conn, @alex, "Mem PM", "mem_pm")
+    person_id = Ecto.UUID.generate()
+
+    assert {:ok, _, :created} =
+             DurablePreferenceMemory.remember_explicit(%{
+               "owner_user_id" => user_a,
+               "preference" => "quiet restaurants"
+             })
+
+    row =
+      insert_person_memory(user_a, person_id, %{
+        "allergy" => %{
+          "value" => "I'm allergic to peanuts",
+          "provenance" => "stated",
+          "learned_at" => "2026-10-22T00:00:00Z"
+        },
+        "birthday" => %{"value" => "My birthday is June 5", "provenance" => "stated"}
+      })
+
+    conn = build_conn() |> auth(token_a) |> get("/api/v1/product/memory/facts")
+    facts = json_response(conn, 200)["facts"]
+
+    # The durable-preference fact is undisturbed.
+    assert Enum.any?(facts, &(&1["value"] == "quiet restaurants" and &1["source"] == nil))
+
+    allergy = Enum.find(facts, &(&1["id"] == "pm:#{row.id}:allergy"))
+    assert allergy["value"] == "I'm allergic to peanuts"
+    assert allergy["label"] == "I'm allergic to peanuts"
+    assert allergy["mapped"] == false
+    assert allergy["source"] == "person_memory"
+    assert allergy["person_id"] == person_id
+
+    birthday = Enum.find(facts, &(&1["id"] == "pm:#{row.id}:birthday"))
+    assert birthday["value"] == "My birthday is June 5"
+  end
+
+  test "delete pm fact removes the key from known_facts under step-up elevation", %{conn: conn} do
+    {token_a, user_a} = activate(conn, @alex, "Mem PM Del", "mem_pm_del")
+    person_id = Ecto.UUID.generate()
+
+    row =
+      insert_person_memory(user_a, person_id, %{
+        "allergy" => %{"value" => "I'm allergic to peanuts", "provenance" => "stated"},
+        "mornings" => %{"value" => "I hate mornings", "provenance" => "stated"}
+      })
+
+    pm_id = "pm:#{row.id}:allergy"
+
+    # Without elevation: rejected (same gate as the durable path), key survives.
+    conn = build_conn() |> auth(token_a) |> delete("/api/v1/product/memory/facts/#{pm_id}")
+    assert json_response(conn, 403)["error_code"] == "step_up_required"
+    assert Map.has_key?(Repo.get!(PersonMemory, row.id).known_facts, "allergy")
+
+    elevation = step_up(token_a, @alex)
+    conn = elevated(token_a, elevation) |> delete("/api/v1/product/memory/facts/#{pm_id}")
+    body = json_response(conn, 200)
+    assert body["forgotten"] == true
+    assert body["fact"]["id"] == pm_id
+    assert body["fact"]["value"] == "I'm allergic to peanuts"
+
+    reloaded = Repo.get!(PersonMemory, row.id)
+    refute Map.has_key?(reloaded.known_facts, "allergy")
+    assert reloaded.known_facts["mornings"]["value"] == "I hate mornings"
+
+    conn = build_conn() |> auth(token_a) |> get("/api/v1/product/memory/facts")
+    facts = json_response(conn, 200)["facts"]
+    refute Enum.any?(facts, &(&1["id"] == pm_id))
+    assert Enum.any?(facts, &(&1["id"] == "pm:#{row.id}:mornings"))
+  end
+
+  test "another account sees nothing and cannot delete a pm fact", %{conn: conn} do
+    {token_a, user_a} = activate(conn, @alex, "Mem PM Iso A", "mem_pm_iso_a")
+    {token_b, _user_b} = activate(build_conn(), @jordan, "Mem PM Iso B", "mem_pm_iso_b")
+    person_id = Ecto.UUID.generate()
+
+    row =
+      insert_person_memory(user_a, person_id, %{
+        "allergy" => %{"value" => "I'm allergic to peanuts", "provenance" => "stated"}
+      })
+
+    pm_id = "pm:#{row.id}:allergy"
+
+    # B's list: nothing of A's.
+    conn = build_conn() |> auth(token_b) |> get("/api/v1/product/memory/facts")
+    assert json_response(conn, 200)["facts"] == []
+
+    # B's delete with B's own valid elevation: 404, A's fact remains.
+    elevation_b = step_up(token_b, @jordan)
+    conn = elevated(token_b, elevation_b) |> delete("/api/v1/product/memory/facts/#{pm_id}")
+    assert json_response(conn, 404)["error_code"] == "not_found"
+    assert Map.has_key?(Repo.get!(PersonMemory, row.id).known_facts, "allergy")
+
+    # A still sees it.
+    conn = build_conn() |> auth(token_a) |> get("/api/v1/product/memory/facts")
+    assert Enum.any?(json_response(conn, 200)["facts"], &(&1["id"] == pm_id))
+  end
+
+  test "deleting a non-existent pm fact → 404", %{conn: conn} do
+    {token_a, user_a} = activate(conn, @alex, "Mem PM 404", "mem_pm_404")
+    person_id = Ecto.UUID.generate()
+    elevation = step_up(token_a, @alex)
+
+    # Non-existent row.
+    ghost_id = "pm:#{Ecto.UUID.generate()}:allergy"
+    conn = elevated(token_a, elevation) |> delete("/api/v1/product/memory/facts/#{ghost_id}")
+    assert json_response(conn, 404)["error_code"] == "not_found"
+
+    # Existing row, non-existent key.
+    row =
+      insert_person_memory(user_a, person_id, %{
+        "birthday" => %{"value" => "My birthday is June 5", "provenance" => "stated"}
+      })
+
+    missing_key_id = "pm:#{row.id}:allergy"
+
+    conn =
+      elevated(token_a, elevation) |> delete("/api/v1/product/memory/facts/#{missing_key_id}")
+
+    assert json_response(conn, 404)["error_code"] == "not_found"
+    assert Map.has_key?(Repo.get!(PersonMemory, row.id).known_facts, "birthday")
+
+    # Malformed pm id: 404, not a crash.
+    conn = elevated(token_a, elevation) |> delete("/api/v1/product/memory/facts/pm:not-a-uuid:x")
+    assert json_response(conn, 404)["error_code"] == "not_found"
   end
 
   test "plain_label maps known keys and keeps unknown raw", %{conn: _conn} do

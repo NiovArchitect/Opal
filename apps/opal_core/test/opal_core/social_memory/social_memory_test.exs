@@ -1,7 +1,7 @@
 defmodule OpalCore.SocialMemoryTest do
   use OpalCore.DataCase, async: false
 
-  alias OpalCore.Intelligence.{Pipeline, PromptBuilder}
+  alias OpalCore.Intelligence.{Extractor, Pipeline, PromptBuilder}
   alias OpalCore.Repo
   alias OpalCore.SocialMemory
   alias OpalCore.SocialMemory.{Commitment, PersonMemory, PlanMemory, SurfacedNudge}
@@ -11,7 +11,9 @@ defmodule OpalCore.SocialMemoryTest do
     System.put_env("OPAL_MEMORY_ENABLED", "true")
 
     on_exit(fn ->
-      if prior, do: System.put_env("OPAL_MEMORY_ENABLED", prior), else: System.delete_env("OPAL_MEMORY_ENABLED")
+      if prior,
+        do: System.put_env("OPAL_MEMORY_ENABLED", prior),
+        else: System.delete_env("OPAL_MEMORY_ENABLED")
     end)
 
     :ok
@@ -83,6 +85,223 @@ defmodule OpalCore.SocialMemoryTest do
     plans = Repo.all(PlanMemory) |> Enum.filter(&(&1.account_id == account))
     assert length(plans) >= 1
     assert hd(plans).time_label in ["Saturday", nil] or hd(plans).plan_label =~ "market"
+  end
+
+  # Repair #26 (F-3/F-3b) — run a real classify → ingest sequence, the
+  # way the call fold does, and read the PlanMemory rows back.
+  defp ingest_classified(account, conv, body, sender_id) do
+    {intent, entities, vibe} = Extractor.classify_message(body)
+
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               account,
+               conv,
+               Ecto.UUID.generate(),
+               %{intent: intent, entities: entities, vibe: vibe},
+               %{sender_id: sender_id, body: body, timestamp: DateTime.utc_now()}
+             )
+  end
+
+  defp plans_for(account) do
+    Repo.all(PlanMemory) |> Enum.filter(&(&1.account_id == account))
+  end
+
+  test "R26 F-3b: call1-style sequence ends as ONE plan row with day+clock+place" do
+    account = Ecto.UUID.generate()
+    conv = Ecto.UUID.generate()
+
+    ingest_classified(
+      account,
+      conv,
+      "Let's do dinner this Saturday at 7 pm at Juniper and Ivy.",
+      account
+    )
+
+    ingest_classified(account, conv, "Sounds good.", account)
+    ingest_classified(account, conv, "Perfect.", account)
+
+    assert [row] = plans_for(account)
+    assert row.plan_label == "dinner"
+    assert row.time_label == "saturday 19:00"
+    assert row.place_label == "Juniper and Ivy"
+    assert conv in row.related_conversation_ids
+  end
+
+  test "R26 F-3b: unrelated plans in one conversation never overwrite each other" do
+    account = Ecto.UUID.generate()
+    conv = Ecto.UUID.generate()
+
+    ingest_classified(
+      account,
+      conv,
+      "Let's do dinner this Saturday at 7 pm at Juniper and Ivy.",
+      account
+    )
+
+    ingest_classified(account, conv, "Let's do lunch on Sunday at 12 pm at Cafe Luna.", account)
+    ingest_classified(account, conv, "Let's do the market this Saturday at 9 am.", account)
+
+    plans = plans_for(account)
+    assert length(plans) == 3
+    by_label = Map.new(plans, &{&1.plan_label, &1})
+
+    assert by_label["dinner"].time_label == "saturday 19:00"
+    assert by_label["dinner"].place_label == "Juniper and Ivy"
+    assert by_label["lunch"].time_label == "sunday 12:00"
+    assert by_label["lunch"].place_label == "Cafe Luna"
+    assert by_label["market"].time_label == "saturday 09:00"
+
+    # A dinner counter carrying only a new clock merges into the dinner
+    # row alone: day survives, clock is replaced, other plans untouched.
+    ingest_classified(account, conv, "Dinner at 8 pm instead works better.", account)
+
+    plans = plans_for(account)
+    assert length(plans) == 3
+    by_label = Map.new(plans, &{&1.plan_label, &1})
+    assert by_label["dinner"].time_label == "saturday 20:00"
+    assert by_label["lunch"].time_label == "sunday 12:00"
+    assert by_label["market"].time_label == "saturday 09:00"
+
+    # A place-anchored turn merges by place into its own plan row.
+    ingest_classified(account, conv, "Cafe Luna at 1 pm on Sunday.", account)
+
+    plans = plans_for(account)
+    assert length(plans) == 3
+    by_label = Map.new(plans, &{&1.plan_label, &1})
+    assert by_label["lunch"].time_label == "sunday 13:00"
+    assert by_label["lunch"].place_label == "Cafe Luna"
+    assert by_label["dinner"].time_label == "saturday 20:00"
+  end
+
+  test "R26 F-3b: a day-only signal with no plan to merge into creates nothing" do
+    account = Ecto.UUID.generate()
+    conv = Ecto.UUID.generate()
+
+    ingest_classified(account, conv, "Saturday instead works better.", account)
+    ingest_classified(account, conv, "Saturday sounds good.", account)
+
+    assert plans_for(account) == []
+  end
+
+  test "R26 F-3b: time components merge across turns (day arrives after clock)" do
+    account = Ecto.UUID.generate()
+    conv = Ecto.UUID.generate()
+
+    # Clock-only proposal creates via the clock anchor…
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               account,
+               conv,
+               Ecto.UUID.generate(),
+               %{
+                 intent: "plan.propose",
+                 entities: %{
+                   "time" => %{"time" => "19:00", "fuzzy" => false},
+                   "activity" => "dinner"
+                 },
+                 vibe: %{}
+               },
+               %{sender_id: account, body: "dinner at 7pm", timestamp: DateTime.utc_now()}
+             )
+
+    assert [row] = plans_for(account)
+    assert row.time_label == "19:00"
+
+    # …and a later day-only counter for the same activity adds the day
+    # without dropping the clock.
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               account,
+               conv,
+               Ecto.UUID.generate(),
+               %{
+                 intent: "plan.counter",
+                 entities: %{
+                   "time" => %{"day" => "sunday", "fuzzy" => true},
+                   "activity" => "dinner"
+                 },
+                 vibe: %{}
+               },
+               %{sender_id: account, body: "sunday instead", timestamp: DateTime.utc_now()}
+             )
+
+    assert [row] = plans_for(account)
+    assert row.plan_label == "dinner"
+    assert row.time_label == "sunday 19:00"
+  end
+
+  test "R26 F-3b: 'i can't stand cilantro' lands as a dislike under the speaker" do
+    account = Ecto.UUID.generate()
+    speaker = Ecto.UUID.generate()
+    conv = Ecto.UUID.generate()
+
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               account,
+               conv,
+               Ecto.UUID.generate(),
+               %{intent: "chitchat", entities: %{}, vibe: %{}},
+               %{
+                 sender_id: speaker,
+                 body: "I can't stand cilantro",
+                 timestamp: DateTime.utc_now()
+               }
+             )
+
+    row = Repo.get_by(PersonMemory, account_id: account, person_id: speaker)
+    assert row
+    assert row.known_facts["dislike:cilantro"]["value"] =~ "cilantro"
+    assert row.known_facts["dislike:cilantro"]["provenance"] == "stated"
+
+    # The speaker's own store keys it on the self mirror row.
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               speaker,
+               conv,
+               Ecto.UUID.generate(),
+               %{intent: "chitchat", entities: %{}, vibe: %{}},
+               %{
+                 sender_id: speaker,
+                 body: "I can't stand cilantro",
+                 timestamp: DateTime.utc_now()
+               }
+             )
+
+    self_row = Repo.get_by(PersonMemory, account_id: speaker, person_id: speaker)
+    assert self_row.known_facts["dislike:cilantro"]
+
+    # Generic "i hate X" keys the same way…
+    other = Ecto.UUID.generate()
+
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               account,
+               conv,
+               Ecto.UUID.generate(),
+               %{intent: "chitchat", entities: %{}, vibe: %{}},
+               %{
+                 sender_id: other,
+                 body: "Honestly, I hate cilantro in everything",
+                 timestamp: DateTime.utc_now()
+               }
+             )
+
+    other_row = Repo.get_by(PersonMemory, account_id: account, person_id: other)
+    assert other_row.known_facts["dislike:cilantro"]
+
+    # …but "i hate mornings" keeps its historic "mornings" key.
+    assert {:ok, _} =
+             SocialMemory.ingest(
+               account,
+               conv,
+               Ecto.UUID.generate(),
+               %{intent: "chitchat", entities: %{}, vibe: %{}},
+               %{sender_id: other, body: "I hate mornings", timestamp: DateTime.utc_now()}
+             )
+
+    other_row = Repo.get_by(PersonMemory, account_id: account, person_id: other)
+    assert other_row.known_facts["mornings"]
+    refute Map.has_key?(other_row.known_facts, "dislike:mornings")
   end
 
   test "account isolation: recall never returns other account's person facts" do

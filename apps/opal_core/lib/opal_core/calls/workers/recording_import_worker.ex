@@ -24,7 +24,9 @@ defmodule OpalCore.Calls.Workers.RecordingImportWorker do
 
   use Oban.Worker, queue: :imports, max_attempts: 1
 
-  alias OpalCore.Calls.{RecordingImport, RecordingImports, RecordingStore}
+  require Logger
+
+  alias OpalCore.Calls.{AudioDecode, RecordingImport, RecordingImports, RecordingStore}
   alias OpalCore.Intelligence.CallTranscription
   alias OpalCore.Repo
 
@@ -48,8 +50,9 @@ defmodule OpalCore.Calls.Workers.RecordingImportWorker do
     {:ok, row} = RecordingImports.begin_transcription(row)
 
     with {:ok, audio} <- RecordingStore.read(row.storage_key),
+         {:ok, audio, content_type} <- decode(row, audio),
          {:ok, call} <- fetch_call(row),
-         {:ok, result} <- transcribe(row, audio) do
+         {:ok, result} <- transcribe(row, audio, content_type) do
       {:ok, row} =
         RecordingImports.begin_fold(row, %{
           provider: "deepgram",
@@ -63,8 +66,30 @@ defmodule OpalCore.Calls.Workers.RecordingImportWorker do
       :ok
     else
       {:error, reason} ->
-        {:ok, _} = RecordingImports.fail(row, reason)
+        message = if is_binary(reason), do: reason, else: inspect(reason)
+        {:ok, _} = RecordingImports.fail(row, message)
         :ok
+    end
+  end
+
+  # Repair #26 (F-1) — Deepgram diarizes MP3/M4A imports to a single
+  # speaker but splits WAV cleanly, so non-WAV audio is decoded to
+  # WAV server-side before transcription. WAV uploads pass through
+  # `AudioDecode.to_wav/2` unchanged and never touch a decoder. The
+  # stored original file is NEVER replaced: only the in-memory
+  # binary handed to transcription (and its content type) changes.
+  # A decode failure fails the import honestly with the true reason.
+  defp decode(row, audio) do
+    case AudioDecode.to_wav(audio, row.content_type) do
+      {:ok, wav} ->
+        {:ok, wav, "audio/wav"}
+
+      {:error, reason} ->
+        Logger.warning(
+          "recording_import.audio_decode_failed import=#{row.id} reason=#{inspect(reason)}"
+        )
+
+        {:error, "audio_decode_failed: #{inspect(reason)}"}
     end
   end
 
@@ -75,11 +100,11 @@ defmodule OpalCore.Calls.Workers.RecordingImportWorker do
     end
   end
 
-  defp transcribe(row, audio) do
+  defp transcribe(row, audio, content_type) do
     attrs = %{
       call_id: row.call_id,
       recording_audio: audio,
-      content_type: row.content_type,
+      content_type: content_type,
       language: row.language,
       participant_ids: RecordingImport.participant_ids(row),
       conversation_id: row.conversation_id

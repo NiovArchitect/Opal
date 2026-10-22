@@ -179,7 +179,17 @@ defmodule OpalCore.Intelligence.DeepgramClient do
     |> Enum.chunk_by(fn w -> w["speaker"] || 0 end)
     |> Enum.map(fn chunk ->
       speaker = (List.first(chunk) || %{})["speaker"] || 0
-      text = chunk |> Enum.map(& &1["word"]) |> Enum.join(" ") |> String.trim()
+      # Repair #26 (F-3) — prefer the provider's punctuated form: the
+      # batch request already enables smart_format + punctuate, and the
+      # downstream place extractor keys off capitalization cues that the
+      # raw lowercase `word` field can never carry. Fall back to `word`
+      # for words (or providers) that omit `punctuated_word`.
+      text =
+        chunk
+        |> Enum.map(fn w -> w["punctuated_word"] || w["word"] end)
+        |> Enum.join(" ")
+        |> String.trim()
+
       start = (List.first(chunk) || %{})["start"] || 0.0
       finish = (List.last(chunk) || %{})["end"] || start
 

@@ -18,12 +18,37 @@ defmodule OpalCore.Calls.RecordingImportsTest do
   alias OpalCore.Repo
   alias OpalCore.SocialMemory.{Commitment, PersonMemory, PlanMemory}
 
-  @audio <<1, 2, 3, 4, 5, 6, 7, 8>>
+  # Repair #26 (F-1): the pipeline now decodes non-WAV audio
+  # server-side before Deepgram, and dummy bytes fail that decode
+  # honestly. The shared fixture is therefore a REAL tiny WAV built
+  # sample-by-sample here (valid RIFF/PCM), imported as audio/wav so
+  # it takes the WAV passthrough; MP3 coverage lives in its own
+  # ffmpeg-generated test below.
+  defp audio_bytes do
+    sample_rate = 8_000
+
+    data =
+      for i <- 0..799,
+          into: <<>>,
+          do:
+            <<round(1_000 * :math.sin(2 * :math.pi() * 440 * i / sample_rate))::little-signed-16>>
+
+    riff_size = 36 + byte_size(data)
+
+    "RIFF" <>
+      <<riff_size::little-32>> <>
+      "WAVEfmt " <>
+      <<16::little-32, 1::little-16, 1::little-16, sample_rate::little-32,
+        sample_rate * 2::little-32, 2::little-16,
+        16::little-16>> <>
+      "data" <> <<byte_size(data)::little-32>> <> data
+  end
 
   setup do
     prior_env = System.get_env("DEEPGRAM_API_KEY")
     prior_app_key = Application.get_env(:opal_core, :deepgram_api_key)
     prior_fun = Application.get_env(:opal_core, :deepgram_http_fun)
+    prior_decoder = Application.get_env(:opal_core, :audio_decoder_fun)
 
     on_exit(fn ->
       if prior_env,
@@ -32,6 +57,7 @@ defmodule OpalCore.Calls.RecordingImportsTest do
 
       restore_app(:deepgram_api_key, prior_app_key)
       restore_app(:deepgram_http_fun, prior_fun)
+      restore_app(:audio_decoder_fun, prior_decoder)
     end)
 
     %{
@@ -119,8 +145,8 @@ defmodule OpalCore.Calls.RecordingImportsTest do
         speaker_user_ids: [a.id, b.id],
         consent_attested: true,
         consent_basis: "Both participants consented to recording and import (test fixture).",
-        content_type: "audio/mpeg",
-        original_filename: "call.mp3"
+        content_type: "audio/wav",
+        original_filename: "call.wav"
       },
       overrides
     )
@@ -139,7 +165,9 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     stub_turns(@turns)
     Phoenix.PubSub.subscribe(OpalCore.PubSub, "call_imports:#{a.id}")
 
-    assert {:ok, row, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
+
     assert_receive {:call_import, "done", _}, 5_000
 
     row = Repo.get!(RecordingImport, row.id)
@@ -205,12 +233,16 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     assert {:error, :consent_attestation_required} =
              RecordingImports.import_recording(
                a.id,
-               @audio,
+               audio_bytes(),
                attrs(a, b, %{consent_attested: false})
              )
 
     assert {:error, :consent_basis_required} =
-             RecordingImports.import_recording(a.id, @audio, attrs(a, b, %{consent_basis: "  "}))
+             RecordingImports.import_recording(
+               a.id,
+               audio_bytes(),
+               attrs(a, b, %{consent_basis: "  "})
+             )
 
     assert Repo.aggregate(RecordingImport, :count) == 0
     assert Repo.aggregate(OpalCore.Calls.CallSession, :count) == 0
@@ -218,7 +250,7 @@ defmodule OpalCore.Calls.RecordingImportsTest do
 
   test "uploader must be a declared participant", %{a: a, b: b, c: c} do
     assert {:error, :uploader_not_participant} =
-             RecordingImports.import_recording(c.id, @audio, attrs(a, b))
+             RecordingImports.import_recording(c.id, audio_bytes(), attrs(a, b))
 
     assert Repo.aggregate(RecordingImport, :count) == 0
   end
@@ -227,7 +259,7 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     assert {:error, :unsupported_format} =
              RecordingImports.import_recording(
                a.id,
-               @audio,
+               audio_bytes(),
                attrs(a, b, %{content_type: "video/mp4"})
              )
 
@@ -247,10 +279,11 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     key_on()
     stub_turns(@turns)
 
-    assert {:ok, first, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, first, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
 
     assert {:ok, second, :duplicate} =
-             RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
 
     assert first.id == second.id
     assert Repo.aggregate(RecordingImport, :count) == 1
@@ -261,7 +294,9 @@ defmodule OpalCore.Calls.RecordingImportsTest do
        %{a: a, b: b} do
     key_off()
 
-    assert {:ok, row, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
+
     row = Repo.get!(RecordingImport, row.id)
     assert row.status == "failed"
     assert row.failure_reason =~ "transcription_not_configured"
@@ -273,7 +308,9 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     key_on()
     stub_raw(Jason.encode!(%{"err_code" => "BAD_REQUEST", "err_msg" => "corrupt audio"}), 400)
 
-    assert {:ok, row, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
+
     row = Repo.get!(RecordingImport, row.id)
     assert row.status == "failed"
     assert row.failure_reason =~ "transcription_failed"
@@ -293,7 +330,9 @@ defmodule OpalCore.Calls.RecordingImportsTest do
       })
     )
 
-    assert {:ok, row, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
+
     row = Repo.get!(RecordingImport, row.id)
     assert row.status == "done"
     assert row.segment_count == 0
@@ -311,7 +350,9 @@ defmodule OpalCore.Calls.RecordingImportsTest do
       {1, "Sounds good, see you there."}
     ])
 
-    assert {:ok, row, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
+
     row = Repo.get!(RecordingImport, row.id)
     assert row.status == "done"
     assert row.unattributed_segment_count == 1
@@ -336,13 +377,14 @@ defmodule OpalCore.Calls.RecordingImportsTest do
       end
     end)
 
-    assert {:ok, _first, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+    assert {:ok, _first, :created} =
+             RecordingImports.import_recording(a.id, audio_bytes(), attrs(a, b))
 
     assert {:ok, second, :created} =
              RecordingImports.import_recording(
                a.id,
                <<9, 9, 9, 9>>,
-               attrs(a, b, %{original_filename: "second.mp3"})
+               attrs(a, b, %{original_filename: "second.wav"})
              )
 
     assert second.status == "done"
@@ -358,6 +400,101 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     assert second_capsule
     refute String.contains?(second_capsule.payload["summary"], "shellfish")
     refute String.contains?(second_capsule.payload["summary"], "book the table")
+  end
+
+  # ----------------------------------------------------------------
+  # Repair #26 (F-1) — decode-to-WAV before Deepgram.
+  # ----------------------------------------------------------------
+
+  # A real tiny MP3, encoded by ffmpeg from this suite's real WAV
+  # fixture. Returns :no_ffmpeg only when ffmpeg is genuinely absent.
+  defp ffmpeg_mp3_bytes do
+    ffmpeg = System.get_env("OPAL_FFMPEG_PATH") || System.find_executable("ffmpeg")
+
+    if ffmpeg do
+      dir =
+        Path.join(System.tmp_dir!(), "r26-mp3-#{System.unique_integer([:positive])}")
+
+      File.mkdir_p!(dir)
+      wav_path = Path.join(dir, "tone.wav")
+      mp3_path = Path.join(dir, "tone.mp3")
+      File.write!(wav_path, audio_bytes())
+      {_, 0} = System.cmd(ffmpeg, ["-v", "error", "-i", wav_path, "-y", mp3_path])
+      bytes = File.read!(mp3_path)
+      File.rm_rf(dir)
+      {:ok, bytes}
+    else
+      :no_ffmpeg
+    end
+  end
+
+  test "real MP3 import is decoded to WAV before Deepgram and folds two speakers",
+       %{a: a, b: b} do
+    case ffmpeg_mp3_bytes() do
+      :no_ffmpeg ->
+        IO.puts("SKIP: ffmpeg absent on this machine; MP3 import test not run")
+
+      {:ok, mp3} ->
+        key_on()
+        {:ok, capture} = Agent.start_link(fn -> nil end)
+
+        body =
+          turns_body([
+            {0, "Let's do dinner this Saturday at 7 pm."},
+            {1, "Sounds good, see you there."}
+          ])
+
+        Application.put_env(:opal_core, :deepgram_http_fun, fn _u, _h, audio, ct ->
+          Agent.update(capture, fn _ -> {audio, ct} end)
+          {:ok, 200, body}
+        end)
+
+        assert {:ok, row, :created} =
+                 RecordingImports.import_recording(
+                   a.id,
+                   mp3,
+                   attrs(a, b, %{content_type: "audio/mpeg", original_filename: "call.mp3"})
+                 )
+
+        row = Repo.get!(RecordingImport, row.id)
+        assert row.status == "done"
+        # The stored import still describes the ORIGINAL upload.
+        assert row.content_type == "audio/mpeg"
+
+        # Deepgram received the DECODED WAV, not the MP3 bytes.
+        {sent_audio, sent_content_type} = Agent.get(capture, & &1)
+        assert sent_content_type == "audio/wav"
+        assert "RIFF" <> _ = sent_audio
+        refute sent_audio == mp3
+
+        # Two diarized speakers folded into two persisted segments.
+        segments = RecordingImports.segments_for(row)
+        assert length(segments) == 2
+        assert Repo.aggregate(TranscriptSegment, :count) == 2
+    end
+  end
+
+  test "decoder unavailable fails the import with audio_decode_failed — no fabricated transcript",
+       %{a: a, b: b} do
+    key_on()
+    stub_turns(@turns)
+
+    Application.put_env(:opal_core, :audio_decoder_fun, fn _audio, _ct ->
+      {:error, :decoder_unavailable}
+    end)
+
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(
+               a.id,
+               audio_bytes(),
+               attrs(a, b, %{content_type: "audio/mpeg", original_filename: "call.mp3"})
+             )
+
+    row = Repo.get!(RecordingImport, row.id)
+    assert row.status == "failed"
+    assert row.failure_reason =~ "audio_decode_failed"
+    assert row.failure_reason =~ "decoder_unavailable"
+    assert Repo.aggregate(TranscriptSegment, :count) == 0
   end
 
   defp fact_about?(account_id, person_id, needle) do

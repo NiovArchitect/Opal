@@ -1,7 +1,7 @@
 defmodule OpalCore.Intelligence.DeepgramEarsTest do
   use OpalCore.DataCase, async: false
 
-  alias OpalCore.Intelligence.{AudioIngestor, CallTranscription, DeepgramClient}
+  alias OpalCore.Intelligence.{AudioIngestor, CallTranscription, DeepgramClient, Extractor}
   alias OpalCore.Accounts.User
   alias OpalCore.Messaging.{Conversation, ConversationMember}
   alias OpalCore.Repo
@@ -101,6 +101,127 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
     refute DeepgramClient.configured?()
   end
 
+  test "diarized segments prefer punctuated_word so capitalization cues survive (R26 F-3)" do
+    # Provider-shaped words: raw `word` is lowercase; `punctuated_word`
+    # carries the smart_format capitalization/punctuation. One word
+    # omits `punctuated_word` entirely and must fall back to `word`.
+    words = [
+      %{
+        "word" => "let's",
+        "punctuated_word" => "Let's",
+        "speaker" => 0,
+        "start" => 0.0,
+        "end" => 0.25,
+        "confidence" => 0.98
+      },
+      %{
+        "word" => "do",
+        "punctuated_word" => "do",
+        "speaker" => 0,
+        "start" => 0.3,
+        "end" => 0.5,
+        "confidence" => 0.98
+      },
+      %{
+        "word" => "dinner",
+        "punctuated_word" => "dinner",
+        "speaker" => 0,
+        "start" => 0.55,
+        "end" => 0.9,
+        "confidence" => 0.98
+      },
+      %{
+        "word" => "at",
+        "punctuated_word" => "at",
+        "speaker" => 0,
+        "start" => 0.95,
+        "end" => 1.1,
+        "confidence" => 0.98
+      },
+      %{
+        "word" => "juniper",
+        "punctuated_word" => "Juniper",
+        "speaker" => 0,
+        "start" => 1.15,
+        "end" => 1.5,
+        "confidence" => 0.98
+      },
+      %{
+        "word" => "and",
+        "punctuated_word" => "and",
+        "speaker" => 0,
+        "start" => 1.55,
+        "end" => 1.7,
+        "confidence" => 0.98
+      },
+      %{
+        "word" => "ivy.",
+        "punctuated_word" => "Ivy.",
+        "speaker" => 0,
+        "start" => 1.75,
+        "end" => 2.0,
+        "confidence" => 0.98
+      },
+      %{"word" => "tonight", "speaker" => 0, "start" => 2.05, "end" => 2.4, "confidence" => 0.98},
+      %{
+        "word" => "sounds",
+        "punctuated_word" => "Sounds",
+        "speaker" => 1,
+        "start" => 2.5,
+        "end" => 2.8,
+        "confidence" => 0.97
+      },
+      %{
+        "word" => "good.",
+        "punctuated_word" => "good.",
+        "speaker" => 1,
+        "start" => 2.85,
+        "end" => 3.1,
+        "confidence" => 0.97
+      }
+    ]
+
+    body =
+      Jason.encode!(%{
+        "results" => %{
+          "channels" => [
+            %{
+              "alternatives" => [
+                %{
+                  "transcript" => "Let's do dinner at Juniper and Ivy. tonight Sounds good.",
+                  "confidence" => 0.98,
+                  "words" => words
+                }
+              ]
+            }
+          ]
+        }
+      })
+
+    Application.put_env(:opal_core, :deepgram_http_fun, fn _url, _headers, _audio, _ct ->
+      {:ok, 200, body}
+    end)
+
+    assert {:ok, result} = DeepgramClient.transcribe_batch(<<1, 2, 3, 4>>)
+    assert length(result.segments) == 2
+
+    first = Enum.at(result.segments, 0)
+    assert first["speaker"] == 0
+    assert first["text"] =~ "Let's"
+    assert first["text"] =~ "Juniper"
+    assert first["text"] =~ "Ivy."
+    # the word without punctuated_word fell back to the raw word
+    assert first["text"] =~ "tonight"
+
+    second = Enum.at(result.segments, 1)
+    assert second["text"] == "Sounds good."
+
+    # The whole point of the fix: the extractor's capitalization cues
+    # can now fire on segment text.
+    {_intent, entities, _vibe} = Extractor.classify_message(first["text"])
+    assert entities["place"] == "Juniper and Ivy"
+  end
+
   test "stream_interface documents the live-call seam" do
     seam = DeepgramClient.stream_interface()
     assert seam.status == :not_wired
@@ -111,9 +232,7 @@ defmodule OpalCore.Intelligence.DeepgramEarsTest do
     stub_provider("Yes let's lock it in", 0.95)
 
     assert {:ok, result} =
-             AudioIngestor.ingest_voice_message(<<9, 9, 9>>, conv.id, user.id,
-               duration_ms: 1200
-             )
+             AudioIngestor.ingest_voice_message(<<9, 9, 9>>, conv.id, user.id, duration_ms: 1200)
 
     assert result.stub == false
     assert result.transcription_uncertain == false

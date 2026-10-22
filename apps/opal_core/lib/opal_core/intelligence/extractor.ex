@@ -60,7 +60,10 @@ defmodule OpalCore.Intelligence.Extractor do
   def extract(%Event{type: "rsvp.changed"} = event) do
     t0 = System.monotonic_time(:millisecond)
     new_state = get_in(event.payload, ["new_state"])
-    intent = "reaction." <> if(new_state in ["in", "interested"], do: "positive", else: "negative")
+
+    intent =
+      "reaction." <> if(new_state in ["in", "interested"], do: "positive", else: "negative")
+
     entities = %{"activity_id" => event.payload["activity_id"], "state" => new_state}
     vibe = vibe_from_rsvp(event.payload)
     {:ok, extraction} = persist(event, intent, entities, vibe, t0, "rules", %{})
@@ -70,7 +73,16 @@ defmodule OpalCore.Intelligence.Extractor do
 
   def extract(%Event{} = event) do
     t0 = System.monotonic_time(:millisecond)
-    persist(event, "chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}, t0, "rules", %{})
+
+    persist(
+      event,
+      "chitchat",
+      %{},
+      %{"sentiment" => "neutral", "energy" => "medium"},
+      t0,
+      "rules",
+      %{}
+    )
   end
 
   def extract(_), do: {:error, :invalid_event}
@@ -85,7 +97,9 @@ defmodule OpalCore.Intelligence.Extractor do
     case LlmExtract.extract_with_llm(body || "", context) do
       {:ok, %{intent: intent, entities: entities, vibe: vibe, confidence: conf} = ok} ->
         Logger.info("intelligence.extract_path=llm confidence=#{conf}")
-        {intent, entities, vibe, "llm", %{"llm_confidence" => conf, "usage" => ok[:usage] || ok["usage"]}}
+
+        {intent, entities, vibe, "llm",
+         %{"llm_confidence" => conf, "usage" => ok[:usage] || ok["usage"]}}
 
       {:fallback, reason} ->
         {intent, entities, vibe} = classify_message(body || "", context)
@@ -147,7 +161,8 @@ defmodule OpalCore.Intelligence.Extractor do
     {intent, entities, vibe}
   end
 
-  def classify_message(_, _), do: {"chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}}
+  def classify_message(_, _),
+    do: {"chitchat", %{}, %{"sentiment" => "neutral", "energy" => "medium"}}
 
   defp classify_intent(text, lower) do
     cond do
@@ -165,11 +180,17 @@ defmodule OpalCore.Intelligence.Extractor do
 
       # Retracted reminder mid-utterance — never create
       Regex.match?(@reminder_retract, lower) ->
-        {"clarify", %{"needs_clarification" => true, "reason" => "reminder_retracted", "should_commit" => false}}
+        {"clarify",
+         %{
+           "needs_clarification" => true,
+           "reason" => "reminder_retracted",
+           "should_commit" => false
+         }}
 
       # Negation of commit verbs — never book/remind/plan from this turn
       Regex.match?(@negation_commit, lower) ->
-        {"clarify", %{"needs_clarification" => true, "reason" => "negation", "should_commit" => false}}
+        {"clarify",
+         %{"needs_clarification" => true, "reason" => "negation", "should_commit" => false}}
 
       # Hypothetical / what-if — question, not commitment
       Regex.match?(@hypothetical, lower) ->
@@ -177,7 +198,8 @@ defmodule OpalCore.Intelligence.Extractor do
 
       # Conditional book ("if Maya free then book") — clarify, don't book
       Regex.match?(@conditional_book, lower) ->
-        {"clarify", %{"needs_clarification" => true, "reason" => "conditional", "should_commit" => false}}
+        {"clarify",
+         %{"needs_clarification" => true, "reason" => "conditional", "should_commit" => false}}
 
       Regex.match?(@sarcasm_commit, lower) ->
         {"chitchat", %{"sarcasm" => true, "should_commit" => false}}
@@ -252,8 +274,12 @@ defmodule OpalCore.Intelligence.Extractor do
     ents = entities || %{}
 
     cond do
-      ents["should_commit"] == false -> false
-      ents[:should_commit] == false -> false
+      ents["should_commit"] == false ->
+        false
+
+      ents[:should_commit] == false ->
+        false
+
       intent in ["clarify", "chitchat", "plan.question", "info.share", "plan.cancel"] ->
         false
 
@@ -435,7 +461,7 @@ defmodule OpalCore.Intelligence.Extractor do
 
       # Bare "book a …" without a typed noun — ask, don't guess.
       Regex.match?(~r/\b(book|reserve)\b/i, lower) and
-          not Regex.match?(@non_booking_book, lower) and
+        not Regex.match?(@non_booking_book, lower) and
           Regex.match?(~r/\b(book|reserve)\s+(a|an|the|my|our)\b/i, lower) ->
         {"clarify", %{"booking_ambiguous" => true}}
 
@@ -494,11 +520,18 @@ defmodule OpalCore.Intelligence.Extractor do
     }
   end
 
-  defp jsonable(v) when is_map(v) or is_list(v) or is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v),
-    do: v
+  defp jsonable(v)
+       when is_map(v) or is_list(v) or is_binary(v) or is_number(v) or is_boolean(v) or is_nil(v),
+       do: v
 
   defp jsonable(v), do: inspect(v)
 
+  # Repair #26 (F-3) — the clock part and the day part are computed
+  # INDEPENDENTLY and combined. The old first-match cond returned the
+  # clock alone for "this friday at 7 pm" (%{"time" => "19:00"}, no day),
+  # so plan extraction lost the day whenever a concrete time was present.
+  # The "after X" and "in N hours/minutes" branches keep their precedence
+  # and shapes untouched.
   defp extract_time(lower) do
     cond do
       m = Regex.run(~r/after\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/, lower) ->
@@ -508,44 +541,63 @@ defmodule OpalCore.Intelligence.Extractor do
       m = Regex.run(~r/\bin\s+(\d+)\s+(hours?|minutes?)\b/, lower) ->
         %{"relative" => "in #{Enum.at(m, 1)} #{Enum.at(m, 2)}", "fuzzy" => true}
 
+      true ->
+        combine_clock_and_day(clock_part(lower), day_part(lower))
+    end
+  end
+
+  defp clock_part(lower) do
+    cond do
       m = Regex.run(~r/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/, lower) ->
         hour = parse_hour(Enum.at(m, 1), Enum.at(m, 3))
         min = Enum.at(m, 2)
-        %{"time" => "#{hour}:#{min}", "fuzzy" => false}
+        %{"time" => "#{hour}:#{min}"}
 
       m = Regex.run(~r/\b(\d{1,2})\s*(am|pm)\b/, lower) ->
         hour = parse_hour(Enum.at(m, 1), Enum.at(m, 2))
-        %{"time" => "#{hour}:00", "fuzzy" => false}
-
-      String.contains?(lower, "tomorrow") ->
-        %{"day" => "tomorrow", "fuzzy" => true}
-
-      String.contains?(lower, "saturday") ->
-        %{"day" => "saturday", "fuzzy" => true}
-
-      String.contains?(lower, "sunday") ->
-        %{"day" => "sunday", "fuzzy" => true}
-
-      String.contains?(lower, "friday") ->
-        %{"day" => "friday", "fuzzy" => true}
-
-      String.contains?(lower, "thursday") ->
-        %{"day" => "thursday", "fuzzy" => true}
-
-      String.contains?(lower, "wednesday") ->
-        %{"day" => "wednesday", "fuzzy" => true}
-
-      String.contains?(lower, "tuesday") ->
-        %{"day" => "tuesday", "fuzzy" => true}
-
-      String.contains?(lower, "monday") ->
-        %{"day" => "monday", "fuzzy" => true}
-
-      String.contains?(lower, "tonight") ->
-        %{"day" => "today", "part" => "evening", "fuzzy" => true}
+        %{"time" => "#{hour}:00"}
 
       true ->
-        nil
+        %{}
+    end
+  end
+
+  @day_words [
+    {"tomorrow", %{"day" => "tomorrow"}},
+    {"monday", %{"day" => "monday"}},
+    {"tuesday", %{"day" => "tuesday"}},
+    {"wednesday", %{"day" => "wednesday"}},
+    {"thursday", %{"day" => "thursday"}},
+    {"friday", %{"day" => "friday"}},
+    {"saturday", %{"day" => "saturday"}},
+    {"sunday", %{"day" => "sunday"}},
+    {"tonight", %{"day" => "today", "part" => "evening"}}
+  ]
+
+  # The first day word BY POSITION in the utterance wins, so
+  # "saturday, or sunday if it rains" keys saturday.
+  defp day_part(lower) do
+    @day_words
+    |> Enum.map(fn {word, entity} ->
+      case Regex.run(~r/\b#{word}\b/, lower, return: :index) do
+        [{idx, _len}] -> {idx, entity}
+        _ -> nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort_by(fn {idx, _entity} -> idx end)
+    |> case do
+      [{_idx, entity} | _] -> entity
+      [] -> %{}
+    end
+  end
+
+  defp combine_clock_and_day(clock, day) do
+    cond do
+      clock == %{} and day == %{} -> nil
+      day == %{} -> Map.put(clock, "fuzzy", false)
+      clock == %{} -> Map.put(day, "fuzzy", true)
+      true -> clock |> Map.merge(day) |> Map.put("fuzzy", false)
     end
   end
 
@@ -573,12 +625,29 @@ defmodule OpalCore.Intelligence.Extractor do
   # `OpalCore.Places.Gateway` (Geoapify) via Center ProviderAction
   # exact-entity jobs and WorldEnrichment — never to this synchronous
   # classifier, and never to a hardcoded catalog.
-  @place_lead_re ~r/^([A-Z][\w&'\-]*(?:\s+[A-Z][\w&'\-]*)*)\s+(?i:saturday|sunday|monday|tuesday|wednesday|thursday|friday|tonight|tomorrow)\b/
-  @place_cue_re ~r/\b(?:at|to|near|inside|for|book|reserve)\s+([A-Z][\w&'\-]*(?:\s+[A-Z][\w&'\-]*)*)/
+  # A capitalized venue run may join two capitalized parts with
+  # "and"/"&" ("Juniper and Ivy") — the join only counts when a
+  # capitalized word follows it, so ordinary prose never joins.
+  @place_lead_re ~r/^([A-Z][\w&'\-]*(?:\s+(?:(?:and|&)\s+)?[A-Z][\w&'\-]*)*)\s+(?i:saturday|sunday|monday|tuesday|wednesday|thursday|friday|tonight|tomorrow)\b/
+  # Repair #26 (F-3) — an optional "the" may sit between the cue word and
+  # the venue ("meet at the Observatory").
+  @place_cue_re ~r/\b(?:at|to|near|inside|for|book|reserve)\s+(?:the\s+)?([A-Z][\w&'\-]*(?:\s+(?:(?:and|&)\s+)?[A-Z][\w&'\-]*)*)/
+  # Repair #26 (F-3) — two conservative cues for shapes the lead/cue
+  # patterns miss: a "do|try|pick <Venue>" proposal ("Let's do Cowles
+  # Mountain instead" — the lowercase "instead" can never join the
+  # capitalized run) and a venue named before its clock time
+  # ("Cowles Mountain at 9 am").
+  @place_do_re ~r/\b(?:do|try|pick)\s+([A-Z][\w&'\-]*(?:\s+(?:(?:and|&)\s+)?[A-Z][\w&'\-]*)*)/
+  @place_before_time_re ~r/([A-Z][\w&'\-]*(?:\s+(?:(?:and|&)\s+)?[A-Z][\w&'\-]*)*)\s+at\s+\d/
+
+  # Words extract_activity/1 treats as the plan's activity can surface
+  # capitalized at a sentence start ("Dinner at 8 pm instead") — they
+  # name the activity, never the venue, so they are not place candidates.
+  @activity_words ~w(dinner lunch brunch market hike coffee)
 
   defp extract_place(text, person) do
     candidates =
-      [@place_lead_re, @place_cue_re]
+      [@place_lead_re, @place_cue_re, @place_do_re, @place_before_time_re]
       |> Enum.map(fn re ->
         case Regex.run(re, text) do
           [_, name] -> clean_place_candidate(name)
@@ -586,6 +655,7 @@ defmodule OpalCore.Intelligence.Extractor do
         end
       end)
       |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.reject(&(String.downcase(&1) in @activity_words))
 
     # A person is never a place: skip a candidate that is the extracted person.
     Enum.find(candidates, fn name ->

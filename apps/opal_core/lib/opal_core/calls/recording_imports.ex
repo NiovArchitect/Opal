@@ -575,7 +575,8 @@ defmodule OpalCore.Calls.RecordingImports do
           sender_id: segment_row.speaker_user_id,
           body: segment_row.text,
           timestamp: DateTime.utc_now(),
-          participant_ids: participants
+          participant_ids: participants,
+          language: row.language
         })
     end)
 

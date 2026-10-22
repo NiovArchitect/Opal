@@ -115,8 +115,54 @@ defmodule OpalCoreWeb.CallRecordingImportControllerTest do
     path =
       Path.join(System.tmp_dir!(), "r25-upload-#{System.unique_integer([:positive])}")
 
-    File.write!(path, <<1, 2, 3, 4, 5>>)
+    File.write!(path, tiny_mp3_bytes())
     %Plug.Upload{path: path, filename: filename, content_type: content_type}
+  end
+
+  # Repair #26 (F-1): the pipeline decodes non-WAV audio server-side
+  # before Deepgram and rejects undecodable bytes honestly, so this
+  # fixture must be a REAL tiny MP3 (ffmpeg-built from a synthesized
+  # WAV), not magic bytes. Same pattern as recording_imports_test.exs.
+  defp tiny_mp3_bytes do
+    ffmpeg = System.get_env("OPAL_FFMPEG_PATH") || System.find_executable("ffmpeg")
+
+    case ffmpeg do
+      nil ->
+        <<1, 2, 3, 4, 5>>
+
+      _ ->
+        dir =
+          Path.join(System.tmp_dir!(), "r26-upload-#{System.unique_integer([:positive])}")
+
+        File.mkdir_p!(dir)
+        wav_path = Path.join(dir, "tone.wav")
+        mp3_path = Path.join(dir, "tone.mp3")
+        File.write!(wav_path, tiny_wav_bytes())
+        {_, 0} = System.cmd(ffmpeg, ["-v", "error", "-i", wav_path, "-y", mp3_path])
+        bytes = File.read!(mp3_path)
+        File.rm_rf(dir)
+        bytes
+    end
+  end
+
+  defp tiny_wav_bytes do
+    sample_rate = 8_000
+
+    data =
+      for i <- 0..799,
+          into: <<>>,
+          do:
+            <<round(1_000 * :math.sin(2 * :math.pi() * 440 * i / sample_rate))::little-signed-16>>
+
+    riff_size = 36 + byte_size(data)
+
+    "RIFF" <>
+      <<riff_size::little-32>> <>
+      "WAVEfmt " <>
+      <<16::little-32, 1::little-16, 1::little-16, sample_rate::little-32,
+        sample_rate * 2::little-32, 2::little-16,
+        16::little-16>> <>
+      "data" <> <<byte_size(data)::little-32>> <> data
   end
 
   test "create → 201 with truthful done status; read-back is participant-gated", %{
