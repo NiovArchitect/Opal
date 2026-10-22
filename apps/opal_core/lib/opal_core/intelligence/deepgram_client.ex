@@ -64,7 +64,8 @@ defmodule OpalCore.Intelligence.DeepgramClient do
   def stream_interface do
     %{
       status: :not_wired,
-      note: "Use Calls.DeepgramGrant + FE wss for live Assist; batch path owns post-call/voice notes",
+      note:
+        "Use Calls.DeepgramGrant + FE wss for live Assist; batch path owns post-call/voice notes",
       url_template: "wss://api.deepgram.com/v1/listen?model=nova-2&diarize=true&language=en-US"
     }
   end
@@ -100,7 +101,10 @@ defmodule OpalCore.Intelligence.DeepgramClient do
         {:ok, normalize_response(parsed, stub: false, language: language)}
 
       {:ok, status, response} ->
-        Logger.warning("deepgram.batch_failed status=#{status} body=#{String.slice(response, 0, 200)}")
+        Logger.warning(
+          "deepgram.batch_failed status=#{status} body=#{String.slice(response, 0, 200)}"
+        )
+
         {:error, {:http_status, status}}
 
       {:error, reason} ->

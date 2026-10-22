@@ -71,7 +71,10 @@ anywhere.
 `generate.exs` (this directory) synthesizes every line with the
 app's ElevenLabs client from the Mac (where the key lives), and
 `assemble.py` builds the masters: per-line MP3 → WAV decode
-(afconvert, 16 kHz mono), turn-concatenation with 350 ms gaps,
-then afconvert encodes for the mp3/m4a members of the set.
-`generation-receipt.json` records voices used, per-file durations,
-and byte sizes.
+(afconvert, 16 kHz mono), turn-concatenation with 350 ms gaps.
+The m4a member is afconvert-encoded from its master; the mp3
+member is a concatenation of the original ElevenLabs segment MP3s
+(one encoder, one bitrate, a single valid stream) because
+CoreAudio on macOS cannot encode MP3 (verified on the generation
+machine — decode only). `generation-receipt.json` records voices
+used, per-file durations, and byte sizes.

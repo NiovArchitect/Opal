@@ -90,7 +90,17 @@ defmodule OpalCore.Calls.RecordingImports do
          {:ok, call} <- create_call_record(uploader_id, speakers, conversation_id, now),
          :ok <- record_consent(call.id, speakers, now),
          {:ok, row} <-
-           insert_import(uploader_id, a, speakers, content_type, sha, stored, call, conversation_id, now) do
+           insert_import(
+             uploader_id,
+             a,
+             speakers,
+             content_type,
+             sha,
+             stored,
+             call,
+             conversation_id,
+             now
+           ) do
       case enqueue(row) do
         :ok ->
           broadcast(row, "received")
@@ -100,7 +110,10 @@ defmodule OpalCore.Calls.RecordingImports do
           {:ok, Repo.get!(RecordingImport, row.id), :created}
 
         {:error, reason} ->
-          Logger.warning("recording_import.enqueue_failed import=#{row.id} reason=#{inspect(reason)}")
+          Logger.warning(
+            "recording_import.enqueue_failed import=#{row.id} reason=#{inspect(reason)}"
+          )
+
           {:ok, failed} = fail(row, "enqueue_failed")
           {:ok, failed, :created}
       end
@@ -109,7 +122,17 @@ defmodule OpalCore.Calls.RecordingImports do
     end
   end
 
-  defp insert_import(uploader_id, a, speakers, content_type, sha, stored, call, conversation_id, now) do
+  defp insert_import(
+         uploader_id,
+         a,
+         speakers,
+         content_type,
+         sha,
+         stored,
+         call,
+         conversation_id,
+         now
+       ) do
     speaker_map =
       speakers
       |> Enum.with_index()
@@ -475,7 +498,10 @@ defmodule OpalCore.Calls.RecordingImports do
 
     provider_segment_id = "import-#{row.id}-#{position}"
 
-    case Repo.get_by(TranscriptSegment, call_id: call.id, provider_segment_id: provider_segment_id) do
+    case Repo.get_by(TranscriptSegment,
+           call_id: call.id,
+           provider_segment_id: provider_segment_id
+         ) do
       %TranscriptSegment{} = existing ->
         {:ok, existing, :existing}
 
@@ -564,7 +590,15 @@ defmodule OpalCore.Calls.RecordingImports do
       other_id = Enum.find(participants, &(&1 != owner_id))
 
       summary =
-        capsule_summary(owner_id, other_id, call, segment_ids, persisted, confidence, row.inserted_at)
+        capsule_summary(
+          owner_id,
+          other_id,
+          call,
+          segment_ids,
+          persisted,
+          confidence,
+          row.inserted_at
+        )
 
       case CapsuleRead.remember(owner_id, %{
              "summary" => summary,

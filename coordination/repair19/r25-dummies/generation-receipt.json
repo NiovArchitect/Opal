@@ -1,0 +1,73 @@
+{
+  "voices": {
+    "0": {
+      "engine": "elevenlabs",
+      "id": "pNInz6obpgDQGcFmaJgB",
+      "name": "Adam"
+    },
+    "1": {
+      "engine": "elevenlabs",
+      "id": "XrExE9yKIg1WjnnlVkGX",
+      "name": "Matilda"
+    },
+    "2": {
+      "engine": "elevenlabs",
+      "id": "VR6AewLTigWG4xSOukaG",
+      "name": "Arnold"
+    }
+  },
+  "files": {
+    "call1-dinner-plan.wav": {
+      "bytes": 1264772,
+      "duration_s_wav_master": 39.52,
+      "format": "wav",
+      "duration_s": 39.52
+    },
+    "call2-hike-plan.mp3": {
+      "bytes": 385570,
+      "duration_s_wav_master": null,
+      "format": "mp3",
+      "duration_s": 25.7,
+      "duration_note": "from the WAV master; afinfo under-reports concatenated MP3s (reads the first segment header)"
+    },
+    "call3-recital.m4a": {
+      "bytes": 63020,
+      "duration_s_wav_master": null,
+      "format": "m4a",
+      "duration_s": 19.01
+    },
+    "adv-spanish.wav": {
+      "bytes": 406796,
+      "duration_s_wav_master": 12.71,
+      "format": "wav",
+      "duration_s": 12.71
+    },
+    "adv-three-speakers.wav": {
+      "bytes": 301974,
+      "duration_s_wav_master": 9.44,
+      "format": "wav",
+      "duration_s": 9.44
+    },
+    "adv-overlap.wav": {
+      "bytes": 302808,
+      "duration_s_wav_master": 9.46,
+      "format": "wav",
+      "duration_s": 9.46
+    },
+    "adv-long.wav": {
+      "bytes": 4291760,
+      "duration_s_wav_master": 134.12,
+      "format": "wav",
+      "duration_s": 134.12
+    },
+    "adv-silence.wav": {
+      "bytes": 96044,
+      "duration_s": 3.0,
+      "format": "wav"
+    },
+    "adv-corrupt.mp3": {
+      "bytes": 512,
+      "format": "mp3 (invalid content)"
+    }
+  }
+}

@@ -53,7 +53,8 @@ defmodule OpalCore.Intelligence.CallTranscription do
 
   defp do_transcribe(call_id, audio, attrs) do
     opts = [
-      content_type: Map.get(attrs, :content_type) || Map.get(attrs, "content_type") || "audio/wav",
+      content_type:
+        Map.get(attrs, :content_type) || Map.get(attrs, "content_type") || "audio/wav",
       language: Map.get(attrs, :language) || Map.get(attrs, "language") || "en-US"
     ]
 
@@ -79,8 +80,12 @@ defmodule OpalCore.Intelligence.CallTranscription do
 
   defp consented?(call_id, attrs) do
     case Map.get(attrs, :consent) || Map.get(attrs, "consent") do
-      true -> true
-      false -> false
+      true ->
+        true
+
+      false ->
+        false
+
       _ ->
         from(c in AssistConsent,
           where: c.call_id == ^call_id and c.allowed == true and is_nil(c.revoked_at),

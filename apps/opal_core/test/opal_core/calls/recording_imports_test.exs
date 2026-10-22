@@ -156,7 +156,13 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     segments = RecordingImports.segments_for(row)
     assert length(segments) == 4
     assert Enum.map(segments, & &1["speaker_user_id"]) == [a.id, b.id, a.id, b.id]
-    assert Enum.map(segments, & &1["speaker_name"]) == ["Alex Rivera", "Maya Chen", "Alex Rivera", "Maya Chen"]
+
+    assert Enum.map(segments, & &1["speaker_name"]) == [
+             "Alex Rivera",
+             "Maya Chen",
+             "Alex Rivera",
+             "Maya Chen"
+           ]
 
     # The allergy B stated is a fact ABOUT B in both stores — and is
     # not attributed to A anywhere.
@@ -197,7 +203,11 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     stub_turns(@turns)
 
     assert {:error, :consent_attestation_required} =
-             RecordingImports.import_recording(a.id, @audio, attrs(a, b, %{consent_attested: false}))
+             RecordingImports.import_recording(
+               a.id,
+               @audio,
+               attrs(a, b, %{consent_attested: false})
+             )
 
     assert {:error, :consent_basis_required} =
              RecordingImports.import_recording(a.id, @audio, attrs(a, b, %{consent_basis: "  "}))
@@ -215,9 +225,22 @@ defmodule OpalCore.Calls.RecordingImportsTest do
 
   test "unsupported format and empty audio are refused honestly", %{a: a, b: b} do
     assert {:error, :unsupported_format} =
-             RecordingImports.import_recording(a.id, @audio, attrs(a, b, %{content_type: "video/mp4"}))
+             RecordingImports.import_recording(
+               a.id,
+               @audio,
+               attrs(a, b, %{content_type: "video/mp4"})
+             )
 
     assert {:error, :empty_audio} = RecordingImports.import_recording(a.id, "", attrs(a, b))
+  end
+
+  test "a recording over the door's size cap is refused before storage", %{a: a, b: b} do
+    oversize = :binary.copy(<<7>>, 100 * 1024 * 1024 + 1)
+
+    assert {:error, :recording_too_large} =
+             RecordingImports.import_recording(a.id, oversize, attrs(a, b))
+
+    assert Repo.aggregate(RecordingImport, :count) == 0
   end
 
   test "duplicate import of the same bytes is idempotent", %{a: a, b: b} do
@@ -225,7 +248,10 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     stub_turns(@turns)
 
     assert {:ok, first, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
-    assert {:ok, second, :duplicate} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+
+    assert {:ok, second, :duplicate} =
+             RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+
     assert first.id == second.id
     assert Repo.aggregate(RecordingImport, :count) == 1
     assert Repo.aggregate(TranscriptSegment, :count) == 4
@@ -260,7 +286,9 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     stub_raw(
       Jason.encode!(%{
         "results" => %{
-          "channels" => [%{"alternatives" => [%{"transcript" => "", "confidence" => 0.0, "words" => []}]}]
+          "channels" => [
+            %{"alternatives" => [%{"transcript" => "", "confidence" => 0.0, "words" => []}]}
+          ]
         }
       })
     )
@@ -300,15 +328,22 @@ defmodule OpalCore.Calls.RecordingImportsTest do
 
     Application.put_env(:opal_core, :deepgram_http_fun, fn _u, _h, _a2, _ct ->
       case Agent.get_and_update(counter, fn n -> {n, n + 1} end) do
-        0 -> {:ok, 200, turns_body(@turns)}
-        _ -> {:ok, 200, turns_body([{0, "Thanks for the update, talk soon."}, {1, "Bye for now."}])}
+        0 ->
+          {:ok, 200, turns_body(@turns)}
+
+        _ ->
+          {:ok, 200, turns_body([{0, "Thanks for the update, talk soon."}, {1, "Bye for now."}])}
       end
     end)
 
     assert {:ok, _first, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
 
     assert {:ok, second, :created} =
-             RecordingImports.import_recording(a.id, <<9, 9, 9, 9>>, attrs(a, b, %{original_filename: "second.mp3"}))
+             RecordingImports.import_recording(
+               a.id,
+               <<9, 9, 9, 9>>,
+               attrs(a, b, %{original_filename: "second.mp3"})
+             )
 
     assert second.status == "done"
 

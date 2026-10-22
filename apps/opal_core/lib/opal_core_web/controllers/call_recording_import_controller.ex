@@ -95,20 +95,36 @@ defmodule OpalCoreWeb.CallRecordingImportController do
   defp create_error(conn, reason) do
     case reason do
       :consent_attestation_required ->
-        error(conn, 422, "consent_attestation_required",
-          "Import refused: consent attestation is required")
+        error(
+          conn,
+          422,
+          "consent_attestation_required",
+          "Import refused: consent attestation is required"
+        )
 
       :consent_basis_required ->
-        error(conn, 422, "consent_basis_required",
-          "Import refused: state the consent basis for this recording")
+        error(
+          conn,
+          422,
+          "consent_basis_required",
+          "Import refused: state the consent basis for this recording"
+        )
 
       :uploader_not_participant ->
-        error(conn, 403, "uploader_not_participant",
-          "You can only import recordings of calls you participated in")
+        error(
+          conn,
+          403,
+          "uploader_not_participant",
+          "You can only import recordings of calls you participated in"
+        )
 
       :exactly_two_participants_required ->
-        error(conn, 422, "exactly_two_participants_required",
-          "Declare exactly two participants, in speaker order")
+        error(
+          conn,
+          422,
+          "exactly_two_participants_required",
+          "Declare exactly two participants, in speaker order"
+        )
 
       :participants_must_differ ->
         error(conn, 422, "participants_must_differ", "The two participants must differ")
@@ -117,8 +133,12 @@ defmodule OpalCoreWeb.CallRecordingImportController do
         error(conn, 422, "unknown_participant", "A declared participant is not an account")
 
       :unsupported_format ->
-        error(conn, 415, "unsupported_format",
-          "Recording format not supported by this door (wav, mp3, m4a, webm, ogg)")
+        error(
+          conn,
+          415,
+          "unsupported_format",
+          "Recording format not supported by this door (wav, mp3, m4a, webm, ogg)"
+        )
 
       :empty_audio ->
         error(conn, 422, "empty_audio", "The recording is empty")
@@ -133,7 +153,12 @@ defmodule OpalCoreWeb.CallRecordingImportController do
         error(conn, 422, "unreadable_upload", "The uploaded file could not be read")
 
       :invalid_speakers ->
-        error(conn, 422, "invalid_speakers", "speaker_user_ids must be a JSON array of two user ids")
+        error(
+          conn,
+          422,
+          "invalid_speakers",
+          "speaker_user_ids must be a JSON array of two user ids"
+        )
 
       other ->
         error(conn, 422, "import_failed", inspect(other))
