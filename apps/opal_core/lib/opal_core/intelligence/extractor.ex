@@ -645,6 +645,11 @@ defmodule OpalCore.Intelligence.Extractor do
   # name the activity, never the venue, so they are not place candidates.
   @activity_words ~w(dinner lunch brunch market hike coffee)
 
+  # A lone sentence-initial function word the lead cue can capture
+  # ("For Sunday, let's plan a hike at Torrey Pines" -> "For") is not
+  # a place either (found live by R26's call2 proof: place "For").
+  @function_words ~w(for and but so then now if when while)
+
   defp extract_place(text, person) do
     candidates =
       [@place_lead_re, @place_cue_re, @place_do_re, @place_before_time_re]
@@ -656,6 +661,7 @@ defmodule OpalCore.Intelligence.Extractor do
       end)
       |> Enum.reject(&(&1 in [nil, ""]))
       |> Enum.reject(&(String.downcase(&1) in @activity_words))
+      |> Enum.reject(&(String.downcase(&1) in @function_words))
 
     # A person is never a place: skip a candidate that is the extracted person.
     Enum.find(candidates, fn name ->

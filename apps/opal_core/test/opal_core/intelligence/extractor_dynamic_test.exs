@@ -212,5 +212,12 @@ defmodule OpalCore.Intelligence.ExtractorDynamicTest do
       {_i, entities, _v} = Extractor.classify_message("let's meet at the Observatory saturday")
       assert entities["place"] == "Observatory"
     end
+
+    test "a sentence-initial function word is never the place (R26 live: place \"For\")" do
+      {_i, entities, _v} =
+        Extractor.classify_message("For Sunday, let's plan a hike at Torrey Pines at 9 am")
+
+      assert entities["place"] == "Torrey Pines"
+    end
   end
 end
