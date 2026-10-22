@@ -20,6 +20,13 @@
  *  - validation enriches the SUBJECT's wallet server-side
  *    through the existing capsule path; this card only reads
  *    back the response (capsule_written) and says so plainly;
+ *  - Repair #22 (WS-7) - "Not quite" is not a dead end: it opens
+ *    an EDIT state in place, the claimed answer editable, and
+ *    submitting the correction fixes the record server-side
+ *    with provenance (the original claim is kept; who corrected,
+ *    when, and to what rides the record). A corrected answer is
+ *    scored as CORRECTED - never as if it had been right - and
+ *    the guesser sees the correction on their own card;
  *  - the score is the inert ledger the server derives - no
  *    rewards, no discounts, nothing reads it but this line;
  *  - the game's natural exit is alignment: once knowing is
@@ -28,6 +35,7 @@
  */
 import React, { useMemo, useState } from "react";
 import {
+  correctTriviaGuess,
   createMemoryCapsule,
   recordTriviaGuess,
   validateTriviaGuess,
@@ -96,6 +104,14 @@ export function TriviaCard({
   const [correcting, setCorrecting] = useState(false);
   const [correction, setCorrection] = useState("");
   const [factDone, setFactDone] = useState(false);
+  // Repair #22 (WS-7) - the "Not quite" edit state: which pending
+  // guess is being corrected, and the editable draft. The draft
+  // opens as the claimed answer itself, so the subject edits the
+  // claim rather than retyping from nothing. Cancel clears both
+  // and the card returns to its unmodified validation state -
+  // no write of any kind has happened at that point.
+  const [editingGuessId, setEditingGuessId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
 
   const pendingMine = trivia.mine.filter((g) => g.status === "pending");
   const pendingAboutMeAll = trivia.aboutMe.filter((g) => g.status === "pending");
@@ -201,6 +217,34 @@ export function TriviaCard({
       onShared();
     } catch {
       setError("That answer did not save. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Repair #22 (WS-7) - submit the correction: the record is
+  // fixed server-side with provenance, the corrected fact is
+  // what enters the subject's wallet, and the guesser reads the
+  // correction back from the same record on their own card.
+  const submitCorrection = async (guessId: string) => {
+    const value = editDraft.trim();
+    if (!value || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await correctTriviaGuess(guessId, value, bearer);
+      setEditingGuessId(null);
+      setEditDraft("");
+      if (res.guess.capsule_written) {
+        setValidatedNote(
+          "Corrected and saved to your memory. It counts as corrected - not as a right answer.",
+        );
+      } else {
+        setValidatedNote("Corrected. It counts as corrected - not as a right answer.");
+      }
+      onShared();
+    } catch {
+      setError("That correction did not save. It is still here - try again.");
     } finally {
       setBusy(false);
     }
@@ -336,26 +380,89 @@ export function TriviaCard({
                 {g.anonymous ? "A friend" : (g.guesserName ?? "A friend")} said:{" "}
                 <strong>{g.guess}</strong>
               </p>
-              <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                <button
-                  type="button"
-                  className="c2s-card-action"
-                  data-testid="c2-trivia-validate-right"
-                  disabled={busy}
-                  onClick={() => void validate(g.id, "right")}
-                >
-                  That is right
-                </button>
-                <button
-                  type="button"
-                  className="c2s-card-action"
-                  data-testid="c2-trivia-validate-wrong"
-                  disabled={busy}
-                  onClick={() => void validate(g.id, "wrong")}
-                >
-                  Not quite
-                </button>
-              </div>
+              {editingGuessId === g.id ? (
+                /* Repair #22 (WS-7) - THE EDIT STATE, in place:
+                   the card expands where it stands (no window,
+                   no new surface) and the claimed answer is the
+                   draft. Empty, whitespace, or unchanged drafts
+                   cannot submit; Cancel returns to the
+                   unmodified card with nothing written. */
+                <div data-testid="c2-trivia-correction-edit">
+                  <p className="c2s-card-line" style={{ margin: "4px 0" }}>
+                    Not quite - what should it say instead?
+                  </p>
+                  <div style={{ display: "flex", gap: "var(--space-2)" }}>
+                    <input
+                      className="c2s-field"
+                      data-testid="c2-trivia-correction-input"
+                      value={editDraft}
+                      onChange={(e) => setEditDraft(e.target.value)}
+                      placeholder="The right answer"
+                      aria-label={`Your correction to: ${g.question}`}
+                    />
+                    <button
+                      type="button"
+                      className="c2s-card-action"
+                      data-testid="c2-trivia-correction-save"
+                      disabled={
+                        busy || !editDraft.trim() || editDraft.trim() === g.guess.trim()
+                      }
+                      onClick={() => void submitCorrection(g.id)}
+                    >
+                      Save correction
+                    </button>
+                    <button
+                      type="button"
+                      className="c2s-card-action"
+                      data-testid="c2-trivia-correction-cancel"
+                      disabled={busy}
+                      onClick={() => {
+                        setEditingGuessId(null);
+                        setEditDraft("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className="c2s-btn-quiet"
+                    data-testid="c2-trivia-correction-reject"
+                    disabled={busy}
+                    onClick={() => {
+                      setEditingGuessId(null);
+                      setEditDraft("");
+                      void validate(g.id, "wrong");
+                    }}
+                  >
+                    Just not quite - no correction
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: "var(--space-2)" }}>
+                  <button
+                    type="button"
+                    className="c2s-card-action"
+                    data-testid="c2-trivia-validate-right"
+                    disabled={busy}
+                    onClick={() => void validate(g.id, "right")}
+                  >
+                    That is right
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-card-action"
+                    data-testid="c2-trivia-validate-wrong"
+                    disabled={busy}
+                    onClick={() => {
+                      setEditingGuessId(g.id);
+                      setEditDraft(g.guess);
+                    }}
+                  >
+                    Not quite
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           {validatedNote ? (
@@ -363,6 +470,39 @@ export function TriviaCard({
               {validatedNote}
             </p>
           ) : null}
+        </section>
+      ) : null}
+
+      {/* Repair #22 (WS-7) - THE CORRECTED STATE, both sides of
+          the pair reading the ONE record. The subject reads back
+          what they set right; the guesser learns their answer
+          was corrected and to what (the reveal - a quiet line on
+          the card, never a push). A corrected answer is named
+          corrected, and it earns no points: it was not right as
+          guessed. */}
+      {trivia.aboutMe.some((g) => g.status === "corrected") ? (
+        <section data-testid="c2-trivia-corrected-about">
+          {trivia.aboutMe
+            .filter((g) => g.status === "corrected")
+            .map((g) => (
+              <p key={g.id} className="c2s-card-line">
+                You corrected {g.anonymous ? "a friend" : (g.guesserName ?? "a friend")}:
+                they said {g.guess} - it is {g.correctedGuess ?? ""}.
+              </p>
+            ))}
+        </section>
+      ) : null}
+
+      {trivia.mine.some((g) => g.status === "corrected") ? (
+        <section data-testid="c2-trivia-corrected-mine">
+          {trivia.mine
+            .filter((g) => g.status === "corrected")
+            .map((g) => (
+              <p key={g.id} className="c2s-card-line">
+                {g.subjectName ?? "They"} corrected your answer: you said {g.guess} - it
+                is {g.correctedGuess ?? ""}. Corrected answers earn no points.
+              </p>
+            ))}
         </section>
       ) : null}
 

@@ -489,7 +489,7 @@ defmodule OpalCore.OpalConversations do
 
             :miss ->
               {context_snapshot, intent_snapshot, response_text, draft_meta, action_meta} =
-                assemble_classify_generate(user_id, trimmed, client_context)
+                assemble_classify_generate(user_id, trimmed, client_context, conversation)
 
               result =
                 try do
@@ -1240,7 +1240,13 @@ defmodule OpalCore.OpalConversations do
 
   def start_new_chat(_), do: {:error, :invalid}
 
-  defp assemble_classify_generate(user_id, trimmed, client_context) do
+  # Repair #22 (WS-10) — the resolved target session rides into
+  # assembly so a scoped (orbit) turn is generated from ITS scope.
+  # Before this the pipeline received only (user_id, text): the
+  # session the user was actually writing in — its anchor, person,
+  # plan, and human thread — was dropped at this seam, and context
+  # assembly re-derived a global packet instead.
+  defp assemble_classify_generate(user_id, trimmed, client_context, session \\ nil) do
     # Repair #18 adoption wave 1 (4.C1) - "what are you holding for
     # me?" is answered deterministically from the ONE holding counter
     # set (GraphPeople.holding/1), read at answer time. It never goes
@@ -1250,12 +1256,12 @@ defmodule OpalCore.OpalConversations do
       holding = OpalCore.GraphPeople.holding(user_id)
       {nil, nil, holding["answer_text"], %{}, %{"holding" => holding}}
     else
-      do_assemble_classify_generate(user_id, trimmed, client_context)
+      do_assemble_classify_generate(user_id, trimmed, client_context, session)
     end
   end
 
-  defp do_assemble_classify_generate(user_id, trimmed, client_context) do
-    case OpalContext.assemble(user_id, trimmed, client_context) do
+  defp do_assemble_classify_generate(user_id, trimmed, client_context, session \\ nil) do
+    case OpalContext.assemble(user_id, trimmed, client_context, session: session) do
       {:ok, ctx} ->
         intent =
           case OpalIntent.classify(trimmed, ctx) do

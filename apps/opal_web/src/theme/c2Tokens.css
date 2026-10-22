@@ -103,6 +103,24 @@
     --space-4: 16px;
     --space-5: 20px;
     --space-7: 28px;
+    /* ---- Repair #22 (WS-4) - THE STREAM RHYTHM LAW (Flows) ----
+     * One continuous stream: every adjacent-card pairing in the
+     * Flows column (stones -> happening -> occasions -> trivia ->
+     * braided stream, and every pairing inside each block) is
+     * separated by exactly --stream-gap, every card carries the
+     * same internal inset --stream-inset, and no card's light may
+     * reach farther than --stream-glow-room beyond its own edge -
+     * half the gap, so two loud neighbours' light meets at the
+     * midpoint of the gap and never crosses into the other's
+     * space. The braid's stagger is --stream-stagger (half the
+     * gap): an offset inside the rhythm, never a second rhythm.
+     * Per-card spacing improvisation is banned in the stream:
+     * consumers use these tokens or nothing. Mode-free geometry,
+     * like the space scale it derives from. */
+    --stream-gap: var(--space-4);
+    --stream-inset: var(--space-4);
+    --stream-stagger: calc(var(--stream-gap) / 2);
+    --stream-glow-room: calc(var(--stream-gap) / 2);
     --type-display: 700 32px/38px ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
     --type-title: 650 24px/30px ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
     --type-headline: 650 17px/22px system-ui, sans-serif;
@@ -233,6 +251,14 @@
     --state-limbo-tint: rgba(217, 119, 6, 0.12);
     --state-limbo-ink: #92400e;
     --state-limbo-muted: #a8a29e;
+    /* Repair #22 (WS-5) PLACE ENERGY defaults: a place stone's
+     * fire rests at the past hue and its glow at ember until the
+     * stone stamps its computed family and level (c2shell.css
+     * re-points --place-fire at the family's --state-* token and
+     * --place-glow at the level's strength). The defaults exist
+     * so an unstamped stone can never borrow a live hue. */
+    --place-fire: var(--state-past);
+    --place-glow: 18%;
   }
 
   /* ================= DARK - genuine night (section 2.7) ============ */
@@ -305,6 +331,10 @@
     --state-limbo-tint: rgba(240, 168, 64, 0.16);
     --state-limbo-ink: #ffcf87;
     --state-limbo-muted: #8a8296;
+    /* Repair #22 (WS-5) PLACE ENERGY defaults (dark column): same
+     * resting values as Light - the fire is mode-invariant canon. */
+    --place-fire: var(--state-past);
+    --place-glow: 18%;
   }
 
   /* No-white-flash backstop: the page ground is mode-correct from the

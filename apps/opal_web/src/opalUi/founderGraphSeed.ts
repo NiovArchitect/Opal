@@ -792,6 +792,10 @@ export type FounderStoryItem = {
   when: string;
   /** ISO post time for live relative labels. */
   createdAt?: string;
+  /** R22 (WS-3): the server story contract's own expires_at —
+   *  posting time + lifetime (default 24h). Absent on founder
+   *  fixtures, which carry no server record. */
+  expiresAt?: string;
   /** Founder screenshot B — status under name on the Stories doorway. */
   pulseState?: PulseState;
 };

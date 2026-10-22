@@ -4,14 +4,22 @@
  * Repair #21 (W-17) - the creation walkthrough pins (jsdom
  * layer; the rendered layer is the signature-gated capture):
  *
- *  The add sheet's inventory: your graphs in three tenses as
- *       stones (told by data-tense + label, no explanatory
- *       copy), photo or video, text, go live - every door one
+ *  The add sheet's inventory: your graphs in three tenses,
+ *       photo or video, text, go live - every door one
  *       move deep.
- *  The future stone (headline): a tense door carries its
+ *  The future tense (headline): a tense door carries its
  *       tense into the ONE real graph-create flow, whose form
- *       renders the stone anchor in the tense's fire; the
+ *       renders the marble anchor in the tense's fire; the
  *       present tense carries its When word ("Now").
+ *
+ * Repair #22 (R22-E) - the founder's ruling on top of W-17:
+ *  the tense stones are RETIRED ("they look like avocados to
+ *  me"); the tenses are BUTTONS in the orbit button's marbled
+ *  material (data-marble="sphere": the shared marble grain
+ *  under each tense's own iris), named Now / Forecast /
+ *  Memories. Choosing a tense opens that tense's creation
+ *  panel inside the sheet, offering New graph, Photo or
+ *  video, Text and Go live within the tense.
  *  Photo: the media composer serves both destinations (Story
  *       | Post) through their real endpoints.
  *  Text: a caption-only post is lawful - the text composer
@@ -21,6 +29,8 @@
  *       unavailable-Places state is honest, and the manual
  *       entry exists only when the server offers it.
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -173,20 +183,24 @@ async function openSheet(events: Record<string, unknown>) {
 }
 
 describe("W-17 - the creation sheet inventory", () => {
-  it("three tense stones + photo, text, go live - and no explanatory copy", async () => {
+  it("three tense buttons + photo, text, go live - and no explanatory copy", async () => {
     const creationPlan = vi.fn();
     await openSheet({ creationPlan });
     const sheet = q('[data-testid="c2-create-sheet"]')!;
     expect(sheet).toBeTruthy();
-    const stones = qa('[data-testid^="c2-create-tense-"]');
-    expect(stones.map((s) => s.getAttribute("data-tense"))).toEqual([
+    const buttons = qa('[data-testid^="c2-create-tense-"]');
+    expect(buttons.map((s) => s.getAttribute("data-tense"))).toEqual([
       "present",
       "future",
       "past",
     ]);
     expect(sheet.textContent).toContain("Now");
-    expect(sheet.textContent).toContain("Ahead");
-    expect(sheet.textContent).toContain("Settled");
+    expect(sheet.textContent).toContain("Forecast");
+    expect(sheet.textContent).toContain("Memories");
+    // R22-E rename sweep: the old tense names are gone from
+    // the sheet's user-facing copy.
+    expect(sheet.textContent).not.toContain("Ahead");
+    expect(sheet.textContent).not.toContain("Settled");
     expect(q('[data-testid="c2-create-photo"]')).toBeTruthy();
     expect(q('[data-testid="c2-create-text"]')).toBeTruthy();
     expect(q('[data-testid="c2-create-live"]')).toBeTruthy();
@@ -198,10 +212,18 @@ describe("W-17 - the creation sheet inventory", () => {
     expect(q('[data-testid="c2-create-sheet-post"]')).toBeNull();
   });
 
-  it("each tense stone carries its tense into the shell's create flow", async () => {
+  it("choosing a tense opens its panel; New graph carries the tense into the shell's create flow", async () => {
     const creationPlan = vi.fn();
     await openSheet({ creationPlan });
     click(q('[data-testid="c2-create-tense-future"]')!);
+    // The tense panel opens INSIDE the sheet - the sheet has
+    // not closed and no graph has been created yet.
+    expect(creationPlan).not.toHaveBeenCalled();
+    const panel = q('[data-testid="c2-create-tense-panel"]')!;
+    expect(panel).toBeTruthy();
+    expect(panel.getAttribute("data-tense")).toBe("future");
+    expect(panel.textContent).toContain("New graph - Forecast");
+    click(q('[data-testid="c2-create-tense-graph"]')!);
     expect(creationPlan).toHaveBeenCalledWith("future");
     expect(q('[data-testid="c2-create-sheet"]')).toBeNull();
     expect(whenLabelForTense("present")).toBe("Now");
@@ -209,15 +231,100 @@ describe("W-17 - the creation sheet inventory", () => {
     expect(whenLabelForTense("past")).toBeUndefined();
   });
 
-  it("without a wired creationPlan, the tense stones do not render (no dead doors)", async () => {
+  it("without a wired creationPlan, the tense buttons do not render (no dead doors)", async () => {
     await openSheet({});
     expect(qa('[data-testid^="c2-create-tense-"]').length).toBe(0);
     expect(q('[data-testid="c2-create-photo"]')).toBeTruthy();
   });
 });
 
+describe("R22-E - marble tense buttons and the in-tense creation panel", () => {
+  it("the tense buttons are buttons in the marble material - no stone shapes remain", async () => {
+    await openSheet({ creationPlan: vi.fn() });
+    for (const tense of ["present", "future", "past"]) {
+      const btn = q(`[data-testid="c2-create-tense-${tense}"]`)!;
+      expect(btn.tagName).toBe("BUTTON");
+      // The marble material declaration: the shared grain seat
+      // (the same data-marble the OrbMark marble seat carries).
+      expect(btn.getAttribute("data-marble")).toBe("sphere");
+      expect(btn.classList.contains("c2s-create-tense-btn")).toBe(true);
+    }
+    // The retired stone markup is gone from the sheet.
+    expect(qa(".c2s-create-stone").length).toBe(0);
+    expect(qa(".c2s-create-stone-name").length).toBe(0);
+  });
+
+  it("the marble material is the shared grain asset under per-tense iris (source pin)", () => {
+    const css = readFileSync(resolve(__dirname, "c2shell.css"), "utf8");
+    const block = css.slice(css.indexOf(".c2s-create-tense-btn {"));
+    const face = block.slice(0, block.indexOf("}"));
+    // Same asset OrbMark's marble seat renders - not a lookalike.
+    expect(face).toContain('url("/brand/orb/opal-marble-sphere.webp")');
+    // Each tense re-leads the SAME five sampled fire stops.
+    expect(css).toContain(".c2s-create-tense-btn[data-tense=\"present\"]");
+    expect(css).toMatch(/\[data-tense="present"\][^}]*--orb-fire-cyan\) 84%/);
+    expect(css).toMatch(/\[data-tense="past"\][^}]*--orb-fire-gold\) 84%/);
+    // QUIET: no animation targets the tense faces.
+    const tenseCss = css.slice(
+      css.indexOf(".c2s-create-tenses {"),
+      css.indexOf(".c2s-create-live-light"),
+    );
+    expect(tenseCss).not.toMatch(/animation|@keyframes/);
+  });
+
+  it("Memories panel: photo and text doors open the real composers from inside the tense", async () => {
+    await openSheet({ creationPlan: vi.fn() });
+    click(q('[data-testid="c2-create-tense-past"]')!);
+    const panel = q('[data-testid="c2-create-tense-panel"]')!;
+    expect(panel.getAttribute("data-tense")).toBe("past");
+    expect(panel.textContent).toContain("New graph - Memories");
+    // Photo or video inside Memories -> the media composer.
+    click(q('[data-testid="c2-create-tense-photo"]')!);
+    await flush();
+    expect(q('[data-testid="c2-share-composer"]')).toBeTruthy();
+    expect(q('[data-testid="c2-composer-camera"]')).toBeTruthy();
+    click(q('[data-testid="c2-composer-close"]')!);
+    await flush();
+    // Text inside Memories -> the text composer.
+    await openSheet({ creationPlan: vi.fn() });
+    click(q('[data-testid="c2-create-tense-past"]')!);
+    click(q('[data-testid="c2-create-tense-text"]')!);
+    await flush();
+    expect(q('[data-testid="c2-share-composer"]')).toBeTruthy();
+    expect(q('[data-testid="c2-composer-camera"]')).toBeNull();
+  });
+
+  it("every tense panel offers photo, text and go live; Back returns to the sheet top level", async () => {
+    for (const tense of ["present", "future", "past"]) {
+      await openSheet({ creationPlan: vi.fn() });
+      click(q(`[data-testid="c2-create-tense-${tense}"]`)!);
+      expect(q('[data-testid="c2-create-tense-graph"]')).toBeTruthy();
+      expect(q('[data-testid="c2-create-tense-photo"]')).toBeTruthy();
+      expect(q('[data-testid="c2-create-tense-text"]')).toBeTruthy();
+      expect(q('[data-testid="c2-create-tense-live"]')).toBeTruthy();
+      click(q('[data-testid="c2-create-tense-back"]')!);
+      expect(q('[data-testid="c2-create-tense-panel"]')).toBeNull();
+      expect(q('[data-testid="c2-create-photo"]')).toBeTruthy();
+      // Unmount + remove for the next tense's fresh sheet.
+      await act(async () => root!.unmount());
+      root = null;
+      host?.remove();
+      host = null;
+      document.body.innerHTML = "";
+    }
+  });
+
+  it("go live stays reachable from inside a tense panel", async () => {
+    await openSheet({ creationPlan: vi.fn() });
+    click(q('[data-testid="c2-create-tense-present"]')!);
+    click(q('[data-testid="c2-create-tense-live"]')!);
+    await flush();
+    expect(q('[data-testid="c2-go-live"]')).toBeTruthy();
+  });
+});
+
 describe("W-17 - the graph-create form carries the tense (headline: future)", () => {
-  it("the future tense anchors the form with a forming stone and a bare When", async () => {
+  it("the future tense anchors the form with a forming marble disc and a bare When", async () => {
     await render(
       <CreateFlow
         kind="plan"
@@ -237,9 +344,10 @@ describe("W-17 - the graph-create form carries the tense (headline: future)", ()
     const anchor = q('[data-testid="c2-create-anchor"]')!;
     expect(anchor).toBeTruthy();
     expect(anchor.getAttribute("data-tense")).toBe("future");
-    expect(anchor.textContent).toContain("Ahead");
+    expect(anchor.textContent).toContain("Forecast");
+    expect(anchor.textContent).not.toContain("Ahead");
     expect((q('[data-testid="c2-create-when"]') as HTMLInputElement).value).toBe("");
-    // Typing the What names the anchor's stone.
+    // Typing the What names the anchor's disc.
     typeInto(q('[data-testid="c2-create-title"]') as HTMLInputElement, "Saturday market run");
     expect(q('[data-testid="c2-create-anchor"]')!.textContent).toContain("Saturday market run");
   });
@@ -264,6 +372,29 @@ describe("W-17 - the graph-create form carries the tense (headline: future)", ()
     await flush();
     expect(q('[data-testid="c2-create-anchor"]')!.getAttribute("data-tense")).toBe("present");
     expect((q('[data-testid="c2-create-when"]') as HTMLInputElement).value).toBe("Now");
+  });
+
+  it("the past tense anchors the form as Memories (R22-E rename)", async () => {
+    await render(
+      <CreateFlow
+        kind="plan"
+        bearer="tok"
+        conversations={[]}
+        prefill={{
+          title: "",
+          participantUserIds: [],
+          tense: "past",
+          entry: "c2-create-past",
+        }}
+        onClose={() => {}}
+        onCreated={() => {}}
+      />,
+    );
+    await flush();
+    const anchor = q('[data-testid="c2-create-anchor"]')!;
+    expect(anchor.getAttribute("data-tense")).toBe("past");
+    expect(anchor.textContent).toContain("Memories");
+    expect(anchor.textContent).not.toContain("Settled");
   });
 });
 

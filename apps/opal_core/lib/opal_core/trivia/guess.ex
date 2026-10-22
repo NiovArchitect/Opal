@@ -17,7 +17,12 @@ defmodule OpalCore.Trivia.Guess do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
-  @statuses ~w(pending validated rejected)
+  # Repair #22 (WS-7): "corrected" is a fourth truth state,
+  # distinct from "validated" (the guesser was right) and from
+  # "rejected" (not quite, no correction given). A corrected
+  # guess was WRONG as guessed and the subject stated the truth:
+  # it must never score or read as if it had been right.
+  @statuses ~w(pending validated rejected corrected)
 
   schema "trivia_guesses" do
     field :guesser_user_id, :binary_id
@@ -30,6 +35,14 @@ defmodule OpalCore.Trivia.Guess do
     field :status, :string, default: "pending"
     field :capsule_id, :binary_id
     field :validated_at, :utc_datetime_usec
+    # Repair #22 (WS-7) - the correction record. The original
+    # guess / fact_summary above are NEVER rewritten; the
+    # correction is additive provenance: what the truth is, who
+    # stated it (the subject), and when.
+    field :corrected_guess, :string
+    field :corrected_fact_summary, :string
+    field :corrected_by_user_id, :binary_id
+    field :corrected_at, :utc_datetime_usec
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -62,6 +75,37 @@ defmodule OpalCore.Trivia.Guess do
   end
 
   @doc """
+  Repair #22 (WS-7) - the correction write. Only the correction
+  text is cast (the caller's words); corrected_by_user_id is set
+  programmatically by the context (the subject - AGENTS.md rule
+  for programmatic fields), as are the derived corrected fact,
+  the status, and the instants. A correction that merely repeats
+  the original guess is no correction at all and is refused.
+  """
+  def correction_changeset(guess, attrs, corrected_by_user_id, corrected_fact_summary) do
+    guess
+    |> cast(attrs, [:corrected_guess])
+    |> validate_required([:corrected_guess])
+    |> validate_length(:corrected_guess, min: 1, max: 300)
+    |> validate_change(:corrected_guess, fn :corrected_guess, value ->
+      if String.trim(value || "") == String.trim(guess.guess || "") do
+        [corrected_guess: "says the same as the guess - a correction must state the right answer"]
+      else
+        []
+      end
+    end)
+    |> change(%{
+      status: "corrected",
+      corrected_fact_summary: corrected_fact_summary,
+      corrected_by_user_id: corrected_by_user_id,
+      corrected_at: DateTime.utc_now(),
+      validated_at: DateTime.utc_now()
+    })
+    |> validate_inclusion(:status, @statuses)
+    |> validate_required([:corrected_fact_summary, :corrected_by_user_id, :corrected_at])
+  end
+
+  @doc """
   The wire contract. An anonymous guess NEVER carries its
   guesser's identity to the subject - the id is withheld at this
   one gate, so no client can leak it.
@@ -79,6 +123,16 @@ defmodule OpalCore.Trivia.Guess do
       "status" => g.status,
       "capsule_id" => g.capsule_id,
       "validated_at" => iso(g.validated_at),
+      # Repair #22 (WS-7) - the correction, carried verbatim so
+      # BOTH parties read the same corrected truth from the one
+      # record: the guesser learns their answer was corrected
+      # and to what; the subject reads back what they stated.
+      # corrected_by is the SUBJECT (never the guesser), so the
+      # anonymous-guesser withholding above is untouched by it.
+      "corrected_guess" => g.corrected_guess,
+      "corrected_fact_summary" => g.corrected_fact_summary,
+      "corrected_by_user_id" => g.corrected_by_user_id,
+      "corrected_at" => iso(g.corrected_at),
       "created_at" => iso(g.inserted_at)
     }
   end

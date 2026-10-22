@@ -43,14 +43,20 @@ import type { FeedCardProjection } from "./projections";
 /* present tense carries its word ("Now") and the others open         */
 /* the form bare. The tense-true birth states are declared in         */
 /* the wave report - this module carries only what is true.           */
+/*                                                                     */
+/* Repair #22 (R22-E) - the founder's tense names: Now stays Now       */
+/* (the live moment), future is FORECAST (the graph ahead), past is    */
+/* MEMORIES (the settled past). These labels are the ONLY user-        */
+/* facing tense names; no surface may revive "Ahead" / "Settled"       */
+/* as a tense name.                                                    */
 /* ------------------------------------------------------------------ */
 
 export type CreationTense = "present" | "future" | "past";
 
 export const CREATION_TENSE_LABELS: Record<CreationTense, string> = {
   present: "Now",
-  future: "Ahead",
-  past: "Settled",
+  future: "Forecast",
+  past: "Memories",
 };
 
 /** The When words a tense carries into the create form. Only the

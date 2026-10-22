@@ -149,6 +149,12 @@ defmodule OpalCore.Intelligence.LlmRespond do
       "places_results" => places_section,
       "calendar" => calendar_section,
       "recent_messages" => normalize_recent(ctx[:recent_messages] || ctx["recent_messages"] || []),
+      # Repair #22 (WS-10): the anchored orbit's scoped context when
+      # the turn was generated inside one (anchor, scoped person /
+      # plan, and the anchored thread's actual messages). The model
+      # must see the room it is speaking in — without this key the
+      # payload held only the global history and the template floor.
+      "orbit_scope" => ctx[:orbit_scope] || ctx["orbit_scope"],
       "instruction" => instruction
     }
 

@@ -439,3 +439,180 @@ report and reconciled in repair21-handoff.md:
   legacy-shell override still serves; retiring it is his call -
   muse/repair-17 stays untouched as the revert spot either way.
 - Terminology: "rituals" retired for "rhythms" (T-WORD), swept.
+
+## REPAIR #22 ROUND (2026-10-21) - the founder review charges, each answered on the integrated build
+
+Charges of 2026-10-21 (the pack review that commissioned this
+wave), each answered in its cluster report and reconciled in
+coordination/repair19/repair22-handoff.md. Status vocabulary as
+before: DONE only with proof on the integrated tip (code tip
+bf64f4cc; captures served from ec9f5caa, records-only above the
+code tip; battery: backend 3,380/0, API 101/101, web matched
+name-for-name to the R21 baseline, typecheck 9, mobile 109/109);
+anything less is DECLARED with its reason.
+
+- Story captions (founder: caption size and balance are
+  critical across a rail of many people; 'live' vs 'live now'
+  reads as two forms and confuses) -> WS-1/WS-2 (muse/
+  r22-stories): ONE caption grammar (Live / Loved / New / Seen /
+  Add) at one size and balance, and the orbital ring tracking
+  state by motion. DONE - r22Stories 3/3 in the integrated
+  cluster set (97/97); integrated flows-firstpaint frames show
+  "Live" / "Loved" in the unified grammar with round stones,
+  thin orbit rings, dots riding the rings. DECLARED residue
+  (carried in the handoff): the reduced-motion animation-name
+  cascade fragility - the functional spec is met and proven
+  (the global styles.css rule collapses the orbit to one
+  instant pass; computed transform static), but c2shell's own
+  reduced rule loses the name cascade to the per-state rules
+  (0-1-0 vs 0-3-0); a latent fragility if the global rule is
+  ever removed, recorded for a future hardening pass.
+- Stories behavior (founder: stories must be clickable and
+  viewable as real stories - timed to the media, auto-
+  advancing, expiring from posting) -> WS-3 (muse/
+  r22-storytime): one playback law shared by both viewers
+  (image dwell 7s, video by its real duration / ended), rail-
+  order auto-advance with clean exit, per-story progress
+  segments, expiry enforced from the record's own expires_at
+  at rail compose, viewer open, and live resolution. DONE -
+  r22StoryTime 7/7, storyPlayback 9/9, storyViewerTemporality
+  2/2 on the integrated tree. DECLARED: graph-story POSTING
+  has no server path (TemporaryStory carries no graph
+  reference; its contract asserts "not_graph") - graph stories
+  play under the same law, posting awaits a server contract
+  change. Not built, not faked.
+- Flows stream (founder: scrolling must feel like one
+  continuous stream that never breaks attention; cards were
+  too far apart or literally stacked despite their own
+  lighting) -> WS-4 (muse/r22-stream): one rhythm law
+  (--stream-gap / --stream-inset / --stream-stagger /
+  --stream-glow-room tokens; block rhythm; glow containment;
+  the legacy .c2s-feed cascade override fixed). DONE -
+  r22StreamRhythm 10/10; integrated stream-scroll sequence
+  (3 frames x 2 modes at 0/520/1040px) shows one rhythm with
+  glow contained. Carried accounting: the cluster's web full-
+  suite runs carried timeout flakes under load; the
+  integrated web suite is matched name-for-name to the R21
+  baseline in the handoff, differences named with causes.
+- Flows places and heat (founder: Flows must capture places
+  and location energy, not just people - what is happening at
+  a location, the vibe of the place; Snapchat heat maps the
+  favorite model) -> WS-5 (muse/r22-places): place stones in
+  the stream carrying real-signal energy (the state fire rests
+  at past, glows at ember - no fabricated heat), tap opens the
+  place view with its real doors. DONE - r22Places 16/16;
+  integrated place-stone frames (Oceanside Farmers Market,
+  energy "lit", happening fire) in both modes. DECLARED
+  D-P1..D-P7 (design record section 8): place identity join,
+  the stranger/public energy layer, check-in presence, the
+  live-only start door, place page depth, the feed window,
+  and the backend projection the full build promotes this
+  slice's client derivation into. Nothing beyond the slice
+  is claimed.
+- Create correction (founder: the sheet's opal-stone shapes
+  are rejected - they look like avocados; the three choices
+  become orbit-button-style buttons in their own multicolor,
+  named Now, Forecast (was Ahead), Memories (was Settled))
+  -> WS-6 (muse/r22-create): marble tense buttons on the
+  pad-orb's own iris, each ringed by its state fire, plus the
+  in-tense creation panel. DONE - r21Creation suite green on
+  the integrated tree; integrated create-sheet frames show
+  the three marble buttons with DOM audit (c2s-create-tense-
+  btn x3: Now / Forecast / Memories). DECLARED: moment-tense
+  is not persisted - the server's moment record carries no
+  tense field, so a photo or text post made inside Forecast
+  or Memories is a present-tense moment by the server's own
+  model; tense persists only on the graph-create path. No
+  fake tense was written.
+- Trivia correction (founder: the Trivia card is fantastic,
+  and tapping 'Not quite' must let the user edit it and make
+  the proper correction - super important) -> WS-7 (muse/
+  r22-trivia): Not quite opens an in-place edit; submitting
+  fixes the record with provenance (original claim kept,
+  corrected fields + corrected_by + corrected_at), writes
+  the corrected fact to the subject's wallet as
+  trivia_correction, scores corrected as corrected (no
+  points, never validated), and the guesser reads the
+  correction back on their own card. DONE - migration
+  20261030030400_add_trivia_correction (integrated migration
+  count 120, re-derived from empty three times); backend
+  trivia tests in leg4 (1210, +3 over R21); web
+  r22TriviaCorrection 7/7; integrated trivia-validation
+  frames show both pending guesses with their Not quite
+  doors on the integrated build.
+- Nav-pad selection (founder: the pad must not show a dot
+  under the selected item - the dot takes space; the lighting
+  already says it) -> WS-8 (muse/r22-dock): the dot dies;
+  lighting alone carries selection. DONE - r22DockContract
+  green; integrated pad frames (Center + Flows, both modes)
+  show lit slots and no dot. DECLARED nuance, recorded not
+  fixed: the V2Dock dead CSS rule - technicolorProduction.css
+  carries an 18x3 cyan bar for .tab.active::after whose only
+  matching component (V2Dock in v2Primitives.tsx) is exported
+  but never rendered; it is a bar, not the pad dot, on an
+  unrendered component. Out of WS-8 scope.
+- Orbit containment (founder: in the long-press select panel,
+  text hanging outside its pills is a defect - noisy and
+  unattractive; elements sat too far left with no elemental
+  balance) -> WS-9 (muse/r22-orbitfix): select panel elements
+  contained in their pills. DONE - r22OrbitContainment 7/7;
+  integrated orbit-select frames carry the containment audit
+  on the served build: panel 20..370 of 390 wide, ZERO out-
+  of-bounds children, both modes.
+- Orbit suggestion scope (founder: suggestions must stay
+  inside the orbit's own anchored conversation - a pill
+  suggesting continuing on Maya inside Maya's own orbit
+  bothers him most; Orbit is strictly about that conversation)
+  -> WS-10 (muse/r22-orbitfix): scoped-orbit suggestion
+  generation at the context builder (the scoped conversation
+  is the only conversation in context). DONE - backend
+  r22_orbit_scope standalone 7/0 within the extras 13/0.
+  DECLARED, carried verbatim in the handoff: the remainder
+  shapes (cross-conversation content can still appear only
+  as a verb-less shared-plan reference of <= 8 words under
+  whole-payload equality when the scoped conversation is a
+  party, the server-fixed seeded opener, or greet-early
+  fixed-string action classes) and the fresh-unscoped-
+  session observation (the scoped builder runs for every
+  Opal call on the widget-draft path; the pin's fresh session
+  was unscoped, so scoped suggestions never fired there -
+  the fallback draft carries no conversation_id).
+- Composer dock (WS-11, from the same dock charge family:
+  composers ride their surface, not the scroll) -> muse/
+  r22-dock: the Opal chat composer docked (was scrolling
+  away with content). DONE - r22DockContract per-surface
+  verdicts in the cluster report; carried accounting: the
+  dock cluster's full-suite flake pair (dir4Reveal /
+  planEditControls vs AT-08 / FA-02 - all four pass in
+  isolation; run-to-run flake under full-suite load, none
+  attributable to the commit) is reconciled against the
+  integrated web suite in the handoff.
+- F-18 standing check (permanent): the R22 integrated frames
+  were captured under the content-signature gate (flows and
+  center families assert before filing; trivia frames flows-
+  signature-gated; orbit frames carry their own containment
+  audit; create frames carry the tense-button DOM audit) and
+  every context asserted the served badge first. No frame in
+  the integrated set is filed under a surface it does not
+  show. F-18 stays CLOSED; the check that owns it ran.
+
+R22 addendum - INTEGRATION FINDING IF-1 (named at close-out,
+not silently resolved): the integrated web suite carries ONE
+failure beyond the R21 baseline (25 failed / 18 files vs
+24 / 17, all 24 baseline names identical). The new name:
+src/c2/shell/r20Connect.test.tsx, the R20 F-10 PIN protecting
+the happening story ring's glow treatment (box-shadow 0 0
+14px, founder 2026-10-20). Cause, attributed by branch: the
+WS-4 stream glow-containment sweep tokenized that rule to
+var(--stream-glow-room) = 8px (every other cluster kept the
+14px literal; the stream cluster's own full-suite accounting
+carried timeout flakes and never surfaced this name). WS-4's
+law (no stream light reaches past the token) and the R20 PIN
+(the ring's 14px treatment) cannot both hold for a rule that
+sits in both scopes. The integrator changed NEITHER side:
+the choice is the founder's (exempt the story ring from the
+token - the WS-4 charge was about stream cards - or amend
+the PIN to the token; the integrated frames were shot with
+the 8px value and the rail reads correctly at the glass, so
+he can judge from the pack). Full analysis in
+repair22-handoff.md, IF-1.

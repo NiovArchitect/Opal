@@ -64,18 +64,39 @@ export type ShellHeaderProjection = {
   activityUnseenCount?: number;
 };
 
+/** R22 (WS-3): one playable story inside a rail cell — the
+ *  unit the story viewer dwells on and advances through. */
+export type StoryPlayItemProjection = {
+  id: string;
+  mediaUrl: string;
+  caption: string | null;
+  /** The server record's own expires_at (posting + lifetime). */
+  expiresAt: string | null;
+};
+
 /** Section 7.2 - story rail. */
 export type StoryRailProjection = {
   self: {
     avatar: AvatarRef;
     hasLiveStory: boolean;
-    /** Finished label, for example "2h" - never computed here. */
+    /** Finished label, for example "2h" - never computed here.
+     *  Repair #22 (R22-A): the story rail no longer renders this
+     *  free-text label - the self stone's caption is the shared
+     *  state word "Live", so one state wears one form rail-wide. */
     liveStoryLabel?: string | null;
     /** JA-11: the viewer's own story record, carried so the self
      *  cell can open the viewer on it (the same media the rail
      *  would have shown in the duplicate named cell). Null = the
      *  viewer has no live story; "Add" is the empty case. */
-    story?: { storyCount: number; mediaUrl: string | null; caption: string | null } | null;
+    story?: {
+      storyCount: number;
+      mediaUrl: string | null;
+      caption: string | null;
+      /** R22 (WS-3): every playable own story, in rail order —
+       *  the viewer's queue source. Expired records never
+       *  reach the projection (server list + compose filter). */
+      items?: StoryPlayItemProjection[];
+    } | null;
   };
   stories: Array<{
     id: string;
@@ -99,6 +120,10 @@ export type StoryRailProjection = {
      *  never opens a viewer; there is no empty stage. */
     mediaUrl?: string | null;
     caption?: string | null;
+    /** R22 (WS-3): this person's playable stories in rail order
+     *  (records with renderable media only) — the viewer plays
+     *  them in sequence, then jumps to the next person's. */
+    items?: StoryPlayItemProjection[];
   }>;
   capabilities: { canPost: boolean; canStory: boolean };
 };
@@ -233,8 +258,13 @@ export type TriviaGuessView = {
   anonymous: boolean;
   question: string;
   guess: string;
-  status: "pending" | "validated" | "rejected" | string;
+  status: "pending" | "validated" | "rejected" | "corrected" | string;
   multiplier: number;
+  /** Repair #22 (WS-7) - the correction, when the subject fixed
+   *  this record: what the answer was corrected to. The original
+   *  `guess` above always stays what was claimed. */
+  correctedGuess?: string | null;
+  correctedAt?: string | null;
 };
 
 export type HomeTrivia = {
@@ -302,10 +332,81 @@ export type BondProjection = {
   sharedPlanCount: number;
 };
 
+/**
+ * Repair #22 (WS-5) - PLACE ENERGY: one place in Flows, projected.
+ * Built ONLY by placeStonesFromGraph (shellData.ts) from records
+ * the viewer already lawfully holds - their plans list (shared
+ * plans, never vaulted-private, never settled by them), their
+ * visibility-gated home feed moments, and the visible-lives read.
+ * The energy is computed, never stored and never assigned per
+ * place: score, level and family all derive from the place's own
+ * qualifying records (design record:
+ * coordination/repair19/r22-place-energy-design.md, section 4).
+ * A place with no qualifying record produces no stone at all.
+ * Only finished strings and counts ride here; the surface renders
+ * them verbatim and derives nothing.
+ */
+export type PlaceStoneProjection = {
+  /** Grouping key: the normalized place name (the records carry
+   *  no stable place id to these reads - declared D-P1). */
+  key: string;
+  /** The place name verbatim from the first record that carried it. */
+  name: string;
+  /** The summed signal weight (memory contribution capped - see
+   *  the builder). Internal ordering/warmth input; like moment
+   *  light, the numeral itself never renders as a score. */
+  energyScore: number;
+  energyLevel: "ember" | "lit" | "radiant";
+  /** The state family of the place's strongest current signal, in
+   *  the state-color canon: the stone's fire color. */
+  energyFamily: "happening" | "action" | "ready" | "forming" | "past";
+  /** Finished energy line, composed by the builder from the
+   *  counts themselves - a sentence the counts can prove. */
+  energyLine: string;
+  /** Finished signal lines, strongest first, at most 3. Each
+   *  exists only when its signal exists. */
+  signalLines: string[];
+  /** Live rooms at the place right now (S1). The host is the one
+   *  presence fact a record states outright. */
+  livesHere: Array<{ liveId: string; title: string; hostName: string | null }>;
+  /** Plans in their live window at the place (S2). */
+  happeningPlans: Array<{ planId: string; title: string; whenLine: string }>;
+  /** The place's action / ready / forming plans, indicator
+   *  precedence order (S3 / S4 / S5). stateFamily is the plan's
+   *  place-energy family (the NextPlan mirror in the builder). */
+  comingPlans: Array<{
+    planId: string;
+    title: string;
+    whenLine: string;
+    stateLabel: string;
+    stateFamily: "action" | "ready" | "forming";
+    /** The plan's own attendance line ("3 of 4 going") when its
+     *  contract carries counts - attendance in the plan's words,
+     *  never restated as physical presence. */
+    attendanceLine: string | null;
+  }>;
+  /** Settled plans at the place (S7) - its memory as plans. */
+  memoryPlans: Array<{ planId: string; title: string; whenLine: string }>;
+  /** Moments posted from the place that the viewer may see (S6),
+  newest first as the feed ranked them. No door: no moment detail
+   *  surface exists today. */
+  momentsHere: Array<{ momentId: string; caption: string; authorName: string }>;
+  /** The door out: "Start a plan here", pre-composed by the
+   *  builder through the flows2 seed machinery from the place's
+   *  strongest lawful seed source (one of its plans, else one of
+   *  its moments). Null when the place's only signal is a live
+   *  room - a live room is not a seed source (declared D-P4). */
+  startSeed: import("./flows2").SeedCreate | null;
+};
+
 export type HomeProjection = {
   header: ShellHeaderProjection;
   rail: StoryRailProjection;
   feed: FeedCardProjection[];
+  /** Repair #22 (WS-5): place stones for the stream, energy order
+   *  (strongest first). Absent/empty when no place in the viewer's
+   *  graph carries a qualifying signal - never staged. */
+  places?: PlaceStoneProjection[];
   /** Repair #21 (W-14): the presence lights for first paint.
    *  Absent/empty when nobody is live - presence discipline. */
   presence?: PresenceLight[];

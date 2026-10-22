@@ -1136,7 +1136,24 @@ export function CenterChat({
           ) : null}
         </div>
       ) : null}
-      <MessageFlow surface="opal-chat" messages={messages} plansById={plansById} onOpenPlan={onOpenPlan} onHoldingLink={onHoldingLink} />
+      {/* Repair #22 (WS-11) - DOCK CONTRACT: the Opal chat's
+          message flow scrolls in its OWN scroll box (the thread's
+          .c1-scroll construction), so the composer bar below is a
+          sibling AFTER the scroller in the surface's flex column -
+          docked with the pad, never a passenger at the end of the
+          scrolling content. Before this, CenterChat rendered the
+          flow bare: the host surface itself was the scroller
+          (.c2s-c1-host .c1-surface overflow-y: auto), so on any
+          conversation longer than the screen the "Message Opal"
+          composer scrolled away with the messages and only
+          margin-top: auto made it LOOK docked on short rooms.
+          The orbit-embedded form is unchanged in effect: the
+          OrbitScreen.css embedded rules already bound the surface
+          and give the flow the scroll (they target .c1-flow, which
+          now sits inside this box at flex: 1, min-height: 0). */}
+      <div className="c1-scroll">
+        <MessageFlow surface="opal-chat" messages={messages} plansById={plansById} onOpenPlan={onOpenPlan} onHoldingLink={onHoldingLink} />
+      </div>
       <div className="c1-composer-bar">
         {!embedded ? (
           <span className="c1-destination-pill c1-destination-compact">{title}</span>

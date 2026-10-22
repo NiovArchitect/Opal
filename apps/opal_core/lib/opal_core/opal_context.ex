@@ -33,7 +33,7 @@ defmodule OpalCore.OpalContext do
   @fit_activity_cap 6
   @fit_activities ~w(walk run yoga strength outdoors rest)
   @fit_goals ~w(move_more recover stay_active)
-  @context_keys ~w(user taste temporal social message relationships trust_tier financial fit group_tastes conversation_history preferences location)a
+  @context_keys ~w(user taste temporal social message relationships trust_tier financial fit group_tastes conversation_history preferences location orbit_scope)a
 
   @doc """
   Assemble a context packet for `user_id` + inbound `message_text`.
@@ -46,10 +46,27 @@ defmodule OpalCore.OpalContext do
   RU-3 `:financial`, gated `:fit`, D-1 `:group_tastes`, and short-term
   `:conversation_history` (last 10 Opal Center messages, role+body only).
   """
-  def assemble(user_id, message_text, client_context \\ nil)
+  def assemble(user_id, message_text, client_context \\ nil, opts \\ [])
 
-  def assemble(user_id, message_text, client_context)
+  def assemble(user_id, message_text, client_context, opts)
       when is_binary(user_id) and is_binary(message_text) do
+    # Repair #22 (WS-10) — the SCOPED session the turn was posted to,
+    # when the caller knows it. Before this, assembly received only
+    # the user: the packet carried no anchor, no person/plan scope,
+    # and none of the anchored human thread's messages, and the
+    # history was re-derived from whichever session happened to be
+    # "active" — so generation inside an anchored orbit ran on a
+    # global brain (global frequent contacts + unscoped history) and
+    # could speak about the orbit's own person in the third person
+    # as if they were elsewhere ("You mentioned Maya earlier" inside
+    # Maya's own orbit). The session's scope is now assembled INTO
+    # the packet as :orbit_scope and the history is read from THIS
+    # session, never re-derived.
+    session =
+      case Keyword.get(opts, :session) do
+        %OpalConversation{} = s -> s
+        _ -> nil
+      end
     case Repo.get(User, user_id) do
       nil ->
         {:error, :user_not_found}
@@ -76,8 +93,15 @@ defmodule OpalCore.OpalContext do
           fit: gated_fit(client_context),
           # D-1 — top groups (plan_count >= 3), aggregate only
           group_tastes: GroupTastes.context_slices_for(user_id),
-          # Short-term memory — prior Opal Center turns (not the inbound text)
-          conversation_history: assemble_conversation_history(user_id),
+          # Short-term memory — prior Opal Center turns (not the inbound text).
+          # WS-10: when the turn belongs to a known session, the history is
+          # THAT session's — the scoped room's own turns — not the active
+          # session's by coincidence.
+          conversation_history: assemble_conversation_history(user_id, session),
+          # Repair #22 (WS-10) — the orbit scope slice: the anchor, the
+          # scoped person/plan, and the anchored human thread's actual
+          # recent messages. Nil for unscoped Center turns (unchanged).
+          orbit_scope: assemble_orbit_scope(user_id, session),
           preferences: prefs,
           # Repair #18 (A-center) - location the product actually holds,
           # read fresh on every Center turn: the travel state's current
@@ -93,7 +117,7 @@ defmodule OpalCore.OpalContext do
     end
   end
 
-  def assemble(_, _, _), do: {:error, :invalid}
+  def assemble(_, _, _, _), do: {:error, :invalid}
 
   def context_keys, do: @context_keys
 
@@ -469,8 +493,16 @@ defmodule OpalCore.OpalContext do
   end
 
   # Last N Opal Center messages (role + body + optional intent). Empty when none yet.
-  defp assemble_conversation_history(user_id) do
-    case Repo.one(OpalConversation.active_query(user_id)) do
+  # WS-10: a known session supplies its OWN history; only a session-less
+  # call falls back to the user's active session (the pre-orbit path).
+  defp assemble_conversation_history(user_id, session \\ nil) do
+    conversation =
+      case session do
+        %OpalConversation{} = s -> s
+        _ -> Repo.one(OpalConversation.active_query(user_id))
+      end
+
+    case conversation do
       %OpalConversation{id: cid} ->
         OpalConversations.list_messages(cid, @history_limit)
         |> Enum.map(fn %OpalMessage{} = m ->
@@ -488,6 +520,116 @@ defmodule OpalCore.OpalContext do
       _ ->
         []
     end
+  end
+
+  # Repair #22 (WS-10) — the orbit scope slice for a scoped session.
+  # Everything here is read LIVE from the records the session's own
+  # birth scope names (the person, the plan, the human thread) — the
+  # same records the orbit surface renders — so generation and the
+  # room can never disagree about whose orbit this is or what was
+  # actually said in its thread. A session with no scope at all
+  # (ordinary Center chat) yields nil and generation is unchanged.
+  defp assemble_orbit_scope(_user_id, nil), do: nil
+
+  defp assemble_orbit_scope(user_id, %OpalConversation{} = session) do
+    person =
+      case session.context_person_id do
+        pid when is_binary(pid) ->
+          case Repo.get(User, pid) do
+            %User{} = u -> %{id: u.id, display_name: u.display_name}
+            _ -> nil
+          end
+
+        _ ->
+          nil
+      end
+
+    anchor =
+      if is_binary(session.anchor_type) and is_binary(session.anchor_id) do
+        label =
+          case session.anchor_type do
+            "person" ->
+              case Repo.get(User, session.anchor_id) do
+                %User{} = u -> u.display_name
+                _ -> session.anchor_label
+              end
+
+            _ ->
+              session.anchor_label
+          end
+
+        %{type: session.anchor_type, id: session.anchor_id, label: label}
+      else
+        nil
+      end
+
+    plan =
+      case session.context_plan_id do
+        plan_id when is_binary(plan_id) ->
+          case Repo.get(OpalCore.SocialFlow.SharedPlan, plan_id) do
+            %OpalCore.SocialFlow.SharedPlan{} = p ->
+              %{id: p.id, title: p.title, time_label: p.time_label}
+
+            _ ->
+              nil
+          end
+
+        _ ->
+          nil
+      end
+
+    thread =
+      case session.context_conversation_id do
+        cid when is_binary(cid) -> %{conversation_id: cid, messages: thread_messages(user_id, cid)}
+        _ -> nil
+      end
+
+    if is_nil(person) and is_nil(anchor) and is_nil(plan) and is_nil(thread) do
+      nil
+    else
+      %{
+        session_id: session.id,
+        anchor: anchor,
+        person: person,
+        plan: plan,
+        thread: thread
+      }
+    end
+  end
+
+  # The anchored human thread's recent messages (last 10, ascending),
+  # speaker-attributed. Only real message bodies — the thread's own
+  # words are the scoped context a suggestion inside this orbit must
+  # be derived from. Membership was validated at the session's birth
+  # (create_scoped_session), and the read is keyed on the session's
+  # own stored conversation id, never a client-supplied one.
+  defp thread_messages(viewer_id, conversation_id) do
+    rows =
+      from(m in Message,
+        where: m.conversation_id == ^conversation_id,
+        order_by: [desc: m.server_seq, desc: m.inserted_at],
+        limit: @history_limit
+      )
+      |> Repo.all()
+      |> Enum.reverse()
+
+    names =
+      rows
+      |> Enum.map(& &1.sender_user_id)
+      |> Enum.uniq()
+      |> then(fn ids ->
+        from(u in User, where: u.id in ^ids, select: {u.id, u.display_name})
+        |> Repo.all()
+        |> Map.new()
+      end)
+
+    Enum.map(rows, fn m ->
+      %{
+        role: if(m.sender_user_id == viewer_id, do: "viewer", else: "peer"),
+        speaker: Map.get(names, m.sender_user_id),
+        body: m.body || ""
+      }
+    end)
   end
 
   defp history_intent(%{"intent" => intent}) when is_map(intent), do: intent

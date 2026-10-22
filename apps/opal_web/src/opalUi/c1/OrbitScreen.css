@@ -180,28 +180,51 @@
    offers the one place action. */
 [data-design="r18"] .orbit-recommendation {
   flex: none; margin-bottom: 10px; padding: 12px 14px; position: relative;
+  box-sizing: border-box; min-width: 0; width: 100%;
   /* A press must never become a text selection before it can
      become a selection of the card itself (gesture grammar:
      same press family as the app's other long-press surfaces). */
   user-select: none; -webkit-user-select: none; touch-action: manipulation;
-}
-[data-design="r18"] .orbit-recommendation * {
-  user-select: none; -webkit-user-select: none;
   /* V4 Addendum 5: in-stream cards are residents, held to the
      YOUR MOVE craft standard - an ambient border and a soft
-     state-tinted shadow, not a plain block. */
+     state-tinted shadow, not a plain block. Repair #22 (WS-9):
+     the card treatment lives on the CARD ITSELF. It previously
+     sat on a universal descendant rule (.orbit-recommendation *),
+     which stamped a bordered pill onto EVERY child — the draft
+     text, the unsent-truth note, each action row — with no
+     padding of their own, so text rode and crossed its pill's
+     edge on both sides and the rows sat flush-left on their
+     pill borders instead of the panel's inner grid. That is the
+     containment species: one container, one border; every text
+     element lives inside it on the container's padding. */
   border: 1px solid color-mix(in srgb, var(--accent-1) 45%, var(--line, rgba(140,140,160,0.3)));
   box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-1) 14%, transparent);
   border-radius: var(--radius-card, 16px);
   background: var(--surface-1);
-  user-select: none; -webkit-user-select: none; touch-action: manipulation;
+}
+[data-design="r18"] .orbit-recommendation * {
+  /* Containment law (WS-9): descendants carry NO card chrome of
+     their own — no border, no shadow, no background pill. The
+     gesture grammar is all that descends. A future rule that
+     needs a bordered control inside this panel (the edit input
+     is the one legitimate exception, styled by name below) must
+     name that control and give it its own padding. */
+  user-select: none; -webkit-user-select: none;
 }
 [data-design="r18"] .orbit-recommendation-text {
   font: 400 14px/20px system-ui, sans-serif; color: var(--ink-1); margin: 0;
+  /* WS-9: the text lives inside the card on the card's padding —
+     it wraps within the panel, never across an edge. */
+  overflow-wrap: break-word; min-width: 0;
   user-select: text; -webkit-user-select: text;
 }
 [data-design="r18"] .orbit-recommendation-hint {
   font: 400 11.5px/15px system-ui, sans-serif; color: var(--ink-3); margin: 6px 0 0;
+  overflow-wrap: break-word;
+}
+[data-design="r18"] .orbit-recommendation-edit {
+  display: flex; flex-direction: column; min-width: 0; width: 100%;
+  box-sizing: border-box;
 }
 /* (The actions block's styles live with the selected-state
    treatment below - Round 3 disposed the long-press menu.) */
@@ -212,7 +235,12 @@
   font: 400 14px/20px system-ui, sans-serif; padding: 8px 10px;
 }
 [data-design="r18"] .orbit-recommendation-save {
-  background: none; border: none; cursor: pointer; padding: 6px 0 0;
+  background: none; border: none; cursor: pointer;
+  /* WS-9: same row treatment as the selected-state actions —
+     the label aligns to the panel's inner grid while the press
+     target stays inset from the card's edge on both sides. */
+  align-self: flex-start; padding: 6px 10px 0; margin: 0 -10px;
+  border-radius: 10px;
   color: var(--ink-1); font: 600 13px/18px system-ui, sans-serif;
 }
 
@@ -499,18 +527,34 @@
 [data-design="r18"] .orbit-recommendation-actions {
   display: flex; flex-direction: column; margin-top: 10px;
   border-top: 1px solid var(--line, rgba(140, 140, 160, 0.3)); padding-top: 10px;
+  min-width: 0; box-sizing: border-box; width: 100%;
 }
 [data-design="r18"] .orbit-recommendation-actions > button {
   background: none; border: none; cursor: pointer; text-align: left;
-  color: var(--ink-1); font: 500 13.5px/18px system-ui, sans-serif; padding: 7px 0;
+  color: var(--ink-1); font: 500 13.5px/18px system-ui, sans-serif;
+  /* WS-9: rows align to the panel's inner grid — the label sits
+     on the same inset as the draft text above it (the card's
+     14px padding minus the row's own 10px, offset by the -10px
+     margin), while the row's press box stays fully inside the
+     card, balanced on both sides — never flush on an edge. */
+  padding: 7px 10px; margin: 0 -10px; border-radius: 10px;
+  overflow-wrap: break-word; min-width: 0;
 }
 [data-design="r18"] .orbit-recommendation-actions > button.orbit-recommendation-place {
   align-self: flex-start; text-align: center;
   background: var(--opal-iris-gradient); color: #fff;
-  border-radius: 999px; padding: 9px 18px; font-weight: 600;
+  /* The primary pill is a real pill: its label lives inside it
+     on its own padding, and the pill itself aligns its left edge
+     to the panel's inner grid. */
+  border-radius: 999px; padding: 9px 18px; margin: 0; font-weight: 600;
+  max-width: 100%; box-sizing: border-box;
 }
 [data-design="r18"] .orbit-recommendation-place-note {
   font: 400 11.5px/15px system-ui, sans-serif; color: var(--ink-3); margin: 6px 0 2px;
+  /* WS-9: the unsent truth is panel text, inside the card on the
+     grid like every other element — no pill of its own to hang
+     out of (the pre-fix descendant rule gave it one). */
+  overflow-wrap: break-word; min-width: 0;
 }
 
 /* Retrospective chapters + stones + glimpse */

@@ -15,9 +15,8 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FounderStoryItem } from "./founderGraphSeed";
+import { IMAGE_STORY_MS, isVideoStorySrc } from "./storyPlayback";
 import { TopLayer } from "./TopLayer";
-
-const IMAGE_STORY_MS = 7000;
 
 type Props = {
   story: FounderStoryItem;
@@ -33,8 +32,7 @@ type Props = {
 function isVideoSrc(src?: string, mediaKind?: FounderStoryItem["mediaKind"]): boolean {
   if (mediaKind === "video") return true;
   if (mediaKind === "image") return false;
-  if (!src) return false;
-  return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);
+  return isVideoStorySrc(src);
 }
 
 const REPLY_BLOCKED =

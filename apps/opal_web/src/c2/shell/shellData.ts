@@ -66,6 +66,7 @@ import {
   settledKindForPlan,
   spineFromPlan,
 } from "./density";
+import { isStoryExpired } from "../../opalUi/storyPlayback";
 import type { PlanCardC2Input, PlanCardLimboC2, PlanStateFamilyC2 } from "../PlanCardC2";
 import { tieLabel } from "../../opalUi/relationshipTypes";
 import type {
@@ -75,11 +76,13 @@ import type {
   GraphListProjection,
   HomeOccasion,
   HomeProjection,
+  PlaceStoneProjection,
   TriviaGuessView,
   SettingsSectionProjection,
   ShellProjection,
   YouHubProjection,
 } from "./projections";
+import { seedCreateFor, type SeedSource } from "./flows2";
 import type { CenterOpeningProjection } from "./C2CenterOpening";
 
 export function initialsOf(name: string): string {
@@ -501,6 +504,381 @@ export function liveFeedFromRooms(
     });
   }
   return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Repair #22 (WS-5) - PLACE ENERGY                                    */
+/*                                                                     */
+/* One pure builder: placeStonesFromGraph. Design record:              */
+/* coordination/repair19/r22-place-energy-design.md (sections 4-5).    */
+/* NO FAKE HEAT: every unit of energy is a real record the viewer      */
+/* already lawfully holds, and a place with no qualifying record       */
+/* produces no stone. The builder's inputs are exactly the three       */
+/* reads homeFromSession makes - the plans list contract, the home     */
+/* feed's moment cards, and the visible-lives rooms - pre-filtered     */
+/* by the adapter's existing gates (private and viewer-settled         */
+/* plans are removed before the builder ever sees them).               */
+/* ------------------------------------------------------------------ */
+
+/** The live-window leg of NextPlan.indicator_state, in seconds
+ *  (the backend's @live_window_seconds: a plan with no end_at is
+ *  live for 180 minutes after its start). */
+const PLACE_LIVE_WINDOW_SECONDS = 180 * 60;
+
+function parseRecordDate(value?: string | null): Date | null {
+  if (!value || typeof value !== "string") return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * A plan's place-energy family, mirroring the backend's ONE
+ * indicator derivation (OpalCore.SocialFlow.NextPlan
+ * .indicator_state) over the plan contract's own fields:
+ *   live window open -> happening (a time fact: an active status,
+ *     start_at at or before now, and end_at at or after now - or,
+ *     with no end_at, started within the live window);
+ *   the viewer's response is canonically pending -> action;
+ *   status agreed -> ready;
+ *   any other active status -> forming.
+ * The past leg is familyOfStatus's (completed / expired). Statuses
+ * outside the governed set fall back to their familyOfStatus
+ * family, so the canon vocabulary (live / now / pending / aligned)
+ * keeps its meaning here too. A stale active plan outside its
+ * window keeps its status legs - the window is the only time leg,
+ * exactly as in the derivation mirrored.
+ */
+export function placePlanFamily(
+  plan: OpalPlanContract,
+  now: Date,
+): "happening" | "action" | "ready" | "forming" | "past" {
+  const status = (plan.status ?? "").toLowerCase();
+  if (familyOfStatus(status) === "past") return "past";
+  if (status === "tentative" || status === "agreed" || status === "changed") {
+    const start = parseRecordDate(plan.start_at);
+    if (start && start.getTime() <= now.getTime()) {
+      const end = parseRecordDate(plan.end_at);
+      if (end) {
+        if (end.getTime() >= now.getTime()) return "happening";
+      } else if (now.getTime() - start.getTime() <= PLACE_LIVE_WINDOW_SECONDS * 1000) {
+        return "happening";
+      }
+    }
+    if (plan.viewer_state === "pending") return "action";
+    if (status === "agreed") return "ready";
+    return "forming";
+  }
+  const family = familyOfStatus(status);
+  if (family === "happening" || family === "action" || family === "ready") return family;
+  return "forming";
+}
+
+/** The place inputs of the visible-lives read, extracted from the
+ *  raw room records with the SAME gate liveFeedFromRooms applies
+ *  (an id, status exactly "live") and the same place precedence
+ *  (the room's place_label, else its venue's display_name, else
+ *  its venue's name). A room whose record carries no place
+ *  contributes no place input - a place is never invented. */
+export function livePlaceInputsFromRooms(
+  rows: Array<{ live_room?: Record<string, unknown> } | Record<string, unknown>> | null | undefined,
+): Array<{ liveId: string; placeLabel: string; title: string; hostName: string | null }> {
+  const out: Array<{ liveId: string; placeLabel: string; title: string; hostName: string | null }> =
+    [];
+  for (const row of rows ?? []) {
+    const room = (
+      row && typeof row === "object" && "live_room" in row
+        ? (row as { live_room: Record<string, unknown> }).live_room
+        : row
+    ) as Record<string, unknown> | undefined;
+    if (!room || typeof room.id !== "string" || !room.id) continue;
+    if (room.status !== "live") continue;
+    const venue = (room.venue ?? {}) as Record<string, unknown>;
+    const placeLabel =
+      (typeof room.place_label === "string" && room.place_label) ||
+      (typeof venue.display_name === "string" && venue.display_name) ||
+      (typeof venue.name === "string" && venue.name) ||
+      null;
+    if (!placeLabel) continue;
+    const hostName =
+      (typeof room.host_display_name === "string" && room.host_display_name) ||
+      (typeof room.host_handle === "string" && room.host_handle) ||
+      null;
+    const title =
+      (typeof room.title === "string" && room.title) || `Live at ${placeLabel}`;
+    out.push({ liveId: room.id, placeLabel, title, hostName });
+  }
+  return out;
+}
+
+export type PlaceMomentInput = {
+  id: string;
+  placeLabel: string | null;
+  caption: string;
+  authorName: string;
+  authorUserId: string | null;
+  mine: boolean;
+};
+
+export type PlaceLiveInput = {
+  liveId: string;
+  placeLabel: string;
+  title: string;
+  hostName: string | null;
+};
+
+type PlaceAccumulator = {
+  key: string;
+  name: string;
+  order: number;
+  livesHere: PlaceStoneProjection["livesHere"];
+  happening: Array<{ plan: OpalPlanContract }>;
+  coming: Array<{ plan: OpalPlanContract; family: "action" | "ready" | "forming" }>;
+  memoryPlans: Array<{ plan: OpalPlanContract }>;
+  momentsHere: PlaceStoneProjection["momentsHere"];
+  momentInputs: PlaceMomentInput[];
+};
+
+function normalizePlaceKey(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+const PLACE_COMING_RANK: Record<"action" | "ready" | "forming", number> = {
+  action: 0,
+  ready: 1,
+  forming: 2,
+};
+
+/**
+ * THE place-energy computation (design record section 4). Pure:
+ * same records in, same stones out, at any now the caller names.
+ *
+ * Signals and weights:
+ *   S1 a live room at the place            weight 3
+ *   S2 a plan in its live window there     weight 2
+ *   S3 a plan awaiting the viewer there    weight 1
+ *   S4 a ready (agreed) plan there         weight 1
+ *   S5 a forming plan there                weight 1
+ *   S6 a moment posted from there          weight 1 (memory)
+ *   S7 a settled plan there                weight 1 (memory)
+ * MEMORY CANNOT IGNITE: the combined S6 + S7 contribution caps
+ * at 3, so a place carried only by its past can reach lit at
+ * most. Levels: 1-2 ember, 3-5 lit, 6+ radiant. Family: the
+ * strongest current signal in indicator precedence (happening,
+ * then action, ready, forming; past only when nothing current
+ * exists). Stones order by score, stable by first-seen order.
+ */
+export function placeStonesFromGraph(input: {
+  plans: OpalPlanContract[];
+  moments: PlaceMomentInput[];
+  lives: PlaceLiveInput[];
+  now: Date;
+}): PlaceStoneProjection[] {
+  const byKey = new Map<string, PlaceAccumulator>();
+  let order = 0;
+  const accFor = (rawName: string): PlaceAccumulator | null => {
+    const name = rawName.trim().replace(/\s+/g, " ");
+    if (!name) return null;
+    const key = normalizePlaceKey(name);
+    let acc = byKey.get(key);
+    if (!acc) {
+      acc = {
+        key,
+        name,
+        order: order++,
+        livesHere: [],
+        happening: [],
+        coming: [],
+        memoryPlans: [],
+        momentsHere: [],
+        momentInputs: [],
+      };
+      byKey.set(key, acc);
+    }
+    return acc;
+  };
+
+  for (const live of input.lives) {
+    const acc = accFor(live.placeLabel);
+    if (!acc) continue;
+    acc.livesHere.push({ liveId: live.liveId, title: live.title, hostName: live.hostName });
+  }
+
+  for (const plan of input.plans) {
+    // A virtual plan's place is a room online, not a place: its
+    // location string never groups, exactly as the seed law rules.
+    if (plan.plan_type === "virtual" || plan.online === true) continue;
+    const location = typeof plan.location === "string" ? plan.location : null;
+    if (!location) continue;
+    const acc = accFor(location);
+    if (!acc) continue;
+    const family = placePlanFamily(plan, input.now);
+    if (family === "happening") acc.happening.push({ plan });
+    else if (family === "past") acc.memoryPlans.push({ plan });
+    else acc.coming.push({ plan, family });
+  }
+
+  for (const moment of input.moments) {
+    if (!moment.placeLabel) continue;
+    const acc = accFor(moment.placeLabel);
+    if (!acc) continue;
+    acc.momentsHere.push({
+      momentId: moment.id,
+      caption: moment.caption,
+      authorName: moment.authorName,
+    });
+    acc.momentInputs.push(moment);
+  }
+
+  const stones: PlaceStoneProjection[] = [];
+  for (const acc of byKey.values()) {
+    const memoryRaw = acc.momentsHere.length + acc.memoryPlans.length;
+    if (
+      acc.livesHere.length === 0 &&
+      acc.happening.length === 0 &&
+      acc.coming.length === 0 &&
+      memoryRaw === 0
+    ) {
+      continue;
+    }
+    const memoryWeight = Math.min(memoryRaw, 3);
+    const score =
+      acc.livesHere.length * 3 +
+      acc.happening.length * 2 +
+      acc.coming.length * 1 +
+      memoryWeight;
+    const energyLevel: PlaceStoneProjection["energyLevel"] =
+      score >= 6 ? "radiant" : score >= 3 ? "lit" : "ember";
+    const comingSorted = [...acc.coming].sort(
+      (a, b) => PLACE_COMING_RANK[a.family] - PLACE_COMING_RANK[b.family],
+    );
+    const energyFamily: PlaceStoneProjection["energyFamily"] =
+      acc.livesHere.length > 0 || acc.happening.length > 0
+        ? "happening"
+        : comingSorted.length > 0
+          ? comingSorted[0].family
+          : "past";
+
+    const firstLive = acc.livesHere[0];
+    const firstHappening = acc.happening[0];
+    const firstComing = comingSorted[0];
+    const energyLine =
+      acc.livesHere.length > 0 && acc.happening.length > 0
+        ? "Live now, and a plan is happening here."
+        : acc.livesHere.length > 0
+          ? "Live here now."
+          : acc.happening.length > 0
+            ? "Happening here now."
+            : firstComing?.family === "action"
+              ? "A plan here is waiting on you."
+              : firstComing?.family === "ready"
+                ? "A plan is ready to happen here."
+                : firstComing
+                  ? "A plan is forming here."
+                  : acc.momentsHere.length > 0 && acc.memoryPlans.length > 0
+                    ? "Your people have moments and plans here."
+                    : acc.momentsHere.length > 0
+                      ? "Your people have posted from here."
+                      : "Your people have been here.";
+
+    const signalLines: string[] = [];
+    if (firstHappening) signalLines.push(`${firstHappening.plan.title} is happening now.`);
+    if (firstLive) {
+      signalLines.push(
+        firstLive.hostName ? `${firstLive.hostName} is live here.` : "A live is on here.",
+      );
+    }
+    if (firstComing) {
+      signalLines.push(
+        `${firstComing.plan.title} - ${LABEL_BY_FAMILY[firstComing.family]}.`,
+      );
+    }
+    if (signalLines.length < 3) {
+      if (acc.memoryPlans.length > 0) {
+        signalLines.push(`${acc.memoryPlans[0].plan.title} happened here.`);
+      } else if (acc.momentsHere.length > 0) {
+        signalLines.push(`${acc.momentsHere[0].authorName} posted from here.`);
+      }
+    }
+
+    // The door out: the place's strongest lawful seed source -
+    // a current plan, else a settled plan (its "again"), else a
+    // moment. A live-only place carries none (declared D-P4).
+    let startSeed: PlaceStoneProjection["startSeed"] = null;
+    const seedPlan =
+      acc.happening.length > 0
+        ? { plan: acc.happening[0].plan, family: "happening" as const }
+        : comingSorted.length > 0
+          ? comingSorted[0]
+          : acc.memoryPlans.length > 0
+            ? { plan: acc.memoryPlans[0].plan, family: "past" as const }
+            : null;
+    if (seedPlan) {
+      const plan = seedPlan.plan;
+      const source: SeedSource = {
+        kind: "plan",
+        planId: plan.id,
+        title: plan.title,
+        location: plan.location?.trim() ? plan.location.trim() : null,
+        placeLat: typeof plan.place_lat === "number" ? plan.place_lat : null,
+        placeLon: typeof plan.place_lon === "number" ? plan.place_lon : null,
+        planType: plan.plan_type ?? null,
+        viewerState: plan.viewer_state ?? null,
+        organizerUserId: plan.created_by_user_id ?? null,
+      };
+      startSeed = seedCreateFor(source, seedPlan.family === "past" ? "again" : "my-people");
+    } else if (acc.momentInputs.length > 0) {
+      const moment = acc.momentInputs[0];
+      const source: SeedSource = {
+        kind: "moment",
+        momentId: moment.id,
+        authorUserId: moment.authorUserId,
+        authorName: moment.authorName,
+        caption: moment.caption === "Memory" ? "" : moment.caption,
+        placeLabel: acc.name,
+        mine: moment.mine,
+      };
+      startSeed = seedCreateFor(source, "my-people");
+    }
+
+    stones.push({
+      key: acc.key,
+      name: acc.name,
+      energyScore: score,
+      energyLevel,
+      energyFamily,
+      energyLine,
+      signalLines: signalLines.slice(0, 3),
+      livesHere: acc.livesHere,
+      happeningPlans: acc.happening.map(({ plan }) => ({
+        planId: plan.id,
+        title: plan.title,
+        whenLine: planWhenLine(plan),
+      })),
+      comingPlans: comingSorted.map(({ plan, family }) => ({
+        planId: plan.id,
+        title: plan.title,
+        whenLine: planWhenLine(plan),
+        stateLabel: LABEL_BY_FAMILY[family],
+        stateFamily: family,
+        attendanceLine:
+          typeof plan.going_count === "number" && typeof plan.total_count === "number"
+            ? `${plan.going_count} of ${plan.total_count} going`
+            : null,
+      })),
+      memoryPlans: acc.memoryPlans.map(({ plan }) => ({
+        planId: plan.id,
+        title: plan.title,
+        whenLine: planWhenLine(plan),
+      })),
+      momentsHere: acc.momentsHere,
+      startSeed,
+    });
+  }
+
+  return stones
+    .map((stone, index) => ({ stone, index }))
+    .sort((a, b) => b.stone.energyScore - a.stone.energyScore || a.index - b.index)
+    .map(({ stone }) => stone);
 }
 
 /** State rank for Home composition (W9): what is happening now and
@@ -1016,6 +1394,11 @@ export function shellFromSession(
 export async function homeFromSession(
   session: ProductSession | null,
   bearer?: string,
+  /** R22 (WS-3): expiry is judged at this instant — a story
+   *  whose server expires_at has passed leaves the rail at
+   *  compose time, not just at the server's next list. Tests
+   *  pass an explicit instant; the app omits it (now). */
+  now: Date = new Date(),
 ): Promise<HomeProjection> {
   const name = session?.display_name ?? "You";
   const self = avatarOf(name);
@@ -1026,8 +1409,12 @@ export async function homeFromSession(
   // seeded story as a separate named circle). One entry per
   // person: multiple records by one author collapse into one
   // cell carrying their count.
-  let ownStory: { storyCount: number; mediaUrl: string | null; caption: string | null } | null =
-    null;
+  let ownStory: {
+    storyCount: number;
+    mediaUrl: string | null;
+    caption: string | null;
+    items: import("./projections").StoryPlayItemProjection[];
+  } | null = null;
   try {
     const res = await listTemporaryStories(bearer);
     const records = (res.stories ?? [])
@@ -1039,6 +1426,11 @@ export async function homeFromSession(
           (typeof r.display_name === "string" && r.display_name) ||
           null;
         if (!personName || typeof r.id !== "string") return null;
+        // R22 (WS-3): expiry is server truth carried on the
+        // record itself — a story past its expires_at leaves
+        // the rail here even if a stale list still carried it.
+        const expiresAt = typeof r.expires_at === "string" ? r.expires_at : null;
+        if (isStoryExpired(expiresAt, now)) return null;
         // Hunt-fix B-10: the rail carries the story's real media, so
         // the viewer has something true to play. A record with no
         // renderable media carries none — and its cell never opens
@@ -1049,6 +1441,7 @@ export async function homeFromSession(
           (rawMedia.startsWith("/") || rawMedia.startsWith("data:") || rawMedia.startsWith("http"))
             ? rawMedia
             : null;
+        const caption = typeof r.caption === "string" ? r.caption : null;
         return {
           id: r.id,
           authorId: typeof r.author_user_id === "string" ? r.author_user_id : null,
@@ -1058,7 +1451,13 @@ export async function homeFromSession(
           ringKind: r.seen ? ("seen" as const) : ("unseen" as const),
           storyCount: 1,
           mediaUrl,
-          caption: typeof r.caption === "string" ? r.caption : null,
+          caption,
+          expiresAt,
+          // R22 (WS-3): the playable unit the viewer dwells on.
+          // Only records with renderable media can be played.
+          items: mediaUrl
+            ? [{ id: r.id, mediaUrl, caption, expiresAt }]
+            : ([] as import("./projections").StoryPlayItemProjection[]),
         };
       })
       .filter((s): s is NonNullable<typeof s> => Boolean(s));
@@ -1067,10 +1466,12 @@ export async function homeFromSession(
       (s) => session?.user_id && s.authorId === session.user_id,
     );
     if (mine.length > 0) {
+      const ownItems = mine.flatMap((s) => s.items);
       ownStory = {
         storyCount: mine.length,
-        mediaUrl: mine[0].mediaUrl,
-        caption: mine[0].caption,
+        mediaUrl: ownItems[0]?.mediaUrl ?? mine[0].mediaUrl,
+        caption: ownItems[0]?.caption ?? mine[0].caption,
+        items: ownItems,
       };
     }
 
@@ -1083,8 +1484,15 @@ export async function homeFromSession(
         existing.storyCount += 1;
         existing.seen = existing.seen && s.seen;
         existing.ringKind = existing.seen ? "seen" : "unseen";
+        existing.items.push(...s.items);
+        // The cell's face is the first PLAYABLE story, so a
+        // media-less first record never blanks a playable cell.
+        if (!existing.mediaUrl && s.mediaUrl) {
+          existing.mediaUrl = s.mediaUrl;
+          existing.caption = s.caption;
+        }
       } else {
-        byPerson.set(key, { ...s });
+        byPerson.set(key, { ...s, items: [...s.items] });
       }
     }
     stories = [...byPerson.values()].map((s) => ({ ...s, personId: s.authorId }));
@@ -1173,11 +1581,17 @@ export async function homeFromSession(
   // means no live cards (honestly absent) - it never fails the feed
   // and never paints a live that was not read back.
   let lives: HomeProjection["feed"] = [];
+  let livePlaceInputs: PlaceLiveInput[] = [];
   try {
     const livesRes = await getLivesVisible(bearer);
     lives = liveFeedFromRooms(livesRes.lives ?? []);
+    // Repair #22 (WS-5): the same rooms feed place energy - the
+    // place inputs are extracted from the raw records with the
+    // same gate, never from the composed card's title.
+    livePlaceInputs = livePlaceInputsFromRooms(livesRes.lives ?? []);
   } catch {
     lives = [];
+    livePlaceInputs = [];
   }
   // W9 composition (state variety): the old composition put every
   // moment first and sliced plans off the end, so a moment-heavy
@@ -1277,6 +1691,8 @@ export async function homeFromSession(
         status: string;
         multiplier: number;
         anonymous: boolean;
+        corrected_guess?: string | null;
+        corrected_at?: string | null;
       }): TriviaGuessView => ({
         id: g.id,
         subjectUserId: g.subject_user_id,
@@ -1290,6 +1706,11 @@ export async function homeFromSession(
         guess: g.guess,
         status: g.status,
         multiplier: g.multiplier ?? 1,
+        // Repair #22 (WS-7): the correction rides the same read,
+        // so both parties render the corrected truth from the one
+        // record - the guesser sees what their answer became.
+        correctedGuess: g.corrected_guess ?? null,
+        correctedAt: g.corrected_at ?? null,
       });
       const facts = factsRes?.facts ?? [];
       trivia = {
@@ -1397,9 +1818,32 @@ export async function homeFromSession(
     });
   }
 
+  // Repair #22 (WS-5) - PLACE ENERGY: the stones for the stream,
+  // computed by the one builder from this adapter's own reads:
+  // the plans above (already stripped of the viewer's private and
+  // settled plans - those exclusions are the builder's input law),
+  // the feed moments (visibility-gated by the backend feed itself),
+  // and the visible lives. No new read is made for places.
+  const places = placeStonesFromGraph({
+    plans,
+    moments: moments
+      .filter((m): m is Extract<(typeof moments)[number], { kind: "memory" }> => m.kind === "memory")
+      .map((m) => ({
+        id: m.id,
+        placeLabel: m.placeLabel ?? null,
+        caption: m.contextLine,
+        authorName: m.authorName ?? m.authorLine,
+        authorUserId: m.authorUserId ?? null,
+        mine: m.mine === true,
+      })),
+    lives: livePlaceInputs,
+    now: new Date(),
+  });
+
   return {
     header: { ownAvatar: self },
     presence,
+    places,
     rail: {
       self: {
         avatar: self,

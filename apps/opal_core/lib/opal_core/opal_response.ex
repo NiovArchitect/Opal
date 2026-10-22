@@ -209,6 +209,26 @@ defmodule OpalCore.OpalResponse do
     solo? = solo_turn?(ents, raw)
     participants = if solo?, do: [], else: ents[:who] || ents["who"] || ents[:participants]
 
+    # Repair #22 (WS-10) — the live LLM path receives the SAME scoped
+    # context as the template floor. Before this, the draft context
+    # carried only the (possibly scope-blind) template, the global
+    # session history, and the instruction "keep facts from the
+    # template floor" — so a configured provider could only polish
+    # the wrong-brained opener, never correct it.
+    scope = orbit_scope(context_map)
+    scoped? = is_map(scope)
+
+    participants =
+      if scoped? and (is_nil(participants) or participants == []) do
+        case scope[:person] || scope["person"] do
+          %{display_name: n} when is_binary(n) -> [n]
+          %{"display_name" => n} when is_binary(n) -> [n]
+          _ -> participants
+        end
+      else
+        participants
+      end
+
     surprise? =
       ents[:surprise] == true or ents["surprise"] == true or
         ents[:visibility_mode] == "surprise" or ents["visibility_mode"] == "surprise"
@@ -256,6 +276,25 @@ defmodule OpalCore.OpalResponse do
             "If visibility is unknown and not consequential yet, stay neutral — do not ask about surprise."
       end
 
+    instruction =
+      if scoped? do
+        anchor_label =
+          case scope[:anchor] || scope["anchor"] do
+            %{label: n} when is_binary(n) -> n
+            %{"label" => n} when is_binary(n) -> n
+            _ -> "this orbit's anchor"
+          end
+
+        instruction <>
+          " This reply is generated INSIDE an anchored orbit (#{anchor_label}). The orbit's scoped context " <>
+          "(orbit_scope: the anchor, the scoped person/plan, and the anchored thread's actual messages) is the " <>
+          "ONLY context for this reply — derive the reply from the thread's own messages. The anchor is the " <>
+          "person this conversation is WITH: address them directly and never refer to them in the third " <>
+          "person as someone mentioned elsewhere."
+      else
+        instruction
+      end
+
     draft_ctx = %{
       action: "respond.center",
       intent: intent,
@@ -265,6 +304,9 @@ defmodule OpalCore.OpalResponse do
       account_id: account_id,
       conversation_id: conversation_id,
       recent_messages: recent,
+      # Repair #22 (WS-10): the orbit's scoped context, for the LLM
+      # path exactly as for the template floor (nil when unscoped).
+      orbit_scope: scope,
       # Solo: do not inject relationship memory people into the draft.
       instruction: instruction,
       skip_social_memory: solo?
@@ -1321,6 +1363,21 @@ defmodule OpalCore.OpalResponse do
       end
 
     cond do
+      # Repair #22 (WS-10) — a SHAPING / draft ask ("Shape what to
+      # say", "draft one reply I could send") is a request for a
+      # draft IN this room, never an idle turn for the sticky
+      # re-engagement to hijack. Inside an anchored orbit the draft
+      # is derived from THIS orbit's scoped context (the anchor
+      # thread's actual messages, the scoped plan) — see
+      # scoped_draft_reply/1. Unscoped, the ask falls to the
+      # deflection so the LLM path drafts from the message itself
+      # (its template-floor treatment), never the sticky nudge.
+      draft_request?(lower) ->
+        case scoped_draft_reply(context) do
+          draft when is_binary(draft) -> draft
+          nil -> @chat_deflection
+        end
+
       how_are_you?(lower) ->
         "I'm here and paying attention. What can I help with?"
 
@@ -1464,11 +1521,22 @@ defmodule OpalCore.OpalResponse do
   defp recent_mentioned_name(context) do
     history = get_in_ctx(context, [:conversation_history]) || []
 
+    # Repair #22 (WS-10) — the orbit's own anchor person is NEVER a
+    # "mentioned earlier" entity inside their own orbit: the room
+    # IS the conversation with them, so a mention of them in this
+    # room's history is the room working as intended, not a stale
+    # entity to revive in the third person. The anchor is removed
+    # from the candidate set at assembly-of-candidates time (the
+    # generation layer), so the nudge can only ever name someone
+    # genuinely outside this room.
+    anchor_names = scoped_anchor_first_names(context)
+
     known =
       (get_in_ctx(context, [:social, :frequent_contacts]) || [])
       |> Enum.map(fn c -> c[:display_name] || c["display_name"] end)
       |> Enum.filter(&(is_binary(&1) and &1 != ""))
       |> Enum.map(&first_name/1)
+      |> Enum.reject(&(String.downcase(&1) in anchor_names))
 
     history
     |> Enum.reverse()
@@ -1488,6 +1556,199 @@ defmodule OpalCore.OpalResponse do
       end
     end)
   end
+
+  # --- Repair #22 (WS-10): scoped-orbit generation -------------------------
+  #
+  # The wrong-brained opener's mechanism, in one place: a suggestion
+  # rendered inside an anchored orbit was produced by the GLOBAL
+  # chat path — the sticky re-engagement scanned the room's history
+  # for any frequent-contact name and revived it in the third
+  # person, because the context packet carried no scope at all (see
+  # OpalContext.assemble_orbit_scope). With the scope now IN the
+  # packet, generation inside an orbit obeys Orbit Law 2: help is
+  # derived from the viewer's scoped context for THIS anchor.
+
+  defp orbit_scope(context), do: get_in_ctx(context, [:orbit_scope])
+
+  # First names (downcased) of the people this orbit is anchored to:
+  # the scoped person and a person-anchor. These names are the room
+  # itself — never third-person material inside it.
+  defp scoped_anchor_first_names(context) do
+    scope = orbit_scope(context)
+
+    if is_map(scope) do
+      person_name =
+        case scope[:person] || scope["person"] do
+          %{display_name: n} -> n
+          %{"display_name" => n} -> n
+          _ -> nil
+        end
+
+      anchor_name =
+        case scope[:anchor] || scope["anchor"] do
+          %{type: "person", label: n} -> n
+          %{"type" => "person", "label" => n} -> n
+          _ -> nil
+        end
+
+      [person_name, anchor_name]
+      |> Enum.filter(&(is_binary(&1) and &1 != ""))
+      |> Enum.map(&(&1 |> first_name() |> String.downcase()))
+      |> Enum.uniq()
+    else
+      []
+    end
+  end
+
+  # A shaping / draft ask: the user wants Opal to draft words they
+  # could send in THIS conversation (the orbit's "Shape what to say"
+  # affordance sends exactly this shape, and users phrase it their
+  # own way too).
+  defp draft_request?(lower) when is_binary(lower) do
+    Regex.match?(
+      ~r/\bshape what to say\b|\bdraft (one|a|the) reply\b|\bdraft (me )?(one|a|something) to (say|send)\b|\bhelp me (shape|draft|write|word)\b|\bwhat should i say\b|\bwhat (do|can) i say\b/i,
+      lower
+    )
+  end
+
+  defp draft_request?(_), do: false
+
+  # The scoped draft: a reply the viewer could send in the orbit's
+  # own thread, derived ONLY from this orbit's scoped context, in
+  # strict order of evidentiary strength:
+  #   1. the thread's latest peer message, when it asks something
+  #      answerable by a direct transform of its own words (the
+  #      draft answers the anchor's actual last ask, in the second
+  #      person — the anchor is spoken TO, never spoken ABOUT);
+  #   2. the scoped plan, when its title is a sendable clause;
+  #   3. a truthful minimal form addressed to the anchor (no
+  #      content claimed beyond the room's own existence).
+  # Nil when the turn carries no orbit scope at all — the caller
+  # then keeps the ordinary unscoped path.
+  defp scoped_draft_reply(context) do
+    scope = orbit_scope(context)
+
+    if is_map(scope) do
+      thread = scope[:thread] || scope["thread"]
+      messages = if is_map(thread), do: thread[:messages] || thread["messages"] || [], else: []
+      plan = scope[:plan] || scope["plan"]
+      person = scope[:person] || scope["person"]
+
+      anchor_label =
+        case scope[:anchor] || scope["anchor"] do
+          %{type: "person", label: n} -> n
+          %{"type" => "person", "label" => n} -> n
+          _ -> nil
+        end
+
+      anchor_first = (scope_display_name(person) || anchor_label) |> first_name()
+
+      last_peer =
+        messages
+        |> Enum.reverse()
+        |> Enum.find(fn m -> (m[:role] || m["role"]) == "peer" end)
+
+      peer_body =
+        case last_peer do
+          %{} = m -> m[:body] || m["body"] || ""
+          _ -> ""
+        end
+
+      cond do
+        draft = answer_peer_question(peer_body) ->
+          draft
+
+        draft = draft_from_plan(plan) ->
+          draft
+
+        anchor_first != "" ->
+          "Hi #{anchor_first} — picking this back up here. Let's keep going where we left off."
+
+        true ->
+          nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp scope_display_name(%{display_name: n}) when is_binary(n), do: n
+  defp scope_display_name(%{"display_name" => n}) when is_binary(n), do: n
+  defp scope_display_name(_), do: nil
+
+  # Answer the anchor's latest question with a draft built from the
+  # question's own clause — the thread content itself, transformed
+  # from ask to assent, never paraphrased from elsewhere. Returns
+  # nil for shapes with no honest transform (the caller falls
+  # through to the plan / minimal forms rather than inventing one).
+  defp answer_peer_question(body) when is_binary(body) and body != "" do
+    # The ask is usually the last clause ("Sorry I missed you
+    # earlier — can we talk tonight about Saturday?"): work on the
+    # trailing question segment when one is present.
+    segment =
+      body
+      |> String.split(~r/[—–]/)
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+      |> List.last()
+      |> to_string()
+
+    # Match case-insensitively but EXTRACT from the original
+    # segment: the clause keeps the thread's own capitalization
+    # ("Saturday" stays "Saturday").
+    cond do
+      m = Regex.run(~r/^can we (.+?)\s*\??\s*$/i, segment) ->
+        "Yes — let's #{Enum.at(m, 1)}."
+
+      m = Regex.run(~r/^could we (.+?)\s*\??\s*$/i, segment) ->
+        "Yes — let's #{Enum.at(m, 1)}."
+
+      m = Regex.run(~r/^do you want to (.+?)\s*\??\s*$/i, segment) ->
+        "Yes — let's #{Enum.at(m, 1)}."
+
+      m = Regex.run(~r/^are we still on for (.+?)\s*\??\s*$/i, segment) ->
+        "Yes — we're still on for #{Enum.at(m, 1)}."
+
+      true ->
+        nil
+    end
+  end
+
+  defp answer_peer_question(_), do: nil
+
+  # A sendable draft from the scoped plan when its title reads as a
+  # clause the viewer could send ("Talk tonight about Saturday" →
+  # "Let's talk tonight about Saturday."). Titles that do not start
+  # with a sendable verb are not forced into a sentence — nil, and
+  # the minimal form serves instead.
+  @draft_title_verbs ~w(talk meet call grab get head plan catch do see try)
+
+  defp draft_from_plan(plan) when is_map(plan) do
+    title = plan[:title] || plan["title"]
+    time_label = plan[:time_label] || plan["time_label"]
+
+    if is_binary(title) and String.trim(title) != "" do
+      first_word =
+        title |> String.trim() |> String.split(~r/\s+/) |> List.first() |> to_string()
+
+      if String.downcase(first_word) in @draft_title_verbs do
+        clause = title |> String.trim() |> decapitalize_first()
+        when_bit = if is_binary(time_label) and time_label != "", do: " — #{time_label}", else: ""
+        "Let's #{clause}#{when_bit}."
+      else
+        nil
+      end
+    else
+      nil
+    end
+  end
+
+  defp draft_from_plan(_), do: nil
+
+  defp decapitalize_first(<<first::utf8, rest::binary>>),
+    do: String.downcase(<<first::utf8>>) <> rest
+
+  defp decapitalize_first(s), do: s
 
   # --- helpers ---------------------------------------------------------------
 

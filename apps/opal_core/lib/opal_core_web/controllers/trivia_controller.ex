@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.TriviaController do
   GET  /api/v1/product/trivia/guesses
   POST /api/v1/product/trivia/guesses
   POST /api/v1/product/trivia/guesses/:id/validate
+  POST /api/v1/product/trivia/guesses/:id/correct
 
   Every leg is session-scoped: the guesser is the session user,
   the validator is the session user acting as subject. Identity
@@ -105,6 +106,51 @@ defmodule OpalCoreWeb.TriviaController do
         |> json(%{
           "error_code" => "already_validated",
           "message" => "That guess was already answered."
+        })
+
+      {:error, _} ->
+        conn |> put_status(422) |> json(%{"error_code" => "invalid"})
+    end
+  end
+
+  # Repair #22 (WS-7) - the correction leg: the subject answers
+  # "Not quite" WITH the right answer. Body: {"correction": "..."}.
+  # Session-scoped like every leg: the corrector is the session
+  # user acting as subject; identity never arrives as a param.
+  def correct(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+
+    case Trivia.correct_guess(user_id, id, params["correction"]) do
+      {:ok, guess, capsule_written} ->
+        contract =
+          guess
+          |> Guess.to_contract()
+          |> Map.put("capsule_written", capsule_written)
+
+        json(conn, %{"guess" => contract})
+
+      {:error, :not_found} ->
+        conn |> put_status(404) |> json(%{"error_code" => "not_found"})
+
+      {:error, :already_validated} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "already_validated",
+          "message" => "That guess was already answered."
+        })
+
+      {:error, %Ecto.Changeset{} = cs} ->
+        conn
+        |> put_status(422)
+        |> json(%{
+          "error_code" => "invalid",
+          "errors" =>
+            Ecto.Changeset.traverse_errors(cs, fn {msg, opts} ->
+              Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+                opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+              end)
+            end)
         })
 
       {:error, _} ->

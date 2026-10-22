@@ -440,6 +440,7 @@ defmodule OpalCoreWeb.Router do
     get("/trivia/guesses", TriviaController, :index)
     post("/trivia/guesses", TriviaController, :create_guess)
     post("/trivia/guesses/:id/validate", TriviaController, :validate)
+    post("/trivia/guesses/:id/correct", TriviaController, :correct)
 
     # Phase 10A / D-2 — celebrations (birthday / anniversary) + curation
     get("/celebrations", CelebrationController, :index)

@@ -48,6 +48,7 @@ import {
   type EngagementState,
   type HomeComment,
 } from "./homeEngagementStore";
+import { liveStories, storyMediaKind } from "./storyPlayback";
 
 /** Relative feed timestamp from an ISO instant. Ticks when callers re-render. */
 export function humanWhen(iso: unknown, nowMs = Date.now()): string {
@@ -174,7 +175,12 @@ export function productionStoryToItem(obj: Record<string, unknown>): FounderStor
     caption: typeof obj.caption === "string" ? obj.caption : undefined,
     when: humanWhen(createdAt),
     createdAt,
-    mediaKind: "image",
+    // R22 (WS-3): carry the contract's expires_at through, and
+    // read the media kind from the ref — a video story posted as
+    // a legacy ref (data:/https:) must play its actual length in
+    // the viewer, not hold as a 7s image.
+    expiresAt: typeof obj.expires_at === "string" ? obj.expires_at : undefined,
+    mediaKind: storyMediaKind(media),
     pulseState,
   };
 }
@@ -190,8 +196,12 @@ export function resolveHomeStories(opts: {
   productionStories?: FounderStoryItem[] | null;
   /** When omitted, reads `isFounderSeedEnabled()`. */
   founderSeedEnabled?: boolean;
+  /** R22 (WS-3): expiry is judged at this instant. The server
+   *  list already withholds expired stories; this drops any that
+   *  expired while the app sat open. Defaults to now. */
+  now?: Date;
 }): FounderStoryItem[] {
-  const prod = opts.productionStories || [];
+  const prod = liveStories(opts.productionStories || [], opts.now ?? new Date());
   if (prod.length > 0) return prod;
   const seedOn =
     typeof opts.founderSeedEnabled === "boolean"

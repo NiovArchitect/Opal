@@ -148,6 +148,7 @@ defmodule OpalCore.OpalContextTest do
              :group_tastes,
              :location,
              :message,
+             :orbit_scope,
              :preferences,
              :relationships,
              :social,
@@ -202,6 +203,7 @@ defmodule OpalCore.OpalContextTest do
              :group_tastes,
              :location,
              :message,
+             :orbit_scope,
              :preferences,
              :relationships,
              :social,
@@ -211,6 +213,10 @@ defmodule OpalCore.OpalContextTest do
              :user
            ]
     assert ctx.trust_tier == "new"
+    # Repair #22 (WS-10): an unscoped assemble carries no orbit
+    # scope — the slice exists in the packet contract and is nil
+    # until a scoped session supplies it (see r22_orbit_scope_test).
+    assert ctx.orbit_scope == nil
     assert ctx.financial == nil
     assert ctx.group_tastes == []
     assert ctx.conversation_history == []

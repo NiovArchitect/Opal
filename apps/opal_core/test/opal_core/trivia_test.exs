@@ -126,6 +126,89 @@ defmodule OpalCore.TriviaTest do
     assert CapsuleRead.list_for_owner_browse(subject.id) == []
   end
 
+  test "correction fixes the record with provenance and enriches the subject wallet with the corrected fact" do
+    guesser = user!("tv-g7")
+    subject = user!("tv-s7")
+    relate!(guesser.id, subject.id, "close_friend")
+
+    assert {:ok, guess} = Trivia.record_guess(guesser.id, subject.id, guess_attrs())
+    # The claim on record: birthday June 14. The truth: June 15.
+
+    # A non-subject cannot correct.
+    assert {:error, :not_found} = Trivia.correct_guess(guesser.id, guess.id, "June 15")
+
+    assert {:ok, corrected, true} = Trivia.correct_guess(subject.id, guess.id, "June 15")
+
+    # Status is its own truth - corrected, never validated.
+    assert corrected.status == "corrected"
+    # Provenance: the original claim is untouched...
+    assert corrected.guess == "June 14"
+    assert corrected.fact_summary == "Maya's birthday is June 14"
+    # ...and the correction carries what it was corrected to,
+    # by whom, and when.
+    assert corrected.corrected_guess == "June 15"
+    assert corrected.corrected_fact_summary == "Maya's birthday is June 15"
+    assert corrected.corrected_by_user_id == subject.id
+    assert %DateTime{} = corrected.corrected_at
+    assert is_binary(corrected.capsule_id)
+
+    # The subject's wallet holds the CORRECTED fact, tagged as a
+    # correction - not the wrong guess, not a plain confirmation.
+    [capsule] = CapsuleRead.list_for_owner_browse(subject.id)
+    assert PersonalMemoryCapsule.summary(capsule) == "Maya's birthday is June 15"
+    assert capsule.provenance["source_kind"] == "trivia_correction"
+    assert capsule.provenance["source_label"] == "Corrected in Know Me? Trivia"
+    # The guesser's wallet stays untouched.
+    assert CapsuleRead.list_for_owner_browse(guesser.id) == []
+
+    # The wire contract carries the correction to BOTH parties.
+    contract = OpalCore.Trivia.Guess.to_contract(corrected)
+    assert contract["status"] == "corrected"
+    assert contract["corrected_guess"] == "June 15"
+    assert contract["corrected_by_user_id"] == subject.id
+    assert is_binary(contract["corrected_at"])
+
+    # Correction is one-shot, like validation.
+    assert {:error, :already_validated} =
+             Trivia.correct_guess(subject.id, guess.id, "June 16")
+
+    assert {:error, :already_validated} =
+             Trivia.validate_guess(subject.id, guess.id, "right")
+  end
+
+  test "a corrected guess scores nothing: no points, not validated, counted as corrected" do
+    guesser = user!("tv-g8")
+    subject = user!("tv-s8")
+    relate!(guesser.id, subject.id, "friend")
+
+    assert {:ok, guess} = Trivia.record_guess(guesser.id, subject.id, guess_attrs())
+    assert {:ok, _corrected, _} = Trivia.correct_guess(subject.id, guess.id, "June 15")
+
+    assert {:ok, %{score: score}} = Trivia.list_for_user(guesser.id)
+    assert score["points"] == 0
+    assert score["validated_count"] == 0
+    assert score["corrected_count"] == 1
+  end
+
+  test "empty and no-op corrections are refused and leave the guess pending" do
+    guesser = user!("tv-g9")
+    subject = user!("tv-s9")
+    relate!(guesser.id, subject.id, "friend")
+
+    assert {:ok, guess} = Trivia.record_guess(guesser.id, subject.id, guess_attrs())
+
+    assert {:error, %Ecto.Changeset{}} = Trivia.correct_guess(subject.id, guess.id, "")
+    assert {:error, %Ecto.Changeset{}} = Trivia.correct_guess(subject.id, guess.id, "   ")
+    # Repeating the claim is not a correction.
+    assert {:error, %Ecto.Changeset{}} = Trivia.correct_guess(subject.id, guess.id, "June 14")
+    assert {:error, :invalid} = Trivia.correct_guess(subject.id, guess.id, nil)
+
+    assert {:ok, %{about_me: [still]}} = Trivia.list_for_user(subject.id)
+    assert still.status == "pending"
+    assert still.corrected_guess == nil
+    assert CapsuleRead.list_for_owner_browse(subject.id) == []
+  end
+
   test "an anonymous guess withholds the guesser from its contract" do
     guesser = user!("tv-g6")
     subject = user!("tv-s6")

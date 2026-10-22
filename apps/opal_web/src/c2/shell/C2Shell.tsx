@@ -109,6 +109,7 @@ import type {
   BondProjection,
   C2Route,
   GraphDetailProjection,
+  PlaceStoneProjection,
 } from "./projections";
 import {
   buildSettingsSection,
@@ -130,6 +131,7 @@ import {
   type SeedCreate,
 } from "./flows2";
 import { BondStone } from "./BondStone";
+import { PlaceStoneView } from "./PlaceStone";
 import { C2Home } from "./C2Home";
 import { C2Graphs, C2GraphDetail } from "./C2Graphs";
 import { C2YouHub, C2SettingsSection, HUB_GROUPS } from "./C2You";
@@ -232,12 +234,18 @@ export function C2Shell() {
     lockParty?: boolean;
     participantNames?: string[];
     /** Repair #21 (W-17): a creation tense's carried When words
-     *  + the tense itself (the form's stone anchor). */
+     *  + the tense itself (the form's marble anchor). */
     whenLabel?: string;
     tense?: CreationTense;
   } | null>(null);
   // Repair #21 (W-12) - the open bond (the pair's shared stone).
   const [bond, setBond] = useState<BondProjection | null>(null);
+
+  // Repair #22 (WS-5) - the open place view. The stone's own
+  // projection IS the view's data (finished by the one builder in
+  // the Home adapter), so opening is a state set, not a load: the
+  // view holds nothing the stone did not already carry.
+  const [placeStone, setPlaceStone] = useState<PlaceStoneProjection | null>(null);
 
   /** W-12: tapping a person lands on the shared stone. The bond
    *  loads through the real shared reads; a person with no bond
@@ -314,10 +322,10 @@ export function C2Shell() {
     [bearer, session],
   );
 
-  /** Repair #21 (W-17): a creation-sheet tense stone opens the
+  /** Repair #21 (W-17): a creation-sheet tense opens the
    *  ONE real graph-create flow carrying its tense - the When
    *  words the tense honestly has ("Now" for present) and the
-   *  stone anchor the form renders. Posting a forming plan IS
+   *  marble anchor the form renders. Posting a forming plan IS
    *  posting in Opal: the future tense is this flow's native
    *  home, not a settings detour. */
   const creationPlan = useCallback((tense: CreationTense) => {
@@ -933,6 +941,7 @@ export function C2Shell() {
                 onReplyToPerson={replyToPerson}
                 onSeedDoor={seedDoor}
                 onCreationPlan={creationPlan}
+                onOpenPlace={(place) => setPlaceStone(place)}
               />
             </div>
           ) : null}
@@ -1288,6 +1297,21 @@ export function C2Shell() {
         />
       ) : null}
 
+      {placeStone ? (
+        <PlaceStoneView
+          place={placeStone}
+          onClose={() => setPlaceStone(null)}
+          onOpenGraph={(planId) => {
+            setPlaceStone(null);
+            openGraph(planId, "home");
+          }}
+          onStartPlan={(place) => {
+            setPlaceStone(null);
+            if (place.startSeed) seedDoor(place.startSeed);
+          }}
+        />
+      ) : null}
+
       {bond ? (
         <BondStone
           bond={bond}
@@ -1594,6 +1618,7 @@ function HomeRoute(props: {
   onReplyToPerson?: (authorUserId: string) => void;
   onSeedDoor?: (create: SeedCreate) => void;
   onCreationPlan?: (tense: CreationTense) => void;
+  onOpenPlace?: (place: PlaceStoneProjection) => void;
 }) {
   const [projection, setProjection] = useState<Awaited<ReturnType<typeof homeFromSession>> | null>(null);
   useEffect(() => {
@@ -1631,6 +1656,7 @@ function HomeRoute(props: {
         replyToPerson: props.onReplyToPerson,
         seedDoor: props.onSeedDoor,
         creationPlan: props.onCreationPlan,
+        openPlace: props.onOpenPlace,
       }}
     />
   );
@@ -2041,7 +2067,7 @@ export function CreateFlow({
     lockParty?: boolean;
     participantNames?: string[];
     /** Repair #21 (W-17): creation tense - the When words it
-     *  carries in, and the tense whose stone anchors the form. */
+     *  carries in, and the tense whose marble anchors the form. */
     whenLabel?: string;
     tense?: CreationTense;
   };
@@ -2204,12 +2230,14 @@ export function CreateFlow({
         </div>
         <div className="c2s-entry-body">
           {prefill?.tense ? (
-            /* Repair #21 (W-17) - the stone anchor: entered from
+            /* Repair #21 (W-17) - the anchor: entered from
              * the creation sheet, the form is anchored by the
-             * stone being made - a stone carrying the tense's
-             * state fire, named by the What words as they are
-             * typed. Posting a forming plan IS posting: the
-             * future tense's anchor burns forming violet. */
+             * marble disc being made - the shared marble grain
+             * ringed in the tense's state fire (Repair #22
+             * R22-E: the avocado stone shape is retired here
+             * too), named by the What words as they are typed.
+             * Posting a forming plan IS posting: the future
+             * tense's anchor burns forming violet. */
             <div
               className="c2s-create-anchor"
               data-tense={prefill.tense}

@@ -4484,6 +4484,14 @@ export type TriviaGuessContract = {
   status: string;
   capsule_id: string | null;
   capsule_written?: boolean;
+  /** Repair #22 (WS-7) - the correction record, present when
+   *  status is "corrected": what the answer was corrected to,
+   *  the corrected fact, who corrected it (the subject), and
+   *  when. The original guess above is never rewritten. */
+  corrected_guess?: string | null;
+  corrected_fact_summary?: string | null;
+  corrected_by_user_id?: string | null;
+  corrected_at?: string | null;
   created_at: string | null;
 };
 
@@ -4491,7 +4499,7 @@ export async function listTriviaGuesses(bearer?: string) {
   return request<{
     about_me: TriviaGuessContract[];
     mine: TriviaGuessContract[];
-    score: { validated_count: number; points: number };
+    score: { validated_count: number; points: number; corrected_count?: number };
   }>("/api/v1/product/trivia/guesses", { bearer: resolveBearer(bearer) });
 }
 
@@ -4531,6 +4539,25 @@ export async function validateTriviaGuess(
       method: "POST",
       bearer: resolveBearer(bearer),
       body: JSON.stringify({ verdict }),
+    },
+  );
+}
+
+/** Repair #22 (WS-7) - the correction leg of "Not quite": the
+ *  subject states the right answer and the record is fixed with
+ *  provenance (see OpalCore.Trivia.correct_guess). The guesser's
+ *  original words stay on the record; the correction is additive. */
+export async function correctTriviaGuess(
+  guessId: string,
+  correction: string,
+  bearer?: string,
+) {
+  return request<{ guess: TriviaGuessContract }>(
+    `/api/v1/product/trivia/guesses/${encodeURIComponent(guessId)}/correct`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ correction }),
     },
   );
 }

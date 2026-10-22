@@ -287,7 +287,8 @@ html[data-mode="light"] #root {
   border: 1px solid var(--line-1);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 16px;
+  /* R22 WS-4: the plan stone carries the stream's one inset. */
+  padding: var(--stream-inset);
   color: var(--ink-1);
   font: var(--type-body);
   transition: border-color var(--motion-settle), background var(--motion-settle);

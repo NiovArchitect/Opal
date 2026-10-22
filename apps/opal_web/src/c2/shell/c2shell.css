@@ -260,15 +260,15 @@
   .c2s-dock-slot[data-active="1"] {
     color: var(--ink-1);
   }
-  .c2s-dock-slot[data-active="1"]::after {
-    content: "";
-    width: 4px;
-    height: 4px;
-    border-radius: 999px;
-    background: var(--accent-1);
-    position: absolute;
-    bottom: 5px;
-  }
+  /* Repair #22 (WS-8): the active slot's DOT is dead (founder,
+   * 2026-10-21: it "takes space up in the navigation pad; the
+   * selection lighting up is already enough"). No ::after marker
+   * renders under any slot or the center orb, in any mode - the
+   * W-10 lighting below (glyph + label + center disc) is the ONLY
+   * selection signal, and aria-current keeps the state in the
+   * accessibility tree. The dot was absolutely positioned, so its
+   * removal changes no pad geometry. Pinned in
+   * r22DockContract.test.tsx. */
 
   .c2s-dock-center {
     flex: 1;
@@ -308,7 +308,13 @@
    * R21 close-out frames showed a pad where NO slot read active
    * (a 4px dot under one label, nothing on the center orb).
    * Additive classes only (c2s-dock-label / data-active on the
-   * center button); the frost strip is untouched. */
+   * center button); the frost strip is untouched.
+   * Repair #22 (WS-8): the dot that rode under the active slot
+   * and the center orb is REMOVED (founder: lighting alone is
+   * enough) - this lighting is now the whole signal, and it is
+   * deliberately redundant across channels so no surface reads
+   * ambiguous: glyph (accent + scale), label (accent + 700),
+   * center disc (accent ring + glow), plus aria-current. */
   .c2s-dock-slot[data-active="1"] .c2s-dock-glyph {
     color: var(--accent-1);
     transform: scale(1.12);
@@ -317,27 +323,11 @@
     font-weight: 700;
     color: var(--accent-1);
   }
-  .c2s-dock-slot[data-active="1"]::after {
-    width: 6px;
-    height: 6px;
-    bottom: 4px;
-  }
   .c2s-dock-center[data-active="1"] .c2s-dock-center-disc {
     border-color: var(--accent-1);
     box-shadow:
       0 0 0 2px color-mix(in srgb, var(--accent-1) 55%, transparent),
       0 0 16px color-mix(in srgb, var(--accent-1) 35%, transparent);
-  }
-  .c2s-dock-center[data-active="1"]::after {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--accent-1);
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
   }
   .c2s-dock-center {
     position: relative;
@@ -504,7 +494,9 @@
     gap: var(--space-4);
     overflow-x: auto;
     overflow-y: visible;
-    padding: var(--space-4) 0 var(--space-2);
+    /* R22 WS-4: the rail's bottom spacing is the block rhythm's
+     * job (one --stream-gap to the next block), never its own. */
+    padding: var(--space-4) 0 0;
     scrollbar-width: none;
   }
   .c2s-stones::-webkit-scrollbar {
@@ -550,30 +542,79 @@
   }
   /* The live ring is a SPECIAL STATE and carries the
    * signature material (W-19 slice): the marbled fire sweep
-   * (the orb palette in a conic turn), a single point of
-   * light riding the ring at its top. Its one-sentence
+   * (the orb palette in a conic turn). Its one-sentence
    * justification: marble marks a person LIVE right now -
    * presence you can feel, in the material the brand signs
-   * its living moments with. Quiet binds: the sweep is
-   * frozen, never animated, at story scale. */
+   * its living moments with. The sweep itself stays frozen;
+   * since Repair #22 (R22-A) the MOTION rides the orbit
+   * layer below (a point of light traveling the ring) -
+   * the material says live, the travel says how alive. */
   .c2s-stone[data-state="happening"] .c2s-stone-ring {
     border: 1.5px solid transparent;
     background:
       linear-gradient(var(--canvas), var(--canvas)) padding-box,
       conic-gradient(from 210deg, var(--orb-fire-cyan), var(--orb-fire-violet), var(--orb-fire-magenta), var(--orb-fire-gold), var(--orb-fire-cyan)) border-box;
-    box-shadow: 0 0 14px var(--orb-indicator-happening-glow);
+    box-shadow: 0 0 var(--stream-glow-room) var(--orb-indicator-happening-glow);
   }
-  .c2s-stone[data-state="happening"] .c2s-stone-ring::after {
-    content: "";
+  /* Repair #22 (R22-A, WS-2) - ORBITAL TRACKING: a point of
+   * light rides the ring, in the brand orb's motion language
+   * (its rings rotate with dots riding them). The old frozen
+   * ::after point on the live ring is superseded by this
+   * traveling dot - under reduced motion the orbit rests and
+   * the dot sits at the top, exactly where the frozen point
+   * sat, so the static reading is unchanged. The motion
+   * MEANS state (one sentence): the faster and brighter the
+   * light travels, the more alive the moment - Live orbits
+   * fastest and brightest, New slower and softer, Loved
+   * slowest and dimmest, Seen and the empty self door rest.
+   * Transform-only rotation on an absolutely positioned
+   * layer: no layout, no scroll thrash. */
+  .c2s-stone-orbit {
     position: absolute;
-    top: -3.5px;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .c2s-stone-dot {
+    position: absolute;
+    top: -2.5px;
     left: 50%;
+    margin-left: -2.5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    opacity: 0;
+  }
+  .c2s-stone[data-state="happening"] .c2s-stone-orbit {
+    animation: c2s-stone-orbit 7s linear infinite;
+  }
+  .c2s-stone[data-state="happening"] .c2s-stone-dot {
+    top: -3.5px;
     margin-left: -3px;
     width: 6px;
     height: 6px;
-    border-radius: 50%;
+    opacity: 1;
     background: var(--orb-point-light);
     box-shadow: 0 0 7px var(--orb-point-light);
+  }
+  .c2s-stone[data-state="new"] .c2s-stone-orbit {
+    animation: c2s-stone-orbit 26s linear infinite;
+  }
+  .c2s-stone[data-state="new"] .c2s-stone-dot {
+    opacity: 0.85;
+    background: var(--orb-fire-violet);
+    box-shadow: 0 0 5px var(--orb-fire-violet);
+  }
+  .c2s-stone[data-state="loved"] .c2s-stone-orbit {
+    animation: c2s-stone-orbit 44s linear infinite;
+  }
+  .c2s-stone[data-state="loved"] .c2s-stone-dot {
+    opacity: 0.55;
+    background: var(--orb-ring-metal);
+    box-shadow: 0 0 4px var(--orb-ring-metal);
+  }
+  @keyframes c2s-stone-orbit {
+    to { transform: rotate(360deg); }
   }
   .c2s-stone[data-state="loved"] .c2s-stone-ring {
     border-color: color-mix(in srgb, var(--orb-ring-metal) 55%, transparent);
@@ -625,6 +666,14 @@
     font-size: 16px;
     border: 2px solid var(--canvas);
   }
+  /* Repair #22 (R22-A, WS-1) - caption balance for a rail of
+   * many: the NAME is the primary line (caption size, semibold,
+   * ink-1) and the STATE WORD is a true caption under it - one
+   * step smaller, medium weight, ink-2 - identical metrics on
+   * every cell, the self door included, so a rail of 6+ reads
+   * as one rhythm instead of two competing lines per stone.
+   * Both lines keep fixed line-heights: no cell rides higher
+   * or lower than its neighbours. */
   .c2s-stone-name {
     font: var(--type-caption);
     font-weight: 600;
@@ -635,12 +684,20 @@
     text-overflow: ellipsis;
   }
   .c2s-stone-sub {
-    font: var(--type-caption);
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     color: var(--ink-2);
-    margin: 0;
+    margin: 1px 0 0;
+    white-space: nowrap;
   }
   @media (prefers-reduced-motion: reduce) {
     .c2s-stone { animation: none; }
+    /* R22-A: the orbit rests - the dot stays at the top of the
+     * ring and the ring material + caption word carry the same
+     * state meaning with no motion at all. */
+    .c2s-stone-orbit { animation: none; }
   }
 
   /* ---------- the braided stream (Repair #21, W-9 layout law) --
@@ -660,8 +717,12 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    padding: var(--space-3) 2px var(--space-4);
+    /* R22 WS-4 rhythm law: the gap IS --stream-gap and the field
+     * hugs its cards (no private padding) - the block rhythm above
+     * and the gap inside are the same beat, so the braid reads as
+     * one current with everything upstream of it. */
+    gap: var(--stream-gap);
+    padding: 0;
     background:
       linear-gradient(115deg,
         color-mix(in srgb, var(--orb-indicator-forming) 5%, transparent),
@@ -682,20 +743,22 @@
   }
   .c2s-stream > .c2s-memory-card,
   .c2s-stream > .c2s-card[data-testid^="c2-feed-discovery"] {
-    flex-basis: calc(50% - var(--space-3) / 2);
+    flex-basis: calc(50% - var(--stream-gap) / 2);
   }
   .c2s-stream > .c2s-memory-card:nth-of-type(even) {
-    margin-top: 14px;
+    /* The braid's stagger, tokenized: half the stream gap, an
+     * offset inside the rhythm - never a private 14px. */
+    margin-top: var(--stream-stagger);
   }
   /* Wide stones bend the stream: successive full-berth cards
    * sit a breath off the center line, alternating - the flow
    * visibly parts around what matters instead of stacking in
-   * a single ruled column. */
+   * a single ruled column. The breath is one stream gap. */
   .c2s-stream > .c2-plan-card:nth-child(3n) {
-    margin-right: 16px;
+    margin-right: var(--stream-gap);
   }
   .c2s-stream > .c2-plan-card:nth-child(4n) {
-    margin-left: 16px;
+    margin-left: var(--stream-gap);
   }
   .c2s-stream > *:nth-child(2) { animation-delay: 60ms; }
   .c2s-stream > *:nth-child(3) { animation-delay: 120ms; }
@@ -717,12 +780,15 @@
    * ride the plan card's own state border (PlanCardC2) - the
    * stream adds only the berth + the fire at full strength. */
   .c2s-stream > .c2-plan-card[data-plan-state="happening"] {
-    box-shadow: 0 0 18px var(--orb-indicator-happening-glow);
+    /* Glow containment (R22 WS-4): the fire reaches exactly the
+     * glow room - half the gap - and no farther into its
+     * neighbour's space. */
+    box-shadow: 0 0 var(--stream-glow-room) var(--orb-indicator-happening-glow);
   }
   .c2s-discovery {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--stream-gap);
   }
   .c2s-discovery-row {
     display: flex;
@@ -731,7 +797,7 @@
     background: var(--surface-1);
     border: 1px solid var(--line-1);
     border-radius: var(--radius-card);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--stream-inset);
   }
   .c2s-discovery-sub {
     display: block;
@@ -904,10 +970,17 @@
   .c2s-happening {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
-    /* V-c: the strip shares the stream's gutter exactly, so a
-     * Live card takes the same width berth as every stone. */
-    padding: var(--space-3) var(--gutter) var(--space-5);
+    gap: var(--stream-gap);
+    /* R22 WS-4 rhythm law, superseding the F-C/V-c spacing note:
+     * the strip carries NO padding of its own. The old rule padded
+     * it by the gutter INSIDE the scroll's gutter, so Lives sat
+     * 40px in from the screen edge while stream stones sat at
+     * 22px - a narrower berth and broken edges, the opposite of
+     * the V-c intent. Now the strip's cards take the scroll's one
+     * gutter like every other block, its internal beat is
+     * --stream-gap, and the block rhythm above/below it is the
+     * same --stream-gap - one berth, one beat, whole column. */
+    padding: 0;
   }
   /* V-c: the live stage's well - the monogram berth washed in
    * happening light (an inset ring + glow), so the berth reads
@@ -919,58 +992,102 @@
   }
 
   /* ---------- Repair #21 (W-17) - the creation walkthrough ----
-   * The sheet's graph doors are STONES in the rail's own
-   * geometry, told by their state fire: present burns
-   * happening, future burns forming, past rests in the past
-   * tone. The create form entered from a tense carries the
-   * stone anchor: the stone being made, ringed in its tense's
-   * fire, named by the What words as they are typed. The seg
-   * control is the one switch shape (Story | Post inside the
-   * composer; Friends | Close circle in go-live). */
-  .c2s-create-stones {
+   * The sheet's graph doors are told by their state fire:
+   * present burns happening, future burns forming, past rests
+   * in the past tone. The create form entered from a tense
+   * carries the marble anchor: the disc being made, ringed in
+   * its tense's fire, named by the What words as they are
+   * typed. The seg control is the one switch shape (Story |
+   * Post inside the composer; Friends | Close circle in
+   * go-live).
+   *
+   * ---------- Repair #22 (R22-E) - TENSE BUTTONS IN THE MARBLE --
+   * The founder rejected the tense stones ("they look like
+   * avocados to me") and ruled: the three tenses become BUTTONS
+   * in the ORBIT BUTTON's marbled material. That material, per
+   * the W-19 inventory, is one family sampled from the master:
+   * the doorway button (.c1-thread-opal-orb) wears the flat
+   * five-stop iris (--grad-current = --opal-iris-gradient, the
+   * sampled fire peaks violet/blue/cyan/magenta/gold), and the
+   * W-19 marble seat carries the master's own grain raster
+   * (/brand/orb/opal-marble-sphere.webp - ORB_ASSETS.marbleSphere,
+   * the same asset OrbMark's marble seat renders). These buttons
+   * reuse BOTH layers of that actual implementation, not a
+   * lookalike: the SAME grain asset as the face, under an iris
+   * built from the SAME five sampled fire stops - each tense
+   * leading with its own sector, so each button carries its OWN
+   * multicolor within the shared marble:
+   *   present (Now)      - cyan leads (the live moment)
+   *   future  (Forecast) - violet leads (the doorway's own order)
+   *   past    (Memories) - gold leads (the settled warmth)
+   * QUIET law (W-19): the grain never animates - no keyframes,
+   * transition, or filter targets these faces. */
+  .c2s-create-tenses {
     display: flex;
     gap: var(--space-3);
     margin-bottom: var(--space-3);
   }
-  .c2s-create-stone-cell {
+  .c2s-create-tense-btn {
+    --tense-fire: var(--state-forming);
+    --tense-iris: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--orb-fire-violet) 84%, transparent),
+      color-mix(in srgb, var(--orb-fire-blue) 66%, transparent),
+      color-mix(in srgb, var(--orb-fire-cyan) 62%, transparent),
+      color-mix(in srgb, var(--orb-fire-magenta) 62%, transparent),
+      color-mix(in srgb, var(--orb-fire-gold) 80%, transparent)
+    );
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  .c2s-create-stone {
-    width: 68px;
-    height: 78px;
-    border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%;
-    border: 2px solid var(--tense-fire, var(--line-1));
-    background: var(--surface-1);
-    box-shadow: 0 0 16px color-mix(in srgb, var(--tense-fire, transparent) 35%, transparent);
+    min-height: 64px;
+    border-radius: 18px;
+    border: 1.5px solid color-mix(in srgb, var(--tense-fire, var(--state-forming)) 55%, transparent);
+    background-color: var(--orb-field);
+    background-image: var(--tense-iris, var(--grad-current)), url("/brand/orb/opal-marble-sphere.webp");
+    background-size: cover, cover;
+    background-position: center, center;
+    box-shadow: 0 0 16px color-mix(in srgb, var(--tense-fire, var(--state-forming)) 30%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 0;
+    padding: var(--space-2);
   }
-  .c2s-create-stone[data-tense="present"] { --tense-fire: var(--state-happening); }
-  .c2s-create-stone[data-tense="future"] { --tense-fire: var(--state-forming); }
-  .c2s-create-stone[data-tense="past"] { --tense-fire: var(--state-past); }
-  .c2s-create-stone-light {
-    width: 18px;
-    height: 18px;
-    border-radius: 999px;
-    background: radial-gradient(
-      circle at 38% 36%,
-      color-mix(in srgb, var(--tense-fire, var(--state-forming)) 30%, var(--surface-1)) 0%,
-      var(--tense-fire, var(--state-forming)) 60%,
-      color-mix(in srgb, var(--tense-fire, var(--state-forming)) 30%, transparent) 85%
+  .c2s-create-tense-btn[data-tense="present"] {
+    --tense-fire: var(--state-happening);
+    --tense-iris: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--orb-fire-cyan) 84%, transparent),
+      color-mix(in srgb, var(--orb-fire-blue) 66%, transparent),
+      color-mix(in srgb, var(--orb-fire-violet) 62%, transparent),
+      color-mix(in srgb, var(--orb-fire-magenta) 62%, transparent),
+      color-mix(in srgb, var(--orb-fire-gold) 80%, transparent)
     );
-    box-shadow: 0 0 10px color-mix(in srgb, var(--tense-fire, var(--state-forming)) 55%, transparent);
   }
-  .c2s-create-stone-name {
-    font: var(--type-caption);
-    color: var(--ink-2);
-    margin: 0;
+  .c2s-create-tense-btn[data-tense="future"] { --tense-fire: var(--state-forming); }
+  .c2s-create-tense-btn[data-tense="past"] {
+    --tense-fire: var(--state-past);
+    --tense-iris: linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--orb-fire-gold) 84%, transparent),
+      color-mix(in srgb, var(--orb-fire-magenta) 66%, transparent),
+      color-mix(in srgb, var(--orb-fire-violet) 62%, transparent),
+      color-mix(in srgb, var(--orb-fire-blue) 62%, transparent),
+      color-mix(in srgb, var(--orb-fire-cyan) 80%, transparent)
+    );
+  }
+  .c2s-create-tense-btn[aria-pressed="true"] {
+    border-color: var(--tense-fire, var(--state-forming));
+    box-shadow: 0 0 22px color-mix(in srgb, var(--tense-fire, var(--state-forming)) 55%, transparent);
+  }
+  .c2s-create-tense-label {
+    font: var(--type-callout);
+    font-weight: 650;
+    color: var(--orb-point-light);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  }
+  .c2s-create-tense-panel {
+    display: flex;
+    flex-direction: column;
   }
   .c2s-create-live-light {
     width: 20px;
@@ -1018,29 +1135,37 @@
   }
   .c2s-create-anchor[data-tense="present"] { --tense-fire: var(--state-happening); }
   .c2s-create-anchor[data-tense="past"] { --tense-fire: var(--state-past); }
+  /* Repair #22 (R22-E): the anchor is a marble DISC, not the
+   * retired avocado stone - the shared grain asset
+   * (ORB_ASSETS.marbleSphere) tinted by the tense's fire,
+   * ringed in the same fire. The grain never animates. */
   .c2s-create-anchor-stone {
-    width: 44px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
     flex: none;
-    border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%;
+    border-radius: 50%;
     border: 2px solid var(--tense-fire, var(--state-forming));
-    background: var(--surface-1);
+    background-color: var(--orb-field);
+    background-image:
+      linear-gradient(
+        color-mix(in srgb, var(--tense-fire, var(--state-forming)) 34%, transparent),
+        color-mix(in srgb, var(--tense-fire, var(--state-forming)) 34%, transparent)
+      ),
+      url("/brand/orb/opal-marble-sphere.webp");
+    background-size: cover, cover;
+    background-position: center, center;
     box-shadow: 0 0 14px color-mix(in srgb, var(--tense-fire, var(--state-forming)) 35%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .c2s-create-anchor-light {
-    width: 12px;
-    height: 12px;
+    width: 7px;
+    height: 7px;
     border-radius: 999px;
-    background: radial-gradient(
-      circle at 38% 36%,
-      color-mix(in srgb, var(--tense-fire, var(--state-forming)) 30%, var(--surface-1)) 0%,
-      var(--tense-fire, var(--state-forming)) 60%,
-      color-mix(in srgb, var(--tense-fire, var(--state-forming)) 30%, transparent) 85%
-    );
+    background: var(--orb-point-light);
     box-shadow: 0 0 8px color-mix(in srgb, var(--tense-fire, var(--state-forming)) 55%, transparent);
+    opacity: 0.9;
   }
   .c2s-create-anchor-title {
     font: var(--type-headline);
@@ -1198,18 +1323,44 @@
       radial-gradient(ellipse 90% 34% at 50% 0%, color-mix(in srgb, var(--orb-ring-metal) 10%, transparent), transparent 70%),
       var(--canvas);
   }
-  .c2s-feed {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding-top: var(--space-3);
+  /* Repair #22 (WS-4) - THE BLOCK RHYTHM: the Flows column is a
+   * sequence of blocks (stones rail, happening strip, occasions,
+   * the trivia poster, the braided stream) and EVERY block-to-
+   * block transition is exactly one --stream-gap - the same beat
+   * as every card-to-card gap inside the blocks. Before this law
+   * the transitions were 20px, 20px, 0px and 20px by accumulated
+   * padding accident (and occasions stacked at 0px internally):
+   * dead air, then collision, then dead air - the broken current
+   * the founder read in the frames. Blocks carry no vertical
+   * padding of their own any more; this rule is the rhythm. */
+  .c2s-scroll[data-testid="c2-home-scroll"] > * + * {
+    margin-top: var(--stream-gap);
   }
+  /* R22 WS-4: .c2s-feed is an alias of .c2s-stream and NOTHING
+   * more. Its old rule (flex-direction: column, its own gap and
+   * padding-top) sat LATER in this file than .c2s-stream and
+   * silently overrode the braid's row direction - the stream's
+   * layout was being improvised by cascade accident. The stream
+   * rule above is now the single law for this element. */
   .c2s-card {
     background: var(--surface-1);
     border: 1px solid var(--line-1);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    padding: var(--space-4);
+    /* The one card inset (R22 WS-4): every card kind in the
+     * stream - moment, Live, occasion, trivia, discovery -
+     * breathes by the same token. */
+    padding: var(--stream-inset);
+  }
+  /* R22 WS-4: occasions are stream citizens. The section used to
+   * carry no spacing rule at all, so occasion cards stacked
+   * edge-to-edge (0px - in dark mode, where --shadow-card is
+   * none, literally one undifferentiated slab). Now: the stream
+   * gap between occasions, like everywhere else. */
+  [data-testid="c2-home-occasions"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--stream-gap);
   }
   .c2s-card-title {
     font: var(--type-headline);
@@ -1287,7 +1438,10 @@
    * moves (QUIET). */
   .c2s-live-card {
     border: 1px solid color-mix(in srgb, var(--orb-indicator-happening) 50%, transparent);
-    box-shadow: 0 0 16px color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
+    /* Glow containment (R22 WS-4): was 0 0 16px against a 12px
+     * gap - the Live's light physically overlapped its
+     * neighbours. Capped at the glow room: half the stream gap. */
+    box-shadow: 0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening-glow) 55%, transparent);
   }
   .c2s-live-pill {
     display: inline-flex;
@@ -2569,6 +2723,14 @@
   .c2s-viewer-seg[data-done="1"] {
     background: var(--grad-current);
   }
+  /* R22 (WS-3): the current segment FILLS with the dwell —
+     the fill is the story's own clock made visible. */
+  .c2s-viewer-seg-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--grad-current);
+  }
   .c2s-viewer-media {
     flex: 1;
     background: var(--surface-2);
@@ -3060,9 +3222,11 @@
    * person: face + name up top, the pair line under it, the
    * tease under that. The spectacle (below) is its light. */
   .c2s-trivia-poster {
-    padding: var(--space-4);
+    padding: var(--stream-inset);
     min-height: 172px;
-    margin-bottom: var(--space-2);
+    /* R22 WS-4: no private bottom margin - the block rhythm
+     * (one --stream-gap) separates the poster from the stream. */
+    margin-bottom: 0;
   }
   .c2s-trivia-head {
     display: flex;
@@ -3140,10 +3304,19 @@
       radial-gradient(120% 90% at 0% 100%, color-mix(in srgb, var(--orb-indicator-happening) 11%, transparent), transparent 55%),
       radial-gradient(90% 70% at 0% 0%, color-mix(in srgb, var(--orb-indicator-forming) 10%, transparent), transparent 50%),
       var(--surface-1);
+    /* R22 WS-4 GLOW CONTAINMENT: the spectacle's light used to
+     * reach ~46px past the card edge (offsets to 12px + blurs to
+     * 38px) against an 8px margin - its light physically ate both
+     * neighbours, the loudest collision in the stream. The
+     * spectacle now lives where it cannot leak: the three corner
+     * washes above (inside the card) carry the multicolor
+     * presence, and the external shadow is capped at the glow
+     * room (half the stream gap) in all three hues. Loud inside
+     * its own berth; silent outside it. */
     box-shadow:
-      0 12px 34px color-mix(in srgb, var(--orb-indicator-ready) 20%, transparent),
-      -10px 6px 28px color-mix(in srgb, var(--orb-indicator-forming) 26%, transparent),
-      10px -4px 26px color-mix(in srgb, var(--orb-indicator-happening) 22%, transparent);
+      0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 34%, transparent),
+      0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 30%, transparent),
+      0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 26%, transparent);
     animation: c2s-trivia-light-round 9s ease-in-out infinite alternate;
   }
   .c2s-trivia-spectacle[data-light="waiting"] {
@@ -3155,47 +3328,50 @@
     animation-duration: 5.5s;
   }
   @keyframes c2s-trivia-light-round {
+    /* R22 WS-4: the light still PLAYS (hue emphasis rotates) but
+     * every frame stays inside the glow room - motion may never
+     * push light into a neighbour's space. */
     0% {
       box-shadow:
-        0 10px 32px color-mix(in srgb, var(--orb-indicator-forming) 42%, transparent),
-        0 -6px 22px color-mix(in srgb, var(--orb-indicator-happening) 30%, transparent),
-        10px 0 26px color-mix(in srgb, var(--orb-indicator-ready) 24%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 42%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 30%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 24%, transparent);
     }
     50% {
       box-shadow:
-        -10px 12px 30px color-mix(in srgb, var(--orb-indicator-happening) 34%, transparent),
-        0 -8px 24px color-mix(in srgb, var(--orb-indicator-ready) 28%, transparent),
-        -8px 0 26px color-mix(in srgb, var(--orb-indicator-forming) 30%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 38%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 32%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 26%, transparent);
     }
     100% {
       box-shadow:
-        8px 8px 30px color-mix(in srgb, var(--orb-indicator-ready) 34%, transparent),
-        0 -6px 22px color-mix(in srgb, var(--orb-indicator-forming) 32%, transparent),
-        10px 0 24px color-mix(in srgb, var(--orb-indicator-happening) 26%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 40%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 32%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 24%, transparent);
     }
   }
   @keyframes c2s-trivia-light-waiting {
     from {
       box-shadow:
-        0 10px 30px color-mix(in srgb, var(--orb-indicator-happening) 36%, transparent),
-        0 -6px 20px color-mix(in srgb, var(--orb-indicator-forming) 26%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 38%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 26%, transparent);
     }
     to {
       box-shadow:
-        -8px 12px 30px color-mix(in srgb, var(--orb-indicator-forming) 36%, transparent),
-        0 -6px 20px color-mix(in srgb, var(--orb-indicator-happening) 26%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 38%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 26%, transparent);
     }
   }
   @keyframes c2s-trivia-light-validation {
     from {
       box-shadow:
-        0 10px 34px color-mix(in srgb, var(--orb-indicator-ready) 44%, transparent),
-        0 -6px 22px color-mix(in srgb, var(--orb-indicator-action) 28%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 44%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-action) 28%, transparent);
     }
     to {
       box-shadow:
-        0 12px 38px color-mix(in srgb, var(--orb-indicator-action) 36%, transparent),
-        0 -8px 24px color-mix(in srgb, var(--orb-indicator-ready) 32%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-action) 38%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 32%, transparent);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -3204,20 +3380,157 @@
      * the moving card, each led by its state's hue. */
     .c2s-trivia-spectacle[data-light="round"] {
       box-shadow:
-        0 12px 34px color-mix(in srgb, var(--orb-indicator-ready) 20%, transparent),
-        -10px 6px 28px color-mix(in srgb, var(--orb-indicator-forming) 30%, transparent),
-        10px -4px 26px color-mix(in srgb, var(--orb-indicator-happening) 22%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 34%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 30%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 26%, transparent);
     }
     .c2s-trivia-spectacle[data-light="waiting"] {
       box-shadow:
-        0 12px 34px color-mix(in srgb, var(--orb-indicator-happening) 30%, transparent),
-        -10px 6px 26px color-mix(in srgb, var(--orb-indicator-forming) 24%, transparent),
-        10px -4px 22px color-mix(in srgb, var(--orb-indicator-ready) 14%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-happening) 36%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 28%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 16%, transparent);
     }
     .c2s-trivia-spectacle[data-light="validation"] {
       box-shadow:
-        0 12px 36px color-mix(in srgb, var(--orb-indicator-ready) 36%, transparent),
-        -10px 6px 26px color-mix(in srgb, var(--orb-indicator-action) 24%, transparent),
-        10px -4px 24px color-mix(in srgb, var(--orb-indicator-forming) 16%, transparent);
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-ready) 40%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-action) 28%, transparent),
+        0 0 var(--stream-glow-room) color-mix(in srgb, var(--orb-indicator-forming) 18%, transparent);
     }
   }
+
+/* ---------- Repair #22 (WS-5) - PLACE ENERGY ----------
+ * The place stone and the place view. The fire is the state
+ * canon only: --place-fire is the --state-* token of the
+ * place's strongest real signal (indicator persistence law),
+ * and the glow strength is the computed energy level (ember /
+ * lit / radiant). No heat-map gradient exists here: energy is
+ * a state reading, never a temperature scale. Motion obeys
+ * QUIET: a slow opacity-only pulse on a RADIANT HAPPENING
+ * stone only (the live window is short), off under reduced
+ * motion. Everything else rests. Scoped under .c2s like the
+ * rest of this file. */
+.c2s-place-stone {
+  --place-fire: var(--state-past);
+  --place-glow: 18%;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--place-fire) 42%, var(--line-1));
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--place-fire) var(--place-glow), transparent),
+    var(--shadow-card);
+}
+article.c2s-place-stone { cursor: default; }
+.c2s-place-stone[data-energy-family="happening"] { --place-fire: var(--state-happening); }
+.c2s-place-stone[data-energy-family="action"] { --place-fire: var(--state-action); }
+.c2s-place-stone[data-energy-family="ready"] { --place-fire: var(--state-ready); }
+.c2s-place-stone[data-energy-family="forming"] { --place-fire: var(--state-forming); }
+.c2s-place-stone[data-energy-level="lit"] { --place-glow: 34%; }
+.c2s-place-stone[data-energy-level="radiant"] { --place-glow: 52%; }
+.c2s-place-stone[data-energy-family="happening"][data-energy-level="radiant"] {
+  animation: c2s-place-pulse 3.2s ease-in-out infinite;
+}
+@keyframes c2s-place-pulse {
+  0%, 100% { box-shadow: 0 0 18px color-mix(in srgb, var(--state-happening) 46%, transparent), var(--shadow-card); }
+  50% { box-shadow: 0 0 26px color-mix(in srgb, var(--state-happening) 62%, transparent), var(--shadow-card); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c2s-place-stone { animation: none; }
+}
+.c2s-place-stone-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 4px;
+}
+.c2s-place-stone-name { margin: 0; }
+.c2s-place-stone-energy { color: var(--ink-1); margin-bottom: 2px; }
+.c2s-place-fire {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex: none;
+  background: radial-gradient(
+    circle at 38% 36%,
+    color-mix(in srgb, var(--place-fire, var(--state-past)) 30%, white) 0%,
+    var(--place-fire, var(--state-past)) 58%,
+    color-mix(in srgb, var(--place-fire, var(--state-past)) 30%, transparent) 85%
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--place-fire, var(--state-past)) 55%, transparent);
+}
+.c2s-place-view { --place-fire: var(--state-past); }
+.c2s-place-view[data-energy-family="happening"] { --place-fire: var(--state-happening); }
+.c2s-place-view[data-energy-family="action"] { --place-fire: var(--state-action); }
+.c2s-place-view[data-energy-family="ready"] { --place-fire: var(--state-ready); }
+.c2s-place-view[data-energy-family="forming"] { --place-fire: var(--state-forming); }
+.c2s-place-view-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.c2s-place-view-name {
+  font: var(--type-title);
+  color: var(--ink-1);
+  margin: 0 0 2px;
+  overflow-wrap: break-word;
+}
+.c2s-place-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.c2s-place-plan-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+.c2s-place-plan-row[data-plan-state="happening"] {
+  border-color: color-mix(in srgb, var(--state-happening) 50%, transparent);
+}
+.c2s-place-plan-row[data-plan-state="action"] {
+  border-color: color-mix(in srgb, var(--state-action) 50%, transparent);
+}
+.c2s-place-plan-row[data-plan-state="ready"] {
+  border-color: color-mix(in srgb, var(--state-ready) 50%, transparent);
+}
+.c2s-place-plan-row[data-plan-state="forming"] {
+  border-color: color-mix(in srgb, var(--state-forming) 50%, transparent);
+}
+.c2s-place-live-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--state-happening) 50%, transparent);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+.c2s-place-moment {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+.c2s-place-row-title {
+  font: var(--type-headline);
+  color: var(--ink-1);
+  overflow-wrap: break-word;
+}
+.c2s-place-doors { display: flex; gap: var(--space-2); }

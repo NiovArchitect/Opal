@@ -35,10 +35,16 @@ import {
   type SeedSource,
 } from "./flows2";
 import { GoLiveFlow } from "./GoLiveFlow";
+import { StoryViewerC2, storyQueueFromRail, type StoryPlayItem } from "./StoryViewerC2";
 import { TriviaCard } from "./C2Trivia";
 import type { HomeOccasion } from "./projections";
 import { AuthedImage } from "../../media/AuthedImage";
-import type { FeedCardProjection, HomeProjection, StoryRailProjection } from "./projections";
+import type {
+  FeedCardProjection,
+  HomeProjection,
+  PlaceStoneProjection,
+  StoryRailProjection,
+} from "./projections";
 import {
   Avatar,
   EmptyBlock,
@@ -144,6 +150,11 @@ export const HOME_AMBIENT_ELEMENTS: ReadonlyArray<{
     reason:
       "A moment you love is a plan trying to happen; the doors turn feeling into alignment in one tap, and they rest hidden until asked so the stream stays a stream, not a toolbar.",
   },
+  {
+    element: "place stone fire (the state color of the place's strongest real signal, at its computed energy level)",
+    reason:
+      "A place your people are moving through glows in the state language every Opal surface speaks, so where the energy is reads before a word does - and a place with no real signal carries no stone and no glow at all.",
+  },
 ];
 
 export type C2HomeEvents = {
@@ -178,11 +189,17 @@ export type C2HomeEvents = {
    *  chosen; the shell carries the composed create into the real
    *  graph-create flow. Absent = no door row renders. */
   seedDoor?: (create: SeedCreate) => void;
-  /** Repair #21 (W-17): one of the creation sheet's three tense
-   *  stones was chosen; the shell opens the real graph-create
-   *  flow carrying the tense (its When words + its stone
-   *  anchor). Absent = the tense stones do not render. */
+  /** Repair #21 (W-17): one of the creation sheet's three tenses
+   *  was carried into a new graph; the shell opens the real
+   *  graph-create flow carrying the tense (its When words + its
+   *  marble anchor). Absent = the tense buttons do not render.
+   *  Repair #22 (R22-E): the tense is chosen on its marble button
+   *  and confirmed on the tense panel's New graph door. */
   creationPlan?: (tense: CreationTense) => void;
+  /** Repair #22 (WS-5): a place stone was tapped; the shell opens
+   *  the place view on the stone's own projection. Absent = the
+   *  stone renders as a resting stone, not a dead tap target. */
+  openPlace?: (place: PlaceStoneProjection) => void;
 };
 
 type MemoryFeedItem = Extract<FeedCardProjection, { kind: "memory" }>;
@@ -535,6 +552,12 @@ export function C2Home({
   events: C2HomeEvents;
 }) {
   const [sheet, setSheet] = useState<null | "create">(null);
+  // Repair #22 (R22-E): the tense chosen on the Create sheet's
+  // marble row. Choosing a tense opens that tense's own creation
+  // panel INSIDE the sheet (New graph / Photo or video / Text /
+  // Go live offered within the tense) instead of leaving the
+  // sheet; null = the sheet's top level.
+  const [tensePanel, setTensePanel] = useState<CreationTense | null>(null);
   // Repair #21 (W-17): the composer opens in a mode - media-first
   // (photo/video) or text-first - with a destination (story or
   // post). The sheet's media door carries the destination toggle;
@@ -548,14 +571,59 @@ export function C2Home({
     toggle: boolean;
   }>(null);
   const [liveOpen, setLiveOpen] = useState(false);
-  const [viewer, setViewer] = useState<null | {
+  // R22 (WS-3): the story viewer runs a QUEUE — the rail's live
+  // stories flattened in rail order from the opened stone to
+  // the rail's end (StoryViewerC2 owns dwell + auto-advance).
+  const [viewerQueue, setViewerQueue] = useState<StoryPlayItem[] | null>(null);
+  const rail = projection.rail;
+
+  /** The rail as ordered story groups: your own story first,
+   *  then each person's, exactly as the stones render. */
+  const railStoryGroups = (): Array<{
+    key: string;
     personName: string;
     personId?: string | null;
-    storyCount: number;
-    mediaUrl: string;
-    caption?: string | null;
-  }>(null);
-  const rail = projection.rail;
+    items: Array<{ id: string; mediaUrl: string; caption?: string | null; expiresAt?: string | null }>;
+  }> => {
+    const groups: Array<{
+      key: string;
+      personName: string;
+      personId?: string | null;
+      items: Array<{ id: string; mediaUrl: string; caption?: string | null; expiresAt?: string | null }>;
+    }> = [];
+    const selfStory = rail.self.story;
+    if (selfStory) {
+      const items = selfStory.items?.length
+        ? selfStory.items
+        : selfStory.mediaUrl
+          ? [{ id: "self-story", mediaUrl: selfStory.mediaUrl, caption: selfStory.caption, expiresAt: null }]
+          : [];
+      if (items.length > 0) {
+        groups.push({ key: "self", personName: "You", personId: null, items });
+      }
+    }
+    for (const s of rail.stories) {
+      const items = s.items?.length
+        ? s.items
+        : s.mediaUrl
+          ? [{ id: s.id, mediaUrl: s.mediaUrl, caption: s.caption ?? null, expiresAt: null }]
+          : [];
+      if (items.length > 0) {
+        groups.push({ key: s.id, personName: s.personName, personId: s.personId, items });
+      }
+    }
+    return groups;
+  };
+
+  /** Open the viewer on one rail group; the queue runs from
+   *  that group to the rail's end (expired stories filtered at
+   *  open time — storyQueueFromRail). */
+  const openStoryGroup = (key: string) => {
+    const groups = railStoryGroups();
+    const start = Math.max(0, groups.findIndex((g) => g.key === key));
+    const queue = storyQueueFromRail(groups, start);
+    if (queue.length > 0) setViewerQueue(queue);
+  };
 
   // R19 W27 (AT-10 / AR-F4): Home's lit coalescence - at most ONE
   // plan card on Home carries the full lit register (glow + ground
@@ -577,16 +645,12 @@ export function C2Home({
     // story without renderable media, and the no-story case, go
     // to create — never to an empty stage.
     if (rail.self.hasLiveStory && rail.self.story?.mediaUrl) {
-      setViewer({
-        personName: "You",
-        storyCount: rail.self.story.storyCount,
-        mediaUrl: rail.self.story.mediaUrl,
-        caption: rail.self.story.caption,
-      });
+      openStoryGroup("self");
       return;
     }
     if (rail.self.hasLiveStory) return;
     if (rail.capabilities.canPost && rail.capabilities.canStory) {
+      setTensePanel(null);
       setSheet("create");
     } else if (rail.capabilities.canStory) {
       setComposer({ kind: "story", mediaFirst: true, toggle: false });
@@ -730,6 +794,64 @@ export function C2Home({
     );
   };
 
+  // Repair #22 (WS-5) - the PLACE STONE: a wide stone in the
+  // braid whose fire is the place's computed energy - its color
+  // the state family of its strongest real signal, its glow its
+  // energy level. It renders ONLY the builder's finished lines;
+  // a place with no qualifying record never reaches this list.
+  // Tappable only when the shell wires the place view - a stone
+  // without the door rests as a stone, never as a dead button.
+  const renderPlaceStone = (place: PlaceStoneProjection) => {
+    const inner = (
+      <>
+        <div className="c2s-place-stone-head">
+          <span className="c2s-place-fire" aria-hidden />
+          <p className="c2s-card-title c2s-place-stone-name">{place.name}</p>
+        </div>
+        <p className="c2s-card-line c2s-place-stone-energy">{place.energyLine}</p>
+        {place.signalLines.map((line) => (
+          <p key={line} className="c2s-card-line">
+            {line}
+          </p>
+        ))}
+        {place.livesHere.length > 0 ? (
+          <div className="c2s-live-presence" data-testid="c2-place-stone-presence">
+            {place.livesHere.map((live) => (
+              <span
+                key={live.liveId}
+                className="c2s-live-light"
+                data-testid="c2-place-stone-light"
+                role="img"
+                aria-label={live.hostName ? `${live.hostName} is here` : "Live here"}
+              />
+            ))}
+          </div>
+        ) : null}
+      </>
+    );
+    const stoneProps = {
+      className: "c2s-card c2s-place-stone",
+      "data-testid": "c2-place-stone",
+      "data-energy-level": place.energyLevel,
+      "data-energy-family": place.energyFamily,
+      "data-place": place.name,
+    } as const;
+    return events.openPlace ? (
+      <button
+        key={place.key}
+        type="button"
+        {...stoneProps}
+        onClick={() => events.openPlace!(place)}
+      >
+        {inner}
+      </button>
+    ) : (
+      <article key={place.key} {...stoneProps}>
+        {inner}
+      </article>
+    );
+  };
+
   return (
     <div
       data-testid="c2-home"
@@ -785,7 +907,7 @@ export function C2Home({
         <MomentStones
           rail={rail}
           onSelf={openSelf}
-          onOpen={(s) => setViewer(s)}
+          onOpen={(s) => openStoryGroup(s.id)}
           onBond={events.openBond}
         />
         {/* Repair #21 round 3 (F-B) - the presence strip that
@@ -856,7 +978,12 @@ export function C2Home({
               onAction={events.onShared}
             />
           ) : null}
-          {projection.feed.length === 0 && !projection.feedError ? (
+          {projection.places && projection.places.length > 0
+            ? projection.places.map((place) => renderPlaceStone(place))
+            : null}
+          {projection.feed.length === 0 &&
+          !projection.feedError &&
+          !(projection.places && projection.places.length > 0) ? (
             <EmptyBlock
               testId="c2-feed-empty"
               headline="Nothing here yet."
@@ -884,7 +1011,10 @@ export function C2Home({
           <div
             className="c2s-scrim"
             data-testid="c2-create-sheet"
-            onClick={() => setSheet(null)}
+            onClick={() => {
+              setSheet(null);
+              setTensePanel(null);
+            }}
           >
             <div
               className="c2s-sheet c2s-create-sheet"
@@ -894,79 +1024,160 @@ export function C2Home({
             >
               {/* Repair #21 (W-17) - the creation walkthrough. The
                   sheet explains nothing (Discovery): your graphs
-                  in three tenses lead as STONES, told by their
-                  state fire (happening / forming / past), words
-                  minimal under each; then the moment doors -
-                  photo or video, text, go live. Every door is
-                  one move deep. The tenses open the ONE real
-                  graph-create flow carrying their tense; photo
-                  opens the media composer (Story | Post inside);
-                  text opens the text composer; go live opens
-                  the venue step. */}
+                  in three tenses lead; then the moment doors -
+                  photo or video, text, go live.
+                  Repair #22 (R22-E) - the founder rejected the
+                  tense STONES ("they look like avocados to me"):
+                  the three tenses are now BUTTONS in the orbit
+                  doorway button's marbled material - the shared
+                  marble grain (ORB_ASSETS.marbleSphere, the same
+                  asset OrbMark's marble seat carries) under each
+                  tense's own multicolor iris (the five sampled
+                  fire stops, re-led per tense; see c2shell.css).
+                  Names are his: Now / Forecast / Memories.
+                  Choosing a tense opens that tense's creation
+                  panel INSIDE the sheet: New graph (the ONE real
+                  graph-create flow carrying the tense), Photo or
+                  video and Text (the real composers), and Go live
+                  - all offered within the tense, one move deep. */}
               <p className="c2s-sheet-title">Create</p>
               {events.creationPlan ? (
-                <div className="c2s-create-stones">
+                <div className="c2s-create-tenses">
                   {(Object.keys(CREATION_TENSE_LABELS) as CreationTense[]).map((tense) => (
-                    <div className="c2s-create-stone-cell" key={tense}>
-                      <button
-                        type="button"
-                        className="c2s-create-stone"
-                        data-tense={tense}
-                        data-testid={`c2-create-tense-${tense}`}
-                        aria-label={`New graph - ${CREATION_TENSE_LABELS[tense]}`}
-                        onClick={() => {
-                          setSheet(null);
-                          events.creationPlan!(tense);
-                        }}
-                      >
-                        <span className="c2s-create-stone-light" aria-hidden />
-                      </button>
-                      <p className="c2s-create-stone-name">{CREATION_TENSE_LABELS[tense]}</p>
-                    </div>
+                    <button
+                      key={tense}
+                      type="button"
+                      className="c2s-create-tense-btn"
+                      data-tense={tense}
+                      data-marble="sphere"
+                      data-testid={`c2-create-tense-${tense}`}
+                      aria-label={`Create - ${CREATION_TENSE_LABELS[tense]}`}
+                      aria-pressed={tensePanel === tense}
+                      onClick={() => setTensePanel(tense)}
+                    >
+                      <span className="c2s-create-tense-label">
+                        {CREATION_TENSE_LABELS[tense]}
+                      </span>
+                    </button>
                   ))}
                 </div>
               ) : null}
-              <button
-                type="button"
-                className="c2s-sheet-row"
-                data-testid="c2-create-photo"
-                onClick={() => {
-                  setSheet(null);
-                  setComposer({ kind: "post", mediaFirst: true, toggle: true });
-                }}
-              >
-                <IconCamera />
-                <span>Photo or video</span>
-              </button>
-              <button
-                type="button"
-                className="c2s-sheet-row"
-                data-testid="c2-create-text"
-                onClick={() => {
-                  setSheet(null);
-                  setComposer({ kind: "post", mediaFirst: false, toggle: false });
-                }}
-              >
-                <IconText />
-                <span>Text</span>
-              </button>
-              <button
-                type="button"
-                className="c2s-sheet-row"
-                data-testid="c2-create-live"
-                onClick={() => {
-                  setSheet(null);
-                  setLiveOpen(true);
-                }}
-              >
-                <span className="c2s-live-light c2s-create-live-light" aria-hidden />
-                <span>Go live</span>
-              </button>
+              {tensePanel ? (
+                <div
+                  className="c2s-create-tense-panel"
+                  data-tense={tensePanel}
+                  data-testid="c2-create-tense-panel"
+                >
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-tense-graph"
+                    onClick={() => {
+                      const tense = tensePanel;
+                      setSheet(null);
+                      setTensePanel(null);
+                      events.creationPlan?.(tense);
+                    }}
+                  >
+                    <IconGraphIn />
+                    <span>New graph - {CREATION_TENSE_LABELS[tensePanel]}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-tense-photo"
+                    onClick={() => {
+                      setSheet(null);
+                      setTensePanel(null);
+                      setComposer({ kind: "post", mediaFirst: true, toggle: true });
+                    }}
+                  >
+                    <IconCamera />
+                    <span>Photo or video</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-tense-text"
+                    onClick={() => {
+                      setSheet(null);
+                      setTensePanel(null);
+                      setComposer({ kind: "post", mediaFirst: false, toggle: false });
+                    }}
+                  >
+                    <IconText />
+                    <span>Text</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-tense-live"
+                    onClick={() => {
+                      setSheet(null);
+                      setTensePanel(null);
+                      setLiveOpen(true);
+                    }}
+                  >
+                    <span className="c2s-live-light c2s-create-live-light" aria-hidden />
+                    <span>Go live</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-btn-text"
+                    data-testid="c2-create-tense-back"
+                    onClick={() => setTensePanel(null)}
+                  >
+                    Back
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-photo"
+                    onClick={() => {
+                      setSheet(null);
+                      setComposer({ kind: "post", mediaFirst: true, toggle: true });
+                    }}
+                  >
+                    <IconCamera />
+                    <span>Photo or video</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-text"
+                    onClick={() => {
+                      setSheet(null);
+                      setComposer({ kind: "post", mediaFirst: false, toggle: false });
+                    }}
+                  >
+                    <IconText />
+                    <span>Text</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-live"
+                    onClick={() => {
+                      setSheet(null);
+                      setLiveOpen(true);
+                    }}
+                  >
+                    <span className="c2s-live-light c2s-create-live-light" aria-hidden />
+                    <span>Go live</span>
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 className="c2s-btn-text"
                 data-testid="c2-create-sheet-cancel"
-                onClick={() => setSheet(null)}
+                onClick={() => {
+                  setSheet(null);
+                  setTensePanel(null);
+                }}
               >
                 Cancel
               </button>
@@ -1000,88 +1211,28 @@ export function C2Home({
         />
       ) : null}
 
-      {viewer ? (
-        <TopLayer band="flow">
-          <div className="c2s-viewer" data-testid="c2-story-viewer">
-            <div className="c2s-viewer-progress" aria-hidden>
-              {Array.from({ length: Math.max(viewer.storyCount, 1) }).map((_, i) => (
-                <span key={i} className="c2s-viewer-seg" data-done={i === 0 ? "1" : undefined} />
-              ))}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "10px 16px 0",
-              }}
-            >
-              <span style={{ fontWeight: 650 }}>{viewer.personName}</span>
-              <button
-                type="button"
-                className="c2s-icon-btn"
-                aria-label="Close story"
-                data-testid="c2-story-viewer-close"
-                onClick={() => setViewer(null)}
-              >
-                <IconClose />
-              </button>
-            </div>
-            <div className="c2s-viewer-media">
-              {/\.(mp4|webm|mov|m4v)(\?|$)/i.test(viewer.mediaUrl) ? (
-                <video
-                  src={viewer.mediaUrl}
-                  autoPlay
-                  playsInline
-                  data-testid="c2-story-viewer-media"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <AuthedImage
-                  src={viewer.mediaUrl}
-                  alt={viewer.caption || `${viewer.personName} story`}
-                  testId="c2-story-viewer-media"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              )}
-              {viewer.caption ? (
-                <p className="c2s-viewer-caption" data-testid="c2-story-viewer-caption">
-                  {viewer.caption}
-                </p>
-              ) : null}
-            </div>
-            {/* W-17 extended (story consumption): the viewer's
-                one lawful live door today is Reply - the same
-                chat-mark glyph as the card's, opening the
-                author's thread (a story's author is a person
-                the reply machinery already carries). The light
-                heart and the take doors are DESIGNED for this
-                foot (same glyphs, same places as the card) but
-                DECLARED (report D-15): stories carry no
-                engagement record and are not seedable records,
-                so nothing here pretends to light or graph a
-                story. Exit (the close above) returns to the
-                stream untouched - Home never unmounted, so the
-                scroll position is preserved by construction. */}
-            {viewer.personId && events.replyToPerson ? (
-              <div className="c2s-viewer-foot">
-                <button
-                  type="button"
-                  className="c2s-glyph-btn c2s-viewer-reply"
-                  data-testid="c2-story-viewer-reply"
-                  aria-label={`Reply to ${viewer.personName}`}
-                  onClick={() => {
-                    const authorId = viewer.personId!;
-                    setViewer(null);
-                    events.replyToPerson!(authorId);
-                  }}
-                >
-                  <IconChats size={22} />
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </TopLayer>
+      {/* R22 (WS-3): the story viewer is its own component —
+          dwell by content, auto-advance along the rail, filling
+          progress segments, exit at the rail's end (StoryViewerC2).
+          W-17 ext. stays: Reply is the viewer's one lawful live
+          door; the light heart and take doors are DECLARED
+          (D-15) — stories carry no engagement record, so nothing
+          here pretends to light or graph a story. Exit returns
+          to the stream untouched — Home never unmounted, so the
+          scroll position is preserved by construction. */}
+      {viewerQueue ? (
+        <StoryViewerC2
+          queue={viewerQueue}
+          onClose={() => setViewerQueue(null)}
+          onReply={
+            events.replyToPerson
+              ? (personId) => {
+                  setViewerQueue(null);
+                  events.replyToPerson!(personId);
+                }
+              : undefined
+          }
+        />
       ) : null}
     </div>
   );
@@ -1143,7 +1294,41 @@ function StoneFace({
  * recency. Every stone is ANCHORED to its person - the name
  * under the stone is the anchor - and the first stone is the
  * creation door, in the same grammar.
+ *
+ * Repair #22 (R22-A, WS-1) - ONE CAPTION GRAMMAR for every
+ * stone, the self door included. Line 1 is the NAME (the
+ * person; the door reads "Your moment"). Line 2 is exactly
+ * ONE state word from the rail's closed vocabulary, mapped
+ * 1:1 from the stone's state - the same state always wears
+ * the same word, in the same type, on every surface that
+ * renders this component:
+ *   happening -> "Live"   loved -> "Loved"
+ *   new       -> "New"    seen  -> "Seen"
+ *   self door, no live moment -> "Add" (the door's own state
+ *   word; its live state is "Live", like everyone else's).
+ * The old rail broke this: the self cell rendered a free-text
+ * liveStoryLabel (or "Live") while a live person read "Live
+ * now" - one state, two forms. The free-text label is no
+ * longer rendered in the rail.
+ *
+ * Repair #22 (R22-A, WS-2) - the ring carries ORBITAL motion
+ * in the brand orb's language: a point of light travels the
+ * ring (the orb's rings rotate with dots riding them). The
+ * motion MEANS state, one sentence: the faster and brighter
+ * the light travels, the more alive the moment - Live orbits
+ * fastest and brightest, New slower and softer, Loved
+ * slowest and dimmest, Seen and the empty door rest, because
+ * there is nothing alive or unread left to attend to. Under
+ * reduced motion the orbit rests with the dot at the top and
+ * the ring material + caption word carry the identical
+ * meaning statically.
  */
+const STONE_STATE_WORD: Record<"happening" | "loved" | "new" | "seen", string> = {
+  happening: "Live",
+  loved: "Loved",
+  new: "New",
+  seen: "Seen",
+};
 function MomentStones({
   rail,
   onSelf,
@@ -1152,13 +1337,9 @@ function MomentStones({
 }: {
   rail: StoryRailProjection;
   onSelf: () => void;
-  onOpen: (s: {
-    personName: string;
-    personId?: string | null;
-    storyCount: number;
-    mediaUrl: string;
-    caption?: string | null;
-  }) => void;
+  /** R22 (WS-3): the whole rail entry — the viewer queue is
+   *  built from the rail at open time, not from one story. */
+  onOpen: (s: StoryRailProjection["stories"][number]) => void;
   /** Repair #21 (W-12): the anchor name is the bond door -
    *  tapping a person lands on the pair's shared stone. */
   onBond?: (personId: string, name: string) => void;
@@ -1175,6 +1356,9 @@ function MomentStones({
           onClick={onSelf}
         >
           <span className="c2s-stone-ring" aria-hidden />
+          <span className="c2s-stone-orbit" aria-hidden>
+            <span className="c2s-stone-dot" />
+          </span>
           <span className="c2s-stone-face">
             <StoneFace avatar={rail.self.avatar} mediaUrl={rail.self.story?.mediaUrl} />
           </span>
@@ -1183,8 +1367,8 @@ function MomentStones({
           </span>
         </button>
         <p className="c2s-stone-name">Your moment</p>
-        <p className="c2s-stone-sub">
-          {rail.self.hasLiveStory ? (rail.self.liveStoryLabel ?? "Live") : "Add"}
+        <p className="c2s-stone-sub" data-testid="c2-stone-sub">
+          {rail.self.hasLiveStory ? STONE_STATE_WORD.happening : "Add"}
         </p>
       </div>
       {rail.stories.map((story) => {
@@ -1198,17 +1382,12 @@ function MomentStones({
                 data-state={state}
                 data-testid="c2-stone"
                 aria-label={`${story.personName} moment`}
-                onClick={() =>
-                  onOpen({
-                    personName: story.personName,
-                    personId: story.personId,
-                    storyCount: story.storyCount,
-                    mediaUrl: story.mediaUrl!,
-                    caption: story.caption,
-                  })
-                }
+                onClick={() => onOpen(story)}
               >
                 <span className="c2s-stone-ring" aria-hidden />
+                <span className="c2s-stone-orbit" aria-hidden>
+                  <span className="c2s-stone-dot" />
+                </span>
                 <span className="c2s-stone-face">
                   <StoneFace avatar={story.avatar} mediaUrl={story.mediaUrl} />
                 </span>
@@ -1221,6 +1400,9 @@ function MomentStones({
                 aria-label={`${story.personName} moment is not available to play`}
               >
                 <span className="c2s-stone-ring" aria-hidden />
+                <span className="c2s-stone-orbit" aria-hidden>
+                  <span className="c2s-stone-dot" />
+                </span>
                 <span className="c2s-stone-face">
                   <StoneFace avatar={story.avatar} mediaUrl={story.mediaUrl} />
                 </span>
@@ -1238,8 +1420,8 @@ function MomentStones({
             ) : (
               <p className="c2s-stone-name">{story.personName}</p>
             )}
-            <p className="c2s-stone-sub">
-              {state === "happening" ? "Live now" : story.seen ? "Seen" : "New"}
+            <p className="c2s-stone-sub" data-testid="c2-stone-sub">
+              {STONE_STATE_WORD[state]}
             </p>
           </div>
         );
