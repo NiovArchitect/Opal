@@ -1,0 +1,2325 @@
+{
+  "base": "http://127.0.0.1:4101",
+  "accounts": {
+    "A": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+    "B": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+    "C": "c9678d70-2fd9-4707-9908-1ec06c94bf5d"
+  },
+  "imports": [
+    {
+      "label": "call1",
+      "file": "call1-dinner-plan.wav",
+      "post_wall_ms": 301,
+      "post_response": {
+        "import": {
+          "byte_size": 1264772,
+          "call_id": "5f617e3f-de84-4ed3-9298-9ec6c8641069",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:21.332096Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "76383582-1bc3-4c5c-a397-380c05cd69b2",
+          "inserted_at": "2026-10-22T18:44:21.407173Z",
+          "language": "en-US",
+          "original_filename": "call1-dinner-plan.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:21.407173Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 4517,
+      "final": {
+        "import": {
+          "byte_size": 1264772,
+          "call_id": "5f617e3f-de84-4ed3-9298-9ec6c8641069",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "0f38c896-10e0-464d-804b-780e337dc2a3",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "3c4085bc-49a1-49ff-b15c-bdd8c511bb02"
+          },
+          "confidence": 1.0,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:21.332096Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "76383582-1bc3-4c5c-a397-380c05cd69b2",
+          "inserted_at": "2026-10-22T18:44:21.407173Z",
+          "language": "en-US",
+          "original_filename": "call1-dinner-plan.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 10,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 2788,
+            "total": 4373,
+            "transcription": 1557
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:25.780910Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "e765f292-8064-4823-9144-b4adf8a7dbf5",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Hi, Pria. Thanks for calling back."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "f6aa6176-e7a4-4abe-ab7e-00b8955ae314",
+            "provider": "deepgram",
+            "sequence": 2,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Of course. Are we still doing dinner this week?"
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "85c9a3a6-fcf4-46f8-950d-ab2723216ae0",
+            "provider": "deepgram",
+            "sequence": 3,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Let's do dinner this Friday at 7PM at Juniper and Ivy."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "d6b68121-a096-4fea-a567-edcf0038abd3",
+            "provider": "deepgram",
+            "sequence": 4,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Wait. Friday doesn't work for me. Can we do Saturday instead?"
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "2a4fe2bb-8c6d-40f1-b090-0a4eff4be607",
+            "provider": "deepgram",
+            "sequence": 5,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "You're right. Not Friday. Saturday works. Saturday at 7PM at Juniper and Ivy."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "1725102e-1545-4101-a673-6a902f71cf4b",
+            "provider": "deepgram",
+            "sequence": 6,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "48df93e7-cc6c-4db5-842f-a225ed67b778",
+            "provider": "deepgram",
+            "sequence": 7,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Noted. I'll book the table tonight and text you the confirmation."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "0b79e25a-bc7c-49bf-9c07-7c895bfe7d86",
+            "provider": "deepgram",
+            "sequence": 8,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "And I'll bring the tickets for the gallery opening after dinner."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "e6dfd0b9-32a3-4fc5-a156-e2b95d120c0a",
+            "provider": "deepgram",
+            "sequence": 9,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "My birthday is March 14, so think of this as my early birthday dinner."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "37ecc5a5-0fc2-46a6-a54d-590ee543795c",
+            "provider": "deepgram",
+            "sequence": 10,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "I hate mornings, so a 7PM dinner is perfect for me."
+          }
+        ]
+      }
+    },
+    {
+      "label": "call2",
+      "file": "call2-hike-plan.mp3",
+      "post_wall_ms": 188,
+      "post_response": {
+        "import": {
+          "byte_size": 385570,
+          "call_id": "65be82f8-b54d-458b-8428-083d423ad8b0",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:26.091323Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mpeg",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "342d9065-268d-4c5a-95b3-d51e49ab4765",
+          "inserted_at": "2026-10-22T18:44:26.117291Z",
+          "language": "en-US",
+          "original_filename": "call2-hike-plan.mp3",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:26.117291Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 1489,
+      "final": {
+        "import": {
+          "byte_size": 385570,
+          "call_id": "65be82f8-b54d-458b-8428-083d423ad8b0",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "f5e53897-3782-44bf-b086-5e026f4ac269",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "6af30c1e-bc04-45e5-8eb1-bbd553ca5750"
+          },
+          "confidence": 1.0,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:26.091323Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mpeg",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "342d9065-268d-4c5a-95b3-d51e49ab4765",
+          "inserted_at": "2026-10-22T18:44:26.117291Z",
+          "language": "en-US",
+          "original_filename": "call2-hike-plan.mp3",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 1,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 62,
+            "total": 1202,
+            "transcription": 1123
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:27.319587Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "f3bd891b-efb3-4c12-8e9e-b9512d60fdce",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work. Let's do Cowles Mountain instead, same time. Cowles Mountain at 9AM on Sunday. Done. I'll text you the trailhead pin on Saturday night. I'm allergic to peanuts, so I'll pack my own trail snacks. Good to know. And let me handle the parking pass. I'll get it online tonight."
+          }
+        ]
+      }
+    },
+    {
+      "label": "call3",
+      "file": "call3-recital.m4a",
+      "post_wall_ms": 197,
+      "post_response": {
+        "import": {
+          "byte_size": 63020,
+          "call_id": "7b1eae75-0b16-402a-8136-113804108e50",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:27.794749Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mp4",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "31b9cf3a-7a4b-427c-8af0-e1f00f8e8be7",
+          "inserted_at": "2026-10-22T18:44:27.805886Z",
+          "language": "en-US",
+          "original_filename": "call3-recital.m4a",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:27.805886Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 676,
+      "final": {
+        "import": {
+          "byte_size": 63020,
+          "call_id": "7b1eae75-0b16-402a-8136-113804108e50",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "0e101679-ffad-4f5a-bc46-5fe4ba50058d",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "4e667d1c-f5a8-4c25-90c5-9c0a16bfacea"
+          },
+          "confidence": 1.0,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:27.794749Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mp4",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "31b9cf3a-7a4b-427c-8af0-e1f00f8e8be7",
+          "inserted_at": "2026-10-22T18:44:27.805886Z",
+          "language": "en-US",
+          "original_filename": "call3-recital.m4a",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 1,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 102,
+            "total": 603,
+            "transcription": 485
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:28.409224Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "9243ef2d-3263-41d8-9e97-5b1418eb7f78",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we eat afterwards, no taco truck for me. Noted. If you swing by my place first, the door code is 4218. I'll call the venue tomorrow to confirm our seats."
+          }
+        ]
+      }
+    },
+    {
+      "label": "silence",
+      "file": "adv-silence.wav",
+      "post_wall_ms": 255,
+      "post_response": {
+        "import": {
+          "byte_size": 96044,
+          "call_id": "cd72114f-0fc2-410a-974b-3bc96ccaa8c3",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:28.728373Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "4344c319-d161-4e85-b9da-96e4c7df94d9",
+          "inserted_at": "2026-10-22T18:44:28.740153Z",
+          "language": "en-US",
+          "original_filename": "adv-silence.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:28.740153Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 536,
+      "final": {
+        "import": {
+          "byte_size": 96044,
+          "call_id": "cd72114f-0fc2-410a-974b-3bc96ccaa8c3",
+          "capsule_ids": {},
+          "confidence": 0.0,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:28.728373Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "4344c319-d161-4e85-b9da-96e4c7df94d9",
+          "inserted_at": "2026-10-22T18:44:28.740153Z",
+          "language": "en-US",
+          "original_filename": "adv-silence.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 1,
+            "total": 178,
+            "transcription": 162
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:28.918959Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": []
+      }
+    },
+    {
+      "label": "corrupt",
+      "file": "adv-corrupt.mp3",
+      "post_wall_ms": 284,
+      "post_response": {
+        "import": {
+          "byte_size": 512,
+          "call_id": "45337abc-9da8-480b-b347-8a06a51e3c56",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:29.548144Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mpeg",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "77a2eb0b-b251-45b1-9248-0816a57fab97",
+          "inserted_at": "2026-10-22T18:44:29.559682Z",
+          "language": "en-US",
+          "original_filename": "adv-corrupt.mp3",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:29.559682Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 128,
+      "final": {
+        "import": {
+          "byte_size": 512,
+          "call_id": "45337abc-9da8-480b-b347-8a06a51e3c56",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:29.548144Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mpeg",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": "audio_decode_failed: {:decode_failed, \"[mp3 @ 0x7fd313704c80] Failed to find two consecutive MPEG audio frames.\\n[in#0 @ 0x7fd313704a80] Error opening input: Invalid data found when processing input\\nError opening input file /var/folders/x8/8r2l79xn4z70ry",
+          "id": "77a2eb0b-b251-45b1-9248-0816a57fab97",
+          "inserted_at": "2026-10-22T18:44:29.559682Z",
+          "language": "en-US",
+          "original_filename": "adv-corrupt.mp3",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "failed",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:29.628496Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": []
+      }
+    },
+    {
+      "label": "spanish",
+      "file": "adv-spanish.wav",
+      "post_wall_ms": 161,
+      "post_response": {
+        "import": {
+          "byte_size": 406796,
+          "call_id": "4f2f909c-f261-4039-bc4c-3f85e1ef2b4a",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:29.837366Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "3b86a418-5c20-4a84-8540-533d3852cebe",
+          "inserted_at": "2026-10-22T18:44:29.850647Z",
+          "language": "es",
+          "original_filename": "adv-spanish.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:29.850647Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 9084,
+      "final": {
+        "import": {
+          "byte_size": 406796,
+          "call_id": "4f2f909c-f261-4039-bc4c-3f85e1ef2b4a",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "d3f22ba2-dad4-4429-b2e3-8aef2b1f58e6",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "32aa7031-f7ef-4bfd-bc7b-a2a2426b77df"
+          },
+          "confidence": 0.9995117,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:29.837366Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "3b86a418-5c20-4a84-8540-533d3852cebe",
+          "inserted_at": "2026-10-22T18:44:29.850647Z",
+          "language": "es",
+          "original_filename": "adv-spanish.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 4,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 8909,
+            "total": 9074,
+            "transcription": 151
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:38.925235Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 0.9995117,
+            "final": true,
+            "id": "7e7b055f-8c39-4607-8619-b259477ccf03",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Hola, Prya. \u00bfNos vemos ma\u00f1ana a las 6 en la biblioteca?"
+          },
+          {
+            "confidence": 0.9995117,
+            "final": true,
+            "id": "c32a07c8-2fc6-444f-b516-936e73086a37",
+            "provider": "deepgram",
+            "sequence": 2,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "S\u00ed, ma\u00f1ana a las 6 en la biblioteca est\u00e1 perfecto."
+          },
+          {
+            "confidence": 0.9995117,
+            "final": true,
+            "id": "66aa4bda-9dc0-4bbb-887c-c32654514bae",
+            "provider": "deepgram",
+            "sequence": 3,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Yo llevo los documentos para la reuni\u00f3n."
+          },
+          {
+            "confidence": 0.9995117,
+            "final": true,
+            "id": "f227e7ac-b759-4f13-b875-58d7fd7375f2",
+            "provider": "deepgram",
+            "sequence": 4,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Perfecto, yo llevo el caf\u00e9 para los 2."
+          }
+        ]
+      }
+    },
+    {
+      "label": "three-speakers",
+      "file": "adv-three-speakers.wav",
+      "post_wall_ms": 244,
+      "post_response": {
+        "import": {
+          "byte_size": 301974,
+          "call_id": "7d81de1b-4e21-4ec8-9537-f580ff985870",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:39.167743Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "1dd4ddd6-96b0-40ce-a157-6d18f01d23e1",
+          "inserted_at": "2026-10-22T18:44:39.181137Z",
+          "language": "en-US",
+          "original_filename": "adv-three-speakers.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:39.181137Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 956,
+      "final": {
+        "import": {
+          "byte_size": 301974,
+          "call_id": "7d81de1b-4e21-4ec8-9537-f580ff985870",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "10a3991f-81da-4730-b56c-04c8a7bee462",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "0be8c802-a162-48e2-a36d-aaadc6f68b5c"
+          },
+          "confidence": 0.9995117,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:39.167743Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "1dd4ddd6-96b0-40ce-a157-6d18f01d23e1",
+          "inserted_at": "2026-10-22T18:44:39.181137Z",
+          "language": "en-US",
+          "original_filename": "adv-three-speakers.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 1,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 41,
+            "total": 806,
+            "transcription": 755
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:39.987363Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 0.9995117,
+            "final": true,
+            "id": "d79ec054-ef98-4ef1-962e-920b69fe6279",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Let's do dinner this Saturday at 7PM at Juniper and Ivy. Hi. I'm a third person who was never declared on this import. Sounds good. See you both there."
+          }
+        ]
+      }
+    },
+    {
+      "label": "overlap",
+      "file": "adv-overlap.wav",
+      "post_wall_ms": 171,
+      "post_response": {
+        "import": {
+          "byte_size": 302808,
+          "call_id": "bc6af8b2-e633-4616-959f-9392853ded38",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:40.295002Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "71f6fd60-0112-41bf-807d-3af952922310",
+          "inserted_at": "2026-10-22T18:44:40.308356Z",
+          "language": "en-US",
+          "original_filename": "adv-overlap.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:40.308356Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 591,
+      "final": {
+        "import": {
+          "byte_size": 302808,
+          "call_id": "bc6af8b2-e633-4616-959f-9392853ded38",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "3412dd2f-bc01-4a84-8e48-bdf22c064dc4",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "ba19f668-f40f-4937-b667-2da248e97a6e"
+          },
+          "confidence": 0.99902344,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:40.295002Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "71f6fd60-0112-41bf-807d-3af952922310",
+          "inserted_at": "2026-10-22T18:44:40.308356Z",
+          "language": "en-US",
+          "original_filename": "adv-overlap.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 1,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 25,
+            "total": 477,
+            "transcription": 438
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:40.785707Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 0.99902344,
+            "final": true,
+            "id": "055ee5fd-fb00-4d37-b689-e7698fcf852c",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Before we wrap up, let me check one thing. No way. Three is nine.... In the morning. Not eight. Okay. Whatever we just said, let's confirm it by text tonight."
+          }
+        ]
+      }
+    },
+    {
+      "label": "long",
+      "file": "adv-long.wav",
+      "post_wall_ms": 234,
+      "post_response": {
+        "import": {
+          "byte_size": 4291760,
+          "call_id": "50f607a6-09bd-47b8-82d6-a8122b5282ce",
+          "capsule_ids": {},
+          "confidence": null,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:41.101104Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "7d2763c7-f60b-48c8-bd19-7ab0243110ba",
+          "inserted_at": "2026-10-22T18:44:41.134975Z",
+          "language": "en-US",
+          "original_filename": "adv-long.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": null,
+          "segment_count": 0,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "received",
+          "timings_ms": {
+            "fold": null,
+            "total": null,
+            "transcription": null
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:41.134975Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "created"
+      },
+      "observed_completion_ms": 3145,
+      "final": {
+        "import": {
+          "byte_size": 4291760,
+          "call_id": "50f607a6-09bd-47b8-82d6-a8122b5282ce",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "2d762cdf-5184-434d-b251-e70f327c6ca3",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "67cacd6d-cf3c-48a3-a8fa-5f72e18bd6e0"
+          },
+          "confidence": 1.0,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:41.101104Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/wav",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "7d2763c7-f60b-48c8-bd19-7ab0243110ba",
+          "inserted_at": "2026-10-22T18:44:41.134975Z",
+          "language": "en-US",
+          "original_filename": "adv-long.wav",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 38,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 2110,
+            "total": 2941,
+            "transcription": 814
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:44.076666Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "segments": [
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "75ca4406-cff3-4c0d-b167-a09e69526d28",
+            "provider": "deepgram",
+            "sequence": 1,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "So how has your week been so far?"
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "705345a8-48f9-4920-96e8-6e5d487ace2b",
+            "provider": "deepgram",
+            "sequence": 2,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Busy, honestly. Work has been nonstop since Monday."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "60d2b62c-5612-4eb6-8213-a4ff41203c98",
+            "provider": "deepgram",
+            "sequence": 3,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Same here. The mornings just disappear before I get anything done."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "2077b9f2-52b9-4ad3-945d-3c767bd6537b",
+            "provider": "deepgram",
+            "sequence": 4,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Did you see the weather forecast for this weekend?"
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "ffb0ce5c-04f4-43c8-99ff-b8f0177ba813",
+            "provider": "deepgram",
+            "sequence": 5,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "I did. It says sun on Saturday and maybe rain late Sunday."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "b887b483-30cf-4410-8fad-76615d94ee21",
+            "provider": "deepgram",
+            "sequence": 6,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "That would be nice. We could finally fix the garden fence."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "99e9fec1-b25f-4d73-a3d1-22597ebd9650",
+            "provider": "deepgram",
+            "sequence": 7,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "The fence has been leaning since the last storm."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "88d7a925-1c67-4762-8dc1-a1f8547e397e",
+            "provider": "deepgram",
+            "sequence": 8,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "I know. I keep meaning to buy the post and then I forget."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "e8324022-d814-446f-81db-8a07431a9bee",
+            "provider": "deepgram",
+            "sequence": 9,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Write it down this time. You always forget the hardware store run."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "805361f5-cfe2-4379-8df0-3212f1c62e7a",
+            "provider": "deepgram",
+            "sequence": 10,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Fair. I will add it to the list right after this call."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "7bc3a53e-419c-4a1a-a20e-78423ccdc2da",
+            "provider": "deepgram",
+            "sequence": 11,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Speaking of lists, we are almost out of coffee again."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "d72104c5-27e6-4c5b-a9d1-d494b6d92c8a",
+            "provider": "deepgram",
+            "sequence": 12,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "How do we go through coffee so fast in this house?"
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "bf8892e6-a025-4efd-8fd1-47a71be0fa23",
+            "provider": "deepgram",
+            "sequence": 13,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Two people, two cups each, every morning. It adds up."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "7981f189-3071-431f-83ed-b8784844facc",
+            "provider": "deepgram",
+            "sequence": 14,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "We should try that new roastery near the station sometime."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "2a2e928c-17dd-48d5-b5de-1c1750d59958",
+            "provider": "deepgram",
+            "sequence": 15,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "The one with the blue sign? I walked past it yesterday."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "6722535c-36fe-48fd-a94c-ba97f9d25c59",
+            "provider": "deepgram",
+            "sequence": 16,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "That is the one. Their window display looks great."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "3c442b1f-5dc2-4648-8803-70b8686b7b2f",
+            "provider": "deepgram",
+            "sequence": 17,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Maybe next weekend. This weekend is already full."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "ea24f62b-22cd-4ae1-9560-1028d1bb95ce",
+            "provider": "deepgram",
+            "sequence": 18,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "True. Saturday is the market, and Sunday is your sister's thing."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "8fb5b2ba-a386-480f-992c-578e661c961e",
+            "provider": "deepgram",
+            "sequence": 19,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Right. And I promised my neighbor I would water her plants."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "dc192b2e-f9e8-4c13-a986-030bfcc1db8e",
+            "provider": "deepgram",
+            "sequence": 20,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "The tall ones on the balcony? Those need a lot of water."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "f557a4a4-43d8-492b-a575-b8e8c5471258",
+            "provider": "deepgram",
+            "sequence": 21,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Just the herbs, she said. Basil and mint mostly."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "0068918e-137a-4bf3-9c2a-e8cf37028301",
+            "provider": "deepgram",
+            "sequence": 22,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Her basil is doing better than ours, I noticed."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "a89c5df7-b719-4237-996c-784633c80986",
+            "provider": "deepgram",
+            "sequence": 23,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "She gets more sun on that side of the building."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "860438d9-19b4-444b-a789-7d941f601c51",
+            "provider": "deepgram",
+            "sequence": 24,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "That explains it. Our tomatoes are struggling this year too."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "0b72e27a-7dfb-41bb-827f-f90828683bb8",
+            "provider": "deepgram",
+            "sequence": 25,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Everything is a bit behind this year. The spring was cold."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "d555dfbd-0442-4747-8805-7353963de849",
+            "provider": "deepgram",
+            "sequence": 26,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "It was. I wore a jacket until almost June."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "b0e3a8b9-2d03-49fe-a9ab-004da3522001",
+            "provider": "deepgram",
+            "sequence": 27,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Same. Well, at least the evenings are warm now."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "8d78d906-e661-49b9-972c-321bd03951ef",
+            "provider": "deepgram",
+            "sequence": 28,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "They are. Dinner on the balcony last night was lovely."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "6b49ee75-7286-4af4-a204-cc1b662ecf59",
+            "provider": "deepgram",
+            "sequence": 29,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "We should do that more often while the weather holds."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "83ec14cc-ed9f-4522-924d-0583ef99abe0",
+            "provider": "deepgram",
+            "sequence": 30,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Agreed. Simple food. No fuss. Just the evening air."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "ec82fdbd-67fa-4dae-9a03-b90f0d2878f2",
+            "provider": "deepgram",
+            "sequence": 31,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Okay. I should let you go soon. My tea is getting cold."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "be000885-5514-4d98-9c7a-ae2508321e1a",
+            "provider": "deepgram",
+            "sequence": 32,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Mine too. This was a nice long catch up though."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "9122f69b-c5e6-4659-b9a4-3cfb74f1c435",
+            "provider": "deepgram",
+            "sequence": 33,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "It was. We do not talk like this often enough."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "df1e5fb5-93d2-4d85-afeb-63d59c447226",
+            "provider": "deepgram",
+            "sequence": 34,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "We really do not. Let us not leave it so long next time."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "a39cb6f6-13e5-471d-be18-a3f6878e7b30",
+            "provider": "deepgram",
+            "sequence": 35,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Deal. One more thing before we hang up though."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "36a2855d-9252-48ab-813c-c22f62ed79dd",
+            "provider": "deepgram",
+            "sequence": 36,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Go on. What is it?"
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "8aa42a2d-02dc-4ce5-8134-584854e2611e",
+            "provider": "deepgram",
+            "sequence": 37,
+            "speaker_name": "Daniel Reyes",
+            "speaker_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "text": "Let's do lunch next Wednesday at 12PM at the Harbor Cafe."
+          },
+          {
+            "confidence": 1.0,
+            "final": true,
+            "id": "23432a0d-4101-4787-b58d-4b012a475f07",
+            "provider": "deepgram",
+            "sequence": 38,
+            "speaker_name": "Priya Nair",
+            "speaker_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "text": "Wednesday at noon, Harbor Cafe. I'll book the table in the morning."
+          }
+        ]
+      }
+    }
+  ],
+  "refusals": {
+    "no_attestation": {
+      "error": {
+        "code": "consent_attestation_required",
+        "message": "Import refused: consent attestation is required"
+      },
+      "error_code": "consent_attestation_required",
+      "message": "Import refused: consent attestation is required"
+    },
+    "uploader_not_participant": {
+      "error": {
+        "code": "uploader_not_participant",
+        "message": "You can only import recordings of calls you participated in"
+      },
+      "error_code": "uploader_not_participant",
+      "message": "You can only import recordings of calls you participated in"
+    },
+    "duplicate_import": {
+      "post_wall_ms": 273,
+      "response": {
+        "import": {
+          "byte_size": 385570,
+          "call_id": "65be82f8-b54d-458b-8428-083d423ad8b0",
+          "capsule_ids": {
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9": "f5e53897-3782-44bf-b086-5e026f4ac269",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e": "6af30c1e-bc04-45e5-8eb1-bbd553ca5750"
+          },
+          "confidence": 1.0,
+          "consent": {
+            "attested_at": "2026-10-22T18:44:26.091323Z",
+            "attested_by_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "basis": "Both participants consented to this call being recorded and imported into Opal (fictional staging recording, R25 proof)."
+          },
+          "content_type": "audio/mpeg",
+          "conversation_id": "7ee18677-c69d-4486-b523-dc30c923241b",
+          "failure_reason": null,
+          "id": "342d9065-268d-4c5a-95b3-d51e49ab4765",
+          "inserted_at": "2026-10-22T18:44:26.117291Z",
+          "language": "en-US",
+          "original_filename": "call2-hike-plan.mp3",
+          "participant_user_ids": [
+            "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          ],
+          "provider": "deepgram",
+          "segment_count": 1,
+          "source": "imported_recording",
+          "speaker_map": {
+            "0": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "1": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+          },
+          "status": "done",
+          "timings_ms": {
+            "fold": 62,
+            "total": 1202,
+            "transcription": 1123
+          },
+          "unattributed_segment_count": 0,
+          "updated_at": "2026-10-22T18:44:27.319587Z",
+          "uploader_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        },
+        "origin": "duplicate"
+      }
+    }
+  },
+  "readback": {
+    "A": {
+      "wallet": {
+        "capsule_count": 7,
+        "capsules": [
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 38 utterances (19 by you, 19 by Priya Nair), transcript confidence 1.00. Learned: plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe.",
+            "created_at": "2026-10-22T18:44:44.064400Z",
+            "expires_at": null,
+            "id": "2d762cdf-5184-434d-b251-e70f327c6ca3",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 38 utterances (19 by you, 19 by Priya Nair), transcript confidence 1.00. Learned: plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe.",
+              "value": "Call with Priya Nair (imported recording): 38 utterances (19 by you, 19 by Priya Nair), transcript confidence 1.00. Learned: plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:44.064294Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 38 utterances (19 by you, 19 by Priya Nair), transcript confidence 1.00. Learned: plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          },
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Before we wrap up, let me check one thing. No way. Three is nine.... In the morning. Not eight. Okay. Whatever we just s.",
+            "created_at": "2026-10-22T18:44:40.780029Z",
+            "expires_at": null,
+            "id": "3412dd2f-bc01-4a84-8e48-bdf22c064dc4",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Before we wrap up, let me check one thing. No way. Three is nine.... In the morning. Not eight. Okay. Whatever we just s.",
+              "value": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Before we wrap up, let me check one thing. No way. Three is nine.... In the morning. Not eight. Okay. Whatever we just s."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:40.779941Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Before we wrap up, let me check one thing. No way. Three is nine.... In the morning. Not eight. Okay. Whatever we just s.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          },
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy.",
+            "created_at": "2026-10-22T18:44:39.982005Z",
+            "expires_at": null,
+            "id": "10a3991f-81da-4730-b56c-04c8a7bee462",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy.",
+              "value": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:39.981906Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          },
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 4 utterances (2 by you, 2 by Priya Nair), transcript confidence 1.00. Learned: commitment: Yo llevo los documentos para la reuni\u00f3n.; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca.",
+            "created_at": "2026-10-22T18:44:38.917938Z",
+            "expires_at": null,
+            "id": "d3f22ba2-dad4-4429-b2e3-8aef2b1f58e6",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 4 utterances (2 by you, 2 by Priya Nair), transcript confidence 1.00. Learned: commitment: Yo llevo los documentos para la reuni\u00f3n.; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca.",
+              "value": "Call with Priya Nair (imported recording): 4 utterances (2 by you, 2 by Priya Nair), transcript confidence 1.00. Learned: commitment: Yo llevo los documentos para la reuni\u00f3n.; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:38.917820Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 4 utterances (2 by you, 2 by Priya Nair), transcript confidence 1.00. Learned: commitment: Yo llevo los documentos para la reuni\u00f3n.; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          },
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre.",
+            "created_at": "2026-10-22T18:44:28.399130Z",
+            "expires_at": null,
+            "id": "0e101679-ffad-4f5a-bc46-5fe4ba50058d",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre.",
+              "value": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:28.399051Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          },
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines.",
+            "created_at": "2026-10-22T18:44:27.312134Z",
+            "expires_at": null,
+            "id": "f5e53897-3782-44bf-b086-5e026f4ac269",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines.",
+              "value": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:27.311958Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 1 utterances (1 by you, 0 by Priya Nair), transcript confidence 1.00. Learned: commitment: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          },
+          {
+            "because": "Because you told Opal: Call with Priya Nair (imported recording): 10 utterances (5 by you, 5 by Priya Nair), transcript confidence 1.00. Learned: commitment: Noted. I'll book the table tonight and text you the confirmation.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; fact: My birthday is March 14, so think of this as my early birthday dinner.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy.",
+            "created_at": "2026-10-22T18:44:25.762361Z",
+            "expires_at": null,
+            "id": "0f38c896-10e0-464d-804b-780e337dc2a3",
+            "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Priya Nair (imported recording): 10 utterances (5 by you, 5 by Priya Nair), transcript confidence 1.00. Learned: commitment: Noted. I'll book the table tonight and text you the confirmation.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; fact: My birthday is March 14, so think of this as my early birthday dinner.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy.",
+              "value": "Call with Priya Nair (imported recording): 10 utterances (5 by you, 5 by Priya Nair), transcript confidence 1.00. Learned: commitment: Noted. I'll book the table tonight and text you the confirmation.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; fact: My birthday is March 14, so think of this as my early birthday dinner.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:25.759838Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Priya Nair (imported recording): 10 utterances (5 by you, 5 by Priya Nair), transcript confidence 1.00. Learned: commitment: Noted. I'll book the table tonight and text you the confirmation.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; fact: My birthday is March 14, so think of this as my early birthday dinner.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy.",
+            "version": 1,
+            "wallet_id": "850989d5-9938-49f5-beb4-2ea97651eb4d"
+          }
+        ],
+        "soul": {
+          "assistance_level": "balanced",
+          "assistance_level_label": "A balanced amount of help",
+          "completion_feedback": "standard",
+          "intelligence_maturity": "new",
+          "max_proactive_signals_per_day": 3,
+          "motion_preference": "system",
+          "quiet_hours_end": "08:00",
+          "quiet_hours_label": "Quiet hours - 22:00 to 08:00",
+          "quiet_hours_start": "22:00",
+          "shadow_mode": false,
+          "timezone": "America/Los_Angeles",
+          "user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+          "usual_meeting_link": null
+        },
+        "wallet": {
+          "created_at": "2026-10-22T18:44:25.750769Z",
+          "id": "850989d5-9938-49f5-beb4-2ea97651eb4d",
+          "owner_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+        }
+      },
+      "facts": {
+        "facts": [
+          {
+            "id": "pm:40057cdd-0646-4588-a45d-c35976d999e8:allergy",
+            "label": "Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm ha...",
+            "mapped": false,
+            "person_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "source": "person_memory",
+            "value": "Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy."
+          },
+          {
+            "id": "pm:40057cdd-0646-4588-a45d-c35976d999e8:mornings",
+            "label": "I hate mornings, so a 7PM dinner is perfect for me.",
+            "mapped": false,
+            "person_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "source": "person_memory",
+            "value": "I hate mornings, so a 7PM dinner is perfect for me."
+          },
+          {
+            "id": "pm:b88608c7-8224-43ea-9785-f11a368f00bb:allergy",
+            "label": "For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, ...",
+            "mapped": false,
+            "person_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "source": "person_memory",
+            "value": "For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work. Let's do Cowles Mountain instead, same time. Cowles Mountain at 9AM on Sunday."
+          },
+          {
+            "id": "pm:b88608c7-8224-43ea-9785-f11a368f00bb:birthday",
+            "label": "My birthday is March 14, so think of this as my early birthday dinner.",
+            "mapped": false,
+            "person_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "source": "person_memory",
+            "value": "My birthday is March 14, so think of this as my early birthday dinner."
+          },
+          {
+            "id": "pm:b88608c7-8224-43ea-9785-f11a368f00bb:dislike:cilantro",
+            "label": "Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. ...",
+            "mapped": false,
+            "person_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "source": "person_memory",
+            "value": "Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we eat afterwards, no taco truck for me. Noted. If you swing by my place first, the d"
+          }
+        ]
+      }
+    },
+    "B": {
+      "wallet": {
+        "capsule_count": 7,
+        "capsules": [
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 38 utterances (19 by you, 19 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: Wednesday at noon, Harbor Cafe. I'll book the table in the morning.; commitment: Fair. I will add it to the list right after this call.; plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe.",
+            "created_at": "2026-10-22T18:44:44.075133Z",
+            "expires_at": null,
+            "id": "67cacd6d-cf3c-48a3-a8fa-5f72e18bd6e0",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 38 utterances (19 by you, 19 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: Wednesday at noon, Harbor Cafe. I'll book the table in the morning.; commitment: Fair. I will add it to the list right after this call.; plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe.",
+              "value": "Call with Daniel Reyes (imported recording): 38 utterances (19 by you, 19 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: Wednesday at noon, Harbor Cafe. I'll book the table in the morning.; commitment: Fair. I will add it to the list right after this call.; plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:44.075033Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 38 utterances (19 by you, 19 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: Wednesday at noon, Harbor Cafe. I'll book the table in the morning.; commitment: Fair. I will add it to the list right after this call.; plan: coffee; plan: market \u00b7 saturday; plan: lunch \u00b7 wednesday 12:00 \u00b7 Harbor Cafe.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          },
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. No durable facts extracted.",
+            "created_at": "2026-10-22T18:44:40.784524Z",
+            "expires_at": null,
+            "id": "ba19f668-f40f-4937-b667-2da248e97a6e",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. No durable facts extracted.",
+              "value": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. No durable facts extracted."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:40.784439Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. No durable facts extracted.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          },
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy.",
+            "created_at": "2026-10-22T18:44:39.986145Z",
+            "expires_at": null,
+            "id": "0be8c802-a162-48e2-a36d-aaadc6f68b5c",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy.",
+              "value": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:39.986054Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: plan: dinner \u00b7 saturday 19:00 \u00b7 Juniper and Ivy.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          },
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 4 utterances (2 by you, 2 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: yo llevo el caf\u00e9 para los 2; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca.",
+            "created_at": "2026-10-22T18:44:38.923576Z",
+            "expires_at": null,
+            "id": "32aa7031-f7ef-4bfd-bc7b-a2a2426b77df",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 4 utterances (2 by you, 2 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: yo llevo el caf\u00e9 para los 2; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca.",
+              "value": "Call with Daniel Reyes (imported recording): 4 utterances (2 by you, 2 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: yo llevo el caf\u00e9 para los 2; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:38.923470Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 4 utterances (2 by you, 2 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: yo llevo el caf\u00e9 para los 2; plan: tomorrow 18:00 \u00b7 tomorrow 18:00 \u00b7 la biblioteca.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          },
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre.",
+            "created_at": "2026-10-22T18:44:28.405286Z",
+            "expires_at": null,
+            "id": "4e667d1c-f5a8-4c25-90c5-9c0a16bfacea",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre.",
+              "value": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:28.405184Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we ea; plan: tuesday 18:00 \u00b7 tuesday 18:00 \u00b7 Balboa Theatre.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          },
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines.",
+            "created_at": "2026-10-22T18:44:27.317536Z",
+            "expires_at": null,
+            "id": "6af30c1e-bc04-45e5-8eb1-bbd553ca5750",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines.",
+              "value": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:27.317433Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 1 utterances (0 by you, 1 by Daniel Reyes), transcript confidence 1.00. Learned: fact: For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work; plan: hike \u00b7 sunday 09:00 \u00b7 Torrey Pines.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          },
+          {
+            "because": "Because you told Opal: Call with Daniel Reyes (imported recording): 10 utterances (5 by you, 5 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: And I'll bring the tickets for the gallery opening after dinner.; fact: My birthday is March 14, so think of this as my early birthday dinner.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy.",
+            "created_at": "2026-10-22T18:44:25.778699Z",
+            "expires_at": null,
+            "id": "3c4085bc-49a1-49ff-b15c-bdd8c511bb02",
+            "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "payload": {
+              "kind": "call_recording",
+              "summary": "Call with Daniel Reyes (imported recording): 10 utterances (5 by you, 5 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: And I'll bring the tickets for the gallery opening after dinner.; fact: My birthday is March 14, so think of this as my early birthday dinner.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy.",
+              "value": "Call with Daniel Reyes (imported recording): 10 utterances (5 by you, 5 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: And I'll bring the tickets for the gallery opening after dinner.; fact: My birthday is March 14, so think of this as my early birthday dinner.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy."
+            },
+            "provenance": {
+              "learned_from_kind": "call_transcript",
+              "source_kind": "imported_call_recording",
+              "source_label": "Imported call recording",
+              "stored_at": "2026-10-22T18:44:25.778596Z"
+            },
+            "provenance_label": "Imported call recording",
+            "purpose": "call_ingestion",
+            "review_at": null,
+            "scope_kind": "conversation",
+            "scope_policy": {
+              "consent": "owner_private",
+              "emergency_overrides": "none",
+              "jurisdiction": null,
+              "purpose": "call_ingestion",
+              "relationships": {
+                "counterpart_user_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9"
+              },
+              "roles": [
+                "owner"
+              ],
+              "scope": {
+                "id": "7ee18677-c69d-4486-b523-dc30c923241b",
+                "kind": "conversation"
+              },
+              "time": {
+                "expires_at": null,
+                "review_at": null
+              },
+              "transformation_retention": {
+                "retention": "until_forgotten_or_expired"
+              }
+            },
+            "source": "capsule",
+            "summary": "Call with Daniel Reyes (imported recording): 10 utterances (5 by you, 5 by Daniel Reyes), transcript confidence 1.00. Learned: commitment: And I'll bring the tickets for the gallery opening after dinner.; fact: My birthday is March 14, so think of this as my early birthday dinner.; fact: Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy.; fact: I hate mornings, so a 7PM dinner is perfect for me.; plan: dinner \u00b7 friday 19:00 \u00b7 Juniper and Ivy.",
+            "version": 1,
+            "wallet_id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa"
+          }
+        ],
+        "soul": {
+          "assistance_level": "balanced",
+          "assistance_level_label": "A balanced amount of help",
+          "completion_feedback": "standard",
+          "intelligence_maturity": "new",
+          "max_proactive_signals_per_day": 3,
+          "motion_preference": "system",
+          "quiet_hours_end": "08:00",
+          "quiet_hours_label": "Quiet hours - 22:00 to 08:00",
+          "quiet_hours_start": "22:00",
+          "shadow_mode": false,
+          "timezone": "America/Los_Angeles",
+          "user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+          "usual_meeting_link": null
+        },
+        "wallet": {
+          "created_at": "2026-10-22T18:44:25.777249Z",
+          "id": "f966bd9a-55b3-4aed-b386-7fc703d2cefa",
+          "owner_user_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e"
+        }
+      },
+      "facts": {
+        "facts": [
+          {
+            "id": "pm:0cfff697-7b33-4e43-8e63-027875194f1b:allergy",
+            "label": "For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, ...",
+            "mapped": false,
+            "person_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "source": "person_memory",
+            "value": "For Sunday, let's plan a hike at Torrey Pines at 9AM. Sounds good. Actually, wait. Torrey Pines is closed for trail work. Let's do Cowles Mountain instead, same time. Cowles Mountain at 9AM on Sunday."
+          },
+          {
+            "id": "pm:0cfff697-7b33-4e43-8e63-027875194f1b:birthday",
+            "label": "My birthday is March 14, so think of this as my early birthday dinner.",
+            "mapped": false,
+            "person_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "source": "person_memory",
+            "value": "My birthday is March 14, so think of this as my early birthday dinner."
+          },
+          {
+            "id": "pm:0cfff697-7b33-4e43-8e63-027875194f1b:dislike:cilantro",
+            "label": "Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. ...",
+            "mapped": false,
+            "person_id": "08ee41f5-24b3-4dd1-acf2-22ab1d463fa9",
+            "source": "person_memory",
+            "value": "Quick one. My sister's recital is next Tuesday at 6PM at the Balboa Theatre. Lovely. I can't stand cilantro, so if we eat afterwards, no taco truck for me. Noted. If you swing by my place first, the d"
+          },
+          {
+            "id": "pm:e789010a-c3d8-4d3c-be12-15a78ef25432:allergy",
+            "label": "Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm ha...",
+            "mapped": false,
+            "person_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "source": "person_memory",
+            "value": "Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy."
+          },
+          {
+            "id": "pm:e789010a-c3d8-4d3c-be12-15a78ef25432:mornings",
+            "label": "I hate mornings, so a 7PM dinner is perfect for me.",
+            "mapped": false,
+            "person_id": "2c40295a-9d40-49d3-93bf-bd9dff4e771e",
+            "source": "person_memory",
+            "value": "I hate mornings, so a 7PM dinner is perfect for me."
+          }
+        ]
+      }
+    },
+    "C": {
+      "wallet": {
+        "capsule_count": 0,
+        "capsules": [],
+        "soul": {
+          "assistance_level": "balanced",
+          "assistance_level_label": "A balanced amount of help",
+          "completion_feedback": "standard",
+          "intelligence_maturity": "new",
+          "max_proactive_signals_per_day": 3,
+          "motion_preference": "system",
+          "quiet_hours_end": "08:00",
+          "quiet_hours_label": "Quiet hours - 22:00 to 08:00",
+          "quiet_hours_start": "22:00",
+          "shadow_mode": false,
+          "timezone": "UTC",
+          "user_id": "c9678d70-2fd9-4707-9908-1ec06c94bf5d",
+          "usual_meeting_link": null
+        },
+        "wallet": {
+          "created_at": "2026-10-22T18:44:46.360791Z",
+          "id": "19171292-306a-499b-833c-3e65f8a41760",
+          "owner_user_id": "c9678d70-2fd9-4707-9908-1ec06c94bf5d"
+        }
+      },
+      "facts": {
+        "facts": []
+      }
+    },
+    "C_import_get": {
+      "status": 404,
+      "body": {
+        "error": {
+          "code": "not_found",
+          "message": "Recording import not found"
+        },
+        "error_code": "not_found",
+        "message": "Recording import not found"
+      }
+    }
+  }
+}
