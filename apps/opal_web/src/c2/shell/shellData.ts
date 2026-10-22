@@ -582,9 +582,20 @@ export function placePlanFamily(
  *  contributes no place input - a place is never invented. */
 export function livePlaceInputsFromRooms(
   rows: Array<{ live_room?: Record<string, unknown> } | Record<string, unknown>> | null | undefined,
-): Array<{ liveId: string; placeLabel: string; title: string; hostName: string | null }> {
-  const out: Array<{ liveId: string; placeLabel: string; title: string; hostName: string | null }> =
-    [];
+): Array<{
+  liveId: string;
+  placeLabel: string;
+  title: string;
+  hostName: string | null;
+  placeId: string | null;
+}> {
+  const out: Array<{
+    liveId: string;
+    placeLabel: string;
+    title: string;
+    hostName: string | null;
+    placeId: string | null;
+  }> = [];
   for (const row of rows ?? []) {
     const room = (
       row && typeof row === "object" && "live_room" in row
@@ -606,7 +617,17 @@ export function livePlaceInputsFromRooms(
       null;
     const title =
       (typeof room.title === "string" && room.title) || `Live at ${placeLabel}`;
-    out.push({ liveId: room.id, placeLabel, title, hostName });
+    // Repair #24 (D-P1): the room's record honestly carries a
+    // stable venue identity - venue_id on the room contract
+    // itself, else the venue record's own id, else its provider
+    // place_id. It rides the input so the builder can group on
+    // identity where identity exists (see placeStonesFromGraph).
+    const placeId =
+      (typeof room.venue_id === "string" && room.venue_id) ||
+      (typeof venue.id === "string" && venue.id) ||
+      (typeof venue.place_id === "string" && venue.place_id) ||
+      null;
+    out.push({ liveId: room.id, placeLabel, title, hostName, placeId });
   }
   return out;
 }
@@ -618,6 +639,11 @@ export type PlaceMomentInput = {
   authorName: string;
   authorUserId: string | null;
   mine: boolean;
+  /** Repair #24 (D-P1): the moment record's stable place
+   *  identity (its place_ref provider_place_id, carried on the
+   *  feed card as place_id since R24), when the record carries
+   *  one. Absent = the builder groups this moment by name. */
+  placeId?: string | null;
 };
 
 export type PlaceLiveInput = {
@@ -625,11 +651,21 @@ export type PlaceLiveInput = {
   placeLabel: string;
   title: string;
   hostName: string | null;
+  /** Repair #24 (D-P1): the venue's stable identity, when the
+   *  room record carries one (see livePlaceInputsFromRooms). */
+  placeId?: string | null;
 };
 
 type PlaceAccumulator = {
   key: string;
   name: string;
+  /** Repair #24 (D-P1): the normalized display-name key, kept
+   *  beside the grouping key - name is the fallback join and
+   *  the bridge for records that carry no stable id. */
+  nameKey: string;
+  /** The stable place/venue id this stone groups on, when any
+   *  record that formed it honestly carried one; else null. */
+  placeId: string | null;
   order: number;
   livesHere: PlaceStoneProjection["livesHere"];
   happening: Array<{ plan: OpalPlanContract }>;
@@ -674,32 +710,77 @@ export function placeStonesFromGraph(input: {
   lives: PlaceLiveInput[];
   now: Date;
 }): PlaceStoneProjection[] {
-  const byKey = new Map<string, PlaceAccumulator>();
+  // Repair #24 (D-P1) - IDENTITY-FIRST GROUPING. The R22 builder
+  // grouped on the display string alone (the records that reached
+  // it carried no stable id). At the R24 tip the lives record
+  // honestly carries a venue identity (venue_id / the venue
+  // record's id / its provider place_id) and the moment record
+  // carries a provider place id (its place_ref, now on the feed
+  // card); the plan contract still carries NO stable place id
+  // (SharedPlan has location + coordinates only - no venue column
+  // exists to project), so plans join by name. The join law:
+  //   - a record WITH an id groups on that id: two records with
+  //     different ids NEVER merge, even when their display names
+  //     are identical (two same-name venues stay two places), and
+  //     two records with the same id DO merge even when their
+  //     display strings differ (one place, variant strings);
+  //   - a record WITHOUT an id bridges by normalized name into
+  //     the one stone that name identifies; when the name is
+  //     ambiguous (two id-distinguished stones share it) the
+  //     record forms (or joins) the name-only stone instead of
+  //     being silently attributed to a venue it may not be;
+  //   - an id record arriving for a place so far known only by
+  //     name ADOPTS that single name-only stone (its key becomes
+  //     the id key) when no other stone shares the name.
+  // Stone keys stay unique (they are React keys): "id:<id>" for
+  // an identified place, "name:<normalized name>" otherwise.
+  const accs: PlaceAccumulator[] = [];
   let order = 0;
-  const accFor = (rawName: string): PlaceAccumulator | null => {
+  const newAcc = (name: string, placeId: string | null): PlaceAccumulator => {
+    const acc: PlaceAccumulator = {
+      key: placeId ? `id:${placeId}` : `name:${normalizePlaceKey(name)}`,
+      name,
+      nameKey: normalizePlaceKey(name),
+      placeId,
+      order: order++,
+      livesHere: [],
+      happening: [],
+      coming: [],
+      memoryPlans: [],
+      momentsHere: [],
+      momentInputs: [],
+    };
+    accs.push(acc);
+    return acc;
+  };
+  const accFor = (rawName: string, rawPlaceId?: string | null): PlaceAccumulator | null => {
     const name = rawName.trim().replace(/\s+/g, " ");
     if (!name) return null;
-    const key = normalizePlaceKey(name);
-    let acc = byKey.get(key);
-    if (!acc) {
-      acc = {
-        key,
-        name,
-        order: order++,
-        livesHere: [],
-        happening: [],
-        coming: [],
-        memoryPlans: [],
-        momentsHere: [],
-        momentInputs: [],
-      };
-      byKey.set(key, acc);
+    const placeId =
+      typeof rawPlaceId === "string" && rawPlaceId.trim() ? rawPlaceId.trim() : null;
+    const nameKey = normalizePlaceKey(name);
+    if (placeId) {
+      const byId = accs.find((a) => a.placeId === placeId);
+      if (byId) return byId;
+      const sameName = accs.filter((a) => a.nameKey === nameKey);
+      const nameOnly = sameName.filter((a) => a.placeId === null);
+      if (sameName.length === 1 && nameOnly.length === 1) {
+        const adopted = nameOnly[0]!;
+        adopted.placeId = placeId;
+        adopted.key = `id:${placeId}`;
+        return adopted;
+      }
+      return newAcc(name, placeId);
     }
-    return acc;
+    const sameName = accs.filter((a) => a.nameKey === nameKey);
+    if (sameName.length === 1) return sameName[0]!;
+    if (sameName.length === 0) return newAcc(name, null);
+    const nameOnly = sameName.find((a) => a.placeId === null);
+    return nameOnly ?? newAcc(name, null);
   };
 
   for (const live of input.lives) {
-    const acc = accFor(live.placeLabel);
+    const acc = accFor(live.placeLabel, live.placeId);
     if (!acc) continue;
     acc.livesHere.push({ liveId: live.liveId, title: live.title, hostName: live.hostName });
   }
@@ -710,7 +791,11 @@ export function placeStonesFromGraph(input: {
     if (plan.plan_type === "virtual" || plan.online === true) continue;
     const location = typeof plan.location === "string" ? plan.location : null;
     if (!location) continue;
-    const acc = accFor(location);
+    // The plan contract carries no stable place id today (see
+    // the D-P1 join law above), so plans bridge by name; the
+    // place_id field is read only if a future contract honestly
+    // carries one - it is never derived from the string.
+    const acc = accFor(location, plan.place_id);
     if (!acc) continue;
     const family = placePlanFamily(plan, input.now);
     if (family === "happening") acc.happening.push({ plan });
@@ -720,7 +805,7 @@ export function placeStonesFromGraph(input: {
 
   for (const moment of input.moments) {
     if (!moment.placeLabel) continue;
-    const acc = accFor(moment.placeLabel);
+    const acc = accFor(moment.placeLabel, moment.placeId);
     if (!acc) continue;
     acc.momentsHere.push({
       momentId: moment.id,
@@ -731,7 +816,7 @@ export function placeStonesFromGraph(input: {
   }
 
   const stones: PlaceStoneProjection[] = [];
-  for (const acc of byKey.values()) {
+  for (const acc of accs) {
     const memoryRaw = acc.momentsHere.length + acc.memoryPlans.length;
     if (
       acc.livesHere.length === 0 &&
@@ -803,7 +888,15 @@ export function placeStonesFromGraph(input: {
 
     // The door out: the place's strongest lawful seed source -
     // a current plan, else a settled plan (its "again"), else a
-    // moment. A live-only place carries none (declared D-P4).
+    // moment. Repair #24 (D-P4): a live-only place now carries
+    // the PLACE ITSELF as its prefill source - the seed machinery
+    // gains a place source whose create prefill carries only the
+    // place as location (no lineage, no party, no title borrowed
+    // from the live room: a live room is still not a seed
+    // SOURCE, it claims no provenance - the place is carried
+    // directly, the full build's second lawful shape in the
+    // design record's D-P4). Branch my-people: the party is the
+    // user's to choose, exactly as for a plan/moment seed.
     let startSeed: PlaceStoneProjection["startSeed"] = null;
     const seedPlan =
       acc.happening.length > 0
@@ -839,10 +932,18 @@ export function placeStonesFromGraph(input: {
         mine: moment.mine,
       };
       startSeed = seedCreateFor(source, "my-people");
+    } else if (acc.livesHere.length > 0) {
+      const source: SeedSource = {
+        kind: "place",
+        placeLabel: acc.name,
+        placeId: acc.placeId,
+      };
+      startSeed = seedCreateFor(source, "my-people");
     }
 
     stones.push({
       key: acc.key,
+      placeId: acc.placeId,
       name: acc.name,
       energyScore: score,
       energyLevel,
@@ -931,18 +1032,23 @@ export function placeWarmthLevel(place: PlaceStoneProjection): PlaceWarmthLevel 
   return PLACE_WARMTH_RANK[fromTier] >= PLACE_WARMTH_RANK[fromR22] ? fromTier : fromR22;
 }
 
-/** Fold the server place signals onto the R22 stones, matched
- *  by the builder's own normalized key. A signal for a place
- *  with no stone changes nothing (the stone set is the R22
- *  builder's truth); a stone with no signal keeps its R22
- *  reading untouched. Pure - the adapter's one merge point. */
+/** Fold the server place signals onto the R22 stones. The
+ *  signals endpoint's contract is place NAMES (the client names
+ *  the places its own reads surfaced - PlaceSignalController),
+ *  so the join is by the stone's own normalized NAME, never by
+ *  its grouping key: since Repair #24 (D-P1) a stone's key may
+ *  be an id key ("id:..."), which no name could ever match.
+ *  A signal for a place with no stone changes nothing (the
+ *  stone set is the builder's truth); a stone with no signal
+ *  keeps its R22 reading untouched. Pure - the adapter's one
+ *  merge point. */
 export function withPlaceSignals(
   stones: PlaceStoneProjection[],
   signals: Array<{ place: string; tier: import("../../api/productClient").PlaceSignalTier; nearby: boolean }>,
 ): PlaceStoneProjection[] {
-  const byKey = new Map(signals.map((s) => [normalizePlaceKey(s.place), s]));
+  const byName = new Map(signals.map((s) => [normalizePlaceKey(s.place), s]));
   return stones.map((stone) => {
-    const signal = byKey.get(stone.key);
+    const signal = byName.get(normalizePlaceKey(stone.name));
     if (!signal) return stone;
     return { ...stone, signalTier: signal.tier, signalNearby: signal.nearby === true };
   });
@@ -1444,6 +1550,22 @@ export async function loadPlansResult(
   }
 }
 
+/**
+ * Repair #24 (WS-2) integration fix: the story composer's graph
+ * picker options, projected here in the one derivation site
+ * (MP-3: C2 surfaces consume projections, never plan-state
+ * readers). The server list behind loadPlansResult is already
+ * scoped to plans the viewer created or participates in, so the
+ * picker can only offer graphs the author belongs to; a failed
+ * load reads as no options, never a fabricated graph.
+ */
+export async function loadStoryGraphOptions(
+  bearer?: string,
+): Promise<Array<{ id: string; title: string }>> {
+  const { plans } = await loadPlansResult(bearer);
+  return plans.map((p) => ({ id: p.id, title: p.title || "Untitled graph" }));
+}
+
 export function shellFromSession(
   session: ProductSession | null,
   route: ShellProjection["route"],
@@ -1514,6 +1636,10 @@ export async function homeFromSession(
           authorId: typeof r.author_user_id === "string" ? r.author_user_id : null,
           personName,
           avatar: avatarOf(personName, i + 1),
+          // Repair #24 (WS-1): the story record's own
+          // server-computed attention flags, carried verbatim.
+          viewerMentioned: r.viewer_mentioned === true,
+          viewerHasResponse: r.viewer_has_response === true,
           seen: Boolean(r.seen),
           ringKind: r.seen ? ("seen" as const) : ("unseen" as const),
           storyCount: 1,
@@ -1549,6 +1675,12 @@ export async function homeFromSession(
       const existing = byPerson.get(key);
       if (existing) {
         existing.storyCount += 1;
+        // R24 (WS-1): any one of this person's stories carrying
+        // a mention/response for the viewer earns the cell's
+        // attention flags - the flags are per record, the cell
+        // is per person.
+        existing.viewerMentioned = existing.viewerMentioned || s.viewerMentioned;
+        existing.viewerHasResponse = existing.viewerHasResponse || s.viewerHasResponse;
         existing.seen = existing.seen && s.seen;
         existing.ringKind = existing.seen ? "seen" : "unseen";
         existing.items.push(...s.items);
@@ -1621,6 +1753,10 @@ export async function homeFromSession(
             session?.user_id && typeof actor.user_id === "string" && actor.user_id === session.user_id,
           ),
           placeLabel: typeof o.place_label === "string" && o.place_label ? o.place_label : null,
+          // Repair #24 (D-P1): the feed card's place_id - the
+          // moment record's own provider place identity, when it
+          // carries one (HomeFeed.to_feed_card, R24).
+          placeId: typeof o.place_id === "string" && o.place_id ? o.place_id : null,
           authorAvatar: avatarOf(authorName, i + 1),
           // The backend feed card carries engagement inside its
           // engagement_summary object (HomeFeed.to_feed_card); the
@@ -1662,6 +1798,14 @@ export async function homeFromSession(
               : typeof o.comment_count === "number"
                 ? o.comment_count
                 : 0,
+          // Repair #24 (WS-6): the moment's persisted tense, read
+          // back verbatim from the feed record - only the three
+          // creation-tense values are carried; anything else is
+          // older-payload absence, never a locally stamped tense.
+          tense:
+            o.tense === "present" || o.tense === "future" || o.tense === "past"
+              ? (o.tense as "present" | "future" | "past")
+              : undefined,
         };
       })
       .filter((m) => m.id && m.id !== "undefined");
@@ -1936,6 +2080,7 @@ export async function homeFromSession(
       .map((m) => ({
         id: m.id,
         placeLabel: m.placeLabel ?? null,
+        placeId: m.placeId ?? null,
         caption: m.contextLine,
         authorName: m.authorName ?? m.authorLine,
         authorUserId: m.authorUserId ?? null,
@@ -2845,16 +2990,19 @@ export async function buildSettingsSection(
       // decision). Its read is its OWN leg (ER-2): if it fails, the
       // room still renders and the control is honestly absent -
       // never a toggle seeded from a guess.
-      // N7 (founder polish wave): how memory changes are protected,
-      // stated in the room itself. There is NO password check -
-      // Opal accounts sign in with a phone code and have no account
-      // password, and no step-up re-auth exists to check against -
-      // so none is painted. What is true today: changes ride the
-      // signed-in session only, and forgetting is two-step.
+      // N7 (founder polish wave) / Repair #24 (WS-5): how memory
+      // changes are protected, stated in the room itself. There is
+      // still NO password check - Opal accounts sign in with a
+      // phone code and have no account password to check against -
+      // and none is painted. What is true now: adding and forgetting
+      // require a fresh step-up code sent to the phone number on
+      // the account (the credential the account actually has),
+      // confirmed in this room; the check lasts a few minutes and
+      // every change made under it is timestamped server-side.
       const memoryProtectionNote: SettingsSectionProjection["rows"][number] = {
         kind: "note",
         id: "memory-protection-note",
-        text: "Adding and forgetting here happen only while you are signed in, and forgetting always asks you to confirm first. There is no separate password check for memory yet: Opal signs you in with a code sent to your phone, and your account has no password to check against.",
+        text: "Adding and forgetting here ask you to confirm it is you first, with a fresh code sent to the phone number on your account - use the step-up form in this room. There is no password check for memory: Opal signs you in with a code sent to your phone, and your account has no password to check against, so the phone code is the check. Forgetting also always asks you to confirm first.",
       };
       let graphingRows: SettingsSectionProjection["rows"] = [];
       try {

@@ -1,7 +1,23 @@
 defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   @moduledoc """
   Temporary Story create/list — durable enough for multi-device; expires from eligibility.
-  Story ≠ Memory ≠ Graph. Media may be LOCAL_DEV fixture refs.
+  Story ≠ Memory. Media may be LOCAL_DEV fixture refs.
+
+  Repair #24 WS-2 — graph stories: a create may carry a graph anchor
+  (`graph_plan_id`, alias `plan_id` / `graph_id`) naming a SharedPlan
+  the author is a party to. Parties are exactly the plan-media
+  precedent (SharedPlan.plan_media_authorized?/2): the plan's creator
+  plus its PlanParticipant rows. An anchored story's stored
+  visibility is "graph" and its audience is exactly those parties —
+  the anchor overrides the person-story visibility branches, and the
+  same 24h expiry law applies unchanged. A non-party post is
+  rejected ({:error, :not_graph_party}) and an unknown anchor is
+  {:error, :graph_not_found}; nothing persists in either case.
+
+  Gyroscope: this module reads the single plan store
+  (shared_plans / plan_participants) only to answer party standing;
+  it renders no plan state. Registered in
+  PlanProjection.read_files/0.
   """
 
   import Ecto.Query
@@ -14,7 +30,9 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
 
   alias OpalCore.SocialFlow.{
     MediaLocalStore,
+    PlanParticipant,
     RelationshipGraph,
+    SharedPlan,
     SocialMomentMedia,
     TemporaryStory
   }
@@ -46,12 +64,70 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
         # post media_ids. Anything else claiming to be a media reference is
         # rejected as :invalid_media. Legacy refs (data:, /, https:) are
         # stored unchanged so existing rows keep rendering.
-        case stored_media_ref(author_user_id, a, media) do
-          {:ok, stored_ref} -> create_with_ttl(author_user_id, a, stored_ref, vis)
-          {:error, :invalid_media} -> {:error, :invalid_media}
+        with {:ok, stored_ref} <- stored_media_ref(author_user_id, a, media),
+             {:ok, graph_plan_id} <- resolve_graph_anchor(author_user_id, a) do
+          # An anchored story's audience is the graph itself: the
+          # stored visibility is "graph" whatever person visibility
+          # the client sent alongside the anchor, so the contract
+          # never claims a wider audience than the parties who can
+          # actually read it.
+          vis = if graph_plan_id, do: "graph", else: vis
+
+          create_with_ttl(author_user_id, a, stored_ref, vis, graph_plan_id: graph_plan_id)
+        else
+          {:error, reason} -> {:error, reason}
         end
     end
   end
+
+  # Repair #24 WS-2: the graph anchor, resolved BEFORE anything
+  # persists. No anchor key (or an empty one) is the person story.
+  # A present anchor must name a real plan and the author must be a
+  # party to it - a guessed or foreign id never creates a story.
+  defp resolve_graph_anchor(author_user_id, a) do
+    raw = a["graph_plan_id"] || a["plan_id"] || a["graph_id"]
+
+    cond do
+      is_nil(raw) or raw == "" ->
+        {:ok, nil}
+
+      not is_binary(raw) or not OpalCore.IdShape.uuid?(raw) ->
+        {:error, :graph_not_found}
+
+      true ->
+        case Repo.get(SharedPlan, raw) do
+          %SharedPlan{} = plan ->
+            if graph_party?(plan, author_user_id) do
+              {:ok, plan.id}
+            else
+              {:error, :not_graph_party}
+            end
+
+          nil ->
+            {:error, :graph_not_found}
+        end
+    end
+  end
+
+  @doc """
+  Repair #24 WS-2: true when `user_id` is a party to the graph (plan):
+  its creator or one of its PlanParticipant rows — the exact party law
+  SharedPlan.plan_media_authorized?/2 applies to plan media. Response
+  state does not narrow party standing (a pending participant is a
+  party, as in the media precedent). Evaluated live on every call, so
+  a participant added later gains the graph's stories and nothing is
+  cached.
+  """
+  def graph_party?(%SharedPlan{} = plan, user_id) when is_binary(user_id) do
+    plan.created_by_user_id == user_id or
+      Repo.exists?(
+        from(pp in PlanParticipant,
+          where: pp.plan_id == ^plan.id and pp.user_id == ^user_id
+        )
+      )
+  end
+
+  def graph_party?(_, _), do: false
 
   defp stored_media_ref(author_user_id, a, media) do
     cond do
@@ -77,15 +153,44 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
     end
   end
 
-  defp create_with_ttl(author_user_id, a, media, vis) do
+  defp create_with_ttl(author_user_id, a, media, vis, opts \\ []) do
     case parse_ttl_hours(a["ttl_hours"]) do
       {:ok, hours} ->
-        do_create(author_user_id, a, media, vis, hours)
+        case validate_mentions(author_user_id, a["mentioned_user_ids"], vis) do
+          {:ok, mention_ids} ->
+            do_create(author_user_id, a, media, vis, hours, mention_ids, opts)
+
+          {:error, :invalid_mention} ->
+            {:error, :invalid_mention}
+        end
 
       :error ->
         {:error, :invalid_ttl}
     end
   end
+
+  # Repair #24 (WS-1): story mentions are explicit user ids named
+  # by the author at create time - never parsed out of caption
+  # text (a display name is not an identity). Every named user
+  # must exist and must be eligible for a story of this visibility
+  # by this author: you cannot mention someone into a story they
+  # cannot see. Any invalid entry rejects the whole create and
+  # nothing persists.
+  defp validate_mentions(_author, nil, _vis), do: {:ok, []}
+
+  defp validate_mentions(author_user_id, ids, vis) when is_list(ids) do
+    probe = %TemporaryStory{author_user_id: author_user_id, visibility: vis}
+
+    valid? =
+      Enum.all?(ids, fn id ->
+        is_binary(id) and OpalCore.IdShape.uuid?(id) and id != author_user_id and
+          not is_nil(Repo.get(User, id)) and eligible?(probe, id)
+      end)
+
+    if valid?, do: {:ok, Enum.uniq(ids)}, else: {:error, :invalid_mention}
+  end
+
+  defp validate_mentions(_, _, _), do: {:error, :invalid_mention}
 
   # ttl_hours arrives from JSON as a number; a string like "24" used to crash
   # the create with an ArithmeticError (500) and non-positive values produced
@@ -103,7 +208,8 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
 
   defp parse_ttl_hours(_), do: :error
 
-  defp do_create(author_user_id, a, media, vis, hours) do
+  defp do_create(author_user_id, a, media, vis, hours, mention_ids, opts) do
+    graph_plan_id = Keyword.get(opts, :graph_plan_id)
     expires =
       DateTime.utc_now()
       |> DateTime.add(hours * 3600, :second)
@@ -115,11 +221,33 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
       media_ref: media,
       caption: a["caption"] || "",
       visibility: vis,
-      expires_at: expires
+      expires_at: expires,
+      graph_plan_id: graph_plan_id
     })
     |> Repo.insert()
     |> case do
       {:ok, story} ->
+        # Repair #24 (WS-1): the author's create-time mentions land
+        # as mention rows on the engagement record - the same rows
+        # the POST /stories/:id/mentions endpoint writes.
+        for target_id <- mention_ids do
+          {:ok, _} =
+            %OpalCore.SocialFlow.TemporaryStoryEngagementRecord{}
+            |> OpalCore.SocialFlow.TemporaryStoryEngagementRecord.changeset(%{
+              story_id: story.id,
+              actor_user_id: author_user_id,
+              target_user_id: target_id,
+              kind: "mention"
+            })
+            |> Repo.insert()
+        end
+
+        payload =
+          %{"story_id" => story.id, "author_user_id" => author_user_id}
+          |> then(fn p ->
+            if graph_plan_id, do: Map.put(p, "graph_plan_id", graph_plan_id), else: p
+          end)
+
         _ =
           Publisher.record(%{
             event_type: "temporary_story.created",
@@ -128,7 +256,7 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
             partition_key: story.id,
             privacy_class: "shared_authorized",
             purpose: "temporary_story",
-            payload: %{"story_id" => story.id, "author_user_id" => author_user_id}
+            payload: payload
           })
 
         {:ok, TemporaryStory.contract(story, display_name(author_user_id))}
@@ -149,8 +277,47 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
     )
     |> Repo.all()
     |> Enum.filter(fn s -> eligible?(s, viewer_user_id) end)
-    |> Enum.map(fn s -> TemporaryStory.contract(s, display_name(s.author_user_id)) end)
+    |> Enum.map(fn s ->
+      # Repair #24 (WS-1): the server-computed attention flags ride
+      # the story contract - computed here, from the engagement
+      # record, per viewer. The client renders the rail's
+      # ATTENTION glow from these flags and never guesses.
+      flags = OpalCore.SocialFlow.TemporaryStoryEngagement.attention_flags(s.id, viewer_user_id)
+
+      TemporaryStory.contract(s, display_name(s.author_user_id))
+      |> Map.merge(flags)
+    end)
   end
+
+  @doc """
+  Repair #24 (WS-1): fetch a story for a viewer under the story
+  visibility law - the story must exist, be undeleted and
+  unexpired, and the viewer must be eligible for it. This is the
+  single gate story engagement reads and writes route through,
+  exactly as moment engagement routes through
+  SocialMomentPublishing.get_for_viewer/2. An ineligible or
+  expired story reads as :not_found: the viewer learns nothing
+  about a story they may not see.
+  """
+  def get_for_viewer(story_id, viewer_user_id)
+      when is_binary(story_id) and is_binary(viewer_user_id) do
+    story_id = if OpalCore.IdShape.uuid?(story_id), do: story_id, else: nil
+    now = DateTime.utc_now()
+
+    case story_id && Repo.get(TemporaryStory, story_id) do
+      %TemporaryStory{deleted_at: nil} = story ->
+        cond do
+          DateTime.compare(story.expires_at, now) != :gt -> {:error, :not_found}
+          eligible?(story, viewer_user_id) -> {:ok, story}
+          true -> {:error, :not_found}
+        end
+
+      _ ->
+        {:error, :not_found}
+    end
+  end
+
+  def get_for_viewer(_, _), do: {:error, :not_found}
 
   @doc """
   Repair #16 (B2): public eligibility check — the single authority the
@@ -188,6 +355,20 @@ defmodule OpalCore.SocialFlow.TemporaryStoryPublishing do
   def story_media_authorized?(_, _, _), do: false
 
   defp eligible?(%TemporaryStory{author_user_id: author}, viewer) when author == viewer, do: true
+
+  # Repair #24 WS-2: an anchored story answers to the graph alone.
+  # This clause sits ahead of the person visibility branches so the
+  # anchor overrides them even on a row whose stored visibility says
+  # friends / close_circle: the audience is exactly the graph's
+  # parties (creator + participants), never the author's wider
+  # relationship audience.
+  defp eligible?(%TemporaryStory{graph_plan_id: plan_id}, viewer)
+       when is_binary(plan_id) do
+    case Repo.get(SharedPlan, plan_id) do
+      %SharedPlan{} = plan -> graph_party?(plan, viewer)
+      nil -> false
+    end
+  end
 
   defp eligible?(%TemporaryStory{visibility: "friends", author_user_id: author}, viewer) do
     # Same law as SocialMomentVisibility friends: never default-true.

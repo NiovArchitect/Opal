@@ -99,12 +99,34 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
   chats. Titles are set through rename_conversation/3 and each
   chat carries one user message, so the orbit log and rail read
   populated in the pack.
+
+  Repair #24 (WS-9, seed-world stageability): the R23 handoff
+  declared two glass legs unstageable in this world — account A's
+  home feed composed ZERO moment cards and ZERO live cards. The
+  diagnosis (proven red-first by
+  r24_seedworld_stageability_test.exs at the R23 tip): the world
+  seeded plans, calls, stories and chats, but no SocialMoment
+  records and no LiveRooms at all. HomeFeed composes moment cards
+  only from SocialMomentRecord rows (via
+  SocialMomentPublishing.list_for_viewer), and the client's live
+  cards come only from Lives.list_visible_lives — neither record
+  family existed, so neither card could ever compose. The seeded
+  stories are TemporaryStory rows: they feed the rail, never the
+  stream's moment cards, so their presence staged neither journey.
+  Timing and visibility were NOT the cause: nothing existed to be
+  mistimed or hidden. The enrichment below therefore seeds the
+  missing record families through their real owners — moments via
+  SocialMomentPublishing.publish plus SocialMomentEngagement, and
+  one live room via Lives.go_live — with the existing cast, at the
+  existing places, on the existing seed photos.
   """
 
   import Ecto.Query
 
   alias OpalCore.Accounts.User
   alias OpalCore.Calls.{CallOutcome, CallSession}
+  alias OpalCore.Lives
+  alias OpalCore.Lives.Venue
   alias OpalCore.Messages
   alias OpalCore.Messaging.{Conversation, ConversationMember}
   alias OpalCore.OpalConversations
@@ -114,8 +136,11 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
   alias OpalCore.SocialFlow.{
     PlanParticipant,
     SharedPlan,
+    SocialMomentComment,
+    SocialMomentEngagement,
     SocialMomentMedia,
     SocialMomentPublishing,
+    SocialMomentRecord,
     TemporaryStory,
     TemporaryStoryPublishing
   }
@@ -190,6 +215,14 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
     maya_direct_plan = ensure_maya_direct_plan!(viewer_user_id, peers)
     stories = seed_stories!(viewer_user_id, peers)
 
+    # Repair #24 (WS-9): the two record families the Flows Voice and
+    # Live glass journeys stage on — durable moments for the stream
+    # and one live room — seeded after the directs and plans exist,
+    # because moment visibility rides the dyad conversations and the
+    # live host is the market plan's lead.
+    moments = seed_moments!(viewer_user_id, peers)
+    live = seed_live!(viewer_user_id, peers)
+
     # W21 (ABS-1, contacts leg): the anchor-proposal detection
     # resolves the Opal reply's named person against the account's
     # relationship contacts, and the seed world previously had
@@ -239,6 +272,8 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
       "maya_direct_plan" => maya_direct_plan,
       "calls" => calls,
       "stories" => stories,
+      "moments" => moments,
+      "live" => live,
       "opal_conversations" => opal_conversations,
       "plan_privacy_flag" => "absent_no_field_on_shared_plan",
       "joiner_location_sharing" => "absent_no_field_on_plan_participant",
@@ -841,6 +876,232 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
     end
 
     conv
+  end
+
+  # --- moments + live (Repair #24 WS-9) --------------------------------
+  #
+  # Diagnosis (proven by r24_seedworld_stageability_test.exs red at the
+  # R23 tip): this world seeded plans, calls, stories and chats, but no
+  # SocialMoment records and no LiveRooms at all, so A's home feed
+  # composed zero moment cards (HomeFeed reads SocialMomentRecord rows
+  # through SocialMomentPublishing.list_for_viewer) and zero live cards
+  # (the client reads Lives.list_visible_lives). The stories above are
+  # TemporaryStory rows - they feed the rail, never the stream's moment
+  # cards - so their presence never staged either journey.
+
+  # Moments: real posts by A's own people, published through the real
+  # owner (SocialMomentPublishing.publish) with real seed photos
+  # uploaded through the same media owner the stories use. Every
+  # author holds a direct (dyad) conversation with the viewer, which
+  # is exactly the relationship authority "friends" visibility checks
+  # (RelationshipGraph.friend_visibility_authorized?), so A can see
+  # them and a stranger cannot. Engagement is seeded through the real
+  # engagement owner by people authorized to interact (the viewer and
+  # each moment's own author), in varied states: one thread the
+  # comments door can open, one moment the viewer has lit, one the
+  # viewer saved, one the viewer reposted, one still quiet.
+  # Idempotent: moments are found by (author, caption); likes /
+  # reposts / saves are the owner's own idempotent writes; comments
+  # are insert-missing-only by (moment, author, body).
+  @seed_moments [
+    %{
+      author: :maya,
+      caption: "Dahlias were worth the early start - the flower stall did not disappoint",
+      place: "Oceanside Farmers Market",
+      asset: "story_flowers.jpg",
+      engage: :thread
+    },
+    %{
+      author: :chanelle,
+      caption: "Booked the corner table for Saturday - Juniper & Ivy at golden hour",
+      place: "Juniper & Ivy",
+      asset: "juniper_dinner.jpg",
+      engage: :commented
+    },
+    %{
+      author: :sabrina,
+      caption: "The little bakery on my block finally opened - cardamom bun first, obviously",
+      place: nil,
+      asset: "brunch.jpg",
+      engage: :quiet
+    },
+    %{
+      author: :alex,
+      caption: "Tamarack at golden hour, from the picnic blanket",
+      place: "Tamarack Beach, Carlsbad",
+      asset: "picnic_sunset.jpg",
+      engage: :saved
+    },
+    %{
+      author: :priya,
+      caption: "Sunday coast path scouting - coffee first, then the walk down to Moonlight",
+      place: "Moonlight Beach, Encinitas",
+      asset: "coffee_walk.jpg",
+      engage: :reposted
+    }
+  ]
+
+  defp seed_moments!(viewer_id, peers) do
+    Enum.map(@seed_moments, fn spec ->
+      author_id = Map.fetch!(peers, spec.author)
+      moment = ensure_moment!(author_id, spec)
+      ensure_moment_engagement!(viewer_id, author_id, moment["id"], spec.engage)
+
+      %{
+        "id" => moment["id"],
+        "author" => display_name_of(author_id),
+        "caption" => spec.caption
+      }
+    end)
+  end
+
+  defp ensure_moment!(author_id, spec) do
+    existing =
+      from(m in SocialMomentRecord,
+        where: m.author_user_id == ^author_id and m.caption == ^spec.caption,
+        order_by: [asc: m.inserted_at],
+        limit: 1
+      )
+      |> Repo.one()
+
+    case existing do
+      %SocialMomentRecord{} = record ->
+        SocialMomentRecord.public_contract(record)
+
+      nil ->
+        {:ok, media_id} = upload_seed_image(author_id, spec.asset)
+
+        attrs = %{
+          "caption" => spec.caption,
+          "visibility" => "friends",
+          "media_ids" => [media_id]
+        }
+
+        attrs =
+          if spec.place,
+            do: Map.put(attrs, "place_ref", %{"display_name" => spec.place}),
+            else: attrs
+
+        {:ok, %{"moment" => moment}} = SocialMomentPublishing.publish(author_id, attrs)
+        moment
+    end
+  end
+
+  defp ensure_moment_engagement!(_viewer_id, _author_id, _moment_id, :quiet), do: :ok
+
+  defp ensure_moment_engagement!(viewer_id, author_id, moment_id, :thread) do
+    {:ok, _} = SocialMomentEngagement.like(viewer_id, moment_id)
+
+    ensure_comment!(
+      viewer_id,
+      moment_id,
+      "Save me a bunch of the pink ones - I will swing by on my way over"
+    )
+
+    ensure_comment!(
+      author_id,
+      moment_id,
+      "Already set aside. They are too good to share, honestly"
+    )
+
+    :ok
+  end
+
+  defp ensure_moment_engagement!(viewer_id, _author_id, moment_id, :commented) do
+    ensure_comment!(viewer_id, moment_id, "Golden hour on that patio is the whole reason to go")
+    :ok
+  end
+
+  defp ensure_moment_engagement!(viewer_id, _author_id, moment_id, :saved) do
+    {:ok, _} = SocialMomentEngagement.save(viewer_id, moment_id)
+    :ok
+  end
+
+  defp ensure_moment_engagement!(viewer_id, _author_id, moment_id, :reposted) do
+    {:ok, _} = SocialMomentEngagement.repost(viewer_id, moment_id)
+    :ok
+  end
+
+  # add_comment is not idempotent in the engagement owner, so the
+  # seed guards it the same insert-missing-only way it guards
+  # participant rows: an existing identical comment is left alone.
+  defp ensure_comment!(author_id, moment_id, body) do
+    existing =
+      from(c in SocialMomentComment,
+        where:
+          c.moment_id == ^moment_id and c.author_user_id == ^author_id and c.body == ^body and
+            is_nil(c.deleted_at),
+        limit: 1
+      )
+      |> Repo.one()
+
+    case existing do
+      %SocialMomentComment{} ->
+        :ok
+
+      nil ->
+        {:ok, _} = SocialMomentEngagement.add_comment(author_id, moment_id, body)
+        :ok
+    end
+  end
+
+  # One live room, hosted by Maya Torres at the market - she is the
+  # market run's lead and her seeded words already put her there
+  # ("I'm by the flower stall"). The room is born through the real
+  # Lives owner (go_live), at a venue carrying the seed place's real
+  # name; the venue graduates out of quarantine the same way the
+  # Lives suite's own helper graduates the venues it stands up, so
+  # the place label the card renders is the place's name plainly.
+  # Idempotent: a host has at most one active room (the owner ends
+  # prior rooms on a new go-live), so an already-live room for Maya
+  # is reused and a re-seed never stacks rooms or burns the owner's
+  # per-day venue rate limit.
+  @live_place_id "fixture_oceanside_farmers_market"
+  @live_title "Morning at the flower stall"
+
+  defp seed_live!(viewer_id, peers) do
+    _ = viewer_id
+    host_id = peers.maya
+
+    room =
+      case Lives.active_live_for(host_id) do
+        {:ok, room, _venue} ->
+          room
+
+        {:error, :not_found} ->
+          {:ok, %{live_room: room, venue: venue}} =
+            Lives.go_live(host_id, @live_place_id,
+              allow_fixture: true,
+              name: "Oceanside Farmers Market",
+              address: "Pier View Way, Oceanside",
+              types: ["point_of_interest", "establishment"],
+              title: @live_title,
+              audience: "friends",
+              location_precision: "venue"
+            )
+
+          {:ok, _} =
+            venue
+            |> Venue.changeset(%{status: "full", quarantine_until: nil})
+            |> Repo.update()
+
+          room
+      end
+
+    %{
+      "id" => room.id,
+      "host" => display_name_of(host_id),
+      "title" => room.title || @live_title,
+      "place" => "Oceanside Farmers Market",
+      "status" => room.status
+    }
+  end
+
+  defp display_name_of(user_id) do
+    case Repo.get(User, user_id) do
+      %User{display_name: name} -> name
+      _ -> nil
+    end
   end
 
   # --- stories -----------------------------------------------------------

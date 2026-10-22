@@ -1,6 +1,11 @@
 defmodule OpalCore.SocialFlow.TemporaryStory do
   @moduledoc """
-  Temporary Story — Story ≠ Memory ≠ Graph.
+  Temporary Story — Story ≠ Memory. A story may be ANCHORED to a
+  Graph (a SharedPlan) without becoming one: Repair #24 WS-2 gives
+  the story an optional `graph_plan_id` and a "graph" visibility
+  whose audience is exactly that plan's parties (see
+  TemporaryStoryPublishing). Unanchored rows are the person stories
+  that have always existed.
   Durable enough to survive refresh/device; expires from eligibility.
   """
   use Ecto.Schema
@@ -8,7 +13,11 @@ defmodule OpalCore.SocialFlow.TemporaryStory do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  @visibilities ~w(close_circle friends)
+  # "graph" is writable ONLY by TemporaryStoryPublishing's anchored
+  # branch, which sets it together with graph_plan_id after the party
+  # check; the person-story create path still accepts only
+  # close_circle / friends.
+  @visibilities ~w(close_circle friends graph)
 
   schema "temporary_stories" do
     field :media_ref, :string, default: ""
@@ -17,6 +26,9 @@ defmodule OpalCore.SocialFlow.TemporaryStory do
     field :expires_at, :utc_datetime_usec
     field :deleted_at, :utc_datetime_usec
     belongs_to :author_user, OpalCore.Accounts.User, foreign_key: :author_user_id
+
+    belongs_to :graph_plan, OpalCore.SocialFlow.SharedPlan, foreign_key: :graph_plan_id
+
     timestamps(type: :utc_datetime_usec)
   end
 
@@ -28,10 +40,12 @@ defmodule OpalCore.SocialFlow.TemporaryStory do
       :caption,
       :visibility,
       :expires_at,
-      :deleted_at
+      :deleted_at,
+      :graph_plan_id
     ])
     |> validate_required([:author_user_id, :media_ref, :visibility, :expires_at])
     |> validate_inclusion(:visibility, @visibilities)
+    |> foreign_key_constraint(:graph_plan_id)
   end
 
   def contract(%__MODULE__{} = s, display_name \\ nil) do
@@ -63,7 +77,19 @@ defmodule OpalCore.SocialFlow.TemporaryStory do
       "deleted" => not is_nil(s.deleted_at),
       "object_type" => "story",
       "not_memory" => true,
-      "not_graph" => true
+      # Repair #24 WS-2: the real branch that replaces the old
+      # unconditional assertion. A story anchored to a graph carries
+      # the plan's id and is not_graph false; a person story carries
+      # nil and stays not_graph true, byte-identical to before.
+      "graph_plan_id" => Map.get(s, :graph_plan_id),
+      "not_graph" => is_nil(Map.get(s, :graph_plan_id)),
+      # Repair #24 (WS-1): attention flags, server-computed per
+      # viewer from the story-engagement record by
+      # TemporaryStoryPublishing.list_for_viewer/2 (the bare
+      # contract has no viewer, so it carries the resting
+      # defaults; the list read overwrites them with the truth).
+      "viewer_mentioned" => false,
+      "viewer_has_response" => false
     }
   end
 end

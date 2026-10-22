@@ -42,7 +42,7 @@ import {
   type SeedSource,
 } from "./flows2";
 import { GoLiveFlow } from "./GoLiveFlow";
-import { placeWarmthLevel } from "./shellData";
+import { loadStoryGraphOptions, placeWarmthLevel } from "./shellData";
 import { StoryViewerC2, storyQueueFromRail, type StoryPlayItem } from "./StoryViewerC2";
 import { TriviaCard } from "./C2Trivia";
 import type { HomeOccasion } from "./projections";
@@ -206,6 +206,11 @@ export type C2HomeEvents = {
    *  opens the author's direct conversation and keeps its own
    *  person door on the card. */
   openComments?: (momentId: string) => void;
+  /** Repair #24 (WS-1): a story's comments, opened from the
+   *  story viewer (audit D-M). The shell mounts the story
+   *  comments sheet with the bearer. Absent = the viewer's
+   *  comments door does not render (no dead control). */
+  openStoryComments?: (storyId: string) => void;
   /** Repair #23 (WS-23-3): a Live card was tapped; the shell
    *  opens the watch surface for this room (audit F-2). The id
    *  is the ROOM id (the projection's watch: action id carries
@@ -709,6 +714,12 @@ export function C2Home({
     kind: "story" | "post";
     mediaFirst: boolean;
     toggle: boolean;
+    /** Repair #24 (WS-6): the creation tense this composer was
+     *  opened under (the tense panel's Photo/Text doors). It is
+     *  sent on publish and persisted server-side on the moment
+     *  record. Absent = opened outside a tense - publish sends
+     *  no tense and the server applies its present default. */
+    tense?: CreationTense;
   }>(null);
   const [liveOpen, setLiveOpen] = useState(false);
   // R22 (WS-3): the story viewer runs a QUEUE — the rail's live
@@ -1282,9 +1293,10 @@ export function C2Home({
                     className="c2s-sheet-row"
                     data-testid="c2-create-tense-photo"
                     onClick={() => {
+                      const tense = tensePanel;
                       setSheet(null);
                       setTensePanel(null);
-                      setComposer({ kind: "post", mediaFirst: true, toggle: true });
+                      setComposer({ kind: "post", mediaFirst: true, toggle: true, tense });
                     }}
                   >
                     <IconCamera />
@@ -1295,9 +1307,10 @@ export function C2Home({
                     className="c2s-sheet-row"
                     data-testid="c2-create-tense-text"
                     onClick={() => {
+                      const tense = tensePanel;
                       setSheet(null);
                       setTensePanel(null);
-                      setComposer({ kind: "post", mediaFirst: false, toggle: false });
+                      setComposer({ kind: "post", mediaFirst: false, toggle: false, tense });
                     }}
                   >
                     <IconText />
@@ -1386,6 +1399,7 @@ export function C2Home({
           kind={composer.kind}
           mediaFirst={composer.mediaFirst}
           allowToggle={composer.toggle}
+          tense={composer.tense}
           bearer={events.bearer}
           onClose={() => setComposer(null)}
           onShared={() => {
@@ -1409,12 +1423,15 @@ export function C2Home({
       {/* R22 (WS-3): the story viewer is its own component —
           dwell by content, auto-advance along the rail, filling
           progress segments, exit at the rail's end (StoryViewerC2).
-          W-17 ext. stays: Reply is the viewer's one lawful live
-          door; the light heart and take doors are DECLARED
-          (D-15) — stories carry no engagement record, so nothing
-          here pretends to light or graph a story. Exit returns
-          to the stream untouched — Home never unmounted, so the
-          scroll position is preserved by construction. */}
+          W-17 ext. stays: Reply is a lawful live door. Repair
+          #24 (WS-1) closes D-15's engagement half: stories now
+          carry the story-engagement record, so the viewer also
+          carries a Comments door into that record. The light
+          heart and take doors stay DECLARED - no light or graph
+          record exists for stories, so nothing here pretends
+          to light or graph a story. Exit returns to the stream
+          untouched — Home never unmounted, so the scroll
+          position is preserved by construction. */}
       {viewerQueue ? (
         <StoryViewerC2
           queue={viewerQueue}
@@ -1424,6 +1441,14 @@ export function C2Home({
               ? (personId) => {
                   setViewerQueue(null);
                   events.replyToPerson!(personId);
+                }
+              : undefined
+          }
+          onComments={
+            events.openStoryComments
+              ? (storyId) => {
+                  setViewerQueue(null);
+                  events.openStoryComments!(storyId);
                 }
               : undefined
           }
@@ -1573,10 +1598,21 @@ const STONE_STATE_WORD: Record<"happening" | "nearby" | "loved" | "new" | "seen"
 };
 
 /** R23 two-tier glow: attention is earned only by the named
- *  triggers wired in this wave - happening (live) and loved
- *  (the viewer's close people). Everything else rests. */
-function stoneGlowTier(state: "happening" | "nearby" | "loved" | "new" | "seen"): "attention" | "rest" {
-  return state === "happening" || state === "loved" ? "attention" : "rest";
+ *  triggers - happening (live) and loved (the viewer's close
+ *  people). Repair #24 (WS-1) wires the third named trigger:
+ *  a mention or response involving the viewer, read from the
+ *  story record's own server-computed flags
+ *  (viewerMentioned / viewerHasResponse, from the
+ *  story-engagement record). The demonstrated-interest trigger
+ *  stays unwired: no interest field exists in the story record
+ *  or the rail path, and none is fabricated here. */
+function stoneGlowTier(
+  state: "happening" | "nearby" | "loved" | "new" | "seen",
+  story?: { viewerMentioned?: boolean; viewerHasResponse?: boolean },
+): "attention" | "rest" {
+  if (state === "happening" || state === "loved") return "attention";
+  if (story?.viewerMentioned || story?.viewerHasResponse) return "attention";
+  return "rest";
 }
 function MomentStones({
   rail,
@@ -1630,7 +1666,7 @@ function MomentStones({
                 type="button"
                 className="c2s-stone"
                 data-state={state}
-                data-glow={stoneGlowTier(state)}
+                data-glow={stoneGlowTier(state, story)}
                 data-warmth={state === "loved" ? "warm" : undefined}
                 data-testid="c2-stone"
                 aria-label={`${story.personName} moment`}
@@ -1648,7 +1684,7 @@ function MomentStones({
               <span
                 className="c2s-stone"
                 data-state={state}
-                data-glow={stoneGlowTier(state)}
+                data-glow={stoneGlowTier(state, story)}
                 data-warmth={state === "loved" ? "warm" : undefined}
                 data-testid="c2-stone-nomedia"
                 aria-label={`${story.personName} moment is not available to play`}
@@ -1747,6 +1783,7 @@ function ShareComposer({
   kind,
   mediaFirst,
   allowToggle,
+  tense,
   bearer,
   onClose,
   onShared,
@@ -1756,6 +1793,11 @@ function ShareComposer({
    *  door). Text-first is post-only - the story endpoint
    *  requires media by the server's own rule. */
   mediaFirst: boolean;
+  /** Repair #24 (WS-6): the creation tense this composer was
+   *  opened under, when it was opened from a tense panel. Sent
+   *  on post publish only (stories carry no tense); absent =
+   *  no tense key is sent at all and the server defaults. */
+  tense?: CreationTense;
   /** W-17: the sheet's media door lets the SAME composer serve
    *  both destinations (Add to story / Add post) - a Story |
    *  Post switch inside, both endpoints real. The capability
@@ -1787,6 +1829,66 @@ function ShareComposer({
     null,
   );
   const previewSeq = useRef(0);
+
+  // Repair #24 (WS-2) - the graph anchor for a story. The picker
+  // renders the viewer's OWN graphs as projected by the shellData
+  // adapter (loadStoryGraphOptions - MP-3: this surface never
+  // calls a plan-state reader itself). The server list behind the
+  // adapter is already scoped to plans the viewer created or
+  // participates in, so the picker can only offer graphs the
+  // author belongs to - and the story endpoint re-checks party
+  // standing on the server, so a stale pick is rejected there,
+  // never silently widened. Null = not loaded yet; the default
+  // pick is no anchor (a person story, exactly the pre-R24 path).
+  const [graphPlans, setGraphPlans] = useState<Array<{ id: string; title: string }> | null>(null);
+  const [graphPicked, setGraphPicked] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (destination !== "story" || graphPlans !== null) return;
+    let live = true;
+    void (async () => {
+      const options = await loadStoryGraphOptions(bearer);
+      if (live) setGraphPlans(options);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [destination, graphPlans, bearer]);
+
+  const graphBlock =
+    destination === "story" ? (
+      <div data-testid="c2-composer-graph-picker">
+        <p className="c2s-caption">Share with a graph - only its people can see it.</p>
+        <button
+          type="button"
+          className="c2s-sheet-row"
+          data-testid="c2-composer-graph-none"
+          aria-pressed={graphPicked === null}
+          onClick={() => setGraphPicked(null)}
+        >
+          Just my story{graphPicked === null ? " - Picked" : ""}
+        </button>
+        {graphPlans === null ? (
+          <p className="c2s-caption">Loading your graphs...</p>
+        ) : graphPlans.length === 0 ? (
+          <p className="c2s-caption">No graphs yet - this story is just yours.</p>
+        ) : (
+          graphPlans.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="c2s-sheet-row"
+              data-testid={`c2-composer-graph-${p.id}`}
+              aria-pressed={graphPicked === p.id}
+              onClick={() => setGraphPicked(p.id)}
+            >
+              {p.title}
+              {graphPicked === p.id ? " - Picked" : ""}
+            </button>
+          ))
+        )}
+      </div>
+    ) : null;
 
   const pickedIds = audience === "specific_people" ? [...audiencePicked] : undefined;
   const pickedLabels =
@@ -1940,7 +2042,14 @@ function ShareComposer({
       }
       if (destination === "story") {
         await createTemporaryStory(
-          { media_id: mediaId, caption: caption.trim() || undefined, visibility: "friends" },
+          {
+            media_id: mediaId,
+            caption: caption.trim() || undefined,
+            visibility: "friends",
+            // Repair #24 WS-2: the picked graph anchor, or no anchor
+            // key value at all for a person story.
+            graph_plan_id: graphPicked ?? undefined,
+          },
           bearer,
         );
       } else {
@@ -1955,6 +2064,10 @@ function ShareComposer({
             media_ids: mediaId ? [mediaId] : [],
             visibility: audience,
             audience_user_ids: pickedIds,
+            // Repair #24 (WS-6): the panel's tense, only when this
+            // composer was opened under one - otherwise the key is
+            // absent and the server's present default applies.
+            ...(tense ? { tense } : {}),
           },
           bearer,
         );
@@ -2012,7 +2125,11 @@ function ShareComposer({
         <div className="c2s-entry-body">
           {destinationSwitch}
           {destination === "story" ? (
-            <p className="c2s-caption">Temporary. Does not post a Memory or a Graph.</p>
+            <p className="c2s-caption">
+              {graphPicked
+                ? "Temporary. Shared with this graph's people only - it does not post a Memory."
+                : "Temporary. Does not post a Memory or a Graph."}
+            </p>
           ) : null}
           {!mediaFirst ? (
             <>
@@ -2085,6 +2202,7 @@ function ShareComposer({
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
               />
+              {graphBlock}
               {audienceBlock}
               {error ? (
                 <p className="c2s-error-line" role="alert">

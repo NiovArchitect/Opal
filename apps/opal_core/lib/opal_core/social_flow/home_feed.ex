@@ -34,9 +34,14 @@ defmodule OpalCore.SocialFlow.HomeFeed do
 
     page =
       case cursor do
-        nil -> ranked
-        c when is_binary(c) -> Enum.drop_while(ranked, fn card -> card["id"] != c end) |> Enum.drop(1)
-        _ -> ranked
+        nil ->
+          ranked
+
+        c when is_binary(c) ->
+          Enum.drop_while(ranked, fn card -> card["id"] != c end) |> Enum.drop(1)
+
+        _ ->
+          ranked
       end
       |> Enum.take(limit)
 
@@ -62,6 +67,7 @@ defmodule OpalCore.SocialFlow.HomeFeed do
   defp to_feed_card(moment, viewer_user_id) do
     author_id = moment["author_user_id"]
     name = display_name(author_id)
+
     media =
       case List.first(moment["media_urls"] || []) do
         url when is_binary(url) and url != "" ->
@@ -87,6 +93,10 @@ defmodule OpalCore.SocialFlow.HomeFeed do
       },
       "caption" => moment["caption"],
       "created_at" => moment["created_at"],
+      # Repair #24 (WS-6): the moment's persisted tense rides the
+      # feed card exactly as its record carries it; an older payload
+      # without one reads as the server's default tense.
+      "tense" => moment["tense"] || "present",
       "visibility" => moment["visibility"],
       # Repair #21 (W-13 / I-1): the moment's own place, from its
       # record's place_ref exactly as publishing normalized it
@@ -95,6 +105,16 @@ defmodule OpalCore.SocialFlow.HomeFeed do
       "place_label" =>
         case moment["place_ref"] do
           %{"display_name" => name} when is_binary(name) and name != "" -> name
+          _ -> nil
+        end,
+      # Repair #24 (D-P1): the moment record's stable place
+      # identity, from the same place_ref publishing normalized
+      # (provider_place_id). Additive: absent/nil when the record
+      # carries no provider identity - the client then groups
+      # the moment by its display name, never by a derived id.
+      "place_id" =>
+        case moment["place_ref"] do
+          %{"provider_place_id" => id} when is_binary(id) and id != "" -> id
           _ -> nil
         end,
       "media_ref" => media,
@@ -125,6 +145,7 @@ defmodule OpalCore.SocialFlow.HomeFeed do
     cards
     |> Enum.map(fn card ->
       author = get_in(card, ["actor", "user_id"])
+
       score =
         Map.get(card["ranking_features"] || %{}, "recency_score", 0) +
           Map.get(card["ranking_features"] || %{}, "engagement_score", 0) +
@@ -150,6 +171,7 @@ defmodule OpalCore.SocialFlow.HomeFeed do
     end)
     |> then(fn {with_flags, _} ->
       primary = Enum.reject(with_flags, & &1["_deferred"])
+
       deferred =
         with_flags
         |> Enum.filter(& &1["_deferred"])

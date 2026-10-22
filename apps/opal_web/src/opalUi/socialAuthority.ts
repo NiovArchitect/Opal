@@ -181,6 +181,9 @@ export function productionStoryToItem(obj: Record<string, unknown>): FounderStor
     // the viewer, not hold as a 7s image.
     expiresAt: typeof obj.expires_at === "string" ? obj.expires_at : undefined,
     mediaKind: storyMediaKind(media),
+    // Repair #24 WS-2: carry the server contract's graph anchor
+    // through, so a graph story is identifiable as one on the rail.
+    graphPlanId: typeof obj.graph_plan_id === "string" ? obj.graph_plan_id : undefined,
     pulseState,
   };
 }
@@ -498,6 +501,10 @@ export async function authoritativeCreateStory(opts: {
   mediaRef: string;
   visibility: string;
   caption?: string;
+  /** Repair #24 WS-2: anchor the story to a graph the author is a
+   *  party to (SharedPlan id). The server enforces party standing;
+   *  omit for a person story. */
+  graphPlanId?: string;
   bearer?: string;
 }) {
   if (!opts.bearer) throw new Error("Sign in required for durable Story");
@@ -526,6 +533,7 @@ export async function authoritativeCreateStory(opts: {
         media_id: mediaId,
         visibility: opts.visibility,
         caption: opts.caption,
+        graph_plan_id: opts.graphPlanId,
       },
       opts.bearer,
     );
@@ -538,6 +546,7 @@ export async function authoritativeCreateStory(opts: {
       media_ref: opts.mediaRef,
       visibility: opts.visibility,
       caption: opts.caption,
+      graph_plan_id: opts.graphPlanId,
     },
     opts.bearer,
   );

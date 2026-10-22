@@ -8,6 +8,7 @@ defmodule OpalCoreWeb.MemoryController do
 
   use OpalCoreWeb, :controller
 
+  alias OpalCore.Auth.StepUpElevation
   alias OpalCore.SocialFlow.DurablePreferenceMemory
 
   def index_facts(conn, _params) do
@@ -25,27 +26,57 @@ defmodule OpalCoreWeb.MemoryController do
   def delete_fact(conn, %{"id" => id}) do
     user_id = conn.assigns.current_user_id
 
-    case DurablePreferenceMemory.forget_with_candidates(id, user_id) do
-      {:ok, memory, cleanup} ->
-        json(conn, %{
-          "fact" => DurablePreferenceMemory.to_transparency_fact(memory),
-          "forgotten" => true,
-          "candidates_removed" => cleanup["candidates_removed"],
-          "candidate_cleanup" => cleanup["candidate_cleanup"]
-        })
+    # Repair #24 (WS-5): forgetting a memory fact is a manual memory
+    # mutation - it requires a live step-up elevation for this
+    # account + session, exactly like the capsule mutations.
+    with {:ok, elevation} <- require_elevation(conn) do
+      case DurablePreferenceMemory.forget_with_candidates(id, user_id) do
+        {:ok, memory, cleanup} ->
+          _ = StepUpElevation.record_mutation_audit(elevation, "fact_forgotten", id)
 
-      {:error, :not_found} ->
-        not_found(conn)
+          json(conn, %{
+            "fact" => DurablePreferenceMemory.to_transparency_fact(memory),
+            "forgotten" => true,
+            "candidates_removed" => cleanup["candidates_removed"],
+            "candidate_cleanup" => cleanup["candidate_cleanup"]
+          })
 
-      {:error, :forbidden} ->
-        # Foreign facts — no leak.
-        not_found(conn)
+        {:error, :not_found} ->
+          not_found(conn)
 
-      {:error, reason} ->
+        {:error, :forbidden} ->
+          # Foreign facts — no leak.
+          not_found(conn)
+
+        {:error, reason} ->
+          conn
+          |> put_status(422)
+          |> json(%{"error_code" => "could_not_forget", "message" => inspect(reason)})
+      end
+    else
+      {:error, :step_up_required} ->
         conn
-        |> put_status(422)
-        |> json(%{"error_code" => "could_not_forget", "message" => inspect(reason)})
+        |> put_status(403)
+        |> json(%{
+          "error_code" => "step_up_required",
+          "message" =>
+            "Confirm it is you first: Opal will send a fresh code to the phone number on your account. Your account has no password, so the phone code is the check.",
+          "credential" => "phone_code",
+          "password_credential_exists" => false
+        })
     end
+  end
+
+  defp require_elevation(conn) do
+    token =
+      Plug.Conn.get_req_header(conn, "x-opal-step-up-elevation") |> List.first() ||
+        conn.params["step_up_token"]
+
+    StepUpElevation.authorize(
+      conn.assigns.current_user_id,
+      conn.assigns.current_session.id,
+      token
+    )
   end
 
   defp not_found(conn) do

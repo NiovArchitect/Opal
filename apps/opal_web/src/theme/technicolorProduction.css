@@ -289,17 +289,14 @@
   color: var(--tc-ivory);
 }
 
-[data-technicolor="controlled"] .tabbar:not(.tabbar-option-b) .tab.active::after,
-[data-technicolor="controlled"] .tabbar:not(.tabbar-option-b) .tab.on::after {
-  content: "";
-  display: block;
-  width: 18px;
-  height: 3px;
-  margin: 4px auto 0;
-  border-radius: 99px;
-  background: var(--tc-cyan);
-  box-shadow: 0 0 10px rgba(62, 224, 240, 0.7);
-}
+/* Repair #24 (V2Dock): the 18x3 cyan bar rule for
+ * .tab.active::after / .tab.on::after that stood here is REMOVED.
+ * Its only matching component (V2Dock in v2Primitives.tsx -
+ * .tabbar without .tabbar-option-b, buttons carrying .tab.active)
+ * was exported but never rendered anywhere in src, and the live
+ * docks (OpalApp .tabbar.tabbar-option-b with .dock-tab children,
+ * C2Shell's pad) can never match it. The dead V2Dock export is
+ * removed with it. Pinned by theme/r24DeadDockRule.test.ts. */
 
 /* Paste W6 3b — do not fight cyan/purple bubble law with dark dainty fills */
 [data-technicolor="controlled"] .bubble.out {
@@ -466,9 +463,8 @@
   [data-technicolor="controlled"] .opal-moment {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
-  [data-technicolor="controlled"] .tab.active::after {
-    box-shadow: none;
-  }
+  /* Repair #24: the .tab.active::after shadow companion that
+   * stood here died with its bar rule above. */
 }
 
 /* Guard: Full intensity must never style member shell if mis-applied */

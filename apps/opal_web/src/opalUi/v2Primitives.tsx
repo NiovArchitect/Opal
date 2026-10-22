@@ -307,36 +307,14 @@ export function SharedRealityPlate({
   );
 }
 
-/** Quiet dock labels — parent owns navigation. */
-export function V2Dock({
-  active,
-  onSelect,
-}: {
-  active: "home" | "chats" | "plans" | "you" | "people";
-  onSelect: (id: "home" | "chats" | "plans" | "you") => void;
-}) {
-  const items: { id: "home" | "chats" | "plans" | "you"; label: string }[] = [
-    { id: "home", label: "Home" },
-    { id: "chats", label: "People" },
-    { id: "plans", label: "Plans" },
-    { id: "you", label: "You" },
-  ];
-  return (
-    <nav className="tabbar glass v2-dock" aria-label="Primary" data-testid="member-tabbar">
-      {items.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          className={`tab ${active === t.id || (t.id === "chats" && active === "people") ? "active" : ""}`}
-          aria-current={active === t.id ? "page" : undefined}
-          onClick={() => onSelect(t.id)}
-        >
-          {t.label}
-        </button>
-      ))}
-    </nav>
-  );
-}
+/* Repair #24 (V2Dock): the V2Dock export that stood here is
+ * REMOVED - it was exported but never imported or rendered
+ * anywhere in src (verified by grep at the R23 tip: the only
+ * references were its own definition and coordination records),
+ * and its dead 18x3 cyan bar rule in technicolorProduction.css
+ * is removed with it. The live docks are OpalApp's
+ * .tabbar.tabbar-option-b and C2Shell's pad. Pinned by
+ * theme/r24DeadDockRule.test.ts. */
 
 /**
  * Opening brand — Opal Graph symbol + typographic lockup (S0).

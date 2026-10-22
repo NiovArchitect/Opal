@@ -74,8 +74,17 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
     visibility = a["visibility"] || SocialMomentVisibility.default_visibility()
     media_ids = List.wrap(a["media_ids"] || [])
     caption = a["caption"] || ""
+    # Repair #24 (WS-6): the creation tense, in the creation
+    # walkthrough's own vocabulary (present / future / past).
+    # Absent is NOT an error and is never stamped by the client:
+    # the server applies its honest default, the present tense.
+    # A present-but-unknown tense is refused, never coerced.
+    tense = a["tense"] || SocialMomentRecord.default_tense()
 
     cond do
+      tense not in SocialMomentRecord.tenses() ->
+        {:error, :invalid_tense}
+
       visibility not in SocialMomentVisibility.supported_visibilities() ->
         {:error, :invalid_visibility}
 
@@ -93,7 +102,7 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
         {:error, :invalid_media}
 
       true ->
-        do_publish(author_user_id, a, visibility, media_ids)
+        do_publish(author_user_id, a, visibility, media_ids, tense)
     end
   end
 
@@ -115,7 +124,7 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
     _ -> false
   end
 
-  defp do_publish(author_user_id, a, visibility, media_ids) do
+  defp do_publish(author_user_id, a, visibility, media_ids, tense) do
     place = normalize_place(a["place_ref"] || a["place"] || %{})
 
     %SocialMomentRecord{}
@@ -123,6 +132,7 @@ defmodule OpalCore.SocialFlow.SocialMomentPublishing do
       author_user_id: author_user_id,
       caption: a["caption"] || "",
       social_context: a["social_context"],
+      tense: tense,
       visibility: visibility,
       audience_user_ids: List.wrap(a["audience_user_ids"] || []),
       group_conversation_id: a["group_conversation_id"],

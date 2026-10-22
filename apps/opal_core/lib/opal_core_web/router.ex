@@ -331,6 +331,13 @@ defmodule OpalCoreWeb.Router do
     get("/stories", SocialMomentController, :list_stories)
     post("/stories", SocialMomentController, :create_story)
     delete("/stories/:id", SocialMomentController, :delete_story)
+    # Repair #24 (WS-1) - story engagement (comments / replies /
+    # mentions) on the story-engagement record.
+    get("/stories/:id/comments", SocialMomentController, :story_comments)
+    post("/stories/:id/comments", SocialMomentController, :create_story_comment)
+    get("/stories/:id/replies", SocialMomentController, :story_replies)
+    post("/stories/:id/replies", SocialMomentController, :create_story_reply)
+    post("/stories/:id/mentions", SocialMomentController, :create_story_mention)
 
     # Graph → Journey authority (SharedPlan lineage)
     post("/journeys/activate", JourneyController, :activate)
@@ -388,6 +395,14 @@ defmodule OpalCoreWeb.Router do
     patch("/memory-wallet/soul", SoulMemoryController, :update_soul)
     post("/memory-wallet/capsules", SoulMemoryController, :create_capsule)
     delete("/memory-wallet/capsules/:id", SoulMemoryController, :forget_capsule)
+
+    # Repair #24 (WS-5) - memory step-up re-auth: a fresh phone-code
+    # verification (the account's actual credential - accounts carry
+    # no password) granting the short-lived, session-bound elevation
+    # the manual memory mutations above now require.
+    get("/memory/step-up", MemoryStepUpController, :show)
+    post("/memory/step-up/challenges", MemoryStepUpController, :start_challenge)
+    post("/memory/step-up/verify", MemoryStepUpController, :verify)
 
     # Paste F — intelligence product surfaces (person memory / mediation / briefings)
     post(

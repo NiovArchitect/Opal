@@ -18,7 +18,9 @@
  *       machinery - a current plan seeds my-people, a settled
  *       plan seeds again (party read at door time), a moment
  *       seeds my-people, a live-only place carries NO seed
- *       (declared D-P4) and renders no start door.
+ *       (declared D-P4) and renders no start door. [This PE-4
+ *       sentence is the R22 original; the R24 amendment below
+ *       supersedes its live-only clause.]
  *  PE-5 the surface: stones render the builder's finished lines
  *       with their level and family stamped; tapping a stone is
  *       a door only when the shell wires the place view; the
@@ -33,6 +35,15 @@
  * warmth halo element (light only). No PE-1..PE-5 assertion
  * changed: every pin below stands as written, and the new
  * signal pins live in r23PlaceSignal.test.tsx (PS-1..PS-5).
+ *
+ * AMENDMENT (Repair #24, D-P4, recorded - never silent): ONE
+ * PE-4 assertion changed. The live-only place no longer carries
+ * a null start seed: R24 admits the place itself as the create
+ * prefill (a flows2 "place" seed - location only, no lineage,
+ * no borrowed title), which is the full build's second lawful
+ * D-P4 shape named in the design record. The live-only pin
+ * below now asserts THAT seed's exact shape. The R24 identity
+ * (D-P1) and live-only door pins live in r24Places.test.tsx.
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -284,7 +295,17 @@ describe("placeStonesFromGraph - the energy computation (PE-1..PE-4)", () => {
       ...empty,
       lives: [live({ placeLabel: "Moonlight Beach, Encinitas" })],
     });
-    expect(liveOnly.startSeed).toBeNull();
+    // R24 amendment (D-P4, see header): the live-only place
+    // carries the place seed - location only, my-people, no
+    // lineage fields, empty title - not a null seed.
+    expect(liveOnly.startSeed).not.toBeNull();
+    expect(liveOnly.startSeed?.branch).toBe("my-people");
+    expect(liveOnly.startSeed?.location).toBe("Moonlight Beach, Encinitas");
+    expect(liveOnly.startSeed?.title).toBe("");
+    expect(liveOnly.startSeed?.sourcePlanId).toBeUndefined();
+    expect(liveOnly.startSeed?.inspiredByMomentId).toBeUndefined();
+    expect(liveOnly.startSeed?.participantUserIds).toEqual([]);
+    expect(liveOnly.startSeed?.lockParty).toBe(false);
   });
 });
 
@@ -469,17 +490,24 @@ describe("the place view (PE-5)", () => {
     expect(onStartPlan.mock.calls[0][0].startSeed.location).toBe("Oceanside Farmers Market");
   });
 
-  it("a live-only place renders its now group and NO start door (D-P4 is absence, not a dead control)", async () => {
+  it("a live-only place renders its now group and - R24 amendment (D-P4) - the start door, carrying the place seed", async () => {
     const [place] = placeStonesFromGraph({
       ...empty,
       lives: [live({ placeLabel: "Oceanside Pier" })],
     });
+    const onStartPlan = vi.fn();
     const el = await render(
-      <PlaceStoneView place={place} onClose={() => {}} onOpenGraph={() => {}} onStartPlan={() => {}} />,
+      <PlaceStoneView place={place} onClose={() => {}} onOpenGraph={() => {}} onStartPlan={onStartPlan} />,
     );
     const view = el.querySelector('[data-testid="c2-place-view"]') ?? document.querySelector('[data-testid="c2-place-view"]');
     expect(view).not.toBeNull();
-    expect(view!.querySelector('[data-testid="c2-place-start-plan"]')).toBeNull();
+    // Was (R22): no start door at all. R24 (D-P4 fixed): the
+    // door renders and hands the shell the place seed.
+    const start = view!.querySelector('[data-testid="c2-place-start-plan"]');
+    expect(start).not.toBeNull();
+    click(start!);
+    expect(onStartPlan).toHaveBeenCalledTimes(1);
+    expect(onStartPlan.mock.calls[0][0].startSeed.location).toBe("Oceanside Pier");
     expect(view!.querySelector('[data-testid="c2-place-memory"]')).toBeNull();
   });
 });

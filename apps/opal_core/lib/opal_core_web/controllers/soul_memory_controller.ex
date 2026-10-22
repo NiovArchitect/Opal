@@ -16,6 +16,7 @@ defmodule OpalCoreWeb.SoulMemoryController do
 
   use OpalCoreWeb, :controller
 
+  alias OpalCore.Auth.StepUpElevation
   alias OpalCore.MemoryWallet
   alias OpalCore.MemoryWallet.{CapsuleRead, PersonalMemoryCapsule, Soul, Wallet}
 
@@ -36,7 +37,13 @@ defmodule OpalCoreWeb.SoulMemoryController do
         "capsule_count" => length(capsules)
       })
     else
-      _ -> render_error(conn, 422, "soul_unavailable", "Your Soul and Memory settings could not load.")
+      _ ->
+        render_error(
+          conn,
+          422,
+          "soul_unavailable",
+          "Your Soul and Memory settings could not load."
+        )
     end
   end
 
@@ -71,33 +78,75 @@ defmodule OpalCoreWeb.SoulMemoryController do
   def create_capsule(conn, params) do
     user_id = conn.assigns.current_user_id
 
-    case CapsuleRead.remember(user_id, params) do
-      {:ok, capsule} ->
-        conn
-        |> put_status(201)
-        |> json(%{"capsule" => PersonalMemoryCapsule.to_contract(capsule)})
+    # Repair #24 (WS-5): manual memory add is a gated mutation - it
+    # requires a live step-up elevation for this account + session.
+    with {:ok, elevation} <- require_elevation(conn) do
+      case CapsuleRead.remember(user_id, params) do
+        {:ok, capsule} ->
+          _ = StepUpElevation.record_mutation_audit(elevation, "capsule_created", capsule.id)
 
-      {:error, :summary_required} ->
-        render_error(conn, 422, "summary_required", "Say what Opal should remember.")
+          conn
+          |> put_status(201)
+          |> json(%{"capsule" => PersonalMemoryCapsule.to_contract(capsule)})
 
-      {:error, _} ->
-        render_error(conn, 422, "capsule_invalid", "That memory could not be saved.")
+        {:error, :summary_required} ->
+          render_error(conn, 422, "summary_required", "Say what Opal should remember.")
+
+        {:error, _} ->
+          render_error(conn, 422, "capsule_invalid", "That memory could not be saved.")
+      end
+    else
+      {:error, :step_up_required} -> step_up_required(conn)
     end
   end
 
   def forget_capsule(conn, %{"id" => id}) do
     user_id = conn.assigns.current_user_id
 
-    case CapsuleRead.forget(user_id, id) do
-      {:ok, :forgotten, source} ->
-        json(conn, %{"forgotten" => true, "source" => Atom.to_string(source)})
+    # Repair #24 (WS-5): manual memory forget is a gated mutation.
+    with {:ok, elevation} <- require_elevation(conn) do
+      case CapsuleRead.forget(user_id, id) do
+        {:ok, :forgotten, source} ->
+          _ = StepUpElevation.record_mutation_audit(elevation, "capsule_forgotten", id)
+          json(conn, %{"forgotten" => true, "source" => Atom.to_string(source)})
 
-      {:error, :not_found} ->
-        conn |> put_status(404) |> json(%{"error_code" => "not_found"})
+        {:error, :not_found} ->
+          conn |> put_status(404) |> json(%{"error_code" => "not_found"})
 
-      {:error, _} ->
-        render_error(conn, 422, "could_not_forget", "That memory could not be forgotten.")
+        {:error, _} ->
+          render_error(conn, 422, "could_not_forget", "That memory could not be forgotten.")
+      end
+    else
+      {:error, :step_up_required} -> step_up_required(conn)
     end
+  end
+
+  # The elevation token rides the x-opal-step-up-elevation header
+  # (preferred) or the step_up_token body field. Absent, expired,
+  # foreign-session, or foreign-account tokens are all the same
+  # honest refusal - see StepUpElevation.authorize/3.
+  defp require_elevation(conn) do
+    token =
+      Plug.Conn.get_req_header(conn, "x-opal-step-up-elevation") |> List.first() ||
+        conn.params["step_up_token"]
+
+    StepUpElevation.authorize(
+      conn.assigns.current_user_id,
+      conn.assigns.current_session.id,
+      token
+    )
+  end
+
+  defp step_up_required(conn) do
+    conn
+    |> put_status(403)
+    |> json(%{
+      "error_code" => "step_up_required",
+      "message" =>
+        "Confirm it is you first: Opal will send a fresh code to the phone number on your account. Your account has no password, so the phone code is the check.",
+      "credential" => "phone_code",
+      "password_credential_exists" => false
+    })
   end
 
   defp render_error(conn, status, code, message) do

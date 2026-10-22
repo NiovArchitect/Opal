@@ -198,10 +198,20 @@ describe("R23 - two-tier ring glow stamps (IF-1 resolution)", () => {
       (el) => el.getAttribute("data-state") === "loved",
     )!;
     expect(loved.getAttribute("data-glow")).toBe("attention");
-    // The other named triggers (response/mention involving the
-    // viewer; demonstrated-interest overlap) have no signal in
-    // the rail record today and are DECLARED in the R23 rail
-    // report - no stamp in this suite pretends otherwise.
+    // The demonstrated-interest trigger still has no signal in
+    // the rail record and stays DECLARED unwired - no stamp in
+    // this suite pretends otherwise.
+  });
+
+  it("mention/response trigger, wired by Repair #24 (WS-1): a plain new story whose record flags a mention of the viewer renders attention", async () => {
+    const p = projection(true) as { rail: { stories: Array<Record<string, unknown>> } };
+    // Theo Nguyen is the plain "new" stone (resting at R23).
+    (p.rail.stories[2] as Record<string, unknown>).viewerMentioned = true;
+    await render(<C2Home projection={p as never} events={events} />);
+    const theo = [...container.querySelectorAll(".c2s-stone")].find(
+      (el) => el.getAttribute("data-state") === "new",
+    )!;
+    expect(theo.getAttribute("data-glow")).toBe("attention");
   });
 });
 

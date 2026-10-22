@@ -579,6 +579,33 @@
     border-radius: 50%;
     pointer-events: none;
   }
+  /* Repair #24 (WS-7) - REDUCED MOTION BY CONSTRUCTION: every
+   * per-state orbit animation is assigned ONLY inside this
+   * no-preference gate, so under prefers-reduced-motion no
+   * animation is ever assigned to the orbit at all - the
+   * reduced rule below (animation: none) no longer has to win
+   * a specificity fight it was losing (0-1-0 against the old
+   * per-state 0-3-0 rules), and the global styles.css
+   * !important collapse is no longer load-bearing for this
+   * surface. The resting/attention motion design is unchanged:
+   * Live 7s, New 26s, Loved 44s, Nearby 34s, same keyframes,
+   * same timing - byte-identical under no-preference. Pinned
+   * by r24ReducedMotion.test.ts: any future orbit animation
+   * assigned outside this gate fails the suite. */
+  @media (prefers-reduced-motion: no-preference) {
+    .c2s-stone[data-state="happening"] .c2s-stone-orbit {
+      animation: c2s-stone-orbit 7s linear infinite;
+    }
+    .c2s-stone[data-state="new"] .c2s-stone-orbit {
+      animation: c2s-stone-orbit 26s linear infinite;
+    }
+    .c2s-stone[data-state="loved"] .c2s-stone-orbit {
+      animation: c2s-stone-orbit 44s linear infinite;
+    }
+    .c2s-stone[data-state="nearby"] .c2s-stone-orbit {
+      animation: c2s-stone-orbit 34s linear infinite;
+    }
+  }
   .c2s-stone-dot {
     position: absolute;
     top: -2.5px;
@@ -589,9 +616,6 @@
     border-radius: 50%;
     opacity: 0;
   }
-  .c2s-stone[data-state="happening"] .c2s-stone-orbit {
-    animation: c2s-stone-orbit 7s linear infinite;
-  }
   .c2s-stone[data-state="happening"] .c2s-stone-dot {
     top: -3.5px;
     margin-left: -3px;
@@ -601,16 +625,10 @@
     background: var(--orb-point-light);
     box-shadow: 0 0 7px var(--orb-point-light);
   }
-  .c2s-stone[data-state="new"] .c2s-stone-orbit {
-    animation: c2s-stone-orbit 26s linear infinite;
-  }
   .c2s-stone[data-state="new"] .c2s-stone-dot {
     opacity: 0.85;
     background: var(--orb-fire-violet);
     box-shadow: 0 0 5px var(--orb-fire-violet);
-  }
-  .c2s-stone[data-state="loved"] .c2s-stone-orbit {
-    animation: c2s-stone-orbit 44s linear infinite;
   }
   .c2s-stone[data-state="loved"] .c2s-stone-dot {
     opacity: 0.55;
@@ -641,9 +659,6 @@
   .c2s-stone[data-state="nearby"] .c2s-stone-ring {
     border-color: color-mix(in srgb, var(--orb-indicator-ready) 65%, transparent);
     box-shadow: 0 0 10px color-mix(in srgb, var(--orb-indicator-ready-glow) 45%, transparent);
-  }
-  .c2s-stone[data-state="nearby"] .c2s-stone-orbit {
-    animation: c2s-stone-orbit 34s linear infinite;
   }
   .c2s-stone[data-state="nearby"] .c2s-stone-dot {
     opacity: 0.7;
@@ -744,7 +759,11 @@
     .c2s-stone { animation: none; }
     /* R22-A: the orbit rests - the dot stays at the top of the
      * ring and the ring material + caption word carry the same
-     * state meaning with no motion at all. */
+     * state meaning with no motion at all. Repair #24 (WS-7):
+     * this rule is now defense in depth only - under reduce no
+     * orbit animation is assigned anywhere (see the
+     * no-preference gate above), so this rule wins by
+     * construction, not by cascade. */
     .c2s-stone-orbit { animation: none; }
   }
 

@@ -12,8 +12,10 @@
  *  - every plan row opens that plan's graph detail;
  *  - "Start a plan here" rides the projection's pre-composed seed
  *    (the flows2 seed machinery) into the real graph-create flow.
- *    It renders only when the builder composed one - a live-only
- *    place carries none (declared D-P4 in the design record).
+ *    It renders only when the builder composed one. Repair #24
+ *    (D-P4): a live-only place now composes a PLACE seed (the
+ *    place itself as the create prefill's location, no lineage
+ *    claimed), so the door renders for it too.
  * Moments carry no door: no moment detail surface exists today,
  * and this view does not fake one.
  */

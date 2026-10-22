@@ -5,6 +5,7 @@ defmodule OpalCoreWeb.SocialMomentController do
     HomeFeed,
     SocialMomentEngagement,
     SocialMomentPublishing,
+    TemporaryStoryEngagement,
     TemporaryStoryPublishing
   }
 
@@ -200,8 +201,77 @@ defmodule OpalCoreWeb.SocialMomentController do
       {:ok, story} -> json(conn, %{"story" => story})
       {:error, :media_required} ->
         conn |> put_status(:unprocessable_entity) |> json(%{"error" => "media_required"})
+      # Repair #24 WS-2: graph-anchor rejections carry their real
+      # status - a foreign graph is forbidden, an unknown one is
+      # not_found, matching delete_story's mapping in this controller.
+      {:error, :not_graph_party} ->
+        conn |> put_status(:forbidden) |> json(%{"error" => "not_graph_party"})
+      {:error, :graph_not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "graph_not_found"})
       {:error, reason} ->
         conn |> put_status(:unprocessable_entity) |> json(%{"error" => inspect(reason)})
+    end
+  end
+
+  # Repair #24 (WS-1) - story comments, following the moment
+  # comments pattern exactly: only viewers who can see the story
+  # can read or write its comments; an invisible story is a 404.
+  def story_comments(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case TemporaryStoryEngagement.list_comments(user_id, id) do
+      {:ok, body} -> json(conn, body)
+      {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def create_story_comment(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+    body = params["body"] || ""
+
+    case TemporaryStoryEngagement.add_comment(user_id, id, body) do
+      {:ok, result} -> json(conn, result)
+      {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, :empty_body} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => "empty_body"})
+      {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def create_story_reply(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+    body = params["body"] || ""
+
+    case TemporaryStoryEngagement.add_reply(user_id, id, body) do
+      {:ok, result} -> json(conn, result)
+      {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, :empty_body} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => "empty_body"})
+      {:error, :own_story} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => "own_story"})
+      {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def story_replies(conn, %{"id" => id}) do
+    user_id = conn.assigns.current_user_id
+
+    case TemporaryStoryEngagement.list_replies(user_id, id) do
+      {:ok, body} -> json(conn, body)
+      {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
+    end
+  end
+
+  def create_story_mention(conn, %{"id" => id} = params) do
+    user_id = conn.assigns.current_user_id
+    target = params["target_user_id"] || params["mentioned_user_id"] || ""
+
+    case TemporaryStoryEngagement.add_mention(user_id, id, target) do
+      {:ok, result} -> json(conn, result)
+      {:error, :not_found} -> conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+      {:error, :forbidden} -> conn |> put_status(:forbidden) |> json(%{"error" => "forbidden"})
+      {:error, :target_not_eligible} ->
+        conn |> put_status(:unprocessable_entity) |> json(%{"error" => "target_not_eligible"})
+      {:error, reason} -> conn |> put_status(:unprocessable_entity) |> json(%{"error" => to_string(reason)})
     end
   end
 

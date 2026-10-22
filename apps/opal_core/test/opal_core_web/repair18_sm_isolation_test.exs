@@ -83,6 +83,39 @@ defmodule OpalCoreWeb.Repair18SmIsolationTest do
 
   defp auth(conn, token), do: put_req_header(conn, "authorization", "Bearer #{token}")
 
+  # Repair #24 (WS-5): manual memory mutations now require a live
+  # step-up elevation (fresh phone code on the account's own
+  # verified number). This helper performs the real step-up over
+  # HTTP and returns the elevation token.
+  defp step_up(token, phone) do
+    conn =
+      build_conn()
+      |> auth(token)
+      |> post("/api/v1/product/memory/step-up/challenges", %{
+        "otp_consent_accepted" => true,
+        "phone" => phone,
+        "device_label" => "stepup-#{System.unique_integer([:positive])}",
+        "idempotency_key" => "stepup-#{System.unique_integer([:positive])}"
+      })
+
+    body = json_response(conn, 201)
+
+    conn =
+      build_conn()
+      |> auth(token)
+      |> post("/api/v1/product/memory/step-up/verify", %{
+        "challenge_id" => body["challenge"]["id"],
+        "code" => body["development_code"],
+        "phone" => phone
+      })
+
+    json_response(conn, 200)["step_up"]["elevation_token"]
+  end
+
+  defp elevated(token, elevation) do
+    build_conn() |> auth(token) |> put_req_header("x-opal-step-up-elevation", elevation)
+  end
+
   # Seed the store with A's data (a new capsule, a durable fragment,
   # and a relationship-scoped capsule) and B's own capsule. A's data
   # is IN THE STORE for every assertion below.
@@ -90,7 +123,10 @@ defmodule OpalCoreWeb.Repair18SmIsolationTest do
     {token_a, user_a} = activate(conn, @alex, "Iso A", "iso_a")
     {token_b, user_b} = activate(build_conn(), @jordan, "Iso B", "iso_b")
 
-    conn_a = build_conn() |> auth(token_a)
+    elevation_a = step_up(token_a, @alex)
+
+    conn_a =
+      build_conn() |> auth(token_a) |> put_req_header("x-opal-step-up-elevation", elevation_a)
 
     created =
       post(conn_a, "/api/v1/product/memory-wallet/capsules", %{"summary" => @a_capsule})
@@ -111,7 +147,10 @@ defmodule OpalCoreWeb.Repair18SmIsolationTest do
                "scope_id" => user_b
              })
 
-    conn_b = build_conn() |> auth(token_b)
+    elevation_b = step_up(token_b, @jordan)
+
+    conn_b =
+      build_conn() |> auth(token_b) |> put_req_header("x-opal-step-up-elevation", elevation_b)
 
     created_b =
       post(conn_b, "/api/v1/product/memory-wallet/capsules", %{"summary" => @b_capsule})
@@ -123,6 +162,8 @@ defmodule OpalCoreWeb.Repair18SmIsolationTest do
       user_a: user_a,
       token_b: token_b,
       user_b: user_b,
+      elevation_a: elevation_a,
+      elevation_b: elevation_b,
       a_capsule_id: a_capsule_id,
       a_scoped_id: scoped.id
     }
@@ -249,6 +290,7 @@ defmodule OpalCoreWeb.Repair18SmIsolationTest do
     conn_b =
       build_conn()
       |> auth(s.token_b)
+      |> put_req_header("x-opal-step-up-elevation", s.elevation_b)
       |> delete("/api/v1/product/memory-wallet/capsules/#{s.a_capsule_id}")
 
     assert json_response(conn_b, 404)["error_code"] == "not_found"
@@ -259,6 +301,7 @@ defmodule OpalCoreWeb.Repair18SmIsolationTest do
     conn_a2 =
       build_conn()
       |> auth(s.token_a)
+      |> put_req_header("x-opal-step-up-elevation", s.elevation_a)
       |> delete("/api/v1/product/memory-wallet/capsules/#{s.a_capsule_id}")
 
     assert json_response(conn_a2, 200)["forgotten"] == true

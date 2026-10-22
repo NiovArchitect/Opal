@@ -66,6 +66,8 @@ import {
   ensureDirectConversation,
   forgetCapsule,
   forgetMemoryFact,
+  startMemoryStepUp,
+  completeMemoryStepUp,
   journeyAddPeople,
   listConversations,
   listPeople,
@@ -132,6 +134,7 @@ import {
 } from "./flows2";
 import { BondStone } from "./BondStone";
 import { C2CommentsSheet } from "./C2CommentsSheet";
+import { C2StoryCommentsSheet } from "./C2StoryCommentsSheet";
 import { C2LiveWatch, type C2LiveWatchSeed } from "./C2LiveWatch";
 import { PlaceStoneView } from "./PlaceStone";
 import { C2Home } from "./C2Home";
@@ -254,6 +257,7 @@ export function C2Shell() {
   // speech-bubble door; the sheet itself loads and posts
   // through the real comments endpoints with this bearer.
   const [commentsMomentId, setCommentsMomentId] = useState<string | null>(null);
+  const [storyCommentsId, setStoryCommentsId] = useState<string | null>(null);
 
   // Repair #23 (WS-23-3) - the live room whose watch surface is
   // open, or null. Opening is a state set from the Live card's
@@ -960,6 +964,7 @@ export function C2Shell() {
                 onOpenBond={(personId) => openBond(personId)}
                 onReplyToPerson={replyToPerson}
                 onOpenComments={(momentId) => setCommentsMomentId(momentId)}
+                onOpenStoryComments={(storyId) => setStoryCommentsId(storyId)}
                 onOpenLive={(liveId, seed) => setLiveWatch({ liveId, seed })}
                 onSeedDoor={seedDoor}
                 onCreationPlan={creationPlan}
@@ -1366,6 +1371,14 @@ export function C2Shell() {
         />
       ) : null}
 
+      {storyCommentsId ? (
+        <C2StoryCommentsSheet
+          storyId={storyCommentsId}
+          bearer={bearer}
+          onClose={() => setStoryCommentsId(null)}
+        />
+      ) : null}
+
       {liveWatch ? (
         <C2LiveWatch
           liveId={liveWatch.liveId}
@@ -1657,6 +1670,7 @@ function HomeRoute(props: {
   onOpenBond?: (personId: string, name: string) => void;
   onReplyToPerson?: (authorUserId: string) => void;
   onOpenComments?: (momentId: string) => void;
+  onOpenStoryComments?: (storyId: string) => void;
   onOpenLive?: (liveId: string, seed: C2LiveWatchSeed) => void;
   onSeedDoor?: (create: SeedCreate) => void;
   onCreationPlan?: (tense: CreationTense) => void;
@@ -1720,6 +1734,7 @@ function HomeRoute(props: {
         openBond: props.onOpenBond,
         replyToPerson: props.onReplyToPerson,
         openComments: props.onOpenComments,
+        openStoryComments: props.onOpenStoryComments,
         seedDoor: props.onSeedDoor,
         creationPlan: props.onCreationPlan,
         openPlace: props.onOpenPlace,
@@ -1749,22 +1764,42 @@ function YouRoute(props: {
   const [pendingForgetCapsuleId, setPendingForgetCapsuleId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [forgetBusy, setForgetBusy] = useState(false);
+  // Repair #24 (WS-5): the memory step-up elevation token, held in
+  // memory only (state for the panel's ready line, a ref so the
+  // mutation closures below always read the current token). The
+  // server binds it to this account + session and expires it in
+  // minutes; nothing is persisted client-side.
+  const [memoryStepUpToken, setMemoryStepUpToken] = useState<string | null>(null);
+  const memoryStepUpTokenRef = useRef<string | null>(null);
+  const holdMemoryStepUpToken = (token: string | null) => {
+    memoryStepUpTokenRef.current = token;
+    setMemoryStepUpToken(token);
+  };
 
   const confirmForget = async () => {
     if ((!pendingForgetId && !pendingForgetCapsuleId) || forgetBusy) return;
     setForgetBusy(true);
     try {
       if (pendingForgetCapsuleId) {
-        await forgetCapsule(pendingForgetCapsuleId, props.bearer);
+        await forgetCapsule(pendingForgetCapsuleId, props.bearer, memoryStepUpTokenRef.current ?? undefined);
         setPendingForgetCapsuleId(null);
       } else if (pendingForgetId) {
-        await forgetMemoryFact(pendingForgetId, props.bearer);
+        await forgetMemoryFact(pendingForgetId, props.bearer, memoryStepUpTokenRef.current ?? undefined);
         setPendingForgetId(null);
       }
       setActionError(null);
       setSectionNonce((n) => n + 1);
-    } catch {
-      setActionError("That could not be forgotten. Check your connection and try again.");
+    } catch (e) {
+      // Repair #24 (WS-5): a step-up refusal keeps the confirmation
+      // armed and names the missing step - the panel in the Memory
+      // room below completes it, then Forget can be tapped again.
+      if ((e as { code?: string })?.code === "step_up_required") {
+        setActionError(
+          "Confirm it is you first - use the step-up form in the Memory room below, then tap Forget it again.",
+        );
+      } else {
+        setActionError("That could not be forgotten. Check your connection and try again.");
+      }
     } finally {
       setForgetBusy(false);
     }
@@ -1979,12 +2014,34 @@ function YouRoute(props: {
       setSectionNonce((n) => n + 1);
       return credit;
     },
+    startMemoryStepUp: async (phone: string) => {
+      if (!props.bearer) throw new Error("not signed in");
+      const res = await startMemoryStepUp(phone, props.bearer);
+      return {
+        challengeId: res.challenge.id,
+        developmentCode: res.development_code,
+      };
+    },
+    confirmMemoryStepUp: async (challengeId: string, code: string, phone: string) => {
+      if (!props.bearer) throw new Error("not signed in");
+      const res = await completeMemoryStepUp(challengeId, code, phone, props.bearer);
+      if (!res.step_up.elevated || !res.step_up.elevation_token) {
+        throw new Error("step_up_not_granted");
+      }
+      holdMemoryStepUpToken(res.step_up.elevation_token);
+    },
+    memoryStepUpReady: Boolean(memoryStepUpToken),
     addMemory: async (text: string) => {
       // N7: a memory change without a signed-in session is refused
       // here, before any request - the wallet API is owner-scoped
       // to the session's user and answers 401 without one.
       if (!props.bearer) throw new Error("not signed in");
-      await createMemoryCapsule(text, props.bearer);
+      // Repair #24 (WS-5): the held step-up elevation rides the
+      // create; without one the server answers step_up_required
+      // and C2You shows that line - never a local fake success.
+      await createMemoryCapsule(text, props.bearer, {
+        stepUpToken: memoryStepUpTokenRef.current ?? undefined,
+      });
       // The refreshed projection is the read-back: the new capsule
       // renders from the wallet read, with its provenance and date.
       setSectionNonce((n) => n + 1);

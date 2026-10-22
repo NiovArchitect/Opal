@@ -7,10 +7,21 @@ defmodule OpalCore.SocialFlow.SocialMomentRecord do
 
   @visibilities ~w(private specific_people group friends)
   @moderation ~w(pending active restricted removed)
+  # Repair #24 (WS-6): the creation tense vocabulary, mirrored
+  # EXACTLY from the creation walkthrough's graph tenses (web
+  # CreationTense: present = Now, future = Forecast, past =
+  # Memories). No second vocabulary is invented for moments.
+  @tenses ~w(present future past)
+  @default_tense "present"
 
   schema "social_moments" do
     field :caption, :string, default: ""
     field :social_context, :string
+    # The tense the moment was created under. Default "present" is
+    # the server's honest default: a moment created with no tense
+    # statement is a present-tense moment, exactly as the server
+    # modelled every moment before this field existed.
+    field :tense, :string, default: @default_tense
     field :visibility, :string, default: "friends"
     field :audience_user_ids, {:array, :binary_id}, default: []
     field :group_conversation_id, :binary_id
@@ -29,6 +40,8 @@ defmodule OpalCore.SocialFlow.SocialMomentRecord do
 
   def visibilities, do: @visibilities
   def moderation_states, do: @moderation
+  def tenses, do: @tenses
+  def default_tense, do: @default_tense
 
   def changeset(row, attrs) do
     row
@@ -36,6 +49,7 @@ defmodule OpalCore.SocialFlow.SocialMomentRecord do
       :author_user_id,
       :caption,
       :social_context,
+      :tense,
       :visibility,
       :audience_user_ids,
       :group_conversation_id,
@@ -50,6 +64,7 @@ defmodule OpalCore.SocialFlow.SocialMomentRecord do
       :attribution_eligible
     ])
     |> validate_required([:author_user_id, :visibility, :moderation_state])
+    |> validate_inclusion(:tense, @tenses)
     |> validate_inclusion(:visibility, @visibilities)
     |> validate_inclusion(:moderation_state, @moderation)
     |> validate_change(:commerce_led, fn :commerce_led, v ->
@@ -65,6 +80,10 @@ defmodule OpalCore.SocialFlow.SocialMomentRecord do
       "author_user_id" => m.author_user_id,
       "caption" => m.caption,
       "social_context" => m.social_context,
+      # Repair #24 (WS-6): the persisted tense reads back on every
+      # contract (feed, detail, archive all compose this shape).
+      # A pre-migration struct with nil reads as the default.
+      "tense" => m.tense || @default_tense,
       "visibility" => m.visibility,
       "place_ref" => m.place_ref || %{},
       "media_ids" => m.media_ids || [],

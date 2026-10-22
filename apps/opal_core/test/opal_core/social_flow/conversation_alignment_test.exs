@@ -131,7 +131,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignmentTest do
         act("activity_lock", "user-a", "coffee", 10, "user_stated")
       ])
 
-    assert Enum.map(coffee["candidates"], & &1["name"]) == ["Bird Rock Coffee"]
+    # Re-pinned in Repair #24 (WS-3): the atlas grew by the seeded
+    # world's own places, so coffee now also offers Moonlight Beach.
+    assert Enum.map(coffee["candidates"], & &1["name"]) == ["Bird Rock Coffee", "Moonlight Beach"]
     refute Enum.any?(coffee["candidates"], &(&1["name"] == "Juniper & Ivy"))
 
     active =
@@ -139,7 +141,15 @@ defmodule OpalCore.SocialFlow.ConversationAlignmentTest do
         act("activity_lock", "user-a", "something active", 10, "user_stated")
       ])
 
-    assert Enum.map(active["candidates"], & &1["name"]) == ["Torrey Pines"]
+    # Re-pinned in Repair #24 (WS-3), same atlas growth: the seeded
+    # world's outing places are something-active candidates now.
+    assert Enum.map(active["candidates"], & &1["name"]) == [
+             "Torrey Pines",
+             "Oceanside Farmers Market",
+             "Moonlight Beach",
+             "Tamarack Beach",
+             "Oceanside Pier"
+           ]
     refute Enum.any?(active["candidates"], &(&1["name"] in ["Juniper & Ivy", "Herb & Wood", "Fort Oak"]))
     assert Enum.all?(active["candidates"], &(&1["travel_time"] == nil))
   end
@@ -161,7 +171,9 @@ defmodule OpalCore.SocialFlow.ConversationAlignmentTest do
     assert state["activity"]["value"] == "Coffee"
     assert state["place"]["state"] == "unknown"
     assert state["execution"]["state"] == "unknown"
-    assert Enum.map(state["candidates"], & &1["name"]) == ["Bird Rock Coffee"]
+    # Re-pinned in Repair #24 (WS-3): coffee candidates carry the
+    # atlas's Moonlight Beach entry alongside Bird Rock Coffee.
+    assert Enum.map(state["candidates"], & &1["name"]) == ["Bird Rock Coffee", "Moonlight Beach"]
     assert state["activity_changeable"]
   end
 

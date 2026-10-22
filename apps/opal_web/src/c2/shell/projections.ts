@@ -119,6 +119,16 @@ export type StoryRailProjection = {
      *  the tier arrives as a finished server fact or not at
      *  all. */
     stoneState?: "happening" | "nearby" | "loved" | "new" | "seen";
+    /** Repair #24 (WS-1): the server-computed attention flags
+     *  from the story-engagement record (the story list read
+     *  carries viewer_mentioned / viewer_has_response per
+     *  viewer). Either flag earns the ATTENTION glow tier,
+     *  alongside the live and close-people triggers. Absent =
+     *  the record said neither - the stone rests. There is no
+     *  interest flag: no interest field exists in the story
+     *  record, so that trigger stays unwired (declared). */
+    viewerMentioned?: boolean;
+    viewerHasResponse?: boolean;
     storyCount: number;
     /** The story's real media (hunt-fix B-10). Absent = the cell
      *  never opens a viewer; there is no empty stage. */
@@ -167,6 +177,10 @@ export type FeedCardProjection =
        *  projected by the backend feed card). Null = the record
        *  carries no place, and seed doors carry none either. */
       placeLabel?: string | null;
+      /** Repair #24 (D-P1): the moment record's stable place
+       *  identity (its place_ref provider_place_id, on the feed
+       *  card as place_id), when the record carries one. */
+      placeId?: string | null;
       /** The moment record's own media (its media_ref - see the
        *  adapter's provenance note). Absent = the designed
        *  monogram treatment, never text in the image well. */
@@ -200,6 +214,11 @@ export type FeedCardProjection =
       repostCount?: number;
       viewerSaved?: boolean;
       commentCount?: number;
+      /** Repair #24 (WS-6): the moment's persisted creation tense,
+       *  read back from the feed record itself (the backend
+       *  HomeFeed card carries the moment record's tense).
+       *  Absent on older payloads - never derived locally. */
+      tense?: "present" | "future" | "past";
     }
   | {
       kind: "live";
@@ -365,9 +384,16 @@ export type BondProjection = {
  * them verbatim and derives nothing.
  */
 export type PlaceStoneProjection = {
-  /** Grouping key: the normalized place name (the records carry
-   *  no stable place id to these reads - declared D-P1). */
+  /** Grouping key (unique - it is the stream's React key):
+   *  "id:<stable place id>" when a record that formed the stone
+   *  honestly carried a stable place/venue id, else
+   *  "name:<normalized place name>" (Repair #24, D-P1 - the
+   *  identity-first join law lives in placeStonesFromGraph). */
   key: string;
+  /** The stable place/venue id this stone groups on, when one
+   *  was honestly carried (a live room's venue identity, a
+   *  moment's provider place id); else null - name-grouped. */
+  placeId: string | null;
   /** The place name verbatim from the first record that carried it. */
   name: string;
   /** The summed signal weight (memory contribution capped - see
@@ -412,8 +438,12 @@ export type PlaceStoneProjection = {
   /** The door out: "Start a plan here", pre-composed by the
    *  builder through the flows2 seed machinery from the place's
    *  strongest lawful seed source (one of its plans, else one of
-   *  its moments). Null when the place's only signal is a live
-   *  room - a live room is not a seed source (declared D-P4). */
+   *  its moments). Repair #24 (D-P4): a live-only place carries
+   *  a PLACE seed instead of none - the prefill carries the
+   *  place itself as location and claims no lineage (a live
+   *  room is still not a seed source). Null only when the place
+   *  somehow carries no plan, no moment, and no live room -
+   *  which is to say, no signal at all. */
   startSeed: import("./flows2").SeedCreate | null;
   /** Repair #23 (WS-23-5): the SERVER place signal for this
    *  place, from the tier-only read path (POST /places/signals).

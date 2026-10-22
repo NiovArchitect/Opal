@@ -91,7 +91,23 @@ export type PlanSeed = {
   organizerUserId: string | null;
 };
 
-export type SeedSource = MomentSeed | PlanSeed;
+/** Repair #24 (D-P4) - THE PLACE ITSELF as a prefill source.
+ *  A live-only place has no plan and no moment to seed from, and
+ *  a live room is NOT a seed source (it claims no lineage: no
+ *  sourcePlanId, no inspiredByMomentId rides a place seed). What
+ *  the place view's door may lawfully carry is the place itself -
+ *  its name as the create flow's location, and its stable id as
+ *  builder-internal identity only (the create prefill contract
+ *  has no place-id field today, so the id never rides into the
+ *  form). The title is the user's to write: a place seed borrows
+ *  no title from a room, a plan, or a caption. */
+export type PlaceSeed = {
+  kind: "place";
+  placeLabel: string;
+  placeId?: string | null;
+};
+
+export type SeedSource = MomentSeed | PlanSeed | PlaceSeed;
 
 /** The create-flow prefill one branch produces. `participantUserIds`
  *  is the branch's STARTING party in the create form: locked for
@@ -139,6 +155,13 @@ const BRANCH_ENTRY: Record<SeedBranch, string> = {
  *    state is neither going nor host), plus solo, my-people, and
  *    again (the same party repeats, through the repeat lineage). */
 export function doorsForSource(source: SeedSource): SeedBranch[] {
+  if (source.kind === "place") {
+    // My-people only: there is no original party to join or
+    // repeat, and no author to go solo from - the party is the
+    // user's to choose in the form, exactly the place view's
+    // door law (design record section 5).
+    return ["my-people"];
+  }
   if (source.kind === "moment") {
     return source.mine ? ["my-people"] : ["join", "solo", "my-people"];
   }
@@ -178,6 +201,23 @@ function momentTitle(source: MomentSeed): string {
 export function seedCreateFor(source: SeedSource, branch: SeedBranch): SeedCreate | null {
   if (!doorsForSource(source).includes(branch)) return null;
   const entry = BRANCH_ENTRY[branch];
+  if (source.kind === "place") {
+    // The place rides as location alone: empty title (the user's
+    // to write), empty starting party with the Who picker open
+    // (my-people), close_circle audience - the same shape the
+    // my-people branch of a moment seed produces, minus every
+    // provenance field a place seed may not claim.
+    return {
+      branch,
+      title: "",
+      location: source.placeLabel,
+      participantUserIds: [],
+      audience: "close_circle",
+      entry,
+      lockParty: false,
+      needsPartyRead: false,
+    };
+  }
   if (source.kind === "moment") {
     const base = {
       branch,

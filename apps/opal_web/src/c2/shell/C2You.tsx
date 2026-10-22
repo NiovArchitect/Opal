@@ -81,6 +81,17 @@ export type C2YouEvents = {
    *  shell wires it only with a live session; an unwired host gets
    *  the honest error line on submit, never a painted success. */
   addMemory?: (text: string) => Promise<void>;
+  /** Repair #24 (WS-5) - the memory step-up: a fresh phone-code
+   *  verification (the account's actual credential - there is no
+   *  account password). start sends a code to the phone number on
+   *  the account and returns the challenge id (plus, in synthetic
+   *  development only, the development code the server itself
+   *  exposes); confirm checks the code and holds the resulting
+   *  elevation for the shell's memory mutations. Absent handlers
+   *  mean the panel shows the honest unwired line. */
+  startMemoryStepUp?: (phone: string) => Promise<{ challengeId: string; developmentCode?: string }>;
+  confirmMemoryStepUp?: (challengeId: string, code: string, phone: string) => Promise<void>;
+  memoryStepUpReady?: boolean;
   /** R20 F-4 — the Private graphs credential home writes. Each runs
    *  the real API (setGraphLock / setGraphLockBiometric + the
    *  device-local WebAuthn registration for the biometric leg) and
@@ -278,6 +289,13 @@ export function C2SettingsSection({
   const [inviteCopyNote, setInviteCopyNote] = useState<string | null>(null);
   const [memoryDraft, setMemoryDraft] = useState("");
   const [memoryAdded, setMemoryAdded] = useState(false);
+  // Repair #24 (WS-5) - memory step-up form state: the phone number
+  // on the account, the challenge the server issued, and the code.
+  const [stepUpPhone, setStepUpPhone] = useState("");
+  const [stepUpChallengeId, setStepUpChallengeId] = useState<string | null>(null);
+  const [stepUpCode, setStepUpCode] = useState("");
+  const [stepUpBusy, setStepUpBusy] = useState(false);
+  const [stepUpNote, setStepUpNote] = useState<string | null>(null);
   // R20 F-4 — Private graphs credential home state, seeded from the
   // section's own value rows (the server's graph-lock projection).
   const [vaultPin, setVaultPin] = useState("");
@@ -1287,6 +1305,92 @@ export function C2SettingsSection({
             <p className="c2s-caption">The login itself is never shown back - only the site is listed.</p>
           </div>
         ) : null}
+        {section.key === "memory" || section.key === "what-opal-remembers" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }} data-testid="c2-memory-stepup-form">
+            <p className="c2s-note">
+              Confirm it is you before adding or forgetting a memory. Opal sends a
+              fresh code to the phone number on your account - your account has
+              no password, so the phone code is the check. The confirmation
+              lasts a few minutes.
+            </p>
+            {events.memoryStepUpReady ? (
+              <p className="c2s-note" data-testid="c2-memory-stepup-ready" role="status">
+                Confirmed. You can add and forget memories for a few minutes.
+              </p>
+            ) : (
+              <>
+                <input
+                  className="c2s-field"
+                  data-testid="c2-memory-stepup-phone"
+                  placeholder="Phone number on your account"
+                  value={stepUpPhone}
+                  onChange={(e) => setStepUpPhone(e.target.value)}
+                  aria-label="Phone number on your account"
+                />
+                {stepUpChallengeId ? (
+                  <>
+                    <input
+                      className="c2s-field"
+                      data-testid="c2-memory-stepup-code"
+                      placeholder="Code from your phone"
+                      value={stepUpCode}
+                      onChange={(e) => setStepUpCode(e.target.value)}
+                      aria-label="Code from your phone"
+                    />
+                    <button
+                      type="button"
+                      className="c2s-btn-primary"
+                      data-testid="c2-memory-stepup-confirm"
+                      disabled={stepUpBusy || stepUpCode.trim() === ""}
+                      onClick={async () => {
+                        if (!events.confirmMemoryStepUp) { setError("Confirming it is you is not wired in this build."); return; }
+                        setStepUpBusy(true);
+                        setError(null);
+                        try {
+                          await events.confirmMemoryStepUp(stepUpChallengeId, stepUpCode.trim(), stepUpPhone.trim());
+                          setStepUpNote("Confirmed.");
+                        } catch {
+                          setError("That code did not work. Check it and try again.");
+                        } finally {
+                          setStepUpBusy(false);
+                        }
+                      }}
+                    >
+                      Confirm code
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="c2s-btn-primary"
+                    data-testid="c2-memory-stepup-send"
+                    disabled={stepUpBusy || stepUpPhone.trim() === ""}
+                    onClick={async () => {
+                      if (!events.startMemoryStepUp) { setError("Confirming it is you is not wired in this build."); return; }
+                      setStepUpBusy(true);
+                      setError(null);
+                      try {
+                        const started = await events.startMemoryStepUp(stepUpPhone.trim());
+                        setStepUpChallengeId(started.challengeId);
+                        if (started.developmentCode) setStepUpCode(started.developmentCode);
+                        setStepUpNote("Code sent. Enter it below.");
+                      } catch {
+                        setError("That number is not the verified number on this account, or the code could not be sent.");
+                      } finally {
+                        setStepUpBusy(false);
+                      }
+                    }}
+                  >
+                    Send me a code
+                  </button>
+                )}
+                {stepUpNote ? (
+                  <p className="c2s-note" data-testid="c2-memory-stepup-note" role="status">{stepUpNote}</p>
+                ) : null}
+              </>
+            )}
+          </div>
+        ) : null}
         {section.key === "memory" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginTop: "var(--space-4)" }} data-testid="c2-memory-add-form">
             <p className="c2s-note">
@@ -1317,8 +1421,15 @@ export function C2SettingsSection({
                   await events.addMemory(memoryDraft.trim());
                   setMemoryDraft("");
                   setMemoryAdded(true);
-                } catch {
-                  setError("That memory could not be saved. Check your connection and try again.");
+                } catch (e) {
+                  // Repair #24 (WS-5): the server's step-up refusal
+                  // gets its own honest line, pointing at the form
+                  // in this room - not a connection guess.
+                  if ((e as { code?: string })?.code === "step_up_required") {
+                    setError("Confirm it is you first - use the step-up form above, then try again.");
+                  } else {
+                    setError("That memory could not be saved. Check your connection and try again.");
+                  }
                 } finally {
                   setSaving(null);
                 }

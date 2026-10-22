@@ -61,6 +61,39 @@ defmodule OpalCoreWeb.MemoryApiTest do
 
   defp auth(conn, token), do: put_req_header(conn, "authorization", "Bearer #{token}")
 
+  # Repair #24 (WS-5): manual memory mutations now require a live
+  # step-up elevation (fresh phone code on the account's own
+  # verified number). This helper performs the real step-up over
+  # HTTP and returns the elevation token.
+  defp step_up(token, phone) do
+    conn =
+      build_conn()
+      |> auth(token)
+      |> post("/api/v1/product/memory/step-up/challenges", %{
+        "otp_consent_accepted" => true,
+        "phone" => phone,
+        "device_label" => "stepup-#{System.unique_integer([:positive])}",
+        "idempotency_key" => "stepup-#{System.unique_integer([:positive])}"
+      })
+
+    body = json_response(conn, 201)
+
+    conn =
+      build_conn()
+      |> auth(token)
+      |> post("/api/v1/product/memory/step-up/verify", %{
+        "challenge_id" => body["challenge"]["id"],
+        "code" => body["development_code"],
+        "phone" => phone
+      })
+
+    json_response(conn, 200)["step_up"]["elevation_token"]
+  end
+
+  defp elevated(token, elevation) do
+    build_conn() |> auth(token) |> put_req_header("x-opal-step-up-elevation", elevation)
+  end
+
   test "list returns own facts with plain labels; empty for stranger", %{conn: conn} do
     {token_a, user_a} = activate(conn, @alex, "Mem A", "mem_a")
     {token_b, _} = activate(build_conn(), @jordan, "Mem B", "mem_b")
@@ -133,7 +166,8 @@ defmodule OpalCoreWeb.MemoryApiTest do
       })
       |> Repo.insert()
 
-    conn = build_conn() |> auth(token_a) |> delete("/api/v1/product/memory/facts/#{mem.id}")
+    elevation = step_up(token_a, @alex)
+    conn = elevated(token_a, elevation) |> delete("/api/v1/product/memory/facts/#{mem.id}")
     body = json_response(conn, 200)
     assert body["forgotten"] == true
     assert body["candidates_removed"] >= 2
@@ -160,9 +194,10 @@ defmodule OpalCoreWeb.MemoryApiTest do
                "preference" => "quiet restaurants"
              })
 
+    elevation_b = step_up(token_b, @jordan)
+
     conn =
-      build_conn()
-      |> auth(token_b)
+      elevated(token_b, elevation_b)
       |> delete("/api/v1/product/memory/facts/#{mem.id}")
 
     assert json_response(conn, 404)["error_code"] == "not_found"
@@ -174,8 +209,10 @@ defmodule OpalCoreWeb.MemoryApiTest do
 
   test "plain_label maps known keys and keeps unknown raw", %{conn: _conn} do
     assert DurablePreferenceMemory.plain_label("taste:cuisine:italian") == "Prefers Italian food"
+
     assert DurablePreferenceMemory.plain_label("temporal:prefers:friday_evening") ==
              "Free Friday evenings"
+
     assert DurablePreferenceMemory.plain_label("temporal:avoids:morning") == "Avoids Morning"
     assert DurablePreferenceMemory.plain_label("mystery:unknown:xyz") == "mystery:unknown:xyz"
     assert DurablePreferenceMemory.plain_label("quiet restaurants") == "quiet restaurants"

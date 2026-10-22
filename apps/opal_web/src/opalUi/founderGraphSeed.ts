@@ -796,6 +796,10 @@ export type FounderStoryItem = {
    *  posting time + lifetime (default 24h). Absent on founder
    *  fixtures, which carry no server record. */
   expiresAt?: string;
+  /** Repair #24 WS-2: the graph (SharedPlan id) this story is
+   *  anchored to, from the server contract's graph_plan_id. Absent
+   *  on person stories and founder fixtures. */
+  graphPlanId?: string;
   /** Founder screenshot B — status under name on the Stories doorway. */
   pulseState?: PulseState;
 };

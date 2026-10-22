@@ -9,7 +9,10 @@
  *  - the facts room states its own truth: Opal-derived facts are
  *    forget-only, and the fuller form lives in Memory (nav row);
  *  - the protection note is in the room: no password check exists
- *    to paint, and the copy says exactly why.
+ *    to paint, and the copy says exactly why;
+ *  - Repair #24 (WS-5): the step-up panel is in the room - a fresh
+ *    phone code on the account's own number is the check, wired
+ *    through the shell's real start/confirm events.
  * No @testing-library: createRoot + jsdom (project convention).
  */
 import React, { act } from "react";
@@ -134,8 +137,9 @@ describe("N7 - manual memory add with provenance + timestamp", () => {
     await render(<C2SettingsSection section={section} events={events} />);
     expect(container.querySelector('[data-testid="c2-memory-add-form"]')).toBeTruthy();
     // The protection truth is in the room, in words.
-    expect(container.textContent).toMatch(/no separate password check for memory yet/);
-    expect(container.textContent).toMatch(/code sent to your phone/);
+    expect(container.textContent).toMatch(/no password check for memory/);
+    expect(container.textContent).toMatch(/code sent to the phone number on your account/);
+    expect(container.querySelector('[data-testid="c2-memory-stepup-form"]')).toBeTruthy();
 
     const input = container.querySelector<HTMLInputElement>(
       '[data-testid="c2-memory-add-input"]',
@@ -191,5 +195,62 @@ describe("N7 - manual memory add with provenance + timestamp", () => {
     expect(
       container.querySelector('[data-testid="c2-setting-row-to-memory"]'),
     ).toBeTruthy();
+  });
+});
+
+describe("R24 WS-5 - the memory step-up panel wires the real events", () => {
+  it("send code -> confirm code calls start and confirm with the typed values", async () => {
+    const startMemoryStepUp = vi.fn(async (_phone: string) => ({
+      challengeId: "ch-1",
+      developmentCode: "111111",
+    }));
+    const confirmMemoryStepUp = vi.fn(async () => undefined);
+    const events: C2YouEvents = {
+      ...baseEvents,
+      addMemory: async () => undefined,
+      startMemoryStepUp,
+      confirmMemoryStepUp,
+      memoryStepUpReady: false,
+    } as unknown as C2YouEvents;
+    const section = await buildSettingsSection("memory", { session: null, bearer: "tok" });
+    await render(<C2SettingsSection section={section} events={events} />);
+    const phone = container.querySelector<HTMLInputElement>(
+      '[data-testid="c2-memory-stepup-phone"]',
+    )!;
+    typeInto(phone, "+12025550101");
+    const send = container.querySelector<HTMLButtonElement>(
+      '[data-testid="c2-memory-stepup-send"]',
+    )!;
+    await act(async () => {
+      send.click();
+    });
+    expect(startMemoryStepUp).toHaveBeenCalledWith("+12025550101");
+    // The server's synthetic development code pre-fills the code
+    // field (test-mode exposure only, from the start response).
+    const code = container.querySelector<HTMLInputElement>(
+      '[data-testid="c2-memory-stepup-code"]',
+    )!;
+    expect(code.value).toBe("111111");
+    const confirm = container.querySelector<HTMLButtonElement>(
+      '[data-testid="c2-memory-stepup-confirm"]',
+    )!;
+    await act(async () => {
+      confirm.click();
+    });
+    expect(confirmMemoryStepUp).toHaveBeenCalledWith("ch-1", "111111", "+12025550101");
+  });
+
+  it("when the shell holds an elevation, the ready line shows instead of the form", async () => {
+    const events: C2YouEvents = {
+      ...baseEvents,
+      addMemory: async () => undefined,
+      startMemoryStepUp: vi.fn(),
+      confirmMemoryStepUp: vi.fn(),
+      memoryStepUpReady: true,
+    } as unknown as C2YouEvents;
+    const section = await buildSettingsSection("memory", { session: null, bearer: "tok" });
+    await render(<C2SettingsSection section={section} events={events} />);
+    expect(container.querySelector('[data-testid="c2-memory-stepup-ready"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="c2-memory-stepup-phone"]')).toBeNull();
   });
 });

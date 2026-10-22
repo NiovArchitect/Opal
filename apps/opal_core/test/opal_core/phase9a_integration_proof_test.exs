@@ -116,6 +116,39 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
 
   defp auth(conn, token), do: put_req_header(conn, "authorization", "Bearer #{token}")
 
+  # Repair #24 (WS-5): manual memory mutations now require a live
+  # step-up elevation (fresh phone code on the account's own
+  # verified number). This helper performs the real step-up over
+  # HTTP and returns the elevation token.
+  defp step_up(token, phone) do
+    conn =
+      build_conn()
+      |> auth(token)
+      |> post("/api/v1/product/memory/step-up/challenges", %{
+        "otp_consent_accepted" => true,
+        "phone" => phone,
+        "device_label" => "stepup-#{System.unique_integer([:positive])}",
+        "idempotency_key" => "stepup-#{System.unique_integer([:positive])}"
+      })
+
+    body = json_response(conn, 201)
+
+    conn =
+      build_conn()
+      |> auth(token)
+      |> post("/api/v1/product/memory/step-up/verify", %{
+        "challenge_id" => body["challenge"]["id"],
+        "code" => body["development_code"],
+        "phone" => phone
+      })
+
+    json_response(conn, 200)["step_up"]["elevation_token"]
+  end
+
+  defp elevated(token, elevation) do
+    build_conn() |> auth(token) |> put_req_header("x-opal-step-up-elevation", elevation)
+  end
+
   defp future_expires do
     DateTime.utc_now()
     |> DateTime.add(90 * 24 * 3600, :second)
@@ -202,10 +235,14 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
         "name" => meal["name"]
       }
       |> then(fn ref ->
-        if is_binary(meal["area_label"]), do: Map.put(ref, "area_label", meal["area_label"]), else: ref
+        if is_binary(meal["area_label"]),
+          do: Map.put(ref, "area_label", meal["area_label"]),
+          else: ref
       end)
       |> then(fn ref ->
-        if is_binary(meal["price_band"]), do: Map.put(ref, "price_band", meal["price_band"]), else: ref
+        if is_binary(meal["price_band"]),
+          do: Map.put(ref, "price_band", meal["price_band"]),
+          else: ref
       end)
       |> then(fn ref ->
         if is_binary(meal["cuisine"]), do: Map.put(ref, "cuisine", meal["cuisine"]), else: ref
@@ -451,7 +488,8 @@ defmodule OpalCore.Phase9aIntegrationProofTest do
     t_before = score(before, "thai_spot")
     assert i_before >= t_before
 
-    conn = build_conn() |> auth(token) |> delete("/api/v1/product/memory/facts/#{mem.id}")
+    elevation = step_up(token, @alex)
+    conn = elevated(token, elevation) |> delete("/api/v1/product/memory/facts/#{mem.id}")
     body = json_response(conn, 200)
     assert body["forgotten"] == true
 

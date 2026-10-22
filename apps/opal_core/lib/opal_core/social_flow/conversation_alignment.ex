@@ -947,6 +947,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
   # venue enters via chat proposal (candidate, peer-confirmed) or the Center
   # Geoapify exact-entity pipeline, never by this button endpoint inventing
   # a resolution it did not perform.
+  #
+  # Repair #24 (WS-3): an offered candidate matches under the catalog's
+  # display-string join (CandidateProvider.refers_to?/2), so a place a
+  # real record carries as "Herb & Wood, Little Italy" nominates the
+  # offered "Herb & Wood" instead of falling through to
+  # :activity_not_ready; and the seeded world's places are catalog
+  # entries in their own right, so they are offered and nominatable
+  # instead of :unknown_place.
   def nominate_place(conversation_id, user_id, name) when is_binary(conversation_id) do
     with :ok <- member?(conversation_id, user_id) do
       state = sync_conversation(conversation_id)
@@ -993,7 +1001,14 @@ defmodule OpalCore.SocialFlow.ConversationAlignment do
 
       offered_name =
           Enum.find_value(offered, fn o ->
-            if String.downcase(o["name"] || "") == down, do: o["name"]
+            # Repair #24 (WS-3): the join is the catalog's own
+            # display-string join (CandidateProvider.refers_to?/2),
+            # not exact string equality. Seeded and locked places
+            # carry display forms the catalog name alone does not
+            # ("Herb & Wood, Little Italy", "The Brick Hotel,
+            # Oceanside"); exact equality rejected them as
+            # :activity_not_ready even when their entry was offered.
+            if CandidateProvider.refers_to?(name, o["name"]), do: o["name"]
           end) ->
         {:ok, offered_name}
 

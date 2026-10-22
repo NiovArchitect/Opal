@@ -229,7 +229,26 @@ defmodule OpalCoreWeb.LivesController do
     end
   end
 
+  # Write-path visibility gate (R24 WS-4): both room writes below
+  # pass through Lives.get_live/2 - the read path's own visibility
+  # enforcement (the visible list's visible_to_viewer? predicate) -
+  # before any write runs. A room the list hides for this viewer,
+  # and equally a room that does not exist, is rejected with the
+  # read path's exact 404 shape, and the write underneath never
+  # runs: no presence report, no sticker, no wallet movement. A
+  # viewer the predicate admits falls through to the write and its
+  # pre-existing rules unchanged.
   def report_presence(conn, %{"id" => id}) do
+    case Lives.get_live(id, conn.assigns.current_user_id) do
+      {:ok, _visible_room} ->
+        do_report_presence(conn, id)
+
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+    end
+  end
+
+  defp do_report_presence(conn, id) do
     case Lives.report_host_not_here(id, conn.assigns.current_user_id) do
       {:ok, result} ->
         json(conn, %{
@@ -251,6 +270,19 @@ defmodule OpalCoreWeb.LivesController do
   end
 
   def send_sticker(conn, %{"id" => id} = params) do
+    # Same write-path visibility gate as report_presence (R24 WS-4):
+    # the gate runs before payload validation, so a hidden room is
+    # indistinguishable from a missing one.
+    case Lives.get_live(id, conn.assigns.current_user_id) do
+      {:ok, _visible_room} ->
+        do_send_sticker(conn, id, params)
+
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
+    end
+  end
+
+  defp do_send_sticker(conn, id, params) do
     key = params["sticker_key"] || params["key"]
     idem = params["idempotency_key"]
 
@@ -289,6 +321,9 @@ defmodule OpalCoreWeb.LivesController do
             conn
             |> put_status(:unprocessable_entity)
             |> json(%{"error" => "insufficient_balance"})
+
+          {:error, :not_found} ->
+            conn |> put_status(:not_found) |> json(%{"error" => "not_found"})
 
           {:error, reason} ->
             conn

@@ -265,6 +265,153 @@ defmodule OpalCore.SocialFlow.Onboarding do
     end
   end
 
+  # --- Repair #24 (WS-5): memory step-up re-verification ---
+  #
+  # The account's actual credential is control of its verified
+  # phone number - accounts carry no password (see
+  # OpalCore.Auth.StepUpElevation). A step-up is a FRESH challenge
+  # for that same credential, scoped so it can never become a
+  # sign-in: the challenge's purpose is "sensitive_change", it is
+  # bound to the requesting account, it starts only when the
+  # number's active verified identifier already belongs to that
+  # account, and completing it mints NO session and NO account -
+  # it only reports that the code checked out, so the caller
+  # (MemoryStepUpController) can grant a session-bound elevation.
+
+  @step_up_purpose "sensitive_change"
+
+  def step_up_purpose, do: @step_up_purpose
+
+  @doc """
+  Start a step-up challenge for the signed-in `user_id` on the
+  phone number they present. The number must ALREADY be the
+  account's active verified identifier - a number owned by
+  another account, or by no account, is refused with
+  `{:error, :identifier_not_owned}` and no challenge is created.
+  """
+  def start_step_up_verification(user_id, attrs) when is_binary(user_id) and is_map(attrs) do
+    raw = Map.get(attrs, :identifier_raw) || Map.get(attrs, "identifier_raw")
+
+    with {:ok, e164} <- normalize_e164(raw || ""),
+         true <- active_owner(lookup_digest(e164)) == user_id || {:error, :identifier_not_owned} do
+      start_verification(%{
+        identifier_raw: e164,
+        purpose: @step_up_purpose,
+        device_label:
+          Map.get(attrs, :device_label) || Map.get(attrs, "device_label") || "WebBrowser",
+        idempotency_key:
+          Map.get(attrs, :idempotency_key) || Map.get(attrs, "idempotency_key") ||
+            "vc-stepup-#{user_id}-#{System.unique_integer([:positive])}",
+        trace_id:
+          Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") || "trace-memory-step-up",
+        bound_account_id: user_id,
+        otp_consent_accepted:
+          Map.get(attrs, :otp_consent_accepted) || Map.get(attrs, "otp_consent_accepted"),
+        otp_consent_policy_version:
+          Map.get(attrs, :otp_consent_policy_version) ||
+            Map.get(attrs, "otp_consent_policy_version") || @otp_consent_policy,
+        otp_consent_at: Map.get(attrs, :otp_consent_at) || Map.get(attrs, "otp_consent_at")
+      })
+    end
+  end
+
+  def start_step_up_verification(_, _), do: {:error, :invalid}
+
+  @doc """
+  Complete a step-up challenge for `user_id`. Mirrors
+  complete_verification's challenge discipline (pending only,
+  expiry, attempt ceiling, the same provider/digest code check)
+  but finishes WITHOUT creating an account or a session: the
+  challenge is marked used and `{:ok, challenge}` is returned.
+  A challenge bound to another account, or whose number is not
+  that account's active verified identifier, never completes.
+  """
+  def complete_step_up_verification(user_id, attrs) when is_binary(user_id) and is_map(attrs) do
+    challenge_id = Map.get(attrs, :challenge_id) || Map.get(attrs, "challenge_id")
+    code = Map.get(attrs, :code) || Map.get(attrs, "code")
+
+    case challenge_id && Repo.get(VerificationChallenge, challenge_id) do
+      nil ->
+        {:error, :not_found}
+
+      %VerificationChallenge{status: "used"} ->
+        {:error, :replay}
+
+      %VerificationChallenge{status: s} when s in ~w(expired locked failed) ->
+        {:error, :challenge_inactive}
+
+      %VerificationChallenge{purpose: @step_up_purpose, bound_account_id: ^user_id} = c ->
+        now = now()
+
+        cond do
+          DateTime.compare(now, c.expires_at) == :gt ->
+            c |> VerificationChallenge.changeset(%{status: "expired"}) |> Repo.update()
+            {:error, :expired}
+
+          c.attempt_count >= c.max_attempts ->
+            c
+            |> VerificationChallenge.changeset(%{status: "locked", locked_at: now})
+            |> Repo.update()
+
+            {:error, :locked}
+
+          active_owner_for_challenge(c) != user_id ->
+            {:error, :identifier_not_owned}
+
+          true ->
+            case verify_challenge_code(c, code, attrs) do
+              :ok ->
+                {:ok, used} =
+                  c
+                  |> VerificationChallenge.changeset(%{status: "used", used_at: now})
+                  |> Repo.update()
+
+                audit!(
+                  nil,
+                  user_id,
+                  "memory.step_up.verified",
+                  %{
+                    "challenge_id" => used.id,
+                    "purpose" => @step_up_purpose,
+                    "credential_kind" => "phone_code",
+                    "no_new_session" => true,
+                    "no_raw_identifier" => true
+                  },
+                  Map.get(attrs, :trace_id) || Map.get(attrs, "trace_id") ||
+                    "trace-memory-step-up"
+                )
+
+                {:ok, used}
+
+              {:error, :invalid_code} ->
+                c
+                |> VerificationChallenge.changeset(%{attempt_count: c.attempt_count + 1})
+                |> Repo.update()
+
+                {:error, :invalid_code}
+
+              {:error, _} = err ->
+                err
+            end
+        end
+
+      %VerificationChallenge{} ->
+        # A challenge that is not a step-up challenge bound to this
+        # account is not this account's step-up - same answer as a
+        # missing one, so nothing about its binding leaks.
+        {:error, :not_found}
+    end
+  end
+
+  def complete_step_up_verification(_, _), do: {:error, :invalid}
+
+  defp active_owner_for_challenge(%VerificationChallenge{} = c) do
+    case Repo.get(CommunicationIdentifier, c.communication_identifier_id) do
+      %CommunicationIdentifier{lookup_digest: digest} -> active_owner(digest)
+      _ -> nil
+    end
+  end
+
   defp verify_challenge_code(c, code, attrs) do
     digest = Repo.get!(CommunicationIdentifier, c.communication_identifier_id).lookup_digest
 

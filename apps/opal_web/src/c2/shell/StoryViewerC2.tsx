@@ -23,9 +23,11 @@
  *   dwell rather than stranding the viewer on a dead stage.
  *
  * Tap right → next · tap left → prior · × / Escape → exit.
- * The viewer's one live door stays Reply (W-17 ext.): stories
- * carry no engagement record (DECLARED D-15), so no heart or
- * take door renders here.
+ * Live doors: Reply (W-17 ext.) and, since Repair #24 (WS-1)
+ * built the story-engagement record (audit D-M), Comments -
+ * the comments door opens the story's comments on that record.
+ * No heart or take door renders here: no light or graph record
+ * exists for stories (the rest of D-15 stands).
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
@@ -53,9 +55,12 @@ type Props = {
   onClose: () => void;
   /** The viewer's one lawful live door (W-17 ext.). */
   onReply?: (personId: string) => void;
+  /** Repair #24 (WS-1): the story's comments door, on the
+   *  story-engagement record. Absent = no door renders. */
+  onComments?: (storyId: string) => void;
 };
 
-export function StoryViewerC2({ queue, onClose, onReply }: Props) {
+export function StoryViewerC2({ queue, onClose, onReply, onComments }: Props) {
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [videoFailed, setVideoFailed] = useState(false);
@@ -220,17 +225,30 @@ export function StoryViewerC2({ queue, onClose, onReply }: Props) {
             </p>
           ) : null}
         </div>
-        {current.personId && onReply ? (
+        {onComments || (current.personId && onReply) ? (
           <div className="c2s-viewer-foot">
-            <button
-              type="button"
-              className="c2s-glyph-btn c2s-viewer-reply"
-              data-testid="c2-story-viewer-reply"
-              aria-label={`Reply to ${current.personName}`}
-              onClick={() => onReply(current.personId!)}
-            >
-              <IconChats size={22} />
-            </button>
+            {onComments ? (
+              <button
+                type="button"
+                className="c2s-glyph-btn c2s-viewer-comments"
+                data-testid="c2-story-viewer-comments"
+                aria-label={`Comments on ${current.personName} story`}
+                onClick={() => onComments(current.id)}
+              >
+                <IconChats size={22} />
+              </button>
+            ) : null}
+            {current.personId && onReply ? (
+              <button
+                type="button"
+                className="c2s-btn-text c2s-viewer-reply"
+                data-testid="c2-story-viewer-reply"
+                aria-label={`Reply to ${current.personName}`}
+                onClick={() => onReply(current.personId!)}
+              >
+                Reply
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

@@ -3111,6 +3111,12 @@ export async function publishSocialMoment(
     visibility?: string;
     media_ids?: string[];
     audience_user_ids?: string[];
+    /** Repair #24 (WS-6): the creation tense, in the creation
+     *  walkthrough's own vocabulary (present = Now, future =
+     *  Forecast, past = Memories). Absent = the server's honest
+     *  default (present); the client never stamps a tense the
+     *  panel did not choose. */
+    tense?: "present" | "future" | "past";
   },
   bearer?: string,
 ) {
@@ -3237,8 +3243,79 @@ export async function uploadSocialMomentMedia(
   });
 }
 
+/**
+ * Repair #24 (WS-1) - story engagement on the story-engagement
+ * record (audit D-M). Comments follow the moment-comments shape
+ * exactly; a reply is a viewer-to-author response (never a
+ * comment); a mention is the author's alone. The story list read
+ * carries the server-computed viewer_mentioned /
+ * viewer_has_response flags the rail's ATTENTION glow reads.
+ */
+export async function listStoryComments(storyId: string, bearer?: string) {
+  return request<{
+    comments: Array<{
+      id: string;
+      story_id: string;
+      author_user_id: string;
+      author_name: string;
+      body: string;
+      created_at: string;
+    }>;
+    comment_count: number;
+  }>(`/api/v1/product/stories/${encodeURIComponent(storyId)}/comments`, {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function addStoryComment(storyId: string, body: string, bearer?: string) {
+  return request<{ comment: Record<string, unknown>; comment_count: number }>(
+    `/api/v1/product/stories/${encodeURIComponent(storyId)}/comments`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ body }),
+    },
+  );
+}
+
+export async function addStoryReply(storyId: string, body: string, bearer?: string) {
+  return request<{ reply: Record<string, unknown>; viewer_has_response: boolean }>(
+    `/api/v1/product/stories/${encodeURIComponent(storyId)}/replies`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ body }),
+    },
+  );
+}
+
+export async function addStoryMention(
+  storyId: string,
+  targetUserId: string,
+  bearer?: string,
+) {
+  return request<{ mention: Record<string, unknown>; idempotent?: boolean }>(
+    `/api/v1/product/stories/${encodeURIComponent(storyId)}/mentions`,
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ target_user_id: targetUserId }),
+    },
+  );
+}
+
 export async function createTemporaryStory(
-  attrs: { media_ref?: string; media_id?: string; visibility?: string; caption?: string },
+  attrs: {
+    media_ref?: string;
+    media_id?: string;
+    visibility?: string;
+    caption?: string;
+    mentioned_user_ids?: string[];
+    /** Repair #24 WS-2: anchor the story to a graph (SharedPlan id)
+     *  the author is a party to. The server rejects a graph the
+     *  author does not belong to; omit for a person story. */
+    graph_plan_id?: string;
+  },
   bearer?: string,
 ) {
   return request<{ story: Record<string, unknown> }>("/api/v1/product/stories", {
@@ -4504,10 +4581,70 @@ export async function updateSoul(attrs: Record<string, unknown>, bearer?: string
   });
 }
 
-export async function forgetCapsule(capsuleId: string, bearer?: string) {
+/**
+ * Repair #24 (WS-5) - memory step-up re-auth. Accounts carry no
+ * password credential, so the step-up re-verifies the account's
+ * actual credential: a fresh code sent to the phone number already
+ * verified to this account. Completing it returns a short-lived
+ * elevation token bound to this account + session; the manual
+ * memory mutations (capsule create/forget, fact forget) require
+ * it and answer 403 step_up_required without one.
+ */
+export type MemoryStepUp = {
+  elevated: boolean;
+  credential_kind: string;
+  credential: string;
+  password_credential_exists: boolean;
+  granted_at: string | null;
+  expires_at: string | null;
+  elevation_token?: string | null;
+};
+
+function stepUpHeaders(stepUpToken?: string): Record<string, string> {
+  return stepUpToken ? { "x-opal-step-up-elevation": stepUpToken } : {};
+}
+
+export async function getMemoryStepUp(bearer?: string) {
+  return request<{ step_up: MemoryStepUp }>("/api/v1/product/memory/step-up", {
+    bearer: resolveBearer(bearer),
+  });
+}
+
+export async function startMemoryStepUp(phone: string, bearer?: string) {
+  return request<{
+    challenge: { id: string; purpose: string; status: string };
+    origin: string;
+    credential: string;
+    password_credential_exists: boolean;
+    development_code?: string;
+  }>("/api/v1/product/memory/step-up/challenges", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ phone, otp_consent_accepted: true }),
+  });
+}
+
+export async function completeMemoryStepUp(
+  challengeId: string,
+  code: string,
+  phone: string,
+  bearer?: string,
+) {
+  return request<{ step_up: MemoryStepUp }>("/api/v1/product/memory/step-up/verify", {
+    method: "POST",
+    bearer: resolveBearer(bearer),
+    body: JSON.stringify({ challenge_id: challengeId, code, phone }),
+  });
+}
+
+export async function forgetCapsule(capsuleId: string, bearer?: string, stepUpToken?: string) {
   return request<{ forgotten: boolean; source: string }>(
     `/api/v1/product/memory-wallet/capsules/${encodeURIComponent(capsuleId)}`,
-    { method: "DELETE", bearer: resolveBearer(bearer) },
+    {
+      method: "DELETE",
+      bearer: resolveBearer(bearer),
+      headers: stepUpHeaders(stepUpToken),
+    },
   );
 }
 
@@ -4530,14 +4667,18 @@ export async function createMemoryCapsule(
     scope_kind?: string;
     scope_id?: string;
     counterpart_user_id?: string;
+    /** Repair #24 (WS-5): the live step-up elevation token. */
+    stepUpToken?: string;
   },
 ) {
+  const { stepUpToken, ...rest } = attrs ?? {};
   return request<{ capsule: MemoryCapsuleContract }>(
     "/api/v1/product/memory-wallet/capsules",
     {
       method: "POST",
       bearer: resolveBearer(bearer),
-      body: JSON.stringify({ summary, ...(attrs ?? {}) }),
+      headers: stepUpHeaders(stepUpToken),
+      body: JSON.stringify({ summary, ...rest }),
     },
   );
 }
@@ -4652,7 +4793,7 @@ export async function getAccountActivity(bearer?: string) {
   });
 }
 
-export async function forgetMemoryFact(factId: string, bearer?: string) {
+export async function forgetMemoryFact(factId: string, bearer?: string, stepUpToken?: string) {
   return request<{
     fact: MemoryFact;
     forgotten: boolean;
@@ -4661,6 +4802,7 @@ export async function forgetMemoryFact(factId: string, bearer?: string) {
   }>(`/api/v1/product/memory/facts/${encodeURIComponent(factId)}`, {
     method: "DELETE",
     bearer: resolveBearer(bearer),
+    headers: stepUpHeaders(stepUpToken),
   });
 }
 
@@ -5814,6 +5956,14 @@ export type OpalPlanContract = {
   plan_type?: string | null;
   meeting_link?: string | null;
   online?: boolean;
+  /** Repair #24 (D-P1): a stable place/venue identity for this
+   *  plan's place, IF a future SharedPlan contract honestly
+   *  carries one. At the R24 tip the backend contract carries
+   *  none (the plan row has location + place coordinates and no
+   *  venue column), so this field is absent in practice and the
+   *  place builder bridges plans by name - it is never derived
+   *  from the location string or the coordinates. */
+  place_id?: string | null;
   /** Repair #18 (B2) — completion record from the one projection. */
   completion?: {
     driven_at?: string | null;

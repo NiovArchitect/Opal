@@ -63,6 +63,11 @@ defmodule OpalCore.SocialFlow.PlanProjection do
   # single store; it renders nothing and keeps no shadow copy — every
   # surface still derives state from the rows through the ONE
   # derivations above.
+  # Added 2026-10-22 (R24 WS-2): social_flow/temporary_story_publishing.ex
+  # reads the single store (shared_plans + plan_participants) only to
+  # answer graph-party standing for a story's graph anchor — audited:
+  # it renders no plan state, derives nothing, and keeps no shadow
+  # copy; the boolean party answer is all that leaves the module.
   @read_files ~w(
     lib/opal_core/artifacts.ex
     lib/opal_core/graph_people.ex
@@ -99,6 +104,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/social_flow/plan_history.ex
     lib/opal_core/social_flow/temporal_habit_miner.ex
     lib/opal_core/social_flow/temporal_habit_miner_worker.ex
+    lib/opal_core/social_flow/temporary_story_publishing.ex
     lib/opal_core/trips.ex
     lib/opal_core_web/controllers/conversation_controller.ex
     lib/opal_core_web/controllers/plan_execution_controller.ex
@@ -179,6 +185,8 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #20 F-19: the etiquette machinery's own limbo recipients for one plan (stage set + window fraction from the machinery itself)"},
       {OpalCore.SocialFlow.OrbitProjection, :for_conversation, 3,
        "Repair #20 F-19: the orbit screen's one projection - a thread's parties, its plans (via NextPlan.all_for_conversation), per-party pending (participant rows' canonical states) and limbo (via NonResponseEtiquette.limbo_recipients)"},
+      {OpalCore.SocialFlow.TemporaryStoryPublishing, :graph_party?, 2,
+       "Repair #24 WS-2: graph-party standing for a story's graph anchor (creator + PlanParticipant rows, the plan-media precedent) - a boolean only; no plan state is rendered"},
       {OpalCore.Center.PlanningContext, :get_for_user, 1, "center in-flight planning state"},
       {OpalCore.Center.NowStrip, :plan_events, 3,
        "Center header strip: live plan commitments in window (Repair #17 W4-6)"},
