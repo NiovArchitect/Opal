@@ -22,6 +22,12 @@
 
 @layer c2 {
   :root {
+    /* W27-1: the device safe-area top inset, owned by the WEB layer
+     * (the native shell stays full-bleed and must not add its own, or
+     * the app double-pads). Mode-independent: the inset is the
+     * device's, not the theme's. Consumed by .c2s-root and the
+     * full-screen layers in c2shell.css. */
+    --opal-sat: env(safe-area-inset-top, 0px);
     /* ---- Primitives (section 2.2) - values only; product code never
      * uses primitives directly, only the semantic tokens below. ---- */
     --p-paper-0: #fffefb;
@@ -59,6 +65,19 @@
     --radius-button: 16px;
     --radius-well: 12px;
     --radius-min: 8px;
+    /* Repair #27 (W27-14) - THE INPUT RADIUS LAW (founder: inputs
+     * render BOXY; the design standard is ROUNDED ENDS). One shared
+     * treatment for every text input, search field, and code field
+     * in the shell: single-line fields are full pills
+     * (--radius-input), and the multi-line form of a field keeps a
+     * generously rounded floor (--radius-input-multi, the sheet
+     * radius) where a pill would break the composer's shape.
+     * Mode-free geometry, like the rest of this block. Consumers:
+     * .c2s-field / .c2s-search / .c2s-code-box (+ textarea.c2s-field)
+     * in c2shell.css - never per-component one-offs. Pinned by
+     * c2/shell/r27Onboard.test.tsx. */
+    --radius-input: 999px;
+    --radius-input-multi: 24px;
     --gutter: 20px;
     --header-h: 60px;
     --dock-h: 64px;

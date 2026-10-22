@@ -557,6 +557,59 @@ export function dyadPersonOf(chat: {
   return { personId: peers[0].id, personName: name };
 }
 
+
+/**
+ * Repair #27 (W27-8) - A MESSAGE RENDERS ONCE. Founder walk #5:
+ * the Chanelle thread rendered one plan-proposal bubble FOUR
+ * times. Every load seam below set the server's array verbatim,
+ * so any repeated record - the same id re-issued, or one logical
+ * message persisted more than once by a seed/write batch (same
+ * sender, body, type and batch timestamp, new id) - rendered
+ * once per copy. The dedupe identity is therefore two-legged:
+ * the message id, and (sender + body + type + created_at) for
+ * batch re-issues. A person's own repeated texts survive: two
+ * real sends differ in timestamp. Proposal/system entries also
+ * collapse on (role + body + plan + inserted_at) in the session
+ * host. First occurrence wins; order is preserved.
+ */
+export function dedupeProductMessages(
+  msgs: ProductMessage[],
+): ProductMessage[] {
+  const byId = new Set<string>();
+  const byContent = new Set<string>();
+  const out: ProductMessage[] = [];
+  for (const m of msgs) {
+    if (byId.has(m.id)) continue;
+    const ck = `${m.sender_user_id}\n${m.message_type ?? ""}\n${m.created_at ?? ""}\n${m.body}`;
+    if (byContent.has(ck)) continue;
+    byId.add(m.id);
+    byContent.add(ck);
+    out.push(m);
+  }
+  return out;
+}
+
+export function dedupeOpalChatMessages(
+  msgs: OpalChatMessage[],
+): OpalChatMessage[] {
+  const byId = new Set<string>();
+  const byContent = new Set<string>();
+  const out: OpalChatMessage[] = [];
+  for (const m of msgs) {
+    if (byId.has(m.id)) continue;
+    const planId =
+      m.metadata && typeof m.metadata.plan_id === "string"
+        ? m.metadata.plan_id
+        : "";
+    const ck = `${m.role}\n${planId}\n${m.inserted_at ?? ""}\n${m.body}`;
+    if (byContent.has(ck)) continue;
+    byId.add(m.id);
+    byContent.add(ck);
+    out.push(m);
+  }
+  return out;
+}
+
 export function threadMsgFromOpalMessage(m: OpalChatMessage): ThreadMsg {
   const planId =
     m.metadata && typeof m.metadata.plan_id === "string" ? m.metadata.plan_id : null;
@@ -855,7 +908,7 @@ export function CenterHost({
       anchor?: { type: string; id: string; label?: string | null; private?: boolean } | null;
       pinned?: boolean | null;
     }, fallbackTitle: string, fallbackContext?: OpalConversationContext | null, landing: "chat" | "orbit" = "chat") => {
-      const raw = conv.messages ?? [];
+      const raw = dedupeOpalChatMessages(conv.messages ?? []);
       setRawMessages(raw);
       setMessages(raw.map(threadMsgFromOpalMessage));
       const ctx = contextFromContract(conv.context, fallbackContext);
@@ -988,7 +1041,9 @@ export function CenterHost({
           try {
             const res = await postOpalSessionMessage(id, opts.firstText, bearer);
             const returnedRaw = res.messages ?? [];
-            setRawMessages((prev) => [...prev, ...returnedRaw]);
+            setRawMessages((prev) =>
+              dedupeOpalChatMessages([...prev, ...returnedRaw]),
+            );
             setMessages((prev) => {
               const seen = new Set(prev.map((m) => m.id));
               return [
@@ -1211,7 +1266,9 @@ export function CenterHost({
       try {
         const res = await postOpalSessionMessage(sessionId, text, bearer);
         const returnedRaw = res.messages ?? [];
-        setRawMessages((prev) => [...prev, ...returnedRaw]);
+        setRawMessages((prev) =>
+          dedupeOpalChatMessages([...prev, ...returnedRaw]),
+        );
         const returned = returnedRaw.map(threadMsgFromOpalMessage);
         setMessages((prev) => {
           const seen = new Set(prev.map((m) => m.id));
@@ -2191,7 +2248,7 @@ export function ChatsHost({
         // Deckfix F2a: resolve any call-invite messages against the
         // viewer's real call records (the call log's own list) so the
         // thread renders the record's human line, never "call:<id>".
-        const rawMessages = res.messages ?? [];
+        const rawMessages = dedupeProductMessages(res.messages ?? []);
         let callLineById: ReadonlyMap<string, string> = new Map();
         if (rawMessages.some((m) => callInviteIdOf(m) !== null || m.message_type === "call_invite")) {
           try {

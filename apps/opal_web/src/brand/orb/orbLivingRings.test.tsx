@@ -13,15 +13,19 @@
  *     the ring's parametric equation (every sample ON the ellipse,
  *     final sample = the rest point exactly - the committed CSS
  *     is parsed and pinned to the generating law).
- *  4. The traveler set IS the rest set (ORB_POINTS): hero points
- *     render at their rest positions inside their rings' motion,
- *     and when the living phase ends the component renders the
- *     rest branch - settled state equals rest composition.
+ *  4. SUPERSEDED for the hero by W27-17 (founder ruling
+ *     2026-10-22 12:30 PDT - the cleaned mark everywhere): the
+ *     hero carries NO ring points in motion, at rest, or settled;
+ *     the precessing arc (the ring's own lit metal) is the hero's
+ *     only moving element, and the settled frame is the cleaned
+ *     still beneath. The AMBIENT instrument keeps its travelers -
+ *     they carry live plan-state color, they are not the logo's
+ *     decorative lights.
  *  5. Differential motion: circle rotor, ellipse riders and the
  *     counter-rotating precessing arc all travel differently.
  *  6. Reduced motion RESTS the system: no animation elements at
- *     all; hero shows the measured points statically, ambient
- *     renders nothing (the mark's own points remain).
+ *     all; hero and ambient both render nothing (the cleaned
+ *     mark beneath speaks alone).
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -32,10 +36,7 @@ import {
   OrbLivingRings,
   orbAmbientStateFromFamilies,
   buildEllipseTravelKeyframes,
-  circleBaseAngleDeg,
   ellipsePoint,
-  ellipseRestPhiDeg,
-  ringOfPoint,
   ORB_AMBIENT_DURATIONS_MS,
   ORB_HERO_ARC_FROM_DEG,
   ORB_HERO_CIRCLE_FROM_DEG,
@@ -44,7 +45,7 @@ import {
   ORB_HERO_SETTLE_MS,
   ORB_LIVING_DELAY_MS,
 } from "./OrbLivingRings";
-import { ORB_HRING, ORB_POINTS, ORB_RING } from "./orbGeometry";
+import { ORB_HRING } from "./orbGeometry";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -84,15 +85,8 @@ afterEach(async () => {
   vi.useRealTimers();
 });
 
-function translateOf(el: Element | null): { x: number; y: number } {
-  const t = el?.getAttribute("transform") ?? "";
-  const m = t.match(/translate\((-?[\d.]+)[ ,](-?[\d.]+)\)/);
-  if (!m) throw new Error(`no translate on ${t}`);
-  return { x: Number(m[1]), y: Number(m[2]) };
-}
-
-describe("OrbLivingRings v2 - dots ride their rings", () => {
-  it("hero: no SMIL; circle points are rotor children at their rest positions", async () => {
+describe("OrbLivingRings v2 - dots ride their rings (ambient); hero cleaned (W27-17)", () => {
+  it("hero: no SMIL and NO ring points anywhere (W27-17 cleaned mark)", async () => {
     mockReducedMotion(false);
     const el = await render(<OrbLivingRings variant="hero" />);
     const svg = el.querySelector('[data-orb-living-rings="hero"]');
@@ -103,66 +97,27 @@ describe("OrbLivingRings v2 - dots ride their rings", () => {
     expect(el.querySelectorAll("animateMotion, animateTransform, animate")).toHaveLength(0);
     // No structure of its own: no ring circles/ellipses redrawn.
     expect(svg?.querySelectorAll("circle[fill='none'], ellipse")).toHaveLength(0);
-
-    // The rotor: one finite settle run, displaced -> rest.
-    const rotor = el.querySelector('[data-ring-rotor="circle"]');
-    expect(rotor).not.toBeNull();
-    expect(Number(rotor?.getAttribute("data-rotor-from-deg"))).toBe(ORB_HERO_CIRCLE_FROM_DEG);
-    expect(Number(rotor?.getAttribute("data-rotor-to-deg"))).toBe(0);
-    expect(Number(rotor?.getAttribute("data-rotor-duration-ms"))).toBe(ORB_HERO_DURATION_MS);
-    expect(rotor?.getAttribute("data-rotor-iterations")).toBe("1");
-
-    // Every circle point of the rest set rides INSIDE the rotor,
-    // rendered at its exact rest position: its effective angle is
-    // base + rotor by construction, and at rotor = 0 (settle) the
-    // position is the rest position - it cannot leave the ring.
-    const restCircle = ORB_POINTS.filter((p) => ringOfPoint(p) === "circle");
-    const riders = [...(rotor?.querySelectorAll('[data-ring-point="circle"]') ?? [])];
-    expect(riders).toHaveLength(restCircle.length);
-    for (const rider of riders) {
-      const pos = translateOf(rider);
-      const base = Number(rider.getAttribute("data-base-angle-deg"));
-      const rest = restCircle.find((p) => p.cx === pos.x && p.cy === pos.y);
-      expect(rest, `rider at ${pos.x},${pos.y} is a rest point`).toBeTruthy();
-      // The pinned base angle is the point's true rest angle on
-      // the measured ring (within the geometry's rounding).
-      expect(base).toBe(circleBaseAngleDeg(rest!));
-      const onRing = {
-        x: ORB_RING.cx + ORB_RING.r * Math.cos((base * Math.PI) / 180),
-        y: ORB_RING.cy + ORB_RING.r * Math.sin((base * Math.PI) / 180),
-      };
-      expect(Math.hypot(onRing.x - pos.x, onRing.y - pos.y)).toBeLessThan(1);
-    }
+    // W27-17: the hero renders no points, no rotor, no riders -
+    // the cleaned master beneath is the whole mark.
+    expect(el.querySelectorAll("[data-ring-point]")).toHaveLength(0);
+    expect(el.querySelector('[data-ring-rotor="circle"]')).toBeNull();
+    expect(el.querySelector('[data-ring-riders="ellipse"]')).toBeNull();
+    expect(svg?.querySelectorAll("circle")).toHaveLength(0);
   });
 
-  it("hero: ellipse riders carry the parametric law (rest phi, travel, duration as data)", async () => {
+  it("hero: the precessing arc still carries the rings' rotation, on the finite clock", async () => {
     mockReducedMotion(false);
     const el = await render(<OrbLivingRings variant="hero" />);
-    const restEllipse = ORB_POINTS.filter((p) => ringOfPoint(p) === "ellipse");
-    const riders = [...el.querySelectorAll('[data-ring-point="ellipse"]')];
-    expect(riders).toHaveLength(restEllipse.length);
-    for (const rider of riders) {
-      const pos = translateOf(rider);
-      const rest = restEllipse.find((p) => p.cx === pos.x && p.cy === pos.y);
-      expect(rest).toBeTruthy();
-      expect(Number(rider.getAttribute("data-rest-phi-deg"))).toBe(ellipseRestPhiDeg(rest!));
-      expect(Number(rider.getAttribute("data-travel-deg"))).toBe(ORB_HERO_ELLIPSE_TRAVEL_DEG);
-      expect(Number(rider.getAttribute("data-duration-ms"))).toBe(ORB_HERO_DURATION_MS);
-      expect(rider.getAttribute("data-iterations")).toBe("1");
-    }
-    // The arc precesses AGAINST the circle rotor (opposite sign),
-    // on the same finite clock, and lands faded at rest.
+    // The arc precesses AGAINST the (retired) circle rotor's
+    // direction (opposite sign), on the same finite clock, and
+    // lands faded at rest - it is the ring's own lit metal, the
+    // one moving element the cleaned mark keeps on the splash.
     const arc = el.querySelector('[data-ring-arc="circle"]');
+    expect(arc).not.toBeNull();
     expect(Number(arc?.getAttribute("data-arc-from-deg"))).toBe(ORB_HERO_ARC_FROM_DEG);
     expect(Math.sign(ORB_HERO_ARC_FROM_DEG)).toBe(-Math.sign(ORB_HERO_CIRCLE_FROM_DEG));
     expect(Number(arc?.getAttribute("data-arc-duration-ms"))).toBe(ORB_HERO_DURATION_MS);
-    // Differential angular travel: three distinct rates.
-    const rates = new Set([
-      Math.abs(ORB_HERO_CIRCLE_FROM_DEG) / ORB_HERO_DURATION_MS,
-      Math.abs(ORB_HERO_ELLIPSE_TRAVEL_DEG) / ORB_HERO_DURATION_MS,
-      Math.abs(ORB_HERO_ARC_FROM_DEG) / ORB_HERO_DURATION_MS,
-    ]);
-    expect(rates.size).toBe(3);
+    expect(arc?.getAttribute("data-arc-iterations")).toBe("1");
   });
 
   it("ellipse keyframe builder: every sample lies ON the ring; the last is the rest point", () => {
@@ -251,16 +206,13 @@ describe("OrbLivingRings v2 - dots ride their rings", () => {
       vi.advanceTimersByTime(1);
     });
     expect(svg()?.getAttribute("data-motion")).toBe("settled");
-    // The settled layer is the rest branch: every rest point, at
-    // its rest position, and nothing else - no rotor, no arc, no
-    // riders left over.
+    // The settled layer is the rest branch, and W27-17's rest
+    // branch renders NOTHING: no rotor, no arc, no riders, and no
+    // rest points - the settled frame is the cleaned still
+    // beneath, exactly.
     expect(el.querySelectorAll("[data-ring-rotor], [data-ring-arc], [data-ring-point]")).toHaveLength(0);
-    const rest = el.querySelector('[data-living="points-rest"]');
-    expect(rest).not.toBeNull();
-    const groups = [...(rest?.querySelectorAll(":scope > g") ?? [])];
-    expect(groups).toHaveLength(ORB_POINTS.length);
-    const positions = groups.map((g) => translateOf(g)).map((p) => `${p.x},${p.y}`).sort();
-    expect(positions).toEqual(ORB_POINTS.map((p) => `${p.cx},${p.cy}`).sort());
+    expect(el.querySelector('[data-living="points-rest"]')).toBeNull();
+    expect(el.querySelectorAll("circle")).toHaveLength(0);
     expect(ORB_HERO_SETTLE_MS).toBe(ORB_LIVING_DELAY_MS + ORB_HERO_DURATION_MS);
   });
 
@@ -302,20 +254,18 @@ describe("OrbLivingRings v2 - dots ride their rings", () => {
     expect(orbCss).toContain("animation-play-state: paused");
   });
 
-  it("reduced motion: hero rests on the measured points, no animation elements", async () => {
+  it("reduced motion: hero rests to nothing (W27-17 - the cleaned still speaks alone)", async () => {
     mockReducedMotion(true);
     const el = await render(<OrbLivingRings variant="hero" />);
     const svg = el.querySelector('[data-orb-living-rings="hero"]');
     expect(svg?.getAttribute("data-motion")).toBe("rest");
     expect(el.querySelectorAll("animateMotion, animateTransform, animate")).toHaveLength(0);
     expect(el.querySelectorAll("[data-ring-rotor], [data-ring-arc], [data-ring-point]")).toHaveLength(0);
-    const rest = el.querySelector('[data-living="points-rest"]');
-    expect(rest).not.toBeNull();
-    // One traveler group per measured point of light (halo + core each).
-    expect(rest?.querySelectorAll(":scope > g")).toHaveLength(ORB_POINTS.length);
+    expect(el.querySelector('[data-living="points-rest"]')).toBeNull();
+    expect(el.querySelectorAll("circle")).toHaveLength(0);
   });
 
-  it("reduced motion: ambient rests to nothing (the mark's own points remain)", async () => {
+  it("reduced motion: ambient rests to nothing", async () => {
     mockReducedMotion(true);
     const el = await render(<OrbLivingRings variant="ambient" />);
     const svg = el.querySelector('[data-orb-living-rings="ambient"]');

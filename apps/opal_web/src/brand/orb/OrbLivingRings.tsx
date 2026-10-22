@@ -79,6 +79,21 @@
  * r 71; horizontal ring center (101, 106) rx 86 ry 11. The layer
  * draws no ring strokes of its own - the baked master (hero) /
  * vector mark (ambient) stays the only structure.
+ *
+ * W27-17 AMENDMENT (founder ruling 2026-10-22 12:30 PDT - "Clean
+ * the home-screen orb too"): the cleaned mark - opal sphere + two
+ * golden gyroscope rings, NO light points/dots on the rings - is
+ * the mark in EVERY placement. For the HERO variant this retires
+ * the riders, the rotor points and the rest points above: the
+ * master beneath is the cleaned master, and the overlay must not
+ * re-grow the lights the cleaning removed. The rings' rotation
+ * survives through the precessing arc (the ring's own lit metal,
+ * not a point light), which still counter-rotates and fades out
+ * before the settle; the settled frame is the cleaned still
+ * exactly. The AMBIENT (dock) variant is a living state
+ * instrument, not a logo placement: its few points carry live
+ * plan-state color (the ambient language), so they stay - flagged
+ * for the founder in the R27 handoff as the one judgment call.
  */
 import React, { useEffect, useRef, useState } from "react";
 import { ORB_HRING, ORB_POINTS, ORB_RING } from "./orbGeometry";
@@ -232,7 +247,6 @@ export function buildEllipseTravelKeyframes(
   return frames;
 }
 
-const CIRCLE_POINTS = ORB_POINTS.filter((p) => ringOfPoint(p) === "circle");
 const ELLIPSE_POINTS = ORB_POINTS.filter((p) => ringOfPoint(p) === "ellipse");
 
 /** Lit arc on the circular ring: a 64-degree span of the ring. */
@@ -349,11 +363,11 @@ export function OrbLivingRings({
       angle: a,
     };
   });
-  const circlePoints = hero
-    ? CIRCLE_POINTS.map((p) => ({ cx: p.cx, cy: p.cy, angle: circleBaseAngleDeg(p) }))
-    : ambientCirclePoints;
+  /* W27-17: the hero carries NO ring points (cleaned mark); the
+   * ambient instrument keeps its travelers. */
+  const circlePoints = hero ? [] : ambientCirclePoints;
   /* Ambient: one rider (v1's count) - the right-endpoint point. */
-  const ellipsePoints = hero ? ELLIPSE_POINTS : [ELLIPSE_POINTS[0]];
+  const ellipsePoints = hero ? [] : [ELLIPSE_POINTS[0]];
 
   return (
     <svg
@@ -383,18 +397,11 @@ export function OrbLivingRings({
       {resting ? (
         /* REST - also the hero's SETTLED state (same code path, so
          * the settled frame is the still composition by
-         * construction): the measured points of light, static.
-         * Ambient rests to nothing - the mark beneath already
-         * carries its points. */
-        hero ? (
-          <g data-living="points-rest">
-            {ORB_POINTS.map((p) => (
-              <g key={`${p.cx}-${p.cy}`} transform={`translate(${p.cx} ${p.cy})`}>
-                <TravelPoint haloR={haloR} coreR={coreR} glowId={glowId} opacity={0.9} />
-              </g>
-            ))}
-          </g>
-        ) : null
+         * construction). W27-17: rest renders NOTHING for both
+         * variants - the mark beneath is the cleaned mark (sphere
+         * + rings, no light points), and the overlay must not
+         * re-grow what the cleaning retired. */
+        null
       ) : (
         <g data-living="motion">
           {/* Precessing lit arc: its own rotor on the circular
@@ -422,7 +429,10 @@ export function OrbLivingRings({
           {/* The circular ring ROTATES (CSS rotor, compositor):
            * the points are its children, so each point's angle
            * is base + rotor angle - attached to the ring by
-           * construction, incapable of leaving it. */}
+           * construction, incapable of leaving it. W27-17: the
+           * hero has no points, so its rotor renders nothing -
+           * the arc above carries the hero's ring rotation. */}
+          {circlePoints.length > 0 && (
           <g
             className={
               hero ? "orb-ring-rotor orb-ring-rotor--hero" : "orb-ring-rotor orb-ring-rotor--ambient"
@@ -444,6 +454,7 @@ export function OrbLivingRings({
               </g>
             ))}
           </g>
+          )}
 
           {/* The horizontal ring's riders: each point rides CSS
            * keyframes sampled from the ring's own parametric
@@ -453,7 +464,9 @@ export function OrbLivingRings({
            * is a function of phi alone. The class selects the
            * keyframe block for the point's rest phi. Base
            * transform = the rest position (what shows if CSS
-           * animations are unavailable). */}
+           * animations are unavailable). W27-17: hero has no
+           * riders, so the group renders for ambient only. */}
+          {ellipsePoints.length > 0 && (
           <g data-ring-riders="ellipse">
             {ellipsePoints.map((p) => {
               const restPhi = ellipseRestPhiDeg(p);
@@ -474,6 +487,7 @@ export function OrbLivingRings({
               );
             })}
           </g>
+          )}
         </g>
       )}
     </svg>

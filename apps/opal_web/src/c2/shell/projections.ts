@@ -394,8 +394,19 @@ export type PlaceStoneProjection = {
    *  was honestly carried (a live room's venue identity, a
    *  moment's provider place id); else null - name-grouped. */
   placeId: string | null;
-  /** The place name verbatim from the first record that carried it. */
+  /** The place name from the first record that carried it,
+   *  display-cased by the builder (Repair #27, W27-6: first-letter
+   *  capital, real names unmangled). Never character-stripped:
+   *  the builder's only name transforms are whitespace collapse,
+   *  the grouping key's leading-article fold, and this casing. */
   name: string;
+  /** Repair #27 (W27-6): the place's real imagery, when a record
+   *  that formed the stone honestly carries an image - a plan's
+   *  own image fields (planImageFromRecord's precedence), else a
+   *  moment's own photo from the feed record. Absent = no image
+   *  exists on its records, and the stone/sheet render the warmth
+   *  treatment only - never a stock or guessed image. */
+  imageUrl?: string | null;
   /** The summed signal weight (memory contribution capped - see
    *  the builder). Internal ordering/warmth input; like moment
    *  light, the numeral itself never renders as a score. */
@@ -489,7 +500,21 @@ export type HomeProjection = {
    *  The follow action is the real follows endpoint. Places and
    *  interests discovery has no wiring today and is DECLARED in
    *  the rebuild report - it is not painted. */
-  discovery?: Array<{ userId: string; name: string; avatar: AvatarRef }>;
+  discovery?: Array<{
+    userId: string;
+    name: string;
+    avatar: AvatarRef;
+    /** Repair #27 (W27-11): the row's subtitle - a finished line
+     *  SPECIFIC to this person, derived by the one adapter from
+     *  the conversation record the peer was found in (a shared
+     *  next plan on that thread, else the group thread's name).
+     *  Null = nothing true can be said, and the row renders NO
+     *  subtitle: the repeated generic "You talk with them" is
+     *  dead. There is deliberately no dimmed/de-emphasized state
+     *  on this row: the projection carries no such flag, so no
+     *  row may render one. */
+    contextLine?: string | null;
+  }>;
 };
 
 /** Section 8.1 - Graphs list. Groups arrive ordered and titled; the

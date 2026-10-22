@@ -25,6 +25,22 @@ import { IconClose } from "./bits";
 import { placeWarmthLevel } from "./shellData";
 import type { PlaceStoneProjection } from "./projections";
 
+/**
+ * W27-6 (founder walk #5): one plan, one row - however the
+ * projection repeated a plan (the walk's sheet stacked the same
+ * plan five times), the sheet lists each plan id once. The
+ * projection seam dedupes too; this is the sheet's own guarantee,
+ * at the last seam before the founder's eyes.
+ */
+function onceByPlanId<T extends { planId: string }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    if (seen.has(row.planId)) return false;
+    seen.add(row.planId);
+    return true;
+  });
+}
+
 export function PlaceStoneView({
   place,
   onClose,
@@ -38,8 +54,11 @@ export function PlaceStoneView({
   /** Start a plan at this place, carrying the builder's seed. */
   onStartPlan?: (place: PlaceStoneProjection) => void;
 }) {
-  const hasNow = place.livesHere.length > 0 || place.happeningPlans.length > 0;
-  const hasMemory = place.memoryPlans.length > 0 || place.momentsHere.length > 0;
+  const happeningPlans = onceByPlanId(place.happeningPlans);
+  const comingPlans = onceByPlanId(place.comingPlans);
+  const memoryPlans = onceByPlanId(place.memoryPlans);
+  const hasNow = place.livesHere.length > 0 || happeningPlans.length > 0;
+  const hasMemory = memoryPlans.length > 0 || place.momentsHere.length > 0;
   return (
     <TopLayer band="sheet">
       <div className="c2s-scrim" onClick={onClose}>
@@ -61,6 +80,11 @@ export function PlaceStoneView({
               carries no word about heat and no numeral; its
               intensity IS the tier (see c2shell.css). */}
           <span className="c2s-place-warmth" aria-hidden data-testid="c2-place-view-warmth" />
+          {/* W27-6: the sheet carries the place's real image too -
+              never a bare text stack when a record carries one. */}
+          {place.imageUrl ? (
+            <img className="c2s-place-view-img" src={place.imageUrl} alt="" />
+          ) : null}
           <div className="c2s-place-view-head">
             <span className="c2s-place-fire" aria-hidden />
             <div style={{ flex: 1 }}>
@@ -98,7 +122,7 @@ export function PlaceStoneView({
                   ) : null}
                 </div>
               ))}
-              {place.happeningPlans.map((plan) => (
+              {happeningPlans.map((plan) => (
                 <button
                   key={plan.planId}
                   type="button"
@@ -114,9 +138,9 @@ export function PlaceStoneView({
             </div>
           ) : null}
 
-          {place.comingPlans.length > 0 ? (
+          {comingPlans.length > 0 ? (
             <div className="c2s-place-group" data-testid="c2-place-coming">
-              {place.comingPlans.map((plan) => (
+              {comingPlans.map((plan) => (
                 <button
                   key={plan.planId}
                   type="button"
@@ -137,7 +161,7 @@ export function PlaceStoneView({
 
           {hasMemory ? (
             <div className="c2s-place-group" data-testid="c2-place-memory">
-              {place.memoryPlans.map((plan) => (
+              {memoryPlans.map((plan) => (
                 <button
                   key={plan.planId}
                   type="button"

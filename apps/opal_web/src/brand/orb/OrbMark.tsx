@@ -35,7 +35,6 @@ import React, { useEffect, useState } from "react";
 import {
   GEM_O_FACETS,
   ORB_HRING,
-  ORB_POINTS,
   ORB_RING,
   ORB_SPHERE,
   ORB_VIEWBOX,
@@ -228,7 +227,7 @@ export function OrbMark({
        * swirl's center to a pale wash (verified at the glass, R21
        * W-19 probe). The master already carries its own core light
        * and glass, so the marble seat renders NEITHER overlay - the
-       * stone speaks for itself; rings + points still ride above. */}
+       * stone speaks for itself; the rings still ride above. */}
       {marble ? null : (
         <>
           <circle cx={ORB_SPHERE.cx} cy={ORB_SPHERE.cy} r={ORB_SPHERE.r} fill={`url(#${id}-core)`} />
@@ -243,9 +242,11 @@ export function OrbMark({
         stroke={`url(#${id}-metal)`}
         strokeWidth={2.4}
       />
-      {ORB_POINTS.map((p) => (
-        <circle key={`${p.cx}-${p.cy}`} cx={p.cx} cy={p.cy} r={2.6} fill="var(--orb-point-light)" />
-      ))}
+      {/* W27-17 (founder ruling 2026-10-22 12:30 PDT): the cleaned
+       * mark carries NO light points on its rings - sphere + two
+       * golden rings only, in every placement. The ORB_POINTS dots
+       * the reduction used to draw are retired here as they were
+       * from the master raster. */}
     </svg>
   );
 }

@@ -43,6 +43,7 @@ import "./c2/c2.css";
  * (@layer c2; after the C2 tokens, before the Layout Contract). */
 import "./theme/orbTokens.css";
 import { applyStoredC2Mode, installC2ModeSystemListener } from "./theme/c2Mode";
+import { notifyNativeMode } from "./nativeHostBridge";
 import { ORB_ASSETS } from "./brand/orb/orbTokens";
 /* Repair #18 / Walk #4: THE LAYOUT CONTRACT loads LAST - its containment,
  * thread-composition, and chrome-band rules win over every earlier sheet.
@@ -74,6 +75,26 @@ installAppearanceSystemListener();
 document.documentElement.setAttribute("data-shell", "c2");
 applyStoredC2Mode();
 installC2ModeSystemListener();
+{
+  // W27-16: keep the native host's status bar readable over the
+  // web ground - report the resolved mode now and on every later
+  // flip (Settings toggle, system change). Web owns the mode; the
+  // host only mirrors. No-op in a browser.
+  try {
+    const rootEl = document.documentElement;
+    const report = () => {
+      const m = rootEl.getAttribute("data-mode");
+      if (m === "light" || m === "dark") notifyNativeMode(m);
+    };
+    report();
+    new MutationObserver(report).observe(rootEl, {
+      attributes: true,
+      attributeFilter: ["data-mode"],
+    });
+  } catch {
+    /* bridge reporting must never break boot */
+  }
+}
 {
   try {
     const swapIcon = (selector: string, href: string) => {

@@ -13,6 +13,7 @@
  */
 import React, { useRef, useState } from "react";
 import { OrbLockup } from "../../brand/orb/OrbMark";
+import { C2PatternLines } from "../C2PatternLines";
 import {
   startChallenge,
   updateProfile,
@@ -130,6 +131,15 @@ export function C2Onboarding({ events }: { events: C2OnboardingEvents }) {
 
   return (
     <div className="c2s-entry" data-testid="c2-onboarding">
+      {/* Repair #27 (W27-15) - parity furniture, shared by all three
+          steps so the flow reads as one surface: the Current Lines
+          pattern in its top band only (section 2.3: no line crosses
+          text - the zone ends above the step headline), and the
+          STACKED orb lockup hero (LOCKUP LAW: orb centered above
+          the wordmark - the splash pair's composition). The header
+          keeps back + step count only; the brand appears once, in
+          the hero, instead of a lone small wordmark in the bar. */}
+      <C2PatternLines convergenceY={62} heightPct={22} />
       <div className="c2s-entry-top">
         <button
           type="button"
@@ -144,8 +154,11 @@ export function C2Onboarding({ events }: { events: C2OnboardingEvents }) {
         >
           <IconBack />
         </button>
-        <OrbLockup form="wordmark" wordmarkWidth={64} />
+        <span style={{ width: 44 }} />
         <span className="c2s-entry-step">{stepLabel}</span>
+      </div>
+      <div className="c2s-entry-hero" data-testid="c2-entry-hero">
+        <OrbLockup form="stacked" wordmarkWidth={84} />
       </div>
 
       {step === "phone" ? (

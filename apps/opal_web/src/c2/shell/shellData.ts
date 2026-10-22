@@ -644,6 +644,11 @@ export type PlaceMomentInput = {
    *  feed card as place_id since R24), when the record carries
    *  one. Absent = the builder groups this moment by name. */
   placeId?: string | null;
+  /** Repair #27 (W27-6): the moment's own photo (the feed
+   *  record's media_ref, carried on the feed card as photoUrl),
+   *  when it has one - a place whose plans carry no image can
+   *  still wear its moment's real photo. */
+  photoUrl?: string | null;
 };
 
 export type PlaceLiveInput = {
@@ -676,7 +681,74 @@ type PlaceAccumulator = {
 };
 
 function normalizePlaceKey(name: string): string {
+  // The stone's IDENTITY key (R24 D-P1): case/space normalized,
+  // nothing else - an ambiguous name-only record's stone keeps its
+  // full name ("name:the depot"), never folded into a venue.
   return name.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function placeGroupKey(name: string): string {
+  // Repair #27 (W27-6): GROUPING folds a leading article, so
+  // "The Brick Hotel" and "Brick Hotel" resolve to ONE place -
+  // the same display-variant law the backend's D-P1 candidate
+  // join (CandidateProvider.refers_to?/2) already owns. Folding
+  // lives ONLY in the group key; the stone key and the display
+  // name keep the article.
+  return normalizePlaceKey(name).replace(/^the\s+/, "");
+}
+
+/**
+ * Repair #27 (W27-6) - DISPLAY CASING for titles and place names.
+ * Records arrive with whatever casing their author used (" dinner
+ * at nighthawk" beside "Dinner Friday"), and the stream read as
+ * broken. The render law: the first letter is capitalized, and
+ * NOTHING else is touched - internal capitals, apostrophes and
+ * spacing survive verbatim ("McDonald's" stays, "Juniper & Ivy"
+ * stays). A name whose second letter is already capital wears a
+ * deliberate camel shape ("iPhone", "eBay") and is left exactly
+ * as written. This is a display transform only: grouping keys
+ * and record fields are never rewritten by it.
+ */
+export function displayTitle(raw: string): string {
+  const t = (raw ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return t;
+  const first = t.charAt(0);
+  const isLowerLetter = first.toLowerCase() === first && first.toUpperCase() !== first;
+  if (!isLowerLetter) return t;
+  const second = t.charAt(1);
+  const secondIsUpperLetter =
+    second !== "" && second.toUpperCase() === second && second.toLowerCase() !== second;
+  if (secondIsUpperLetter) return t;
+  return first.toUpperCase() + t.slice(1);
+}
+
+/**
+ * Repair #27 (W27-6) - a plan row's when line must not repeat
+ * what its title already says. The founder's sheet stacked
+ * "Night Hawk tonight" over "Forming - tonight · 5 PM": the
+ * when tokens the title carries are dropped from the when line,
+ * and what remains renders. Token comparison is whole-phrase per
+ * separator-delimited part ("tonight", "5 PM", "Friday"), never
+ * substring surgery on the title. When nothing is dropped the
+ * original line returns byte-identical; when everything is
+ * dropped the result is "" and the row renders its state alone.
+ */
+export function whenLineForTitle(title: string, whenLine: string): string {
+  if (!whenLine) return whenLine;
+  const norm = (s: string) =>
+    ` ${s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ")} `;
+  const titleNorm = norm(title);
+  const parts = whenLine
+    .split(/\s*(?:·|\||,|-)\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return whenLine;
+  const kept = parts.filter((p) => {
+    const pn = norm(p);
+    return pn.trim() === "" || !titleNorm.includes(pn);
+  });
+  if (kept.length === parts.length) return whenLine;
+  return kept.join(" · ");
 }
 
 const PLACE_COMING_RANK: Record<"action" | "ready" | "forming", number> = {
@@ -740,7 +812,7 @@ export function placeStonesFromGraph(input: {
     const acc: PlaceAccumulator = {
       key: placeId ? `id:${placeId}` : `name:${normalizePlaceKey(name)}`,
       name,
-      nameKey: normalizePlaceKey(name),
+      nameKey: placeGroupKey(name),
       placeId,
       order: order++,
       livesHere: [],
@@ -758,7 +830,7 @@ export function placeStonesFromGraph(input: {
     if (!name) return null;
     const placeId =
       typeof rawPlaceId === "string" && rawPlaceId.trim() ? rawPlaceId.trim() : null;
-    const nameKey = normalizePlaceKey(name);
+    const nameKey = placeGroupKey(name);
     if (placeId) {
       const byId = accs.find((a) => a.placeId === placeId);
       if (byId) return byId;
@@ -779,7 +851,20 @@ export function placeStonesFromGraph(input: {
     return nameOnly ?? newAcc(name, null);
   };
 
+  // Repair #27 (W27-6) - ONE PLAN, ONE STONE. The lists that feed
+  // this builder can carry the same record twice (a plan listed
+  // per participant leg, a room or moment re-read), and the same
+  // plan id must never land in two stones or twice in one sheet:
+  // identity dedupe runs BEFORE grouping, keyed on the record's
+  // own id - the first sighting wins, later copies are the same
+  // record and contribute nothing twice.
+  const seenLiveIds = new Set<string>();
+  const seenPlanIds = new Set<string>();
+  const seenMomentIds = new Set<string>();
+
   for (const live of input.lives) {
+    if (seenLiveIds.has(live.liveId)) continue;
+    seenLiveIds.add(live.liveId);
     const acc = accFor(live.placeLabel, live.placeId);
     if (!acc) continue;
     acc.livesHere.push({ liveId: live.liveId, title: live.title, hostName: live.hostName });
@@ -791,6 +876,8 @@ export function placeStonesFromGraph(input: {
     if (plan.plan_type === "virtual" || plan.online === true) continue;
     const location = typeof plan.location === "string" ? plan.location : null;
     if (!location) continue;
+    if (seenPlanIds.has(plan.id)) continue;
+    seenPlanIds.add(plan.id);
     // The plan contract carries no stable place id today (see
     // the D-P1 join law above), so plans bridge by name; the
     // place_id field is read only if a future contract honestly
@@ -805,6 +892,8 @@ export function placeStonesFromGraph(input: {
 
   for (const moment of input.moments) {
     if (!moment.placeLabel) continue;
+    if (seenMomentIds.has(moment.id)) continue;
+    seenMomentIds.add(moment.id);
     const acc = accFor(moment.placeLabel, moment.placeId);
     if (!acc) continue;
     acc.momentsHere.push({
@@ -859,7 +948,13 @@ export function placeStonesFromGraph(input: {
               : firstComing?.family === "ready"
                 ? "A plan is ready to happen here."
                 : firstComing
-                  ? "A plan is forming here."
+                  ? // Repair #27 (W27-6): the boilerplate "A plan is
+                    // forming here." is DEAD - it read identically on
+                    // every place and said nothing about this one.
+                    // A forming place's line names its own plan, in
+                    // the plan's own words, or the place carries no
+                    // line beyond its name and warmth.
+                    `${displayTitle(firstComing.plan.title)} is forming here.`
                   : acc.momentsHere.length > 0 && acc.memoryPlans.length > 0
                     ? "Your people have moments and plans here."
                     : acc.momentsHere.length > 0
@@ -867,7 +962,8 @@ export function placeStonesFromGraph(input: {
                       : "Your people have been here.";
 
     const signalLines: string[] = [];
-    if (firstHappening) signalLines.push(`${firstHappening.plan.title} is happening now.`);
+    if (firstHappening)
+      signalLines.push(`${displayTitle(firstHappening.plan.title)} is happening now.`);
     if (firstLive) {
       signalLines.push(
         firstLive.hostName ? `${firstLive.hostName} is live here.` : "A live is on here.",
@@ -875,12 +971,12 @@ export function placeStonesFromGraph(input: {
     }
     if (firstComing) {
       signalLines.push(
-        `${firstComing.plan.title} - ${LABEL_BY_FAMILY[firstComing.family]}.`,
+        `${displayTitle(firstComing.plan.title)} - ${LABEL_BY_FAMILY[firstComing.family]}.`,
       );
     }
     if (signalLines.length < 3) {
       if (acc.memoryPlans.length > 0) {
-        signalLines.push(`${acc.memoryPlans[0].plan.title} happened here.`);
+        signalLines.push(`${displayTitle(acc.memoryPlans[0].plan.title)} happened here.`);
       } else if (acc.momentsHere.length > 0) {
         signalLines.push(`${acc.momentsHere[0].authorName} posted from here.`);
       }
@@ -941,10 +1037,23 @@ export function placeStonesFromGraph(input: {
       startSeed = seedCreateFor(source, "my-people");
     }
 
+    // Repair #27 (W27-6): the place's real imagery - the first
+    // image honestly carried by its own records, in signal order
+    // (happening, coming, memory plans via planImageFromRecord's
+    // precedence; else a moment's own photo). No record image =
+    // no imageUrl: the stone wears its warmth treatment only.
+    const imageUrl =
+      [...acc.happening, ...comingSorted, ...acc.memoryPlans]
+        .map(({ plan }) => planImageFromRecord(plan)?.photoUrl ?? null)
+        .find((u) => u !== null) ??
+      acc.momentInputs.find((m) => m.photoUrl)?.photoUrl ??
+      null;
+
     stones.push({
       key: acc.key,
       placeId: acc.placeId,
-      name: acc.name,
+      name: displayTitle(acc.name),
+      ...(imageUrl ? { imageUrl } : {}),
       energyScore: score,
       energyLevel,
       energyFamily,
@@ -953,13 +1062,13 @@ export function placeStonesFromGraph(input: {
       livesHere: acc.livesHere,
       happeningPlans: acc.happening.map(({ plan }) => ({
         planId: plan.id,
-        title: plan.title,
-        whenLine: planWhenLine(plan),
+        title: displayTitle(plan.title),
+        whenLine: whenLineForTitle(plan.title, planWhenLine(plan)),
       })),
       comingPlans: comingSorted.map(({ plan, family }) => ({
         planId: plan.id,
-        title: plan.title,
-        whenLine: planWhenLine(plan),
+        title: displayTitle(plan.title),
+        whenLine: whenLineForTitle(plan.title, planWhenLine(plan)),
         stateLabel: LABEL_BY_FAMILY[family],
         stateFamily: family,
         attendanceLine:
@@ -969,8 +1078,8 @@ export function placeStonesFromGraph(input: {
       })),
       memoryPlans: acc.memoryPlans.map(({ plan }) => ({
         planId: plan.id,
-        title: plan.title,
-        whenLine: planWhenLine(plan),
+        title: displayTitle(plan.title),
+        whenLine: whenLineForTitle(plan.title, planWhenLine(plan)),
       })),
       momentsHere: acc.momentsHere,
       startSeed,
@@ -1110,7 +1219,11 @@ export function cardFromPlan(plan: OpalPlanContract): PlanCardC2Input & { id: st
       family === "forming" && (plan.status ?? "").toLowerCase() === "idea"
         ? "Idea"
         : LABEL_BY_FAMILY[family],
-    title: plan.title,
+    // Repair #27 (W27-6): every card built by the one adapter
+    // wears the same display casing (first-letter capital, real
+    // names unmangled - see displayTitle), so a lowercase record
+    // title never renders lowercase beside capitalized siblings.
+    title: displayTitle(plan.title),
     // R20 F-14: the ONE shared time-range rendering (density.ts) -
     // a multi-day plan shows start AND end on every card built here
     // (Graphs, Home, deck, detail header all read this card).
@@ -1591,6 +1704,34 @@ export async function homeFromSession(
 ): Promise<HomeProjection> {
   const name = session?.display_name ?? "You";
   const self = avatarOf(name);
+  // Repair #27 (W27-3) - FIRST PAINT: every INDEPENDENT read is
+  // STARTED here, before any of them is awaited, so the legs run
+  // concurrently and first paint waits on the slowest single leg,
+  // not the sum of the old sequential waterfall (stories -> plans
+  // -> feed -> lives -> celebrations -> trivia bundle -> discovery
+  // was seven serial round trips). Each starter is failure-armored
+  // (resolves null on error) so a leg awaited later in the function
+  // can never surface as an unhandled rejection, and each leg's
+  // processing below keeps its existing honest-absence semantics:
+  // a failed leg still reads as that leg's absence, never a staged
+  // value. The place-signal read is deliberately NOT started here:
+  // it depends on the place names the stones carry, so it stays a
+  // dependent second step at the end of this function.
+  const armor = <T,>(p: Promise<T>): Promise<T | null> => p.catch(() => null);
+  const storiesP = armor(listTemporaryStories(bearer));
+  const plansResultP = loadPlansResult(bearer);
+  const feedP = armor(fetchHomeFeed({ limit: 20, bearer }));
+  const livesP = armor(getLivesVisible(bearer));
+  const celebrationsP = armor(listCelebrations(bearer));
+  const triviaBundleP = Promise.all([
+    armor(listRelationships(bearer)),
+    armor(listTriviaGuesses(bearer)),
+    armor(listMemoryFacts(bearer)),
+    armor(getSoulMemory(bearer)),
+  ]);
+  const discoveryReadsP = armor(
+    Promise.all([listConversations(bearer), listFollowing(bearer)]),
+  );
   let stories: HomeProjection["rail"]["stories"] = [];
   // Repair #19 W20 (JA-11): the viewer's OWN story record feeds
   // the self cell — it never ALSO renders as a named rail cell
@@ -1604,8 +1745,9 @@ export async function homeFromSession(
     caption: string | null;
     items: import("./projections").StoryPlayItemProjection[];
   } | null = null;
-  try {
-    const res = await listTemporaryStories(bearer);
+  const storiesRes = await storiesP;
+  if (storiesRes) {
+    const res = storiesRes;
     const records = (res.stories ?? [])
       .map((record, i) => {
         const r = record as Record<string, unknown>;
@@ -1695,11 +1837,8 @@ export async function homeFromSession(
       }
     }
     stories = [...byPerson.values()].map((s) => ({ ...s, personId: s.authorId }));
-  } catch {
-    stories = [];
-    ownStory = null;
   }
-  const plansResult = await loadPlansResult(bearer);
+  const plansResult = await plansResultP;
   // R19 W7: private graphs never enter the Home feed either.
   const plans = plansResult.plans.filter(
     (p) => p.is_private !== true && settledKindForPlan(p) === null,
@@ -1711,8 +1850,8 @@ export async function homeFromSession(
   // success with no read-back, under "your people move" copy.
   let moments: HomeProjection["feed"] = [];
   let feedError: string | null = plansResult.error;
-  try {
-    const feedRes = await fetchHomeFeed({ limit: 20, bearer });
+  const feedRes = await feedP;
+  if (feedRes) {
     moments = (feedRes.objects ?? [])
       .filter((o) => o.object_type === "memory" || !o.object_type)
       .map((o, i) => {
@@ -1809,7 +1948,7 @@ export async function homeFromSession(
         };
       })
       .filter((m) => m.id && m.id !== "undefined");
-  } catch {
+  } else {
     feedError = feedError ?? "Your feed did not load. Check your connection and try again.";
   }
   // W9 LIVE: the visible-lives read is its own leg. A failed read
@@ -1817,16 +1956,13 @@ export async function homeFromSession(
   // and never paints a live that was not read back.
   let lives: HomeProjection["feed"] = [];
   let livePlaceInputs: PlaceLiveInput[] = [];
-  try {
-    const livesRes = await getLivesVisible(bearer);
+  const livesRes = await livesP;
+  if (livesRes) {
     lives = liveFeedFromRooms(livesRes.lives ?? []);
     // Repair #22 (WS-5): the same rooms feed place energy - the
     // place inputs are extracted from the raw records with the
     // same gate, never from the composed card's title.
     livePlaceInputs = livePlaceInputsFromRooms(livesRes.lives ?? []);
-  } catch {
-    lives = [];
-    livePlaceInputs = [];
   }
   // W9 composition (state variety): the old composition put every
   // moment first and sliced plans off the end, so a moment-heavy
@@ -1872,23 +2008,18 @@ export async function homeFromSession(
   // legs share the celebrations + relationships reads - one gate
   // per concept, no shadow derivations.
   let celebrations: Celebration[] = [];
-  try {
-    const res = await listCelebrations(bearer);
-    celebrations = res.celebrations ?? [];
-  } catch {
-    celebrations = [];
+  const celebrationsRes = await celebrationsP;
+  if (celebrationsRes) {
+    celebrations = celebrationsRes.celebrations ?? [];
   }
   const occasions = occasionsFromCelebrations(celebrations, new Date());
   let trivia: HomeProjection["trivia"] = null;
   const relTypeById = new Map<string, string>();
   const relTypeByName = new Map<string, string>();
   try {
-    const [relRes, triviaRes, factsRes, walletRes] = await Promise.all([
-      listRelationships(bearer).catch(() => null),
-      listTriviaGuesses(bearer).catch(() => null),
-      listMemoryFacts(bearer).catch(() => null),
-      getSoulMemory(bearer).catch(() => null),
-    ]);
+    // W27-3: the bundle was started at the top of this function;
+    // this await only joins it (each leg already failure-armored).
+    const [relRes, triviaRes, factsRes, walletRes] = await triviaBundleP;
     if (triviaRes) {
       for (const r of relRes?.relationships ?? []) {
         if (r.contact_user_id && typeof r.type === "string") {
@@ -2023,31 +2154,81 @@ export async function homeFromSession(
   // followed. One gate each: listConversations + listFollowing.
   // A failed read means no discovery row - never a staged one.
   let discovery: HomeProjection["discovery"];
-  try {
-    const [convRes, followRes] = await Promise.all([
-      listConversations(bearer),
-      listFollowing(bearer),
-    ]);
+  const discoveryReads = await discoveryReadsP;
+  if (discoveryReads) {
+    const [convRes, followRes] = discoveryReads;
     const followed = new Set(followRes.following_user_ids ?? []);
     const inCircle = new Set(relTypeById.keys());
-    const seenPeer = new Set<string>();
-    discovery = [];
+    // Repair #27 (W27-11): the row's subtitle is SPECIFIC to the
+    // person or ABSENT - the old build stamped "You talk with
+    // them" under every row, a generic line repeated per person.
+    // The only lawful specific lines come from the conversation
+    // record the peer was found in: a shared next plan on that
+    // thread ("Coming up together: <plan>"), else the group
+    // thread's own name for a group peer. A dyad with neither
+    // carries NO subtitle - nothing true can be said, so nothing
+    // is. When a peer appears in several threads, the strongest
+    // true line wins (next plan > group name > none); first-seen
+    // order still orders the band.
+    const contextFor = (
+      conv: (typeof convRes.conversations)[number],
+    ): { line: string; rank: number } | null => {
+      const np = conv.next_plan;
+      if (np && typeof np.title === "string" && np.title.trim()) {
+        const when =
+          typeof np.when_label === "string" && np.when_label.trim()
+            ? ` · ${np.when_label.trim()}`
+            : "";
+        return { line: `Coming up together: ${np.title.trim()}${when}`, rank: 2 };
+      }
+      const memberCount =
+        typeof conv.member_count === "number"
+          ? conv.member_count
+          : (conv.peers?.length ?? 0) + 1;
+      if (
+        (conv.composition === "group" || memberCount > 2) &&
+        typeof conv.title === "string" &&
+        conv.title.trim()
+      ) {
+        return { line: `You talk in ${conv.title.trim()}`, rank: 1 };
+      }
+      return null;
+    };
+    const found = new Map<
+      string,
+      { name: string; contextLine: string | null; rank: number }
+    >();
+    const order: string[] = [];
     for (const conv of convRes.conversations ?? []) {
+      const ctx = contextFor(conv);
       for (const peer of conv.peers ?? []) {
         if (!peer.id || !peer.display_name) continue;
         if (peer.id === session?.user_id) continue;
-        if (inCircle.has(peer.id) || followed.has(peer.id) || seenPeer.has(peer.id)) continue;
-        seenPeer.add(peer.id);
-        discovery.push({
-          userId: peer.id,
-          name: peer.display_name,
-          avatar: avatarOf(peer.display_name, discovery.length + 1),
-        });
-        if (discovery.length >= 5) break;
+        if (inCircle.has(peer.id) || followed.has(peer.id)) continue;
+        const existing = found.get(peer.id);
+        if (!existing) {
+          found.set(peer.id, {
+            name: peer.display_name,
+            contextLine: ctx?.line ?? null,
+            rank: ctx?.rank ?? 0,
+          });
+          order.push(peer.id);
+        } else if (ctx && ctx.rank > existing.rank) {
+          existing.contextLine = ctx.line;
+          existing.rank = ctx.rank;
+        }
       }
-      if (discovery.length >= 5) break;
     }
-  } catch {
+    discovery = order.slice(0, 5).map((userId, i) => {
+      const entry = found.get(userId)!;
+      return {
+        userId,
+        name: entry.name,
+        avatar: avatarOf(entry.name, i + 1),
+        contextLine: entry.contextLine,
+      };
+    });
+  } else {
     discovery = undefined;
   }
 
@@ -2081,6 +2262,7 @@ export async function homeFromSession(
         id: m.id,
         placeLabel: m.placeLabel ?? null,
         placeId: m.placeId ?? null,
+        photoUrl: m.photoUrl ?? null,
         caption: m.contextLine,
         authorName: m.authorName ?? m.authorLine,
         authorUserId: m.authorUserId ?? null,

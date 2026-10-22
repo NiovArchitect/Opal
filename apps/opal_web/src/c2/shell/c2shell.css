@@ -13,6 +13,21 @@
     color: var(--ink-1);
     font: var(--type-body);
     overflow: hidden;
+    /* W27-1 (founder walk #5): the whole app sits BELOW the status
+     * bar. index.html already carries viewport-fit=cover, so the
+     * WebView reports the real device inset through env(); the
+     * shell consumes it ONCE here, at the root, and every surface
+     * in the column (headers, back controls, the wordmark) inherits
+     * the clearance - no surface can slide under the clock, battery
+     * or Wi-Fi. Full-screen layers that escape the column
+     * (.c2s-flow, .c2s-destination, .c2s-viewer) consume the same
+     * token themselves. The token is a custom property so the
+     * render harness can override it to simulate the device inset
+     * (Chromium reports env() as 0). The WEB layer owns the inset:
+     * the native shell stays full-bleed and must not add its own,
+     * or the app would double-pad. */
+    padding-top: var(--opal-sat);
+    box-sizing: border-box;
   }
   .c2s-column {
     max-width: var(--content-max);
@@ -434,6 +449,19 @@
     border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
     padding: var(--space-5) var(--gutter) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
     animation: c2s-sheet-in var(--motion-sheet);
+    /* Repair #27 (W27-13): a sheet taller than the viewport used
+     * to overflow past the top of its scrim - its title, its
+     * close control and its first rows unreachable, with no way
+     * to scroll (the founder: "I can't reach to the top to press
+     * the back button"). The sheet material is now bounded to
+     * the viewport and scrolls INSIDE itself end to end (the
+     * comments/live sheets' 82vh caps are tighter and still
+     * win for their own classes). */
+    max-height: calc(100dvh - var(--space-4));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
   }
   @keyframes c2s-sheet-in {
     from {
@@ -476,6 +504,10 @@
     background: var(--canvas-stage);
     color: var(--ink-1);
     overflow-y: auto;
+    /* W27-1: full-screen layers sit outside the column's flow, so
+     * they consume the status-bar inset themselves. */
+    padding-top: var(--opal-sat);
+    box-sizing: border-box;
   }
 
   /* ---------- moment stones (Repair #21, W-9 identity) ----------
@@ -1013,6 +1045,10 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    /* W27-13: inside the capped sheet (flex column) the list must
+     * be able to shrink, or it overflows the sheet instead of
+     * scrolling within it. */
+    min-height: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -2083,6 +2119,9 @@
     background: var(--canvas);
     color: var(--ink-1);
     overflow-y: auto;
+    /* W27-1: see .c2s-flow - own-layer status-bar clearance. */
+    padding-top: var(--opal-sat);
+    box-sizing: border-box;
   }
   .c2s-detail-section {
     padding: var(--space-4) var(--gutter) 0;
@@ -2288,11 +2327,13 @@
     width: 100%;
     min-height: 48px;
     border: 1px solid var(--line-1);
-    border-radius: var(--radius-well);
+    /* Repair #27 (W27-14): the search field joins the one input
+     * treatment - full pill via --radius-input (see .c2s-field). */
+    border-radius: var(--radius-input);
     background: var(--surface-2);
     color: var(--ink-1);
     font: var(--type-body);
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-5);
     box-sizing: border-box;
   }
   .c2s-search::placeholder {
@@ -2631,11 +2672,38 @@
   }
 
   /* ---------- onboarding entry (section 6) ---------- */
+  /* Repair #27 (W27-15) - ONBOARDING PARITY: the phone + verify
+   * steps read as a bare form next to the splashes they follow.
+   * Reference surfaces: C2Splash2 (the immediately preceding
+   * screen) + the CreateFlow entry family (same .c2s-entry-top /
+   * .c2s-entry-body chrome). Parity moves, all token-driven so
+   * both modes resolve identically: the ground becomes the stage
+   * ground the splash family sits on (--canvas-stage); the step
+   * headline takes the splash's display voice; the primary action
+   * takes rounded ends (the W27-14 pill token); and the body
+   * carries the stacked orb lockup hero + Current Lines pattern
+   * the splash pair carries (rendered by C2Onboarding). This is
+   * a parity fix, not a redesign: layout, copy, and every auth
+   * behavior are unchanged. Pinned by r27Onboard.test.tsx. */
   .c2s-entry {
-    background: var(--canvas);
+    background: var(--canvas-stage);
     min-height: 100%;
     display: flex;
     flex-direction: column;
+    position: relative;
+  }
+  .c2s-entry-hero {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-5) var(--gutter) 0;
+    position: relative;
+  }
+  .c2s-entry .c2s-entry-body h1 {
+    font: var(--type-display);
+    letter-spacing: 0.01em;
+  }
+  .c2s-entry .c2s-btn-primary {
+    border-radius: var(--radius-input);
   }
   .c2s-entry-top {
     height: var(--header-h);
@@ -2664,19 +2732,40 @@
     color: var(--ink-2);
     margin: 0;
   }
+  /* Repair #27 (W27-14) - THE INPUT RADIUS LAW: every shell text
+   * field is a full pill via the shared --radius-input token (the
+   * founder's rounded-ends standard), with the inline padding
+   * stepped up one space token so copy never hugs the curved ends.
+   * The multi-line form (textarea) keeps the generous
+   * --radius-input-multi floor - a pill would break its shape.
+   * Focus answers in the sampled accent (border + quiet ring),
+   * token-only, identical in both modes. Geometry only: no input
+   * behavior changes. Pinned by r27Onboard.test.tsx. */
   .c2s-field {
     width: 100%;
     min-height: 52px;
     border: 1px solid var(--line-2);
-    border-radius: var(--radius-well);
+    border-radius: var(--radius-input);
     background: var(--surface-1);
     color: var(--ink-1);
     font: var(--type-body);
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-5);
     box-sizing: border-box;
+  }
+  textarea.c2s-field {
+    border-radius: var(--radius-input-multi);
+    padding: var(--space-3) var(--space-4);
+    min-height: 96px;
   }
   .c2s-field::placeholder {
     color: var(--ink-3);
+  }
+  .c2s-field:focus-visible,
+  .c2s-search:focus-visible,
+  .c2s-code-box:focus-visible {
+    outline: none;
+    border-color: var(--accent-1);
+    box-shadow: 0 0 0 3px var(--accent-quiet);
   }
   /* ---------- Repair #20 (F-7): create-flow enrichment ----------
    * A plan being written is FORMING by the state canon, so the
@@ -2690,6 +2779,41 @@
   .c2s-create-flow {
     border: 1px solid color-mix(in srgb, var(--state-forming) 45%, transparent);
     box-shadow: inset 0 0 18px color-mix(in srgb, var(--state-forming) 8%, transparent);
+    /* Repair #27 (W27-13): the flow is a column with a PINNED
+     * header and a scrolling body. Before, the whole flow was
+     * one scrollport (.c2s-flow overflow-y auto), so the header
+     * - the X - scrolled away with the form and a long Who list
+     * or an attached photo put the exit and, at the other end,
+     * parts of the form out of comfortable reach. Now the
+     * header never moves and the body scrolls end to end. */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .c2s-create-flow .c2s-entry-top {
+    flex: none;
+    background: var(--canvas);
+  }
+  .c2s-create-flow .c2s-entry-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* The attached photo's well: bounded height so the preview
+   * never pushes the form's other fields out of the scroll
+   * body's reach; the image fills it without distortion. */
+  .c2s-create-photo-well {
+    min-height: 180px;
+    max-height: 260px;
+  }
+  .c2s-create-photo-well img {
+    width: 100%;
+    height: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    display: block;
   }
   .c2s-create-who {
     border: 1px solid color-mix(in srgb, var(--state-forming) 42%, transparent);
@@ -2880,8 +3004,15 @@
     text-align: center;
     font-size: 22px;
     font-weight: 700;
+    letter-spacing: 0.3em;
     border: 1px solid var(--line-2);
-    border-radius: var(--radius-well);
+    /* Repair #27 (W27-14): the verification-code field joins the
+     * one input treatment - full pill via --radius-input. The
+     * letter-spacing is the code voice (digits read as a code,
+     * not a word); the matching inline padding keeps the spaced
+     * digits centered in the pill. */
+    border-radius: var(--radius-input);
+    padding: 0 var(--space-5);
     background: var(--surface-1);
     color: var(--ink-1);
     width: 100%;
@@ -2897,6 +3028,9 @@
     color: var(--ink-1);
     display: flex;
     flex-direction: column;
+    /* W27-1: see .c2s-flow - own-layer status-bar clearance. */
+    padding-top: var(--opal-sat);
+    box-sizing: border-box;
   }
   .c2s-viewer-progress {
     display: flex;
@@ -3075,6 +3209,16 @@
     overflow: hidden;
     background: var(--canvas);
     color: var(--ink-1);
+    /* W27-12 (founder walk #5): the dock is viewport-fixed and
+     * floats over the column's bottom edge. The C1 surfaces end
+     * their own columns there - the thread's composer bar rests
+     * at the wrap's bottom - so without clearance the composer
+     * (and the last bubble's rest position) slides UNDER the
+     * dock/frost stack and reads as clipped. The host carries
+     * the same dock clearance .c2s-scroll carries, so its whole
+     * internal column ends above the dock. */
+    padding-bottom: var(--dock-clearance);
+    box-sizing: border-box;
   }
   .c2s-c1-host .c1-surface {
     flex: 1;
@@ -3647,6 +3791,24 @@
     var(--shadow-card);
 }
 article.c2s-place-stone { cursor: default; }
+/* W27-6: place imagery - the stone's media well (real record image
+ * only; a place without one renders no well, warmth treatment only). */
+.c2s-place-stone-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  margin-bottom: var(--space-3);
+}
+.c2s-place-view-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  margin-bottom: var(--space-4);
+}
 .c2s-place-stone[data-energy-family="happening"] { --place-fire: var(--state-happening); }
 .c2s-place-stone[data-energy-family="action"] { --place-fire: var(--state-action); }
 .c2s-place-stone[data-energy-family="ready"] { --place-fire: var(--state-ready); }

@@ -21,6 +21,16 @@ import { PRODUCT_WEB_URL } from "./src/config";
 export default function App() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<ProductSession | null>(null);
+  // W27-16 (founder ruling 2026-10-22): first run starts LIGHT, so
+  // the native chrome starts dark-content on the light ground. The
+  // web app owns the resolved mode and reports it over the bridge
+  // (opal_native_mode); the host only mirrors it here so the clock
+  // stays readable over whatever ground the web paints.
+  const [barStyle, setBarStyle] = useState<"light-content" | "dark-content">(
+    "dark-content",
+  );
+  const handleWebMode = (mode: "light" | "dark") =>
+    setBarStyle(mode === "dark" ? "light-content" : "dark-content");
 
   useEffect(() => {
     let cancelled = false;
@@ -66,8 +76,8 @@ export default function App() {
 
   if (!ready) {
     return (
-      <View style={styles.boot}>
-        <StatusBar barStyle="light-content" />
+      <View style={styles.bootLight}>
+        <StatusBar barStyle={barStyle} />
         <ActivityIndicator color="#A78BFA" />
       </View>
     );
@@ -76,7 +86,13 @@ export default function App() {
   if (!session) {
     // ONE_NATIVE_STAGE: full-bleed Brand V4 first-run (no SafeAreaView double pad).
     if (PRODUCT_WEB_URL) {
-      return <NativeFirstRunSurface onAuthenticated={setSession} />;
+      return (
+        <NativeFirstRunSurface
+          onAuthenticated={setSession}
+          barStyle={barStyle}
+          onMode={handleWebMode}
+        />
+      );
     }
     return (
       <View style={styles.boot}>
@@ -88,8 +104,9 @@ export default function App() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={barStyle} />
       <ProductWebSurface
+        onMode={handleWebMode}
         accessToken={session.accessToken}
         userId={session.userId}
         displayName={session.displayName}
@@ -110,8 +127,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#020305",
     justifyContent: "center",
   },
+  /* W27-16: the loading state is first-run chrome - light ground. */
+  bootLight: {
+    flex: 1,
+    backgroundColor: "#fffefb",
+    justifyContent: "center",
+  },
   root: {
     flex: 1,
-    backgroundColor: "#020305",
+    backgroundColor: "#fffefb",
   },
 });

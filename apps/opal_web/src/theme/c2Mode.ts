@@ -8,9 +8,12 @@
  * no reload, no remount, no layout change, and scroll position and
  * drafts are preserved.
  *
- * Persisted preference key: opal.c2.mode.v1 (system | light | dark,
- * default system). It is a device preference, not account data: it
- * survives sign-out and the R17 fallback never reads it.
+ * Persisted preference key: opal.c2.mode.v1 (system | light | dark).
+ * Founder ruling 2026-10-22 (R27 W27-16): with NO stored preference
+ * the default is LIGHT - first run starts light; dark and system
+ * remain explicit choices and a stored choice always wins. It is a
+ * device preference, not account data: it survives sign-out and the
+ * R17 fallback never reads it.
  */
 
 export type C2ModePreference = "system" | "light" | "dark";
@@ -48,11 +51,11 @@ export function getSystemC2Mode(
       (typeof window !== "undefined" && typeof window.matchMedia === "function"
         ? window.matchMedia("(prefers-color-scheme: dark)")
         : null);
-    // No signal at all: default to dark (Opal's night-safe default).
-    if (!media) return "dark";
+    // No signal at all: default to light (W27-16 first-run standard).
+    if (!media) return "light";
     return media.matches ? "dark" : "light";
   } catch {
-    return "dark";
+    return "light";
   }
 }
 
@@ -67,11 +70,15 @@ export function resolveC2Mode(
 
 export function readC2ModePreference(): C2ModePreference {
   const store = safeStorage();
-  if (!store) return "system";
+  if (!store) return "light";
   try {
-    return normalizeC2ModePreference(store.getItem(C2_MODE_STORAGE_KEY));
+    const raw = store.getItem(C2_MODE_STORAGE_KEY);
+    // Absence is not a choice: W27-16 - first run defaults to light.
+    // A stored "system" is an explicit choice and still reads system.
+    if (raw === null || raw === undefined) return "light";
+    return normalizeC2ModePreference(raw);
   } catch {
-    return "system";
+    return "light";
   }
 }
 

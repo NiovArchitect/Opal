@@ -396,6 +396,17 @@ export function notifyNativeHostSignOut(): void {
   postToNative({ type: "opal_native_sign_out" });
 }
 
+/**
+ * W27-16: report the resolved color mode to the native host so it
+ * can mirror the status-bar style (dark text on the light ground,
+ * light text on the dark ground). The web app owns the mode; the
+ * host never decides it. No-op outside the native host.
+ */
+export function notifyNativeMode(mode: "light" | "dark"): void {
+  if (!isNativeHost()) return;
+  postToNative({ type: "opal_native_mode", mode });
+}
+
 /* ─── Phase OC-6 — speech recognition / TTS bridge (minimal) ─────────────── */
 
 export type NativeSpeechResult =

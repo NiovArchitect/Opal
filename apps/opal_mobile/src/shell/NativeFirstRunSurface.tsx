@@ -19,9 +19,13 @@ const FOUNDER_SEED_ENABLED = RELEASE_PROFILE.allowsLocalhost;
 
 type Props = {
   onAuthenticated: (session: ProductSession) => void;
+  /** W27-16: App-owned status-bar style + web mode reports. First
+   * run defaults to LIGHT (dark-content on the light ground). */
+  barStyle?: "light-content" | "dark-content";
+  onMode?: (mode: "light" | "dark") => void;
 };
 
-export function NativeFirstRunSurface({ onAuthenticated }: Props) {
+export function NativeFirstRunSurface({ onAuthenticated, barStyle = "dark-content", onMode }: Props) {
   const webRef = useRef<WebView>(null);
   const handedOff = useRef(false);
 
@@ -74,7 +78,7 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
 
   return (
     <View style={styles.root} testID="native-first-run-surface">
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={barStyle} />
       <WebView
         ref={webRef}
         source={{ uri }}
@@ -96,6 +100,7 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
         injectedJavaScriptBeforeContentLoaded={bootInject}
         onMessage={(e) => {
           void handleWebViewMessage(e.nativeEvent.data, webRef, {
+            onMode,
             onSession: async (msg) => {
               if (handedOff.current) return;
               handedOff.current = true;
@@ -123,17 +128,17 @@ export function NativeFirstRunSurface({ onAuthenticated }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#020305",
+    backgroundColor: "#fffefb",
   },
   web: {
     flex: 1,
-    backgroundColor: "#020305",
+    backgroundColor: "#fffefb",
   },
   loading: {
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#020305",
+    backgroundColor: "#fffefb",
   },
   missing: {
     flex: 1,

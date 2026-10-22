@@ -27,6 +27,8 @@ type Props = {
   onSignOut: () => void | Promise<void>;
   /** PROFILE_NAME_PERSIST — web Edit Profile posts opal_native_session; host must store it. */
   onSessionUpdated?: (session: ProductSession) => void;
+  /** W27-16: web-resolved color mode, mirrored to the status bar. */
+  onMode?: (mode: "light" | "dark") => void;
 };
 
 export function ProductWebSurface({
@@ -36,6 +38,7 @@ export function ProductWebSurface({
   handle,
   onSignOut,
   onSessionUpdated,
+  onMode,
 }: Props) {
   const webRef = useRef<WebView>(null);
   const pushBridgedRef = useRef(false);
@@ -180,6 +183,7 @@ export function ProductWebSurface({
         }}
         onMessage={(event) => {
           void handleWebViewMessage(event.nativeEvent.data, webRef, {
+            onMode,
             onSignOut,
             onSession: async (msg) => {
               const session: ProductSession = {

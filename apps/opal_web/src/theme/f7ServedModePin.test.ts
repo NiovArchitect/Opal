@@ -54,6 +54,12 @@ describe("F7 — data-mode is stamped on the plain entry path (no flag)", () => 
     expect(document.documentElement.getAttribute("data-mode")).toBe("light");
   });
 
+  it("W27-16: boot stamps LIGHT when no preference is stored (first run starts light)", () => {
+    expect(localStorage.getItem("opal.c2.mode.v1")).toBeNull();
+    runBoot();
+    expect(document.documentElement.getAttribute("data-mode")).toBe("light");
+  });
+
   it("boot contains no shell gate", () => {
     expect(BOOT).not.toMatch(/shell\s*!==\s*"c2"/);
     expect(BOOT).not.toMatch(/opal\.c2\.shell/);

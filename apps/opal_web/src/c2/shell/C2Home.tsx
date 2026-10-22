@@ -231,6 +231,12 @@ export type C2HomeEvents = {
    *  Repair #22 (R22-E): the tense is chosen on its marble button
    *  and confirmed on the tense panel's New graph door. */
   creationPlan?: (tense: CreationTense) => void;
+  /** Repair #27 (W27-5b): the shell asks the sheet to reopen at
+   *  a tense panel - the create form's step-back landing (the
+   *  form's X at depth). The nonce keys the request: each new
+   *  nonce reopens the sheet at that tense, exactly once per
+   *  request. Absent = the sheet keeps its own state. */
+  createSheetReturn?: { tense: CreationTense; nonce: number } | null;
   /** Repair #22 (WS-5): a place stone was tapped; the shell opens
    *  the place view on the stone's own projection. Absent = the
    *  stone renders as a resting stone, not a dead tap target. */
@@ -703,6 +709,24 @@ export function C2Home({
   // Go live offered within the tense) instead of leaving the
   // sheet; null = the sheet's top level.
   const [tensePanel, setTensePanel] = useState<CreationTense | null>(null);
+  // Repair #27 (W27-5b): the create form's step-back landing -
+  // when the shell carries a return request, the sheet reopens
+  // AT the tense panel the form was entered from.
+  const sheetReturnNonce = events.createSheetReturn?.nonce;
+  const sheetReturnTense = events.createSheetReturn?.tense;
+  useEffect(() => {
+    if (sheetReturnNonce == null || !sheetReturnTense) return;
+    setSheet("create");
+    setTensePanel(sheetReturnTense);
+  }, [sheetReturnNonce, sheetReturnTense]);
+  // Repair #27 (W27-5b): the sheet's own depth law, shared by
+  // its X, its scrim and its Cancel - at the tense panel they
+  // step back to the sheet's top level; only at the top level
+  // do they close the sheet.
+  const sheetBackOrClose = () => {
+    if (tensePanel) setTensePanel(null);
+    else setSheet(null);
+  };
   // Repair #21 (W-17): the composer opens in a mode - media-first
   // (photo/video) or text-first - with a destination (story or
   // post). The sheet's media door carries the destination toggle;
@@ -985,6 +1009,11 @@ export function C2Home({
   const renderPlaceStone = (place: PlaceStoneProjection) => {
     const inner = (
       <>
+        {/* W27-6: a place with a real image on its records shows
+            it - social surfaces carry imagery, not bare text. */}
+        {place.imageUrl ? (
+          <img className="c2s-place-stone-img" src={place.imageUrl} alt="" loading="lazy" />
+        ) : null}
         <div className="c2s-place-stone-head">
           <span className="c2s-place-fire" aria-hidden />
           <p className="c2s-card-title c2s-place-stone-name">{place.name}</p>
@@ -1175,11 +1204,29 @@ export function C2Home({
           {projection.feed.length === 0 &&
           !projection.feedError &&
           !(projection.places && projection.places.length > 0) ? (
-            <EmptyBlock
-              testId="c2-feed-empty"
-              headline="Nothing here yet."
-              line="Posts from your people and your plans will show up here."
-            />
+            <>
+              <EmptyBlock
+                testId="c2-feed-empty"
+                headline="Nothing here yet."
+                line="Posts from your people and your plans will show up here."
+                lineVisible
+              />
+              {/* W27-11: the discovery band renders with an empty
+                  feed too (the interleave comment below states this
+                  contract; the rows were unreachable here, so their
+                  subtitles could not be audited on this path). */}
+              {projection.discovery && projection.discovery.length > 0 ? (
+                <section className="c2s-discovery" data-testid="c2-discovery">
+                  {projection.discovery.map((person) => (
+                    <DiscoveryRow
+                      key={person.userId}
+                      person={person}
+                      bearer={events.bearer}
+                    />
+                  ))}
+                </section>
+              ) : null}
+            </>
           ) : (
             <>
               {/* Repair #23 (WS-23-4) - discovery is INTERLEAVED
@@ -1217,10 +1264,7 @@ export function C2Home({
           <div
             className="c2s-scrim"
             data-testid="c2-create-sheet"
-            onClick={() => {
-              setSheet(null);
-              setTensePanel(null);
-            }}
+            onClick={sheetBackOrClose}
           >
             <div
               className="c2s-sheet c2s-create-sheet"
@@ -1246,7 +1290,25 @@ export function C2Home({
                   graph-create flow carrying the tense), Photo or
                   video and Text (the real composers), and Go live
                   - all offered within the tense, one move deep. */}
-              <p className="c2s-sheet-title">Create</p>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: "var(--space-3)",
+                }}
+              >
+                <p className="c2s-sheet-title">Create</p>
+                <button
+                  type="button"
+                  className="c2s-icon-btn"
+                  data-testid="c2-create-sheet-close"
+                  aria-label={tensePanel ? "Back" : "Close Create"}
+                  onClick={sheetBackOrClose}
+                >
+                  <IconClose />
+                </button>
+              </div>
               {events.creationPlan ? (
                 <div className="c2s-create-tenses">
                   {(Object.keys(CREATION_TENSE_LABELS) as CreationTense[]).map((tense) => (
@@ -1382,12 +1444,9 @@ export function C2Home({
                 type="button"
                 className="c2s-btn-text"
                 data-testid="c2-create-sheet-cancel"
-                onClick={() => {
-                  setSheet(null);
-                  setTensePanel(null);
-                }}
+                onClick={sheetBackOrClose}
               >
-                Cancel
+                {tensePanel ? "Back" : "Cancel"}
               </button>
             </div>
           </div>
@@ -1756,7 +1815,11 @@ function DiscoveryRow({
       <Avatar avatar={person.avatar} size={36} />
       <p className="c2s-card-line" style={{ flex: 1, margin: 0 }}>
         {person.name}
-        <span className="c2s-discovery-sub">You talk with them</span>
+        {/* W27-11: the subtitle is this person's own true context
+            line or nothing - never a repeated generic. */}
+        {person.contextLine ? (
+          <span className="c2s-discovery-sub">{person.contextLine}</span>
+        ) : null}
       </p>
       <button
         type="button"

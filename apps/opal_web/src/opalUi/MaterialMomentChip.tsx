@@ -33,7 +33,8 @@ export function MaterialMomentChip({ moment, onDismiss }: Props) {
         position: "fixed",
         left: 16,
         right: 16,
-        top: 56,
+        // W27-1: rest below the status bar on notched devices too.
+        top: "calc(56px + env(safe-area-inset-top, 0px))",
         zIndex: 70,
         padding: "12px 14px",
         borderRadius: 14,

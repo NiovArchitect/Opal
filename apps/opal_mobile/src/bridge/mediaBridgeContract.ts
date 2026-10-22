@@ -39,6 +39,21 @@ export const CONTACTS_DENIED_OUTBOUND_TYPE = "opal_native_contacts_denied" as co
 export const CONTACTS_ERROR_OUTBOUND_TYPE = "opal_native_contacts_error" as const;
 
 export const CONTACTS_INBOUND_TYPES = [CONTACTS_INBOUND_TYPE] as const;
+
+/** Repair #27 W27-16 — web → host resolved color mode. The web app
+ * owns mode (c2Mode); the host only mirrors it onto the native
+ * status bar so its text stays readable over the web ground. */
+export const MODE_INBOUND_TYPE = "opal_native_mode" as const;
+
+export const MODE_INBOUND_TYPES = [MODE_INBOUND_TYPE] as const;
+
+export type NativeMode = "light" | "dark";
+
+export function parseModeMessage(raw: unknown): NativeMode | null {
+  if (!raw || typeof raw !== "object") return null;
+  const mode = (raw as { mode?: unknown }).mode;
+  return mode === "light" || mode === "dark" ? mode : null;
+}
 export const CONTACTS_OUTBOUND_TYPES = [
   CONTACTS_RESULT_OUTBOUND_TYPE,
   CONTACTS_DENIED_OUTBOUND_TYPE,
@@ -50,6 +65,7 @@ export const ALLOWED_INBOUND_TYPES = [
   MEDIA_INBOUND_TYPE,
   ...SPEECH_INBOUND_TYPES,
   ...CONTACTS_INBOUND_TYPES,
+  ...MODE_INBOUND_TYPES,
 ] as const;
 
 /** Host → FE message types (injectJavaScript). */

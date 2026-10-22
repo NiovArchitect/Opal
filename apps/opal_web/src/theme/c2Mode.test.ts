@@ -56,6 +56,32 @@ describe("c2Mode (track-c2 section 2.7)", () => {
     expect(document.documentElement.getAttribute("data-mode")).toBe("light");
   });
 
+  it("W27-16: no stored preference resolves LIGHT even on a dark system (first run starts light)", () => {
+    const realMatchMedia = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes("dark"),
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    })) as unknown as typeof window.matchMedia;
+    try {
+      expect(readC2ModePreference()).toBe("light");
+      const applied = applyStoredC2Mode();
+      expect(applied.preference).toBe("light");
+      expect(applied.mode).toBe("light");
+      expect(document.documentElement.getAttribute("data-mode")).toBe("light");
+    } finally {
+      window.matchMedia = realMatchMedia;
+    }
+  });
+
+  it("W27-16: an explicitly stored system preference still follows the system", () => {
+    localStorage.setItem(C2_MODE_STORAGE_KEY, "system");
+    expect(readC2ModePreference()).toBe("system");
+    expect(resolveC2Mode("system", "dark")).toBe("dark");
+    expect(resolveC2Mode("system", "light")).toBe("light");
+  });
+
   it("switching is an attribute flip only - same document, no reload", () => {
     setC2ModePreference("dark");
     const before = document.documentElement.getAttribute("data-mode");

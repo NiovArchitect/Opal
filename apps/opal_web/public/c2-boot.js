@@ -21,11 +21,15 @@
  */
 (function () {
   try {
-    var pref = "system";
+    /* Founder ruling 2026-10-22 (R27 W27-16): with NO stored
+     * preference the default is LIGHT - first run starts light.
+     * "system" now resolves only when it was explicitly stored;
+     * dark remains selectable and a stored dark still wins. */
+    var pref = "light";
     try {
-      pref = window.localStorage.getItem("opal.c2.mode.v1") || "system";
+      pref = window.localStorage.getItem("opal.c2.mode.v1") || "light";
     } catch (e) {}
-    if (pref !== "light" && pref !== "dark" && pref !== "system") pref = "system";
+    if (pref !== "light" && pref !== "dark" && pref !== "system") pref = "light";
     var mode;
     if (pref === "light" || pref === "dark") {
       mode = pref;
@@ -39,7 +43,7 @@
       } else if (typeof window.matchMedia === "function") {
         mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
       } else {
-        mode = "dark";
+        mode = "light";
       }
     }
     var root = document.documentElement;

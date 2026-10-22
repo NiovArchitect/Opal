@@ -11,7 +11,10 @@ import {
   buildSpeechInjectScript,
   isAllowedInboundType,
   MEDIA_INBOUND_TYPE,
+  MODE_INBOUND_TYPE,
   parseMediaRequest,
+  parseModeMessage,
+  type NativeMode,
   SPEECH_SPEAK_INBOUND_TYPE,
   SPEECH_START_INBOUND_TYPE,
   SPEECH_STOP_INBOUND_TYPE,
@@ -31,6 +34,8 @@ import {
 } from "./nativeContactsAcquisition";
 
 export type WebViewMessageHandlers = {
+  /** W27-16: the web app's resolved color mode, for status-bar style. */
+  onMode?: (mode: NativeMode) => void | Promise<void>;
   onSignOut?: () => void | Promise<void>;
   onSession?: (msg: {
     access_token: string;
@@ -77,6 +82,12 @@ export async function handleWebViewMessage(
   if (!parsed || typeof parsed !== "object") return;
   const type = (parsed as { type?: unknown }).type;
   if (!isAllowedInboundType(type)) {
+    return;
+  }
+
+  if (type === MODE_INBOUND_TYPE) {
+    const mode = parseModeMessage(parsed);
+    if (mode) await handlers.onMode?.(mode);
     return;
   }
 

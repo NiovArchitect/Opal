@@ -91,12 +91,16 @@ import {
   updateSoul,
   updateMessagingPreferences,
   updateProfile,
+  uploadSocialMomentMedia,
   type ConversationSummary,
   type OpalPlanContract,
   type ProductSession,
   type ShelfStarterContract,
 } from "../../api/productClient";
 import { getDeviceCoords } from "../../device/deviceLocation";
+import { isNativeHost } from "../../nativeHostBridge";
+import { acquireMedia, mediaKindFromMime } from "../../mediaAcquisition";
+import { parseDataUrl } from "../../opalUi/socialAuthority";
 import {
   assertVaultBiometric,
   clearVaultBiometric,
@@ -157,10 +161,12 @@ import { routeForPlanEtiquette } from "../../opalUi/c1/noticeRouting";
 import {
   Avatar,
   EmptyBlock,
+  IconCamera,
   IconChats,
   IconClose,
   IconFlow,
   IconGraphs,
+  IconImage,
   IconPerson,
 } from "./bits";
 
@@ -180,6 +186,18 @@ export function C2Shell() {
   const [repeatDetail, setRepeatDetail] = useState<GraphDetailProjection | null>(null);
   const [settingKey, setSettingKey] = useState<string | null>(null);
   const [createKind, setCreateKind] = useState<null | "plan" | "trip" | "idea">(null);
+  // Repair #27 (W27-5b): the create form's depth. The ONE deep
+  // entry is the Home Create sheet's tense panel (sheet -> tense
+  // panel -> form): a form opened that way carries its tense as
+  // its origin, and its X steps back to that panel (the shell
+  // reopens the sheet at the panel through createSheetReturn).
+  // Every other entry opens the form at the top level - its X
+  // closes the flow outright. Null = top level.
+  const [createOrigin, setCreateOrigin] = useState<{ tense: CreationTense } | null>(null);
+  const [createSheetReturn, setCreateSheetReturn] = useState<{
+    tense: CreationTense;
+    nonce: number;
+  } | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [chatOpenRequest, setChatOpenRequest] = useState<{ conversationId: string; nonce: number; orbit?: boolean; composerDraft?: string | null } | null>(null);
   // Repair #19 — a thread doorway / orbit-sheet request to land in a
@@ -340,6 +358,7 @@ export function C2Shell() {
           lockParty: create.lockParty,
           participantNames,
         });
+        setCreateOrigin(null);
         setCreateKind("plan");
       })();
     },
@@ -360,6 +379,9 @@ export function C2Shell() {
       tense,
       entry: `c2-create-${tense}`,
     });
+    // Repair #27 (W27-5b): this entry has depth beneath the form
+    // (Create sheet -> tense panel), so the form's X steps back.
+    setCreateOrigin({ tense });
     setCreateKind("plan");
   }, []);
 
@@ -968,6 +990,7 @@ export function C2Shell() {
                 onOpenLive={(liveId, seed) => setLiveWatch({ liveId, seed })}
                 onSeedDoor={seedDoor}
                 onCreationPlan={creationPlan}
+                createSheetReturn={createSheetReturn}
                 onOpenPlace={(place) => setPlaceStone(place)}
               />
             </div>
@@ -1314,10 +1337,31 @@ export function C2Shell() {
           onClose={() => {
             setCreateKind(null);
             setCreatePrefill(null);
+            setCreateOrigin(null);
+            setCreateSheetReturn(null);
           }}
+          onBack={
+            createOrigin
+              ? () => {
+                  // Repair #27 (W27-5b): step back ONE level -
+                  // the form closes and the Create sheet reopens
+                  // at the tense panel this form was entered
+                  // from (Home consumes createSheetReturn). The
+                  // stream is never the landing.
+                  const tense = createOrigin.tense;
+                  setCreateKind(null);
+                  setCreatePrefill(null);
+                  setCreateOrigin(null);
+                  goRoute("home");
+                  setCreateSheetReturn({ tense, nonce: Date.now() });
+                }
+              : undefined
+          }
           onCreated={() => {
             setCreateKind(null);
             setCreatePrefill(null);
+            setCreateOrigin(null);
+            setCreateSheetReturn(null);
             void refreshPlans();
             void refreshAdopt1();
           }}
@@ -1635,11 +1679,20 @@ function DockSlot({
 
 /** Section 11 dev seed chip: system band, pointer-events none, hides
  *  whenever a flow or stage covers the shell. Only rendered when the
- *  dev/seed flags are on the URL, exactly as today. */
-function DevChip({ hidden }: { hidden: boolean }) {
+ *  dev/seed flags are on the URL, and NEVER under the native host
+ *  (W27-2: no dev affordances in the native/TestFlight path). */
+export function DevChip({ hidden }: { hidden: boolean }) {
   const [info, setInfo] = useState<string | null>(null);
   useEffect(() => {
     try {
+      // W27-2 (founder walk #5): test scaffolding must never show
+      // through in the native/TestFlight path. The native shell
+      // always composes opal_founder_seed into its URL, so this
+      // chip rendered on EVERY native screen and sat on the thread
+      // composer, occluding the YOUR MOVE Approve action. The chip
+      // is a browser-dev affordance only: never under the native
+      // host, even when dev/seed params are present.
+      if (isNativeHost()) return;
       const q = new URLSearchParams(window.location.search);
       const dev = q.get("opal_dev") === "1" || q.has("opal_founder_seed") || q.has("seed");
       if (!dev) return;
@@ -1674,6 +1727,9 @@ function HomeRoute(props: {
   onOpenLive?: (liveId: string, seed: C2LiveWatchSeed) => void;
   onSeedDoor?: (create: SeedCreate) => void;
   onCreationPlan?: (tense: CreationTense) => void;
+  /** Repair #27 (W27-5b): reopen the Create sheet at a tense
+   *  panel - the create form's step-back landing. */
+  createSheetReturn?: { tense: CreationTense; nonce: number } | null;
   onOpenPlace?: (place: PlaceStoneProjection) => void;
 }) {
   const [projection, setProjection] = useState<Awaited<ReturnType<typeof homeFromSession>> | null>(null);
@@ -1737,6 +1793,7 @@ function HomeRoute(props: {
         openStoryComments: props.onOpenStoryComments,
         seedDoor: props.onSeedDoor,
         creationPlan: props.onCreationPlan,
+        createSheetReturn: props.createSheetReturn,
         openPlace: props.onOpenPlace,
       }}
     />
@@ -2164,6 +2221,7 @@ export function CreateFlow({
   conversations,
   prefill,
   onClose,
+  onBack,
   onCreated,
 }: {
   kind: "plan" | "trip" | "idea";
@@ -2195,6 +2253,11 @@ export function CreateFlow({
     tense?: CreationTense;
   };
   onClose: () => void;
+  /** Repair #27 (W27-5b): the level beneath this form, when one
+   *  exists (the Create sheet's tense panel the form was entered
+   *  from). Present = the X steps back to it; absent = the form
+   *  is the top level and the X closes the flow. */
+  onBack?: () => void;
   onCreated: () => void;
 }) {
   const [title, setTitle] = useState(prefill?.title ?? "");
@@ -2202,6 +2265,29 @@ export function CreateFlow({
   const [place, setPlace] = useState(prefill?.location ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Repair #27 (W27-5a): a photo attached in the panel, held as
+  // the acquired asset's preview (a data: URL on both the native
+  // bridge and the browser fallback). It uploads through the
+  // moment media store ONLY at submit and rides graph-create as
+  // media_id - the plan-media path authoritativeCreateGraphPlan
+  // already proves. Trips never hold one (createTrip has no
+  // media field), so no trip photo control renders.
+  const [photo, setPhoto] = useState<{ preview: string; mime: string } | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
+  // Repair #27 (W27-5b): the discard guard, in the app's own
+  // sheet-confirm pattern (the Graphs "Drop this plan?" sheet):
+  // armed only when leaving would lose entered content.
+  const [discardOpen, setDiscardOpen] = useState(false);
+  // The opening snapshot: prefill is the door's content, not the
+  // user's work - the form is dirty only where it has diverged
+  // from what it opened with.
+  const initial = useRef({
+    title: prefill?.title ?? "",
+    when: prefill?.whenLabel ?? "",
+    place: prefill?.location ?? "",
+    who: new Set(prefill?.participantUserIds ?? []),
+  });
   const [whoPeople, setWhoPeople] = useState<PickerPerson[]>([]);
   const [whoSelected, setWhoSelected] = useState<ReadonlySet<string>>(
     () => new Set(prefill?.participantUserIds ?? []),
@@ -2276,12 +2362,101 @@ export function CreateFlow({
     });
   }, []);
 
+  /** Repair #27 (W27-5a): acquire ONE photo through the unified
+   *  media path (acquireMedia - native host bridge first, browser
+   *  file input as fallback, initiating surface graph_create:
+   *  the same machinery GraphCreateFlow uses; no parallel
+   *  picker is built here). A cancel changes nothing; an error
+   *  says so in place; a video is refused honestly - the media
+   *  store behind graph-create is image-only today, exactly as
+   *  authoritativeCreateGraphPlan rules it. */
+  const pickPhoto = useCallback(
+    async (source: "camera" | "photo_library") => {
+      if (photoBusy || busy) return;
+      setPhotoBusy(true);
+      setPhotoNote(null);
+      try {
+        const result = await acquireMedia({
+          source,
+          initiating_surface: "graph_create",
+          media_types: ["image"],
+          accept: "image/*",
+        });
+        if (result.status === "cancelled") return;
+        if (result.status === "error") {
+          setPhotoNote(result.message);
+          return;
+        }
+        const kindOf = mediaKindFromMime(result.asset.mime_type);
+        if (kindOf !== "photo") {
+          setPhotoNote("That isn't a photo - choose a photo for this plan.");
+          return;
+        }
+        setPhoto({ preview: result.asset.preview_url, mime: result.asset.mime_type });
+      } finally {
+        setPhotoBusy(false);
+      }
+    },
+    [photoBusy, busy],
+  );
+
+  // Repair #27 (W27-5b): entered content = any divergence from
+  // the opening snapshot (words, people, or an attached photo).
+  const isDirty =
+    title !== initial.current.title ||
+    when !== initial.current.when ||
+    place !== initial.current.place ||
+    photo !== null ||
+    whoSelected.size !== initial.current.who.size ||
+    [...whoSelected].some((id) => !initial.current.who.has(id));
+
+  /** The X's law: step back one level where depth exists, close
+   *  only at the top level - and when entered content would be
+   *  lost, the discard sheet decides first. */
+  const attemptExit = useCallback(() => {
+    if (busy) return;
+    if (isDirty) {
+      setDiscardOpen(true);
+      return;
+    }
+    if (onBack) onBack();
+    else onClose();
+  }, [busy, isDirty, onBack, onClose]);
+
+  const confirmDiscard = useCallback(() => {
+    setDiscardOpen(false);
+    if (onBack) onBack();
+    else onClose();
+  }, [onBack, onClose]);
+
   const submit = async () => {
     if (!title.trim() || busy) return;
     setBusy(true);
     setError(null);
     const whoIds = [...whoSelected];
     try {
+      // Repair #27 (W27-5a): the attached photo uploads FIRST,
+      // through the moment media store, and the plan carries its
+      // id - the authoritativeCreateGraphPlan chain verbatim. A
+      // photo that cannot upload fails the whole create: the
+      // form keeps the title AND the photo, and no plan without
+      // its photo is ever created behind the user's back.
+      let mediaId: string | undefined;
+      if (photo && kind !== "trip") {
+        const parsed = parseDataUrl(photo.preview);
+        if (!parsed) {
+          throw new Error("photo is not a data URL");
+        }
+        const uploaded = await uploadSocialMomentMedia(
+          { base64: parsed.base64, mime_type: parsed.mimeType },
+          bearer,
+        );
+        const id = (uploaded.media as { id?: unknown } | undefined)?.id;
+        if (typeof id !== "string" || !id) {
+          throw new Error("Media upload did not return a durable media id");
+        }
+        mediaId = id;
+      }
       if (kind === "trip") {
         await createTrip(
           {
@@ -2308,6 +2483,9 @@ export function CreateFlow({
                 ? prefill.placeLon
                 : undefined,
             time_label: when.trim() || undefined,
+            // Repair #27 (W27-5a): the uploaded photo's media id,
+            // or no media key at all when no photo was attached.
+            media_id: mediaId,
             participant_user_ids: whoIds.length > 0 ? whoIds : undefined,
             audience: prefill?.audience,
             source_plan_id: prefill?.sourcePlanId,
@@ -2343,7 +2521,13 @@ export function CreateFlow({
         data-testid="c2-create-flow"
       >
         <div className="c2s-entry-top">
-          <button type="button" className="c2s-icon-btn" aria-label="Close" onClick={onClose}>
+          <button
+            type="button"
+            className="c2s-icon-btn"
+            aria-label={onBack ? "Back to Create" : "Close"}
+            data-testid="c2-create-close"
+            onClick={attemptExit}
+          >
             <IconClose />
           </button>
           <span style={{ fontWeight: 650 }}>
@@ -2420,6 +2604,68 @@ export function CreateFlow({
                 />
               </div>
             </>
+          ) : null}
+          {kind !== "trip" ? (
+            /* Repair #27 (W27-5a) - the Photo field, with the same
+             * weight as What / When / Where / Who: acquire through
+             * the real media path, preview in the panel, remove
+             * before creating. The photo rides graph-create as
+             * media_id at submit (see submit()). Trips render no
+             * photo control - their create contract carries no
+             * media, so a button here would be a fake attach. */
+            <div className="c2s-field-group" data-testid="c2-create-photo">
+              <span className="c2s-field-label">Photo</span>
+              {photo ? (
+                <>
+                  <div className="c2s-media-well c2s-create-photo-well">
+                    <img
+                      src={photo.preview}
+                      alt=""
+                      data-testid="c2-create-photo-preview"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="c2s-btn-text"
+                    data-testid="c2-create-photo-remove"
+                    onClick={() => {
+                      setPhoto(null);
+                      setPhotoNote(null);
+                    }}
+                  >
+                    Remove photo
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-photo-add"
+                    disabled={photoBusy}
+                    onClick={() => void pickPhoto("photo_library")}
+                  >
+                    <IconImage />
+                    <span>{photoBusy ? "Opening" : "Add a photo"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="c2s-sheet-row"
+                    data-testid="c2-create-photo-camera"
+                    disabled={photoBusy}
+                    onClick={() => void pickPhoto("camera")}
+                  >
+                    <IconCamera />
+                    <span>Take a photo</span>
+                  </button>
+                </>
+              )}
+              {photoNote ? (
+                <p className="c2s-error-line" role="alert">
+                  {photoNote}
+                </p>
+              ) : null}
+            </div>
           ) : null}
           <div className="c2s-field-group" data-testid="c2-create-who">
             <span className="c2s-field-label" id="c2-create-who-label">
@@ -2500,6 +2746,48 @@ export function CreateFlow({
           </button>
         </div>
       </div>
+      {discardOpen ? (
+        /* Repair #27 (W27-5b) - the discard guard, in the app's
+         * own sheet-confirm pattern (the Graphs drop sheet's
+         * species: a title question, the destructive confirm,
+         * and a keep control). It renders ONLY when leaving
+         * would lose entered content; Keep writing returns to
+         * the intact form, Discard runs the exit the X asked
+         * for (one level back, or out at the top level). */
+        <TopLayer band="modal">
+          <div
+            className="c2s-scrim"
+            data-testid="c2-create-discard"
+            onClick={() => setDiscardOpen(false)}
+          >
+            <div
+              className="c2s-sheet"
+              role="dialog"
+              aria-label="Discard this draft?"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="c2s-sheet-title">Discard this draft?</p>
+              <p className="c2s-card-line">What you added here will be lost.</p>
+              <button
+                type="button"
+                className="c2s-btn-danger-text"
+                data-testid="c2-create-discard-confirm"
+                onClick={confirmDiscard}
+              >
+                Discard
+              </button>
+              <button
+                type="button"
+                className="c2s-btn-text"
+                data-testid="c2-create-discard-keep"
+                onClick={() => setDiscardOpen(false)}
+              >
+                Keep writing
+              </button>
+            </div>
+          </div>
+        </TopLayer>
+      ) : null}
     </TopLayer>
   );
 }
@@ -2577,7 +2865,7 @@ export function RepeatPlanFlow({
   };
   return (
     <TopLayer band="flow">
-      <div className="c2s-flow" style={{ background: "var(--canvas)" }} data-testid="c2-repeat-flow">
+      <div className="c2s-flow c2s-create-flow" style={{ background: "var(--canvas)" }} data-testid="c2-repeat-flow">
         <div className="c2s-entry-top">
           <button type="button" className="c2s-icon-btn" aria-label="Close" onClick={onClose}>
             <IconClose />
