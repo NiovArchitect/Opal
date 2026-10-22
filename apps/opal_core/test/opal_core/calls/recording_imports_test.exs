@@ -66,6 +66,14 @@ defmodule OpalCore.Calls.RecordingImportsTest do
 
   # Provider-shaped Deepgram response: diarized words per turn.
   defp stub_turns(turns) do
+    body = turns_body(turns)
+
+    Application.put_env(:opal_core, :deepgram_http_fun, fn _url, _headers, _audio, _ct ->
+      {:ok, 200, body}
+    end)
+  end
+
+  defp turns_body(turns) do
     words =
       turns
       |> Enum.with_index()
@@ -86,22 +94,17 @@ defmodule OpalCore.Calls.RecordingImportsTest do
 
     transcript = turns |> Enum.map(&elem(&1, 1)) |> Enum.join(" ")
 
-    body =
-      Jason.encode!(%{
-        "results" => %{
-          "channels" => [
-            %{
-              "alternatives" => [
-                %{"transcript" => transcript, "confidence" => 0.97, "words" => words}
-              ]
-            }
-          ]
-        }
-      })
-
-    Application.put_env(:opal_core, :deepgram_http_fun, fn _url, _headers, _audio, _ct ->
-      {:ok, 200, body}
-    end)
+    Jason.encode!(%{
+      "results" => %{
+        "channels" => [
+          %{
+            "alternatives" => [
+              %{"transcript" => transcript, "confidence" => 0.97, "words" => words}
+            ]
+          }
+        ]
+      }
+    })
   end
 
   defp stub_raw(body, status \\ 200) do
@@ -288,6 +291,38 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     segments = RecordingImports.segments_for(row)
     assert length(segments) == 2
     refute Enum.any?(segments, &String.contains?(&1["text"], "third voice"))
+  end
+
+  test "a later import's capsule never takes credit for an earlier call's facts",
+       %{a: a, b: b} do
+    key_on()
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+    Application.put_env(:opal_core, :deepgram_http_fun, fn _u, _h, _a2, _ct ->
+      case Agent.get_and_update(counter, fn n -> {n, n + 1} end) do
+        0 -> {:ok, 200, turns_body(@turns)}
+        _ -> {:ok, 200, turns_body([{0, "Thanks for the update, talk soon."}, {1, "Bye for now."}])}
+      end
+    end)
+
+    assert {:ok, _first, :created} = RecordingImports.import_recording(a.id, @audio, attrs(a, b))
+
+    assert {:ok, second, :created} =
+             RecordingImports.import_recording(a.id, <<9, 9, 9, 9>>, attrs(a, b, %{original_filename: "second.mp3"}))
+
+    assert second.status == "done"
+
+    a_capsules = CapsuleRead.list_for_owner_browse(a.id)
+    assert length(a_capsules) == 2
+
+    second_capsule =
+      Enum.find(a_capsules, fn cap ->
+        String.contains?(cap.payload["summary"], "2 utterances")
+      end)
+
+    assert second_capsule
+    refute String.contains?(second_capsule.payload["summary"], "shellfish")
+    refute String.contains?(second_capsule.payload["summary"], "book the table")
   end
 
   defp fact_about?(account_id, person_id, needle) do

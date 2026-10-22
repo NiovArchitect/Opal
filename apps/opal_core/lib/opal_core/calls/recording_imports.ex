@@ -557,12 +557,14 @@ defmodule OpalCore.Calls.RecordingImports do
     :ok
   end
 
-  defp build_capsules(_row, call, participants, persisted, confidence) do
+  defp build_capsules(row, call, participants, persisted, confidence) do
     segment_ids = MapSet.new(Enum.map(persisted, & &1.id))
 
     Map.new(participants, fn owner_id ->
       other_id = Enum.find(participants, &(&1 != owner_id))
-      summary = capsule_summary(owner_id, other_id, call, segment_ids, persisted, confidence)
+
+      summary =
+        capsule_summary(owner_id, other_id, call, segment_ids, persisted, confidence, row.inserted_at)
 
       case CapsuleRead.remember(owner_id, %{
              "summary" => summary,
@@ -583,12 +585,12 @@ defmodule OpalCore.Calls.RecordingImports do
     |> Map.new()
   end
 
-  defp capsule_summary(owner_id, other_id, call, segment_ids, persisted, confidence) do
+  defp capsule_summary(owner_id, other_id, call, segment_ids, persisted, confidence, since) do
     other_name = display_name(other_id)
     mine = Enum.count(persisted, &(&1.speaker_user_id == owner_id))
     theirs = length(persisted) - mine
 
-    durable = durable_lines(owner_id, call.conversation_id, segment_ids)
+    durable = durable_lines(owner_id, call.conversation_id, segment_ids, since)
 
     base =
       "Call with #{other_name} (imported recording): #{length(persisted)} utterances " <>
@@ -601,7 +603,14 @@ defmodule OpalCore.Calls.RecordingImports do
     end
   end
 
-  defp durable_lines(owner_id, conversation_id, segment_ids) do
+  # Durable lines for THIS call only. Commitments carry the exact
+  # source segment id, so they scope precisely. Facts and plan
+  # memories are conversation-scoped stores with no per-call key, so
+  # they are scoped by their own timestamps to what this import's
+  # fold learned or touched (learned_at / updated_at at or after the
+  # import was created) — a capsule never takes credit for an
+  # earlier call's facts.
+  defp durable_lines(owner_id, conversation_id, segment_ids, since) do
     commitments =
       from(c in Commitment,
         where:
@@ -621,14 +630,17 @@ defmodule OpalCore.Calls.RecordingImports do
       |> Enum.flat_map(fn facts ->
         facts
         |> Map.values()
-        |> Enum.filter(&(is_map(&1) and &1["source_conversation_id"] == conversation_id))
+        |> Enum.filter(fn v ->
+          is_map(v) and v["source_conversation_id"] == conversation_id and
+            learned_in_window?(v["learned_at"], since)
+        end)
         |> Enum.map(&("fact: " <> String.slice(&1["value"] || "", 0, 120)))
       end)
 
     plans =
       from(p in PlanMemory,
         where:
-          p.account_id == ^owner_id and
+          p.account_id == ^owner_id and p.updated_at >= ^since and
             ^conversation_id in p.related_conversation_ids,
         select: {p.plan_label, p.time_label, p.place_label}
       )
@@ -644,6 +656,15 @@ defmodule OpalCore.Calls.RecordingImports do
 
     (commitments ++ facts ++ plans) |> Enum.uniq() |> Enum.take(6)
   end
+
+  defp learned_in_window?(learned_at, %DateTime{} = since) when is_binary(learned_at) do
+    case DateTime.from_iso8601(learned_at) do
+      {:ok, at, _} -> DateTime.compare(at, since) != :lt
+      _ -> false
+    end
+  end
+
+  defp learned_in_window?(_, _), do: false
 
   # Stored labels are usually strings, but the plan fold can persist
   # a word list — render either honestly rather than crashing.

@@ -1,0 +1,208 @@
+{
+  "adversarial": [
+    {
+      "construction": "3 seconds of digital silence (zero samples), valid WAV container.",
+      "expected": "Import completes done with 0 segments and zero memory written \u2014 silence must not fabricate a transcript.",
+      "file": "adv-silence.wav",
+      "id": "silence"
+    },
+    {
+      "construction": "512 bytes of non-audio data with an .mp3 filename and audio/mpeg content type.",
+      "expected": "Import lands failed with the provider's real rejection reason; no segments, no capsules.",
+      "file": "adv-corrupt.mp3",
+      "id": "corrupt"
+    },
+    {
+      "construction": "Four-line Spanish call, same two voices, imported with language=es.",
+      "expected": "Deepgram transcribes Spanish (language opt exercised); segments fold without crashing; English-shaped fact extractors mostly miss \u2014 scored honestly.",
+      "file": "adv-spanish.wav",
+      "id": "spanish",
+      "lines": [
+        {
+          "speaker": 0,
+          "text": "Hola Priya, \u00bfnos vemos ma\u00f1ana a las seis en la biblioteca?"
+        },
+        {
+          "speaker": 1,
+          "text": "S\u00ed, ma\u00f1ana a las seis en la biblioteca est\u00e1 perfecto."
+        },
+        {
+          "speaker": 0,
+          "text": "Yo llevo los documentos para la reuni\u00f3n."
+        },
+        {
+          "speaker": 1,
+          "text": "Perfecto, yo llevo el caf\u00e9 para los dos."
+        }
+      ]
+    },
+    {
+      "construction": "Three distinct voices; the import declares only speakers 0 and 1.",
+      "expected": "The third diarized voice is counted unattributed and never lands in a declared participant's mouth.",
+      "file": "adv-three-speakers.wav",
+      "id": "three-speakers",
+      "lines": [
+        {
+          "speaker": 0,
+          "text": "Let's do dinner this Saturday at 7 pm at Juniper and Ivy."
+        },
+        {
+          "speaker": 2,
+          "text": "Hi, I am a third person who was never declared on this import."
+        },
+        {
+          "speaker": 1,
+          "text": "Sounds good, see you both there."
+        }
+      ]
+    },
+    {
+      "construction": "Two voices speak the same 2.5 seconds simultaneously (sample-summed), between two clean turns.",
+      "expected": "Disposition recorded from what Deepgram actually returns; no crash; whatever it hears is what gets folded.",
+      "file": "adv-overlap.wav",
+      "id": "overlap",
+      "overlap_pair": [
+        1,
+        2
+      ],
+      "lines": [
+        {
+          "speaker": 0,
+          "text": "Before we wrap up, let me check one thing."
+        },
+        {
+          "speaker": 0,
+          "text": "I think we should leave at eight in the morning."
+        },
+        {
+          "speaker": 1,
+          "text": "No wait, the train is at nine, not eight."
+        },
+        {
+          "speaker": 1,
+          "text": "Okay, whatever we just said, let's confirm it by text tonight."
+        }
+      ]
+    },
+    {
+      "construction": "Extended two-voice conversation (~6 minutes) generated from an extended neutral script with one plan and one commitment planted at the very end.",
+      "expected": "Pipeline completes; end-to-end latency measured against recording length; the late-planted facts are scored like any other.",
+      "file": "adv-long.wav",
+      "id": "long"
+    }
+  ],
+  "calls": [
+    {
+      "file": "call1-dinner-plan.wav",
+      "format": "wav",
+      "id": "call1",
+      "lines": [
+        {
+          "speaker": 0,
+          "text": "Hi Priya, thanks for calling back."
+        },
+        {
+          "speaker": 1,
+          "text": "Of course. Are we still doing dinner this week?"
+        },
+        {
+          "speaker": 0,
+          "text": "Let's do dinner this Friday at 7 pm at Juniper and Ivy."
+        },
+        {
+          "speaker": 1,
+          "text": "Wait, Friday doesn't work for me. Can we do Saturday instead?"
+        },
+        {
+          "speaker": 0,
+          "text": "You're right, not Friday. Saturday works. Saturday at 7 pm at Juniper and Ivy."
+        },
+        {
+          "speaker": 1,
+          "text": "Perfect. I'm allergic to shellfish, so as long as we skip the oysters, I'm happy."
+        },
+        {
+          "speaker": 0,
+          "text": "Noted. I'll book the table tonight and text you the confirmation."
+        },
+        {
+          "speaker": 1,
+          "text": "And I'll bring the tickets for the gallery opening after dinner."
+        },
+        {
+          "speaker": 0,
+          "text": "My birthday is March 14, so think of this as my early birthday dinner."
+        },
+        {
+          "speaker": 1,
+          "text": "I hate mornings, so a 7 pm dinner is perfect for me."
+        }
+      ],
+      "title": "The dinner plan (with a Friday-to-Saturday correction)"
+    },
+    {
+      "file": "call2-hike-plan.mp3",
+      "format": "mp3",
+      "id": "call2",
+      "lines": [
+        {
+          "speaker": 1,
+          "text": "For Sunday, let's plan a hike at Torrey Pines at 9 am."
+        },
+        {
+          "speaker": 0,
+          "text": "Sounds good. Actually wait, Torrey Pines is closed for trail work. Let's do Cowles Mountain instead, same time."
+        },
+        {
+          "speaker": 1,
+          "text": "Cowles Mountain at 9 am on Sunday, done. I'll text you the trailhead pin on Saturday night."
+        },
+        {
+          "speaker": 0,
+          "text": "I'm allergic to peanuts, so I'll pack my own trail snacks."
+        },
+        {
+          "speaker": 1,
+          "text": "Good to know. And let me handle the parking pass, I'll get it online tonight."
+        }
+      ],
+      "title": "The hike plan (with a Torrey Pines-to-Cowles Mountain correction)"
+    },
+    {
+      "file": "call3-recital.m4a",
+      "format": "m4a",
+      "id": "call3",
+      "lines": [
+        {
+          "speaker": 0,
+          "text": "Quick one. My sister's recital is next Tuesday at 6 pm at the Balboa Theatre."
+        },
+        {
+          "speaker": 1,
+          "text": "Lovely. I can't stand cilantro, so if we eat afterwards, no taco truck for me."
+        },
+        {
+          "speaker": 0,
+          "text": "Ha, noted. If you swing by my place first, the door code is 4218."
+        },
+        {
+          "speaker": 1,
+          "text": "I'll call the venue tomorrow to confirm our seats."
+        }
+      ],
+      "title": "The recital call (plants shapes the current fold is not expected to cover)"
+    }
+  ],
+  "speakers": {
+    "0": {
+      "account": "A",
+      "name": "Daniel Reyes",
+      "voice_gender": "male"
+    },
+    "1": {
+      "account": "B",
+      "name": "Priya Nair",
+      "voice_gender": "female"
+    }
+  }
+}
