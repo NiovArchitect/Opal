@@ -388,7 +388,12 @@ defmodule OpalCore.Calls.RecordingImports do
   end
 
   def fail(%RecordingImport{} = row, reason) when is_binary(reason) do
-    transition(row, %{status: "failed", failure_reason: String.slice(reason, 0, 500)})
+    # failure_reason is varchar(255): slicing to 500 (the original
+    # R25 code) made any 256..500-char reason raise 22001 inside the
+    # worker, discarding the job and stranding the import at
+    # "transcribing" forever (found by R26's corrupt-file proof leg,
+    # whose ffmpeg-excerpt reasons are long). Slice to the column.
+    transition(row, %{status: "failed", failure_reason: String.slice(reason, 0, 255)})
   end
 
   defp transition(row, attrs) do

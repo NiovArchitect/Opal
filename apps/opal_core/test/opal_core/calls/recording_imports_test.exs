@@ -497,6 +497,34 @@ defmodule OpalCore.Calls.RecordingImportsTest do
     assert Repo.aggregate(TranscriptSegment, :count) == 0
   end
 
+  # Repair #26 regression (B-19): a long failure reason (ffmpeg
+  # stderr excerpts run long) must still land the import in failed —
+  # failure_reason is varchar(255) and fail/2 once sliced to 500, so
+  # the update raised 22001, the job was discarded, and the import
+  # stayed "transcribing" forever (hit live by the corrupt dummy).
+  test "long decode failure reason lands failed, never stranded transcribing",
+       %{a: a, b: b} do
+    key_on()
+    stub_turns(@turns)
+
+    Application.put_env(:opal_core, :audio_decoder_fun, fn _audio, _ct ->
+      {:error, {:decode_failed, String.duplicate("decoder said no. ", 40)}}
+    end)
+
+    assert {:ok, row, :created} =
+             RecordingImports.import_recording(
+               a.id,
+               audio_bytes(),
+               attrs(a, b, %{content_type: "audio/mpeg", original_filename: "call.mp3"})
+             )
+
+    row = Repo.get!(RecordingImport, row.id)
+    assert row.status == "failed"
+    assert row.failure_reason =~ "audio_decode_failed"
+    assert String.length(row.failure_reason) <= 255
+    assert Repo.aggregate(TranscriptSegment, :count) == 0
+  end
+
   defp fact_about?(account_id, person_id, needle) do
     case Repo.get_by(PersonMemory, account_id: account_id, person_id: person_id) do
       %PersonMemory{known_facts: facts} when is_map(facts) ->
