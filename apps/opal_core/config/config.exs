@@ -50,7 +50,7 @@ config :opal_core, :push_adapter, :auto
 
 config :opal_core, Oban,
   repo: OpalCore.Repo,
-  queues: [ai: 10, events: 10, push: 10],
+  queues: [ai: 10, events: 10, push: 10, imports: 5],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7},
     # TFT maturity tick — every minute in compile-time configs; test.exs disables plugins.

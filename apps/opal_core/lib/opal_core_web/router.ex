@@ -274,6 +274,11 @@ defmodule OpalCoreWeb.Router do
     post("/calls/:id/transcription/grant", CallController, :transcription_grant)
     post("/calls/:id/transcripts", CallController, :transcript)
 
+    # Repair #25 — imported call recordings (source-agnostic ingestion door)
+    get("/call-recording-imports", CallRecordingImportController, :index)
+    post("/call-recording-imports", CallRecordingImportController, :create)
+    get("/call-recording-imports/:id", CallRecordingImportController, :show)
+
     # Track A3 — SharedPlan execution readiness (LIVE booking NOT claimed)
     get("/plans/:id/execution", PlanExecutionController, :show)
     post("/plans/:id/execution/authorize", PlanExecutionController, :authorize)

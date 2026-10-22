@@ -53,7 +53,8 @@ defmodule OpalCore.Intelligence.CallTranscription do
 
   defp do_transcribe(call_id, audio, attrs) do
     opts = [
-      content_type: Map.get(attrs, :content_type) || Map.get(attrs, "content_type") || "audio/wav"
+      content_type: Map.get(attrs, :content_type) || Map.get(attrs, "content_type") || "audio/wav",
+      language: Map.get(attrs, :language) || Map.get(attrs, "language") || "en-US"
     ]
 
     # Repair #18 BS-4: an unconfigured Deepgram returns

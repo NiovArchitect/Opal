@@ -25,11 +25,15 @@ defmodule OpalCore.Intelligence.DeepgramClient do
 
   require Logger
 
-  @batch_url ~c"https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true&language=en-US"
+  @batch_base "https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&punctuate=true&diarize=true"
   @confidence_floor 0.6
 
   @doc """
   Batch transcribe audio binary.
+
+  opts: `:content_type`, `:language` (default `"en-US"` — the pin
+  this client has always used; callers with a declared recording
+  language, e.g. call-recording imports, may pass it explicitly).
 
   Returns `{:ok, result}` only for a real provider response,
   `{:disabled, reason}` when no Deepgram key is configured, and
@@ -40,10 +44,11 @@ defmodule OpalCore.Intelligence.DeepgramClient do
 
   def transcribe_batch(audio, opts) when is_binary(audio) do
     content_type = Keyword.get(opts, :content_type, "audio/webm")
+    language = Keyword.get(opts, :language, "en-US")
 
     case api_key() do
       key when is_binary(key) and key != "" ->
-        request_batch(key, audio, content_type)
+        request_batch(key, audio, content_type, language)
 
       _ ->
         {:disabled, "transcription not configured"}
@@ -78,16 +83,21 @@ defmodule OpalCore.Intelligence.DeepgramClient do
     end
   end
 
-  defp request_batch(key, audio, content_type) do
+  defp batch_url(language) do
+    lang = if is_binary(language) and language != "", do: language, else: "en-US"
+    @batch_base <> "&language=" <> URI.encode_www_form(lang)
+  end
+
+  defp request_batch(key, audio, content_type, language) do
     headers = [
       {"authorization", "Token " <> key},
       {"content-type", content_type}
     ]
 
-    case http_post(headers, audio, content_type) do
+    case http_post(batch_url(language), headers, audio, content_type) do
       {:ok, 200, response} ->
         parsed = Jason.decode!(response)
-        {:ok, normalize_response(parsed, stub: false)}
+        {:ok, normalize_response(parsed, stub: false, language: language)}
 
       {:ok, status, response} ->
         Logger.warning("deepgram.batch_failed status=#{status} body=#{String.slice(response, 0, 200)}")
@@ -104,10 +114,10 @@ defmodule OpalCore.Intelligence.DeepgramClient do
   # {:error, reason} returning a provider-shaped response. Production
   # always takes the :httpc branch. This mirrors the
   # :phone_verify_http_client / :apns_http_fun seams elsewhere.
-  defp http_post(headers, audio, content_type) do
+  defp http_post(url, headers, audio, content_type) do
     case Application.get_env(:opal_core, :deepgram_http_fun) do
       fun when is_function(fun, 4) ->
-        case fun.(List.to_string(@batch_url), headers, audio, content_type) do
+        case fun.(url, headers, audio, content_type) do
           {:ok, status, body} when is_integer(status) -> {:ok, status, io_to_bin(body)}
           {:error, _} = err -> err
           other -> {:error, {:unexpected_transport_result, other}}
@@ -120,7 +130,8 @@ defmodule OpalCore.Intelligence.DeepgramClient do
         charlist_headers =
           Enum.map(headers, fn {k, v} -> {String.to_charlist(k), String.to_charlist(v)} end)
 
-        request = {@batch_url, charlist_headers, String.to_charlist(content_type), audio}
+        request =
+          {String.to_charlist(url), charlist_headers, String.to_charlist(content_type), audio}
 
         case :httpc.request(:post, request, [timeout: 60_000, connect_timeout: 8_000],
                body_format: :binary
@@ -147,7 +158,7 @@ defmodule OpalCore.Intelligence.DeepgramClient do
       transcript: String.trim(transcript),
       confidence: confidence,
       segments: segments,
-      language: "en-US",
+      language: Keyword.get(opts, :language, "en-US"),
       stub: Keyword.get(opts, :stub, false),
       raw_provider: "deepgram"
     }
