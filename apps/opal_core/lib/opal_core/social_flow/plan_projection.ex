@@ -76,6 +76,7 @@ defmodule OpalCore.SocialFlow.PlanProjection do
     lib/opal_core/opal_context.ex
     lib/opal_core/oracle.ex
     lib/opal_core/social_flow.ex
+    lib/opal_core/social_flow/ambient/place_signal.ex
     lib/opal_core/social_flow/attention_center.ex
     lib/opal_core/social_flow/checkin.ex
     lib/opal_core/social_flow/conversation_alignment.ex
@@ -144,6 +145,10 @@ defmodule OpalCore.SocialFlow.PlanProjection do
        "Repair #18 B5: suggestion candidate shapes derived read-time from the single plan store"},
       {OpalCore.SocialFlow.Households, :open_supply_plan?, 2,
        "Repair #18 B5: open pod supply plan read from the single plan store"},
+      {OpalCore.SocialFlow.Ambient.PlaceSignal, :signals_for, 3,
+       "Repair #23 WS-23-5: qualitative place heat tier derived read-time from the single plan store over viewer-permitted facts only; a tier is all that leaves the module - no plan state is rendered"},
+      {OpalCore.SocialFlow.Ambient.PlaceSignal, :nearby_people, 2,
+       "Repair #23 WS-23-5: coarse near/not-near derivation from fresh PlanLocationShare rows on the viewer's own plans (sharing backbone only; no coordinates leave the module)"},
       {OpalCore.SocialFlow.NextPlan, :for_conversation, 3,
        "Repair #18 DIR-1: the one shared upcoming plan fact for the chats list and thread contracts"},
       {OpalCore.SocialFlow.NextPlan, :for_peer, 3,

@@ -325,6 +325,9 @@ defmodule OpalCoreWeb.Router do
     # Pass 17–23 — Social Moment publishing (LOCAL_DEV media; no public CDN claim)
     # Home production hydration + engagement (Memory = SocialMoment projection)
     get("/home/feed", SocialMomentController, :home_feed)
+    # Repair #23 (WS-23-5) - place signal read path: tier-only,
+    # viewer-scoped (see PlaceSignalController).
+    post("/places/signals", PlaceSignalController, :signals)
     get("/stories", SocialMomentController, :list_stories)
     post("/stories", SocialMomentController, :create_story)
     delete("/stories/:id", SocialMomentController, :delete_story)

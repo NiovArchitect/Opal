@@ -16,7 +16,7 @@ type Props = {
   reserved?: string;
   /** Canonical reservation kicker - never fake "Reserved" without proof. */
   reservationLabel?: string;
-  /** Current organizer/lead — distinct from plan creator when handed off. */
+  /** Current organizer/lead - distinct from plan creator when handed off. */
   leadLabel?: string | null;
   mediaSrc?: string;
   peerName?: string;

@@ -17,11 +17,18 @@ import {
   followUser,
   getMomentLight,
   likeSocialMoment,
+  listPeopleProjection,
+  previewSocialMomentAudience,
+  repostSocialMoment,
+  saveSocialMoment,
   unfollowUser,
   publishSocialMoment,
   unlikeSocialMoment,
+  unrepostSocialMoment,
+  unsaveSocialMoment,
   uploadSocialMomentMedia,
 } from "../../api/productClient";
+import { MOMENT_AUDIENCE_OPTIONS, type MomentAudienceValue } from "./adopt3";
 import {
   CREATION_TENSE_LABELS,
   SEED_DOOR_LABELS,
@@ -35,6 +42,7 @@ import {
   type SeedSource,
 } from "./flows2";
 import { GoLiveFlow } from "./GoLiveFlow";
+import { placeWarmthLevel } from "./shellData";
 import { StoryViewerC2, storyQueueFromRail, type StoryPlayItem } from "./StoryViewerC2";
 import { TriviaCard } from "./C2Trivia";
 import type { HomeOccasion } from "./projections";
@@ -59,6 +67,9 @@ import {
   IconClose,
   IconGraphIn,
   IconImage,
+  IconPerson,
+  IconRepost,
+  IconSave,
   IconSearch,
   IconText,
 } from "./bits";
@@ -163,11 +174,13 @@ export type C2HomeEvents = {
   openActivity: () => void;
   openGraph: (cardId: string) => void;
   /** Repair #19 W20 (JA-06): a feed card's action button renders
-   *  ONLY when the host wires this to a real outcome. Watching a
-   *  Live has no viewer surface yet (J2's named exception), so the
-   *  production shell wires nothing and the live card renders no
-   *  button at all — a dead Watch button on Home was the defect.
-   *  Hosts must never pass a no-op here. */
+   *  ONLY when the host wires this to a real outcome. The
+   *  production shell wires nothing here, so a card renders no
+   *  button at all - a dead Watch button on Home was the defect.
+   *  (Repair #23 WS-23-3: the Live card's destination now exists
+   *  and travels on its own event, openLive below - feedAction
+   *  was never the live journey's honest name.) Hosts must never
+   *  pass a no-op here. */
   feedAction?: (cardId: string, actionId: string) => void;
   /** Called after a story or post really published, so the shell
    *  re-requests the Home projection and re-renders from it. */
@@ -185,6 +198,23 @@ export type C2HomeEvents = {
    *  or creates it through the real conversation path). Absent =
    *  no reply control renders. */
   replyToPerson?: (authorUserId: string) => void;
+  /** Repair #23 (WS-23-1): the moment's comments, opened from
+   *  the card's speech-bubble glyph (audit F-3 / R-1). The shell
+   *  mounts the comments sheet in its sheet stack with the
+   *  bearer. Absent = no comments control renders (no dead
+   *  control). This is NOT the reply door: replyToPerson above
+   *  opens the author's direct conversation and keeps its own
+   *  person door on the card. */
+  openComments?: (momentId: string) => void;
+  /** Repair #23 (WS-23-3): a Live card was tapped; the shell
+   *  opens the watch surface for this room (audit F-2). The id
+   *  is the ROOM id (the projection's watch: action id carries
+   *  it), not the card id. This is its own event, NOT a
+   *  feedAction overload, so the live journey is named honestly
+   *  in code. Absent = the card renders as a resting article
+   *  with no tap target (never a destination-shaped dead end
+   *  dressed as a door). */
+  openLive?: (liveId: string) => void;
   /** Repair #21 (I-1 refined): one of the four seed doors was
    *  chosen; the shell carries the composed create into the real
    *  graph-create flow. Absent = no door row renders. */
@@ -287,6 +317,51 @@ function MemoryFeedCard({
       setLikeBusy(false);
     }
   };
+  // Repair #23 (WS-23-1) - REPOST and SAVE, the same truth law
+  // as light: the resting state comes from the moment record's
+  // own fields (the feed payload's engagement_summary carries
+  // viewer_reposted / viewer_saved - see projections.ts), a tap
+  // writes through the real repost / save endpoints, and the
+  // state re-renders ONLY from the action response. A failed
+  // write changes nothing on the card. The repost count is an
+  // internal input only - no numeral renders, ever (the
+  // counts-free law that governs light governs these too).
+  const [reposted, setReposted] = useState(item.viewerReposted === true);
+  const [saved, setSaved] = useState(item.viewerSaved === true);
+  const [repostBusy, setRepostBusy] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
+  useEffect(() => {
+    setReposted(item.viewerReposted === true);
+    setSaved(item.viewerSaved === true);
+  }, [item.viewerReposted, item.viewerSaved]);
+  const toggleRepost = async () => {
+    if (repostBusy) return;
+    setRepostBusy(true);
+    try {
+      const res = reposted
+        ? await unrepostSocialMoment(item.id, bearer)
+        : await repostSocialMoment(item.id, bearer);
+      setReposted(res.viewer_reposted === true);
+    } catch {
+      /* the card keeps the server's last truth */
+    } finally {
+      setRepostBusy(false);
+    }
+  };
+  const toggleSave = async () => {
+    if (saveBusy) return;
+    setSaveBusy(true);
+    try {
+      const res = saved
+        ? await unsaveSocialMoment(item.id, bearer)
+        : await saveSocialMoment(item.id, bearer);
+      setSaved(res.viewer_saved === true);
+    } catch {
+      /* the card keeps the server's last truth */
+    } finally {
+      setSaveBusy(false);
+    }
+  };
   const beginHold = () => {
     holdTimer.current = setTimeout(() => setHeld(true), 350);
   };
@@ -316,7 +391,21 @@ function MemoryFeedCard({
   // card size it read as a bell, a dome, an igloo - anything
   // but a door (F-E). The word-buttons ("Light", "Reply", the
   // take-family labels) died with it (F-D/F-F).
+  //
+  // Repair #23 (WS-23-1, audit F-3) - the round-3 reply glyph
+  // was the speech bubble (IconChats), and every social reader
+  // reads a speech bubble as COMMENTS - but it opened the
+  // author's DM. The row is re-glyphed honestly:
+  // - the speech bubble now means what it says: it opens this
+  //   moment's comments (events.openComments);
+  // - the author-thread jump keeps its own door, re-glyphed as
+  //   the PERSON (IconPerson) - a head-and-shoulders silhouette
+  //   no reader mistakes for a bubble at phone size: one door
+  //   is about the post, the other is about the person.
+  // Repost and save join the same row (see the placement note
+  // at the row itself).
   const canReply = !item.mine && Boolean(item.authorUserId) && Boolean(events.replyToPerson);
+  const canComment = Boolean(events.openComments);
   const hasSurface = doors.length > 0;
   const doorHold = useRef<ReturnType<typeof setTimeout> | null>(null);
   const beginDoorHold = (e: React.PointerEvent) => {
@@ -403,17 +492,68 @@ function MemoryFeedCard({
           </span>
         ) : null}
         <span className="c2s-row-spacer" aria-hidden />
+        {/* Repair #23 (WS-23-1) - the honest row. Order is the
+         * reading order of the acts: light (felt), comments
+         * (say it here), the person door (say it to them),
+         * repost (share it onward), save (keep it), graph-in
+         * (make it a plan). PLACEMENT DECISION, made on the
+         * rendered row: repost and save live IN this row, not
+         * in the card context menu, for two reasons a frame
+         * proves - (1) the row does not crowd: six 40px glyph
+         * doors plus the heart fit the card's inner width at
+         * phone size with the spacer intact, each silhouette
+         * distinct; (2) repost / save are STATEFUL - a state
+         * that lives behind a long-press is a state the reader
+         * cannot see at rest, and presence at rest is the
+         * calibrated noise law. The card's long-press already
+         * belongs to the take-panel, so a context menu here
+         * would also have fought that gesture. */}
+        {canComment ? (
+          <button
+            type="button"
+            className="c2s-glyph-btn"
+            data-testid="c2-feed-comments"
+            aria-label="Comments on this moment"
+            onClick={() => events.openComments!(item.id)}
+          >
+            <IconChats size={21} />
+          </button>
+        ) : null}
         {canReply ? (
           <button
             type="button"
             className="c2s-glyph-btn"
             data-testid="c2-feed-reply"
-            aria-label={`Reply to ${item.authorName ?? "them"}`}
+            aria-label={`Message ${item.authorName ?? "them"}`}
             onClick={() => events.replyToPerson!(item.authorUserId!)}
           >
-            <IconChats size={21} />
+            <IconPerson size={21} />
           </button>
         ) : null}
+        <button
+          type="button"
+          className="c2s-glyph-btn c2s-repost-btn"
+          data-testid="c2-feed-repost"
+          data-active={reposted ? "1" : undefined}
+          aria-pressed={reposted}
+          aria-label={reposted ? "You reposted this - tap to take it back" : "Repost this moment"}
+          disabled={repostBusy}
+          onClick={() => void toggleRepost()}
+        >
+          <IconRepost size={21} />
+        </button>
+        <button
+          type="button"
+          className="c2s-glyph-btn c2s-save-btn"
+          data-testid="c2-feed-save"
+          data-active={saved ? "1" : undefined}
+          aria-pressed={saved}
+          aria-label={saved ? "Saved - tap to remove from Saved" : "Save this moment"}
+          disabled={saveBusy}
+          onClick={() => void toggleSave()}
+        >
+          <IconSave size={21} />
+        </button>
         {hasSurface ? (
           <button
             type="button"
@@ -701,13 +841,17 @@ export function C2Home({
       return <MemoryFeedCard key={item.id} item={item} bearer={events.bearer} events={events} />;
     }
     if (item.kind === "live") {
-      return (
-        <article
-          key={item.id}
-          className="c2s-card c2s-live-card"
-          data-testid="c2-feed-live"
-          data-plan-state="happening"
-        >
+      // Repair #23 (WS-23-3) - the Live card IS its destination
+      // (audit F-2): the card is destination-shaped, so the whole
+      // card becomes the tap target firing events.openLive with
+      // the ROOM id (the projection's watch: action id carries
+      // it). The place stone's proven form: a button when the
+      // shell wires the door, a resting article when it does not.
+      const roomId = item.actionId.startsWith("watch:")
+        ? item.actionId.slice("watch:".length)
+        : item.id.replace(/^live-/, "");
+      const liveInner = (
+        <>
           <div className="c2s-card-byline">
             {item.hostAvatar ? <Avatar avatar={item.hostAvatar} size={32} /> : null}
             <span className="c2s-live-pill" data-testid="c2-live-pill">
@@ -765,6 +909,32 @@ export function C2Home({
             ) : null}
             {item.mine ? <span className="c2s-card-line">You are here</span> : null}
           </div>
+        </>
+      );
+      if (events.openLive) {
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className="c2s-card c2s-live-card"
+            data-testid="c2-feed-live"
+            data-plan-state="happening"
+            data-live-id={roomId}
+            aria-label={`Watch - ${item.title}`}
+            onClick={() => events.openLive!(roomId)}
+          >
+            {liveInner}
+          </button>
+        );
+      }
+      return (
+        <article
+          key={item.id}
+          className="c2s-card c2s-live-card"
+          data-testid="c2-feed-live"
+          data-plan-state="happening"
+        >
+          {liveInner}
           {events.feedAction ? (
             <button
               type="button"
@@ -835,6 +1005,16 @@ export function C2Home({
       "data-energy-level": place.energyLevel,
       "data-energy-family": place.energyFamily,
       "data-place": place.name,
+      // Repair #23 (WS-23-5): the server tier is the stone's
+      // warmth input - light only. data-signal-tier carries the
+      // tier word for the CSS warmth scale and for tests; the
+      // visible surface renders no tier word, no numeral and no
+      // "trending" label. data-warmth is the reconciled glow
+      // level (the warmer of tier warmth and the R22 level;
+      // plan-state fire keeps its color via data-energy-family).
+      "data-signal-tier": place.signalTier ?? "none",
+      "data-warmth": placeWarmthLevel(place),
+      "data-nearby": place.signalNearby ? "true" : "false",
     } as const;
     return events.openPlace ? (
       <button
@@ -990,19 +1170,34 @@ export function C2Home({
               line="Posts from your people and your plans will show up here."
             />
           ) : (
-            rest.map((item) => renderFeedItem(item))
+            <>
+              {/* Repair #23 (WS-23-4) - discovery is INTERLEAVED
+                  into the braid after its first group, not buried
+                  after the whole feed (audit R-4). The braid runs
+                  in two staggered currents, so the first group is
+                  the first two stream items; the discovery stone
+                  takes the wide berth there - a wide stone the
+                  stream parts around, in the stream's own rhythm -
+                  and the rest of the braid keeps its order below
+                  it. With fewer than two items the stone simply
+                  follows what there is; with an empty feed it
+                  renders after the places, as before. Discovery
+                  therefore always lands inside the first scroll. */}
+              {rest.slice(0, 2).map((item) => renderFeedItem(item))}
+              {projection.discovery && projection.discovery.length > 0 ? (
+                <section className="c2s-discovery" data-testid="c2-discovery">
+                  {projection.discovery.map((person) => (
+                    <DiscoveryRow
+                      key={person.userId}
+                      person={person}
+                      bearer={events.bearer}
+                    />
+                  ))}
+                </section>
+              ) : null}
+              {rest.slice(2).map((item) => renderFeedItem(item))}
+            </>
           )}
-          {projection.discovery && projection.discovery.length > 0 ? (
-            <section className="c2s-discovery" data-testid="c2-discovery">
-              {projection.discovery.map((person) => (
-                <DiscoveryRow
-                  key={person.userId}
-                  person={person}
-                  bearer={events.bearer}
-                />
-              ))}
-            </section>
-          ) : null}
         </div>
       </div>
 
@@ -1311,6 +1506,48 @@ function StoneFace({
  * now" - one state, two forms. The free-text label is no
  * longer rendered in the rail.
  *
+ * Repair #23 (R23-rail) - AMENDMENT to the WS-1 word map,
+ * founder charge 2026-10-21 18:04: "Loved" as a caption is
+ * semantically wrong - it describes the VIEWER's relationship
+ * to the author, not the story's own state, and "Seen" is
+ * likewise the viewer's history, not a state of the story.
+ * Captions now speak ONLY the story's own state:
+ *   happening -> "Live"   new (unseen, fresh) -> "New"
+ *   seen      -> NO caption word (the line rests empty)
+ *   loved     -> NO caption word, ever
+ * The viewer's-history signal that used to print "Loved"
+ * moves onto the RING as warmth (data-warmth below): the
+ * signal is traced in shellData.ts - stoneState "loved" is
+ * derived from the author's relationship type on the viewer's
+ * own relationship rows (listRelationships: spouse / partner
+ * / family / close_friend), NOT from any light the viewer
+ * gave the story. The self door keeps its name "Your moment"
+ * and follows the same map; its "+" and "Add" are the door's
+ * affordance, not a caption, and they stay. The empty state
+ * line still renders (empty) so every cell keeps the same
+ * two-line rhythm and baseline. The posts vocabulary (Create
+ * tenses Now / Forecast / Memories) is a separate vocabulary
+ * and is untouched by this amendment.
+ *
+ * Repair #23 (R23-rail) - TWO-TIER RING GLOW (IF-1
+ * resolution; founder-delegated parent decision 2026-10-21
+ * 18:04). The story ring is EXEMPT from the flat 8px
+ * glow-room token, tiered: RESTING (default) rings sit at
+ * the 8px glow-room (var(--stream-glow-room), WS-4's stream
+ * coherence); the founder-pinned 14px bloom blooms ONLY at
+ * the ATTENTION tier, earned by a named trigger. The tier is
+ * computed here from the projection's own fields (stoneState,
+ * which the one adapter derives from the story/live records
+ * and the viewer's relationship rows) and stamped on the
+ * stone element as data-glow; CSS keys the two box-shadows
+ * off it. Triggers wired today: happening (the story is
+ * LIVE - from the lives leg's own records) and loved (the
+ * author is the viewer's CLOSE PEOPLE - the relationship
+ * type signal above). Named triggers with NO signal in the
+ * rail record today - a response/mention involving the
+ * viewer, and demonstrated-interest overlap - are DECLARED
+ * in the R23 rail report, never faked here.
+ *
  * Repair #22 (R22-A, WS-2) - the ring carries ORBITAL motion
  * in the brand orb's language: a point of light travels the
  * ring (the orb's rings rotate with dots riding them). The
@@ -1323,12 +1560,24 @@ function StoneFace({
  * the ring material + caption word carry the identical
  * meaning statically.
  */
-const STONE_STATE_WORD: Record<"happening" | "loved" | "new" | "seen", string> = {
+/** R23 amended map: a null word means NO caption renders -
+ *  the state is carried by the ring, not by a word. The
+ *  nearby tier (WS-23-5) joins the same one-word grammar -
+ *  one state, one word, same form. */
+const STONE_STATE_WORD: Record<"happening" | "nearby" | "loved" | "new" | "seen", string | null> = {
   happening: "Live",
-  loved: "Loved",
+  nearby: "Nearby",
+  loved: null,
   new: "New",
-  seen: "Seen",
+  seen: null,
 };
+
+/** R23 two-tier glow: attention is earned only by the named
+ *  triggers wired in this wave - happening (live) and loved
+ *  (the viewer's close people). Everything else rests. */
+function stoneGlowTier(state: "happening" | "nearby" | "loved" | "new" | "seen"): "attention" | "rest" {
+  return state === "happening" || state === "loved" ? "attention" : "rest";
+}
 function MomentStones({
   rail,
   onSelf,
@@ -1351,6 +1600,7 @@ function MomentStones({
           type="button"
           className="c2s-stone c2s-stone-self"
           data-state={rail.self.hasLiveStory ? "happening" : "quiet"}
+          data-glow={rail.self.hasLiveStory ? "attention" : "rest"}
           data-testid="c2-stone-self"
           aria-label="Your moment"
           onClick={onSelf}
@@ -1380,6 +1630,8 @@ function MomentStones({
                 type="button"
                 className="c2s-stone"
                 data-state={state}
+                data-glow={stoneGlowTier(state)}
+                data-warmth={state === "loved" ? "warm" : undefined}
                 data-testid="c2-stone"
                 aria-label={`${story.personName} moment`}
                 onClick={() => onOpen(story)}
@@ -1396,6 +1648,8 @@ function MomentStones({
               <span
                 className="c2s-stone"
                 data-state={state}
+                data-glow={stoneGlowTier(state)}
+                data-warmth={state === "loved" ? "warm" : undefined}
                 data-testid="c2-stone-nomedia"
                 aria-label={`${story.personName} moment is not available to play`}
               >
@@ -1421,7 +1675,7 @@ function MomentStones({
               <p className="c2s-stone-name">{story.personName}</p>
             )}
             <p className="c2s-stone-sub" data-testid="c2-stone-sub">
-              {STONE_STATE_WORD[state]}
+              {STONE_STATE_WORD[state] ?? ""}
             </p>
           </div>
         );
@@ -1518,6 +1772,147 @@ function ShareComposer({
   const [error, setError] = useState<string | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
+  // Repair #23 (WS-23-2) - the audience is REAL state now, in the
+  // server's own moment vocabulary (MOMENT_AUDIENCE_OPTIONS:
+  // friends | specific_people | private - "close_circle" is a
+  // story/live value and is never a moment value). The segment
+  // follows the GoLiveFlow pattern; the label rendered is the
+  // state value itself, and publish sends the state.
+  const [audience, setAudience] = useState<MomentAudienceValue>("friends");
+  const [audiencePeople, setAudiencePeople] = useState<Array<{ id: string; name: string }> | null>(
+    null,
+  );
+  const [audiencePicked, setAudiencePicked] = useState<ReadonlySet<string>>(new Set());
+  const [audiencePreview, setAudiencePreview] = useState<{ question: string; who: string } | null>(
+    null,
+  );
+  const previewSeq = useRef(0);
+
+  const pickedIds = audience === "specific_people" ? [...audiencePicked] : undefined;
+  const pickedLabels =
+    audience === "specific_people"
+      ? (audiencePeople ?? [])
+          .filter((p) => audiencePicked.has(p.id))
+          .map((p) => p.name)
+      : undefined;
+
+  // The specific-people picker reads the viewer's own people
+  // projection - the one people source the shell already uses
+  // (listPeopleProjection, as in GroupMembership's add-people
+  // sheet). Only account-backed people can be named in an
+  // audience: audience_user_ids are user ids. No new endpoint.
+  useEffect(() => {
+    if (destination !== "post" || audience !== "specific_people" || audiencePeople !== null) return;
+    let live = true;
+    void (async () => {
+      try {
+        const res = await listPeopleProjection(bearer);
+        if (!live) return;
+        setAudiencePeople(
+          (res.people ?? [])
+            .filter((p) => p.account_backed)
+            .map((p) => ({ id: p.id, name: p.display_name || p.name })),
+        );
+      } catch {
+        if (live) setAudiencePeople([]);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [destination, audience, audiencePeople, bearer]);
+
+  // Before publish, the composer asks the server's own preview
+  // endpoint who can see this and renders its answer verbatim -
+  // nothing about the audience is computed or claimed locally.
+  useEffect(() => {
+    if (destination !== "post") return;
+    const seq = ++previewSeq.current;
+    void (async () => {
+      try {
+        const res = await previewSocialMomentAudience(
+          {
+            visibility: audience,
+            audience_user_ids: pickedIds,
+            audience_labels: pickedLabels,
+          },
+          bearer,
+        );
+        if (previewSeq.current !== seq) return;
+        setAudiencePreview({
+          question: res.preview?.question ?? res.question ?? "Who can see this?",
+          who: res.preview?.who_can_see ?? "",
+        });
+      } catch {
+        if (previewSeq.current === seq) setAudiencePreview(null);
+      }
+    })();
+    // pickedIds/pickedLabels are derived from audiencePicked +
+    // audiencePeople each render; the effect keys on their content.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destination, audience, audiencePicked, audiencePeople, bearer]);
+
+  const toggleAudiencePerson = (id: string) => {
+    setAudiencePicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const audienceBlock =
+    destination === "post" ? (
+      <>
+        <div className="c2s-seg" role="group" aria-label="Audience">
+          {MOMENT_AUDIENCE_OPTIONS.map((a) => (
+            <button
+              key={a.value}
+              type="button"
+              className="c2s-seg-btn"
+              data-testid={`c2-composer-audience-${a.value}`}
+              aria-pressed={audience === a.value}
+              onClick={() => setAudience(a.value)}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+        {audience === "specific_people" ? (
+          <div data-testid="c2-composer-audience-people">
+            {audiencePeople === null ? (
+              <p className="c2s-caption">Loading your people...</p>
+            ) : audiencePeople.length === 0 ? (
+              <p className="c2s-caption">
+                No one to pick yet - people you know in Opal will appear here.
+              </p>
+            ) : (
+              audiencePeople.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="c2s-sheet-row"
+                  data-testid={`c2-composer-audience-person-${p.id}`}
+                  aria-pressed={audiencePicked.has(p.id)}
+                  onClick={() => toggleAudiencePerson(p.id)}
+                >
+                  {p.name}
+                  {audiencePicked.has(p.id) ? " - Added" : ""}
+                </button>
+              ))
+            )}
+          </div>
+        ) : null}
+        {audiencePreview ? (
+          <p className="c2s-caption" data-testid="c2-composer-audience-preview">
+            {audiencePreview.question} {audiencePreview.who}
+          </p>
+        ) : null}
+      </>
+    ) : null;
+
+  const audienceBlocksShare =
+    destination === "post" && audience === "specific_people" && audiencePicked.size === 0;
 
   const pick = async (file: File | null) => {
     if (!file) return;
@@ -1550,9 +1945,17 @@ function ShareComposer({
         );
       } else {
         // A caption-only post is lawful (the publish rule rejects
-        // only an EMPTY post); media rides when present.
+        // only an EMPTY post); media rides when present. The
+        // audience segment's state is what publish sends: the
+        // visibility always, and the picked audience_user_ids
+        // for the specific-people choice.
         await publishSocialMoment(
-          { caption: caption.trim() || undefined, media_ids: mediaId ? [mediaId] : [] },
+          {
+            caption: caption.trim() || undefined,
+            media_ids: mediaId ? [mediaId] : [],
+            visibility: audience,
+            audience_user_ids: pickedIds,
+          },
           bearer,
         );
       }
@@ -1620,9 +2023,7 @@ function ShareComposer({
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
               />
-              <p className="c2s-caption">
-                Audience: Friends
-              </p>
+              {audienceBlock}
               {error ? (
                 <p className="c2s-error-line" role="alert">
                   {error}
@@ -1632,7 +2033,7 @@ function ShareComposer({
                 type="button"
                 className="c2s-btn-primary"
                 data-testid="c2-composer-share"
-                disabled={sharing || !caption.trim()}
+                disabled={sharing || !caption.trim() || audienceBlocksShare}
                 onClick={() => void share()}
               >
                 {sharing ? "Sharing" : "Share post"}
@@ -1684,9 +2085,7 @@ function ShareComposer({
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
               />
-              <p className="c2s-caption">
-                Audience: Friends
-              </p>
+              {audienceBlock}
               {error ? (
                 <p className="c2s-error-line" role="alert">
                   {error}
@@ -1696,7 +2095,7 @@ function ShareComposer({
                 type="button"
                 className="c2s-btn-primary"
                 data-testid="c2-composer-share"
-                disabled={sharing}
+                disabled={sharing || audienceBlocksShare}
                 onClick={() => void share()}
               >
                 {sharing ? "Sharing" : destination === "story" ? "Share story" : "Share post"}

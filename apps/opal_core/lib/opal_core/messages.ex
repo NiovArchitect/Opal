@@ -858,6 +858,9 @@ defmodule OpalCore.Messages do
           select: %{user_id: u.id, display_name: u.display_name, handle: u.handle}
         )
         |> Repo.all()
+        # Repair #23 (F-1): the members projection dedupes by user
+        # id - one member, one row, whatever the join produced.
+        |> Enum.uniq_by(fn row -> row.user_id end)
 
       members =
         Enum.map(rows, fn row ->

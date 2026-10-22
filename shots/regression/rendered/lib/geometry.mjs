@@ -497,3 +497,69 @@ export function probeCards(arg) {
   }
   return { containerPresent: !!container, cards };
 }
+
+/** Dock rest-gap probe (R23 WS-23-6, closing audit F-9).
+ *
+ * Measures the gap between the dock top and the lowest visible text
+ * leaf, the way the R21 close-out rig did (cap-close-pad2 audit):
+ * gap = dockTop - maxLeafBottom over raw getBoundingClientRect
+ * geometry. That raw number is reported for continuity, but it is
+ * NOT the verdict: rects only occlude when they share a stacking
+ * plane. A leaf inside a full-screen top layer (e.g. graph detail
+ * in .opal-top-layer) can sit below the dock's rect while the dock
+ * - which lives in the shell beneath the layer - never paints or
+ * hit-tests over it. The R21 close recorded exactly that artifact
+ * as "plan detail -44" while its own at-glass frame showed the
+ * check-in action fully visible.
+ *
+ * The verdict field is therefore hit-test based: the winning leaf
+ * is sampled across its bottom band; it is occluded only if the
+ * top element at some sampled point is the dock or inside it.
+ * `gap` answers "where do the rects sit"; `occluded` answers "can
+ * the user see and tap the leaf" - the second is the law. */
+export function probeDockRestGap() {
+  const dock =
+    document.querySelector('[data-testid="c2-dock"]') ||
+    document.querySelector(".c2s-dock");
+  const dr = dock ? dock.getBoundingClientRect() : null;
+  let winner = null;
+  let leafBottom = -1;
+  document.querySelectorAll("body *").forEach((el) => {
+    if (el.children.length > 0) return;
+    if (!(el.textContent || "").trim()) return;
+    if (dock && dock.contains(el)) return;
+    const cs = getComputedStyle(el);
+    if (cs.position === "fixed" || cs.display === "none" || cs.visibility === "hidden") return;
+    const r = el.getBoundingClientRect();
+    if (r.height === 0 || r.top >= window.innerHeight) return;
+    if (r.bottom > leafBottom) {
+      leafBottom = r.bottom;
+      winner = el;
+    }
+  });
+  let occluded = null;
+  let hitSamples = [];
+  if (winner && dr && leafBottom > dr.top) {
+    const r = winner.getBoundingClientRect();
+    occluded = false;
+    for (const fx of [0.25, 0.5, 0.75]) {
+      for (const fy of [0.25, 0.5, 0.75]) {
+        const x = Math.round(r.left + r.width * fx);
+        const y = Math.round(r.top + r.height * fy);
+        const top = document.elementFromPoint(x, y);
+        const inDock = !!(top && dock && (top === dock || dock.contains(top)));
+        hitSamples.push({ x, y, inDock });
+        if (inDock) occluded = true;
+      }
+    }
+  }
+  return {
+    dockTop: dr ? Math.round(dr.top) : null,
+    leafBottom: Math.round(leafBottom),
+    leafText: winner ? (winner.textContent || "").trim().slice(0, 50) : "",
+    leafTestid: winner ? winner.getAttribute("data-testid") : null,
+    gap: dr ? Math.round(dr.top - leafBottom) : null,
+    occluded,
+    hitSamples,
+  };
+}

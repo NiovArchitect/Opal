@@ -345,9 +345,18 @@ export function OrbitScreen({
     nextPlan?.title ??
     scope.planTitle ??
     scope.title;
-  const parties = orbit
+  // Repair #23 (F-1): parties dedupe by user id at composition -
+  // the header parties line (and the ring lights) name each person
+  // once, however the projection was assembled.
+  const seenPartyIds = new Set<string>();
+  const parties = (orbit
     ? orbit.parties.map((p) => ({ id: p.user_id, name: p.display_name, isViewer: p.is_viewer, pending: p.pending, limbo: p.limbo }))
-    : scope.party.map((p) => ({ id: p.id, name: p.name, isViewer: p.isViewer, pending: p.pending, limbo: p.limbo }));
+    : scope.party.map((p) => ({ id: p.id, name: p.name, isViewer: p.isViewer, pending: p.pending, limbo: p.limbo }))
+  ).filter((p) => {
+    if (seenPartyIds.has(p.id)) return false;
+    seenPartyIds.add(p.id);
+    return true;
+  });
   // Round 3 (O-2): the party line is built from the VIEWER's
   // seat - "You" first, then the others by name (the founder's
   // form: "You - Maya Torres") - and it lives in the header zone

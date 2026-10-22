@@ -73,8 +73,8 @@ beforeEach(() => {
   listPeopleMock.mockReset();
   listPeopleMock.mockResolvedValue({
     people: [
-      { id: "u-dan", person_id: "u-dan", display_name: "Dan", name: "Dan" },
-      { id: "u-eve", person_id: "u-eve", display_name: "Eve", name: "Eve" },
+      { id: "u-dan", person_id: "u-dan", account_user_id: "u-dan", display_name: "Dan", name: "Dan" },
+      { id: "u-eve", person_id: "u-eve", account_user_id: "u-eve", display_name: "Eve", name: "Eve" },
     ],
     count: 2,
   });

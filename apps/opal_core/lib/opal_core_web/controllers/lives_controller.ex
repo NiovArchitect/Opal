@@ -204,9 +204,12 @@ defmodule OpalCoreWeb.LivesController do
   defp truthy?(_), do: false
 
   def show(conn, %{"id" => id}) do
-    case Lives.get_live(id) do
-      {:ok, room, venue} ->
-        json(conn, %{"live_room" => LiveRoom.to_contract(room, venue)})
+    # get_live/2 enforces the visible-lives visibility rule for this
+    # viewer and returns the same enriched contract the list carries;
+    # a room not visible to the viewer arrives here as :not_found.
+    case Lives.get_live(id, conn.assigns.current_user_id) do
+      {:ok, live_room} ->
+        json(conn, %{"live_room" => live_room})
 
       {:error, :not_found} ->
         conn |> put_status(:not_found) |> json(%{"error" => "not_found"})

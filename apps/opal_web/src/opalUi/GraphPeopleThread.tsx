@@ -1,7 +1,7 @@
 /**
  * Conversation chrome - one clean header row (Paste W4 Phase 3 / W6 Phase 4).
  * [back] [avatar] [Name / relationship] ... [History] [phone] [video]
- * Exactly one navigation back control (gpt-back SVG) — no stacked text ‹ duplicate.
+ * Exactly one navigation back control (gpt-back SVG) - no stacked text ‹ duplicate.
  */
 import React, { useEffect, useState } from "react";
 import { MutedBell } from "./MutedBell";
@@ -40,7 +40,7 @@ type Props = {
   onOpenContactProfile?: () => void;
 };
 
-/** Single-stroke back chevron — SVG avoids font ‹ rendering as stacked «. */
+/** Single-stroke back chevron - SVG avoids font ‹ rendering as stacked «. */
 function BackChevronIcon() {
   return (
     <svg

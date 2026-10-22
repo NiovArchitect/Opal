@@ -3922,7 +3922,11 @@ export function OpalApp() {
     setGraphDetailCardId(graph?.planId || planId);
     if (resolvedEntry === "graphs") setTab("graphs");
     else if (resolvedEntry === "home") setTab("home");
-    else if (resolvedEntry === "opal") setTab("opal");
+    // Entry "opal" = opened from the Center: the ambient overlay
+    // was closed above and the underlying tab stays as it was.
+    // There is no "opal" Tab (the Center is an overlay, not a
+    // tab); the old setTab("opal") compiled only as an untyped
+    // clobber that matched no surface. R23 WS-23-6.
     else if (resolvedEntry === "chats") setTab("chats");
     if (graph) writeGraphAddress(graph.planId);
   };
@@ -5406,8 +5410,16 @@ export function OpalApp() {
             data-next-gap={reality.next_gap}
             data-past-strand-find-a-time-dominant={suppressFindATime ? "0" : undefined}
           >
-            {/* Place gap — structured-layout entry opens the same place sheet as classic chip. */}
-            {reality.next_gap === "place" && primary.kind !== "sheet" ? (
+            {/* Place gap — structured-layout entry opens the same place sheet as classic chip.
+                ONE PRIMARY CTA law: when the gap chip already owns the
+                place gap (primary.kind === "chip"), this journey entry
+                does not render - one primary per gap. The chip
+                exclusion was lost in the structured-layout moves and
+                is restored here (R23 WS-23-6); the sheet exclusion
+                was never dropped. */}
+            {reality.next_gap === "place" &&
+            primary.kind !== "chip" &&
+            primary.kind !== "sheet" ? (
               <button
                 type="button"
                 className="btn journey-cta"
@@ -9907,7 +9919,9 @@ export function OpalApp() {
             } else if (entry === "graphs") {
               setTab("graphs");
             } else if (entry === "opal") {
-              setTab("opal");
+              // Restore the Center overlay the detail was opened
+              // from; "opal" is not a Tab. R23 WS-23-6.
+              setOpalAmbientOpen(true);
             } else {
               setTab("home");
               setHomeScrollToken((t) => t + 1);
@@ -9945,7 +9959,9 @@ export function OpalApp() {
             // Restore originating surface (Chat → Chat, Graphs → Graphs, Center → Center).
             if (entry === "chats") setTab("chats");
             else if (entry === "graphs") setTab("graphs");
-            else if (entry === "opal") setTab("opal");
+            // Center origin: reopen the ambient overlay; "opal"
+            // is not a Tab. R23 WS-23-6.
+            else if (entry === "opal") setOpalAmbientOpen(true);
             else if (entry === "you") setTab("you");
             else setTab("home");
           }}

@@ -41,7 +41,12 @@ describe("production Technicolor system", () => {
   it("maps signals to semantic states with non-color-only labels available", () => {
     expect(semanticStateForSignal("plan_forming")).toBe("recognition");
     expect(semanticStateForSignal("open_loop")).toBe("participation");
-    expect(semanticStateForSignal("ready")).toBe("completion");
+    // Truth change (R23 WS-23-6 disposition): P3 Signal Grammar made
+    // ready/confirmed GOLD ("execution" in this vocabulary), with
+    // completion emerald reserved for the authoritative "set" -
+    // recorded in technicolorProduction.ts at the "ready" case.
+    // The old pin (ready -> completion) predates P3.
+    expect(semanticStateForSignal("ready")).toBe("execution");
     expect(semanticStateForSignal("private")).toBe("private");
     expect(semanticStateForSignal("execution")).toBe("execution");
     expect(semanticStateForSignal("failed")).toBe("urgency");

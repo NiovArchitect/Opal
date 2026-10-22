@@ -28,6 +28,7 @@
  */
 import {
   fetchHomeFeed,
+  getPlaceSignals,
   getAccountActivity,
   getAssistPreference,
   getLivesVisible,
@@ -881,6 +882,72 @@ export function placeStonesFromGraph(input: {
     .map(({ stone }) => stone);
 }
 
+/* ------------------------------------------------------------------ */
+/* Repair #23 (WS-23-5) - PLACE SIGNAL, FELT                           */
+/*                                                                     */
+/* The server tier (POST /places/signals) is the place stone's         */
+/* warmth input. The reconciliation with the R22 slice is exact:       */
+/* the tier sets the stone's warmth FLOOR in light, the R22 plan-      */
+/* state fire keeps its color and its own level, and the stone         */
+/* renders the warmer of the two as glow intensity - so a server       */
+/* tier can only add felt warmth the viewer's graph earned, and a      */
+/* quiet tier never dims a plan state that is really happening.        */
+/* Zero numerals, zero "trending" labels, zero leaderboard: the        */
+/* tier is light only, here and on the glass.                          */
+/* ------------------------------------------------------------------ */
+
+export type PlaceWarmthLevel = "cold" | "ember" | "lit" | "radiant";
+
+const PLACE_WARMTH_RANK: Record<PlaceWarmthLevel, number> = {
+  cold: 0,
+  ember: 1,
+  lit: 2,
+  radiant: 3,
+};
+
+const TIER_WARMTH: Record<
+  import("../../api/productClient").PlaceSignalTier,
+  PlaceWarmthLevel
+> = {
+  quiet: "cold",
+  stirring: "ember",
+  warm: "lit",
+  alive: "radiant",
+};
+
+const R22_LEVEL_WARMTH: Record<PlaceStoneProjection["energyLevel"], PlaceWarmthLevel> = {
+  ember: "ember",
+  lit: "lit",
+  radiant: "radiant",
+};
+
+/** The stone's rendered warmth: the warmer of the server tier's
+ *  warmth and the R22 energy level, as ONE light level. A stone
+ *  with no server tier yet rests on its R22 level alone. */
+export function placeWarmthLevel(place: PlaceStoneProjection): PlaceWarmthLevel {
+  const fromR22 = R22_LEVEL_WARMTH[place.energyLevel];
+  if (!place.signalTier) return fromR22;
+  const fromTier = TIER_WARMTH[place.signalTier];
+  return PLACE_WARMTH_RANK[fromTier] >= PLACE_WARMTH_RANK[fromR22] ? fromTier : fromR22;
+}
+
+/** Fold the server place signals onto the R22 stones, matched
+ *  by the builder's own normalized key. A signal for a place
+ *  with no stone changes nothing (the stone set is the R22
+ *  builder's truth); a stone with no signal keeps its R22
+ *  reading untouched. Pure - the adapter's one merge point. */
+export function withPlaceSignals(
+  stones: PlaceStoneProjection[],
+  signals: Array<{ place: string; tier: import("../../api/productClient").PlaceSignalTier; nearby: boolean }>,
+): PlaceStoneProjection[] {
+  const byKey = new Map(signals.map((s) => [normalizePlaceKey(s.place), s]));
+  return stones.map((stone) => {
+    const signal = byKey.get(stone.key);
+    if (!signal) return stone;
+    return { ...stone, signalTier: signal.tier, signalNearby: signal.nearby === true };
+  });
+}
+
 /** State rank for Home composition (W9): what is happening now and
  *  what needs the user lead; past settles last. This ORDERS finished
  *  cards only - it never changes a card's state family or label. */
@@ -1571,6 +1638,30 @@ export async function homeFromSession(
           viewerLiked:
             (o.engagement_summary as { viewer_liked?: unknown } | undefined)?.viewer_liked ===
               true || o.viewer_liked === true,
+          // Repair #23 (WS-23-1): the same engagement_summary
+          // carries the repost / save / comment truth (backend
+          // HomeFeed.to_feed_card); the flat fields stay the
+          // fallback for older payloads, exactly as for light.
+          viewerReposted:
+            (o.engagement_summary as { viewer_reposted?: unknown } | undefined)
+              ?.viewer_reposted === true || o.viewer_reposted === true,
+          repostCount:
+            typeof (o.engagement_summary as { repost_count?: unknown } | undefined)
+              ?.repost_count === "number"
+              ? ((o.engagement_summary as { repost_count: number }).repost_count as number)
+              : typeof o.repost_count === "number"
+                ? o.repost_count
+                : 0,
+          viewerSaved:
+            (o.engagement_summary as { viewer_saved?: unknown } | undefined)?.viewer_saved ===
+              true || o.viewer_saved === true,
+          commentCount:
+            typeof (o.engagement_summary as { comment_count?: unknown } | undefined)
+              ?.comment_count === "number"
+              ? ((o.engagement_summary as { comment_count: number }).comment_count as number)
+              : typeof o.comment_count === "number"
+                ? o.comment_count
+                : 0,
         };
       })
       .filter((m) => m.id && m.id !== "undefined");
@@ -1736,6 +1827,20 @@ export async function homeFromSession(
   // tier. "Nearby" is not a tier: no author location is read
   // anywhere in this adapter, so the tier is declared absent in
   // the rebuild report rather than simulated.
+  //
+  // Repair #23 (R23-rail) - TRACE of the "loved" signal, for
+  // the record: stoneState "loved" is computed HERE, from
+  // relTypeByName - the author's relationship type on the
+  // viewer's own relationship rows (listRelationships:
+  // relationships[].type joined via contacts by display
+  // name), against lovedTypes below. It is NOT computed from
+  // any light/like the viewer gave the story and NOT from
+  // viewing history (that is "seen", from the story record's
+  // own seen flag). Since the R23 caption-taxonomy amendment
+  // this signal no longer prints a caption word; in C2Home
+  // it drives the ring's warmth treatment (data-warmth) and,
+  // as the viewer's-close-people trigger, the attention tier
+  // of the two-tier ring glow (data-glow).
   {
     const liveHostNames = new Set(
       lives
@@ -1824,7 +1929,7 @@ export async function homeFromSession(
   // settled plans - those exclusions are the builder's input law),
   // the feed moments (visibility-gated by the backend feed itself),
   // and the visible lives. No new read is made for places.
-  const places = placeStonesFromGraph({
+  let places = placeStonesFromGraph({
     plans,
     moments: moments
       .filter((m): m is Extract<(typeof moments)[number], { kind: "memory" }> => m.kind === "memory")
@@ -1839,6 +1944,52 @@ export async function homeFromSession(
     lives: livePlaceInputs,
     now: new Date(),
   });
+
+  // Repair #23 (WS-23-5) - PLACE SIGNAL: the one new read. The
+  // names sent are exactly the places the stones above already
+  // named from this viewer's own reads; the server answers a
+  // qualitative tier + coarse nearby per place, computed from
+  // the viewer's permitted facts on its side, plus the
+  // per-person nearby set for the story rail. A failed read is
+  // honest absence: stones keep their R22 reading, no stone
+  // gains a tier, no story gains "nearby".
+  try {
+    {
+      const signalRes = await getPlaceSignals(
+        places.map((p) => p.name),
+        bearer,
+      );
+      places = withPlaceSignals(places, signalRes.signals ?? []);
+      const nearbyIds = new Set(signalRes.nearby_user_ids ?? []);
+      if (nearbyIds.size > 0) {
+        const rankOf = (s: (typeof stories)[number]): number =>
+          s.stoneState === "happening"
+            ? 0
+            : nearbyIds.has(s.personId ?? "")
+              ? 1
+              : s.stoneState === "loved"
+                ? 2
+                : s.stoneState === "seen"
+                  ? 4
+                  : 3;
+        stories = stories
+          .map((story, index) => ({ story, index }))
+          .sort((a, b) => rankOf(a.story) - rankOf(b.story) || a.index - b.index)
+          .map(({ story }) => ({
+            ...story,
+            stoneState:
+              story.stoneState === "happening"
+                ? story.stoneState
+                : nearbyIds.has(story.personId ?? "")
+                  ? ("nearby" as const)
+                  : story.stoneState,
+          }));
+      }
+    }
+  } catch {
+    // The signal read failed: places and stones stay exactly as
+    // the R22 builder and the W-9 ordering left them.
+  }
 
   return {
     header: { ownAvatar: self },

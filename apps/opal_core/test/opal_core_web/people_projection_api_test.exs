@@ -95,9 +95,14 @@ defmodule OpalCoreWeb.PeopleProjectionApiTest do
     assert b_row["relationship_type"] == "close_friend"
     assert b_row["account_backed"] == true
     assert is_binary(b_row["conversation_id"])
+    # Repair #23 (F-1): every row carries its account user id
+    # distinctly - the key membership surfaces exclude/dedupe/add
+    # on - for both same-name accounts.
+    assert b_row["account_user_id"] == b_id
 
     c_row = Enum.find(mayas, fn p -> p["id"] == c_id end)
     assert c_row["relationship_type"] == nil
+    assert c_row["account_user_id"] == c_id
   end
 
   test "F-8a: projection orders most-talked-to first from real messages", %{conn: conn} do

@@ -98,6 +98,15 @@ defmodule OpalCore.People do
 
     %{
       identity_id: identity_id,
+      # Repair #23 (F-1): the account user id behind this identity,
+      # resolved against the accounts store in `for_viewer/1` (nil
+      # until then, and nil for an identity with no account row).
+      # Kept DISTINCT from `identity_id`: the identity key is
+      # assembled from several sources (conversation user ids,
+      # contact `contact_user_id`s, establishment participant ids)
+      # and is not, by itself, the key the membership machinery
+      # speaks - `ConversationMember.user_id` is an account id.
+      account_user_id: nil,
       display_name: named && String.trim(named[:display_name]),
       account_backed: Enum.any?(group, fn e -> e[:account_backed] == true end),
       conversation_id: latest_conversation && latest_conversation[:conversation_id],
@@ -148,7 +157,29 @@ defmodule OpalCore.People do
         contact_entries(viewer_id, verified_ids) ++
         establishment_entries(viewer_id, verified_ids)
 
-    resolve(entries)
+    people = resolve(entries)
+
+    # Repair #23 (F-1): stamp each resolved person with the account
+    # user id behind their identity, looked up in the accounts
+    # store itself - the one key space `ConversationMember.user_id`
+    # and the membership projection speak. An identity with no
+    # account row keeps nil: it cannot be added to a conversation,
+    # and consumers must not fall back to the assembled identity
+    # key for membership decisions.
+    identity_ids = Enum.map(people, fn p -> p.identity_id end)
+
+    account_ids =
+      from(u in User, where: u.id in ^identity_ids, select: u.id)
+      |> Repo.all()
+      |> MapSet.new()
+
+    Enum.map(people, fn p ->
+      Map.put(
+        p,
+        :account_user_id,
+        if(MapSet.member?(account_ids, p.identity_id), do: p.identity_id, else: nil)
+      )
+    end)
   end
 
   def for_viewer(_), do: []
@@ -275,6 +306,11 @@ defmodule OpalCore.People do
     %{
       "id" => person.identity_id,
       "person_id" => person.identity_id,
+      # Repair #23 (F-1): the account user id, emitted distinctly
+      # from the assembled identity key above. Membership surfaces
+      # key exclusion, dedupe, and the add call on THIS field -
+      # never on `id` / `person_id`.
+      "account_user_id" => Map.get(person, :account_user_id),
       "display_name" => person.display_name,
       "name" => person.display_name,
       "account_backed" => person.account_backed,

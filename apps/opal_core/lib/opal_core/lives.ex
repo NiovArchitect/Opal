@@ -205,15 +205,60 @@ defmodule OpalCore.Lives do
     end
   end
 
-  def get_live(id) when is_binary(id) do
+  @doc """
+  One room for one viewer (the GET /lives/:id read).
+
+  Applies the SAME visibility rule (visible_to_viewer?/2) and the
+  SAME enrichment (enrich_live_room/4) as list_visible_lives/1: a
+  room the list would hide for this viewer reads as :not_found,
+  and a visible room carries the enriched contract (host_display_name
+  / host_handle, the precision-honored place_label, and mine for
+  this viewer) instead of the bare LiveRoom.to_contract.
+
+  Returns {:ok, enriched_contract} | {:error, :not_found}.
+  """
+  def get_live(id, viewer_id) when is_binary(id) and is_binary(viewer_id) do
     case Repo.get(LiveRoom, id) do
       %LiveRoom{} = room ->
-        venue = Repo.get(Venue, room.venue_id)
-        {:ok, room, venue}
+        if visible_to_viewer?(room, viewer_id) do
+          venue = Repo.get(Venue, room.venue_id)
+          {:ok, enrich_live_room(room, venue, host_identity(room.host_account_id), viewer_id)}
+        else
+          {:error, :not_found}
+        end
 
       nil ->
         {:error, :not_found}
     end
+  end
+
+  def get_live(_, _), do: {:error, :not_found}
+
+  # The single {display_name, handle} lookup for one host account -
+  # the show path's counterpart of the list path's batched hosts map.
+  defp host_identity(host_account_id) do
+    case Repo.get(User, host_account_id) do
+      %User{} = user -> {user.display_name, user.handle}
+      nil -> {nil, nil}
+    end
+  end
+
+  # THE shared enrichment path: list_visible_lives/1 and get_live/2
+  # both build their contract through this one function, so the
+  # enriched show contract can never drift from the list contract.
+  defp enrich_live_room(%LiveRoom{} = room, venue, {name, handle}, viewer_id) do
+    precision = room_precision(room)
+    audience = room_audience(room)
+
+    LiveRoom.to_contract(room, venue)
+    |> Map.merge(%{
+      "audience" => audience,
+      "location_precision" => precision,
+      "place_label" => place_label(venue, precision),
+      "host_display_name" => name,
+      "host_handle" => handle,
+      "mine" => room.host_account_id == viewer_id
+    })
   end
 
   def list_live_at_venue(venue_id) when is_binary(venue_id) do
@@ -265,22 +310,9 @@ defmodule OpalCore.Lives do
     |> Enum.filter(&visible_to_viewer?(&1, viewer_id))
     |> Enum.map(fn room ->
       venue = Map.get(venues, room.venue_id)
-      {name, handle} = Map.get(hosts, room.host_account_id, {nil, nil})
-      precision = room_precision(room)
-      audience = room_audience(room)
+      host = Map.get(hosts, room.host_account_id, {nil, nil})
 
-      %{
-        "live_room" =>
-          LiveRoom.to_contract(room, venue)
-          |> Map.merge(%{
-            "audience" => audience,
-            "location_precision" => precision,
-            "place_label" => place_label(venue, precision),
-            "host_display_name" => name,
-            "host_handle" => handle,
-            "mine" => room.host_account_id == viewer_id
-          })
-      }
+      %{"live_room" => enrich_live_room(room, venue, host, viewer_id)}
     end)
   end
 

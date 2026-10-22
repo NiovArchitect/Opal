@@ -20,6 +20,7 @@
 import React from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { IconClose } from "./bits";
+import { placeWarmthLevel } from "./shellData";
 import type { PlaceStoneProjection } from "./projections";
 
 export function PlaceStoneView({
@@ -48,8 +49,16 @@ export function PlaceStoneView({
           data-testid="c2-place-view"
           data-energy-level={place.energyLevel}
           data-energy-family={place.energyFamily}
+          data-signal-tier={place.signalTier ?? "none"}
+          data-warmth={placeWarmthLevel(place)}
+          data-nearby={place.signalNearby ? "true" : "false"}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Repair #23 (WS-23-5): the tier's felt state - a
+              warmth halo in light only, behind the head. It
+              carries no word about heat and no numeral; its
+              intensity IS the tier (see c2shell.css). */}
+          <span className="c2s-place-warmth" aria-hidden data-testid="c2-place-view-warmth" />
           <div className="c2s-place-view-head">
             <span className="c2s-place-fire" aria-hidden />
             <div style={{ flex: 1 }}>

@@ -244,13 +244,13 @@ export function GraphsTemporalTimeline({
     </div>
   );
 
-  // Hunt-fix B-07: seed content is labeled WHENEVER it renders — the
+  // Hunt-fix B-07: seed content is labeled WHENEVER it renders - the
   // note names sample content plainly, and every seed card carries
   // its own Sample tag (TimelineCard), in pure-seed and mixed modes.
   const anySeed = items.some((i) => (i.source || "seed") === "seed");
   const seedNote = usingSeed || anySeed ? (
     <p className="graphs-temporal-seed-note" data-testid="graphs-temporal-seed-note">
-      Includes sample plans from demo mode — marked Sample. Your real plans are unmarked.
+      Includes sample plans from demo mode - marked Sample. Your real plans are unmarked.
     </p>
   ) : null;
 

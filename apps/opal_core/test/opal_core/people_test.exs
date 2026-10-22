@@ -218,6 +218,40 @@ defmodule OpalCore.PeopleTest do
       assert hd(mayas).conversation_id == conv.id
       assert hd(mayas).account_backed == true
       assert hd(mayas).relationship_type == "close_friend"
+      # Repair #23 (F-1): the account user id is stamped from the
+      # accounts store - the key the membership machinery speaks.
+      assert hd(mayas).account_user_id == maya.id
+      assert People.to_contract(hd(mayas))["account_user_id"] == maya.id
+    end
+
+    test "to_contract emits the account user id distinctly from the assembled identity key" do
+      # An identity assembled from a non-account source can carry
+      # an identity key that is NOT the membership key space; the
+      # contract must keep the two keys separate so membership
+      # surfaces can key on the account id alone (Repair #23 F-1).
+      person = %{
+        identity_id: "src-contact-identity",
+        account_user_id: "u-account-behind-it",
+        display_name: "Maya Torres",
+        account_backed: true,
+        conversation_id: nil,
+        last_talked_at: nil,
+        talk_count: 0,
+        relationship_type: nil
+      }
+
+      contract = People.to_contract(person)
+      assert contract["id"] == "src-contact-identity"
+      assert contract["person_id"] == "src-contact-identity"
+      assert contract["account_user_id"] == "u-account-behind-it"
+
+      # No account behind the identity: the field is honestly nil,
+      # never a fallback to the identity key.
+      accountless = People.to_contract(%{person | account_user_id: nil})
+      assert accountless["account_user_id"] == nil
+
+      missing = Map.delete(person, :account_user_id)
+      assert People.to_contract(missing)["account_user_id"] == nil
     end
 
     test "two distinct accounts with the same display name both appear, unmixed" do

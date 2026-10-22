@@ -20,7 +20,10 @@ describe("availability UI - age-12 + color truth", () => {
     expect(semanticStateForSignal("availability_overlap")).toBe("recognition");
     expect(semanticStateForSignal("option_surfaced")).toBe("recognition");
     expect(semanticStateForSignal("set")).toBe("completion");
-    expect(semanticStateForSignal("ready")).toBe("completion");
+    // Truth change (R23 WS-23-6 disposition): P3 Signal Grammar -
+    // ready is GOLD ("execution"), not completion emerald; see the
+    // "ready" case comment in theme/technicolorProduction.ts.
+    expect(semanticStateForSignal("ready")).toBe("execution");
   });
 
   it("productClient has full availability surface", () => {

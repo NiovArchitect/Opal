@@ -1957,6 +1957,12 @@ export async function startConversationByPhone(phone: string, bearer?: string) {
 export type PeopleProjectionPerson = {
   id: string;
   person_id: string;
+  /** Repair #23 (F-1): the account user id behind this identity,
+   *  emitted distinctly from the assembled identity key (`id` /
+   *  `person_id`). Membership surfaces key exclusion, dedupe, and
+   *  the add call on this field; null means the identity has no
+   *  account row and cannot be added to a conversation. */
+  account_user_id: string | null;
   display_name: string;
   name: string;
   account_backed: boolean;
@@ -3113,6 +3119,74 @@ export async function publishSocialMoment(
     bearer: resolveBearer(bearer),
     body: JSON.stringify(attrs),
   });
+}
+
+export type SocialMomentAudiencePreview = {
+  visibility: string;
+  who_can_see: string;
+  question: string;
+  label?: string;
+  count?: number;
+  subtitle?: string | null;
+  technical?: boolean;
+};
+
+/**
+ * Repair #23 (WS-23-2) - the audience preview the composer renders
+ * before publish: POST /social-moments/audience-preview, the
+ * endpoint whose own question is "Who can see this?". The answer
+ * is server-computed from the visibility + audience ids given;
+ * the composer renders it verbatim and invents nothing locally.
+ */
+export async function previewSocialMomentAudience(
+  attrs: {
+    visibility: string;
+    audience_user_ids?: string[];
+    audience_labels?: string[];
+  },
+  bearer?: string,
+) {
+  return request<{ preview: SocialMomentAudiencePreview; question: string }>(
+    "/api/v1/product/social-moments/audience-preview",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify(attrs),
+    },
+  );
+}
+
+export type PlaceSignalTier = "quiet" | "stirring" | "warm" | "alive";
+
+export type PlaceSignal = {
+  place: string;
+  tier: PlaceSignalTier;
+  nearby: boolean;
+};
+
+/**
+ * Repair #23 (WS-23-5) - the place signal read path:
+ * POST /places/signals with the place names this client's own
+ * home feed already holds. The server answers ONLY a
+ * qualitative tier and a coarse nearby boolean per place,
+ * computed from facts this viewer is already permitted to
+ * know - no numeric heat ever crosses the wire (the backend
+ * test suite pins the payload's key set). nearby_user_ids is
+ * the coarse per-person nearby set for the story rail: user
+ * ids only, no position attached.
+ */
+export async function getPlaceSignals(
+  places: string[],
+  bearer?: string,
+) {
+  return request<{ signals: PlaceSignal[]; nearby_user_ids: string[]; heat_map_ui: boolean }>(
+    "/api/v1/product/places/signals",
+    {
+      method: "POST",
+      bearer: resolveBearer(bearer),
+      body: JSON.stringify({ places }),
+    },
+  );
 }
 
 /**
@@ -5691,8 +5765,6 @@ export type OpalPlanContract = {
   /** I2: the per-viewer etiquette projection (window / limbo / fork). */
   etiquette?: PlanEtiquetteContract | null;
   location?: string | null;
-  plan_type?: string;
-  online?: boolean;
   time_label?: string | null;
   /** Repair #19 polish (density/horizon): the record's own instants,
    *  already on the backend contract (SharedPlan.to_contract). The
@@ -5734,6 +5806,11 @@ export type OpalPlanContract = {
    * edit affordance only when this is true; never guessed locally.
    */
   can_edit?: boolean;
+  /** The plan's place type, from SharedPlan.to_contract: always a
+   *  string on the wire (the server defaults it to "in_person");
+   *  optional + nullable here only for partial payloads. Declared
+   *  once - a second declaration of plan_type/online below this
+   *  block was the R19-era duplicate removed in R23 WS-23-6. */
   plan_type?: string | null;
   meeting_link?: string | null;
   online?: boolean;

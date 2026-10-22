@@ -12,6 +12,7 @@ import {
   deleteTemporaryStory,
   fetchMomentsArchive,
   listMyArtifacts,
+  listSaved,
   sendVoiceNote,
   updateSocialMoment,
   type MyArtifact,
@@ -38,6 +39,36 @@ export const MOMENT_AUDIENCE_LABELS: Record<string, string> = {
   specific_people: "Specific people",
   close_circle: "Your close circle",
 };
+
+/**
+ * Repair #23 (WS-23-2) - THE moment audience control values, one
+ * source for every surface that sets a moment's audience: the
+ * ShareComposer segment and this archive's edit row speak these
+ * exact values (the server's own moment vocabulary -
+ * SocialMomentVisibility.supported_visibilities: friends,
+ * specific_people, private, group; group is set at publish via a
+ * group conversation and is not a composer choice). Labels come
+ * from MOMENT_AUDIENCE_LABELS so the two surfaces cannot drift.
+ * "close_circle" is a story/live value, never a moment value.
+ */
+export const MOMENT_AUDIENCE_OPTIONS = [
+  { value: "friends", label: MOMENT_AUDIENCE_LABELS.friends },
+  { value: "specific_people", label: MOMENT_AUDIENCE_LABELS.specific_people },
+  { value: "private", label: MOMENT_AUDIENCE_LABELS.private },
+] as const;
+
+export type MomentAudienceValue = (typeof MOMENT_AUDIENCE_OPTIONS)[number]["value"];
+
+/**
+ * The archive edit row offers only the self-contained values:
+ * switching to specific_people needs a people picker (the
+ * composer's job at publish); the stored audience_user_ids of a
+ * record are not carried by the archive contract, so the row
+ * never pretends to set them.
+ */
+export const MOMENT_AUDIENCE_EDIT_OPTIONS = MOMENT_AUDIENCE_OPTIONS.filter(
+  (opt) => opt.value !== "specific_people",
+);
 
 export function momentDateLabel(iso: string | null, withTime = false): string | null {
   if (!iso) return null;
@@ -134,6 +165,37 @@ function MomentCard({
   );
 }
 
+/**
+ * Repair #23 (WS-23-1) - SAVED read-back. Saving a moment in
+ * Flows (PUT /social-moments/:id/save) is a private save; its
+ * read path is GET /saved (client listSaved), whose saves are
+ * the moment contracts enriched with the engagement summary.
+ * Before R23 nothing in C2 read that path, so a save landed
+ * nowhere visible. The archive is the You surface's moments
+ * home, so Saved lives here as its own section under the
+ * viewer's own moments: the caption from the moment record
+ * itself, nothing composed. A saved record carries no author
+ * display name (the public contract names only the author id),
+ * so no author line is painted.
+ */
+export type SavedItem = {
+  id: string;
+  caption: string | null;
+  createdAt: string | null;
+};
+
+export function savedItemsFrom(res: {
+  saves: Array<Record<string, unknown>>;
+}): SavedItem[] {
+  return (res.saves ?? [])
+    .map((s) => ({
+      id: typeof s.id === "string" ? s.id : "",
+      caption: typeof s.caption === "string" && s.caption ? s.caption : null,
+      createdAt: typeof s.created_at === "string" ? s.created_at : null,
+    }))
+    .filter((s) => s.id);
+}
+
 /** ST-C: from You, the archive of the user's OWN shared moments. */
 export function MomentsArchive({
   bearer,
@@ -145,6 +207,10 @@ export function MomentsArchive({
   const [items, setItems] = useState<ArchiveItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<ArchiveItem | null>(null);
+  // Repair #23 (WS-23-1): the Saved leg is its OWN read - a
+  // failed saved read leaves the section absent and never
+  // fails the archive of the viewer's own moments.
+  const [savedItems, setSavedItems] = useState<SavedItem[] | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -154,6 +220,12 @@ export function MomentsArchive({
     } catch {
       setItems(null);
       setError("Your moments did not load. Check your connection and try again.");
+    }
+    try {
+      const savedRes = await listSaved(bearer);
+      setSavedItems(savedItemsFrom(savedRes));
+    } catch {
+      setSavedItems(null);
     }
   }, [bearer]);
 
@@ -213,6 +285,36 @@ export function MomentsArchive({
             ))}
           </>
         )}
+        {/* Repair #23 (WS-23-1): Saved - the read-back of the
+         * Flows save action. It renders only in the list view
+         * (never over a moment detail) and only when the saved
+         * read returned records; an empty or failed saved read
+         * paints no section. Saved is private: only the saver
+         * ever sees this list. */}
+        {!error && items !== null && !open && savedItems && savedItems.length > 0 ? (
+          <div data-testid="c2-archive-saved" style={{ marginTop: "var(--space-5)" }}>
+            <p className="c2s-group-label">Saved</p>
+            <p className="c2s-lede" data-testid="c2-archive-saved-note">
+              Moments you saved from Flows. Only you can see your Saved list.
+            </p>
+            {savedItems.map((item) => {
+              const when = momentDateLabel(item.createdAt);
+              return (
+                <div
+                  key={item.id}
+                  className="c2s-card"
+                  data-testid="c2-archive-saved-item"
+                  style={{ marginTop: "var(--space-3)" }}
+                >
+                  <p className="c2s-card-title">{item.caption || "Saved post"}</p>
+                  <p className="c2s-card-line">
+                    {["Saved post", when].filter(Boolean).join(" - ")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -316,12 +418,7 @@ function MomentDetail({
           </button>
           {canRescope ? (
             <div className="c2s-segmented" role="radiogroup" aria-label="Who can see it">
-              {(
-                [
-                  { value: "friends", label: "Friends" },
-                  { value: "private", label: "Only you" },
-                ] as const
-              ).map((opt) => (
+              {MOMENT_AUDIENCE_EDIT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"

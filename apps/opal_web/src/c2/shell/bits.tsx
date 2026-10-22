@@ -178,6 +178,38 @@ export const IconPerson = ({ size = 24 }: { size?: number }) => (
 );
 
 /**
+ * Repair #23 (WS-23-1) - REPOST: two arrows chasing each other
+ * in a cycle, the share-onward mark every social reader knows.
+ * Drawn in the same stroke language as the other card glyphs;
+ * the button carries the state (data-active), this only draws.
+ */
+export const IconRepost = ({ size = 24 }: { size?: number }) => (
+  <Glyph
+    size={size}
+    d={[
+      "M3.5 8h13",
+      "M13.5 5l3 3-3 3",
+      "M20.5 16H7.5",
+      "M10.5 13l-3 3 3 3",
+    ]}
+  />
+);
+
+/**
+ * Repair #23 (WS-23-1) - SAVE: a bookmark ribbon. At rest it is
+ * the outline; saved, the button's data-active state fills it
+ * (see c2shell.css) - the shape never changes, the fill is the
+ * state, so the card reads the same in both modes.
+ */
+export const IconSave = ({ size = 24 }: { size?: number }) => (
+  <Glyph
+    size={size}
+    d={["M6.5 4h11v16l-5.5-3.8L6.5 20z"]}
+    extra={<path className="c2s-save-fill" d="M6.5 4h11v16l-5.5-3.8L6.5 20z" stroke="none" />}
+  />
+);
+
+/**
  * Repair #21 round 3 (F-D + W-19 slice) - THE LIGHT HEART.
  * Light is a glyph now, never a word: a heart whose body is
  * the brand's marbled fire (the orb palette - point light,

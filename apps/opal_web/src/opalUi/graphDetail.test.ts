@@ -122,7 +122,14 @@ describe("graph detail navigation", () => {
 
   it("sends Next Together and Your Graphs to the same Graph Detail", () => {
     expect(strip).toMatch(/data-destination="graph-detail"/);
-    expect(strip).toMatch(/openGraphDetail\(planId, "graphs"\)/);
+    // Truth change (R23 WS-23-6 disposition): the Next Together
+    // strip lives in the chat thread, and openGraphDetail now takes
+    // the honest origin - entry "chats" - instead of coercing to
+    // "graphs" (the coercion caused the Back -> Graphs defect; see
+    // the "Do not coerce Chat/Center origins" note at the opener).
+    // Both doors land on the same canonical Graph Detail; the
+    // Graphs door below still enters with "graphs".
+    expect(strip).toMatch(/openGraphDetail\(planId, "chats"\)/);
     expect(strip).not.toMatch(/setPlanDetailOpen/);
     expect(app).toMatch(/onOpenGraph=\{\(cardId\) => openGraphDetail\(cardId, "graphs"\)\}/);
     expect(app).toMatch(/setActiveChatId\(null\)/);

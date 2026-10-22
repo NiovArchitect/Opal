@@ -131,6 +131,8 @@ import {
   type SeedCreate,
 } from "./flows2";
 import { BondStone } from "./BondStone";
+import { C2CommentsSheet } from "./C2CommentsSheet";
+import { C2LiveWatch, type C2LiveWatchSeed } from "./C2LiveWatch";
 import { PlaceStoneView } from "./PlaceStone";
 import { C2Home } from "./C2Home";
 import { C2Graphs, C2GraphDetail } from "./C2Graphs";
@@ -246,6 +248,24 @@ export function C2Shell() {
   // the Home adapter), so opening is a state set, not a load: the
   // view holds nothing the stone did not already carry.
   const [placeStone, setPlaceStone] = useState<PlaceStoneProjection | null>(null);
+
+  // Repair #23 (WS-23-1) - the moment whose comments sheet is
+  // open, or null. Opening is a state set from the card's
+  // speech-bubble door; the sheet itself loads and posts
+  // through the real comments endpoints with this bearer.
+  const [commentsMomentId, setCommentsMomentId] = useState<string | null>(null);
+
+  // Repair #23 (WS-23-3) - the live room whose watch surface is
+  // open, or null. Opening is a state set from the Live card's
+  // own door (events.openLive); the seed carries the card
+  // record's fields for the same room, and the surface itself
+  // reads the room over GET /lives/:id. Home never unmounts
+  // while it is open, so closing returns to Flows at the
+  // preserved scroll position.
+  const [liveWatch, setLiveWatch] = useState<{
+    liveId: string;
+    seed: C2LiveWatchSeed;
+  } | null>(null);
 
   /** W-12: tapping a person lands on the shared stone. The bond
    *  loads through the real shared reads; a person with no bond
@@ -939,6 +959,8 @@ export function C2Shell() {
                 onShared={() => setHomeNonce((n) => n + 1)}
                 onOpenBond={(personId) => openBond(personId)}
                 onReplyToPerson={replyToPerson}
+                onOpenComments={(momentId) => setCommentsMomentId(momentId)}
+                onOpenLive={(liveId, seed) => setLiveWatch({ liveId, seed })}
                 onSeedDoor={seedDoor}
                 onCreationPlan={creationPlan}
                 onOpenPlace={(place) => setPlaceStone(place)}
@@ -1336,6 +1358,24 @@ export function C2Shell() {
         />
       ) : null}
 
+      {commentsMomentId ? (
+        <C2CommentsSheet
+          momentId={commentsMomentId}
+          bearer={bearer}
+          onClose={() => setCommentsMomentId(null)}
+        />
+      ) : null}
+
+      {liveWatch ? (
+        <C2LiveWatch
+          liveId={liveWatch.liveId}
+          bearer={bearer}
+          seed={liveWatch.seed}
+          viewerUserId={session?.user_id}
+          onClose={() => setLiveWatch(null)}
+        />
+      ) : null}
+
       {repeatDetail ? (
         <RepeatPlanFlow
           detail={repeatDetail}
@@ -1616,6 +1656,8 @@ function HomeRoute(props: {
   onShared: () => void;
   onOpenBond?: (personId: string, name: string) => void;
   onReplyToPerson?: (authorUserId: string) => void;
+  onOpenComments?: (momentId: string) => void;
+  onOpenLive?: (liveId: string, seed: C2LiveWatchSeed) => void;
   onSeedDoor?: (create: SeedCreate) => void;
   onCreationPlan?: (tense: CreationTense) => void;
   onOpenPlace?: (place: PlaceStoneProjection) => void;
@@ -1646,14 +1688,38 @@ function HomeRoute(props: {
         openSearch: props.onSearch,
         openActivity: props.onActivity,
         openGraph: props.onOpenGraph,
-        // JA-06: no feedAction is wired — there is no live viewer
-        // yet (J2 named exception), so C2Home renders no action
-        // button on feed cards instead of a dead one.
+        // JA-06, answered by Repair #23 (WS-23-3): the watch
+        // surface the old comment confessed missing now exists
+        // (C2LiveWatch), and the Live card's door is wired to it
+        // here on its own honestly named event - openLive, not a
+        // feedAction overload. The seed is the card record's own
+        // fields for this room, looked up in this route's
+        // projection; the surface re-reads the room itself over
+        // GET /lives/:id. feedAction stays unwired: it was never
+        // the live journey, and no other card kind has a wired
+        // outcome for it in this shell.
+        openLive: props.onOpenLive
+          ? (liveId) => {
+              const found = projection.feed.find(
+                (f) =>
+                  f.kind === "live" &&
+                  (f.actionId === `watch:${liveId}` || f.id === `live-${liveId}`),
+              );
+              const item = found && found.kind === "live" ? found : null;
+              props.onOpenLive!(liveId, {
+                hostName: item?.hostName ?? null,
+                placeLabel: item?.placeLabel ?? null,
+                title: item?.title ?? null,
+                mine: Boolean(item?.mine),
+              });
+            }
+          : undefined,
         onShared: props.onShared,
         bearer: props.bearer,
         occasionPlan: props.onOccasionPlan,
         openBond: props.onOpenBond,
         replyToPerson: props.onReplyToPerson,
+        openComments: props.onOpenComments,
         seedDoor: props.onSeedDoor,
         creationPlan: props.onCreationPlan,
         openPlace: props.onOpenPlace,

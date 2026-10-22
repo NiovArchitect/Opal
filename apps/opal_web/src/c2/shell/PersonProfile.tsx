@@ -12,10 +12,14 @@
  * without a real action behind them. Message is real because the
  * thread is open behind this sheet; memory controls are real
  * because the host routes to the You > What Opal remembers room.
+ * Repair #23 (WS-23-4): Follow is real the same way - it rides
+ * the FollowGraph endpoints only, reads its state from the
+ * server on open, and re-renders from each write's response.
  */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TopLayer } from "../../opalUi/TopLayer";
 import { PlanStatePillC2 } from "../PlanCardC2";
+import { followStatus, followUser, unfollowUser } from "../../api/productClient";
 import { Avatar } from "./bits";
 import type { PersonProfileProjection } from "./projections";
 import {
@@ -30,11 +34,22 @@ export function PersonProfileSheet({
   onOpenMemoryControls,
   onOpenBond,
   onSaveRelationship,
+  follow,
 }: {
   profile: PersonProfileProjection;
   onClose: () => void;
   onMessage?: () => void;
   onOpenMemoryControls?: () => void;
+  /** Repair #23 (WS-23-4) - the follow leg, supplied by the host
+   *  when it holds a session and this profile is one person. A
+   *  follow is a durable FollowGraph edge: it is NOT friendship
+   *  and it grants NO friend visibility (the FollowController's
+   *  own contract: follow_is_not_friend,
+   *  grants_friend_visibility = false), so the control says
+   *  Follow / Following and nothing more - no word on this sheet
+   *  implies the follow makes you friends or lets them see
+   *  anything. Absent = no control renders (no dead control). */
+  follow?: { userId: string; bearer?: string };
   /** Repair #21 (W-12): the door to the pair's shared stone,
    *  supplied by the host when it can open the bond. Absent = no
    *  door renders (no dead control). */
@@ -45,6 +60,49 @@ export function PersonProfileSheet({
   onSaveRelationship?: RelationshipSave;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Repair #23 (WS-23-4) - follow state is the SERVER's, read
+  // from followStatus on open (and on every re-open: this sheet
+  // remounts per open, so no local memory can outlive a close)
+  // and re-rendered FROM THE RESPONSE on every toggle - the
+  // DiscoveryRow's proven pattern. null = not yet read: the
+  // control renders nothing until the status lands, so it can
+  // never paint a state the server has not confirmed. A failed
+  // read or write changes nothing on screen.
+  const [following, setFollowing] = useState<boolean | null>(null);
+  const [followBusy, setFollowBusy] = useState(false);
+  const followUserId = follow?.userId;
+  const followBearer = follow?.bearer;
+  useEffect(() => {
+    if (!followUserId) return;
+    let live = true;
+    setFollowing(null);
+    void (async () => {
+      try {
+        const res = await followStatus(followUserId, followBearer);
+        if (live) setFollowing(res.following === true);
+      } catch {
+        /* no confirmed state, no control - the sheet keeps the
+         * server's last truth, which here is silence */
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [followUserId, followBearer]);
+  const toggleFollow = async () => {
+    if (!followUserId || following === null || followBusy) return;
+    setFollowBusy(true);
+    try {
+      const res = following
+        ? await unfollowUser(followUserId, followBearer)
+        : await followUser(followUserId, followBearer);
+      setFollowing(res.following === true);
+    } catch {
+      /* the control keeps the server's last truth */
+    } finally {
+      setFollowBusy(false);
+    }
+  };
   return (
     <TopLayer band="sheet">
       <div className="c2s-scrim" onClick={onClose}>
@@ -124,6 +182,18 @@ export function PersonProfileSheet({
                 onClick={onMessage}
               >
                 Message
+              </button>
+            ) : null}
+            {follow && following !== null ? (
+              <button
+                type="button"
+                className="c2s-btn-text"
+                data-testid="r23-profile-follow"
+                aria-pressed={following}
+                disabled={followBusy}
+                onClick={() => void toggleFollow()}
+              >
+                {following ? "Following" : "Follow"}
               </button>
             ) : null}
             {onOpenBond ? (

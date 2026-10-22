@@ -66,7 +66,9 @@ defmodule OpalCore.SocialFlow.OrbitProjection do
 
   def for_conversation(viewer_id, conversation_id, opts)
       when is_binary(viewer_id) and is_binary(conversation_id) do
-    member_ids = Messages.member_user_ids(conversation_id)
+    # Repair #23 (F-1): party identity is the user id, once each -
+    # the header parties line is composed from this list verbatim.
+    member_ids = conversation_id |> Messages.member_user_ids() |> Enum.uniq()
 
     if viewer_id in member_ids do
       plans =

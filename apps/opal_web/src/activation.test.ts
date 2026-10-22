@@ -92,7 +92,15 @@ describe("S1 first-run auth conversion", () => {
 
   it("boot recovers session without requiring localStorage bearer", () => {
     const app = readFileSync(resolve(root, "src/OpalApp.tsx"), "utf8");
-    expect(app).toMatch(/fetchSession\(session\?\.access_token\)/);
+    // Truth change (R23 WS-23-6 disposition): boot was restructured
+    // by the cookie-session restore work (747523fe, hardened in
+    // 84550028) - it now tries the in-memory/sessionStorage token
+    // first, then recovers bearer-less via the cookie session.
+    // The pinned behavior is unchanged: recovery must not REQUIRE
+    // a stored bearer. The old pin named the pre-restructure call
+    // shape fetchSession(session?.access_token).
+    expect(app).toMatch(/fetchSession\(token \|\| undefined\)/);
+    expect(app).toMatch(/fetchSession\(undefined\)/);
     expect(app).toMatch(/cookie/i);
     const client = readFileSync(resolve(root, "src/api/productClient.ts"), "utf8");
     expect(client).toMatch(/credentials:\s*["']include["']/);

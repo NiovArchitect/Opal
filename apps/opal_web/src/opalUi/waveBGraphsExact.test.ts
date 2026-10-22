@@ -26,7 +26,11 @@ describe("Wave B Graphs exact authority", () => {
   it("GRAPHS_FILTER_COLORS_PRESERVED", () => {
     const css = read("styles.css");
     expect(css).toMatch(/\.graphs-lens-chip\[data-lens="all"\]\.is-active[\s\S]*?#00E5FF/);
-    expect(css).toMatch(/\.graphs-lens-chip\[data-lens="all"\]\.is-active[\s\S]*?#0A2429/);
+    // Truth change (R23 WS-23-6 disposition): the All-active fill
+    // moved from solid deep-teal #0A2429 to translucent cyan in
+    // 438c5c2f (semantic sticky pills / dock parity). The lens hues
+    // themselves (#00E5FF / #FF6B9D / #FFC86B) are preserved.
+    expect(css).toMatch(/\.graphs-lens-chip\[data-lens="all"\]\.is-active[\s\S]*?rgba\(0, 229, 255, 0\.13\)/);
     expect(css).toMatch(/\.graphs-lens-chip\[data-lens="action"\][\s\S]*?#FF6B9D/);
     expect(css).toMatch(/\.graphs-lens-chip\[data-lens="ready"\][\s\S]*?#FFC86B/);
   });

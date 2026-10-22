@@ -1349,7 +1349,11 @@ export function GraphingStandingPermissionSection({ session }: WhatOpalCanDoProp
               const id = p.contact_user_id;
               if (!id) return null;
               const on = callSignalOn(id);
-              const label = p.display_name || p.handle || "Person";
+              // RelationshipContact carries no handle - the backend
+              // contact contract (Relationships.to_contact_contract)
+              // emits display_name only; the old p.handle fallback
+              // was dead code (always undefined). R23 WS-23-6.
+              const label = p.display_name || "Person";
               return (
                 <div
                   key={id}

@@ -19,6 +19,25 @@
  *  - F-18 D-5: Home and Center declare different purposes and lead
  *    differently - Home with people/moments, Center with the
  *    Needs-you deck.
+ *
+ * AMENDMENT (Repair #23, R23-rail): the F-10 PIN below for the
+ * happening story ring's glow was AMENDED by the IF-1 two-tier
+ * resolution - founder-delegated PARENT DECISION, 2026-10-21
+ * 18:04. The collision it resolves (named in the R22 handoff
+ * as IF-1): the original pin held the ring at a flat 14px
+ * (0 0 14px var(--orb-indicator-happening-glow)) while Repair
+ * #22 WS-4's glow-containment sweep tokenized the same rule
+ * to the 8px stream glow-room. The amended law is TWO-TIER:
+ * the ring is exempt from the flat token - RESTING (default)
+ * rings sit at the 8px glow-room (var(--stream-glow-room),
+ * WS-4's stream coherence governs the default), and the
+ * founder-pinned 14px bloom applies ONLY at the ATTENTION
+ * tier (data-glow="attention"), stamped by the render only
+ * when attention is earned by a named trigger (the story is
+ * live; its author is the viewer's close people; the
+ * response/mention and demonstrated-interest triggers have
+ * no signal in the rail record today and are declared in the
+ * R23 rail report). The pin below asserts both tiers.
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -506,7 +525,13 @@ describe("R20 F-10 Center assets", () => {
     // points at the ring's happening treatment (the marbled
     // fire ring carrying the happening glow). Same intent: a
     // happening stone on Home's lead burns in happening light.
-    expect(css).toMatch(/\.c2s-stone\[data-state="happening"\] \.c2s-stone-ring\s*\{[^}]*box-shadow: 0 0 14px var\(--orb-indicator-happening-glow\)/);
+    // R23 AMENDMENT (IF-1 two-tier law; provenance in this
+    // file's header): the flat 14px pin is replaced by the two
+    // tiers - the happening ring's RESTING shadow is the 8px
+    // glow-room token, and the 14px bloom exists ONLY under
+    // the attention stamp (data-glow="attention").
+    expect(css).toMatch(/\.c2s-stone\[data-state="happening"\] \.c2s-stone-ring\s*\{[^}]*box-shadow: 0 0 var\(--stream-glow-room\) var\(--orb-indicator-happening-glow\)/);
+    expect(css).toMatch(/\.c2s-stone\[data-glow="attention"\] \.c2s-stone-ring\s*\{[^}]*box-shadow: 0 0 14px var\(--orb-indicator-happening-glow\)/);
     // The compass never borrows a state color for these treatments.
     const compassCss = css.slice(css.indexOf("DESIGN COMPASS"), css.indexOf(".c2s-connection-detail"));
     expect(compassCss).not.toMatch(/--state-(action|ready|forming|happening)/);

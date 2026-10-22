@@ -26,7 +26,11 @@ describe("design tokens + brand", () => {
     expect(BRAND.figma.symbolVisualMaster).toBe("160:2");
     expect(BRAND.figma.symbolDefective168).toBe("168:2");
     expect(BRAND.figma.brandLock).toBe("159:2");
-    expect(BRAND.figma.firstRun).toBe("217:2");
+    // Truth change (R23 WS-23-6 disposition): the First Run Figma
+    // authority was converged 217:2 -> 327:5 in 470f052d ("converge
+    // First Run and shell to current Figma authorities"); the S1
+    // suite and brandMark pins already speak 327:5.
+    expect(BRAND.figma.firstRun).toBe("327:5");
     expect(BRAND.figma.visualConvergence).toBe("201:2");
     expect(BRAND.figma.supersededMarkNode).toBe("77:8");
     expect(BRAND.status.productBrandSource).toBe("VALID");

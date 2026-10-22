@@ -24,6 +24,15 @@
  *       a door only when the shell wires the place view; the
  *       place view groups now / coming / memory and its plan
  *       rows open the real graph detail.
+ *
+ * AMENDMENT (Repair #23, WS-23-5, recorded per the workstream's
+ * rule - never silent): the stone and the place view now also
+ * stamp the server place signal (data-signal-tier / data-warmth
+ * / data-nearby, defaulting to "none" / the R22 warmth / "false"
+ * when no signal has landed), and the place view renders a
+ * warmth halo element (light only). No PE-1..PE-5 assertion
+ * changed: every pin below stands as written, and the new
+ * signal pins live in r23PlaceSignal.test.tsx (PS-1..PS-5).
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";

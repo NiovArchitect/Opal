@@ -43,8 +43,16 @@ describe("FOUNDER LIVE JOURNEY CLOSURE (deterministic)", () => {
 
   it("product uses continuous orbital mark path (not historical flat arcs only)", () => {
     const brand = readFileSync(resolve(root, "src/brand/brand.ts"), "utf8");
-    expect(brand).toMatch(/opal-mark-current\.png/);
-    const mark = resolve(root, "public/brand/opal-mark-current.png");
+    // Truth change (R23 WS-23-6 disposition): the current product
+    // mark is the W6A2 canonical logo lockup (BRAND_ASSETS.opalLogo,
+    // markCurrent = /brand/opal-logo.png; OpalMark renders it and
+    // its header states "No abstract OPALGRAPH emblem"). The old
+    // orbital raster opal-mark-current.png remains on disk but is
+    // no longer referenced as the current mark. The pinned intent
+    // stands: a live current mark exists and is not the rejected
+    // historical arcs.
+    expect(brand).toMatch(/markCurrent: "\/brand\/opal-logo\.png"/);
+    const mark = resolve(root, "public/brand/opal-logo.png");
     expect(existsSync(mark)).toBe(true);
     // historical arcs retained for audit trail / quarantine
     expect(

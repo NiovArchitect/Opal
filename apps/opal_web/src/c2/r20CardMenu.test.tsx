@@ -170,7 +170,15 @@ describe("R20 F-3 - the long-press menu is a finished card carrying the plan's s
       /\.c2s-menu-panel\[data-plan-state="happening"\]\s*\{[^}]*0 0 0 3px[^}]*--orb-indicator-happening/,
     );
     // No raw state hex enters the menu treatments.
-    const menuCss = css.slice(css.indexOf("R20 F-3: the panel is rebuilt"));
+    // Scope note (R23 WS-23-6 disposition): the slice is bounded to
+    // the F-3 menu section itself (it ends where the Graph Detail
+    // destination section begins). The original slice ran to EOF;
+    // the R21 W-2 CALM section appended later mentions the canon
+    // hexes in a comment explaining why text never wears them -
+    // prose outside this pin's scope, not a menu treatment.
+    const menuStart = css.indexOf("R20 F-3: the panel is rebuilt");
+    const menuEnd = css.indexOf("destination (Graph Detail, section 8.2)", menuStart);
+    const menuCss = css.slice(menuStart, menuEnd);
     expect(menuCss).not.toMatch(/#FF4D5E|#FFC86B|#8B5CF6|#00E5FF/i);
   });
 

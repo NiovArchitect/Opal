@@ -109,7 +109,16 @@ describe("Paste J Phase 5 graph calendaring", () => {
     const profile = read("opalUi/GraphProfilePage.tsx");
     const social = read("opalUi/GraphSocialHome.tsx");
     expect(home).toMatch(/graphs-card-temporal/);
-    expect(home).toMatch(/liveGraphsToTimelineItems/);
+    // Truth change (R23 WS-23-6 disposition): liveGraphsToTimelineItems
+    // moved out of GraphsHome.tsx into graphCalendaring.ts and now
+    // reaches the surface through graphsHydration.composeGraphsList,
+    // which GraphsHome consumes. The pinned behavior is unchanged:
+    // GraphsHome's list is composed from live timeline items.
+    expect(home).toMatch(/composeGraphsList/);
+    const calendaring = read("opalUi/graphCalendaring.ts");
+    expect(calendaring).toMatch(/export function liveGraphsToTimelineItems/);
+    const hydration = read("opalUi/graphsHydration.ts");
+    expect(hydration).toMatch(/liveGraphsToTimelineItems\(liveGraphs\)/);
     expect(profile).toMatch(/gprof-upcoming-plans/);
     expect(profile).toMatch(/gprof-open-loop/);
     expect(social).toMatch(/gsh-gr-temporal/);

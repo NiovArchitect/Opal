@@ -554,6 +554,10 @@
     background:
       linear-gradient(var(--canvas), var(--canvas)) padding-box,
       conic-gradient(from 210deg, var(--orb-fire-cyan), var(--orb-fire-violet), var(--orb-fire-magenta), var(--orb-fire-gold), var(--orb-fire-cyan)) border-box;
+    /* R23 IF-1, RESTING tier (the default): the happening
+     * ring sits at the 8px glow-room token - WS-4's stream
+     * coherence governs the default. The 14px bloom lives
+     * only in the data-glow="attention" rule below. */
     box-shadow: 0 0 var(--stream-glow-room) var(--orb-indicator-happening-glow);
   }
   /* Repair #22 (R22-A, WS-2) - ORBITAL TRACKING: a point of
@@ -616,9 +620,35 @@
   @keyframes c2s-stone-orbit {
     to { transform: rotate(360deg); }
   }
-  .c2s-stone[data-state="loved"] .c2s-stone-ring {
+  /* Repair #23 (R23-rail) - RING WARMTH: the signal that used
+   * to print the caption "Loved" (traced in shellData.ts: the
+   * author's relationship type on the viewer's rows - spouse /
+   * partner / family / close friend) now lives on the RING as
+   * a warm trace, keyed by data-warmth, never as a word. */
+  .c2s-stone[data-warmth="warm"] .c2s-stone-ring {
     border-color: color-mix(in srgb, var(--orb-ring-metal) 55%, transparent);
     box-shadow: 0 0 10px color-mix(in srgb, var(--orb-ring-metal) 35%, transparent);
+  }
+  /* Repair #23 (WS-23-5) - NEARBY stone state: this person is
+   * near a place on a plan the viewer shares with them (fresh
+   * per-plan location share, server-derived; coarse near /
+   * not-near only - no distance ever reaches the glass). The
+   * ring wears the ready canon gold: someone close enough
+   * that something could happen. Its orbit travels between
+   * New and Loved in speed - proximity is present-tense but
+   * quieter than live. Under reduced motion the ring color
+   * and the "Nearby" caption carry the state statically. */
+  .c2s-stone[data-state="nearby"] .c2s-stone-ring {
+    border-color: color-mix(in srgb, var(--orb-indicator-ready) 65%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--orb-indicator-ready-glow) 45%, transparent);
+  }
+  .c2s-stone[data-state="nearby"] .c2s-stone-orbit {
+    animation: c2s-stone-orbit 34s linear infinite;
+  }
+  .c2s-stone[data-state="nearby"] .c2s-stone-dot {
+    opacity: 0.7;
+    background: var(--orb-indicator-ready);
+    box-shadow: 0 0 5px var(--orb-indicator-ready-glow);
   }
   .c2s-stone[data-state="new"] .c2s-stone-ring {
     border: 1.5px solid transparent;
@@ -629,6 +659,24 @@
   .c2s-stone[data-state="seen"] .c2s-stone-ring {
     border-color: var(--line-1);
     box-shadow: none;
+  }
+  /* Repair #23 (R23-rail) - IF-1 TWO-TIER RING GLOW
+   * (founder-delegated parent decision, 2026-10-21 18:04):
+   * the story ring is EXEMPT from the flat glow-room token,
+   * tiered. RESTING (data-glow="rest", the default) keeps
+   * each state's own resting shadow above - for happening
+   * that is the token rule. ATTENTION (data-glow="attention",
+   * stamped by C2Home only on an earned trigger: the story
+   * is live, or its author is the viewer's close people)
+   * blooms at the founder-pinned 14px. A warm stone at
+   * attention keeps its warmth trace inside the bloom. */
+  .c2s-stone[data-glow="attention"] .c2s-stone-ring {
+    box-shadow: 0 0 14px var(--orb-indicator-happening-glow);
+  }
+  .c2s-stone[data-warmth="warm"][data-glow="attention"] .c2s-stone-ring {
+    box-shadow:
+      0 0 14px var(--orb-indicator-happening-glow),
+      0 0 10px color-mix(in srgb, var(--orb-ring-metal) 35%, transparent);
   }
   .c2s-stone-face {
     width: 100%;
@@ -909,8 +957,131 @@
   .c2s-graphin-btn[aria-expanded="true"] {
     background: color-mix(in srgb, var(--state-forming) 14%, transparent);
   }
+  /* Repair #23 (WS-23-1) - repost / save states on the moment
+   * row: the state is carried by fill + ink, never by a numeral
+   * (counts-free law). Reposted: the arrows take the ink-1
+   * register on a surface step. Saved: the bookmark fills. Both
+   * read at rest in light and dark because they ride surface
+   * and ink tokens, not a state color borrowed from plans. */
+  .c2s-repost-btn[data-active="1"],
+  .c2s-save-btn[data-active="1"] {
+    color: var(--ink-1);
+    background: var(--surface-2);
+  }
+  .c2s-save-btn .c2s-save-fill {
+    fill: transparent;
+  }
+  .c2s-save-btn[data-active="1"] .c2s-save-fill {
+    fill: currentColor;
+  }
+  /* Repair #23 (WS-23-1) - the comments sheet: the BondStone
+   * sheet material (c2s-scrim + c2s-sheet above) with a list
+   * and a composer in the sheet's own spacing. The list is
+   * bounded so a long thread scrolls inside the sheet and the
+   * composer stays reachable. */
+  .c2s-comments-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-height: 82vh;
+  }
+  .c2s-comments-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .c2s-comments-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .c2s-comment-row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+  .c2s-comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font: var(--type-caption);
+    flex: none;
+  }
+  .c2s-comment-copy {
+    flex: 1;
+    min-width: 0;
+  }
+  .c2s-comment-meta {
+    margin: 0;
+    font: var(--type-callout);
+    color: var(--ink-1);
+  }
+  .c2s-comment-time {
+    color: var(--ink-2);
+    font-weight: 400;
+  }
+  .c2s-comment-body {
+    margin: 2px 0 0;
+    font: var(--type-body);
+    color: var(--ink-1);
+    overflow-wrap: anywhere;
+  }
+  .c2s-comments-composer {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  .c2s-comments-input {
+    flex: 1;
+    min-width: 0;
+  }
+  .c2s-comments-post {
+    flex: none;
+  }
+  .c2s-comments-law {
+    margin: 0;
+  }
   .c2s-row-spacer {
     flex: 1;
+  }
+  /* Repair #23 (WS-23-3) - the live watch surface: the same
+   * sheet material as the comments sheet, stacked lines in the
+   * sheet's own spacing. Presence reuses .c2s-live-presence /
+   * .c2s-live-light and the pill reuses .c2s-live-pill - one
+   * light language with the card it was entered from. */
+  .c2s-live-watch {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-height: 82vh;
+  }
+  .c2s-live-watch-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .c2s-live-watch .c2s-live-pill {
+    align-self: flex-start;
+  }
+  /* The whole Live card is its tap target when the shell wires
+   * openLive (WS-23-3): the article becomes a button, so the
+   * card's own layout must survive the button reset - left
+   * aligned, full width, the card's own font and color. */
+  .c2s-live-card:is(button) {
+    text-align: left;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
   }
   /* Repair #21 round 3 (F-F) - THE TAKE-PANEL: the I-1
    * family's glyph tiles. The party composition is drawn in
@@ -3194,6 +3365,40 @@
   background: var(--primary-fill);
   color: var(--primary-ink);
 }
+/* Repair #23 (R23-rail) - RAIL CAPTION PARITY, UNLAYERED ON
+ * PURPOSE. Founder charge: in the frames "Your moment" renders
+ * bolder than "Maya Torres" - the rail's captions are
+ * unbalanced. The cause is an element split under one class:
+ * the self name and the plain names are <p> elements, but a
+ * person's name is a <button> (the bond door, .c2s-stone-name-btn),
+ * and the unlayered global reset in styles.css
+ * (`button, input { font: inherit }`) beats EVERY layered rule -
+ * including the layered .c2s-stone-name caption rule - so button
+ * names computed to the inherited body type (15px, weight 400)
+ * while paragraph names got the caption treatment (12px, weight
+ * 600). The LAW is one caption treatment rail-wide: these
+ * unlayered class rules restate the layered treatment exactly,
+ * so <p> and <button> names - and the state line under them -
+ * compute identical size, weight and baseline on every stone,
+ * the self stone included. The name button also becomes a
+ * block at full cell width, so its baseline and ellipsis match
+ * the paragraph names. Pinned in r22Stories.test.tsx. */
+.c2s-stone-name {
+  font: var(--type-caption);
+  font-weight: 600;
+  color: var(--ink-1);
+}
+.c2s-stone-sub {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+.c2s-stone-name-btn {
+  display: block;
+  width: 100%;
+}
 .r19-profile-hero { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 8px 0 4px; }
 .r19-profile-name { margin: 8px 0 0; font-size: 22px; font-weight: 700; }
 .r19-profile-section { margin-top: 16px; }
@@ -3460,7 +3665,61 @@ article.c2s-place-stone { cursor: default; }
   );
   box-shadow: 0 0 10px color-mix(in srgb, var(--place-fire, var(--state-past)) 55%, transparent);
 }
-.c2s-place-view { --place-fire: var(--state-past); }
+/* Repair #23 (WS-23-5) - THE STONE'S WARMTH: the server tier
+ * (quiet / stirring / warm / alive) is the warmth input, as
+ * LIGHT only. data-warmth is the reconciled level (the warmer
+ * of the tier's warmth and the R22 energy level - the adapter
+ * computes it, this sheet only paints it): cold rests below
+ * the R22 ember floor, ember / lit keep the R22 strengths,
+ * radiant is the full glow. The fire COLOR stays the plan-
+ * state canon (--place-fire above); warmth changes intensity
+ * only, never hue, so plan states keep speaking as they do.
+ * The tier is legible as STATIC intensity: the pulse below is
+ * an addition on the warmest happening stones, never the
+ * carrier - under reduced motion every tier still reads by
+ * its resting glow. Zero numerals, zero labels: no rule here
+ * renders a word or a number. */
+.c2s-place-stone[data-warmth="cold"] { --place-glow: 8%; }
+.c2s-place-stone[data-warmth="ember"] { --place-glow: 18%; }
+.c2s-place-stone[data-warmth="lit"] { --place-glow: 34%; }
+.c2s-place-stone[data-warmth="radiant"] { --place-glow: 52%; }
+.c2s-place-stone[data-energy-family="happening"][data-warmth="radiant"] {
+  animation: c2s-place-pulse 3.2s ease-in-out infinite;
+}
+/* Nearby, on the stone: a person of the viewer's is near this
+ * place on a shared plan (fresh per-plan share, server-felt).
+ * It reads as a ready-gold edge - proximity in the canon's
+ * "ready to happen" light, carried on the border so the
+ * stone's glow stays inside the stream's glow room (WS-4's
+ * containment law) - never a pin, never a distance. */
+.c2s-place-stone[data-nearby="true"] {
+  border-color: color-mix(in srgb, var(--state-ready) 55%, var(--place-fire) 20%, var(--line-1));
+}
+.c2s-place-view { --place-fire: var(--state-past); --place-glow: 18%; }
+.c2s-place-view[data-warmth="cold"] { --place-glow: 8%; }
+.c2s-place-view[data-warmth="ember"] { --place-glow: 18%; }
+.c2s-place-view[data-warmth="lit"] { --place-glow: 34%; }
+.c2s-place-view[data-warmth="radiant"] { --place-glow: 52%; }
+.c2s-place-warmth {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  margin-bottom: var(--space-3);
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--place-fire) var(--place-glow), transparent) 0%,
+    transparent 72%
+  );
+  box-shadow: 0 0 22px color-mix(in srgb, var(--place-fire) var(--place-glow), transparent);
+}
+.c2s-place-view[data-nearby="true"] .c2s-place-warmth {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--state-ready) var(--place-glow), transparent) 0%,
+    color-mix(in srgb, var(--place-fire) var(--place-glow), transparent) 55%,
+    transparent 78%
+  );
+}
 .c2s-place-view[data-energy-family="happening"] { --place-fire: var(--state-happening); }
 .c2s-place-view[data-energy-family="action"] { --place-fire: var(--state-action); }
 .c2s-place-view[data-energy-family="ready"] { --place-fire: var(--state-ready); }

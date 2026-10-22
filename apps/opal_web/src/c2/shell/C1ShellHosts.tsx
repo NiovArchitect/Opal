@@ -2781,6 +2781,11 @@ export function ChatsHost({
           {profileOpen ? (
             <PersonProfileSheet
               profile={profileProjectionFor(selected, relRows, threadNextPlan ?? selected.next_plan ?? null)}
+              follow={
+                selected.peers.length === 1
+                  ? { userId: selected.peers[0].id, bearer }
+                  : undefined
+              }
               onSaveRelationship={
                 selected.peers.length === 1
                   ? (input) => saveRelationship(selected.peers[0].id, input)

@@ -83,7 +83,12 @@ describe("Paste W5 Phase 4 PlanComposer tells the truth", () => {
     expect(interop).toMatch(/state:\s*"forming"/);
     expect(interop).toMatch(/Forming · pending/);
     expect(graphs).toMatch(/createdPlans/);
-    expect(graphs).toMatch(/createdPlanGraphOverlay/);
+    // Truth change (R23 WS-23-6 disposition): createdPlanGraphOverlay
+    // is defined in graphSurfaceInterop.ts and reaches GraphsHome's
+    // list through graphsHydration.composeGraphsList; it no longer
+    // appears as a literal in GraphsHome.tsx.
+    expect(interop).toMatch(/export function createdPlanGraphOverlay/);
+    expect(graphs).toMatch(/composeGraphsList/);
   });
 });
 
@@ -91,7 +96,14 @@ describe("Paste W4 Phase 5 notifications / composer / New / add-someone / detail
   it("Attention empty copy replaces not found", () => {
     const act = read("opalUi/ActivityDestination.tsx");
     const client = read("api/productClient.ts");
-    expect(act).toMatch(/Nothing yet\. When your people move, you'll see it here\./);
+    const tokens = read("designTokens.ts");
+    // Truth change (R23 WS-23-6 disposition): Pass 1I (8e592c5c,
+    // "Attention copy authority") moved the empty copy into the
+    // single PRODUCT_COPY authority with new wording; the
+    // destination renders PRODUCT_COPY.emptyAttention (or the
+    // server's own empty_copy when it is not a "not found").
+    expect(act).toMatch(/PRODUCT_COPY\.emptyAttention/);
+    expect(tokens).toMatch(/emptyAttention: "Nothing needs your attention right now\."/);
     expect(act).not.toMatch(/>not found</i);
     expect(client).toMatch(/case "not_found"/);
     expect(client).toMatch(/Nothing yet\. When your people move/);

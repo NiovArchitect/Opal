@@ -432,8 +432,16 @@ describe("W-17 - photo and text doors", () => {
     click(q('[data-testid="c2-composer-share"]')!);
     await flush();
     expect(uploadSocialMomentMedia).not.toHaveBeenCalled();
+    // Repair #23 (WS-23-2): publish now also carries the audience
+    // segment's visibility (default friends, no audience ids) -
+    // the composer's audience is real state, not a static label.
     expect(publishSocialMoment).toHaveBeenCalledWith(
-      { caption: "Evening light on the pier.", media_ids: [] },
+      {
+        caption: "Evening light on the pier.",
+        media_ids: [],
+        visibility: "friends",
+        audience_user_ids: undefined,
+      },
       "tok",
     );
     expect(onShared).toHaveBeenCalled();

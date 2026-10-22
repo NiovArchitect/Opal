@@ -22,6 +22,13 @@
  * thread and list re-read too. When the viewer leaves, the host is
  * told (`onLeft`) so it can close the thread: they are not in the
  * conversation anymore.
+ *
+ * Repair #23 (F-1): add candidates are keyed on the people
+ * contract's account user id (`account_user_id`) - the key space
+ * membership itself speaks - never on the projection's assembled
+ * identity key. Candidates exclude current members by that key,
+ * dedupe by that key, and the add call sends that key; the
+ * members list dedupes by user id at composition.
  */
 import React, { useEffect, useState } from "react";
 import {
@@ -58,16 +65,45 @@ export function GroupMembershipPanel({
   const reload = React.useCallback(async () => {
     try {
       const res = await fetchConversationMembership(conversationId, bearer);
-      setMembership(res.membership);
+      // Repair #23 (F-1): the members list dedupes by user id at
+      // composition - one person, one row, however the projection
+      // was assembled.
+      const seenMembers = new Set<string>();
+      const dedupedMembership: ConversationMembership = {
+        ...res.membership,
+        members: res.membership.members.filter((m) => {
+          if (seenMembers.has(m.user_id)) return false;
+          seenMembers.add(m.user_id);
+          return true;
+        }),
+      };
+      setMembership(dedupedMembership);
       setLoadFailed(false);
       try {
         const people = await listPeopleProjection(bearer);
-        const memberIds = new Set(res.membership.members.map((m) => m.user_id));
-        setCandidates(
-          (people.people ?? [])
-            .filter((p) => !memberIds.has(p.id))
-            .map((p) => ({ personId: p.id, name: p.display_name })),
-        );
+        const memberIds = new Set(dedupedMembership.members.map((m) => m.user_id));
+        // Repair #23 (F-1): candidates key on the contract's
+        // ACCOUNT user id (`account_user_id`), never on the people
+        // row's assembled identity key (`id` / `person_id`, built
+        // from conversation, contact, and establishment sources).
+        // A current member whose people row is keyed by an identity
+        // from a different source than her membership user_id was
+        // offered as a candidate under the old keying, and the add
+        // listed her twice. Rows with no account behind them
+        // cannot be added to a conversation at all, so they are
+        // not offered; candidates dedupe by the account key, and
+        // the add call below sends that same key.
+        const seenCandidates = new Set<string>();
+        const nextCandidates: Candidate[] = [];
+        for (const p of people.people ?? []) {
+          const accountId = p.account_user_id;
+          if (!accountId || memberIds.has(accountId) || seenCandidates.has(accountId)) {
+            continue;
+          }
+          seenCandidates.add(accountId);
+          nextCandidates.push({ personId: accountId, name: p.display_name });
+        }
+        setCandidates(nextCandidates);
       } catch {
         // The add list is a second read; its failure leaves the
         // member list standing and the add section honestly empty.

@@ -111,10 +111,14 @@ export type StoryRailProjection = {
      *  assigned by the one adapter from the living graph - a live
      *  host's stone is "happening" (cyan fire), a loved tie's is
      *  "loved", then "new", then "seen". The rail orders by it:
-     *  happening > loved > new > seen. (The doctrine's "nearby"
-     *  tier has no truthful input today - no author location is
-     *  read - and is declared, never faked.) */
-    stoneState?: "happening" | "loved" | "new" | "seen";
+     *  happening > loved > new > seen. Repair #23 (WS-23-5)
+     *  admits "nearby" between happening and loved, fed ONLY by
+     *  the server place signal's nearby_user_ids - itself
+     *  derived from fresh per-plan location shares near a shared
+     *  plan's place. No author location is read on the client;
+     *  the tier arrives as a finished server fact or not at
+     *  all. */
+    stoneState?: "happening" | "nearby" | "loved" | "new" | "seen";
     storyCount: number;
     /** The story's real media (hunt-fix B-10). Absent = the cell
      *  never opens a viewer; there is no empty stage. */
@@ -182,6 +186,20 @@ export type FeedCardProjection =
        *  response - never a local-only count. */
       likeCount?: number;
       viewerLiked?: boolean;
+      /** Repair #23 (WS-23-1): the moment's repost / save truth,
+       *  from the feed record's own engagement_summary (the
+       *  backend HomeFeed card carries viewer_reposted,
+       *  repost_count and viewer_saved - verified in
+       *  home_feed.ex). The card's repost / save controls render
+       *  their state from these fields at rest and re-render
+       *  from the action responses after a tap - never from a
+       *  local-only guess a re-read would contradict. The
+       *  repost count is an internal input only, like the like
+       *  warmth: no numeral renders on the card. */
+      viewerReposted?: boolean;
+      repostCount?: number;
+      viewerSaved?: boolean;
+      commentCount?: number;
     }
   | {
       kind: "live";
@@ -397,6 +415,20 @@ export type PlaceStoneProjection = {
    *  its moments). Null when the place's only signal is a live
    *  room - a live room is not a seed source (declared D-P4). */
   startSeed: import("./flows2").SeedCreate | null;
+  /** Repair #23 (WS-23-5): the SERVER place signal for this
+   *  place, from the tier-only read path (POST /places/signals).
+   *  tier is the qualitative Heat tier for THIS viewer
+   *  (quiet / stirring / warm / alive) - the stone's warmth
+   *  input; it is light only on the glass, never a numeral and
+   *  never a "trending" label. Absent when the read has not
+   *  landed or failed: the stone then rests on its R22 energy
+   *  level alone, honestly. */
+  signalTier?: import("../../api/productClient").PlaceSignalTier;
+  /** Repair #23 (WS-23-5): coarse nearby for this place, from
+   *  the same read - true only when a person on one of the
+   *  viewer's own plans at this place holds a fresh per-plan
+   *  location share near the place. Near / not-near only. */
+  signalNearby?: boolean;
 };
 
 export type HomeProjection = {

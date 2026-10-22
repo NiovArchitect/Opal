@@ -207,7 +207,7 @@ function Avatar({
 }
 
 /**
- * Auth chrome — character identity only (Founder Reality Repair #2).
+ * Auth chrome - character identity only (Founder Reality Repair #2).
  * Never the side-by-side opal-logo collage (character cut + separate wordmark).
  */
 function BrandChrome({ compact = false }: { compact?: boolean }) {
@@ -229,7 +229,7 @@ function BrandChrome({ compact = false }: { compact?: boolean }) {
 }
 
 /**
- * Phone / OTP chrome — character identity (same authority as Splash).
+ * Phone / OTP chrome - character identity (same authority as Splash).
  */
 function CharacterLockup() {
   return (

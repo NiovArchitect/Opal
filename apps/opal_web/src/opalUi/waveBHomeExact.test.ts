@@ -24,18 +24,24 @@ describe("Wave B Home exact authority", () => {
   });
 
   it("HOME_TIMELINE_MULTICOLOR", () => {
+    // Truth change (R23 WS-23-6 disposition): R19 W27 AT-09
+    // (d1e053b6) retired the canon state hues from this decorative
+    // identity channel - the timeline accent cycle is now the
+    // non-canon ENTITY palette (DIR-1 person tints), so no state
+    // can be read off a person's timeline. Multicolor is preserved;
+    // the hues are identity colors, not state colors.
     expect(HOME_GRAPH_TIMELINE_COLORS).toEqual([
-      "#00E5FF",
-      "#E8D6C4",
-      "#8B5CF6",
-      "#FFC86B",
+      "#2DD4BF",
+      "#818CF8",
+      "#C084FC",
+      "#F0ABFC",
     ]);
     const jordan = FOUNDER_HOME_FEED.find((c) => c.id === "seed-jordan-market");
     expect(jordan?.graphNodes?.map((n) => n.accent)).toEqual([
-      "#00E5FF",
-      "#E8D6C4",
-      "#8B5CF6",
-      "#FFC86B",
+      "#2DD4BF",
+      "#818CF8",
+      "#C084FC",
+      "#F0ABFC",
     ]);
     const home = read("opalUi/GraphSocialHome.tsx");
     expect(home).toMatch(/--gsh-timeline-accent/);
