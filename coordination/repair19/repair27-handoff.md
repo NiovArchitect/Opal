@@ -370,3 +370,61 @@ by the W27-8 dedupe.
    he phone-walks the advanced stack.
 
 FOUNDER_ACCEPTED = NO.
+
+## Addendum — W27-17 one-source alignment follow-up (2026-10-22)
+
+WHY: the W27-17 raster leg derived every in-app placement from
+`~/workspace/icon-orb/pf-master-perfect-v3.png`, but the icon
+line's FINAL perfected source is
+`~/workspace/icon-orb/opal-orb-master-perfect.png` (the v5
+render — same true-ellipse redraw program, later refinement).
+The one-source law is now literal: the app icon and every
+in-app placement spring from the same file.
+
+SOURCE QA (before the swap, same checks as the W27-17 leg):
+sha256 `34aa3959…`, 1600×1600 RGB; corners pure black;
+bright/saturated mask centroid within 0.05px of the v3 source
+and 0.12px of the original master; ring-band median abs diff
+vs v3 = 0.0 (the refinement lives at the redraw edges); rings
+visually verified — true ellipses, full tips, no light
+points — in the source and in the regenerated medallion.
+
+SWAP: `shots/repair18/design-masters/opal-orb-master.webp`
+re-derived from the v5 source at WebP quality 92 — proven to
+be the W27-17 setting, since q92 reproduces the v3-derived
+master byte-for-byte (208,248 bytes, identical diff profile);
+the new master is sha256 `bf1b7e73…`, 213,078 bytes. All four
+derivation scripts re-run in charter order
+(`build_hero_assets.py`, `build_splash_master.py`,
+`build_marble_sphere.py`, `build_icon_assets.py`). Exactly
+the same 12 binary asset files changed as in the W27-17
+raster commit — asset swap only, NO code changes.
+
+BATTERY: orb/brand pins green (the `src/brand/orb` subset —
+orbTokens, orbLivingRings, r21Marble, cleanMark — and the
+full `src/brand` tree, 66/66); typecheck
+(`tsc -p tsconfig.json --noEmit`) 0 errors. Backend, API and
+migrations untouched (124).
+
+PUSH: asset commit local `79cec5d5` → mirror `81b005dd`,
+tree `7629f14e` == local tree, API read-back verified (every
+uploaded blob sha matched the local git blob id). This
+addendum commit follows the same mirror path; the final
+local + mirror tip shas are in the coordinator's delivery
+report.
+
+WALK STACK: advanced to `81b005dd` with the standing
+discipline — ports killed first, checkout reset to the mirror
+tip, `mix ecto.migrate` → "Migrations already up" (124),
+Phoenix restarted, `/api/dev/runtime-authority` read back
+{backend_sha == 81b005dd, branch "muse/repair-27",
+dirty_worktree false, fingerprint clean}, web rebuilt
+(`vite build`) and re-previewed on :5173 (HTTP 200), badge
+stamp `81b005d` present in the built bundle with `224622d`
+at zero occurrences, and the served medallion's sha256 equal
+to the committed derivation. The stack is then advanced once
+more to the final tip carrying this addendum, with the same
+badge + authority read-back at the final sha. Restore point
+unchanged: R24 tip 11e61887.
+
+FOUNDER_ACCEPTED = NO.
