@@ -36,7 +36,7 @@ tests before proceeding:
    in the Phase 3 battery.
 8. muse/r22-dock - clean auto-merge (c2shell.css).
    r22DockContract plus the full ten-file cluster set re-run
-   on the integrated tree: 97/97 PASS (10 files: dock contract, stories 3, storytime 7, storyPlayback 9, storyViewerTemporality 2, stream rhythm 10, places 16, creation 15, trivia correction 7, orbit containment 7).
+   on the integrated tree: 85/85 PASS (10 files: dock contract 9, stories 3, storytime 7, storyPlayback 9, storyViewerTemporality 2, stream rhythm 10, places 16, creation 15, trivia correction 7, orbit containment 7).
 
 CONFLICTS: zero textual conflicts across all eight merges.
 Every named conflict zone (c2shell.css x5 clusters, C2Home x3,
@@ -176,3 +176,18 @@ the evidence for the choice.
   integrated set under shots/repair22/integrated/; cluster
   sets stand at their cluster badges and are never
   presented as integrated frames (full note in the handoff).
+
+## CORRECTION ANNOTATION (post-push, on the finisher's own disclosure)
+
+The phase 1 checkpoint and the handoff as first pushed
+(mirror 3062bc2a) stated the integrated cluster test set as
+97/97. That total was an arithmetic slip in the finisher's
+own summary: the run's actual output is 85/85 (10 files:
+dock contract 9, stories 3, storytime 7, storyPlayback 9,
+storyViewerTemporality 2, stream rhythm 10, places 16,
+creation 15, trivia correction 7, orbit containment 7 -
+the itemized counts were always right; only the summed
+headline was wrong, by +12). The three record files are
+corrected in place by this annotation commit and the mirror
+is re-pushed; no test result changes - every file passed,
+and the battery, capture, and IF-1 records are unaffected.

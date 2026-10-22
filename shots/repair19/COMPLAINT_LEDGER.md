@@ -457,7 +457,7 @@ anything less is DECLARED with its reason.
   r22-stories): ONE caption grammar (Live / Loved / New / Seen /
   Add) at one size and balance, and the orbital ring tracking
   state by motion. DONE - r22Stories 3/3 in the integrated
-  cluster set (97/97); integrated flows-firstpaint frames show
+  cluster set (85/85); integrated flows-firstpaint frames show
   "Live" / "Loved" in the unified grammar with round stones,
   thin orbit rings, dots riding the rings. DECLARED residue
   (carried in the handoff): the reduced-motion animation-name

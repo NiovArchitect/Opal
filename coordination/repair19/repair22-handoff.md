@@ -25,7 +25,7 @@ merged to any other branch; the founder merges.
   because the cluster hunks are disjoint. Because an auto-merge
   can still interleave CSS cascade order silently, the semantic
   check was run, not assumed: the full ten-file cluster test set
-  re-run on the fully integrated tree (97/97 PASS, including the
+  re-run on the fully integrated tree (85/85 PASS, including the
   CSS contract suites - stream rhythm tokens, dock contract,
   stories grammar), then the Phase 2 captures at the glass, then
   the full battery. No conflict forced a semantic choice between
