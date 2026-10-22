@@ -132,7 +132,9 @@ export function PlaceStoneView({
                   onClick={() => onOpenGraph?.(plan.planId)}
                 >
                   <span className="c2s-place-row-title">{plan.title}</span>
-                  <span className="c2s-card-line">Happening - {plan.whenLine}</span>
+                  <span className="c2s-card-line">
+                    {["Happening", plan.whenLine].filter(Boolean).join(" - ")}
+                  </span>
                 </button>
               ))}
             </div>
@@ -151,8 +153,12 @@ export function PlaceStoneView({
                 >
                   <span className="c2s-place-row-title">{plan.title}</span>
                   <span className="c2s-card-line">
-                    {plan.stateLabel} - {plan.whenLine}
-                    {plan.attendanceLine ? ` - ${plan.attendanceLine}` : ""}
+                    {/* W27-6: segments join only when present - an
+                     * empty whenLine must not leave a bare "- -"
+                     * in the meta (frames pass, 2026-10-22). */}
+                    {[plan.stateLabel, plan.whenLine, plan.attendanceLine]
+                      .filter(Boolean)
+                      .join(" - ")}
                   </span>
                 </button>
               ))}

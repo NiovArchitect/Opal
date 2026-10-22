@@ -3220,7 +3220,17 @@
     padding-bottom: var(--dock-clearance);
     box-sizing: border-box;
   }
-  .c2s-c1-host .c1-surface {
+  /* W27-1/12 (frames pass, 2026-10-22): the hosted-surface
+   * override MUST outrank the standalone C1 rule
+   * ([data-design="r18"] .c1-surface { min-height: 100dvh } in
+   * c1.css). The plain ".c2s-c1-host .c1-surface" selector TIES
+   * it at 0,2,0 and loses on source order, so on any device with
+   * a real top inset the surface stayed 100dvh tall inside the
+   * shorter host and its composer slid under the dock - the
+   * exact Walk #5 clip. The host element itself carries
+   * data-design="r18" (C1ShellHosts), so the compound selector
+   * below (0,3,0) wins outright, in any import order. */
+  [data-design="r18"].c2s-c1-host .c1-surface {
     flex: 1;
     min-height: 0;
     height: auto;

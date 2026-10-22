@@ -58,4 +58,18 @@ describe("W27-1 status-bar clearance", () => {
       expect(body).toMatch(/box-sizing:\s*border-box/);
     },
   );
+
+  it("the hosted C1 surface override outranks the standalone 100dvh rule (W27-12)", () => {
+    // c1.css sizes a standalone C1 surface at min-height: 100dvh.
+    // Hosted inside the inset-padded C2 column that overflows the
+    // host by exactly the inset and pushes the thread composer
+    // under the dock (rendered frames pass, 2026-10-22: computed
+    // min-height measured 844px inside a 797px host). The host
+    // override must therefore use the compound selector that
+    // beats the tie in any import order.
+    const body = ruleBody(SHELL_CSS, '[data-design="r18"].c2s-c1-host .c1-surface {');
+    expect(body).toMatch(/min-height:\s*0/);
+    expect(body).toMatch(/flex:\s*1/);
+    expect(SHELL_CSS).not.toMatch(/^\s*\.c2s-c1-host \.c1-surface \{/m);
+  });
 });
