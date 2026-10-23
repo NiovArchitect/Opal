@@ -169,3 +169,13 @@ describe("W28-12 - create who summary never duplicates the empty state", () => {
     expect(shell).toContain("whoPeople.length === 0 ? null");
   });
 });
+
+describe("W28-16 - the comments composer button sizes to its label", () => {
+  it("c2s-comments-post overrides the full-width form-button width", () => {
+    const css = read("./c2shell.css");
+    const block = css.slice(css.indexOf(".c2s-comments-post {"));
+    const rule = block.slice(0, block.indexOf("}"));
+    expect(rule).toContain("width: auto");
+    expect(rule).toContain("W28-16");
+  });
+});

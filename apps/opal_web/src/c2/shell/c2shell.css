@@ -1100,7 +1100,13 @@
     min-width: 0;
   }
   .c2s-comments-post {
+    /* Repair #28 (W28-16): .c2s-btn-primary is a full-width form
+     * button (width: 100%); inside the composer flex row that width
+     * squeezed the input to a sliver and pushed Post off the sheet's
+     * edge. In the composer the button sizes to its label. */
     flex: none;
+    width: auto;
+    padding-inline: var(--space-4);
   }
   .c2s-comments-law {
     margin: 0;
