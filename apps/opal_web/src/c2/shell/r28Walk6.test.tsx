@@ -170,6 +170,16 @@ describe("W28-12 - create who summary never duplicates the empty state", () => {
   });
 });
 
+describe("W28-18 - the Privacy room carries the Connectors door once", () => {
+  it("shellData's privacy case has exactly one Connectors nav row", () => {
+    const data = read("./shellData.ts");
+    const privacy = data.slice(data.indexOf('case "privacy":'), data.indexOf('case "help-support":'));
+    const doors = privacy.match(/title: "Connectors", target: "connections"/g) ?? [];
+    expect(doors.length).toBe(1);
+    expect(privacy).not.toContain('id: "sources"');
+  });
+});
+
 describe("W28-16 - the comments composer button sizes to its label", () => {
   it("c2s-comments-post overrides the full-width form-button width", () => {
     const css = read("./c2shell.css");

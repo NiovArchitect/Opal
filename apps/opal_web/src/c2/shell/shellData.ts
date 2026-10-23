@@ -3654,7 +3654,9 @@ export async function buildSettingsSection(
             text: "In plain words: what Opal holds for you lives in What Opal remembers, where you can read every fact and forget any of them. The tools you connect yourself live in Connectors, each with its real status - and disconnecting stops it right away. Opal's full Privacy Policy is one tap below.",
           },
           { kind: "nav", id: "remembers", title: "What Opal remembers", target: "what-opal-remembers" },
-          { kind: "nav", id: "sources", title: "Connectors", target: "connections" },
+          // Repair #28 (W28-18): this list carried the Connectors door
+          // twice (ids "sources" and "connections", same title, same
+          // target) - two identical rows on the Privacy room. One door.
           { kind: "nav", id: "connections", title: "Connectors", target: "connections" },
           {
             // Audit A7 — about Opal's messages. The claims match the

@@ -577,8 +577,13 @@ describe("Muse settings audit Group A (4.A1-4.A9)", () => {
     expect(text).toMatch(/In plain words/);
     // Every control the card names is a row on this very page.
     expect(container.querySelector('[data-testid="c2-setting-row-remembers"]')).toBeTruthy();
-    expect(container.querySelector('[data-testid="c2-setting-row-sources"]')).toBeTruthy();
+    // Repair #28 (W28-18): the card names ONE Connectors door; the
+    // room carried it twice (rows "sources" + "connections", same
+    // title, same target). Exactly one door, and the duplicate is gone.
     expect(container.querySelector('[data-testid="c2-setting-row-connections"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="c2-setting-row-sources"]')).toBeNull();
+    expect(container.querySelectorAll('[data-testid="c2-setting-row-connections"]').length +
+      container.querySelectorAll('[data-testid="c2-setting-row-sources"]').length).toBe(1);
     // A7 card.
     expect(text).toMatch(/About Opal's messages/);
     expect(text).toMatch(/generated/);
