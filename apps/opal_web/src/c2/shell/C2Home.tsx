@@ -823,7 +823,12 @@ export function C2Home({
       openStoryGroup("self");
       return;
     }
-    if (rail.self.hasLiveStory) return;
+    // Repair #28 (W28-14): a live story WITHOUT renderable media
+    // used to fall into a silent return here - the self stone was
+    // a dead tap, contradicting this function's own B-10/JA-11
+    // contract above ("a live story without renderable media...
+    // go to create - never to an empty stage"). It now falls
+    // through to the capability fallbacks like the no-story case.
     if (rail.capabilities.canPost && rail.capabilities.canStory) {
       setTensePanel(null);
       setSheet("create");

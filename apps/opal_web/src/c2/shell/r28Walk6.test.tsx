@@ -155,6 +155,14 @@ describe("W28-6 - mode report hardening is event-driven", () => {
   });
 });
 
+describe("W28-14 - the self stone is never a dead tap", () => {
+  it("openSelf has no silent return for a live story without media", () => {
+    const home = read("./C2Home.tsx");
+    expect(home).not.toContain("if (rail.self.hasLiveStory) return;");
+    expect(home).toContain("W28-14");
+  });
+});
+
 describe("W28-12 - create who summary never duplicates the empty state", () => {
   it("the whoLine paragraph is gated on people existing", () => {
     const shell = read("./C2Shell.tsx");

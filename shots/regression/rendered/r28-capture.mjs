@@ -300,6 +300,56 @@ for (const mode of MODES) {
         } catch (e) {
           manifest.surfaces.push({ id: "live-watch", mode, tag, error: String(e).slice(0, 160) }); save();
         }
+        // ---- CREATE TENSE SHEET (via the self stone) ----
+        try {
+          const self = page.locator('[data-testid="c2-stone-self"]').first();
+          if (await self.count()) {
+            await self.scrollIntoViewIfNeeded().catch(() => {});
+            await self.click().catch(() => {});
+            await page.waitForTimeout(1600);
+            if (await page.locator('[data-testid="c2-create-sheet"]').count()) {
+              await shoot(page, { id: "create-sheet", mode, tag }, `create-sheet-${mode}-${tag}`);
+              for (const tense of ["now", "forecast", "memories"]) {
+                const tb = page.locator(`[data-testid="c2-create-tense-${tense}"]`).first();
+                if (await tb.count()) {
+                  await tb.click().catch(() => {});
+                  await page.waitForTimeout(1400);
+                  await scrollAndShoot(page, { id: `create-tense-${tense}`, mode, tag }, `create-tense-${tense}-${mode}-${tag}`, '[data-testid="c2-shell"]');
+                  // Return to Flows for the next tense via back/close if a form opened.
+                  const bx = page.locator('[data-testid="c2-create-sheet-close"], button[aria-label="Close"]').first();
+                  if (await bx.count()) await bx.click().catch(() => {});
+                  await page.keyboard.press("Escape").catch(() => {});
+                  await page.waitForTimeout(700);
+                  // Reopen the sheet for the next tense if it closed.
+                  if (!(await page.locator('[data-testid="c2-create-sheet"]').count())) {
+                    const self2 = page.locator('[data-testid="c2-stone-self"]').first();
+                    if (await self2.count()) {
+                      await self2.click().catch(() => {});
+                      await page.waitForTimeout(1200);
+                    }
+                  }
+                } else {
+                  manifest.surfaces.push({ id: `create-tense-${tense}`, mode, tag, missing: "tense button not in sheet" }); save();
+                }
+              }
+              await closeTopLayer(page).catch(() => {});
+              await page.keyboard.press("Escape").catch(() => {});
+              await page.waitForTimeout(500);
+            } else if (await page.locator('[data-testid="c2-story-viewer"]').count()) {
+              manifest.surfaces.push({ id: "create-sheet", mode, tag, missing: "self stone opened the story viewer instead (viewer has own live story)" }); save();
+              const x = page.locator('[data-testid="c2-story-viewer-close"]').first();
+              if (await x.count()) await x.click().catch(() => {});
+              await page.waitForTimeout(400);
+            } else {
+              manifest.surfaces.push({ id: "create-sheet", mode, tag, missing: "self stone opened neither sheet nor viewer" }); save();
+            }
+          } else {
+            manifest.surfaces.push({ id: "create-sheet", mode, tag, missing: "no self stone in rail" }); save();
+          }
+        } catch (e) {
+          manifest.surfaces.push({ id: "create-sheet", mode, tag, error: String(e).slice(0, 160) }); save();
+          await closeTopLayer(page).catch(() => {});
+        }
       }
 
       // ---- CHATS LIST ----
@@ -349,53 +399,91 @@ for (const mode of MODES) {
           }).catch(() => null);
           manifest.surfaces.push({ id: "thread-maya-composer", mode, tag, overlap });
           save();
-          // check-in card -> sheet
-          const ci = page.locator('[data-testid*="checkin"], [data-testid*="check-in"], [class*="checkin"], [class*="check-in"]').first();
-          if (await ci.count()) {
-            await ci.scrollIntoViewIfNeeded().catch(() => {});
-            await ci.click().catch(() => {});
+          // check-in: open the summary sheet. If only the start
+          // button exists, start a sweep first (the twin world has
+          // no active sweep until someone asks), then open it.
+          let ciDoor = null;
+          const sumBtn = page.locator('[data-testid="checkin-circle-summary"]').first();
+          if (await sumBtn.count()) {
+            ciDoor = "existing-sweep";
+            await sumBtn.scrollIntoViewIfNeeded().catch(() => {});
+            await sumBtn.click().catch(() => {});
+          } else {
+            const startBtn = page.locator('[data-testid="checkin-circle-start"]').first();
+            if (await startBtn.count()) {
+              ciDoor = "started-sweep";
+              await startBtn.scrollIntoViewIfNeeded().catch(() => {});
+              await startBtn.click().catch(() => {});
+              await page.waitForTimeout(3000);
+              const sumBtn2 = page.locator('[data-testid="checkin-circle-summary"]').first();
+              if (await sumBtn2.count()) {
+                await sumBtn2.scrollIntoViewIfNeeded().catch(() => {});
+                await sumBtn2.click().catch(() => {});
+              } else ciDoor = "started-no-summary";
+            }
+          }
+          if (ciDoor === "existing-sweep" || ciDoor === "started-sweep") {
             await page.waitForTimeout(1500);
             const sheetTitle = await page.evaluate(() => {
-              const s = document.querySelector("[data-top-layer], [role='dialog']");
+              const s = document.querySelector('[data-testid="checkin-summary"]') || document.querySelector("[data-top-layer], [role='dialog']");
               return s ? s.innerText.slice(0, 900) : null;
             });
-            await scrollAndShoot(page, { id: "checkin-sheet", mode, tag, sheetText: sheetTitle }, `checkin-sheet-${mode}-${tag}`, "[data-top-layer], [role='dialog']");
+            await scrollAndShoot(page, { id: "checkin-sheet", mode, tag, door: ciDoor, sheetText: sheetTitle }, `checkin-sheet-${mode}-${tag}`, "[data-top-layer], [role='dialog']");
             const close = page.locator("[data-top-layer] button, [role='dialog'] button").filter({ hasText: "Close" }).first();
             if (await close.count()) await close.click().catch(() => {});
             await closeTopLayer(page).catch(() => {});
             await page.waitForTimeout(500);
           } else {
-            manifest.surfaces.push({ id: "checkin-sheet", mode, tag, missing: "no check-in card in Maya thread" }); save();
+            manifest.surfaces.push({ id: "checkin-sheet", mode, tag, missing: `no check-in control in Maya thread (door: ${ciDoor ?? "none"})` }); save();
           }
-          // bond/orbit: door 1 = thread header (name/avatar);
-          // door 2 = the NEXT TOGETHER bar. Record which opened it.
+          // bond/orbit = OrbitScreen (W28 investigator finding:
+          // BondStone is a different sheet). Doors, in order:
+          // 1 = thread header (name/avatar), 2 = NEXT TOGETHER bar,
+          // 3 = the Flows story-rail name button (c2-stone-bond).
           let bondDoor = null;
           const hdrBtn = page.locator('[class*="thread-head"] button, [class*="chat-head"] button, header button').filter({ hasText: "Maya" }).first();
           if (await hdrBtn.count()) {
             await hdrBtn.click().catch(() => {});
             await page.waitForTimeout(1500);
-            if (await page.locator('[data-testid="c2-bond-stone"]').count()) bondDoor = "thread-header";
+            if (await page.locator('[data-testid="orbit-screen"]').count()) bondDoor = "thread-header";
           }
           if (!bondDoor) {
             const nt = page.locator('[class*="next-together"], [data-testid*="next-together"], [class*="nextTogether"]').first();
             if (await nt.count()) {
               await nt.click().catch(() => {});
               await page.waitForTimeout(2000);
-              if (await page.locator('[data-testid="c2-bond-stone"]').count()) bondDoor = "next-together-bar";
-              else bondDoor = "bar-tapped-no-bond-surface";
+              if (await page.locator('[data-testid="orbit-screen"]').count()) bondDoor = "next-together-bar";
+              // else: fall through to door 3 - the bar tap alone
+              // does not open the orbit in the twin world.
             }
           }
-          if (bondDoor && bondDoor !== "bar-tapped-no-bond-surface") {
-            await scrollAndShoot(page, { id: "bond", mode, tag, door: bondDoor }, `bond-${mode}-${tag}`, '[data-testid="c2-bond-stone"]');
-            const back2 = page.locator('[data-testid="c2-bond-close"], [data-testid="orbit-back-to-thread"], [class*="back"], [aria-label*="Back"]').first();
+          if (!bondDoor) {
+            await tapDock(page, "home");
+            await page.waitForTimeout(1500);
+            const nameBtn = page.locator('[data-testid="c2-stone-bond"]').filter({ hasText: "Maya" }).first();
+            if (await nameBtn.count()) {
+              await nameBtn.scrollIntoViewIfNeeded().catch(() => {});
+              await nameBtn.click().catch(() => {});
+              await page.waitForTimeout(2000);
+              if (await page.locator('[data-testid="orbit-screen"]').count()) bondDoor = "flows-stone-name";
+            }
+          }
+          if (bondDoor) {
+            await scrollAndShoot(page, { id: "bond", mode, tag, door: bondDoor }, `bond-${mode}-${tag}`, '[data-testid="orbit-screen"]');
+            const back2 = page.locator('[data-testid="orbit-back-to-thread"]').first();
             if (await back2.count()) await back2.click().catch(() => {});
             await page.waitForTimeout(800);
           } else {
-            manifest.surfaces.push({ id: "bond", mode, tag, missing: `bond surface not reached (door: ${bondDoor ?? "none found"})` }); save();
+            manifest.surfaces.push({ id: "bond", mode, tag, missing: "orbit screen not reached by any door" }); save();
           }
-          const back = page.locator('[class*="back"], [aria-label*="Back"], [aria-label*="back"]').first();
-          if (await back.count()) await back.click().catch(() => {});
-          await page.waitForTimeout(800);
+          // Exit the thread - unless door 3 already moved us to
+          // Flows (a broad [class*="back"] tap there could hit an
+          // unrelated element).
+          if (bondDoor !== "flows-stone-name") {
+            const back = page.locator('[class*="back"], [aria-label*="Back"], [aria-label*="back"]').first();
+            if (await back.count()) await back.click().catch(() => {});
+            await page.waitForTimeout(800);
+          }
         } else {
           manifest.surfaces.push({ id: "thread-maya", mode, tag, missing: "no Maya row" }); save();
         }
@@ -473,8 +561,12 @@ for (const mode of MODES) {
             if (await back.count()) await back.click().catch(() => {});
             await page.waitForTimeout(700);
           } else {
-            manifest.surfaces.push({ id: `you-room-${k}`, mode, tag, missing: "row did not open a settings room" });
-            save();
+            // Not a settings room (e.g. Your moments opens its own
+            // surface) - capture whatever opened, then go back.
+            await scrollAndShoot(page, { id: `you-room-${k.replace("c2-you-row-", "")}`, mode, tag, note: "row opens a non-settings surface" }, `you-room-${k.replace("c2-you-row-", "")}-${mode}-${tag}`, '[data-testid="c2-shell"]');
+            const back = page.locator('[data-testid="c2-settings-back"], [class*="back"], [aria-label*="Back"]').first();
+            if (await back.count()) await back.click().catch(() => {});
+            await page.waitForTimeout(700);
           }
         }
       }
