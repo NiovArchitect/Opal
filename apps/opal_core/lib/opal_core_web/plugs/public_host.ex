@@ -22,7 +22,7 @@ defmodule OpalCoreWeb.Plugs.PublicHost do
       true ->
         host = conn.host
 
-        if PublicBaseUrl.ngrok_host_allowed?(host) or lan_or_local?(host) do
+        if PublicBaseUrl.ngrok_host_allowed?(host) or lan_or_local?(host) or funnel_host?(host) do
           conn
         else
           # Still allow configured base host
@@ -45,6 +45,14 @@ defmodule OpalCoreWeb.Plugs.PublicHost do
   defp test_env? do
     Application.get_env(:opal_core, :env) == :test or
       (function_exported?(Mix, :env, 0) and Mix.env() == :test)
+  end
+
+  # Tailscale Funnel public hosts (walk stack funnel enablement, 2026-10-22).
+  defp funnel_host?(host) do
+    (System.get_env("OPAL_FUNNEL_HOSTS") || "")
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.trim/1)
+    |> Enum.member?(host)
   end
 
   defp lan_or_local?(host) do

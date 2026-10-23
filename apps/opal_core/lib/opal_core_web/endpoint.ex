@@ -51,5 +51,6 @@ defmodule OpalCoreWeb.Endpoint do
   plug OpalCoreWeb.Plugs.Cors
   # Tunnel mode: allow *.ngrok-free.app / *.ngrok.io (not a blanket disable).
   plug OpalCoreWeb.Plugs.PublicHost
+  plug OpalCoreWeb.Plugs.PublicSurfaceGuard
   plug OpalCoreWeb.Router
 end
