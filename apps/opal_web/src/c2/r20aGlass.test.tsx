@@ -170,15 +170,21 @@ describe("R-5 - the spine's bare arc dots are gone; state is a labeled marker", 
     expect(container.querySelectorAll('[data-testid="c2-spine-node"]')).toHaveLength(0);
     const markers = [...container.querySelectorAll('[data-testid="c2-spine-marker"]')];
     expect(markers).toHaveLength(spineItems.length);
-    // Each marker names its phase and its state in plain words.
-    expect(markers[0].textContent).toContain("Intent");
-    expect(markers[0].textContent).toContain("done");
+    // Repair #28 (W28-4): the marker names ONLY the state, in
+    // human words - the phase word duplicated the row's own title
+    // ("Settles into memory" beside "Settling into memory -
+    // waiting"). Phase/state still ride the data attributes.
+    expect(markers[0].textContent?.trim()).toBe("Done");
     expect(markers[0].getAttribute("data-spine-phase")).toBe("intent");
     expect(markers[0].getAttribute("data-spine-state")).toBe("done");
-    expect(markers[1].textContent).toContain("Preparation");
-    expect(markers[1].textContent).toContain("needs-you");
-    expect(markers[2].textContent).toContain("The event");
-    expect(markers[2].textContent).toContain("waiting");
+    expect(markers[1].textContent?.trim()).toBe("Needs you");
+    expect(markers[2].textContent?.trim()).toBe("Waiting");
+    // The row's second line is the state line alone - no owner
+    // fragment jammed onto its end.
+    const lines = [...container.querySelectorAll(".c2s-card-line")].map((el) => el.textContent);
+    expect(lines[0]).toBe("Done - the idea is on the table.");
+    expect(lines[1]).toBe("Needs you - pick a place to order from.");
+    expect(lines[2]).toBe("Waiting - Saturday at 7:30 PM.");
     // The items themselves still render with their finished lines.
     const items = container.querySelectorAll('[data-testid="c2-spine-item"]');
     expect(items).toHaveLength(spineItems.length);

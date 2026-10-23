@@ -55,7 +55,7 @@ const OPEN_SWEEP = {
     not_askable_names: [],
     not_askable_note: null,
     minor_note: null,
-    copy: { headline: "1 of 3 answered - 0 need something, 2 still to hear from", still_waiting_line: "Still waiting on: Ben, Cid. Not answering is not the same as being okay." },
+    copy: { headline: "1 of 3 answered", still_waiting_line: "Still waiting on: Ben, Cid. Not answering is not the same as being okay." },
   },
   suggestion: null,
   next_sweep_allowed_at: null,
@@ -112,9 +112,10 @@ describe("CheckinCircleRow", () => {
     getCheckinForSource.mockResolvedValue(OPEN_SWEEP);
     act(() => root.render(<CheckinCircleRow source={SOURCE} bearer="tok" />));
     await flush();
-    expect(q("checkin-circle-summary")?.textContent).toContain(
-      "1 of 3 answered - 0 need something, 2 still to hear from",
-    );
+    // Repair #28 (W28-3): the card states the tally ONCE - the
+    // headline alone, no second span repeating still-waiting /
+    // need-something counts (the run-together garble's source).
+    expect(q("checkin-circle-summary")?.textContent).toBe("1 of 3 answered");
     expect(q("checkin-circle-start")).toBeNull();
   });
 

@@ -68,7 +68,13 @@ defmodule OpalCore.SocialFlow.LeaveBy do
         absent("not_applicable", "This plan is online - there is no trip to time.", now)
 
       not match?(%DateTime{}, plan.start_at) ->
-        absent("no_start_time", "No start time yet - leave-by needs a set time.", now)
+        # Repair #28 (W28-4): the old line ("No start time yet...")
+        # flatly contradicted the WHEN line whenever the plan
+        # carried a time_label ("8pm") without a full instant - the
+        # reader saw a time and "no start time" on the same screen.
+        # This line names the actual gap (a set day and time) and
+        # the action that closes it, and never denies the label.
+        absent("no_start_time", "Set a day and time to see when to leave.", now)
 
       not (is_number(plan.place_lat) and is_number(plan.place_lon)) ->
         absent(

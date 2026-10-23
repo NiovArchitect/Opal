@@ -410,7 +410,12 @@ defmodule OpalCore.SocialFlow.PlanHistory do
       _ ->
         %{
           "location_state" => "not_sharing",
-          "location_label" => "Not sharing location",
+          # Repair #28 (W28-5): not sharing is the quiet default,
+          # not a per-person suffix on every roster row. The state
+          # still rides the payload (the viewer's own share control
+          # is gated on it); the label speaks only when there is
+          # something to say - a live share with its distance.
+          "location_label" => nil,
           "distance_label" => nil,
           "distance_basis" => nil
         }
@@ -420,7 +425,7 @@ defmodule OpalCore.SocialFlow.PlanHistory do
   defp location_fields(_, _) do
     %{
       "location_state" => "not_sharing",
-      "location_label" => "Not sharing location",
+      "location_label" => nil,
       "distance_label" => nil,
       "distance_basis" => nil
     }

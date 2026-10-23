@@ -78,7 +78,7 @@ export function CheckinSummary({ checkin }: { checkin: CheckinProjection }) {
 }
 
 function CheckinOrganizerSummaryView({ summary }: { summary: CheckinOrganizerSummary }) {
-  const { sweep, counts, members, copy } = summary;
+  const { sweep, members, copy } = summary;
   return (
     <section className="checkin-summary" data-testid="checkin-summary">
       <h3 className="checkin-summary-title">
@@ -87,10 +87,12 @@ function CheckinOrganizerSummaryView({ summary }: { summary: CheckinOrganizerSum
       <p className="checkin-summary-headline" data-testid="checkin-summary-headline">
         {copy.headline}
       </p>
-      <p className="checkin-summary-counts" data-testid="checkin-summary-counts">
-        {counts.answered} answered · {counts.declined_or_passed} chose not to answer ·{" "}
-        {counts.not_ok} need something · {counts.still_waiting} still waiting
-      </p>
+      {/* Repair #28 (W28-3): the locally derived counts paragraph
+          that used to sit here stated the same tallies a second
+          time (and could disagree with the headline's numerator).
+          The headline is the one tally statement; the member rows
+          below carry the per-person truth; the waiting line names
+          who is still outstanding. Nothing is stated twice. */}
       {sweep.source_fallback ? (
         <p className="checkin-summary-fallback" data-testid="checkin-summary-fallback">
           Asked the plan's conversation members (the plan had no participant list).

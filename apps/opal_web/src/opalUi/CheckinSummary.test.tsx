@@ -114,7 +114,7 @@ const SUMMARY: CheckinOrganizerSummary = {
   not_askable_note: null,
   minor_note: null,
   copy: {
-    headline: "4 of 5 answered - 1 need something, 1 still to hear from",
+    headline: "4 of 5 answered",
     still_waiting_line:
       "Still waiting on: Eff. Not answering is not the same as being okay.",
   },
@@ -141,6 +141,12 @@ describe("CheckinSummary", () => {
     act(() => root.render(<CheckinSummary checkin={SUMMARY} />));
     expect(q("checkin-summary-headline")?.textContent).toBe(SUMMARY.copy.headline);
     expect(q("checkin-summary-waiting")?.textContent).toBe(SUMMARY.copy.still_waiting_line);
+  });
+
+  it("states the tallies once - no derived counts paragraph (W28-3)", () => {
+    act(() => root.render(<CheckinSummary checkin={SUMMARY} />));
+    expect(q("checkin-summary-counts")).toBeNull();
+    expect(container.textContent).not.toContain("need something ·");
   });
 
   it("the unanswered member is a named row marked Still waiting, never answered", () => {

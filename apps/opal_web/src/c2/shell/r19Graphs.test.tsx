@@ -243,7 +243,10 @@ describe("R19 living detail", () => {
         name: "Maya",
         avatar: { initials: "M", tint: 1 },
         responseLabel: "Going",
-        locationLabel: "Not sharing location",
+        // Repair #28 (W28-5): production sends NO label for a
+        // not-sharing person (the state is in locationState);
+        // "Not sharing location" was stamped on every row.
+        locationLabel: null,
         locationState: "not_sharing",
       },
       {
@@ -259,15 +262,14 @@ describe("R19 living detail", () => {
     origin: "graphs",
   });
 
-  it("who rows show attendance + honest location lines; not-sharing carries no distance", async () => {
+  it("who rows show location only where it is true: a live share, never a not-sharing stamp (W28-5)", async () => {
     await render(<C2GraphDetail detail={detail()} events={baseEvents} />);
     const locs = Array.from(document.querySelectorAll('[data-testid="c2-detail-who-location"]')).map(
       (n) => n.textContent ?? "",
     );
-    expect(locs.some((t) => t.includes("Not sharing location"))).toBe(true);
-    expect(locs.some((t) => t.includes("1.9 mi away"))).toBe(true);
-    const mayaRow = locs.find((t) => t.includes("Not sharing"))!;
-    expect(mayaRow).not.toMatch(/mi away|km away/);
+    expect(locs).toHaveLength(1);
+    expect(locs[0]).toContain("1.9 mi away");
+    expect(document.body.textContent).not.toContain("Not sharing location");
     // R21 W-3 (flipped): the hand-holding kicker "Who is coming,
     // and where they are" is stripped - the roster rows are
     // self-evident. Assert its ABSENCE now.
@@ -328,13 +330,15 @@ describe("R19 adapter separation", () => {
           response_state: "accepted",
           response_label: "Going",
           location_state: "not_sharing",
-          location_label: "Not sharing location",
+          // W28-5: the backend is silent for not-sharing; the
+          // adapter must carry the silence, never invent the line.
+          location_label: null,
           distance_label: null,
           distance_basis: null,
         },
       ],
     });
-    expect(merged.who[0].locationLabel).toBe("Not sharing location");
+    expect(merged.who[0].locationLabel).toBeNull();
     expect(merged.who[0].locationState).toBe("not_sharing");
   });
 });

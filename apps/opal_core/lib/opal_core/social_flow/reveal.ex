@@ -82,6 +82,7 @@ defmodule OpalCore.SocialFlow.Reveal do
     Availability,
     CareCheckIn,
     CareRotation,
+    Checkin,
     CheckinResponse,
     CheckinSweep,
     NextPlan,
@@ -623,7 +624,7 @@ defmodule OpalCore.SocialFlow.Reveal do
         "reveal_key" => "checkin-ask:#{sweep.id}:#{viewer_id}",
         "category" => "P7",
         "kicker" => @kickers["P7"],
-        "title" => sweep.circle_label,
+        "title" => Checkin.display_circle_label(sweep),
         "substance" => "A check-in is waiting for your answer.",
         "plan_id" => nil,
         "conversation_id" =>
@@ -649,7 +650,7 @@ defmodule OpalCore.SocialFlow.Reveal do
 
     Enum.flat_map(sweeps, fn sweep ->
       rows = from(r in CheckinResponse, where: r.sweep_id == ^sweep.id) |> Repo.all()
-      answered = Enum.count(rows, &(&1.status in ["answered", "declined", "passed"]))
+      answered = Enum.count(rows, &(&1.status in ["answered", "declined", "passed", "withdrawn"]))
 
       if answered > 0 do
         [
@@ -657,7 +658,7 @@ defmodule OpalCore.SocialFlow.Reveal do
             "reveal_key" => "checkin-summary:#{sweep.id}:#{answered}",
             "category" => "P7",
             "kicker" => @kickers["P7"],
-            "title" => sweep.circle_label,
+            "title" => Checkin.display_circle_label(sweep),
             "substance" => "#{answered} of #{length(rows)} answered.",
             "plan_id" => nil,
             "conversation_id" =>

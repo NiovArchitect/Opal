@@ -91,6 +91,19 @@ installC2ModeSystemListener();
       attributes: true,
       attributeFilter: ["data-mode"],
     });
+    // Repair #28 (W28-6): the initial post is a single shot, and
+    // postToNative silently no-ops if window.ReactNativeWebView
+    // is not ready at bundle eval - a lost initial DARK report was
+    // never recovered until the user toggled. Re-report on the
+    // lifecycle moments when the bridge provably exists or the
+    // app returns to the front (event-driven, never a poll): the
+    // WebView's load completion and the page becoming visible /
+    // focused again.
+    window.addEventListener("load", report);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") report();
+    });
+    window.addEventListener("focus", report);
   } catch {
     /* bridge reporting must never break boot */
   }

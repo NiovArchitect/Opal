@@ -2723,7 +2723,12 @@ export function CreateFlow({
                 })}
               </div>
             )}
-            {prefill?.lockParty ? null : (
+            {/* Repair #28 (W28-12): the who line is the SELECTION
+                summary. With nobody connected it repeated the
+                empty state's own words ("No one connected yet -
+                this one starts with just you." + "Just you for
+                now.") - the same fact twice in one field group. */}
+            {prefill?.lockParty || whoPeople.length === 0 ? null : (
               <p className="c2s-field-reason" data-testid="c2-create-who-line">
                 {whoLine}
               </p>

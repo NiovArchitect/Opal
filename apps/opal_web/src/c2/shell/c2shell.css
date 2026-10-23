@@ -2126,6 +2126,47 @@
   .c2s-detail-section {
     padding: var(--space-4) var(--gutter) 0;
   }
+  /* Repair #28 (W28-10): the graph detail's actions are ROWS in
+   * the design language, not a plain-text list. One action list:
+   * full-width rows on the roster's metrics (52px, hairline
+   * separated), label left, chevron right for doors and
+   * disclosures. Machine phrasing ("History - show") is gone -
+   * the row's expanded state is the chevron's rotation plus
+   * aria-expanded. */
+  .c2s-action-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .c2s-action-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 0;
+    border: 0;
+    border-top: 1px solid var(--line-1);
+    background: none;
+    color: var(--ink-1);
+    font: var(--type-body);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .c2s-action-list > .c2s-action-row:first-child {
+    border-top: 0;
+  }
+  .c2s-action-row:active {
+    background: var(--surface-1);
+  }
+  .c2s-action-chevron {
+    margin-left: auto;
+    color: var(--ink-3);
+    font-weight: 400;
+    transition: transform 160ms ease;
+  }
+  .c2s-action-row[aria-expanded="true"] .c2s-action-chevron {
+    transform: rotate(90deg);
+  }
   .c2s-detail-kicker {
     font: var(--type-caption);
     letter-spacing: 0.06em;
@@ -2136,10 +2177,11 @@
     color: var(--ink-2);
     margin: 0 0 var(--space-2);
   }
-  /* R20A CF (R-5): the spine item's state marker - plain words
-   * (phase - state) in a quiet chip beside the item's label,
-   * replacing the removed bare arc dots. Meaning is text, never
-   * color or position alone. */
+  /* R20A CF (R-5): the spine item's state marker - a plain word
+   * in a quiet chip beside the item's label, replacing the removed
+   * bare arc dots. Meaning is text, never color or position alone.
+   * Repair #28 (W28-4): the chip carries the STATE only - the
+   * phase word duplicated the row's own title. */
   .c2s-spine-marker {
     display: inline-block;
     vertical-align: 2px;
@@ -3194,6 +3236,28 @@
     background: var(--canvas);
     color: var(--ink-1);
   }
+  /* Repair #28 (W28-1): the Graphs list gets the same containment
+   * the You hub got in Deckfix F7. Its root was a plain block, so
+   * the inner .c2s-scroll's flex:1 was inert - the list grew to its
+   * full content height (measured 2443px in an 844px viewport),
+   * nothing scrolled, .c2s-root clipped the overflow, and every
+   * group below the fold (14 graphs) was unreachable behind the
+   * dock. Contained, the list's own scroller is real and its
+   * bottom padding is the dock clearance. */
+  .c2s-graphs-surface {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--canvas);
+    color: var(--ink-1);
+  }
+  .c2s-graphs-surface > .c2s-scroll {
+    min-height: 0;
+    scroll-padding-bottom: calc(var(--dock-clearance) + var(--space-5));
+  }
   .c2s-you-surface > .c2s-scroll {
     min-height: 0;
     scroll-padding-bottom: calc(var(--dock-clearance) + var(--space-5));
@@ -3238,6 +3302,35 @@
     width: 100%;
     margin: 0;
     overflow-y: auto;
+  }
+  /* Repair #28 (W28-7): the THREAD surface must not itself be a
+   * scroller inside the host. With the surface scrollable AND its
+   * inner .c1-scroll scrollable, the whole column (header, bubbles,
+   * composer) scrolled as one sheet in the C2 host - the
+   * transparent composer bar ended up floating over scrolled
+   * bubbles, and the last bubble came to rest clipped behind the
+   * pill (founder walk #6, Maya thread). The thread's one scroller
+   * is .c1-scroll; the surface is a rigid flex column (header /
+   * scroll / composer), and the scroller carries a breath of
+   * bottom padding so the last bubble rests clear of the pill. */
+  [data-design="r18"].c2s-c1-host .c1-surface.c1-thread {
+    overflow: hidden;
+  }
+  [data-design="r18"].c2s-c1-host .c1-thread .c1-scroll {
+    padding-bottom: var(--space-3);
+    scroll-padding-bottom: var(--space-3);
+  }
+  /* Repair #28 (W28-9): the orbit screen double-pays the dock
+   * clearance inside the C2 host - the host already pads
+   * --dock-clearance, and .orbit-screen pads another
+   * calc(--dock-clearance - 10px) of its own, leaving ~150px of
+   * empty floor under the composer so it floated mid-screen with
+   * void above the dock (founder walk #6, Meetup bond view). In
+   * the host, the orbit screen keeps only a breath of bottom
+   * padding; the host owns the clearance. Standalone C1 keeps the
+   * orbit screen's own padding. */
+  [data-design="r18"].c2s-c1-host .orbit-screen {
+    padding-bottom: var(--space-3);
   }
   .c2s-c1-host-bar {
     flex: none;
@@ -3376,6 +3469,133 @@
     padding: var(--space-3) var(--gutter) calc(var(--space-3) + var(--dock-clearance));
     max-height: 40%;
     overflow-y: auto;
+  }
+  /* Repair #28 (W28-3): the check-in component family
+   * (.checkin-circle-*, .checkin-summary-*) had NO CSS in any
+   * stylesheet the shell loads - inside the C2 shell the summary
+   * card, the member rows, and the start button rendered in raw
+   * browser defaults (list bullets, adjacent spans running
+   * together: "MayaStill waiting", "...hear from1 still
+   * waiting"). These rules give the family the shell's language:
+   * the circle row is a quiet card row / text action; the summary
+   * is a titled sheet body whose member rows separate name and
+   * status structurally, so the two can never concatenate. */
+  .checkin-circle-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .checkin-circle-summary {
+    display: block;
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--line-1);
+    border-radius: 14px;
+    background: var(--surface-1);
+    color: var(--ink-1);
+    font: var(--type-body);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .checkin-circle-row > button[data-testid="checkin-circle-start"] {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-1);
+    font: var(--type-body);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .checkin-circle-row > button[data-testid="checkin-circle-start"]:disabled {
+    color: var(--ink-3);
+    cursor: default;
+  }
+  .checkin-suggestion {
+    padding: var(--space-3);
+    border: 1px solid var(--line-1);
+    border-radius: 14px;
+    background: var(--surface-1);
+    color: var(--ink-1);
+    font: var(--type-body);
+  }
+  .checkin-suggestion p {
+    margin: 0 0 var(--space-2);
+  }
+  .checkin-suggestion button {
+    min-height: 40px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--line-1);
+    border-radius: 999px;
+    background: var(--canvas);
+    color: var(--ink-1);
+    font: var(--type-callout);
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: var(--space-2);
+  }
+  .checkin-circle-cooldown,
+  .checkin-circle-error {
+    margin: 0;
+    font: var(--type-callout);
+    color: var(--ink-2);
+  }
+  .checkin-summary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    color: var(--ink-1);
+  }
+  .checkin-summary-title {
+    margin: 0;
+    font: var(--type-headline);
+    color: var(--ink-1);
+  }
+  .checkin-summary-headline {
+    margin: 0;
+    font: var(--type-body);
+    font-weight: 600;
+  }
+  .checkin-summary-members {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .checkin-summary-member {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-2);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--line-1);
+  }
+  .checkin-summary-member-name {
+    font-weight: 650;
+  }
+  .checkin-summary-member-status {
+    color: var(--ink-2);
+  }
+  .checkin-summary-member-where,
+  .checkin-summary-member-needs,
+  .checkin-summary-member-free,
+  .checkin-summary-member-area,
+  .checkin-summary-member-note {
+    flex-basis: 100%;
+    color: var(--ink-2);
+    font: var(--type-callout);
+  }
+  .checkin-summary-waiting,
+  .checkin-summary-fallback,
+  .checkin-summary-not-askable,
+  .checkin-summary-minors,
+  .checkin-summary-next {
+    margin: 0;
+    font: var(--type-body);
+    color: var(--ink-2);
   }
   .c2s-c1-circles {
     flex: none;

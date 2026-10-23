@@ -138,10 +138,14 @@ export function CheckinCircleRow({ source, bearer, onOpenSummary }: Props) {
           data-testid="checkin-circle-summary"
           onClick={() => onOpenSummary?.(checkin.sweep.id)}
         >
+          {/* Repair #28 (W28-3): ONE line - the headline. The
+              second span that used to ride here restated the
+              still-waiting / need-something tallies the headline
+              already carried, and with no CSS anywhere for these
+              classes the two spans ran together unstyled
+              ("...still to hear from1 still waiting"). The full
+              summary is one tap away in the sheet. */}
           <span>{checkin.copy.headline}</span>
-          <span>
-            {checkin.counts.still_waiting} still waiting · {checkin.counts.not_ok} need something
-          </span>
         </button>
       ) : null}
 

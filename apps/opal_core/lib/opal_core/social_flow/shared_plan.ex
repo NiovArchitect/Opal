@@ -236,7 +236,7 @@ defmodule OpalCore.SocialFlow.SharedPlan do
         "directions_available" => false
       }
     else
-      location = if is_binary(p.location) and String.trim(p.location) != "", do: p.location
+      location = sanitize_place_label(p.location)
 
       %{
         "kind" => "physical",
@@ -250,6 +250,32 @@ defmodule OpalCore.SocialFlow.SharedPlan do
   end
 
   def place_projection(_), do: nil
+
+  # Repair #28 (W28-2): a location value that is byte-slice damage
+  # or a vague extractor noun is not a place. The retired
+  # grapheme-slice extractor wrote location="omething" (from
+  # "something") into a founder-walk row on 2026-10-14, and it
+  # rendered verbatim - "tomorrow after 10 PM - omething" - on the
+  # thread bar, the bond view, and plan cards. The creation paths
+  # are guarded (OpalIntent.vague_whats, OpalPlanConfirm,
+  # OpalResponse.sanitize_consumer_what all name this set); this is
+  # the same discipline at the projection layer, so a damaged or
+  # over-captured legacy value can never paint as a place again.
+  @damaged_place_values ~w(omething thing ome anything something everything nothing stuff things)
+
+  defp sanitize_place_label(location) when is_binary(location) do
+    trimmed = String.trim(location)
+    down = String.downcase(trimmed)
+
+    cond do
+      trimmed == "" -> nil
+      down in @damaged_place_values -> nil
+      String.starts_with?(down, "something") -> nil
+      true -> trimmed
+    end
+  end
+
+  defp sanitize_place_label(_), do: nil
 
   # Virtual plans show Online, never a fake venue address.
   defp maybe_virtual_location(changeset) do
@@ -487,7 +513,9 @@ defmodule OpalCore.SocialFlow.SharedPlan do
   end
 
   defp virtual_location("virtual", _), do: "Online"
-  defp virtual_location(_, loc), do: loc
+  # W28-2: the flat key gets the same damage discipline as the
+  # place projection - one truth, no decapitated fragment by any door.
+  defp virtual_location(_, loc), do: sanitize_place_label(loc)
 
   # B2 privacy: the shared contract never carries a recipient's
   # household grouping basis or their private alternate restaurant.

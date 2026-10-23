@@ -790,11 +790,20 @@ export function CenterChat({
   // Opal session is not a wired path - declared in the report).
   const [voiceRecording, setVoiceRecording] = useState(false);
   const voiceRecRef = useRef<{ stop: () => void } | null>(null);
+  // Repair #28 (W28-7): one composer grammar for voice - the mic
+  // renders only where a recognizer exists in this context (see
+  // OrbitScreen.speechRecognitionCtor), and the recording state
+  // never lights without one behind it.
+  const voiceCtor = () => {
+    if (typeof window === "undefined") return null;
+    const w = window as unknown as { SpeechRecognition?: new () => never; webkitSpeechRecognition?: new () => never };
+    return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+  };
   const startVoice = () => {
+    const Ctor = voiceCtor();
+    if (!Ctor) return;
     setVoiceRecording(true);
     try {
-      const w = window as unknown as { SpeechRecognition?: new () => never; webkitSpeechRecognition?: new () => never };
-      const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
       if (Ctor) {
         const rec = new Ctor() as unknown as {
           continuous: boolean; interimResults: boolean;
@@ -1201,7 +1210,7 @@ export function CenterChat({
               >
                 ↑
               </button>
-            ) : embedded && onSend ? (
+            ) : embedded && onSend && voiceCtor() ? (
               <button type="button" className="orbit-composer-mic" data-testid="opal-chat-composer-mic" aria-label="Record a voice note" onClick={startVoice}>
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" /></g></svg>
               </button>

@@ -2698,14 +2698,19 @@ export function ChatsHost({
               // when one is set (it replaces the peer-name repeat,
               // which carried zero information); group threads keep
               // the peer-names line.
+              // Repair #28 (W28-8): when no tie is set, the dyad
+              // fallback was the peer's own name - the title
+              // repeated as its own subtitle ("Maya" over "Maya").
+              // tieLabel's contract is that an unset tie renders
+              // NOTHING (a tie is never guessed); the host now
+              // honors it - no tie, no subtitle.
               selected.peers.length === 1
-                ? (tieLabel(
+                ? tieLabel(
                     relRows.find((r) => r.contact_user_id === selected.peers[0].id)
                       ?.type ?? null,
                     relRows.find((r) => r.contact_user_id === selected.peers[0].id)
                       ?.family_subtype,
-                  ) ??
-                  selected.peers.map((p) => p.display_name).join(", "))
+                  )
                 : selected.peers.length > 0
                   ? selected.peers.map((p) => p.display_name).join(", ")
                   : null

@@ -273,7 +273,7 @@ defmodule OpalCore.SocialFlow.Checkin do
 
       if organizer_id in members do
         targets = Enum.reject(members, &(&1 == organizer_id))
-        label = conv.label || "Group"
+        label = conversation_circle_label(conv, targets)
 
         {:ok,
          base_resolution(
@@ -442,6 +442,71 @@ defmodule OpalCore.SocialFlow.Checkin do
 
   defp resolve_targets(_, _), do: {:error, :invalid_source}
 
+  # Repair #28 (W28-3): a conversation's stored label can be an
+  # internal key ("direct-<id8>-<id8>", minted by
+  # Messages.create_direct_conversation as a dedupe key) - never a
+  # display label. When it is not human, the circle is named by its
+  # other members, the same discipline Messages.conversation_title
+  # applies. Internal identifiers are never user-facing.
+  defp conversation_circle_label(%Conversation{} = conv, target_ids) do
+    if OpalCore.Messages.human_conversation_label?(conv.label) do
+      conv.label
+    else
+      member_names_label(target_ids) || "Group"
+    end
+  end
+
+  defp member_names_label(user_ids) when is_list(user_ids) and user_ids != [] do
+    names =
+      from(u in User, where: u.id in ^user_ids, select: u.display_name)
+      |> Repo.all()
+      |> Enum.reject(&is_nil/1)
+      |> Enum.sort()
+
+    case names do
+      [] -> nil
+      _ -> Enum.join(names, ", ")
+    end
+  end
+
+  defp member_names_label(_), do: nil
+
+  @doc """
+  Repair #28 (W28-3): the user-facing circle label for a sweep.
+  Sweeps persisted before the resolve-time fix can carry a
+  conversation's machine label in `circle_label`; when the stored
+  label is machine-shaped and the source is a conversation, the
+  human label is re-derived from the conversation's other members
+  at read time, so existing sweeps heal without rewriting rows.
+  """
+  def display_circle_label(%CheckinSweep{} = sweep) do
+    if OpalCore.Messages.human_conversation_label?(sweep.circle_label) do
+      sweep.circle_label
+    else
+      derived_circle_label(sweep) || sweep.circle_label
+    end
+  end
+
+  defp derived_circle_label(%CheckinSweep{source_kind: "conversation"} = sweep) do
+    with {:ok, conv_id} <- cast_uuid(sweep.source_ref_id),
+         %Conversation{} = conv <- Repo.get(Conversation, conv_id) do
+      others =
+        conv_id
+        |> OpalCore.Messages.member_user_ids()
+        |> Enum.reject(&(&1 == sweep.organizer_user_id))
+
+      if OpalCore.Messages.human_conversation_label?(conv.label) do
+        conv.label
+      else
+        member_names_label(others)
+      end
+    else
+      _ -> nil
+    end
+  end
+
+  defp derived_circle_label(_sweep), do: nil
+
   # Shared tail of resolution: R7 blocks split into not_askable, minors
   # split out (5.4), order preserved from the source.
   defp base_resolution(kind, ref_id, filter, circle_key, label, targets, organizer_id) do
@@ -599,7 +664,7 @@ defmodule OpalCore.SocialFlow.Checkin do
   def ask_copy(%CheckinSweep{} = sweep) do
     organizer = Repo.get(User, sweep.organizer_user_id)
     first = first_name(organizer)
-    label = sweep.circle_label
+    label = display_circle_label(sweep)
 
     body =
       "#{first} asked Opal to check in with #{label}. " <>
@@ -1046,7 +1111,7 @@ defmodule OpalCore.SocialFlow.Checkin do
           safe_push(
             sweep.organizer_user_id,
             "Check-in complete",
-            "Everyone in #{sweep.circle_label} has answered.",
+            "Everyone in #{display_circle_label(sweep)} has answered.",
             :normal,
             sweep
           )
@@ -1170,9 +1235,12 @@ defmodule OpalCore.SocialFlow.Checkin do
       |> Enum.map(&Map.get(names, &1.member_user_id))
       |> Enum.reject(&is_nil/1)
 
-    headline =
-      "#{answered + declined_or_passed + withdrawn} of #{length(rows)} answered - " <>
-        "#{not_ok} need something, #{still_waiting} still to hear from"
+    # Repair #28 (W28-3): the headline is the ONE tally statement.
+    # It used to append the not-ok / still-waiting counts, which the
+    # thread card and the summary then stated again - the same facts
+    # three times, once garbled. Who still waits is carried by
+    # still_waiting_line; who needs something is in the member rows.
+    headline = "#{answered + declined_or_passed + withdrawn} of #{length(rows)} answered"
 
     still_waiting_line =
       if still_waiting > 0 do
@@ -1258,7 +1326,7 @@ defmodule OpalCore.SocialFlow.Checkin do
       "source_kind" => sweep.source_kind,
       "source_ref_id" => sweep.source_ref_id,
       "source_fallback" => sweep.source_filter["fallback"],
-      "circle_label" => sweep.circle_label,
+      "circle_label" => display_circle_label(sweep),
       "status" => sweep.status,
       "prompt_theme" => sweep.prompt_theme,
       "created_at" => iso(sweep.inserted_at),
@@ -1395,7 +1463,7 @@ defmodule OpalCore.SocialFlow.Checkin do
           "dedupe_key" => "checkin:#{sweep.id}:organizer",
           "level" => if(not_ok, do: "attention", else: "ambient"),
           "action_required" => not_ok,
-          "title" => "Check-in: #{sweep.circle_label}",
+          "title" => "Check-in: #{display_circle_label(sweep)}",
           "copy" => summary["copy"]["headline"],
           "source_type" => "checkin_sweep",
           "source_id" => sweep.id,

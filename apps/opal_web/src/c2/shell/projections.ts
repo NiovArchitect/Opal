@@ -611,14 +611,17 @@ export type GraphDetailProjection = {
     relationshipLabel?: string | null;
     /** R19 W7 — the finished location line from the plan-history
      *  projection (per-plan sharing backbone). Absent until the
-     *  history read lands; "Not sharing location" is a real state,
-     *  never accompanied by a distance. */
+     *  history read lands. Repair #28 (W28-5): a live share speaks
+     *  (with its distance); not sharing is silent in the label -
+     *  the state rides in locationState, and the detail's share
+     *  control gates on the viewer's own row state. */
     locationLabel?: string | null;
     locationState?: string | null;
   }>;
-  /** R19 W7 — the viewer's own location-sharing state for this plan
-   *  is not carried here; the detail's share control renders only
-   *  when the shell wires the share events. */
+  /** R19 W7 — the detail's share control renders only when the
+   *  shell wires the share events; Repair #28 (W28-5): WHICH
+   *  control renders (Share vs Stop) is gated on the viewer's own
+   *  Who row locationState. */
   isPrivate?: boolean;
   /** Cluster G (P10c) — the backend's ONE leave-by projection for
    *  this viewer, folded from the plan-history contract verbatim.

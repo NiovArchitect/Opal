@@ -478,7 +478,10 @@ defmodule OpalCoreWeb.R19GraphsTest do
   end
 
   describe "living detail location projection" do
-    test "not sharing: honest label, no distance, no basis" do
+    test "not sharing: state carried, label silent, no distance, no basis" do
+      # Repair #28 (W28-5): not sharing is the quiet default - the
+      # state rides the payload (the viewer's share control gates
+      # on it) but no label suffix is stamped on every roster row.
       {_t1, owner} = activate("+12025550120", "Loc Ten", "r19loc10")
       {_t2, guest} = activate("+12025550121", "Loc Eleven", "r19loc11")
       plan = plan!(owner, guest, %{"place_lat" => 32.7231, "place_lon" => -117.1683})
@@ -486,7 +489,7 @@ defmodule OpalCoreWeb.R19GraphsTest do
       {:ok, projection} = PlanHistory.for_plan(plan.id, owner)
       guest_row = Enum.find(projection["who"], &(&1["user_id"] == guest))
       assert guest_row["location_state"] == "not_sharing"
-      assert guest_row["location_label"] == "Not sharing location"
+      assert guest_row["location_label"] == nil
       assert guest_row["distance_label"] == nil
       assert guest_row["distance_basis"] == nil
     end

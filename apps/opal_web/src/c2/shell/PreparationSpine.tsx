@@ -18,16 +18,22 @@
  * so there is nothing to tap.
  */
 import React from "react";
-import type { SpineItem, SpinePhase } from "./density";
+import type { SpineItem } from "./density";
 
-/** R20A CF (R-5): the spine phases in plain words - the marker on
- *  each item row names its phase and its state, so no bare dot has
- *  to carry meaning a reader cannot decode. */
-const PHASE_LABEL: Record<SpinePhase, string> = {
-  intent: "Intent",
-  preparation: "Preparation",
-  event: "The event",
-  settling: "Settling into memory",
+/** R20A CF (R-5): the marker on each item row names its state in
+ *  plain words, so no bare dot has to carry meaning a reader
+ *  cannot decode.
+ *  Repair #28 (W28-4): the marker no longer repeats the PHASE -
+ *  the row's own title already names the step ("Settles into
+ *  memory" beside a marker reading "Settling into memory -
+ *  waiting" said the same thing twice on one line). The marker
+ *  says only what the title doesn't: the state, in human words. */
+const STATE_LABEL: Record<SpineItem["state"], string> = {
+  done: "Done",
+  working: "Working",
+  "needs-you": "Needs you",
+  waiting: "Waiting",
+  declared: "Closed",
 };
 
 export function PreparationSpine({
@@ -64,14 +70,16 @@ export function PreparationSpine({
                 data-spine-state={item.state}
                 data-spine-phase={item.phase}
               >
-                {PHASE_LABEL[item.phase]}
-                {" - "}
-                {item.state}
+                {STATE_LABEL[item.state]}
               </span>
             </p>
-            <p className="c2s-card-line">
-              {item.stateLine} <span style={{ color: "var(--ink-3)" }}>{item.ownerLine}</span>
-            </p>
+            {/* Repair #28 (W28-4): the state line stands alone as
+                one clear sentence. The owner fragment that used to
+                be jammed onto its end in grey ("...on the graph.
+                Yours to do", "...theirs to give Theirs to answer",
+                "...quietly. Opal") is gone - ownership is phrased
+                inside the sentence or not at all. */}
+            <p className="c2s-card-line">{item.stateLine}</p>
           </>
         );
         const tappable = Boolean(item.action && onAction);

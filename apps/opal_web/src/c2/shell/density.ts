@@ -409,7 +409,10 @@ export function pastPillsFromCards(cards: PastPillCard[], now: Date): PastPill[]
 // ------------------------------------------------------------------
 
 export type SpinePhase = "intent" | "preparation" | "event" | "settling";
-export type SpineOwner = "you" | "opal" | "agent";
+/** Repair #28 (W28-4): "them" added for the answers item - its
+ *  owner is the people being waited on, and stamping it "you"
+ *  made the row's own data attribute lie about whose move it is. */
+export type SpineOwner = "you" | "opal" | "agent" | "them";
 export type SpineState = "done" | "working" | "needs-you" | "waiting" | "declared";
 
 /**
@@ -489,6 +492,7 @@ const OWNER_LINE: Record<SpineOwner, string> = {
   you: "Yours to do",
   opal: "Opal",
   agent: "An agent, only with your approval",
+  them: "Theirs to answer",
 };
 
 /**
@@ -529,13 +533,16 @@ export function spineFromPlan(input: {
   const steps = plan.completion?.steps ?? [];
   const stepState = (status: string): { state: SpineState; line: string } => {
     const s = status.toLowerCase();
+    // Repair #28 (W28-4): the state word rides the row's marker;
+    // the line must add words, not repeat it ("Done" under a Done
+    // marker, "Waiting" under a Waiting marker).
     if (["projected", "ready", "done", "completed", "set", "active"].includes(s))
-      return { state: "done", line: "Done" };
+      return { state: "done", line: "Taken care of." };
     if (["queued", "running", "searching", "results_ready"].includes(s))
       return { state: "working", line: "Opal is working on it" };
     if (s.startsWith("skipped")) return { state: "declared", line: "Not needed for this plan" };
     if (s === "failed") return { state: "declared", line: "Opal could not do this - it is yours if you want it" };
-    return { state: "waiting", line: "Waiting" };
+    return { state: "waiting", line: "Still to come." };
   };
   // The completion record's own step ids, in the record's order.
   // Known ids get human labels; an unknown id renders its record
@@ -591,9 +598,9 @@ export function spineFromPlan(input: {
       phase: "preparation",
       label: `Answers from ${waiting.map((p) => p.name).join(", ")}`,
       state: "waiting",
-      stateLine: "Waiting - their answer is theirs to give",
-      owner: "you",
-      ownerLine: "Theirs to answer",
+      stateLine: "Their answer is theirs to give.",
+      owner: "them",
+      ownerLine: OWNER_LINE.them,
       arcPosition: 0.65,
     });
   }
@@ -639,9 +646,9 @@ export function foldSpineAnswers(
     phase: "preparation",
     label: `Answers from ${waiting.map((p) => p.name).join(", ")}`,
     state: "waiting",
-    stateLine: "Waiting - their answer is theirs to give",
-    owner: "you",
-    ownerLine: "Theirs to answer",
+    stateLine: "Their answer is theirs to give.",
+    owner: "them",
+    ownerLine: OWNER_LINE.them,
     arcPosition: 0.65,
   };
   const at = spine.findIndex((i) => i.id === "event");
@@ -661,7 +668,7 @@ function spineTail(
     // line, so a multi-day plan shows its range here too.
     label: whenLine !== "Time not set yet." ? `${plan.title} - ${whenLine}` : plan.title,
     state: familyPast ? "done" : "waiting",
-    stateLine: familyPast ? "It happened" : "The event itself",
+    stateLine: familyPast ? "It happened." : "The event itself, still ahead.",
     owner: "you",
     ownerLine: OWNER_LINE.you,
     arcPosition: 0.85,
@@ -673,7 +680,7 @@ function spineTail(
     label: "Settles into memory",
     state: familyPast ? "done" : "waiting",
     stateLine: familyPast
-      ? "Settled - it rests in your past as a pill, not a scroll."
+      ? "It rests in your past now."
       : "Afterwards it settles into your past, quietly.",
     owner: "opal",
     ownerLine: OWNER_LINE.opal,

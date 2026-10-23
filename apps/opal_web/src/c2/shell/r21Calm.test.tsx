@@ -235,13 +235,15 @@ describe("R21 W-2 - plan detail separation + emphasis", () => {
     expect(document.body.textContent).toContain("1.9 mi away");
   });
 
-  it("the location-share explainer is behind (i), with the JA-09 wording intact", async () => {
+  it("the location-share explainer is on glass in plain words - no (i) (W28-5)", async () => {
     await render(<C2GraphDetail detail={detail()} events={detailEvents} />);
     const block = document.querySelector('[data-testid="c2-detail-share-location"]')!;
     expect(block).toBeTruthy();
-    expect(block.textContent).not.toContain("a snapshot, not live tracking");
-    await click(block.querySelector('[data-testid="calm-info"]')!);
+    // Repair #28 reverses R21 W-3's bubble for this block: what is
+    // shared and who sees it stands beside the control, untapped.
+    expect(block.querySelector('[data-testid="calm-info"]')).toBeNull();
     expect(block.textContent).toContain("a snapshot, not live tracking");
+    expect(block.textContent).toContain("Only people on this plan see it");
     expect(block.textContent).toContain("until you stop sharing or 4 hours pass");
   });
 

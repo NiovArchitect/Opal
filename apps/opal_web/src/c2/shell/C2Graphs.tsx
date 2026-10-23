@@ -414,7 +414,7 @@ export function C2Graphs({
   );
 
   return (
-    <div data-testid="c2-graphs">
+    <div data-testid="c2-graphs" className="c2s-graphs-surface">
       <header className="c2s-header">
         <h1 className="c2s-header-title" style={{ flex: 1 }}>
           Your Graphs
@@ -1187,6 +1187,15 @@ export function C2GraphDetail({
   // never as standing buttons) and renders only for a settled/past
   // plan with the shell's repeat flow wired.
   const canRepeat = Boolean(detail.repeatable && events.repeatPlan);
+  // Repair #28 (W28-5): the viewer's own location-sharing state
+  // rides their Who row (locationState, from the plan-history
+  // projection). The share controls below gate on it - one state,
+  // one control that matches it - instead of offering Share and
+  // Stop side by side in both states.
+  const viewerRow = detail.viewerUserId
+    ? detail.who.find((p) => p.userId === detail.viewerUserId)
+    : undefined;
+  const viewerSharing = viewerRow?.locationState === "sharing";
   return (
     <TopLayer band="modal">
       <div className="c2s-destination" data-testid="c2-graph-detail">
@@ -1222,11 +1231,11 @@ export function C2GraphDetail({
             >
               <PlanCardC2 input={detail.card} />
             </LongPressRegion>
-            {detail.attendanceLine ? (
-              <p className="c2s-card-line" data-testid="c2-detail-attendance" style={{ marginTop: 8 }}>
-                {detail.attendanceLine}
-              </p>
-            ) : null}
+            {/* Repair #28 (W28-4): no bare attendance line under
+                the card - the card already carries the same
+                "N of M going" as its own attendance row, and the
+                detail used to state it twice in a row. The card
+                is the one carrier. */}
             {/* Repair #21 (W-5a): the fork-answer control in the
                 plan detail, under the same card whose limbo block
                 presents the fork. Recipient + live fork only - the
@@ -1289,19 +1298,31 @@ export function C2GraphDetail({
               data-urgency={detail.leaveBy.urgency ?? undefined}
             >
               <p className="c2s-detail-kicker">When to leave</p>
-              <p
-                className="c2s-card-title calm-key"
-                data-state={detail.card.stateFamily}
-                style={{
-                  fontSize: 17,
-                  ...(detail.leaveBy.urgency === "leave_now"
-                    ? { color: PLAN_STATE_HEX.action }
-                    : {}),
-                }}
-                data-testid="c2-detail-leaveby-line"
-              >
-                {detail.leaveBy.label}
-              </p>
+              {/* Repair #28 (W28-4): only a real computed leave-by
+                  earns the bold state-coloured key treatment. An
+                  absent state (no set time, no share, no route) is
+                  a routine line, not an alarm - it renders as a
+                  plain card line in surface ink, never as a loud
+                  gold warning. */}
+              {detail.leaveBy.state === "ok" ? (
+                <p
+                  className="c2s-card-title calm-key"
+                  data-state={detail.card.stateFamily}
+                  style={{
+                    fontSize: 17,
+                    ...(detail.leaveBy.urgency === "leave_now"
+                      ? { color: PLAN_STATE_HEX.action }
+                      : {}),
+                  }}
+                  data-testid="c2-detail-leaveby-line"
+                >
+                  {detail.leaveBy.label}
+                </p>
+              ) : (
+                <p className="c2s-card-line" data-testid="c2-detail-leaveby-line">
+                  {detail.leaveBy.label}
+                </p>
+              )}
               {detail.leaveBy.state === "ok" ? (
                 <p className="c2s-card-line" data-testid="c2-detail-leaveby-meta">
                   {detail.leaveBy.travel_duration_label} drive
@@ -1405,39 +1426,58 @@ export function C2GraphDetail({
               ))}
               <button
                 type="button"
-                className="c2s-btn-text"
+                className="c2s-action-row"
                 data-testid="c2-detail-add-people"
                 onClick={() => events.addPeople(detail.id)}
               >
                 Add people
+                <span className="c2s-action-chevron" aria-hidden>
+                  ›
+                </span>
               </button>
               {events.shareMyLocation ? (
                 <div data-testid="c2-detail-share-location">
-                  {/* R21 W-3: the snapshot explainer is genuinely
-                      needed (privacy), so it lives behind the (i)
-                      bubble - one tap away, not plastered. The
-                      JA-09 honest wording is unchanged inside it.
-                      (Plain hyphen in "one-time" per R21 copy rule;
-                      the sentence is otherwise verbatim.) */}
-                  <InfoBubble text="Sharing your location is per plan and shares where you are right now, once - a snapshot, not live tracking. Only people on this plan see it, until you stop sharing or 4 hours pass." />
-                  <button
-                    type="button"
-                    className="c2s-btn-text"
-                    data-testid="c2-detail-share-location-btn"
-                    onClick={() => void shareMine()}
-                  >
-                    Share my location for this plan
-                  </button>
-                  {events.stopMyLocation ? (
-                    <button
-                      type="button"
-                      className="c2s-btn-text"
-                      data-testid="c2-detail-stop-location-btn"
-                      onClick={() => void stopMine()}
-                    >
-                      Stop sharing
-                    </button>
-                  ) : null}
+                  {/* Repair #28 (W28-5): the (i) bubble goes - what
+                      is shared and who sees it is stated in plain
+                      words beside the one control that matches the
+                      viewer's state. The JA-09 wording is unchanged;
+                      it is simply no longer hidden behind a tap.
+                      Sharing: the state line + Stop. Not sharing:
+                      Share + the explainer, before the tap. */}
+                  {viewerSharing ? (
+                    <>
+                      <p className="c2s-card-line" data-testid="c2-detail-sharing-state">
+                        You are sharing your location for this plan. Only people on this plan
+                        can see it.
+                      </p>
+                      {events.stopMyLocation ? (
+                        <button
+                          type="button"
+                          className="c2s-btn-text"
+                          data-testid="c2-detail-stop-location-btn"
+                          onClick={() => void stopMine()}
+                        >
+                          Stop sharing
+                        </button>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="c2s-btn-text"
+                        data-testid="c2-detail-share-location-btn"
+                        onClick={() => void shareMine()}
+                      >
+                        Share my location for this plan
+                      </button>
+                      <p className="c2s-card-line">
+                        Sharing is per plan and shares where you are right now, once - a
+                        snapshot, not live tracking. Only people on this plan see it, until
+                        you stop sharing or 4 hours pass.
+                      </p>
+                    </>
+                  )}
                   {shareNote ? (
                     <p className="c2s-card-line" role="status" data-testid="c2-detail-share-note">
                       {shareNote}
@@ -1448,26 +1488,34 @@ export function C2GraphDetail({
             </div>
           ) : null}
 
-          {events.setPlanPrivate || canRepeat ? (
-            <div className="c2s-detail-section">
-              <button
-                type="button"
-                className="c2s-btn-text"
-                data-testid="c2-detail-overflow"
-                aria-haspopup="menu"
-                onClick={() => setDetailMenuOpen(true)}
-              >
-                More actions
-              </button>
-              {detail.isPrivate ? (
-                /* R21 W-3: the private-graph explainer moves behind
-                   the (i) bubble beside More actions; the private
-                   state itself is carried by the vault gate. */
-                <span style={{ marginLeft: "var(--space-3)" }}>
-                  <InfoBubble text="This graph is in your Private graphs. On your surfaces it shows only inside that space - everyone else on the plan keeps their own view of it." />
-                </span>
-              ) : null}
-              {detailMenuOpen ? (
+          {/* Repair #28 (W28-10): the detail's actions live in ONE
+              action list of real rows (see .c2s-action-row) - no
+              more plain-text buttons stranded in their own
+              sections with dead whitespace between them. */}
+          <div className="c2s-detail-section c2s-action-list">
+            {events.setPlanPrivate || canRepeat ? (
+              <>
+                <button
+                  type="button"
+                  className="c2s-action-row"
+                  data-testid="c2-detail-overflow"
+                  aria-haspopup="menu"
+                  onClick={() => setDetailMenuOpen(true)}
+                >
+                  More actions
+                  <span className="c2s-action-chevron" aria-hidden>
+                    ›
+                  </span>
+                </button>
+                {detail.isPrivate ? (
+                  /* R21 W-3: the private-graph explainer moves behind
+                     the (i) bubble beside More actions; the private
+                     state itself is carried by the vault gate. */
+                  <span style={{ marginLeft: "var(--space-3)" }}>
+                    <InfoBubble text="This graph is in your Private graphs. On your surfaces it shows only inside that space - everyone else on the plan keeps their own view of it." />
+                  </span>
+                ) : null}
+                {detailMenuOpen ? (
                 <CardContextMenu
                   title={detail.title}
                   items={[
@@ -1497,9 +1545,26 @@ export function C2GraphDetail({
                   stateFamily={detail.card.stateFamily}
                   stateLabel={detail.card.stateLabel}
                 />
-              ) : null}
-            </div>
-          ) : null}
+                ) : null}
+              </>
+            ) : null}
+
+            {/* Hunt-fix B-13: the chat action renders on its own -
+                it used to live inside the nextAction section, which
+                the adapter always nulls, so no C2 plan could reach
+                its chat. It now sits in the action list above. */}
+            <button
+              type="button"
+              className="c2s-action-row"
+              data-testid="c2-detail-open-chat"
+              onClick={() => events.openChatForPlan(detail.id)}
+            >
+              Open the chat for this plan
+              <span className="c2s-action-chevron" aria-hidden>
+                ›
+              </span>
+            </button>
+          </div>
 
           {/* R21 W-18 (hole H-NEW-1): the Next-step button that
               lived here is removed for the same reason as the
@@ -1508,20 +1573,6 @@ export function C2GraphDetail({
               wires runNextAction to a no-op, so the button could
               only ever render dead. It returns only when a real
               next-action projection and handler land together. */}
-
-          {/* Hunt-fix B-13: the chat action renders on its own — it
-              used to live inside the nextAction section, which the
-              adapter always nulls, so no C2 plan could reach its chat. */}
-          <div className="c2s-detail-section">
-            <button
-              type="button"
-              className="c2s-btn-text"
-              data-testid="c2-detail-open-chat"
-              onClick={() => events.openChatForPlan(detail.id)}
-            >
-              Open the chat for this plan
-            </button>
-          </div>
 
           {detail.activity.length > 0 ? (
             <div className="c2s-detail-section">
@@ -1535,14 +1586,21 @@ export function C2GraphDetail({
           ) : null}
 
           {detail.history.length > 0 ? (
-            <div className="c2s-detail-section">
+            <div className="c2s-detail-section c2s-action-list">
+              {/* Repair #28 (W28-10): "History - show" was machine
+                  phrasing. The row is named once; its state is the
+                  chevron's rotation and aria-expanded. */}
               <button
                 type="button"
-                className="c2s-btn-text"
+                className="c2s-action-row"
                 data-testid="c2-detail-history-toggle"
+                aria-expanded={historyOpen}
                 onClick={() => setHistoryOpen((v) => !v)}
               >
-                History {historyOpen ? "- hide" : "- show"}
+                History
+                <span className="c2s-action-chevron" aria-hidden>
+                  ›
+                </span>
               </button>
               {historyOpen
                 ? detail.history.map((row, i) => (

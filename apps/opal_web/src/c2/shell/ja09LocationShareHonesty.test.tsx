@@ -80,7 +80,7 @@ const baseEvents = {
 };
 
 describe("JA-09 — location share copy states the snapshot truth", () => {
-  it("the detail explainer on glass says snapshot, not live tracking, with the real lifetime", async () => {
+  it("the explainer is on glass in plain words - no (i) bubble (W28-5)", async () => {
     host = document.createElement("div");
     document.body.appendChild(host);
     root = createRoot(host);
@@ -98,18 +98,56 @@ describe("JA-09 — location share copy states the snapshot truth", () => {
     });
     const block = document.querySelector('[data-testid="c2-detail-share-location"]');
     expect(block).toBeTruthy();
-    // R21 W-3 (flipped): the explainer no longer sits on the
-    // surface - it lives behind the (i) bubble. Absent before the
-    // tap, and the JA-09 honest wording is intact after it.
-    expect(block!.textContent).not.toContain("a snapshot, not live tracking");
-    const bubble = block!.querySelector('[data-testid="calm-info"]');
-    expect(bubble).toBeTruthy();
-    await act(async () => {
-      bubble!.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-    });
+    // Repair #28 (W28-5, founder walk #6 - reverses R21 W-3's
+    // bubble): what is shared and who sees it is stated beside the
+    // control, in the open. The JA-09 honest wording is unchanged.
+    expect(block!.querySelector('[data-testid="calm-info"]')).toBeNull();
     expect(block!.textContent).toContain("a snapshot, not live tracking");
+    expect(block!.textContent).toContain("Only people on this plan see it");
     expect(block!.textContent).toContain("until you stop sharing or 4 hours pass");
     expect(block!.textContent).not.toContain("next 4 hours");
+    // Not sharing: Share is offered, Stop is NOT (one state, one
+    // control that matches it - the walk #6 contradiction).
+    expect(block!.querySelector('[data-testid="c2-detail-share-location-btn"]')).toBeTruthy();
+    expect(block!.querySelector('[data-testid="c2-detail-stop-location-btn"]')).toBeNull();
+  });
+
+  it("sharing: the state line shows and only Stop is offered (W28-5)", async () => {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    root = createRoot(host);
+    const sharing = detail();
+    sharing.viewerUserId = "u-viewer";
+    sharing.who = [
+      {
+        userId: "u-viewer",
+        name: "Sadeil",
+        avatar: { initials: "S", tint: 2 },
+        responseLabel: "Going",
+        locationLabel: "Sharing location - 2 mi from the place",
+        locationState: "sharing",
+      },
+      ...sharing.who,
+    ] as GraphDetailProjection["who"];
+    await act(async () => {
+      root!.render(
+        <C2GraphDetail
+          detail={sharing}
+          events={{
+            ...baseEvents,
+            shareMyLocation: vi.fn(async () => ""),
+            stopMyLocation: vi.fn(async () => ""),
+          }}
+        />,
+      );
+    });
+    const block = document.querySelector('[data-testid="c2-detail-share-location"]');
+    expect(block).toBeTruthy();
+    expect(block!.querySelector('[data-testid="c2-detail-sharing-state"]')?.textContent).toContain(
+      "You are sharing your location for this plan",
+    );
+    expect(block!.querySelector('[data-testid="c2-detail-stop-location-btn"]')).toBeTruthy();
+    expect(block!.querySelector('[data-testid="c2-detail-share-location-btn"]')).toBeNull();
   });
 
   it("copy is pinned to the behavior in source: one fix, no watch, honest success line", () => {

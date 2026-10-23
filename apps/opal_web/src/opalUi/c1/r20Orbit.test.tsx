@@ -65,7 +65,28 @@ async function render(node: React.ReactNode) {
   return host;
 }
 
+// Repair #28 (W28-7): the composer mic renders ONLY where a
+// speech recognizer genuinely exists (one composer grammar,
+// capability-truth). jsdom has none, so tests that exercise the
+// mic install this fake first; without it the mic is honestly
+// absent (asserted in the composer-dock test).
+class FakeRecognition {
+  continuous = false;
+  interimResults = false;
+  onresult: unknown = null;
+  onend: (() => void) | null = null;
+  start() {}
+  stop() {
+    this.onend?.();
+  }
+}
+function installFakeRecognition() {
+  (window as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition =
+    FakeRecognition;
+}
+
 afterEach(async () => {
+  delete (window as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
   vi.useRealTimers();
   if (root) {
     await act(async () => {
@@ -1034,6 +1055,15 @@ async function expandWhere(el: HTMLElement) {
 
 describe("Repair #21 orbit v4 - dock, collapse, discipline, doors, glimpse, chapters, frost", () => {
   it("composer dock: the empty orbit composer bar is present on first paint, mic in the slot, Send primary with text", async () => {
+    // W28-7: with no recognizer in this environment the mic is
+    // honestly ABSENT (it used to render unconditionally and fake
+    // a recording state). With the capability installed below it
+    // renders and records for real.
+    const noCap = await render(
+      <OrbitScreen scope={{ conversationId: "conv-x", title: "Bea", composition: "dyad", party: [{ id: "u-bea", name: "Bea", tint: 2, isViewer: false, pending: false, limbo: false, limboFractionRemaining: null }], personId: "u-bea", personName: "Bea", planId: null, planTitle: null } as OrbitScope} orbit={null} insight={null} sessions={[]} activeSessionId={null} emptyInvite={null} {...noopHandlers} />,
+    );
+    expect(q(noCap, '[data-testid="orbit-composer-mic"]')).toBeNull();
+    installFakeRecognition();
     const onAsk = vi.fn();
     const dyadScope: OrbitScope = {
       conversationId: "conv-dyad", title: "Bea", composition: "dyad",
@@ -1315,6 +1345,7 @@ describe("Repair #21 orbit v4 - dock, collapse, discipline, doors, glimpse, chap
   });
 
   it("V4.1 C-3: the embedded (orbit) session composer is uniform - mic in the slot when empty, recording inside the bar, Send with text", async () => {
+    installFakeRecognition();
     const el = await render(
       <CenterChat title="Dinner chat" messages={[]} plansById={new Map()} embedded composerPlaceholder="Message Opal" onSend={() => {}} />,
     );

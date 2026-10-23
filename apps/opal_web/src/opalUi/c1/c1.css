@@ -281,7 +281,11 @@
     min-height: 44px; border: 0; background: transparent; cursor: pointer; flex: none;
     color: var(--ink-2); font: var(--opal-type-meta); padding: 0 6px;
   }
-  [data-design="r18"] .c1-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+  /* Repair #28 (W28-7): min-height: 0 - as a flex child the
+   * scroller otherwise refuses to shrink below its content height,
+   * which pushed the composer out of its lawful place and let
+   * bubbles come to rest behind it. */
+  [data-design="r18"] .c1-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
   [data-design="r18"] .c1-flow { display: flex; flex-direction: column; gap: 10px; }
   [data-design="r18"] .c1-bubble-row { display: flex; }
   [data-design="r18"] .c1-bubble-own { justify-content: flex-end; }

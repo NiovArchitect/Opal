@@ -455,13 +455,22 @@ defmodule OpalCore.Messages do
     end
   end
 
-  defp human_conversation_label?(label) when is_binary(label) and label != "" do
+  @doc """
+  True when a conversation label is a human display label. Labels
+  minted as internal keys ("direct-<id8>-<id8>", "group-...",
+  "connection-...") are dedupe/lookup keys, never display text -
+  Repair #28 (W28-3): the check-in resolver stored one verbatim as
+  a user-facing circle label. Public so other modules that surface
+  a conversation's label apply the same discipline instead of
+  growing their own copy of the rule.
+  """
+  def human_conversation_label?(label) when is_binary(label) and label != "" do
     not String.starts_with?(label, "group-") and
       not String.starts_with?(label, "direct-") and
       not String.starts_with?(label, "connection-")
   end
 
-  defp human_conversation_label?(_), do: false
+  def human_conversation_label?(_), do: false
 
   @ai_states ~w(not_requested consent_required queued processing completed refused failed)
 

@@ -115,6 +115,28 @@ type OrbitProjectionExtended = OrbitProjectionContract & {
   membership_events?: Array<{ kind?: string; label?: string; at?: string | null }> | null;
 };
 
+/**
+ * Repair #28 (W28-7) - one composer grammar for voice: a mic
+ * renders only where voice input can actually start in this
+ * context. The dictation mics used to render unconditionally and
+ * lit a "recording" state with no recognizer behind them (in a
+ * WKWebView over plain HTTP there is no SpeechRecognition), while
+ * the thread composer's voice-note control honestly rendered
+ * nothing where MediaRecorder/getUserMedia is unavailable - so
+ * two composers on the same device disagreed about whether voice
+ * exists. Every voice affordance now tells the same truth.
+ */
+function speechRecognitionCtor():
+  | (new () => { start: () => void; stop: () => void })
+  | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    SpeechRecognition?: new () => { start: () => void; stop: () => void };
+    webkitSpeechRecognition?: new () => { start: () => void; stop: () => void };
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
 function membershipEventsOf(
   orbit: OrbitProjectionContract | null,
 ): Array<{ kind?: string; label?: string; at?: string | null }> {
@@ -552,27 +574,28 @@ export function OrbitScreen({
 
   const startVoice = () => {
     setVoiceNote(null);
+    // W28-7: never light a recording state with no recognizer
+    // behind it - the mic only renders where one exists, and this
+    // guard keeps the state honest if that ever changes.
+    const Ctor = speechRecognitionCtor();
+    if (!Ctor) return;
     setRecording(true);
     try {
-      const w = window as unknown as { SpeechRecognition?: new () => never; webkitSpeechRecognition?: new () => never };
-      const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-      if (Ctor) {
-        const rec = new Ctor() as unknown as {
-          continuous: boolean; interimResults: boolean;
-          onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-          onend: (() => void) | null; start: () => void; stop: () => void;
-        };
-        rec.continuous = true;
-        rec.interimResults = false;
-        rec.onresult = (e) => {
-          const text = Array.from(e.results).map((r) => r[0]?.transcript ?? "").join(" ").trim();
-          if (text) setDraft(text);
-        };
-        rec.onend = () => setRecording(false);
-        recognitionRef.current = rec;
-        rec.start();
-      }
-    } catch { /* capture unavailable: the bar still shows the state; stop returns to idle */ }
+      const rec = new Ctor() as unknown as {
+        continuous: boolean; interimResults: boolean;
+        onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+        onend: (() => void) | null; start: () => void; stop: () => void;
+      };
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.onresult = (e) => {
+        const text = Array.from(e.results).map((r) => r[0]?.transcript ?? "").join(" ").trim();
+        if (text) setDraft(text);
+      };
+      rec.onend = () => setRecording(false);
+      recognitionRef.current = rec;
+      rec.start();
+    } catch { /* capture unavailable: stop returns to idle */ }
   };
   const stopVoice = () => {
     try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
@@ -1168,11 +1191,11 @@ export function OrbitScreen({
                     >
                       {"↑"}
                     </button>
-                  ) : (
+                  ) : speechRecognitionCtor() ? (
                     <button type="button" className="orbit-composer-mic" data-testid="orbit-composer-mic" aria-label="Record a voice note" onClick={startVoice}>
                       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" /></g></svg>
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
               {voiceNote ? (
