@@ -121,6 +121,10 @@ import {
   relationshipGroupLabel,
   tieLabel,
 } from "../../opalUi/relationshipTypes";
+import {
+  ContactSuggestPicker,
+  type SelectedDeviceContact,
+} from "../../people/ContactSuggestPicker";
 import { PersonProfileSheet } from "./PersonProfile";
 import { GroupMembershipPanel } from "./GroupMembership";
 import type { ConversationShareCardProjection, PersonProfileProjection } from "./projections";
@@ -2103,6 +2107,15 @@ export function ChatsHost({
   const [phoneEntry, setPhoneEntry] = useState("");
   const [phoneNote, setPhoneNote] = useState<string | null>(null);
   const [phoneBusy, setPhoneBusy] = useState(false);
+  /** Repair #28 (W28-13): pick-a-person from the device address
+   *  book, beside the by-number entry. Until this wiring, the
+   *  native contacts bridge + requestNativeContacts existed but
+   *  their only callers lived in the legacy unmounted shell, so
+   *  the iOS contacts prompt could never fire in the served path
+   *  (Real People audit L5). The pick feeds the SAME proven
+   *  by-phone resolution below - no second path is invented. */
+  const [contactsSheetOpen, setContactsSheetOpen] = useState(false);
+  const [contactsNote, setContactsNote] = useState<string | null>(null);
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [relRows, setRelRows] = useState<RelRow[]>([]);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -2498,8 +2511,8 @@ export function ChatsHost({
    *  rendered plainly: a number that isn't on Opal, or one that
    *  isn't a valid number. Nothing is created for an unknown
    *  number — no shadow person, no empty thread. */
-  const startByPhone = useCallback(async () => {
-    const phone = phoneEntry.trim();
+  const startByPhone = useCallback(async (explicitPhone?: string) => {
+    const phone = (explicitPhone ?? phoneEntry).trim();
     if (!phone || phoneBusy) return;
     setPhoneBusy(true);
     setPhoneNote(null);
@@ -2524,6 +2537,30 @@ export function ChatsHost({
       setPhoneBusy(false);
     }
   }, [bearer, phoneEntry, phoneBusy, onConversationsChanged, openThread]);
+
+  /** Repair #28 (W28-13): a contact picked from the address book
+   *  resolves through the by-number path with the contact's own
+   *  number - one path, the server's own truth (a number that
+   *  isn't on Opal gets the same plain note as a typed one). A
+   *  contact with no number cannot start a chat, said plainly in
+   *  place. Denied contacts permission lands through onDeniedOnce
+   *  as a note in this picker; the by-number entry stays available
+   *  either way - that is the honest denied state. */
+  const pickFromContacts = useCallback(
+    (person: SelectedDeviceContact) => {
+      setContactsSheetOpen(false);
+      if (!person.phone) {
+        setContactsNote(
+          `${person.name} has no phone number in your contacts - add one to start a chat.`,
+        );
+        return;
+      }
+      setContactsNote(null);
+      setPhoneEntry(person.phone);
+      void startByPhone(person.phone);
+    },
+    [startByPhone],
+  );
 
   /** Repair #19 W24 (DL-01) — THE one relationship write for this
    *  host: resolves the relationship from the PERSON (the peer id),
@@ -3054,6 +3091,31 @@ export function ChatsHost({
                       {phoneNote}
                     </p>
                   ) : null}
+                  {/* Repair #28 (W28-13): pick-a-person - the
+                      contacts permission is requested HERE, at the
+                      moment of use, in the served picker. */}
+                  <button
+                    type="button"
+                    className="c2s-btn-quiet"
+                    data-testid="c2-c1-contacts-pick"
+                    onClick={() => setContactsSheetOpen(true)}
+                    style={{ width: "100%", marginTop: "var(--space-2)" }}
+                  >
+                    Pick from contacts
+                  </button>
+                  {contactsNote ? (
+                    <p className="c2s-card-line" data-testid="c2-c1-contacts-note">
+                      {contactsNote}
+                    </p>
+                  ) : null}
+                  <ContactSuggestPicker
+                    query=""
+                    variant="sheet"
+                    openSheet={contactsSheetOpen}
+                    onCloseSheet={() => setContactsSheetOpen(false)}
+                    onDeniedOnce={(message) => setContactsNote(message)}
+                    onSelect={pickFromContacts}
+                  />
                 </div>
               ) : null}
               {people.length === 0 ? (

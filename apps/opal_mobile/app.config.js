@@ -6,6 +6,18 @@
  * Push Notifications, strip the expo-notifications plugin + remote-notification
  * background mode for non-production builds so contacts rebuilds can sign.
  * Production / store builds keep push.
+ *
+ * Repair #28 (W28-13 follow-through, 2026-10-22): TestFlight profiles
+ * (`testflight`, `testflight_lan`) build against the App Store
+ * provisioning profile, which DOES carry `aps-environment: production`
+ * (proven by the Real People audit from build 13's profile) - so the
+ * strip was wrong for them: every TestFlight binary shipped without
+ * the expo-notifications native module and without the entitlement,
+ * and the post-auth push prompt (ProductWebSurface ->
+ * bridgeExpoPushTokenAfterAuth) silently no-opped because
+ * loadNotifications() found no module. TestFlight profiles now keep
+ * push. The build gate must verify `aps-environment` in the IPA's
+ * codesign entitlements before submit.
  */
 const base = require("./app.json").expo;
 
@@ -18,6 +30,7 @@ const profile = (
 const isProduction =
   profile === "production" ||
   profile === "production_placeholder" ||
+  profile.startsWith("testflight") ||
   process.env.OPAL_FORCE_PUSH_ENTITLEMENT === "1";
 
 function withPush(plugins) {
