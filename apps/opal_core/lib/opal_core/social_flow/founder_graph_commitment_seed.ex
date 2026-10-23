@@ -87,6 +87,27 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
       ])
 
     conv = ensure_graph_conversation!(viewer_user_id, member_ids, jordan.id)
+
+    # Repair #28 (founder W28-12): the graph conversation carried
+    # the plan but no words — an empty thread behind the world's
+    # flagship meeting reads as a fixture, not a plan people made.
+    # Two human messages in the crew's own voice, matching the
+    # plan's place and time; idempotent by client_message_id like
+    # every other seed message.
+    seed_msg(
+      conv.id,
+      jordan.id,
+      "world-graph-jordan-1",
+      "Saturday morning at the market? I'm thinking 9, before it gets busy."
+    )
+
+    seed_msg(
+      conv.id,
+      maya.id,
+      "world-graph-maya-1",
+      "In. The flower stall first, then coffee."
+    )
+
     plan = ensure_shared_plan!(conv.id, jordan.id, viewer_user_id)
 
     # Going: Jordan + Maya. Interested: Chanelle + Sabrina + Nina + viewer (or Alex if viewer is Jordan).
@@ -215,6 +236,19 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
     end
   end
 
+  defp seed_msg(conversation_id, sender_user_id, client_message_id, body) do
+    _ =
+      Messages.accept_message(%{
+        conversation_id: conversation_id,
+        sender_user_id: sender_user_id,
+        client_message_id: client_message_id,
+        message_type: "text",
+        body: body
+      })
+
+    :ok
+  end
+
   defp ensure_member!(conversation_id, user_id) do
     case Repo.get_by(ConversationMember, conversation_id: conversation_id, user_id: user_id) do
       %ConversationMember{} ->
@@ -293,10 +327,68 @@ defmodule OpalCore.SocialFlow.FounderGraphCommitmentSeed do
 
   defp restore_terminal_plan_for_seed(%SharedPlan{} = plan), do: plan
 
+  # Repair #28 (founder W28-12, seed-world coherence): the plan's
+  # start used to be "now + 52 hours" — an arbitrary weekday at an
+  # arbitrary hour wearing a "Saturday morning" title and a
+  # "Saturday · Oceanside" label (the label and the instant could
+  # disagree by days; on the founder's own walk row the pair had
+  # already drifted apart). The plan now starts when its title
+  # says: next Saturday at 9:00 AM in the world's home zone
+  # (America/Los_Angeles), computed with the same fixed DST rule
+  # HumanSeedWorld's brunch uses (BS-12). The lock-in the label
+  # names ("Lock-in Friday · 6 PM") is the evening before.
   defp friday_lock_in_start do
-    DateTime.utc_now()
-    |> DateTime.add(52 * 3600, :second)
+    utc_now = DateTime.utc_now()
+
+    today_local =
+      utc_now
+      |> DateTime.add(home_zone_offset_seconds(DateTime.to_date(utc_now)), :second)
+      |> DateTime.to_date()
+
+    # Days until Saturday (Date.day_of_week: Saturday = 6); a
+    # Saturday "today" still means THIS Saturday only if 9 AM is
+    # still ahead — otherwise next week.
+    days = rem(6 - Date.day_of_week(today_local) + 7, 7)
+
+    days =
+      if days == 0 and
+           DateTime.compare(
+             utc_now,
+             home_zone_instant(today_local, ~T[09:00:00])
+           ) != :lt,
+         do: 7,
+         else: days
+
+    today_local
+    |> Date.add(days)
+    |> home_zone_instant(~T[09:00:00])
+  end
+
+  defp home_zone_instant(%Date{} = date, %Time{} = time) do
+    offset = home_zone_offset_seconds(date)
+
+    date
+    |> NaiveDateTime.new!(time)
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.add(-offset, :second)
     |> DateTime.truncate(:microsecond)
+  end
+
+  defp home_zone_offset_seconds(%Date{} = date) do
+    dst_start = nth_weekday_of_month(date.year, 3, 7, 2)
+    dst_end = nth_weekday_of_month(date.year, 11, 7, 1)
+
+    if Date.compare(date, dst_start) != :lt and Date.compare(date, dst_end) == :lt do
+      -7 * 3600
+    else
+      -8 * 3600
+    end
+  end
+
+  defp nth_weekday_of_month(year, month, dow, n) do
+    first = Date.new!(year, month, 1)
+    delta = rem(dow - Date.day_of_week(first) + 7, 7)
+    Date.add(first, delta + (n - 1) * 7)
   end
 
   defp ensure_participants!(plan, jordan_id, going_ids, interested_ids) do

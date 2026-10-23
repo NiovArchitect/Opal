@@ -391,18 +391,51 @@ defmodule OpalCore.SocialFlow.FounderCommunicationSeed do
     }
   end
 
-  # Next Saturday at 19:30 UTC (the plan's own time_label carries the
-  # human "Saturday · 7:30 PM"; start_at exists so the state family can
-  # derive ready/happening honestly from the window, never from a label).
+  # Next Saturday at 19:30 in the plan's home zone
+  # (America/Los_Angeles). Repair #28 (founder W28-12): this used
+  # to build 19:30 UTC — 12:30 PM PDT — while the plan's own
+  # time_label and timezone said "Saturday · 7:30 PM" in Los
+  # Angeles: the label and the instant disagreed by the whole zone
+  # offset (the BS-12 species HumanSeedWorld fixed for its brunch;
+  # the same fixed DST rule is used here — no tzdata dependency
+  # exists in this app). start_at exists so the state family can
+  # derive ready/happening honestly from the window, never from a
+  # label.
   defp next_saturday_evening do
-    today = DateTime.utc_now() |> DateTime.to_date()
-    days = rem(6 - Date.day_of_week(today) + 7, 7)
-    days = if days == 0, do: 7, else: days
+    utc_now = DateTime.utc_now()
 
-    today
-    |> Date.add(days)
-    |> DateTime.new!(~T[19:30:00], "Etc/UTC")
+    today_local =
+      utc_now
+      |> DateTime.add(home_zone_offset_seconds(DateTime.to_date(utc_now)), :second)
+      |> DateTime.to_date()
+
+    days = rem(6 - Date.day_of_week(today_local) + 7, 7)
+    days = if days == 0, do: 7, else: days
+    saturday = Date.add(today_local, days)
+    offset = home_zone_offset_seconds(saturday)
+
+    saturday
+    |> NaiveDateTime.new!(~T[19:30:00])
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.add(-offset, :second)
     |> DateTime.truncate(:microsecond)
+  end
+
+  defp home_zone_offset_seconds(%Date{} = date) do
+    dst_start = nth_weekday_of_month(date.year, 3, 7, 2)
+    dst_end = nth_weekday_of_month(date.year, 11, 7, 1)
+
+    if Date.compare(date, dst_start) != :lt and Date.compare(date, dst_end) == :lt do
+      -7 * 3600
+    else
+      -8 * 3600
+    end
+  end
+
+  defp nth_weekday_of_month(year, month, dow, n) do
+    first = Date.new!(year, month, 1)
+    delta = rem(dow - Date.day_of_week(first) + 7, 7)
+    Date.add(first, delta + (n - 1) * 7)
   end
 
   defp seed_msg(conversation_id, sender_user_id, client_message_id, body) do

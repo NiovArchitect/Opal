@@ -349,14 +349,17 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
       "I can book the corner table if you're in."
     )
 
-    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-
     plan =
       ensure_plan!(conv, %{
         title: "Rooftop drinks at The Brick Hotel",
         status: "tentative",
         location: "The Brick Hotel, Oceanside",
-        start_at: DateTime.add(now, 3 * 24 * 3600, :second),
+        # Repair #28 (founder W28-12): the start used to float at
+        # "now + 3 days" — an arbitrary weekday wearing a "Friday"
+        # label. It now lands on next Friday at 6:30 PM home-zone
+        # time, so the label and the instant agree (sunset hour in
+        # the world's coastal fall).
+        start_at: next_friday_evening(),
         time_label: "Friday · Sunset",
         created_by_user_id: peers.chanelle
       })
@@ -521,8 +524,13 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
       "Next time we start an hour earlier and beat the headwind."
     )
 
-    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-    start = DateTime.add(now, -8 * 24 * 3600, :second)
+    # Repair #28 (founder W28-12): the ride's start used to float
+    # at "now - 8 days" — whatever weekday that happened to be,
+    # wearing a "Saturday · 9:00 AM" label (the detail then
+    # rendered label and a different weekday's date side by side).
+    # It now lands on the most recent Saturday at 9:00 AM
+    # home-zone time, so the label and the date agree.
+    start = most_recent_saturday_morning()
 
     plan =
       ensure_plan!(conv, %{
@@ -1422,6 +1430,61 @@ defmodule OpalCore.SocialFlow.HumanSeedWorld do
 
     sunday
     |> NaiveDateTime.new!(~T[11:00:00])
+    |> DateTime.from_naive!("Etc/UTC")
+    |> DateTime.add(-offset, :second)
+    |> DateTime.truncate(:microsecond)
+  end
+
+  # Repair #28 (founder W28-12): label-true instants for the two
+  # plans whose labels name a weekday — same home-zone construction
+  # as next_sunday_late_morning/0 above.
+  defp next_friday_evening do
+    utc_now = DateTime.utc_now()
+
+    today_local =
+      utc_now
+      |> DateTime.add(home_zone_offset_seconds(DateTime.to_date(utc_now)), :second)
+      |> DateTime.to_date()
+
+    # Friday = day_of_week 5; a Friday today still counts when
+    # 6:30 PM is ahead, otherwise next week.
+    days = rem(5 - Date.day_of_week(today_local) + 7, 7)
+
+    days =
+      if days == 0 and
+           DateTime.compare(utc_now, home_zone_at(today_local, ~T[18:30:00])) != :lt,
+         do: 7,
+         else: days
+
+    today_local |> Date.add(days) |> home_zone_at(~T[18:30:00])
+  end
+
+  defp most_recent_saturday_morning do
+    utc_now = DateTime.utc_now()
+
+    today_local =
+      utc_now
+      |> DateTime.add(home_zone_offset_seconds(DateTime.to_date(utc_now)), :second)
+      |> DateTime.to_date()
+
+    # Saturday = day_of_week 6; step back to the most recent one
+    # whose 9:00 AM is already past (today counts once it is).
+    days_back = rem(Date.day_of_week(today_local) - 6 + 7, 7)
+    candidate = Date.add(today_local, -days_back)
+
+    if days_back == 0 and
+         DateTime.compare(utc_now, home_zone_at(candidate, ~T[09:00:00])) == :lt do
+      candidate |> Date.add(-7) |> home_zone_at(~T[09:00:00])
+    else
+      home_zone_at(candidate, ~T[09:00:00])
+    end
+  end
+
+  defp home_zone_at(%Date{} = date, %Time{} = time) do
+    offset = home_zone_offset_seconds(date)
+
+    date
+    |> NaiveDateTime.new!(time)
     |> DateTime.from_naive!("Etc/UTC")
     |> DateTime.add(-offset, :second)
     |> DateTime.truncate(:microsecond)
