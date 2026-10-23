@@ -19,6 +19,10 @@
  * event-driven, still no polling.
  * W28-12: the Create form's who summary never duplicates the
  * empty-state line.
+ * W28-16: the comments composer button sizes to its label (the
+ * full-width form-button width squeezed the input to a sliver).
+ * W28-18: the Privacy room carries the Connectors door once.
+ * W28-19: device last-seen renders as human words, never raw ISO.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -28,6 +32,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { PreparationSpine } from "./PreparationSpine";
 import { foldSpineAnswers, spineFromPlan, type SpineItem } from "./density";
+import { deviceLastSeenLabel } from "./shellData";
 import type { OpalPlanContract } from "../../api/productClient";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -167,6 +172,17 @@ describe("W28-12 - create who summary never duplicates the empty state", () => {
   it("the whoLine paragraph is gated on people existing", () => {
     const shell = read("./C2Shell.tsx");
     expect(shell).toContain("whoPeople.length === 0 ? null");
+  });
+});
+
+describe("W28-19 - device last-seen is human words, never a raw ISO string", () => {
+  it("formats the stamp and never leaks the raw value", () => {
+    expect(deviceLastSeenLabel("2026-10-23T05:01:37.455846Z")).toBe("Last seen Oct 23, 5:01 AM");
+    expect(deviceLastSeenLabel(null)).toBeNull();
+    expect(deviceLastSeenLabel("not-a-date")).toBeNull();
+    const data = read("./shellData.ts");
+    expect(data).not.toContain("`Last seen ${device.last_seen_at}`");
+    expect(data).toContain("deviceLastSeenLabel(device.last_seen_at) ?? device.platform");
   });
 });
 

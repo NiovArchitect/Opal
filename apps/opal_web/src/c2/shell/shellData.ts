@@ -181,6 +181,25 @@ export function capsuleSavedLabel(iso: string | null | undefined): string | null
   return `Saved ${month} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
+/** Repair #28 (W28-19): ISO timestamp -> "Last seen Oct 23, 5:01 AM".
+ *  The Linked devices rows used to interpolate the raw ISO string
+ *  (microseconds and Z) straight into the subtitle - machine copy on
+ *  a user surface. Absent/unparseable -> null, and the row falls
+ *  back to the platform line, never the raw string. */
+export function deviceLastSeenLabel(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const stamp = d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+  });
+  return `Last seen ${stamp}`;
+}
+
 /** A capsule's scope kind, from the contract's own fields only. */
 export function capsuleScopeKind(capsule: {
   scope_kind?: string | null;
@@ -2888,9 +2907,7 @@ export async function buildSettingsSection(
               kind: "value" as const,
               id: `device-${device.id}`,
               title: device.is_current ? `${device.device_label} - this device` : device.device_label,
-              subtitle: device.last_seen_at
-                ? `Last seen ${device.last_seen_at}`
-                : device.platform,
+              subtitle: deviceLastSeenLabel(device.last_seen_at) ?? device.platform,
               value: device.status === "active" ? "Active" : "Signed out",
             })),
             ...devices
