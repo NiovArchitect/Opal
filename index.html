@@ -2,10 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Repair #18 C2: pre-paint mode boot. External file because CSP is
-         script-src 'self'. Sets data-mode + mode-correct ground on the
-         C2 shell path only, before first paint (no white flash). -->
-    <script src="/c2-boot.js"></script>
     <!-- frame-ancestors is HTTP-header-only; browsers ignore it in <meta> and warn.
          Production/dev server headers still set frame-ancestors 'none' (see security.test). -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:4000 http://localhost:4000 https://api.opal.niovlabs.com https://api-opal.niovlabs.com https://opal-api-ao0c.onrender.com https://*.onrender.com wss://api.opal.niovlabs.com wss://api-opal.niovlabs.com wss://opal-api-ao0c.onrender.com wss://*.onrender.com ws:; base-uri 'self'; form-action 'self'" />
@@ -14,26 +10,21 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <!-- maximum-scale=1: prevent iOS WKWebView residual zoom after keyboard dismiss (Center composer). -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-    <meta
-      name="description"
-      content="Opal Graph: people, experiences, connected. An AI native social system that helps people live life together."
-    />
+    <meta name="description" content="Atrium. People. Places. Possibilities." />
     <meta name="robots" content="index,follow" />
-    <meta name="theme-color" content="#050816" />
+    <meta name="theme-color" content="#F7F6F3" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Opal Graph</title>
-    <!-- W6A2 - canonical opaque app icon derivatives -->
-    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
-    <link rel="icon" href="/brand/favicon-48.png" type="image/png" sizes="48x48" />
-    <link rel="apple-touch-icon" href="/brand/opal-app-icon-180.png" sizes="180x180" />
-    <link rel="manifest" href="/brand/opal-graph/site.webmanifest" />
-    <script type="module" crossorigin src="/assets/main-CGljyOXp.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/preload-helper-DVw6rfNc.js">
-    <link rel="stylesheet" crossorigin href="/assets/preload-helper-D52t8WBD.css">
-    <link rel="stylesheet" crossorigin href="/assets/main-y526Sowr.css">
+    <title>Atrium</title>
+    <link rel="icon" href="/brand/atrium-favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/brand/atrium-app-icon.png" sizes="180x180" />
+    <style>
+      html, body { margin: 0; padding: 0; background: #ECECEA; }
+    </style>
+    <script type="module" crossorigin src="/assets/main-CMPLgYlc.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-CsJtgmI8.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="finca-root"></div>
   </body>
 </html>
