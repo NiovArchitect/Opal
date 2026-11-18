@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <!-- frame-ancestors is HTTP-header-only; browsers ignore it in <meta> and warn.
          Production/dev server headers still set frame-ancestors 'none' (see security.test). -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:4000 http://localhost:4000 https://api.opal.niovlabs.com https://api-opal.niovlabs.com https://opal-api-ao0c.onrender.com https://*.onrender.com wss://api.opal.niovlabs.com wss://api-opal.niovlabs.com wss://opal-api-ao0c.onrender.com wss://*.onrender.com ws:; base-uri 'self'; form-action 'self'" />
+    <!-- The tail1de288.ts.net entries in connect-src below are the designated
+         Mac pilot host for the temporary repoint of 2026-11-18 (the hosted
+         client talks to the pilot on the founder's Mac while Meta's
+         enforcement blocks the Render pilot's brain). They retire with the
+         rollback to the Render address. Pinned in security.test. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:4000 http://localhost:4000 https://api.opal.niovlabs.com https://sadeils-macbook-pro.tail1de288.ts.net https://api-opal.niovlabs.com https://opal-api-ao0c.onrender.com https://*.onrender.com wss://api.opal.niovlabs.com wss://sadeils-macbook-pro.tail1de288.ts.net wss://api-opal.niovlabs.com wss://opal-api-ao0c.onrender.com wss://*.onrender.com ws:; base-uri 'self'; form-action 'self'" />
 
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -21,7 +26,7 @@
     <style>
       html, body { margin: 0; padding: 0; background: #ECECEA; }
     </style>
-    <script type="module" crossorigin src="/assets/main-CMPLgYlc.js"></script>
+    <script type="module" crossorigin src="/assets/main-BzkARWp5.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/main-CsJtgmI8.css">
   </head>
   <body>
