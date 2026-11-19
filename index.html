@@ -135,14 +135,14 @@
     .ga-band{grid-area:band;margin-top:0;align-self:start}
     .ga-momm{grid-area:mom;margin-top:36px}
     /* THE CLOSING CARD AT DESKTOP: SIGNATURE BESIDE THE WORDS */
-    .closecard{padding:64px 60px;grid-template-columns:1.12fr .88fr;grid-template-areas:"brand sig" "line sig" "sub sig" "btn sig";column-gap:40px}
+    .closecard{padding:64px 60px;grid-template-columns:1.12fr .88fr;grid-template-areas:"brand sig" "line sig" "sub sig" "btn btn";column-gap:40px}
     .cc-line{font-size:52px;margin-top:30px}
     .cc-sig{height:252px;align-self:center;justify-self:center;animation:drift 7s ease-in-out infinite}
-    .cc-btns{flex-direction:row;align-items:center;gap:30px}
+    .cc-btns{flex-direction:row;align-items:center;justify-content:center;gap:30px}
     .qrcard{display:block;background:#F3EFFE;border:1px solid var(--cardline);border-radius:22px;padding:22px 20px 16px;text-align:center;box-shadow:0 14px 34px rgba(16,20,24,.07);position:relative;overflow:hidden}
     .qrcard::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--fire)}
-    .qrcard img{width:148px;height:148px;display:block}
-    .qrcard p{font-size:15.5px;line-height:1.45;color:var(--ink);font-weight:600;margin-top:12px;max-width:184px}
+    .qrcard img{width:148px;height:148px;display:block;margin:0 auto}
+    .qrcard p{font-size:15.5px;line-height:1.45;color:var(--ink);font-weight:600;margin:12px auto 0;max-width:184px}
     .grule{flex-basis:150px}
     .wave{height:110px}
   }
