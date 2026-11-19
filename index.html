@@ -1,35 +1,349 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- frame-ancestors is HTTP-header-only; browsers ignore it in <meta> and warn.
-         Production/dev server headers still set frame-ancestors 'none' (see security.test). -->
-    <!-- The tail1de288.ts.net entries in connect-src below are the designated
-         Mac pilot host for the temporary repoint of 2026-11-18 (the hosted
-         client talks to the pilot on the founder's Mac while Meta's
-         enforcement blocks the Render pilot's brain). They retire with the
-         rollback to the Render address. Pinned in security.test. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:4000 http://localhost:4000 https://api.opal.niovlabs.com https://sadeils-macbook-pro.tail1de288.ts.net https://api-opal.niovlabs.com https://opal-api-ao0c.onrender.com https://*.onrender.com wss://api.opal.niovlabs.com wss://sadeils-macbook-pro.tail1de288.ts.net wss://api-opal.niovlabs.com wss://opal-api-ao0c.onrender.com wss://*.onrender.com ws:; base-uri 'self'; form-action 'self'" />
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Atrium remembers the relationship, not just the transaction. People. Places. Possibilities." />
+<title>Atrium</title>
+<style>
+  :root{
+    --canvas:#FAF5EC; --ink:#101418; --body:#23272c; --muted:#5a6068;
+    --blue:#2273E8; --red:#EF4633; --green:#11A36A; --violet:#8B5CF6;
+    --pink:#FDEAE7; --bluetint:#E4EEFC; --yellow:#FBF0CD; --greentint:#E1F3E9;
+    --cardline:#e7dfd2;
+    --fire:linear-gradient(100deg,#7D4DCE,#6257C7,#60B9D8,#D972C2,#F1AA62);
+    --lav:rgba(139,92,246,.08);
+    --shadow:0 24px 60px rgba(16,20,24,.10),0 4px 14px rgba(16,20,24,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--canvas);color:var(--body);font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  header{display:flex;justify-content:space-between;align-items:center;padding:26px 0 8px}
+  .brandlock{display:flex;align-items:center;gap:12px}
+  .sig{display:none}
+  .wordmark{font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:700;color:var(--ink);letter-spacing:.01em}
+  .headright{display:flex;align-items:center;gap:24px}
+  .prolinks{display:none;gap:22px}
+  .prolinks a{color:var(--muted);font-size:16.5px;font-weight:600;text-decoration:none}
+  @media (min-width:900px){ .prolinks{display:flex} }
+  .signin{text-decoration:none;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:999px;padding:10px 26px;font-size:17px;font-weight:600}
+  .eyebrow{text-transform:uppercase;letter-spacing:.28em;font-weight:700;font-size:14px;color:var(--violet)}
+  .hero{padding:64px 0 0}
+  h1{font-family:Georgia,"Times New Roman",serif;text-transform:uppercase;font-weight:500;color:var(--ink);font-size:64px;line-height:1.08;letter-spacing:.005em;margin:26px 0 0}
+  h1 .accent{color:var(--red)}
+  .under{font-family:Georgia,"Times New Roman",serif;font-size:27px;line-height:1.35;color:var(--ink);margin:30px 0 0;max-width:30em}
+  .lede{font-size:20px;line-height:1.55;margin:22px 0 0;max-width:36em}
+  .btns{display:flex;flex-direction:column;gap:16px;margin:36px 0 0;align-items:flex-start}
+  .btn{display:inline-flex;align-items:center;gap:12px;border-radius:999px;padding:16px 34px;font-size:19px;font-weight:700;text-decoration:none}
+  .btn-blue{background:var(--blue);color:#fff}
+  .btn-violet{background:var(--violet);color:#fff}
+  .btn-ghost{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+  .btn-black{background:var(--ink);color:#fff}
+  .hero-photo{margin:56px -24px 0;position:relative;overflow:hidden}
+  .hero-photo img{width:100%;display:block;aspect-ratio:4/3.4;object-fit:cover}
+  .hero-photo .over{position:absolute;right:26px;bottom:24px;color:#fff;font-family:Georgia,"Times New Roman",serif;font-size:32px;line-height:1.2;text-align:left;text-shadow:0 1px 14px rgba(0,0,0,.35)}
+  section{padding:72px 0 0}
+  h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;color:var(--ink);font-size:42px;line-height:1.15;margin:16px 0 0}
+  .bigline{font-size:21px;line-height:1.5;margin:18px 0 0;max-width:38em}
+  .link{color:var(--ink);font-weight:700;font-size:19px;text-decoration:underline;text-underline-offset:5px;display:inline-block;margin-top:20px}
+  .photo{width:100%;border-radius:24px;display:block;margin-top:30px;object-fit:cover}
+  .band{border-radius:28px;padding:40px 32px}
+  .band .statement{font-family:Georgia,"Times New Roman",serif;font-size:30px;line-height:1.35;color:var(--ink)}
+  .pink{background:var(--pink)}
+  .bluetint{background:var(--bluetint)}
+  .violettint{background:var(--lav)}
+  .yellow{background:var(--yellow)}
+  .greentint{background:var(--greentint)}
+  .band p{font-size:19.5px;line-height:1.6;margin-top:18px;max-width:40em}
+  .moment{background:#fff;border:1px solid var(--cardline);border-radius:30px;padding:32px 28px;margin-top:44px}
+  .state{display:inline-flex;align-items:center;gap:10px;background:var(--greentint);border-radius:999px;padding:9px 20px;font-size:16px;font-weight:700;color:var(--ink)}
+  .state .dot{width:11px;height:11px;border-radius:50%;background:var(--green)}
+  .statenote{font-size:16.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+  .chat{margin-top:10px}
+  .chat p{font-size:19px;line-height:1.5;margin-top:14px}
+  .chat b{color:var(--ink)}
+  .rows{border-top:1px solid var(--cardline);margin-top:24px;padding-top:18px}
+  .rows div{font-size:19px;line-height:1.45;padding:6px 0}
+  .rows span{color:var(--green);margin-right:12px;font-weight:700}
+  .rows .lbl{font-weight:700;color:var(--ink)}
+  .home{border:1px solid var(--cardline);border-radius:22px;overflow:hidden;margin-top:26px;background:#fff}
+  .home img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+  .home .in{padding:20px 22px 24px}
+  .home h4{font-size:21px;color:var(--ink);margin-bottom:6px}
+  .home p{font-size:18px}
+  .place{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--cardline);border-radius:18px;padding:16px 20px;margin-top:14px;font-size:18.5px;line-height:1.4}
+  .ava{width:52px;height:52px;border-radius:50%;object-fit:cover}
+  .posthead{display:flex;align-items:center;gap:14px}
+  .posthead .who{font-size:18.5px;line-height:1.4}
+  .posthead .who b{color:var(--ink)}
+  .deskonly{display:none}
+  /* THE CLOSING CARD: THE EXPLORED CLOSE'S TREATMENT, OUR ASSETS */
+  .closecard{margin-top:96px;background:var(--lav);border-radius:32px;padding:44px 34px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand sig" "line line" "sub sub" "btn btn";column-gap:20px}
+  .cc-main{display:contents}
+  .cc-brand{grid-area:brand;font-family:Georgia,"Times New Roman",serif;font-size:21px;font-weight:700;color:var(--ink);align-self:start}
+  .cc-sig{grid-area:sig;height:76px;width:auto;align-self:start}
+  .cc-line{grid-area:line;font-family:Georgia,"Times New Roman",serif;font-weight:500;color:var(--ink);font-size:38px;line-height:1.16;margin-top:26px}
+  .cc-sub{grid-area:sub;font-family:Georgia,"Times New Roman",serif;font-size:23px;line-height:1.4;color:var(--ink);margin-top:18px;max-width:26em}
+  .cc-btns{grid-area:btn;margin-top:30px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+  /* THE QR CARD: DESKTOP ONLY. ON THE PHONE THE BUTTON IS THE DOWNLOAD. */
+  .qrcard{display:none}
+  footer{padding:30px 0 8px;margin-top:64px;font-size:16.5px;color:var(--muted)}
+  .footrow{display:flex;align-items:center;justify-content:center;gap:18px}
+  .grule{height:3px;border-radius:2px;flex:0 0 52px;background:var(--fire)}
+  .foottag{color:var(--violet);letter-spacing:.28em;text-transform:uppercase;font-weight:700;font-size:13.5px;text-align:center}
+  .footline{margin-top:18px;font-size:15.5px;color:var(--muted)}
+  .wave{display:block;width:100%;height:74px;margin-top:26px}
+  @media (min-width:900px){
+    .sig{display:block;height:36px;width:auto}
+    h1{font-size:92px}
+    .btns{flex-direction:row}
+    .hero{display:grid;grid-template-columns:1.04fr .96fr;gap:54px;align-items:center;padding-top:52px}
+    .hero-photo{margin:0;border-radius:28px;box-shadow:var(--shadow)}
+    .hero-photo img{aspect-ratio:4/4.35}
+    .hero-photo .over{font-size:40px;right:44px;bottom:38px}
+    h2{font-size:54px}
+    .moment,.home{box-shadow:0 18px 44px rgba(16,20,24,.07);transition:transform .45s ease,box-shadow .45s ease}
+    .moment:hover,.home:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+    .deskonly{display:block}
+    /* SEARCH: PHOTO LEFT, TEXT RIGHT, CARD OVER THE PHOTO'S FOOT */
+    .s-search{display:grid;grid-template-columns:1fr 1fr;column-gap:54px;grid-template-areas:"ph eb" "ph h2" "ph bl" "ov ."}
+    .ga-ph{grid-area:ph;height:100%;margin-top:0;border-radius:28px}
+    .ga-eb{grid-area:eb;align-self:end}
+    .ga-h2{grid-area:h2}
+    .ga-bl{grid-area:bl}
+    .ga-ov{grid-area:ov;margin-top:-118px;margin-left:48px;width:100%;position:relative;z-index:2}
+    /* AROUND: TWO HOMES SIDE BY SIDE, PLACES IN A ROW, POST OVERLAPPING */
+    .around-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:26px}
+    .around-grid .home{margin-top:0}
+    .places{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;margin-bottom:64px}
+    .places .place{margin-top:0}
+    .postcard{width:74%;margin:-70px 0 0 auto;position:relative;z-index:2}
+    /* TALK: TEXT LEFT, THE PRODUCT CARD RIGHT */
+    .s-talk{display:grid;grid-template-columns:1fr 1fr;column-gap:54px;grid-template-areas:"eb card" "h2 card" "bl card" "bl2 card"}
+    .ga-card{grid-area:card;margin-top:0;align-self:center}
+    .ga-bl2{grid-area:bl2}
+    /* ASSIST: THE CARD LEFT, TEXT RIGHT, INSIDE THE TINT */
+    section.tintband{background:var(--lav);border-radius:32px;padding:52px 48px;margin-top:72px}
+    .s-assist{display:grid;grid-template-columns:1fr 1fr;column-gap:54px;align-items:center}
+    .s-assist>.moment{grid-column:1;grid-row:1;margin-top:0}
+    .s-assist>div{grid-column:2;grid-row:1}
+    /* JOURNEY: PHOTO LEFT, TEXT AND CARD RIGHT */
+    .s-journey{display:grid;grid-template-columns:1fr 1fr;column-gap:54px;grid-template-areas:"ph eb" "ph h2" "ph bl" "ph mom" "ph bl2"}
+    .ga-mom{grid-area:mom}
+    /* MEMORY: TEXT LEFT, THE BAND RIGHT, THE CARD BENEATH BOTH */
+    .s-memory{display:grid;grid-template-columns:1fr 1fr;column-gap:54px;grid-template-areas:"eb band" "h2 band" "bl band" "mom mom"}
+    .ga-band{grid-area:band;margin-top:0;align-self:start}
+    .ga-momm{grid-area:mom;margin-top:36px}
+    /* THE CLOSING CARD AT DESKTOP: SIGNATURE BESIDE THE WORDS */
+    .closecard{padding:64px 60px;grid-template-columns:1.12fr .88fr;grid-template-areas:"brand sig" "line sig" "sub sig" "btn sig";column-gap:40px}
+    .cc-line{font-size:52px;margin-top:30px}
+    .cc-sig{height:252px;align-self:center;justify-self:center;animation:drift 7s ease-in-out infinite}
+    .cc-btns{flex-direction:row;align-items:center;gap:30px}
+    .qrcard{display:block;background:#F3EFFE;border:1px solid var(--cardline);border-radius:22px;padding:22px 20px 16px;text-align:center;box-shadow:0 14px 34px rgba(16,20,24,.07);position:relative;overflow:hidden}
+    .qrcard::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--fire)}
+    .qrcard img{width:148px;height:148px;display:block}
+    .qrcard p{font-size:15.5px;line-height:1.45;color:var(--ink);font-weight:600;margin-top:12px;max-width:184px}
+    .grule{flex-basis:150px}
+    .wave{height:110px}
+  }
+  @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  @media (max-width:899px){
+    header{padding-top:18px}
+    .hero{padding-top:28px}
+    h1{margin-top:16px}
+    .under{margin-top:20px}
+    .btns{margin-top:24px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
 
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <!-- maximum-scale=1: prevent iOS WKWebView residual zoom after keyboard dismiss (Center composer). -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Atrium. People. Places. Possibilities." />
-    <meta name="robots" content="index,follow" />
-    <meta name="theme-color" content="#F7F6F3" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Atrium</title>
-    <link rel="icon" href="/brand/atrium-favicon-48.png" type="image/png" sizes="48x48" />
-    <link rel="apple-touch-icon" href="/brand/atrium-app-icon.png" sizes="180x180" />
-    <style>
-      html, body { margin: 0; padding: 0; background: #ECECEA; }
-    </style>
-    <script type="module" crossorigin src="/assets/main-BjuqDClZ.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-BdKyXOUp.css">
-  </head>
-  <body>
-    <div id="finca-root"></div>
-  </body>
+  <header>
+    <div class="brandlock"><img class="sig" src="/brand/atrium-symbol.svg" alt="" /><div class="wordmark">Atrium</div></div>
+    <div class="headright">
+      <nav class="prolinks"><a href="agents.html">For Agents</a><a href="brokers.html">For Brokers</a></nav>
+      <a class="signin" href="/finca.html">Sign in</a>
+    </div>
+  </header>
+
+  <!-- HERO: HIS SHORTER HEADLINE, AT FULL DRAMATIC TYPE -->
+  <div class="hero">
+    <div class="herotext">
+      <div class="eyebrow">People. Places. Possibilities.</div>
+      <h1>You told them. You showed them. Why are they <span class="accent">still guessing?</span></h1>
+      <p class="under">Your searches tell one story. Your conversations tell another. Atrium brings them together.</p>
+      <div class="btns">
+        <a class="btn btn-violet" href="/finca.html">Call your agent. Graph the good stuff. <span>&rarr;</span></a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="/assets/delmar-CMTKuabt.jpg" alt="A coastal California home in warm evening light" />
+      <div class="over">Find a home<br/>you love.<br/>Together.</div>
+    </div>
+  </div>
+
+  <!-- SEARCH: THE SEARCH THAT STARTS OVER -->
+  <section class="s-search">
+    <div class="eyebrow ga-eb">Search</div>
+    <h2 class="ga-h2">You&rsquo;ve seen 30 homes. Why does every search feel like starting over?</h2>
+    <p class="bigline ga-bl">Every new search starts from zero, as if the last thirty taught it nothing. On Atrium, a search keeps what your conversations already settled, so each home you see sharpens the next one.</p>
+    <div class="moment ga-ov">
+      <div class="eyebrow">Your search, keeping up</div>
+      <div class="rows" style="border-top:none;margin-top:14px;padding-top:0">
+        <div><span>&#10003;</span><span class="lbl">Loved:</span> the kitchen at Fire Mountain.</div>
+        <div><span>&#10003;</span><span class="lbl">Ruled out:</span> the busy street.</div>
+        <div><span>&#10003;</span><span class="lbl">Next:</span> similar homes, more privacy.</div>
+      </div>
+    </div>
+    <img class="photo ga-ph" src="/assets/encinitas-kitchen-Dcd5yq_R.jpg" alt="A bright kitchen in a California home" />
+  </section>
+
+  <!-- AROUND: THE LIFE AROUND THE HOUSE, UNMISTAKABLY SOCIAL -->
+  <section>
+    <div class="eyebrow">Around</div>
+    <h2>You love the house. But do you love the life around it?</h2>
+    <div class="band violettint" style="margin-top:26px">
+      <p class="statement">A listing shows you the property. Around helps you discover the place.</p>
+      <p>A home is not just where you live. It is everything you get to live around. Around stands the neighborhood beside the home: its places, and what the people in your life have marked, shared, and said about them.</p>
+    </div>
+    <div class="around-grid">
+      <div class="home">
+        <img src="/assets/encinitas-street-CQvdZwtG.jpg" alt="A quiet, tree-lined street of homes in the evening" />
+        <div class="in">
+          <h4>Encinitas</h4>
+          <p>The neighborhood around this home: its streets, its corners, its Saturday mornings.</p>
+        </div>
+      </div>
+      <div class="home">
+        <img src="/assets/encinitas-nph8w-zs.jpg" alt="A California home with a tiled roof and a garden path" />
+        <div class="in">
+          <h4>A home in Encinitas</h4>
+          <p>And the life around it, one tap away.</p>
+        </div>
+      </div>
+    </div>
+    <div class="places">
+      <div class="place"><img class="ava" src="/assets/marcus-EieBYimj.jpg" alt="" /><span>The coffee shop on the corner, marked by Marcus.</span></div>
+      <div class="place"><img class="ava" src="/assets/priya-NzcNpxa_.jpg" alt="" /><span>The park two streets over, shared by Priya.</span></div>
+    </div>
+    <div class="moment postcard">
+      <div class="eyebrow">A story shared at this place</div>
+      <div class="posthead" style="margin-top:18px">
+        <img class="ava" src="/assets/priya-NzcNpxa_.jpg" alt="" />
+        <p class="who"><b>Priya</b>, at the park two streets over</p>
+      </div>
+      <div class="chat">
+        <p>&ldquo;Saturday mornings here are the whole neighborhood out at once: the farmers market on the grass, coffee from the cart on the corner, and somebody&rsquo;s dog in every conversation. This is the part the listing cannot show you.&rdquo;</p>
+      </div>
+      <p class="statenote">Shared by Priya at a public place, standing here while she keeps it shared. Stories stand for a limited time.</p>
+    </div>
+    <p class="bigline">The life around a home is the part no listing can photograph. Around is where you explore it before you ever visit.</p>
+  </section>
+
+  <!-- TALK + GRAPH: YOU ALREADY SAID IT -->
+  <section class="s-talk">
+    <div class="eyebrow ga-eb">Talk + Graph</div>
+    <h2 class="ga-h2">You already said it. Graph the good stuff.</h2>
+    <p class="bigline ga-bl">Call your real estate agent, and with your permission the conversation is graphed as it happens: what mattered, what changed, what is next, kept inside the conversation itself. The next time you talk, it opens already knowing.</p>
+    <div class="moment ga-card">
+      <div class="state"><span class="dot"></span>Graphing on</div>
+      <p class="statenote">With your permission, under your standing setting. Pause or stop any time. You always see when graphing is on, paused, or off.</p>
+      <div class="chat">
+        <p><b>You:</b> We loved the kitchen, but the street was too busy. Something similar, with more privacy.</p>
+        <p><b>Your real estate agent:</b> Then the kitchen is the one to beat, and the street is out.</p>
+      </div>
+      <div class="rows">
+        <div><span>&#10003;</span><span class="lbl">What mattered:</span> the kitchen you loved.</div>
+        <div><span>&#10003;</span><span class="lbl">What changed:</span> the street is out.</div>
+        <div><span>&#10003;</span><span class="lbl">What is next:</span> comparable homes to explore.</div>
+      </div>
+      <p class="statenote">The recap stands in this conversation, in your own words.</p>
+    </div>
+    <p class="bigline ga-bl2">Graphing is permission based, and its state is never hidden from you.</p>
+  </section>
+
+  <!-- AI ASSIST: UNDERSTANDING, DEMONSTRATED -->
+  <section class="tintband">
+    <div class="s-assist">
+      <div>
+        <div class="eyebrow">Atrium&rsquo;s AI Assist</div>
+        <h2>Forty pages. One signature. A hundred questions.</h2>
+        <p class="bigline">Let Atrium&rsquo;s AI Assist help make sense of the paperwork and what happens next. It explains unfamiliar words in plain language and helps you prepare the questions worth bringing to your real estate agent.</p>
+      </div>
+      <div class="moment">
+        <div class="chat">
+          <p><b>You:</b> What is earnest money?</p>
+          <p><b>Atrium&rsquo;s AI Assist:</b> Earnest money is a deposit a buyer puts down to show they are serious about buying the home. In California it is often 1 to 3 percent of the price, and it counts toward the purchase at closing.</p>
+        </div>
+        <p class="statenote">Arrive at the harder questions knowing what to ask.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOURNEY: CHASING THE UPDATES -->
+  <section class="s-journey">
+    <div class="eyebrow ga-eb">The journey</div>
+    <h2 class="ga-h2">Your home. Your move. Why are you chasing the updates?</h2>
+    <p class="bigline ga-bl">Showings, questions, documents, decisions. Atrium helps keep the people, the conversations, and the next steps connected, so there is less to piece together yourself.</p>
+    <img class="photo ga-ph deskonly" src="/assets/oceanside-C40wuqcE.jpg" alt="A coastal neighborhood in warm evening light" />
+    <div class="moment ga-mom">
+      <div class="rows" style="border-top:none;margin-top:0;padding-top:0">
+        <div><span>&#10003;</span><span class="lbl">Your tour day:</span> the homes, a pause between them, and the thread where the day lives.</div>
+        <div><span>&#10003;</span><span class="lbl">Your file:</span> the next step standing on it, where you and your real estate agent both see it.</div>
+      </div>
+    </div>
+    <p class="bigline ga-bl2">Less chasing. More knowing.</p>
+  </section>
+
+  <!-- MEMORY: WHAT STAYS YOURS -->
+  <section class="s-memory">
+    <div class="eyebrow ga-eb">Your memory</div>
+    <h2 class="ga-h2">You said it once. It stays said.</h2>
+    <p class="bigline ga-bl">What Atrium keeps is what you said: the preferences you stated, the decisions you made, the corrections you gave, newest first. Not what you clicked. What you said.</p>
+    <div class="band greentint ga-band">
+      <p class="statement">Your memory of your home search belongs to you.</p>
+      <p>See it. Correct it. Strike it. Take it with you. Share it only where you choose, inside your relationships, and end a share whenever you like.</p>
+    </div>
+    <div class="moment ga-momm">
+      <div class="rows" style="border-top:none;margin-top:0;padding-top:0">
+        <div><span>&#10003;</span>The kitchen at Fire Mountain: loved. From your call on Friday.</div>
+        <div><span>&#10003;</span>More privacy than the last street. Said by you, and standing newest first.</div>
+        <div><span>&#10003;</span>Shared with your real estate agent, inside your relationship. Nothing serves outside it.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSE: THE DISTINCTION, IN ITS PLACE, IN THE BEAUTIFUL TREATMENT -->
+  <div class="closecard">
+    <div class="cc-main">
+      <div class="cc-brand">Atrium</div>
+      <h2 class="cc-line">Atrium is changing where real estate happens.</h2>
+      <p class="cc-sub">Atrium gives those conversations a home. And then makes them useful.</p>
+      <div class="cc-btns">
+        <a class="btn btn-violet" href="/finca.html">Download Atrium</a>
+        <div class="qrcard">
+          <img src="/qr-download-styled.png" alt="QR code: point your phone at it to download Atrium" />
+          <p>Point your phone here to download Atrium.</p>
+        </div>
+      </div>
+    </div>
+    <img class="cc-sig" src="/brand/atrium-symbol.svg" alt="The Atrium signature" />
+  </div>
+  <footer>
+    <div class="footrow"><span class="grule"></span><span class="foottag">People. Places. Possibilities.</span><span class="grule"></span></div>
+    <div class="footline">Atrium.</div>
+  </footer>
+
+</div>
+<svg class="wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="fw" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7D4DCE"/><stop offset=".25" stop-color="#6257C7"/><stop offset=".5" stop-color="#60B9D8"/><stop offset=".75" stop-color="#D972C2"/><stop offset="1" stop-color="#F1AA62"/>
+    </linearGradient>
+  </defs>
+  <path d="M0,72 C200,118 400,14 660,48 C920,82 1140,18 1440,66 L1440,120 L0,120 Z" fill="url(#fw)"/>
+  <path d="M0,94 C260,44 540,116 840,84 C1140,52 1300,98 1440,64 L1440,120 L0,120 Z" fill="#8B5CF6" opacity=".45"/>
+</svg>
+</body>
 </html>
